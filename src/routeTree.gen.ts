@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as IndexRouteImport } from './routes/index'
 
 const IvoRoute = IvoRouteImport.update({
@@ -23,6 +24,11 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
   path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ColaboradorRoute = ColaboradorRouteImport.update({
+  id: '/colaborador',
+  path: '/colaborador',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/ivo'
+  fullPaths: '/' | '/colaborador' | '/design-system' | '/ivo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design-system' | '/ivo'
-  id: '__root__' | '/' | '/design-system' | '/ivo'
+  to: '/' | '/colaborador' | '/design-system' | '/ivo'
+  id: '__root__' | '/' | '/colaborador' | '/design-system' | '/ivo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ColaboradorRoute: typeof ColaboradorRoute
   DesignSystemRoute: typeof DesignSystemRoute
   IvoRoute: typeof IvoRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/colaborador': {
+      id: '/colaborador'
+      path: '/colaborador'
+      fullPath: '/colaborador'
+      preLoaderRoute: typeof ColaboradorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ColaboradorRoute: ColaboradorRoute,
   DesignSystemRoute: DesignSystemRoute,
   IvoRoute: IvoRoute,
 }
