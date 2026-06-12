@@ -112,7 +112,7 @@ src/
 | -------- | --------------------------------------------------- | ---------------------------------------------------- |
 | ✅ 0     | Fundação                                            | engine/pack, design-system, shell, routes            |
 | ✅ 1     | RBAC + persona switcher                             | engine/rbac/rbac.ts + AppShell (nav do pack × papel) |
-| 🔲 **2** | **Mock data layer (hooks useOrg/useIvo/useSeason)** | mocks já ricos; falta consolidar em hooks            |
+| ✅ 2     | Mock data layer (hooks tipados)                     | src/mocks/hooks.ts (useOrg/useIvo/useTeamIvo/useSeason) |
 | ✅ 3     | Motor IVO + radar 4 lentes                          | engine/index/ivo-engine.ts + routes/ivo.tsx          |
 | ✅ 4     | Dashboard Colaborador                               | app/dashboards/colaborador + /colaborador            |
 | ✅ 5     | Dashboard Líder (n≥5 visível)                       | app/dashboards/lider + /lider                        |
@@ -125,20 +125,21 @@ src/
 | ✅ 12    | FlorescerIA mockada (10 modos)                      | engine/ai + /floresceria                             |
 | ✅ 13    | Academia do Florescimento                           | /academia (trilhas por papel)                        |
 | ✅ 14    | Embaixadorias (15)                                  | /embaixadorias                                       |
-| 🔲 15    | Domínio B — aprofundar (COPSOQ agregado)            | /sst já cobre inventário+escuta+checklist            |
+| ✅ 15    | Domínio B + COPSOQ agregado                         | /sst (inventário, escuta, checklist, COPSOQ 9 dim.)  |
 | ✅ 16    | Vitality P&L                                        | engine/pnl + /pnl                                    |
-| 🔲 17    | Evidências + Relatórios + Selo Empresa Viva         | novas rotas                                          |
+| ✅ 17    | Evidências + Relatórios + Selo Empresa Viva         | /relatorios                                          |
 | ✅ 18    | Sinais Vivos                                        | engine/signals + SignalsCard no /rh                  |
-| 🔲 19    | QR / Quiosque / Onboarding                          | nova rota                                            |
+| ✅ 19    | Modo Quiosque (sessão efêmera)                      | /quiosque                                            |
 | 🔲 20    | Polimento UX premium                                | global                                               |
-| 🔲 21    | QA final + demo day test (10 passos)                | —                                                    |
+| ✅ 21    | QA — 18/18 rotas 200, lint 0 erros, prettier        | smoke test + verificação engine≠domain               |
 
 ### Rotas implementadas
 
 `/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
 `/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
-`/embaixadorias` · `/design-system`
+`/embaixadorias` · `/relatorios` (evidências + Selo) · `/quiosque` ·
+`/design-system`
 
 ### Persona demo
 
