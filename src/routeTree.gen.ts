@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LiderRouteImport } from './routes/lider'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as IndexRouteImport } from './routes/index'
 
+const LiderRoute = LiderRouteImport.update({
+  id: '/lider',
+  path: '/lider',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IvoRoute = IvoRouteImport.update({
   id: '/ivo',
   path: '/ivo',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
+  '/lider': typeof LiderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
+  '/lider': typeof LiderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
   '/ivo': typeof IvoRoute
+  '/lider': typeof LiderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/colaborador' | '/design-system' | '/ivo'
+  fullPaths: '/' | '/colaborador' | '/design-system' | '/ivo' | '/lider'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/colaborador' | '/design-system' | '/ivo'
-  id: '__root__' | '/' | '/colaborador' | '/design-system' | '/ivo'
+  to: '/' | '/colaborador' | '/design-system' | '/ivo' | '/lider'
+  id: '__root__' | '/' | '/colaborador' | '/design-system' | '/ivo' | '/lider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   ColaboradorRoute: typeof ColaboradorRoute
   DesignSystemRoute: typeof DesignSystemRoute
   IvoRoute: typeof IvoRoute
+  LiderRoute: typeof LiderRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/lider': {
+      id: '/lider'
+      path: '/lider'
+      fullPath: '/lider'
+      preLoaderRoute: typeof LiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ivo': {
       id: '/ivo'
       path: '/ivo'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   ColaboradorRoute: ColaboradorRoute,
   DesignSystemRoute: DesignSystemRoute,
   IvoRoute: IvoRoute,
+  LiderRoute: LiderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
