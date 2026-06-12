@@ -137,6 +137,9 @@ function CLevelPage() {
               </div>
             </dl>
             <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">{CLEVEL_PNL.disclaimer}</p>
+            <Link to="/pnl" className="mt-2 inline-block text-xs text-primary underline underline-offset-2">
+              P&L completo com fórmulas editáveis →
+            </Link>
           </motion.div>
 
           <motion.div

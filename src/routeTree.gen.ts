@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
@@ -36,6 +37,11 @@ const RhRoute = RhRouteImport.update({
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlRoute = PnlRouteImport.update({
+  id: '/pnl',
+  path: '/pnl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiderRoute = LiderRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/pnl'
     | '/pulse'
     | '/rh'
     | '/sst'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/pnl'
     | '/pulse'
     | '/rh'
     | '/sst'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/pnl'
     | '/pulse'
     | '/rh'
     | '/sst'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   IvoRoute: typeof IvoRoute
   LabRoute: typeof LabRoute
   LiderRoute: typeof LiderRoute
+  PnlRoute: typeof PnlRoute
   PulseRoute: typeof PulseRoute
   RhRoute: typeof RhRoute
   SstRoute: typeof SstRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl': {
+      id: '/pnl'
+      path: '/pnl'
+      fullPath: '/pnl'
+      preLoaderRoute: typeof PnlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lider': {
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   IvoRoute: IvoRoute,
   LabRoute: LabRoute,
   LiderRoute: LiderRoute,
+  PnlRoute: PnlRoute,
   PulseRoute: PulseRoute,
   RhRoute: RhRoute,
   SstRoute: SstRoute,
