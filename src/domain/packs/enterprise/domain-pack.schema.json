@@ -1,0 +1,228 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://4lentes.app/schemas/domain-pack.schema.json",
+  "title": "4 Lentes Domain Pack",
+  "description": "Contrato declarativo que configura o motor 4 Lentes para um setor (enterprise, condominium, school, government, healthcare, community). Nenhum pack pode exigir mudança no Engine; capacidades novas sobem ao Engine como recurso genérico configurável.",
+  "type": "object",
+  "required": ["packId", "packName", "version", "language", "hierarchy", "labels", "roles", "rbacInvariants", "navigation", "indexRef", "gamificationRef", "ai", "branding", "microcopy"],
+  "properties": {
+    "packId": { "type": "string", "pattern": "^[a-z][a-z0-9_-]+$" },
+    "packName": { "type": "string", "minLength": 3 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "language": { "type": "string", "examples": ["pt-BR", "en-US", "es-ES"] },
+    "promise": { "type": "string" },
+    "hierarchy": {
+      "type": "object",
+      "required": ["levels"],
+      "properties": {
+        "levels": {
+          "type": "array", "minItems": 2, "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "labelPlural"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "labelPlural": { "type": "string" },
+              "parent": { "type": "string" },
+              "optional": { "type": "boolean", "default": false }
+            }
+          }
+        }
+      }
+    },
+    "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "roles": {
+      "type": "array", "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "scope"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]+$" },
+          "label": { "type": "string" },
+          "scope": { "type": "string" },
+          "domain": { "enum": ["A", "B"] },
+          "readOnly": { "type": "boolean" },
+          "temporary": { "type": "boolean" }
+        }
+      }
+    },
+    "rbacInvariants": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": { "const": "individual_responses_never_visible_to_client_roles" },
+      "description": "Deve conter, no mínimo, as invariantes universais de privacidade."
+    },
+    "navigation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "roles"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "roles": { "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }] },
+          "domain": { "enum": ["A", "B"] }
+        }
+      }
+    },
+    "indexRef": { "type": "string", "description": "Caminho para o JSON do índice proprietário (definitions/proprietaryIndex)." },
+    "gamificationRef": { "type": "string", "description": "Caminho para o JSON da economia de gamificação (definitions/gamification)." },
+    "ai": {
+      "type": "object",
+      "required": ["name", "modes", "guardrailsNever", "guardrailsAlways"],
+      "properties": {
+        "name": { "type": "string" },
+        "fullName": { "type": "string" },
+        "modes": {
+          "type": "array", "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "roles"],
+            "properties": {
+              "id": { "type": "string" }, "label": { "type": "string" },
+              "roles": { "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }] },
+              "domain": { "enum": ["A", "B"] }
+            }
+          }
+        },
+        "guardrailsNever": {
+          "type": "array", "items": { "type": "string" },
+          "allOf": [
+            { "contains": { "const": "clinical_diagnosis" } },
+            { "contains": { "const": "expose_employee" } },
+            { "contains": { "const": "mix_domain_a_b" } }
+          ]
+        },
+        "guardrailsAlways": { "type": "array", "items": { "type": "string" }, "minItems": 3 }
+      }
+    },
+    "domainB": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "instruments": { "type": "array", "items": { "type": "string" } },
+        "mandatoryDisclaimer": { "type": "string", "minLength": 50 },
+        "riskCategories": { "type": "array", "items": { "type": "string" } }
+      },
+      "if": { "properties": { "enabled": { "const": true } } },
+      "then": { "required": ["mandatoryDisclaimer"] }
+    },
+    "branding": {
+      "type": "object",
+      "required": ["primary", "accent", "tone"],
+      "properties": {
+        "primary": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "surface": { "type": "string" },
+        "darkMode": { "type": "boolean" },
+        "tone": { "type": "string" },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "microcopy": {
+      "type": "object",
+      "required": ["welcome", "privacy", "kAnonymity"],
+      "additionalProperties": { "type": "string" }
+    },
+    "ambassadorships": { "type": "array", "items": { "type": "string" }, "minItems": 5 },
+    "certification": {
+      "type": "object",
+      "required": ["name", "levels", "criteria"],
+      "properties": {
+        "name": { "type": "string" },
+        "levels": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+        "criteria": { "type": "array", "items": { "type": "string" } },
+        "validityMonths": { "type": "integer", "minimum": 1 }
+      }
+    }
+  },
+  "definitions": {
+    "proprietaryIndex": {
+      "type": "object",
+      "required": ["id", "name", "version", "scale", "responseScale", "formula", "privacy", "mandatoryDisclaimer", "lenses", "maturityLevels"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "status": { "enum": ["experimental", "validated"] },
+        "scale": {
+          "type": "object", "required": ["min", "max"],
+          "properties": { "min": { "type": "number" }, "max": { "type": "number" } }
+        },
+        "responseScale": { "type": "object" },
+        "formula": { "type": "object" },
+        "privacy": {
+          "type": "object",
+          "required": ["kAnonymityMin", "individualScoresVisible"],
+          "properties": {
+            "kAnonymityMin": { "type": "integer", "minimum": 5 },
+            "individualScoresVisible": { "const": false },
+            "neverFeedPerformanceReview": { "const": true }
+          }
+        },
+        "mandatoryDisclaimer": { "type": "string", "minLength": 80 },
+        "lenses": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "pillars"],
+            "properties": {
+              "id": { "type": "string" }, "name": { "type": "string" },
+              "color": { "type": "string" }, "guidingQuestion": { "type": "string" },
+              "scientificBasis": { "type": "array", "items": { "type": "string" } },
+              "pillars": {
+                "type": "array", "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["id", "name", "weight"],
+                  "properties": {
+                    "id": { "type": "string" }, "name": { "type": "string" },
+                    "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+                    "sampleItems": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "maturityLevels": {
+          "type": "array", "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["min", "max", "name"],
+            "properties": {
+              "min": { "type": "number" }, "max": { "type": "number" },
+              "name": { "type": "string" }, "badge": { "type": "string" }
+            }
+          }
+        },
+        "pulse": { "type": "object" },
+        "cuts": { "type": "object" }
+      }
+    },
+    "gamification": {
+      "type": "object",
+      "required": ["version", "ethicalPrinciples", "currencies", "loops", "badges"],
+      "properties": {
+        "version": { "type": "string" },
+        "ethicalPrinciples": {
+          "type": "array", "items": { "type": "string" },
+          "allOf": [
+            { "contains": { "const": "cooperation_over_competition" } },
+            { "contains": { "const": "opt_out_respected" } },
+            { "contains": { "const": "no_mental_health_or_happiness_ranking" } }
+          ]
+        },
+        "currencies": { "type": "array", "items": { "type": "object", "required": ["id", "name"] } },
+        "loops": { "type": "object" },
+        "missionTypes": { "type": "array" },
+        "seedMissions": { "type": "array" },
+        "badges": { "type": "array", "items": { "type": "object", "required": ["id", "name", "scope", "trigger"] } },
+        "antiGaming": { "type": "object" },
+        "nudgeLibrarySeed": { "type": "array" },
+        "nudgeRules": { "type": "object" }
+      }
+    }
+  }
+}

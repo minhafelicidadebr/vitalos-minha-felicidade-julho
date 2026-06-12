@@ -21,7 +21,9 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { status, pack } = usePack();
   const packLabel =
-    status.state === "ready" ? `${pack?.meta.name} · v${pack?.meta.version}` : "Carregando pack…";
+    status.state === "ready" && pack
+      ? `${pack.packName} · v${pack.version}${status.validation.valid ? " · schema ✓" : " · schema ⚠"}`
+      : "Carregando pack…";
 
   return (
     <AppShell>
@@ -36,8 +38,7 @@ function Index() {
             Bloco 0 — Fundação
           </p>
           <h1 className="mt-6 font-serif text-5xl leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-            Sistema Operacional da{" "}
-            <span className="text-primary">Vitalidade Organizacional</span>.
+            Sistema Operacional da <span className="text-primary">Vitalidade Organizacional</span>.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
             Esta é a fundação técnica da plataforma 4 Lentes VITA. Design system, providers de

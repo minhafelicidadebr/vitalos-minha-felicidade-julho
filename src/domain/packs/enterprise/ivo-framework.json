@@ -1,0 +1,104 @@
+{
+  "$schema": "./domain-pack.schema.json#/definitions/proprietaryIndex",
+  "id": "ivo",
+  "name": "IVO — Índice de Vitalidade Organizacional",
+  "version": "1.0.0",
+  "status": "experimental",
+  "scale": { "min": 0, "max": 1000 },
+  "responseScale": { "type": "likert", "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+  "formula": {
+    "pillarScore": "mean(items)",
+    "normalized": "(pillarScore - 1) / 4",
+    "lensScore": "sum(relativeWeight * normalized) * 1000",
+    "index": "sum(pillarWeight * normalized) * 1000"
+  },
+  "privacy": {
+    "kAnonymityMin": 5,
+    "individualScoresVisible": false,
+    "rawResponsesReadableBy": ["edge_function:ivo-calc"],
+    "neverFeedPerformanceReview": true
+  },
+  "mandatoryDisclaimer": "O IVO é um índice proprietário experimental. Não é instrumento clínico, não mede felicidade individual, não diagnostica transtornos e não substitui avaliação profissional ou o PGR. Seu valor está na tendência agregada, na comparação temporal e na orientação de ações organizacionais.",
+  "lenses": [
+    {
+      "id": "eu", "name": "EU — Indivíduo", "color": "#2563EB",
+      "guidingQuestion": "Como cada pessoa floresce?",
+      "scientificBasis": ["PERMA+V", "PsyCap", "WHO-5", "Self-Determination Theory", "Job Crafting"],
+      "pillars": [
+        { "id": "energia_vitalidade", "name": "Energia & Vitalidade", "weight": 0.07,
+          "sampleItems": ["Termino a maioria dos dias de trabalho com energia para minha vida pessoal.", "Consigo fazer pausas reais durante o expediente.", "Meu sono não é prejudicado de forma recorrente pelo trabalho."] },
+        { "id": "proposito_significado", "name": "Propósito & Significado", "weight": 0.07,
+          "sampleItems": ["Vejo sentido no que faço aqui.", "Entendo como meu trabalho contribui para algo maior.", "Sinto orgulho de contar onde trabalho."] },
+        { "id": "crescimento_maestria", "name": "Crescimento & Maestria", "weight": 0.06,
+          "sampleItems": ["Aprendi algo novo no último mês.", "Tenho oportunidades reais de me desenvolver.", "Uso meus pontos fortes com frequência."] },
+        { "id": "equilibrio_autonomia", "name": "Equilíbrio & Autonomia", "weight": 0.07,
+          "sampleItems": ["Tenho autonomia sobre como organizo meu trabalho.", "Consigo me desconectar fora do horário.", "Minha carga de trabalho é sustentável."] }
+      ]
+    },
+    {
+      "id": "nos", "name": "NÓS — Equipes & Relações", "color": "#16A34A",
+      "guidingQuestion": "Como as relações sustentam ou drenam o florescimento?",
+      "scientificBasis": ["Psychological Safety (Edmondson)", "High-Quality Connections", "Capital social", "Ciência das emoções coletivas"],
+      "pillars": [
+        { "id": "seguranca_psicologica", "name": "Segurança Psicológica", "weight": 0.08,
+          "sampleItems": ["Posso admitir um erro sem medo de humilhação.", "Posso discordar abertamente na minha equipe.", "Pedir ajuda aqui é visto como algo positivo."] },
+        { "id": "cooperacao_confianca", "name": "Cooperação & Confiança", "weight": 0.06,
+          "sampleItems": ["As pessoas da minha equipe se ajudam de verdade.", "Confio que meus colegas cumprem o que combinam.", "Conflitos são resolvidos com respeito."] },
+        { "id": "reconhecimento_pares", "name": "Reconhecimento entre Pares", "weight": 0.05,
+          "sampleItems": ["Recebi reconhecimento sincero nos últimos 15 dias.", "Reconhecer colegas faz parte do nosso dia a dia."] },
+        { "id": "comunicacao_pertencimento", "name": "Comunicação & Pertencimento", "weight": 0.06,
+          "sampleItems": ["Me sinto parte desta comunidade de trabalho.", "As informações que preciso chegam até mim com clareza.", "Posso ser quem eu sou no trabalho."] }
+      ]
+    },
+    {
+      "id": "lideranca", "name": "LIDERANÇA — Gestão", "color": "#CA8A04",
+      "guidingQuestion": "Como a liderança cria condições de florescimento?",
+      "scientificBasis": ["Positive Leadership (Cameron)", "Justiça organizacional", "JD-R Model", "Liderança servidora"],
+      "pillars": [
+        { "id": "clareza_direcao", "name": "Clareza & Direção", "weight": 0.06,
+          "sampleItems": ["Sei o que se espera de mim.", "As prioridades da minha área são claras.", "Mudanças são comunicadas com antecedência razoável."] },
+        { "id": "justica_coerencia", "name": "Justiça & Coerência", "weight": 0.07,
+          "sampleItems": ["As decisões da gestão são justas e coerentes.", "Regras valem para todos, inclusive para a liderança.", "Promoções e oportunidades seguem critérios claros."] },
+        { "id": "desenvolvimento_pessoas", "name": "Desenvolvimento de Pessoas", "weight": 0.05,
+          "sampleItems": ["Minha liderança se interessa pelo meu desenvolvimento.", "Recebo feedback que me ajuda a crescer."] },
+        { "id": "cuidado_ativo", "name": "Cuidado Ativo da Liderança", "weight": 0.06,
+          "sampleItems": ["Minha liderança percebe quando a equipe está sobrecarregada e age.", "Sinto que posso falar com minha liderança sobre dificuldades.", "Minha liderança dá o exemplo em bem-estar."] }
+      ]
+    },
+    {
+      "id": "organizacao", "name": "ORGANIZAÇÃO — Cultura & Sistema", "color": "#7C3AED",
+      "guidingQuestion": "Como o sistema organizacional protege e potencializa pessoas?",
+      "scientificBasis": ["NR-1/GRO", "ISO 45003", "ESG/ESRS S1", "FIB organizacional", "Economia do bem-comum"],
+      "pillars": [
+        { "id": "condicoes_carga", "name": "Condições & Carga de Trabalho", "weight": 0.08,
+          "sampleItems": ["Tenho recursos e ferramentas adequados para trabalhar bem.", "Prazos e metas são, em geral, realistas.", "O ambiente físico/remoto de trabalho é adequado e seguro."] },
+        { "id": "cultura_bem_estar", "name": "Cultura de Bem-Estar", "weight": 0.06,
+          "sampleItems": ["A empresa trata bem-estar como prioridade real, não discurso.", "Existem canais seguros para falar sobre dificuldades.", "Descansar e tirar férias é respeitado aqui."] },
+        { "id": "inclusao_equidade", "name": "Inclusão, Equidade & Diversidade", "weight": 0.05,
+          "sampleItems": ["Pessoas diferentes têm as mesmas oportunidades aqui.", "Comportamentos desrespeitosos não são tolerados.", "Me sinto respeitado(a) na minha identidade."] },
+        { "id": "sustentabilidade_bem_comum", "name": "Sustentabilidade & Bem-Comum", "weight": 0.05,
+          "sampleItems": ["A empresa age com responsabilidade com a sociedade e o ambiente.", "Tenho oportunidades de contribuir para causas de impacto."] }
+      ]
+    }
+  ],
+  "maturityLevels": [
+    { "min": 0, "max": 199, "name": "Organização Desperta", "badge": "desperta" },
+    { "min": 200, "max": 349, "name": "Organização em Conexão", "badge": "conexao" },
+    { "min": 350, "max": 499, "name": "Organização Colaborativa", "badge": "colaborativa" },
+    { "min": 500, "max": 649, "name": "Organização Saudável", "badge": "saudavel" },
+    { "min": 650, "max": 799, "name": "Organização Sustentável", "badge": "sustentavel" },
+    { "min": 800, "max": 924, "name": "Organização Referência", "badge": "referencia" },
+    { "min": 925, "max": 1000, "name": "Empresa Viva", "badge": "viva" }
+  ],
+  "pulse": {
+    "durationSeconds": 60,
+    "itemsPerPulse": 3,
+    "cadence": "biweekly",
+    "rotationStrategy": "lowest-scoring-pillars-first",
+    "optOut": true
+  },
+  "cuts": {
+    "allowed": ["organization", "site", "department", "team", "shift", "tenure_band", "role_band"],
+    "rule": "hide cut when respondents < kAnonymityMin"
+  }
+}

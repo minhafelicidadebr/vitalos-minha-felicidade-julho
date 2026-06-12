@@ -1,0 +1,84 @@
+{
+  "$schema": "./domain-pack.schema.json#/definitions/gamification",
+  "version": "1.0.0",
+  "ethicalPrinciples": [
+    "cooperation_over_competition",
+    "collective_progress_over_individual_ranking",
+    "opt_out_respected",
+    "no_punishment_for_non_participation",
+    "no_gamification_of_suffering",
+    "no_mental_health_or_happiness_ranking",
+    "xp_never_feeds_performance_review_promotion_or_pay",
+    "adult_language",
+    "anti_gaming_limits"
+  ],
+  "currencies": [
+    { "id": "xp", "name": "XP de Participação", "earnedBy": ["pulse", "mission", "module", "event"], "dailyCap": 150 },
+    { "id": "impact", "name": "Pontos de Impacto Cultural", "earnedBy": ["macro_mission", "project_completed", "evidence_approved"] },
+    { "id": "coop", "name": "Pontos de Cooperação", "earnedBy": ["team_mission", "helping_event", "cross_area_collab"], "scope": "team" },
+    { "id": "learn", "name": "Pontos de Aprendizagem", "earnedBy": ["module_completed", "quiz_passed", "path_completed"] },
+    { "id": "kudos", "name": "Kudos", "type": "social_currency", "weeklyBudgetPerUser": 5, "transferable": true,
+      "rules": ["cannot_send_to_self", "optional_public_or_private", "categories_linked_to_ivo_pillars"] }
+  ],
+  "loops": {
+    "daily": ["checkin_30s", "micro_action_or_nudge", "give_kudo"],
+    "weekly": ["ambassadorship_mission", "light_evidence", "team_recognition_ritual"],
+    "monthly": ["transformation_project_step", "impact_review", "team_retro"],
+    "seasonal_quarterly": ["measure", "educate", "transform", "evolve"],
+    "annual": ["certification_empresa_viva", "benchmark", "culture_pact_renewal"]
+  },
+  "missionTypes": ["micro", "macro", "legendary"],
+  "missionScopes": ["individual", "team", "department", "site", "organization", "ambassadorship", "season"],
+  "seedMissions": [
+    { "id": "m_micro_kudo_semana", "type": "micro", "scope": "individual", "pillar": "reconhecimento_pares",
+      "title": "Reconheça um colega esta semana", "xp": 20, "evidence": "none" },
+    { "id": "m_micro_pausa_real", "type": "micro", "scope": "individual", "pillar": "energia_vitalidade",
+      "title": "Faça 3 pausas reais de 5 minutos hoje", "xp": 15, "evidence": "self_report", "optIn": true },
+    { "id": "m_micro_pergunta_segura", "type": "micro", "scope": "team", "pillar": "seguranca_psicologica",
+      "title": "Abra a reunião com a pergunta: 'O que quase deu errado esta semana?'", "xp": 25, "evidence": "self_report", "ownerRole": "LIDER_EQUIPE" },
+    { "id": "m_macro_almoco_cruzado", "type": "macro", "scope": "department", "pillar": "comunicacao_pertencimento",
+      "title": "Organize um almoço cruzado entre duas áreas", "impact": 50, "evidence": "photo_or_report" },
+    { "id": "m_macro_ritual_reconhecimento", "type": "macro", "scope": "team", "pillar": "reconhecimento_pares",
+      "title": "Crie e sustente por 4 semanas um ritual de reconhecimento da equipe", "impact": 80, "evidence": "checklist" },
+    { "id": "m_legendary_temporada_viva", "type": "legendary", "scope": "organization", "pillar": "cultura_bem_estar",
+      "title": "Conclua uma Temporada de Florescimento com ≥70% de participação e 3 projetos de transformação entregues", "impact": 300, "evidence": "season_report" }
+  ],
+  "badges": [
+    { "id": "primeiro_passo", "name": "Primeiro Passo", "scope": "individual", "trigger": "first_pulse_completed" },
+    { "id": "espelho_ativo", "name": "Espelho Ativo", "scope": "individual", "trigger": "ivo_cycle_completed" },
+    { "id": "colega_que_conecta", "name": "Colega que Conecta", "scope": "individual", "trigger": "kudos_sent>=20" },
+    { "id": "reconhecedor_serial", "name": "Reconhecedor Serial", "scope": "individual", "trigger": "kudos_sent_streak_8_weeks" },
+    { "id": "lider_que_escuta", "name": "Líder que Escuta", "scope": "individual", "role": "LIDER_EQUIPE", "trigger": "team_action_plan_completed" },
+    { "id": "guardiao_seg_psicologica", "name": "Guardião da Segurança Psicológica", "scope": "individual", "trigger": "seg_psico_missions>=5" },
+    { "id": "embaixador_florescimento", "name": "Embaixador do Florescimento", "scope": "individual", "trigger": "ambassadorship_macro_completed" },
+    { "id": "equipe_gentil", "name": "Equipe Gentil", "scope": "team", "trigger": "team_kudos_coverage>=80%" },
+    { "id": "time_sustentavel", "name": "Time Sustentável", "scope": "team", "trigger": "team_ivo_delta_positive_2_seasons" },
+    { "id": "lideranca_transparente", "name": "Liderança Transparente", "scope": "org", "trigger": "all_leaders_action_plans_published" },
+    { "id": "cultura_inclusiva", "name": "Cultura Inclusiva", "scope": "org", "trigger": "inclusao_pillar>=700" },
+    { "id": "equipe_viva_ouro", "name": "Equipe Viva Ouro", "scope": "team", "trigger": "team_ivo>=800" },
+    { "id": "empresa_viva", "name": "Empresa Viva", "scope": "org", "trigger": "certification_level_viva" }
+  ],
+  "antiGaming": {
+    "xpDailyCap": 150,
+    "evidenceValidation": ["rh_or_lead_approval_for_impact_points"],
+    "kudosWeeklyBudget": 5,
+    "duplicateMissionCooldownHours": 20,
+    "noXpForPulseContent": "xp granted for participation only, never tied to answer values"
+  },
+  "nudgeLibrarySeed": [
+    { "id": "n_pausa_timely", "pillar": "energia_vitalidade", "east": ["easy", "timely"],
+      "copy": "Você está há 2h em reuniões. 5 minutos de pausa agora valem ouro. ☕", "channel": "in_app", "frequencyCapPerWeek": 3 },
+    { "id": "n_gratidao_sexta", "pillar": "reconhecimento_pares", "east": ["social", "attractive"],
+      "copy": "Sexta-feira: quem fez sua semana melhor? Mande um Kudo em 10 segundos.", "channel": "in_app", "frequencyCapPerWeek": 1 },
+    { "id": "n_pergunta_segura_lider", "pillar": "seguranca_psicologica", "east": ["easy", "social"], "targetRole": "LIDER_EQUIPE",
+      "copy": "Na próxima reunião, experimente: 'O que estamos evitando falar?' — e agradeça a primeira resposta.", "channel": "in_app", "frequencyCapPerWeek": 1 },
+    { "id": "n_desconexao", "pillar": "equilibrio_autonomia", "east": ["easy", "timely"],
+      "copy": "Fim do expediente chegando. Que tal deixar uma 'última tarefa de 10 min' e encerrar de verdade?", "channel": "in_app", "frequencyCapPerWeek": 2, "optInRequired": true }
+  ],
+  "nudgeRules": {
+    "optInGranular": true,
+    "neverBlameIndividualForSystemicRisk": true,
+    "measureAggregateAdoptionOnly": true,
+    "quietHoursRespected": true
+  }
+}
