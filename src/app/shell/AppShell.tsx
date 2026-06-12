@@ -18,6 +18,7 @@ const NAV_ROUTES: Record<string, string> = {
   ai: "/floresceria",
   academy: "/academia",
   ambassadorships: "/embaixadorias",
+  reports: "/relatorios",
   action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
   domain_b: "/sst",
 };
