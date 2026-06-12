@@ -120,12 +120,12 @@ src/
 | ✅ 10 | Nudge Engine MVP | engine/nudges + NudgesCard no colaborador |
 | ✅ 11 | Gamificação engine + Culture Lab | engine/gamification + engine/lab + /lab |
 | ✅ 12 | FlorescerIA mockada (10 modos) | engine/ai + /floresceria |
-| 🔲 13 | Academia do Florescimento | nova rota |
-| 🔲 14 | Embaixadorias (15) | nova rota |
+| ✅ 13 | Academia do Florescimento | /academia (trilhas por papel) |
+| ✅ 14 | Embaixadorias (15) | /embaixadorias |
 | 🔲 15 | Domínio B — aprofundar (COPSOQ agregado) | /sst já cobre inventário+escuta+checklist |
 | ✅ 16 | Vitality P&L | engine/pnl + /pnl |
 | 🔲 17 | Evidências + Relatórios + Selo Empresa Viva | novas rotas |
-| 🔲 18 | Sinais Vivos | engine/signals |
+| ✅ 18 | Sinais Vivos | engine/signals + SignalsCard no /rh |
 | 🔲 19 | QR / Quiosque / Onboarding | nova rota |
 | 🔲 20 | Polimento UX premium | global |
 | 🔲 21 | QA final + demo day test (10 passos) | — |
@@ -133,7 +133,8 @@ src/
 ### Rotas implementadas
 `/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
-`/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/design-system`
+`/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
+`/embaixadorias` · `/design-system`
 
 ### Persona demo
 Seletor no header (Zustand persistido, chave `vita-persona`) — 7 papéis.
