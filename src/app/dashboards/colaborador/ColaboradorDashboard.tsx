@@ -593,14 +593,14 @@ function QuickLinksCard() {
         <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
 
-      <div
-        className="flex flex-col gap-1 rounded-2xl border border-dashed border-border/50 bg-card/60 p-4 opacity-60"
-        title="Em breve — Bloco 8"
+      <Link
+        to="/confianca"
+        className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="text-xl" aria-hidden>🔒</span>
         <p className="text-sm font-medium text-card-foreground">Trust Ledger</p>
-        <p className="text-[10px] text-muted-foreground">Em breve</p>
-      </div>
+        <p className="text-[10px] text-muted-foreground">Quem vê o quê sobre você</p>
+      </Link>
 
       <div
         className="flex flex-col gap-1 rounded-2xl border border-dashed border-border/50 bg-card/60 p-4 opacity-60 col-span-2 sm:col-span-1"

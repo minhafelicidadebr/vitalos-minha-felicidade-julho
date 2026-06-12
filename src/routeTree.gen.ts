@@ -15,6 +15,7 @@ import { Route as LiderRouteImport } from './routes/lider'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as IndexRouteImport } from './routes/index'
@@ -49,6 +50,11 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
   path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfiancaRoute = ConfiancaRouteImport.update({
+  id: '/confianca',
+  path: '/confianca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ColaboradorRoute = ColaboradorRouteImport.update({
   id: '/colaborador',
   path: '/colaborador',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clevel'
     | '/colaborador'
+    | '/confianca'
     | '/design-system'
     | '/holding'
     | '/ivo'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clevel'
     | '/colaborador'
+    | '/confianca'
     | '/design-system'
     | '/holding'
     | '/ivo'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clevel'
     | '/colaborador'
+    | '/confianca'
     | '/design-system'
     | '/holding'
     | '/ivo'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
+  ConfiancaRoute: typeof ConfiancaRoute
   DesignSystemRoute: typeof DesignSystemRoute
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/confianca': {
+      id: '/confianca'
+      path: '/confianca'
+      fullPath: '/confianca'
+      preLoaderRoute: typeof ConfiancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/colaborador': {
       id: '/colaborador'
       path: '/colaborador'
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
+  ConfiancaRoute: ConfiancaRoute,
   DesignSystemRoute: DesignSystemRoute,
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
