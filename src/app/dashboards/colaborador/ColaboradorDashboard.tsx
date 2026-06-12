@@ -701,14 +701,14 @@ function QuickLinksCard() {
         <p className="text-[10px] text-muted-foreground">Quem vê o quê sobre você</p>
       </Link>
 
-      <div
-        className="flex flex-col gap-1 rounded-2xl border border-dashed border-border/50 bg-card/60 p-4 opacity-60 col-span-2 sm:col-span-1"
-        title="Em breve — Bloco 13"
+      <Link
+        to="/academia"
+        className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring col-span-2 sm:col-span-1"
       >
         <span className="text-xl" aria-hidden>🎓</span>
         <p className="text-sm font-medium text-card-foreground">Academia</p>
-        <p className="text-[10px] text-muted-foreground">Em breve</p>
-      </div>
+        <p className="text-[10px] text-muted-foreground">Trilhas de 5–8 min</p>
+      </Link>
     </motion.div>
   );
 }

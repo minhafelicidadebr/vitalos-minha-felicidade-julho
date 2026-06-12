@@ -22,6 +22,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
+import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SstRoute = SstRouteImport.update({
@@ -89,6 +90,11 @@ const ClevelRoute = ClevelRouteImport.update({
   path: '/clevel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcademiaRoute = AcademiaRouteImport.update({
+  id: '/academia',
+  path: '/academia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -97,6 +103,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/academia': typeof AcademiaRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/academia': typeof AcademiaRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
@@ -130,6 +138,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/academia': typeof AcademiaRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/academia'
     | '/clevel'
     | '/colaborador'
     | '/confianca'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/academia'
     | '/clevel'
     | '/colaborador'
     | '/confianca'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/academia'
     | '/clevel'
     | '/colaborador'
     | '/confianca'
@@ -197,6 +209,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcademiaRoute: typeof AcademiaRoute
   ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
   ConfiancaRoute: typeof ConfiancaRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClevelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/academia': {
+      id: '/academia'
+      path: '/academia'
+      fullPath: '/academia'
+      preLoaderRoute: typeof AcademiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -317,6 +337,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcademiaRoute: AcademiaRoute,
   ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
   ConfiancaRoute: ConfiancaRoute,
