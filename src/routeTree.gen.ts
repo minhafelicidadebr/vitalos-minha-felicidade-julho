@@ -16,6 +16,7 @@ import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
+import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
@@ -57,6 +58,11 @@ const HoldingRoute = HoldingRouteImport.update({
   path: '/holding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FloresceriaRoute = FloresceriaRouteImport.update({
+  id: '/floresceria',
+  path: '/floresceria',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/floresceria'
     | '/holding'
     | '/ivo'
     | '/lab'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/floresceria'
     | '/holding'
     | '/ivo'
     | '/lab'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/floresceria'
     | '/holding'
     | '/ivo'
     | '/lab'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   ColaboradorRoute: typeof ColaboradorRoute
   ConfiancaRoute: typeof ConfiancaRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  FloresceriaRoute: typeof FloresceriaRoute
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
   LabRoute: typeof LabRoute
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HoldingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/floresceria': {
+      id: '/floresceria'
+      path: '/floresceria'
+      fullPath: '/floresceria'
+      preLoaderRoute: typeof FloresceriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/design-system': {
       id: '/design-system'
       path: '/design-system'
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   ColaboradorRoute: ColaboradorRoute,
   ConfiancaRoute: ConfiancaRoute,
   DesignSystemRoute: DesignSystemRoute,
+  FloresceriaRoute: FloresceriaRoute,
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
   LabRoute: LabRoute,
