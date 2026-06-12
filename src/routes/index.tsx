@@ -21,7 +21,9 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { status, pack } = usePack();
   const packLabel =
-    status.state === "ready" ? `${pack?.meta.name} · v${pack?.meta.version}` : "Carregando pack…";
+    status.state === "ready" && pack
+      ? `${pack.packName} · v${pack.version}${status.validation.valid ? " · schema ✓" : " · schema ⚠"}`
+      : "Carregando pack…";
 
   return (
     <AppShell>
