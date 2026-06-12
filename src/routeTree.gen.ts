@@ -18,6 +18,7 @@ import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
+import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
@@ -70,6 +71,11 @@ const FloresceriaRoute = FloresceriaRouteImport.update({
   path: '/floresceria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
+  id: '/embaixadorias',
+  path: '/embaixadorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/embaixadorias': typeof EmbaixadoriasRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/embaixadorias': typeof EmbaixadoriasRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
   '/design-system': typeof DesignSystemRoute
+  '/embaixadorias': typeof EmbaixadoriasRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/embaixadorias'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/embaixadorias'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/confianca'
     | '/design-system'
+    | '/embaixadorias'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   ColaboradorRoute: typeof ColaboradorRoute
   ConfiancaRoute: typeof ConfiancaRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   FloresceriaRoute: typeof FloresceriaRoute
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FloresceriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embaixadorias': {
+      id: '/embaixadorias'
+      path: '/embaixadorias'
+      fullPath: '/embaixadorias'
+      preLoaderRoute: typeof EmbaixadoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/design-system': {
       id: '/design-system'
       path: '/design-system'
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   ColaboradorRoute: ColaboradorRoute,
   ConfiancaRoute: ConfiancaRoute,
   DesignSystemRoute: DesignSystemRoute,
+  EmbaixadoriasRoute: EmbaixadoriasRoute,
   FloresceriaRoute: FloresceriaRoute,
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,

@@ -17,6 +17,7 @@ const NAV_ROUTES: Record<string, string> = {
   pulses: "/pulse",
   ai: "/floresceria",
   academy: "/academia",
+  ambassadorships: "/embaixadorias",
   action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
   domain_b: "/sst",
 };
