@@ -60,7 +60,34 @@ function Index() {
           </div>
         </motion.div>
 
-        <div className="mt-20 grid gap-4 sm:grid-cols-3">
+        <div className="mt-16">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Painéis por papel
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {[
+              { to: "/colaborador", k: "Colaborador", v: "Check-in, missões, kudos" },
+              { to: "/lider", k: "Líder", v: "Equipe com n≥5, plano local" },
+              { to: "/rh", k: "RH / CHRO", v: "Heatmap, GRO, temporada" },
+              { to: "/clevel", k: "C-Level", v: "IVO, P&L, 3 prioridades" },
+              { to: "/sst", k: "SST / CIPA", v: "Domínio B — NR-1 educativo" },
+              { to: "/holding", k: "Holding", v: "Carteira de vitalidade" },
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="rounded-xl border border-border/70 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {item.k}
+                </p>
+                <p className="mt-2 font-serif text-lg text-card-foreground">{item.v}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {[
             { k: "Engine", v: "Setor-agnóstica" },
             { k: "Domain", v: "Configurável por Pack" },

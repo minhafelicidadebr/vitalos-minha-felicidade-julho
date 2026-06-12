@@ -9,13 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as IvoRouteImport } from './routes/ivo'
+import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
+import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SstRoute = SstRouteImport.update({
+  id: '/sst',
+  path: '/sst',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RhRoute = RhRouteImport.update({
   id: '/rh',
   path: '/rh',
@@ -31,6 +39,11 @@ const IvoRoute = IvoRouteImport.update({
   path: '/ivo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HoldingRoute = HoldingRouteImport.update({
+  id: '/holding',
+  path: '/holding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
@@ -41,6 +54,11 @@ const ColaboradorRoute = ColaboradorRouteImport.update({
   path: '/colaborador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClevelRoute = ClevelRouteImport.update({
+  id: '/clevel',
+  path: '/clevel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,55 +67,95 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
+  '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
   '/rh': typeof RhRoute
+  '/sst': typeof SstRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
+  '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
   '/rh': typeof RhRoute
+  '/sst': typeof SstRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/design-system': typeof DesignSystemRoute
+  '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
   '/rh': typeof RhRoute
+  '/sst': typeof SstRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/colaborador' | '/design-system' | '/ivo' | '/lider' | '/rh'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/colaborador' | '/design-system' | '/ivo' | '/lider' | '/rh'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
+    | '/clevel'
     | '/colaborador'
     | '/design-system'
+    | '/holding'
     | '/ivo'
     | '/lider'
     | '/rh'
+    | '/sst'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/clevel'
+    | '/colaborador'
+    | '/design-system'
+    | '/holding'
+    | '/ivo'
+    | '/lider'
+    | '/rh'
+    | '/sst'
+  id:
+    | '__root__'
+    | '/'
+    | '/clevel'
+    | '/colaborador'
+    | '/design-system'
+    | '/holding'
+    | '/ivo'
+    | '/lider'
+    | '/rh'
+    | '/sst'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
   LiderRoute: typeof LiderRoute
   RhRoute: typeof RhRoute
+  SstRoute: typeof SstRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sst': {
+      id: '/sst'
+      path: '/sst'
+      fullPath: '/sst'
+      preLoaderRoute: typeof SstRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rh': {
       id: '/rh'
       path: '/rh'
@@ -119,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IvoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/holding': {
+      id: '/holding'
+      path: '/holding'
+      fullPath: '/holding'
+      preLoaderRoute: typeof HoldingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/design-system': {
       id: '/design-system'
       path: '/design-system'
@@ -133,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ColaboradorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clevel': {
+      id: '/clevel'
+      path: '/clevel'
+      fullPath: '/clevel'
+      preLoaderRoute: typeof ClevelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -145,11 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
   DesignSystemRoute: DesignSystemRoute,
+  HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
   LiderRoute: LiderRoute,
   RhRoute: RhRoute,
+  SstRoute: SstRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
