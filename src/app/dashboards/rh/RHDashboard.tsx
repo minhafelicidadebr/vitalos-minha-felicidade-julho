@@ -14,6 +14,16 @@ import {
   type RHAlert,
   type KanbanColumn,
 } from "@/mocks/rh-mock";
+import {
+  visibleSignals,
+  crossPerceptionBehavior,
+  SIGNALS_K_MIN,
+} from "@/engine/signals/signals-engine";
+import {
+  SIGNALS,
+  PERCEPTION_BEHAVIOR_INPUT,
+  SIGNALS_CONSENT_NOTE,
+} from "@/mocks/signals-mock";
 
 export function RHDashboard() {
   const { index } = usePack();
@@ -47,6 +57,7 @@ export function RHDashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <HeatmapCard lensMeta={lensMeta} />
+          <SignalsCard />
           <KanbanCard columns={GRO_KANBAN} />
         </div>
         <div className="space-y-6">
@@ -193,6 +204,91 @@ function HeatmapCard({
         <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-green-200 dark:bg-green-950" /> 650–799</span>
         <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-emerald-300 dark:bg-emerald-900" /> ≥800</span>
       </div>
+    </motion.div>
+  );
+}
+
+// ─── Sinais Vivos ─────────────────────────────────────────────────────────────
+
+function SignalsCard() {
+  const signals = visibleSignals(SIGNALS);
+  const hiddenCount = SIGNALS.length - signals.length;
+  const pairs = crossPerceptionBehavior([...PERCEPTION_BEHAVIOR_INPUT]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.08 }}
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+    >
+      <div className="mb-4">
+        <p className="font-medium text-card-foreground">Sinais Vivos™ — percepção × comportamento</p>
+        <p className="text-xs text-muted-foreground">
+          O que as pessoas dizem (IVO) cruzado com o que o sistema mostra (eventos da plataforma)
+        </p>
+      </div>
+
+      {/* Signal bars */}
+      <div className="space-y-2.5">
+        {signals.map((s) => (
+          <div key={s.signalId}>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">{s.label}</span>
+              <span className="tabular-nums">
+                <span className="font-medium text-foreground">{s.value}%</span>{" "}
+                <span className={s.deltaVsPrev >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}>
+                  {s.deltaVsPrev >= 0 ? "↑" : "↓"}{Math.abs(s.deltaVsPrev)}
+                </span>
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${s.value}%` }} />
+            </div>
+          </div>
+        ))}
+        {hiddenCount > 0 && (
+          <p className="rounded-lg border border-dashed border-border/60 px-3 py-2 text-[11px] text-muted-foreground">
+            🔒 {hiddenCount} sinal(is) oculto(s) — recortes com menos de {SIGNALS_K_MIN} pessoas
+            ficam invisíveis para proteger a privacidade.
+          </p>
+        )}
+      </div>
+
+      {/* Perception × behavior crossing */}
+      <div className="mt-5 space-y-2">
+        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          Leituras cruzadas
+        </p>
+        {pairs.map((p) => (
+          <div
+            key={p.pillarId}
+            className={`rounded-xl border px-3.5 py-2.5 ${
+              p.reading === "divergente"
+                ? "border-amber-300/60 bg-amber-50/50 dark:border-amber-800/50 dark:bg-amber-950/20"
+                : "border-border/50"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-medium text-card-foreground">{p.pillarName}</p>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-medium ${
+                  p.reading === "divergente"
+                    ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                    : "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                }`}
+              >
+                {p.reading}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              Percepção {p.perceptionScore} · Comportamento {p.behaviorValue}% — {p.note}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">🔒 {SIGNALS_CONSENT_NOTE}</p>
     </motion.div>
   );
 }
