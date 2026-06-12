@@ -1,9 +1,10 @@
 export { PackProvider, usePack } from "./PackProvider";
 export type {
   DomainPack,
-  PackMeta,
-  PackVocabulary,
-  PackModuleFlags,
+  HierarchyLevel,
+  PackRole,
+  ProprietaryIndex,
+  GamificationEconomy,
   PackStatus,
   PackLoadError,
   PackId,

@@ -1,50 +1,57 @@
 /**
- * Pack types — contrato setor-agnóstico.
+ * Pack types — contrato setor-agnóstico (alinhado ao domain-pack.schema.json).
  * NUNCA importar nada de domain/ aqui.
- *
- * Um "Pack" é a configuração de domínio que descreve um setor/cliente:
- * vocabulário, módulos habilitados, frameworks, economia de gamificação, etc.
- * A engine apenas consome este contrato.
  */
 
 export type PackId = string;
 
-export interface PackMeta {
-  id: PackId;
-  name: string;
-  version: string;
-  sector?: string;
-  locale?: string;
-  description?: string;
+export interface HierarchyLevel {
+  id: string;
+  label: string;
+  labelPlural: string;
+  parent?: string;
+  optional?: boolean;
 }
 
-export interface PackVocabulary {
-  // Termos de domínio injetados na UI (ex.: "colaborador" vs "atleta" vs "operador")
-  [token: string]: string;
-}
-
-export interface PackModuleFlags {
-  rbac?: boolean;
-  index?: boolean;
-  gamification?: boolean;
-  nudges?: boolean;
-  lab?: boolean;
-  signals?: boolean;
-  trust?: boolean;
-  pnl?: boolean;
-  ai?: boolean;
-  esg?: boolean;
-  [key: string]: boolean | undefined;
+export interface PackRole {
+  id: string;
+  label: string;
+  scope: string;
+  domain?: "A" | "B";
+  readOnly?: boolean;
+  temporary?: boolean;
 }
 
 export interface DomainPack {
-  meta: PackMeta;
-  vocabulary?: PackVocabulary;
-  modules?: PackModuleFlags;
-  // Sub-configurações tipadas como unknown — validadas por schema no boot
-  ivoFramework?: unknown;
-  gamificationEconomy?: unknown;
+  packId: PackId;
+  packName: string;
+  version: string;
+  language: string;
+  promise?: string;
+  hierarchy: { levels: HierarchyLevel[] };
+  labels: Record<string, string>;
+  roles: PackRole[];
+  rbacInvariants: string[];
+  navigation: Array<{ id: string; label: string; roles: string[]; [k: string]: unknown }>;
+  indexRef: unknown;
+  gamificationRef: unknown;
+  ai: unknown;
+  branding: unknown;
+  microcopy: unknown;
   [extension: string]: unknown;
+}
+
+export interface ProprietaryIndex {
+  id: string;
+  name: string;
+  version: string;
+  [k: string]: unknown;
+}
+
+export interface GamificationEconomy {
+  version: string;
+  ethicalPrinciples: string[];
+  [k: string]: unknown;
 }
 
 export interface PackLoadError {
@@ -56,5 +63,11 @@ export interface PackLoadError {
 export type PackStatus =
   | { state: "idle" }
   | { state: "loading" }
-  | { state: "ready"; pack: DomainPack }
+  | {
+      state: "ready";
+      pack: DomainPack;
+      index: ProprietaryIndex | null;
+      gamification: GamificationEconomy | null;
+      validation: { valid: boolean; errors: unknown[] | null };
+    }
   | { state: "error"; error: PackLoadError };

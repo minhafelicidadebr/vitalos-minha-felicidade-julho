@@ -1,87 +1,118 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { DomainPack, PackStatus } from "./pack-types";
+import Ajv, { type ErrorObject } from "ajv";
+import addFormats from "ajv-formats";
 
-/**
- * PackProvider — carrega e valida o Domain Pack no boot.
- *
- * Por enquanto: stub que tenta carregar src/domain/packs/enterprise/enterprise.pack.json
- * via import dinâmico. Os arquivos reais (enterprise.pack.json, ivo-framework.json,
- * gamification-economy.json, domain-pack.schema.json) serão fornecidos no próximo passo.
- *
- * Quando o schema chegar, a validação acontece aqui antes de marcar como "ready".
- */
+import type {
+  DomainPack,
+  GamificationEconomy,
+  PackStatus,
+  ProprietaryIndex,
+} from "./pack-types";
+
+// Pack oficial + framework IVO + economia de gamificação — bundled estático.
+// Mantém a regra arquitetural: engine/ apenas LÊ o pack; nada de lógica de domínio.
+import enterprisePack from "@/domain/packs/enterprise/enterprise.pack.json";
+import ivoFramework from "@/domain/packs/enterprise/ivo-framework.json";
+import gamificationEconomy from "@/domain/packs/enterprise/gamification-economy.json";
+import packSchema from "@/domain/packs/enterprise/domain-pack.schema.json";
 
 interface PackContextValue {
   status: PackStatus;
   pack: DomainPack | null;
+  index: ProprietaryIndex | null;
+  gamification: GamificationEconomy | null;
   t: (token: string, fallback?: string) => string;
-  hasModule: (key: string) => boolean;
+  hasRole: (roleId: string) => boolean;
   reload: () => void;
 }
 
 const PackContext = createContext<PackContextValue | null>(null);
 
-interface PackProviderProps {
-  children: ReactNode;
-  packId?: string;
+interface ValidationResult {
+  valid: boolean;
+  errors: ErrorObject[] | null;
 }
 
-async function loadPackStub(packId: string): Promise<DomainPack> {
-  try {
-    const mod = await import(`../../domain/packs/${packId}/${packId}.pack.json`);
-    return (mod.default ?? mod) as DomainPack;
-  } catch {
-    // Stub mínimo enquanto o JSON real não foi fornecido
-    return {
-      meta: {
-        id: packId,
-        name: "Enterprise (stub)",
-        version: "0.0.0-stub",
-        sector: "enterprise",
-        locale: "pt-BR",
-        description: "Pack placeholder. O JSON oficial será carregado no próximo bloco.",
-      },
-      vocabulary: {},
-      modules: {},
-    };
+function validatePack(pack: unknown): ValidationResult {
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  addFormats(ajv);
+  // Schema externo é referenciado via $id absoluto; Ajv compila por valor.
+  const validate = ajv.compile(packSchema as object);
+  const valid = validate(pack);
+  return { valid: Boolean(valid), errors: validate.errors ?? null };
+}
+
+function logValidation(pack: DomainPack, result: ValidationResult) {
+  const tag = "[Pack:enterprise]";
+  if (result.valid) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `%c${tag} ✅ válido%c — ${pack.packName} v${pack.version}`,
+      "color:#0B3D2E;font-weight:600",
+      "color:inherit",
+    );
+  } else {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `%c${tag} ⚠️ inválido%c — ${result.errors?.length ?? 0} erro(s) contra domain-pack.schema.json`,
+      "color:#C0392B;font-weight:600",
+      "color:inherit",
+    );
+    // eslint-disable-next-line no-console
+    console.warn(tag, result.errors);
   }
 }
 
-export function PackProvider({ children, packId = "enterprise" }: PackProviderProps) {
+export function PackProvider({
+  children,
+  packId = "enterprise",
+}: {
+  children: ReactNode;
+  packId?: string;
+}) {
   const [status, setStatus] = useState<PackStatus>({ state: "idle" });
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
     setStatus({ state: "loading" });
-    loadPackStub(packId)
-      .then((pack) => {
-        if (cancelled) return;
-        // TODO: validar contra domain-pack.schema.json quando disponível
-        setStatus({ state: "ready", pack });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setStatus({
-          state: "error",
-          error: {
-            code: "unknown",
-            message: err instanceof Error ? err.message : "Falha ao carregar pack",
-          },
-        });
+    try {
+      const pack = enterprisePack as unknown as DomainPack;
+      const index = ivoFramework as unknown as ProprietaryIndex;
+      const gamification = gamificationEconomy as unknown as GamificationEconomy;
+
+      const validation = validatePack(pack);
+      logValidation(pack, validation);
+
+      setStatus({
+        state: "ready",
+        pack,
+        index,
+        gamification,
+        validation: { valid: validation.valid, errors: validation.errors },
       });
-    return () => {
-      cancelled = true;
-    };
+    } catch (err) {
+      const error = {
+        code: "parse_error" as const,
+        message: err instanceof Error ? err.message : "Falha ao carregar pack",
+      };
+      // eslint-disable-next-line no-console
+      console.error("[Pack:enterprise] erro de carregamento", err);
+      setStatus({ state: "error", error });
+    }
+    // packId reservado para multi-pack futuro
   }, [packId, reloadKey]);
 
   const value = useMemo<PackContextValue>(() => {
     const pack = status.state === "ready" ? status.pack : null;
+    const index = status.state === "ready" ? status.index : null;
+    const gamification = status.state === "ready" ? status.gamification : null;
     return {
       status,
       pack,
-      t: (token, fallback) => pack?.vocabulary?.[token] ?? fallback ?? token,
-      hasModule: (key) => Boolean(pack?.modules?.[key]),
+      index,
+      gamification,
+      t: (token, fallback) => pack?.labels?.[token] ?? fallback ?? token,
+      hasRole: (roleId) => Boolean(pack?.roles?.some((r) => r.id === roleId)),
       reload: () => setReloadKey((k) => k + 1),
     };
   }, [status]);
