@@ -11,30 +11,31 @@ export const Route = createFileRoute("/academia")({
 });
 
 const FORMAT_ICON: Record<string, string> = {
-  "vídeo": "▶",
-  "leitura": "📖",
-  "prática": "✍",
-  "quiz": "❓",
+  vídeo: "▶",
+  leitura: "📖",
+  prática: "✍",
+  quiz: "❓",
 };
 
 function AcademiaPage() {
   const { roleId } = usePersona();
-  const paths = useMemo(
-    () => LEARNING_PATHS.filter((p) => p.roles.includes(roleId)),
-    [roleId],
-  );
+  const paths = useMemo(() => LEARNING_PATHS.filter((p) => p.roles.includes(roleId)), [roleId]);
 
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Academia do Florescimento
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Aprender é parte do trabalho</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Trilhas curtas (módulos de 5–8 min) selecionadas para o seu papel.
-            Concluir rende Pontos de Aprendizagem — nunca cobrança.
+            Trilhas curtas (módulos de 5–8 min) selecionadas para o seu papel. Concluir rende Pontos
+            de Aprendizagem — nunca cobrança.
           </p>
         </motion.div>
 
@@ -88,13 +89,17 @@ function PathCard({ path, delay }: { path: LearningPath; delay: number }) {
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">{path.description}</p>
           <p className="mt-1 text-[10px] text-muted-foreground">
-            {path.pillarName} · {path.modules.length} módulos · +{path.learnPoints} pts de aprendizagem
+            {path.pillarName} · {path.modules.length} módulos · +{path.learnPoints} pts de
+            aprendizagem
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <span className="text-xs font-semibold tabular-nums text-foreground">{progress}%</span>
           <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       </button>
@@ -104,13 +109,22 @@ function PathCard({ path, delay }: { path: LearningPath; delay: number }) {
           {path.modules.map((m) => {
             const done = doneIds.has(m.id);
             return (
-              <div key={m.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-muted/20 transition-colors">
-                <span className="w-5 text-center text-sm" aria-hidden>{FORMAT_ICON[m.format]}</span>
+              <div
+                key={m.id}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-muted/20 transition-colors"
+              >
+                <span className="w-5 text-center text-sm" aria-hidden>
+                  {FORMAT_ICON[m.format]}
+                </span>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${done ? "text-muted-foreground line-through" : "text-card-foreground"}`}>
+                  <p
+                    className={`text-sm ${done ? "text-muted-foreground line-through" : "text-card-foreground"}`}
+                  >
                     {m.title}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{m.format} · {m.minutes} min</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {m.format} · {m.minutes} min
+                  </p>
                 </div>
                 {done ? (
                   <span className="text-xs text-green-600 dark:text-green-400">✓</span>

@@ -101,11 +101,31 @@ export const SEAL_STATUS = {
   nextLevelName: "Organização Sustentável",
   nextLevelMin: 650,
   requirements: [
-    { id: "r1", label: "IVO ≥ 650 por 2 temporadas consecutivas", done: false, detail: "Atual: 619 (1ª temporada na faixa)" },
+    {
+      id: "r1",
+      label: "IVO ≥ 650 por 2 temporadas consecutivas",
+      done: false,
+      detail: "Atual: 619 (1ª temporada na faixa)",
+    },
     { id: "r2", label: "Participação ≥ 70%", done: true, detail: "78% ✓" },
-    { id: "r3", label: "≥ 1 experimento concluído no Culture Lab", done: true, detail: "Ritual de Reconhecimento ✓" },
-    { id: "r4", label: "Trilha GRO com evidências aprovadas", done: true, detail: "3 evidências aprovadas ✓" },
-    { id: "r5", label: "Trust Ledger ativo para 100% dos colaboradores", done: true, detail: "Ativo desde o onboarding ✓" },
+    {
+      id: "r3",
+      label: "≥ 1 experimento concluído no Culture Lab",
+      done: true,
+      detail: "Ritual de Reconhecimento ✓",
+    },
+    {
+      id: "r4",
+      label: "Trilha GRO com evidências aprovadas",
+      done: true,
+      detail: "3 evidências aprovadas ✓",
+    },
+    {
+      id: "r5",
+      label: "Trust Ledger ativo para 100% dos colaboradores",
+      done: true,
+      detail: "Ativo desde o onboarding ✓",
+    },
   ],
   publicNote:
     "O Selo Empresa Viva é anual, auditável e pode ser exibido nas páginas de carreira. Reconhece sistema instalado e efeito medido — não discurso.",

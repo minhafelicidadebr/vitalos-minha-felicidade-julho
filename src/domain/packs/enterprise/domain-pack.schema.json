@@ -4,7 +4,22 @@
   "title": "4 Lentes Domain Pack",
   "description": "Contrato declarativo que configura o motor 4 Lentes para um setor (enterprise, condominium, school, government, healthcare, community). Nenhum pack pode exigir mudança no Engine; capacidades novas sobem ao Engine como recurso genérico configurável.",
   "type": "object",
-  "required": ["packId", "packName", "version", "language", "hierarchy", "labels", "roles", "rbacInvariants", "navigation", "indexRef", "gamificationRef", "ai", "branding", "microcopy"],
+  "required": [
+    "packId",
+    "packName",
+    "version",
+    "language",
+    "hierarchy",
+    "labels",
+    "roles",
+    "rbacInvariants",
+    "navigation",
+    "indexRef",
+    "gamificationRef",
+    "ai",
+    "branding",
+    "microcopy"
+  ],
   "properties": {
     "packId": { "type": "string", "pattern": "^[a-z][a-z0-9_-]+$" },
     "packName": { "type": "string", "minLength": 3 },
@@ -16,7 +31,9 @@
       "required": ["levels"],
       "properties": {
         "levels": {
-          "type": "array", "minItems": 2, "maxItems": 6,
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
           "items": {
             "type": "object",
             "required": ["id", "label", "labelPlural"],
@@ -33,7 +50,8 @@
     },
     "labels": { "type": "object", "additionalProperties": { "type": "string" } },
     "roles": {
-      "type": "array", "minItems": 3,
+      "type": "array",
+      "minItems": 3,
       "items": {
         "type": "object",
         "required": ["id", "label", "scope"],
@@ -61,13 +79,21 @@
         "properties": {
           "id": { "type": "string" },
           "label": { "type": "string" },
-          "roles": { "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }] },
+          "roles": {
+            "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }]
+          },
           "domain": { "enum": ["A", "B"] }
         }
       }
     },
-    "indexRef": { "type": "string", "description": "Caminho para o JSON do índice proprietário (definitions/proprietaryIndex)." },
-    "gamificationRef": { "type": "string", "description": "Caminho para o JSON da economia de gamificação (definitions/gamification)." },
+    "indexRef": {
+      "type": "string",
+      "description": "Caminho para o JSON do índice proprietário (definitions/proprietaryIndex)."
+    },
+    "gamificationRef": {
+      "type": "string",
+      "description": "Caminho para o JSON da economia de gamificação (definitions/gamification)."
+    },
     "ai": {
       "type": "object",
       "required": ["name", "modes", "guardrailsNever", "guardrailsAlways"],
@@ -75,19 +101,24 @@
         "name": { "type": "string" },
         "fullName": { "type": "string" },
         "modes": {
-          "type": "array", "minItems": 3,
+          "type": "array",
+          "minItems": 3,
           "items": {
             "type": "object",
             "required": ["id", "label", "roles"],
             "properties": {
-              "id": { "type": "string" }, "label": { "type": "string" },
-              "roles": { "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }] },
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "roles": {
+                "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }]
+              },
               "domain": { "enum": ["A", "B"] }
             }
           }
         },
         "guardrailsNever": {
-          "type": "array", "items": { "type": "string" },
+          "type": "array",
+          "items": { "type": "string" },
           "allOf": [
             { "contains": { "const": "clinical_diagnosis" } },
             { "contains": { "const": "expose_employee" } },
@@ -140,14 +171,26 @@
   "definitions": {
     "proprietaryIndex": {
       "type": "object",
-      "required": ["id", "name", "version", "scale", "responseScale", "formula", "privacy", "mandatoryDisclaimer", "lenses", "maturityLevels"],
+      "required": [
+        "id",
+        "name",
+        "version",
+        "scale",
+        "responseScale",
+        "formula",
+        "privacy",
+        "mandatoryDisclaimer",
+        "lenses",
+        "maturityLevels"
+      ],
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "version": { "type": "string" },
         "status": { "enum": ["experimental", "validated"] },
         "scale": {
-          "type": "object", "required": ["min", "max"],
+          "type": "object",
+          "required": ["min", "max"],
           "properties": { "min": { "type": "number" }, "max": { "type": "number" } }
         },
         "responseScale": { "type": "object" },
@@ -163,21 +206,26 @@
         },
         "mandatoryDisclaimer": { "type": "string", "minLength": 80 },
         "lenses": {
-          "type": "array", "minItems": 1,
+          "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "required": ["id", "name", "pillars"],
             "properties": {
-              "id": { "type": "string" }, "name": { "type": "string" },
-              "color": { "type": "string" }, "guidingQuestion": { "type": "string" },
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "color": { "type": "string" },
+              "guidingQuestion": { "type": "string" },
               "scientificBasis": { "type": "array", "items": { "type": "string" } },
               "pillars": {
-                "type": "array", "minItems": 1,
+                "type": "array",
+                "minItems": 1,
                 "items": {
                   "type": "object",
                   "required": ["id", "name", "weight"],
                   "properties": {
-                    "id": { "type": "string" }, "name": { "type": "string" },
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
                     "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
                     "sampleItems": { "type": "array", "items": { "type": "string" } }
                   }
@@ -187,13 +235,16 @@
           }
         },
         "maturityLevels": {
-          "type": "array", "minItems": 3,
+          "type": "array",
+          "minItems": 3,
           "items": {
             "type": "object",
             "required": ["min", "max", "name"],
             "properties": {
-              "min": { "type": "number" }, "max": { "type": "number" },
-              "name": { "type": "string" }, "badge": { "type": "string" }
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "name": { "type": "string" },
+              "badge": { "type": "string" }
             }
           }
         },
@@ -207,18 +258,25 @@
       "properties": {
         "version": { "type": "string" },
         "ethicalPrinciples": {
-          "type": "array", "items": { "type": "string" },
+          "type": "array",
+          "items": { "type": "string" },
           "allOf": [
             { "contains": { "const": "cooperation_over_competition" } },
             { "contains": { "const": "opt_out_respected" } },
             { "contains": { "const": "no_mental_health_or_happiness_ranking" } }
           ]
         },
-        "currencies": { "type": "array", "items": { "type": "object", "required": ["id", "name"] } },
+        "currencies": {
+          "type": "array",
+          "items": { "type": "object", "required": ["id", "name"] }
+        },
         "loops": { "type": "object" },
         "missionTypes": { "type": "array" },
         "seedMissions": { "type": "array" },
-        "badges": { "type": "array", "items": { "type": "object", "required": ["id", "name", "scope", "trigger"] } },
+        "badges": {
+          "type": "array",
+          "items": { "type": "object", "required": ["id", "name", "scope", "trigger"] }
+        },
         "antiGaming": { "type": "object" },
         "nudgeLibrarySeed": { "type": "array" },
         "nudgeRules": { "type": "object" }

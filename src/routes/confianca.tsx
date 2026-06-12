@@ -2,16 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
-import {
-  VISIBILITY_RULES,
-  CONSENT_ITEMS,
-  DATA_RIGHTS,
-  TRUST_PROMISES,
-} from "@/mocks/trust-mock";
+import { VISIBILITY_RULES, CONSENT_ITEMS, DATA_RIGHTS, TRUST_PROMISES } from "@/mocks/trust-mock";
 import type { ConsentItem } from "@/engine/trust/trust-types";
 
 export const Route = createFileRoute("/confianca")({
-  head: () => ({ meta: [{ title: "Trust Ledger — Sua privacidade, verificável · 4 Lentes VITA" }] }),
+  head: () => ({
+    meta: [{ title: "Trust Ledger — Sua privacidade, verificável · 4 Lentes VITA" }],
+  }),
   component: TrustPage,
 });
 
@@ -19,12 +16,18 @@ function TrustPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Trust Ledger™</p>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Trust Ledger™
+          </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Sua privacidade, verificável</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Esta tela mostra exatamente o que cada pessoa pode — e não pode — ver sobre você.
-            Não é política de privacidade em juridiquês: é a interface da confiança.
+            Esta tela mostra exatamente o que cada pessoa pode — e não pode — ver sobre você. Não é
+            política de privacidade em juridiquês: é a interface da confiança.
           </p>
         </motion.div>
 
@@ -50,8 +53,13 @@ function PromisesCard() {
       <p className="mb-3 font-medium text-card-foreground">Compromissos invioláveis</p>
       <ul className="space-y-2.5">
         {TRUST_PROMISES.map((p) => (
-          <li key={p} className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground">
-            <span className="mt-0.5 shrink-0 text-primary" aria-hidden>🔒</span>
+          <li
+            key={p}
+            className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground"
+          >
+            <span className="mt-0.5 shrink-0 text-primary" aria-hidden>
+              🔒
+            </span>
             {p}
           </li>
         ))}
@@ -84,8 +92,16 @@ function VisibilityCard() {
                 </p>
                 <ul className="space-y-1">
                   {rule.canSee.map((item) => (
-                    <li key={item} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                      <span className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" aria-hidden>✓</span>
+                    <li
+                      key={item}
+                      className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground"
+                    >
+                      <span
+                        className="mt-0.5 shrink-0 text-green-600 dark:text-green-400"
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
                       {item}
                     </li>
                   ))}
@@ -98,8 +114,13 @@ function VisibilityCard() {
                   </p>
                   <ul className="space-y-1">
                     {rule.cannotSee.map((item) => (
-                      <li key={item} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                        <span className="mt-0.5 shrink-0 text-red-500" aria-hidden>✕</span>
+                      <li
+                        key={item}
+                        className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground"
+                      >
+                        <span className="mt-0.5 shrink-0 text-red-500" aria-hidden>
+                          ✕
+                        </span>
                         {item}
                       </li>
                     ))}
@@ -121,9 +142,7 @@ function ConsentsCard() {
   const [savedId, setSavedId] = useState<string | null>(null);
 
   function toggle(id: string) {
-    setConsents((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, granted: !c.granted } : c)),
-    );
+    setConsents((prev) => prev.map((c) => (c.id === id ? { ...c, granted: !c.granted } : c)));
     setSavedId(id);
     setTimeout(() => setSavedId(null), 2000);
   }
@@ -143,12 +162,19 @@ function ConsentsCard() {
       </div>
       <div className="space-y-1 px-3 pb-4">
         {consents.map((c) => (
-          <div key={c.id} className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+          <div
+            key={c.id}
+            className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+          >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-card-foreground">{c.label}</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{c.description}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                {c.description}
+              </p>
               {savedId === c.id && (
-                <p className="mt-1 text-[10px] text-green-600 dark:text-green-400">✓ Preferência salva</p>
+                <p className="mt-1 text-[10px] text-green-600 dark:text-green-400">
+                  ✓ Preferência salva
+                </p>
               )}
             </div>
             <button

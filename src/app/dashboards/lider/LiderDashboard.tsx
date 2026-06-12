@@ -18,14 +18,8 @@ import {
 export function LiderDashboard() {
   const { index } = usePack();
 
-  const current = useMemo(
-    () => (index ? calculateIVO(teamCurrentCycle, index) : null),
-    [index],
-  );
-  const previous = useMemo(
-    () => (index ? calculateIVO(teamPreviousCycle, index) : null),
-    [index],
-  );
+  const current = useMemo(() => (index ? calculateIVO(teamCurrentCycle, index) : null), [index]);
+  const previous = useMemo(() => (index ? calculateIVO(teamPreviousCycle, index) : null), [index]);
 
   if (!current || !previous) {
     return (
@@ -53,7 +47,11 @@ export function LiderDashboard() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-8 sm:px-6">
-      <TeamHeader teamScore={current.ivoScore} maturityName={current.maturityLevel.name} delta={delta} />
+      <TeamHeader
+        teamScore={current.ivoScore}
+        maturityName={current.maturityLevel.name}
+        delta={delta}
+      />
       <PrivacyBanner />
       <CriticalPillars criticals={criticals} strengths={strengths} prevByPillar={prevByPillar} />
       <CutsCard />
@@ -77,7 +75,11 @@ function TeamHeader({
   delta: number;
 }) {
   const deltaColor =
-    delta > 0 ? "text-green-600 dark:text-green-400" : delta < 0 ? "text-red-500" : "text-amber-600";
+    delta > 0
+      ? "text-green-600 dark:text-green-400"
+      : delta < 0
+        ? "text-red-500"
+        : "text-amber-600";
 
   return (
     <motion.div
@@ -87,7 +89,10 @@ function TeamHeader({
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
       <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground" aria-hidden>
+        <div
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
+          aria-hidden
+        >
           {MOCK_LEADER.avatarInitials}
         </div>
         <div className="flex-1">
@@ -100,7 +105,9 @@ function TeamHeader({
 
       <div className="mt-5 flex flex-wrap items-end gap-6">
         <div>
-          <p className="font-serif text-5xl font-semibold leading-none text-foreground">{teamScore}</p>
+          <p className="font-serif text-5xl font-semibold leading-none text-foreground">
+            {teamScore}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">IVO da equipe · {maturityName}</p>
         </div>
         <div className={`text-xl font-semibold ${deltaColor}`}>
@@ -127,7 +134,9 @@ function PrivacyBanner() {
       className="flex items-start gap-3 rounded-xl border border-border/60 bg-secondary/30 px-4 py-3"
       role="note"
     >
-      <span className="mt-0.5 text-base" aria-hidden>🔒</span>
+      <span className="mt-0.5 text-base" aria-hidden>
+        🔒
+      </span>
       <p className="text-xs leading-relaxed text-muted-foreground">
         Você vê <strong className="text-foreground">apenas médias agregadas</strong> da sua equipe,
         e somente com {K_ANONYMITY_MIN}+ respondentes. Respostas individuais são invisíveis para
@@ -175,14 +184,24 @@ function CriticalPillars({
                   key={p.pillarId}
                   className="flex items-center gap-3 rounded-xl bg-amber-50/60 px-4 py-3 dark:bg-amber-950/20"
                 >
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.lensColor }} aria-hidden />
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: p.lensColor }}
+                    aria-hidden
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-amber-900 dark:text-amber-300">{p.pillarName}</p>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+                      {p.pillarName}
+                    </p>
                     <p className="text-[10px] text-muted-foreground">n = {p.n} respondentes</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-400">{p.score} pts</p>
-                    <p className={`text-[10px] ${d >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                    <p className="text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-400">
+                      {p.score} pts
+                    </p>
+                    <p
+                      className={`text-[10px] ${d >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}
+                    >
                       {d >= 0 ? "↑" : "↓"} {Math.abs(d)} vs anterior
                     </p>
                   </div>
@@ -202,10 +221,19 @@ function CriticalPillars({
           </div>
           <div className="space-y-1 px-3 pb-4">
             {strengths.map((p) => (
-              <div key={p.pillarId} className="flex items-center gap-3 rounded-xl px-4 py-2.5 hover:bg-muted/20 transition-colors">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.lensColor }} aria-hidden />
+              <div
+                key={p.pillarId}
+                className="flex items-center gap-3 rounded-xl px-4 py-2.5 hover:bg-muted/20 transition-colors"
+              >
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ background: p.lensColor }}
+                  aria-hidden
+                />
                 <p className="flex-1 text-sm text-card-foreground">{p.pillarName}</p>
-                <p className="text-sm font-semibold tabular-nums text-green-700 dark:text-green-400">{p.score} pts</p>
+                <p className="text-sm font-semibold tabular-nums text-green-700 dark:text-green-400">
+                  {p.score} pts
+                </p>
               </div>
             ))}
           </div>
@@ -229,18 +257,25 @@ function CutsCard() {
       <div className="space-y-2">
         {TEAM_CUTS.map((cut) =>
           cut.visible ? (
-            <div key={cut.id} className="flex items-center justify-between rounded-xl border border-border/50 px-4 py-3">
+            <div
+              key={cut.id}
+              className="flex items-center justify-between rounded-xl border border-border/50 px-4 py-3"
+            >
               <span className="text-sm text-card-foreground">{cut.label}</span>
               <span className="text-xs text-muted-foreground">n = {cut.n} · visível</span>
             </div>
           ) : (
-            <div key={cut.id} className="rounded-xl border border-dashed border-border/60 px-4 py-3">
+            <div
+              key={cut.id}
+              className="rounded-xl border border-dashed border-border/60 px-4 py-3"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{cut.label}</span>
                 <span className="text-xs text-muted-foreground">🔒 oculto</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Este recorte tem menos de {K_ANONYMITY_MIN} respostas e fica oculto para proteger a privacidade.
+                Este recorte tem menos de {K_ANONYMITY_MIN} respostas e fica oculto para proteger a
+                privacidade.
               </p>
             </div>
           ),
@@ -269,7 +304,9 @@ function CopilotCard() {
         <div className="flex items-center gap-2">
           <span aria-hidden>✨</span>
           <p className="text-sm font-medium text-card-foreground">Copiloto do Líder</p>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">mockado · Bloco 12</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+            mockado · Bloco 12
+          </span>
         </div>
         <button
           onClick={() => setDismissed(true)}
@@ -282,7 +319,9 @@ function CopilotCard() {
       <p className="text-sm leading-relaxed text-muted-foreground">
         {parts.map((part, i) =>
           i % 2 === 1 ? (
-            <strong key={i} className="text-foreground">{part}</strong>
+            <strong key={i} className="text-foreground">
+              {part}
+            </strong>
           ) : (
             <span key={i}>{part}</span>
           ),
@@ -304,8 +343,14 @@ function CopilotCard() {
 
 const STATUS_STYLE: Record<ActionItem["status"], { label: string; cls: string }> = {
   todo: { label: "A fazer", cls: "bg-muted text-muted-foreground" },
-  doing: { label: "Em andamento", cls: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
-  done: { label: "Concluído", cls: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300" },
+  doing: {
+    label: "Em andamento",
+    cls: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  },
+  done: {
+    label: "Concluído",
+    cls: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  },
 };
 
 function ActionPlanCard({ items }: { items: ActionItem[] }) {
@@ -324,14 +369,25 @@ function ActionPlanCard({ items }: { items: ActionItem[] }) {
         {items.map((item) => {
           const st = STATUS_STYLE[item.status];
           return (
-            <div key={item.id} className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+            <div
+              key={item.id}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+            >
               <div className="flex-1 min-w-0">
-                <p className={`text-sm ${item.status === "done" ? "text-muted-foreground line-through" : "text-card-foreground"}`}>
+                <p
+                  className={`text-sm ${item.status === "done" ? "text-muted-foreground line-through" : "text-card-foreground"}`}
+                >
                   {item.title}
                 </p>
-                <p className="text-[10px] text-muted-foreground">{item.pillarName} · {item.dueLabel}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {item.pillarName} · {item.dueLabel}
+                </p>
               </div>
-              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${st.cls}`}>{st.label}</span>
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${st.cls}`}
+              >
+                {st.label}
+              </span>
             </div>
           );
         })}
@@ -355,10 +411,15 @@ function LeaderMissionsCard() {
       </div>
       <div className="space-y-1 px-3 pb-4">
         {LEADER_MISSIONS.map((m) => (
-          <div key={m.id} className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+          <div
+            key={m.id}
+            className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+          >
             <div className="flex-1 min-w-0">
               <p className="text-sm text-card-foreground">{m.title}</p>
-              <p className="text-[10px] text-muted-foreground">{m.pillarName} · +{m.xp} XP</p>
+              <p className="text-[10px] text-muted-foreground">
+                {m.pillarName} · +{m.xp} XP
+              </p>
             </div>
             <span
               className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
@@ -390,7 +451,9 @@ function FooterLinks() {
         to="/ivo"
         className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="text-xl" aria-hidden>📊</span>
+        <span className="text-xl" aria-hidden>
+          📊
+        </span>
         <p className="text-sm font-medium text-card-foreground">IVO da Organização</p>
         <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
@@ -398,7 +461,9 @@ function FooterLinks() {
         to="/lab"
         className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="text-xl" aria-hidden>🧪</span>
+        <span className="text-xl" aria-hidden>
+          🧪
+        </span>
         <p className="text-sm font-medium text-card-foreground">Culture Lab</p>
         <p className="text-[10px] text-muted-foreground">Protocolos e experimentos</p>
       </Link>

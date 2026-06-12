@@ -129,21 +129,76 @@ export interface CopsoqDimension {
   band: "favorável" | "intermediário" | "risco";
 }
 
-export const COPSOQ_AGGREGATE: { n: number; appliedLabel: string; dimensions: CopsoqDimension[] } = {
-  n: 374,
-  appliedLabel: "T1/2026 · junto ao diagnóstico IVO",
-  dimensions: [
-    { id: "demandas_quant", name: "Demandas quantitativas", score: 68, direction: "menor_melhor", band: "risco" },
-    { id: "ritmo", name: "Ritmo de trabalho", score: 61, direction: "menor_melhor", band: "intermediário" },
-    { id: "influencia", name: "Influência no trabalho", score: 55, direction: "maior_melhor", band: "intermediário" },
-    { id: "possibilidades_desenv", name: "Possibilidades de desenvolvimento", score: 71, direction: "maior_melhor", band: "favorável" },
-    { id: "significado", name: "Significado do trabalho", score: 78, direction: "maior_melhor", band: "favorável" },
-    { id: "apoio_social", name: "Apoio social de colegas", score: 70, direction: "maior_melhor", band: "favorável" },
-    { id: "apoio_lideranca", name: "Apoio social da liderança", score: 58, direction: "maior_melhor", band: "intermediário" },
-    { id: "insegur_emprego", name: "Insegurança no emprego", score: 34, direction: "menor_melhor", band: "favorável" },
-    { id: "equilibrio_tf", name: "Conflito trabalho-família", score: 63, direction: "menor_melhor", band: "intermediário" },
-  ],
-};
+export const COPSOQ_AGGREGATE: { n: number; appliedLabel: string; dimensions: CopsoqDimension[] } =
+  {
+    n: 374,
+    appliedLabel: "T1/2026 · junto ao diagnóstico IVO",
+    dimensions: [
+      {
+        id: "demandas_quant",
+        name: "Demandas quantitativas",
+        score: 68,
+        direction: "menor_melhor",
+        band: "risco",
+      },
+      {
+        id: "ritmo",
+        name: "Ritmo de trabalho",
+        score: 61,
+        direction: "menor_melhor",
+        band: "intermediário",
+      },
+      {
+        id: "influencia",
+        name: "Influência no trabalho",
+        score: 55,
+        direction: "maior_melhor",
+        band: "intermediário",
+      },
+      {
+        id: "possibilidades_desenv",
+        name: "Possibilidades de desenvolvimento",
+        score: 71,
+        direction: "maior_melhor",
+        band: "favorável",
+      },
+      {
+        id: "significado",
+        name: "Significado do trabalho",
+        score: 78,
+        direction: "maior_melhor",
+        band: "favorável",
+      },
+      {
+        id: "apoio_social",
+        name: "Apoio social de colegas",
+        score: 70,
+        direction: "maior_melhor",
+        band: "favorável",
+      },
+      {
+        id: "apoio_lideranca",
+        name: "Apoio social da liderança",
+        score: 58,
+        direction: "maior_melhor",
+        band: "intermediário",
+      },
+      {
+        id: "insegur_emprego",
+        name: "Insegurança no emprego",
+        score: 34,
+        direction: "menor_melhor",
+        band: "favorável",
+      },
+      {
+        id: "equilibrio_tf",
+        name: "Conflito trabalho-família",
+        score: 63,
+        direction: "menor_melhor",
+        band: "intermediário",
+      },
+    ],
+  };
 
 // ─── Holding ──────────────────────────────────────────────────────────────────
 

@@ -15,7 +15,11 @@ export const Route = createFileRoute("/pnl")({
 });
 
 function brl(n: number) {
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  return n.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
 }
 
 const SCENARIOS: Scenario[] = ["conservador", "médio", "otimista"];
@@ -25,10 +29,7 @@ function PnLPage() {
   const [inputs, setInputs] = useState<PnLInputs>(DEFAULT_INPUTS);
   const [scenario, setScenario] = useState<Scenario>("médio");
 
-  const result = useMemo(
-    () => calculatePnL(inputs, IVO_DELTA_DEMO, scenario),
-    [inputs, scenario],
-  );
+  const result = useMemo(() => calculatePnL(inputs, IVO_DELTA_DEMO, scenario), [inputs, scenario]);
 
   function setField(field: keyof PnLInputs, raw: string) {
     const value = Number(raw);
@@ -48,8 +49,14 @@ function PnLPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Vitality P&L™</p>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Vitality P&L™
+          </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">O custo invisível, visível</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Toda estimativa mostra a própria fórmula. Edite os inputs com os números da sua
@@ -111,19 +118,25 @@ function PnLPage() {
             {/* Headline numbers */}
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Custo corrente/ano</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Custo corrente/ano
+                </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
                   {brl(result.totalCurrentCost)}
                 </p>
               </div>
               <div className="rounded-2xl border border-green-300/50 bg-green-50/50 p-4 shadow-sm dark:border-green-800/50 dark:bg-green-950/20">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Custo evitável</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Custo evitável
+                </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-green-700 dark:text-green-400 sm:text-2xl">
                   {brl(result.avoidedCost)}
                 </p>
               </div>
               <div className="rounded-2xl border border-red-300/50 bg-red-50/50 p-4 shadow-sm dark:border-red-900/50 dark:bg-red-950/20">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Inação (12m)</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Inação (12m)
+                </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-red-600 dark:text-red-400 sm:text-2xl">
                   {brl(result.inactionCost12m)}
                 </p>
@@ -137,7 +150,10 @@ function PnLPage() {
               </div>
               <div className="space-y-1 px-3 pb-4">
                 {result.lines.map((line) => (
-                  <div key={line.id} className="rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+                  <div
+                    key={line.id}
+                    className="rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+                  >
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="text-sm text-card-foreground">{line.label}</p>
                       <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">

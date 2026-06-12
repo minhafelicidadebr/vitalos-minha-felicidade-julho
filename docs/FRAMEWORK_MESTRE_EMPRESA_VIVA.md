@@ -1,5 +1,7 @@
 # FRAMEWORK MESTRE DO ECOSSISTEMA
+
 # REDE DO BEM-ESTAR ORGANIZACIONAL: MISSÃO EMPRESA VIVA
+
 ## 4 LENTES VITA™ — O Sistema Operacional da Vitalidade Organizacional
 
 **Documento-Bíblia do Ecossistema SaaS · Versão 1.0 GENESIS · Junho 2026**
@@ -58,20 +60,20 @@
 
 ## 0.3 CONDIÇÕES DE VITÓRIA AUDITÁVEIS (12 CRITÉRIOS)
 
-| # | Condição | Métrica auditável | Meta da Temporada 2 |
-|---|---|---|---|
-| V1 | Participação viva | % colaboradores ativos/temporada | ≥ 70% |
-| V2 | Confiança verificada | % que acessou o Trust Ledger e manteve consentimento | ≥ 80% retenção de consentimento |
-| V3 | Medição válida | Taxa de resposta IVO com k≥5 em todos os recortes exibidos | ≥ 65% resposta; 0 recortes expostos |
-| V4 | Diagnóstico → ação | % pilares críticos com plano de ação ativo em ≤ 21 dias | 100% |
-| V5 | Ação → efeito | Protocolos do Culture Lab com efeito medido | ≥ 2 protocolos/temporada com before/after |
-| V6 | Delta de vitalidade | Variação do IVO entre ciclos | tendência positiva ou explicada |
-| V7 | Compliance organizada | Inventário NR-1 + trilha documental exportável | checklist GRO-ready 100% |
-| V8 | Linguagem do CFO | Vitality P&L apresentado em diretoria | ≥ 1×/trimestre |
-| V9 | Reconhecimento circulante | % colaboradores que deram OU receberam kudo | ≥ 60% |
-| V10 | Aprendizagem real | módulos concluídos / colaborador ativo | ≥ 2/temporada |
-| V11 | ESG alimentado | Indicadores sociais exportados para relatório ESG | ≥ 8 indicadores/ano |
-| V12 | Zero dano | Incidentes de exposição individual ou uso punitivo | 0 (tolerância zero) |
+| #   | Condição                  | Métrica auditável                                          | Meta da Temporada 2                       |
+| --- | ------------------------- | ---------------------------------------------------------- | ----------------------------------------- |
+| V1  | Participação viva         | % colaboradores ativos/temporada                           | ≥ 70%                                     |
+| V2  | Confiança verificada      | % que acessou o Trust Ledger e manteve consentimento       | ≥ 80% retenção de consentimento           |
+| V3  | Medição válida            | Taxa de resposta IVO com k≥5 em todos os recortes exibidos | ≥ 65% resposta; 0 recortes expostos       |
+| V4  | Diagnóstico → ação        | % pilares críticos com plano de ação ativo em ≤ 21 dias    | 100%                                      |
+| V5  | Ação → efeito             | Protocolos do Culture Lab com efeito medido                | ≥ 2 protocolos/temporada com before/after |
+| V6  | Delta de vitalidade       | Variação do IVO entre ciclos                               | tendência positiva ou explicada           |
+| V7  | Compliance organizada     | Inventário NR-1 + trilha documental exportável             | checklist GRO-ready 100%                  |
+| V8  | Linguagem do CFO          | Vitality P&L apresentado em diretoria                      | ≥ 1×/trimestre                            |
+| V9  | Reconhecimento circulante | % colaboradores que deram OU receberam kudo                | ≥ 60%                                     |
+| V10 | Aprendizagem real         | módulos concluídos / colaborador ativo                     | ≥ 2/temporada                             |
+| V11 | ESG alimentado            | Indicadores sociais exportados para relatório ESG          | ≥ 8 indicadores/ano                       |
+| V12 | Zero dano                 | Incidentes de exposição individual ou uso punitivo         | 0 (tolerância zero)                       |
 
 ## 0.4 RUBRIC FINAL DE AVALIAÇÃO DE EXCELÊNCIA (para o comitê de pós-doutores)
 
@@ -187,14 +189,14 @@ A tese científica do VITA: **bem-estar organizacional é fenômeno multinível*
 
 Inovação de produto: o **ESG & ODS Impact Hub** — cada pilar do IVO alimenta automaticamente indicadores sociais auditáveis. A empresa para de "escrever" o capítulo S do relatório ESG e passa a **exportá-lo com evidência**.
 
-| Pilar IVO (exemplos) | ODS | Alvo ODS | Conexão ESG (temas ESRS S1/GRI) |
-|---|---|---|---|
-| Energia & Vitalidade · Equilíbrio & Autonomia | ODS 3 | 3.4 saúde mental e bem-estar | Saúde e segurança; equilíbrio vida-trabalho |
-| Condições & Carga · Segurança Psicológica | ODS 8 | 8.8 trabalho seguro e protegido | Condições de trabalho; riscos psicossociais |
-| Inclusão, Equidade & Diversidade | ODS 5 / ODS 10 | 5.5 participação plena; 10.3 igualdade de oportunidades | Diversidade; não-discriminação; equidade |
-| Justiça & Coerência · Transparência | ODS 16 | 16.6 instituições eficazes e transparentes | Governança; ética; canais de denúncia |
-| Desenvolvimento de Pessoas · Crescimento | ODS 4 | 4.4 competências para o trabalho | Treinamento e desenvolvimento |
-| Sustentabilidade & Bem-Comum · Projetos de impacto | ODS 11 / 12 / 17 | comunidades; consumo responsável; parcerias | Engajamento comunitário; cadeia de valor |
+| Pilar IVO (exemplos)                               | ODS              | Alvo ODS                                                | Conexão ESG (temas ESRS S1/GRI)             |
+| -------------------------------------------------- | ---------------- | ------------------------------------------------------- | ------------------------------------------- |
+| Energia & Vitalidade · Equilíbrio & Autonomia      | ODS 3            | 3.4 saúde mental e bem-estar                            | Saúde e segurança; equilíbrio vida-trabalho |
+| Condições & Carga · Segurança Psicológica          | ODS 8            | 8.8 trabalho seguro e protegido                         | Condições de trabalho; riscos psicossociais |
+| Inclusão, Equidade & Diversidade                   | ODS 5 / ODS 10   | 5.5 participação plena; 10.3 igualdade de oportunidades | Diversidade; não-discriminação; equidade    |
+| Justiça & Coerência · Transparência                | ODS 16           | 16.6 instituições eficazes e transparentes              | Governança; ética; canais de denúncia       |
+| Desenvolvimento de Pessoas · Crescimento           | ODS 4            | 4.4 competências para o trabalho                        | Treinamento e desenvolvimento               |
+| Sustentabilidade & Bem-Comum · Projetos de impacto | ODS 11 / 12 / 17 | comunidades; consumo responsável; parcerias             | Engajamento comunitário; cadeia de valor    |
 
 **Saídas do Hub:** painel ODS (cobertura por alvo, com evidências vinculadas) · export "Capítulo S" (indicadores + metodologia + séries temporais) · selo de contribuição ODS por projeto concluído · mapa de materialidade social simplificado. **Disclaimer:** o Hub organiza evidências e indicadores; a asseguração externa do relatório permanece com auditores independentes.
 
@@ -211,12 +213,12 @@ Inovação de produto: o **ESG & ODS Impact Hub** — cada pilar do IVO alimenta
 
 ## 3.1 AS 4 FASES DA TEMPORADA (12 semanas) — ESPIRAL M.E.T.E.
 
-| Fase | Semanas | Foco | Entregas |
-|---|---|---|---|
-| MENSURAR | 1–2 | IVO completo + devolutiva em 7 dias | radar org/equipes; pilares críticos |
-| EDUCAR | 3–4 | vocabulário comum + trilhas direcionadas | módulos por lacuna; embaixadores formados |
-| TRANSFORMAR | 5–10 | protocolos do Lab + missões + projetos ODS | 2–3 experimentos rodando; evidências |
-| EVOLUIR | 11–12 | re-medição + conselho + celebração | delta; decisões; badges; reciclo |
+| Fase        | Semanas | Foco                                       | Entregas                                  |
+| ----------- | ------- | ------------------------------------------ | ----------------------------------------- |
+| MENSURAR    | 1–2     | IVO completo + devolutiva em 7 dias        | radar org/equipes; pilares críticos       |
+| EDUCAR      | 3–4     | vocabulário comum + trilhas direcionadas   | módulos por lacuna; embaixadores formados |
+| TRANSFORMAR | 5–10    | protocolos do Lab + missões + projetos ODS | 2–3 experimentos rodando; evidências      |
+| EVOLUIR     | 11–12   | re-medição + conselho + celebração         | delta; decisões; badges; reciclo          |
 
 Ciclo anual: 4 temporadas; a 4ª inclui Certificação Empresa Viva e benchmark anual.
 
@@ -247,16 +249,16 @@ Participação 100% voluntária com opt-out sem pergunta · k≥5 em qualquer re
 
 ## 4.1 MATRIZ PERSONA → INSTRUMENTO (obrigatória)
 
-| Persona | Instrumento | Objetivo | Periodicidade | Canal | Quem vê (agregado) | Saída |
-|---|---|---|---|---|---|---|
-| Colaborador | IVO completo (16 pilares, ~48 itens, 8–10 min) | fotografia de vitalidade | 1×/temporada | PWA/quiosque | equipe(n≥5), área, org | radar + pilares |
-| Colaborador | Pulse 60s (3 itens rotativos) | tendência entre fotos | quinzenal | PWA/quiosque | idem | sparklines por pilar |
-| Colaborador | Check-in de energia (1 toque, opcional) | micro-sinal de carga | diário opt-in | PWA | somente agregado semanal | termômetro coletivo |
-| Líder | IVO-Liderança (visão própria da equipe, 12 itens) | gap percepção líder×equipe | 1×/temporada | PWA | RH (agregado de líderes) | índice de calibração |
-| Funcionário/prestador | COPSOQ II versão curta BR (Domínio B) | riscos psicossociais educativo | 1–2×/ano | quiosque/PWA | SST/CIPA agregado | inventário GRO-ready |
-| Todos | Canal de escuta protegido | relatos sensíveis | contínuo | fluxo confidencial | volumes por categoria | tratativas com SLA |
-| Sistema | Sinais Vivos (eventos internos consentidos) | comportamento agregado | contínuo | telemetria da plataforma | RH/CHRO agregado | percepção×comportamento |
-| Comitê | Checklist de maturidade de governança | qualidade do processo | 1×/temporada | PWA | comitê + CS | score de operação |
+| Persona               | Instrumento                                       | Objetivo                       | Periodicidade | Canal                    | Quem vê (agregado)       | Saída                   |
+| --------------------- | ------------------------------------------------- | ------------------------------ | ------------- | ------------------------ | ------------------------ | ----------------------- |
+| Colaborador           | IVO completo (16 pilares, ~48 itens, 8–10 min)    | fotografia de vitalidade       | 1×/temporada  | PWA/quiosque             | equipe(n≥5), área, org   | radar + pilares         |
+| Colaborador           | Pulse 60s (3 itens rotativos)                     | tendência entre fotos          | quinzenal     | PWA/quiosque             | idem                     | sparklines por pilar    |
+| Colaborador           | Check-in de energia (1 toque, opcional)           | micro-sinal de carga           | diário opt-in | PWA                      | somente agregado semanal | termômetro coletivo     |
+| Líder                 | IVO-Liderança (visão própria da equipe, 12 itens) | gap percepção líder×equipe     | 1×/temporada  | PWA                      | RH (agregado de líderes) | índice de calibração    |
+| Funcionário/prestador | COPSOQ II versão curta BR (Domínio B)             | riscos psicossociais educativo | 1–2×/ano      | quiosque/PWA             | SST/CIPA agregado        | inventário GRO-ready    |
+| Todos                 | Canal de escuta protegido                         | relatos sensíveis              | contínuo      | fluxo confidencial       | volumes por categoria    | tratativas com SLA      |
+| Sistema               | Sinais Vivos (eventos internos consentidos)       | comportamento agregado         | contínuo      | telemetria da plataforma | RH/CHRO agregado         | percepção×comportamento |
+| Comitê                | Checklist de maturidade de governança             | qualidade do processo          | 1×/temporada  | PWA                      | comitê + CS              | score de operação       |
 
 ## 4.2 IVO 2.0 — ESPECIFICAÇÃO (fonte de verdade: `ivo-framework.json`)
 
@@ -278,13 +280,13 @@ Padrão de mercado: devolutiva em 4–8 semanas → confiança morta. Padrão VI
 
 Formato universal: 6–8 min · vídeo/texto acessível + 1 prática aplicável hoje + quiz de 3 itens + microcompromisso opcional · linguagem adulta · ciência citada sem academicismo · versão áudio para operacional. Cada módulo lista: objetivo, ciência-base, prática-âncora, erro comum, métrica de adesão.
 
-**LENTE EU** — M1 *Energia é Estratégia* (sono, pausas, ultradiano; prática: pausa de 5 min a cada 90); M2 *Trabalho com Sentido* (job crafting; prática: redesenhar 1 tarefa da semana); M3 *Forças em Uso* (forças de caráter; prática: usar 1 força top de forma nova); M4 *Donos do Próprio Tempo* (autonomia e limites; prática: bloco de foco protegido + acordo de desconexão).
+**LENTE EU** — M1 _Energia é Estratégia_ (sono, pausas, ultradiano; prática: pausa de 5 min a cada 90); M2 _Trabalho com Sentido_ (job crafting; prática: redesenhar 1 tarefa da semana); M3 _Forças em Uso_ (forças de caráter; prática: usar 1 força top de forma nova); M4 _Donos do Próprio Tempo_ (autonomia e limites; prática: bloco de foco protegido + acordo de desconexão).
 
-**LENTE NÓS** — M5 *Errar em Voz Alta* (segurança psicológica; prática: abrir reunião com "o que quase deu errado"); M6 *Confiança se Constrói em Pequenas Promessas* (confiabilidade; prática: combinados explícitos); M7 *Reconhecer é Multiplicar* (kudos específicos: comportamento+impacto); M8 *Pertencer sem Máscara* (inclusão cotidiana; prática: check-in humano de 2 min).
+**LENTE NÓS** — M5 _Errar em Voz Alta_ (segurança psicológica; prática: abrir reunião com "o que quase deu errado"); M6 _Confiança se Constrói em Pequenas Promessas_ (confiabilidade; prática: combinados explícitos); M7 _Reconhecer é Multiplicar_ (kudos específicos: comportamento+impacto); M8 _Pertencer sem Máscara_ (inclusão cotidiana; prática: check-in humano de 2 min).
 
-**LENTE LIDERANÇA** — M9 *Clareza é Gentileza* (prioridades e expectativas; prática: contrato de prioridades da semana); M10 *Justiça Percebida* (processos e exceções; prática: explicar o porquê de 1 decisão); M11 *Conversas que Desenvolvem* (feedback SBI; prática: 1 conversa de crescimento); M12 *Líder que Cuida do Solo* (JD-R na prática: mapear demandas×recursos da equipe).
+**LENTE LIDERANÇA** — M9 _Clareza é Gentileza_ (prioridades e expectativas; prática: contrato de prioridades da semana); M10 _Justiça Percebida_ (processos e exceções; prática: explicar o porquê de 1 decisão); M11 _Conversas que Desenvolvem_ (feedback SBI; prática: 1 conversa de crescimento); M12 _Líder que Cuida do Solo_ (JD-R na prática: mapear demandas×recursos da equipe).
 
-**LENTE ORGANIZAÇÃO** — M13 *Carga Sustentável* (sinais de sobrecarga sistêmica; prática: auditoria de reuniões da equipe); M14 *Cultura se Faz nos Detalhes* (rituais e símbolos; prática: adotar 1 ritual de equipe); M15 *Equidade na Prática* (vieses em decisões cotidianas; prática: checklist de reunião inclusiva); M16 *Empresa no Mundo* (ODS e bem-comum; prática: escolher causa do Dia do Impacto).
+**LENTE ORGANIZAÇÃO** — M13 _Carga Sustentável_ (sinais de sobrecarga sistêmica; prática: auditoria de reuniões da equipe); M14 _Cultura se Faz nos Detalhes_ (rituais e símbolos; prática: adotar 1 ritual de equipe); M15 _Equidade na Prática_ (vieses em decisões cotidianas; prática: checklist de reunião inclusiva); M16 _Empresa no Mundo_ (ODS e bem-comum; prática: escolher causa do Dia do Impacto).
 
 **Trilhas compostas por papel:** Colaborador (M1–M8 núcleo) · Líder (M5, M9–M13 núcleo + certificação interna "Líder-Jardineiro") · RH (todas + operação de temporadas + leitura de dados + GRO educativo) · C-Level (cápsulas executivas de 3 min: caso de negócio, risco, ESG) · SST/CIPA (NR-1, COPSOQ, escuta, do inventário ao plano) · Embaixadores (facilitação, mobilização, evidências).
 
@@ -354,7 +356,7 @@ Elegibilidade anual por evidência (não por autodeclaração): nível de maturi
 
 ## 7.4 VITRINE VIVA E RECICLO
 
-Vitrine: mural curado de evidências (fotos, antes/depois, depoimentos consentidos) — a arma contra O Cinismo. Reciclo: na semana 12, a plataforma gera automaticamente o rascunho da próxima temporada: pilares-foco, protocolos sugeridos (com base no que funcionou *nesta* empresa), missões e calendário — aprendizado composto, temporada após temporada.
+Vitrine: mural curado de evidências (fotos, antes/depois, depoimentos consentidos) — a arma contra O Cinismo. Reciclo: na semana 12, a plataforma gera automaticamente o rascunho da próxima temporada: pilares-foco, protocolos sugeridos (com base no que funcionou _nesta_ empresa), missões e calendário — aprendizado composto, temporada após temporada.
 
 ---
 
@@ -378,16 +380,20 @@ BACKEND (Fase 2 — Supabase)
 ```
 
 ## 8.2 MODELO DE DADOS (núcleos)
+
 organizations · org_units(árvore) · memberships · domain_packs(jsonb versionado) · ivo_cycles · ivo_responses(cegas; só a edge lê) · ivo_aggregates(k≥5) · pulses · signals_events(consentidos) · signals_aggregates · missions/mission_progress · ambassadorships · learning(paths/modules/progress) · protocols · experiments(protocolo×piloto×janela×resultado) · nudges/nudge_events · recognitions(kudos) · action_plans/action_items · risk_inventory(B) · listening_reports(fluxo apartado) · evidences · esg_indicators/esg_evidences · xp_transactions · badges_awarded · seasons · reports · certifications · consents(Trust Ledger) · audit_logs.
 **Invariante nº 1:** nenhuma resposta individual é legível por papel de cliente — somente funções de agregação alimentam as telas.
 
 ## 8.3 SEGURANÇA, LGPD E TRUST LEDGER
+
 Privacy/security by design · consentimento granular por fluxo (IVO, pulses, sinais, nudges, gamificação) · bases legais documentadas (consentimento no Domínio A; obrigação legal/legítimo interesse com salvaguardas no B educativo) · direitos do titular operacionais (acesso/retificação/eliminação/portabilidade no próprio app) · retenção por tipo de dado · criptografia em trânsito e repouso · RLS por tenant · audit log imutável · DPA padrão · Trust Ledger como interface pública desses compromissos · resposta a incidentes com comunicação transparente.
 
 ## 8.4 IA: ARQUITETURA RESPONSÁVEL
+
 Camadas: guardrails declarativos no pack → shell de modos por papel → (Fase 2) RAG por tenant → camada agêntica com proposta→aprovação→execução→auditoria · logs de decisões de IA · avaliação contínua de respostas (amostragem humana) · kill-switch por tenant · jamais treinamento com dados identificáveis de clientes.
 
 ## 8.5 MULTI-TENANT E DOMAIN PACKS
+
 MVP: organization_id + pack JSON estático validado por `domain-pack.schema.json` no boot. Fase 2: packs no banco, versionados, branding por tenant, billing. Fase 3: white-label, custom domain, editor visual de packs, marketplace. **Regra:** novo setor = novo pack; se exigir mudança no engine, ela sobe como capacidade genérica.
 
 ---
@@ -395,11 +401,13 @@ MVP: organization_id + pack JSON estático validado por `domain-pack.schema.json
 # LIVRO IX — TEORIA DA MUDANÇA E AVALIAÇÃO
 
 ## 9.1 MODELO LÓGICO
+
 **Insumos:** plataforma + metodologia 4 Lentes + comitê do cliente + embaixadores. **Atividades:** temporadas M.E.T.E. (medição, trilhas, protocolos, missões, projetos ODS). **Produtos:** taxas de participação, módulos concluídos, experimentos rodados, planos executados, evidências. **Resultados intermediários (3–12 m):** ↑ pilares-alvo, ↑ segurança psicológica, ↓ sinais de sobrecarga, ciclo dado→ação fechado, inventário NR-1 vivo. **Resultados finais (12–36 m):** ↓ turnover e absenteísmo, ↑ retenção e atratividade, capítulo S do ESG com evidência, maturidade Empresa Viva. **Impacto:** trabalho decente e bem-estar como prática auditável (ODS 3, 5, 8, 10, 16, 17).
 
 **Assunções críticas:** liderança patrocina de verdade · participação voluntária atinge massa crítica (Trust Ledger é a alavanca) · planos saem do papel (Kanban com dono/prazo é a alavanca) · honestidade estatística preserva credibilidade.
 
 ## 9.2 DESENHO DE AVALIAÇÃO (roadmap científico)
+
 **Ondas:** T0 (baseline) → T1 (fim da temporada 1) → T2/T4 (anual). **Quantitativo:** deltas de IVO por pilar com n; comparações intra-empresa (pilotos × não-pilotos via Culture Lab); correlações com indicadores duros do cliente (turnover, absenteísmo) — sempre correlacionais até desenho mais forte. **Qualitativo:** painéis com colaboradores/líderes, estudos de caso por temporada. **Psicometria (Fase 2, com Conselho Científico):** validação do IVO — consistência interna, estrutura fatorial, invariância entre grupos, validade convergente (WHO-5/UWES) — pré-requisito para retirar o rótulo "experimental". **Publicação:** relatório metodológico público anual ("Panorama da Vitalidade Organizacional Brasil").
 
 ---
@@ -407,15 +415,19 @@ MVP: organization_id + pack JSON estático validado por `domain-pack.schema.json
 # LIVRO X — NEGÓCIO
 
 ## 10.1 MERCADO E POSICIONAMENTO
-Categoria criada: **Vitality Operating System**. Cunha: NR-1 psicossocial (demanda compulsória com prazo). Expansão: vitalidade, ESG, marca empregadora. Estrutura TAM/SAM/SOM a validar com dados correntes: TAM = empresas BR ≥20 func. obrigadas ao GRO × ticket anual; SAM = 50–5.000 func. em setores de pressão regulatória/talento; SOM 3 anos via canal de consultorias SST/contabilidades. **Matriz competitiva:** clima (mede e para) × benefícios (indivíduo sem sistema) × consultorias (não escalam) — o VITA ocupa sozinho o quadrante *mede + educa + transforma + comprova + certifica*.
+
+Categoria criada: **Vitality Operating System**. Cunha: NR-1 psicossocial (demanda compulsória com prazo). Expansão: vitalidade, ESG, marca empregadora. Estrutura TAM/SAM/SOM a validar com dados correntes: TAM = empresas BR ≥20 func. obrigadas ao GRO × ticket anual; SAM = 50–5.000 func. em setores de pressão regulatória/talento; SOM 3 anos via canal de consultorias SST/contabilidades. **Matriz competitiva:** clima (mede e para) × benefícios (indivíduo sem sistema) × consultorias (não escalam) — o VITA ocupa sozinho o quadrante _mede + educa + transforma + comprova + certifica_.
 
 ## 10.2 OFERTA E PRICING (PEPM, faixas a validar)
+
 **Essencial** (R$ 7–10): IVO + pulses + devolutivas + academia núcleo + Trust Ledger + relatórios. **Profissional** (R$ 14–20): + temporadas completas, gamificação/kudos, nudges, embaixadorias, Culture Lab básico, Domínio B educativo, FlorescerIA, Vitality P&L. **Enterprise** (R$ 25–38): + holding/benchmark, Culture Lab avançado, ESG & ODS Hub completo, SSO/API, suporte dedicado, white-label futuro. **Serviços:** ativação (onboarding + 1ª temporada assistida + formação de embaixadores) · Certificação anual · futura homologação de parceiros (take rate) · benchmark setorial como data product (Fase 3).
 
 ## 10.3 GTM E MÉTRICAS
+
 Canais: consultorias SST e contabilidades (revenue share; donas da urgência) · PLG-assisted (demo pública navegável = o próprio MVP mock) · autoridade (guias NR-1, calculadora pública de ROI, relatório anual proprietário) · selo como loop viral. **NSM: Equipes Florescendo** (≥2 temporadas medidas + ≥1 transformação com efeito comprovado). **Unit economics-alvo:** margem ≥80% · CAC payback ≤12 m · NRR ≥120% · churn lógico <1,5%/m. **OKRs Ano 1 (modelo):** O1 provar o ciclo (10 pilotos; ≥70% participação média; ≥20 experimentos com efeito medido) · O2 provar o negócio (NRR>110% nos pilotos; 2 canais ativos) · O3 provar a ciência (relatório metodológico v1; Conselho Científico formado).
 
 ## 10.4 ROADMAP 36 MESES
+
 **Fase 0 (m0–4) — GENESIS:** MVP mock-first completo (Blocos 0–21 do Super Prompt GENESIS); demo day test aprovado. **Fase 1 (m4–10) — PILOTOS:** Supabase real, RLS, 10 pilotos pagantes, temporadas reais, ajuste de instrumento. **Fase 2 (m10–20) — MOTOR LIGADO:** FlorescerIA RAG/agêntica, Sinais Vivos integrados, Culture Lab avançado, ESG Hub completo, billing, canal de parceiros, 100+ clientes. **Fase 3 (m20–36) — CATEGORIA:** benchmark setorial, validação psicométrica publicada, white-label, packs `condominium`/`school`/`government`, internacionalização (pack + idioma), preparação Série A com moat de dados de protocolos.
 
 ---
@@ -423,28 +435,32 @@ Canais: consultorias SST e contabilidades (revenue share; donas da urgência) ·
 # ANEXOS
 
 ## A. MATRIZ DE RISCOS E MITIGAÇÕES (top 12)
-| Risco | Prob. | Impacto | Mitigação |
-|---|---|---|---|
-| Baixa participação | M | Alto | Trust Ledger, quiosque, devolutiva 7 dias, voluntariedade real |
-| Uso punitivo por gestor | B | Crítico | invariantes de código (k≥5, agregados), termos de uso, auditoria, rescisão |
-| Overclaim clínico/jurídico | M | Crítico | disclaimers obrigatórios no pack, revisão jurídica, Conselho Científico |
-| Vazamento de dados | B | Crítico | RLS, criptografia, respostas cegas, auditoria, resposta a incidentes |
-| Fadiga de iniciativa | M | Alto | temporadas com arco e fim, rituais ≤15 min embutidos, reciclo automático |
-| Gaming de pontos | M | Médio | caps, validação de evidências, XP nunca ligado a conteúdo |
-| Concorrente copia features | A | Médio | moat = dataset de protocolos + selo + canal SST + categoria |
-| Dependência do champion de RH | M | Alto | Comitê multi-papel, valor para líder e CFO, CS proativo |
-| Mudança regulatória NR-1 | M | Médio | módulo B configurável por pack, monitoramento legal |
-| IVO sem validação psicométrica | M | Médio | rótulo experimental honesto + roadmap de validação |
-| Quiosque mal adotado no operacional | M | Alto | co-design com operação, áudio, linguagem simples, embaixadores locais |
-| Custo de IA | M | Médio | mock-first, RAG enxuto, caching, modos com orçamento |
+
+| Risco                               | Prob. | Impacto | Mitigação                                                                  |
+| ----------------------------------- | ----- | ------- | -------------------------------------------------------------------------- |
+| Baixa participação                  | M     | Alto    | Trust Ledger, quiosque, devolutiva 7 dias, voluntariedade real             |
+| Uso punitivo por gestor             | B     | Crítico | invariantes de código (k≥5, agregados), termos de uso, auditoria, rescisão |
+| Overclaim clínico/jurídico          | M     | Crítico | disclaimers obrigatórios no pack, revisão jurídica, Conselho Científico    |
+| Vazamento de dados                  | B     | Crítico | RLS, criptografia, respostas cegas, auditoria, resposta a incidentes       |
+| Fadiga de iniciativa                | M     | Alto    | temporadas com arco e fim, rituais ≤15 min embutidos, reciclo automático   |
+| Gaming de pontos                    | M     | Médio   | caps, validação de evidências, XP nunca ligado a conteúdo                  |
+| Concorrente copia features          | A     | Médio   | moat = dataset de protocolos + selo + canal SST + categoria                |
+| Dependência do champion de RH       | M     | Alto    | Comitê multi-papel, valor para líder e CFO, CS proativo                    |
+| Mudança regulatória NR-1            | M     | Médio   | módulo B configurável por pack, monitoramento legal                        |
+| IVO sem validação psicométrica      | M     | Médio   | rótulo experimental honesto + roadmap de validação                         |
+| Quiosque mal adotado no operacional | M     | Alto    | co-design com operação, áudio, linguagem simples, embaixadores locais      |
+| Custo de IA                         | M     | Médio   | mock-first, RAG enxuto, caching, modos com orçamento                       |
 
 ## B. CHECKLIST DE CONFORMIDADE FINAL
+
 ☐ k≥5 em todo recorte visível ☐ respostas individuais ilegíveis a papéis de cliente ☐ XP/IVO fora de qualquer decisão de desempenho ☐ Domínios A/B apartados (dados, telas, fluxos) ☐ disclaimers NR-1 e IVO presentes onde o pack exige ☐ opt-out sem fricção em pulses/nudges/gamificação ☐ Trust Ledger acessível em ≤2 toques ☐ WCAG 2.2 AA ☐ PWA + quiosque funcionais ☐ pack validado pelo schema no boot ☐ zero labels hardcoded ☐ build verde e demo day test (10 passos) aprovado.
 
 ## C. GLOSSÁRIO ESSENCIAL
+
 **VitalOS** categoria de sistema operacional da vitalidade · **IVO 2.0** índice 0–1000, 4 lentes, 16 pilares, dupla fonte (percepção+sinais) · **Sinais Vivos** telemetria interna agregada e consentida · **Culture Lab** experimentos culturais com before/after · **Trust Ledger** interface verificável de privacidade · **Vitality P&L** demonstrativo do custo invisível · **M.E.T.E.** Mensurar→Educar→Transformar→Evoluir · **Drenagem** antagonistas sistêmicos · **Domain Pack** JSON que reconfigura o motor por setor · **GRO-ready** trilha documental preparatória ao PGR (educativa) · **Selo Empresa Viva** certificação anual por evidência.
 
 ## D. AS 16 SEÇÕES IMPLEMENTÁVEIS (índice de execução)
+
 1 Universo e temporada · 2 Personagens e forças · 3 IVO e instrumentos · 4 Devolutivas · 5 Academia (16 módulos) · 6 FlorescerIA · 7 Missões e economia · 8 Embaixadorias (15) · 9 Culture Lab (8 protocolos) · 10 Projetos ESG/ODS · 11 Dashboards (6 personas) · 12 Domínio B NR-1 · 13 Trust Ledger e LGPD · 14 Governança e certificação · 15 Arquitetura e dados · 16 Negócio e roadmap. — Cada seção mapeia 1:1 para blocos do **Super Prompt GENESIS** e para os artefatos JSON (`enterprise.pack.json`, `ivo-framework.json`, `gamification-economy.json`, `domain-pack.schema.json`).
 
 ---
@@ -458,76 +474,91 @@ Canais: consultorias SST e contabilidades (revenue share; donas da urgência) ·
 Formato de cada embaixadoria: **Objetivo · Slogan · Dor que resolve · Público · Pilar IVO alvo · 3 missões micro (μ) · 2 macro (M) · 1 lendária (★) · Indicadores · Badge**. Regras universais: adesão voluntária; evidências leves; pontos conforme economia (§3.4); anti-gaming ativo; linguagem adulta.
 
 ## E1 — SEGURANÇA PSICOLÓGICA
+
 Objetivo: tornar seguro falar, errar e pedir ajuda. Slogan: "Errar em voz alta é aprender em dobro." Dor: O Silêncio. Público: todas as equipes; líderes como patrocinadores. Pilar: Segurança Psicológica.
 μ1 Responda "o que quase deu errado?" na reunião da semana. μ2 Peça ajuda publicamente em algo real. μ3 Agradeça alguém que discordou de você. M1 Implante o Ritual da Pergunta Segura (P1) por 4 semanas na sua equipe. M2 Conduza uma retro "falhas que nos ensinaram" com mural anônimo. ★ Leve sua equipe a +10 pts no pilar em uma temporada (medido).
 Indicadores: % equipes com P1 ativo; delta do pilar. Badge: Guardião da Segurança Psicológica.
 
 ## E2 — COMUNICAÇÃO CLARA
+
 Objetivo: matar A Névoa. Slogan: "Clareza é gentileza." Dor: prioridades trocadas, ruído. Público: líderes e PMOs. Pilar: Clareza & Direção; Comunicação & Pertencimento.
 μ1 Publique as 3 prioridades da sua semana. μ2 Reescreva 1 comunicado confuso com a Mediadora de Linguagem (FlorescerIA). μ3 Confirme entendimento ("o que você entendeu?") em 1 conversa importante. M1 Implante o Contrato de Prioridades (P5) na equipe por 4 semanas. M2 Crie o glossário vivo da área (10 termos que confundem). ★ Reduza em 30% as dúvidas repetidas (medidas por pulse) em uma temporada.
 Indicadores: adesão ao P5; pilar Clareza. Badge: Farol da Clareza.
 
 ## E3 — GENTILEZA & RECONHECIMENTO
+
 Objetivo: reconhecimento específico circulando. Slogan: "Reconhecer é multiplicar." Dor: A Invisibilidade. Público: todos. Pilar: Reconhecimento entre Pares.
 μ1 Envie 1 kudo com fórmula comportamento+impacto. μ2 Reconheça alguém de OUTRA área. μ3 Reconheça alguém da equipe operacional/apoio. M1 Implante a Rodada de Reconhecimento (P4) por 4 semanas. M2 Organize o "Dia de Quem Faz Acontecer" para equipes invisíveis. ★ Cobertura de kudos ≥80% da organização em uma temporada.
 Indicadores: cobertura e reciprocidade de kudos; pilar. Badge: Reconhecedor Serial / Equipe Gentil (coletivo).
 
 ## E4 — EQUILÍBRIO & DESCONEXÃO
+
 Objetivo: direito real ao descanso. Slogan: "Descansar também é trabalhar bem." Dor: A Sobrecarga; hiperconexão. Público: todos; líderes dão o exemplo. Pilar: Equilíbrio & Autonomia.
 μ1 Cumpra seu horário de desconexão 3 dias seguidos (autorrelato). μ2 Proteja 1 bloco de foco sem interrupções. μ3 Tire o almoço longe da estação 3×/semana. M1 Negocie o Acordo de Desconexão da equipe (regras explícitas de fora-de-horário). M2 Implante Sexta sem Reunião (P3) por 6 semanas. ★ Reduza o sinal agregado de sobrecarga da área por 2 pulses consecutivos.
 Indicadores: adesão a acordos; pilar Equilíbrio. Badge: Guardião do Descanso.
 
 ## E5 — SAÚDE & MOVIMENTO
+
 Objetivo: corpo em movimento sem moralismo. Slogan: "Energia se constrói." Dor: sedentarismo, fadiga. Público: todos (adaptações de acessibilidade obrigatórias). Pilar: Energia & Vitalidade.
 μ1 3 pausas de movimento de 5 min nesta semana. μ2 Faça 1 reunião caminhando. μ3 Suba escadas/caminhe no trajeto 3×. M1 Organize o Desafio Coletivo de Movimento (meta de equipe, opt-in, sem ranking individual). M2 Implante Pausas Protegidas (P2) na área. ★ Meta coletiva de movimento atingida por 3 equipes + doação desbloqueada (ODS 3).
 Indicadores: adesão agregada; pilar Energia. Badge: Time em Movimento (coletivo).
 
 ## E6 — INCLUSÃO & ACESSIBILIDADE
+
 Objetivo: ninguém fica de fora — espaços, ferramentas e rituais acessíveis. Slogan: "Pertencer não pode depender de adaptação heroica." Dor: barreiras invisíveis. Público: todos; facilities e TI como aliados. Pilar: Inclusão, Equidade & Diversidade.
 μ1 Audite 1 reunião sua com o checklist de inclusão (fala distribuída, materiais legíveis). μ2 Adicione legenda/descrição a 1 conteúdo que você publicar. μ3 Pergunte a 1 colega o que tornaria o trabalho mais acessível e registre a sugestão. M1 Mapeie 5 barreiras de acessibilidade da unidade e leve ao Comitê. M2 Torne 1 ritual da equipe plenamente acessível (formato, horário, linguagem). ★ Resolva 3 barreiras mapeadas com evidência antes/depois.
 Indicadores: barreiras resolvidas; pilar Inclusão. Badge: Construtor de Pontes.
 
 ## E7 — DIVERSIDADE & EQUIDADE
+
 Objetivo: oportunidades reais para perfis diversos. Slogan: "Justiça se vê nos critérios." Dor: A Injustiça Percebida; vieses. Público: líderes, RH, todos. Pilar: Inclusão & Equidade; Justiça & Coerência.
 μ1 Complete o módulo M15 e aplique 1 prática anti-viés numa decisão. μ2 Amplie 1 indicação/convite para além do seu círculo habitual. μ3 Dê visibilidade ao trabalho de alguém pouco ouvido. M1 Revise com o RH os critérios de 1 processo (promoção/projeto) tornando-os explícitos. M2 Organize 1 roda de escuta de grupo sub-representado (voluntária, facilitada, sem registro individual). ★ Pilar de Equidade +8 pts na unidade em duas temporadas.
 Indicadores: pilar Equidade; participação nas rodas. Badge: Guardião da Equidade.
 
 ## E8 — SUSTENTABILIDADE & BEM-COMUM
+
 Objetivo: a empresa no mundo (ESG/ODS na prática). Slogan: "Bem-estar que transborda os muros." Dor: discurso ESG sem evidência. Público: todos; parceiros do território. Pilar: Sustentabilidade & Bem-Comum.
 μ1 Adote 1 prática sustentável de rotina na equipe (registro leve). μ2 Vote/sugira a causa do Dia do Impacto. μ3 Complete o módulo M16. M1 Lidere 1 Projeto de Impacto ODS (ficha do §6.2) do início ao fim. M2 Estabeleça 1 parceria com ator do território (ONG, escola, UBS) com ata. ★ Projeto concluído com evidências auditáveis alimentando o ESG Hub + selo de contribuição ODS.
 Indicadores: projetos concluídos; indicadores ESG exportados. Badge: Agente do Bem-Comum.
 
 ## E9 — APRENDIZAGEM CONTÍNUA
+
 Objetivo: cultura de aprender em voz alta. Slogan: "Quem aprende junto, cresce junto." Dor: conhecimento preso em silos. Público: todos. Pilar: Crescimento & Maestria.
 μ1 Conclua 1 módulo da Academia e aplique a prática-âncora. μ2 Compartilhe 1 aprendizado em 5 min na reunião da equipe. μ3 Ensine algo a 1 colega (micro-mentoria). M1 Organize 1 "Sextou Aprendizado" (sessão aberta de trocas, 45 min). M2 Crie a trilha interna da área (3 conteúdos curados + 1 prática). ★ 100% da equipe com ≥2 módulos concluídos na temporada.
 Indicadores: módulos/ativo; pilar Crescimento. Badge: Multiplicador do Saber.
 
 ## E10 — INOVAÇÃO & CRIATIVIDADE
+
 Objetivo: segurança para propor e testar. Slogan: "Toda ideia merece 5 minutos." Dor: O Cinismo; medo de propor. Público: todos. Pilar: Segurança Psicológica; Crescimento.
 μ1 Registre 1 ideia de melhoria no canal da equipe. μ2 Dê feedback construtivo à ideia de outra pessoa. μ3 Teste 1 micro-melhoria no seu fluxo e conte o resultado. M1 Conduza 1 experimento de melhoria com antes/depois simples. M2 Organize 1 "Demo de Melhorias" trimestral da área. ★ 1 melhoria adotada oficialmente com impacto documentado.
 Indicadores: ideias→testes→adoções (funil). Badge: Jardineiro de Ideias.
 
 ## E11 — BEM-ESTAR OPERACIONAL
+
 Objetivo: a Equipe Invisível no centro. Slogan: "Quem sustenta a operação sustenta a empresa." Dor: A Invisibilidade; exclusão digital. Público: chão de fábrica, loja, campo, facilities; embaixadores locais. Pilar: Condições & Carga; Reconhecimento.
 μ1 Faça seu check-in no quiosque 3×/semana. μ2 Registre 1 sugestão de melhoria do posto de trabalho. μ3 Reconheça 1 colega de turno. M1 Seja embaixador local: apoie 10 colegas no primeiro acesso (quiosque/QR). M2 Conduza 1 rodada "o que facilitaria seu dia?" e leve 3 itens ao Comitê com retorno garantido. ★ Unidade operacional com participação ≥60% por 2 temporadas.
 Indicadores: participação operacional; sugestões respondidas no prazo. Badge: Voz da Operação.
 
 ## E12 — CULTURA, CELEBRAÇÃO & PERTENCIMENTO
+
 Objetivo: ritos que criam vínculo. Slogan: "Cultura se faz nos detalhes repetidos." Dor: A Desconexão. Público: todos. Pilar: Comunicação & Pertencimento; Cultura de Bem-Estar.
 μ1 Participe/organize o check-in humano de 2 min da semana. μ2 Celebre 1 conquista pequena da equipe (registro leve). μ3 Dê boas-vindas ativas a alguém novo ou de outra área. M1 Crie e sustente 1 ritual de equipe por 4 semanas (M14). M2 Produza a Celebração de encerramento da temporada da sua área. ★ Ritual adotado oficialmente e replicado por outra área.
 Indicadores: rituais ativos; pilar Pertencimento. Badge: Tecelão da Cultura.
 
 ## E13 — ESCUTA ATIVA & FEEDBACK
+
 Objetivo: do buraco negro ao circuito fechado. Slogan: "Toda voz merece resposta." Dor: sugestões sem retorno. Público: todos; Comitê como garantidor. Pilar: Comunicação; Cuidado Ativo.
 μ1 Responda 1 pulse e acompanhe a devolutiva. μ2 Dê 1 feedback SBI (módulo M11) a um colega. μ3 Agradeça formalmente 1 feedback recebido. M1 Implante a Porta Aberta Reversa (P7) se você lidera. M2 Audite com o Comitê o SLA de resposta às sugestões (meta: 100% respondidas em 14 dias). ★ Circuito fechado comprovado: 10 sugestões → 10 respostas → 3 implementadas com evidência.
 Indicadores: SLA de resposta; taxa de pulse. Badge: Guardião da Escuta.
 
 ## E14 — TRANSPARÊNCIA & CONFIANÇA
+
 Objetivo: decisões explicadas, regras para todos. Slogan: "Confiança se constrói em pequenas promessas cumpridas." Dor: A Injustiça Percebida; O Atrito. Público: líderes, diretoria, todos. Pilar: Justiça & Coerência; Confiança na gestão.
 μ1 Explique o porquê de 1 decisão sua à equipe (módulo M10). μ2 Cumpra 1 combinado explícito e registre. μ3 Visite seu Trust Ledger e revise consentimentos. M1 Publique o "Diário de Decisões" da área por 4 semanas (decisão + porquê). M2 Organize 1 sessão de prestação de contas da liderança com perguntas abertas. ★ Pilar Justiça & Coerência +8 pts na unidade em duas temporadas.
 Indicadores: pilar Justiça; adesão ao Diário. Badge: Liderança Transparente (coletivo).
 
 ## E15 — ACOLHIMENTO DE NOVOS COLABORADORES
+
 Objetivo: onboarding humano, não só burocrático. Slogan: "Ninguém floresce sozinho no primeiro mês." Dor: solidão do recém-chegado; turnover precoce. Público: buddies voluntários, líderes, RH. Pilar: Pertencimento; Cuidado Ativo.
 μ1 Apresente-se ativamente a 1 pessoa nova. μ2 Convide alguém novo para 1 almoço/café (presencial ou virtual). μ3 Compartilhe 1 "dica de sobrevivência" não escrita da cultura. M1 Seja buddy oficial de 1 recém-chegado por 30 dias (checklist leve). M2 Co-crie com o RH a Jornada dos 90 Dias da sua área. ★ Recém-chegados da área com pertencimento ≥4/5 no pulse de 90 dias por 2 temporadas.
 Indicadores: pulse de novos; retenção 6 meses. Badge: Anfitrião da Comunidade.

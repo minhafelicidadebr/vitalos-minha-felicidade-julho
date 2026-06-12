@@ -20,7 +20,11 @@ function RelatoriosPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Evidências · Relatórios · Certificação
           </p>
@@ -61,7 +65,9 @@ function SealCard() {
           className="flex items-center gap-3 rounded-2xl border-2 px-5 py-3"
           style={{ borderColor: "#C9A227" }}
         >
-          <span className="text-3xl" aria-hidden>🌿</span>
+          <span className="text-3xl" aria-hidden>
+            🌿
+          </span>
           <div>
             <p className="font-serif text-lg font-semibold text-foreground">{s.currentLevelName}</p>
             <p className="text-[10px] text-muted-foreground">IVO {s.ivoScore} · T1/2026</p>
@@ -72,7 +78,9 @@ function SealCard() {
       {/* Progress to next level */}
       <div className="mt-5">
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Rumo a: {s.nextLevelName} (≥{s.nextLevelMin})</span>
+          <span className="text-muted-foreground">
+            Rumo a: {s.nextLevelName} (≥{s.nextLevelMin})
+          </span>
           <span className="font-medium tabular-nums text-foreground">{progressToNext}%</span>
         </div>
         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -89,14 +97,18 @@ function SealCard() {
           <li key={r.id} className="flex items-start gap-2.5">
             <span
               className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${
-                r.done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"
+                r.done
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-muted-foreground/40"
               }`}
               aria-hidden
             >
               {r.done ? "✓" : ""}
             </span>
             <div>
-              <span className={`text-xs ${r.done ? "text-muted-foreground" : "text-card-foreground font-medium"}`}>
+              <span
+                className={`text-xs ${r.done ? "text-muted-foreground" : "text-card-foreground font-medium"}`}
+              >
                 {r.label}
               </span>
               <span className="ml-2 text-[10px] text-muted-foreground">{r.detail}</span>
@@ -128,8 +140,13 @@ function EvidencesCard() {
       </div>
       <div className="space-y-1 px-3 pb-4">
         {EVIDENCES.map((ev) => (
-          <div key={ev.id} className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
-            <span className="mt-0.5 text-base" aria-hidden>{TYPE_ICON[ev.type]}</span>
+          <div
+            key={ev.id}
+            className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+          >
+            <span className="mt-0.5 text-base" aria-hidden>
+              {TYPE_ICON[ev.type]}
+            </span>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-card-foreground">{ev.title}</p>
               <p className="text-[10px] text-muted-foreground">
@@ -166,7 +183,9 @@ function ReportsCard() {
     >
       <div className="px-5 pt-5 pb-2">
         <p className="font-medium text-card-foreground">Relatórios</p>
-        <p className="text-xs text-muted-foreground">Sempre com dados agregados e fórmulas declaradas</p>
+        <p className="text-xs text-muted-foreground">
+          Sempre com dados agregados e fórmulas declaradas
+        </p>
       </div>
       <div className="space-y-1 px-3 pb-4">
         {REPORTS.map((rep) => (
@@ -174,7 +193,9 @@ function ReportsCard() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-card-foreground">{rep.title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{rep.description}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  {rep.description}
+                </p>
                 <p className="mt-1 text-[10px] text-muted-foreground">
                   Para: {rep.audience} · {rep.pages} pág.
                 </p>

@@ -35,7 +35,11 @@ function FlorescerIAPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             FlorescerIA™ · respostas mockadas — Fase 2 conecta o modelo real
           </p>
@@ -142,11 +146,13 @@ function FlorescerIAPage() {
                       </>
                     ) : approvalState === "approved" ? (
                       <p className="text-xs text-green-600 dark:text-green-400">
-                        ✓ Aprovado — registrado na trilha de auditoria (demo). A IA nunca age sem este passo.
+                        ✓ Aprovado — registrado na trilha de auditoria (demo). A IA nunca age sem
+                        este passo.
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        Recusado — registrado na trilha de auditoria (demo). Sem consequências para ninguém.
+                        Recusado — registrado na trilha de auditoria (demo). Sem consequências para
+                        ninguém.
                       </p>
                     )}
                   </div>
@@ -171,8 +177,13 @@ function FlorescerIAPage() {
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.never.map((g) => (
-                  <li key={g} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                    <span className="mt-0.5 shrink-0 text-red-500" aria-hidden>✕</span>
+                  <li
+                    key={g}
+                    className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground"
+                  >
+                    <span className="mt-0.5 shrink-0 text-red-500" aria-hidden>
+                      ✕
+                    </span>
                     {g}
                   </li>
                 ))}
@@ -184,8 +195,16 @@ function FlorescerIAPage() {
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.always.map((g) => (
-                  <li key={g} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                    <span className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" aria-hidden>✓</span>
+                  <li
+                    key={g}
+                    className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground"
+                  >
+                    <span
+                      className="mt-0.5 shrink-0 text-green-600 dark:text-green-400"
+                      aria-hidden
+                    >
+                      ✓
+                    </span>
                     {g}
                   </li>
                 ))}

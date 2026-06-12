@@ -4,11 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { calculateIVO } from "@/engine/index/ivo-engine";
-import {
-  getPulseConfig,
-  getResponseLabels,
-  selectPulseItems,
-} from "@/engine/index/pulse-engine";
+import { getPulseConfig, getResponseLabels, selectPulseItems } from "@/engine/index/pulse-engine";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/pulse")({
@@ -94,9 +90,8 @@ function PulsePage() {
                 {items.length} perguntas. {config.durationSeconds} segundos. Anônimo.
               </h1>
               <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
-                Suas respostas viram apenas médias agregadas — ninguém vê o que você
-                respondeu, nem com quem. Participar vale +25 XP pela participação
-                (nunca pelo conteúdo).
+                Suas respostas viram apenas médias agregadas — ninguém vê o que você respondeu, nem
+                com quem. Participar vale +25 XP pela participação (nunca pelo conteúdo).
               </p>
               <div className="flex flex-col items-center gap-3">
                 <button
@@ -147,10 +142,12 @@ function PulsePage() {
 
               {/* Question */}
               <div>
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[10px] text-muted-foreground"
-                >
-                  <span className="h-2 w-2 rounded-full" style={{ background: items[current].lensColor }} aria-hidden />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[10px] text-muted-foreground">
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: items[current].lensColor }}
+                    aria-hidden
+                  />
                   {items[current].pillarName}
                 </span>
                 <p className="mt-4 font-serif text-2xl leading-snug text-foreground">
@@ -196,8 +193,8 @@ function PulsePage() {
               </motion.p>
               <h1 className="font-serif text-3xl text-foreground">Obrigado por participar</h1>
               <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
-                +25 XP pela participação. Suas respostas seguiram direto para a agregação
-                anônima — nem o RH, nem sua liderança, nem nós vemos o que você marcou.
+                +25 XP pela participação. Suas respostas seguiram direto para a agregação anônima —
+                nem o RH, nem sua liderança, nem nós vemos o que você marcou.
               </p>
               <div className="flex justify-center gap-3">
                 <Link
@@ -223,11 +220,13 @@ function PulsePage() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 text-center"
             >
-              <p className="text-4xl" aria-hidden>👍</p>
+              <p className="text-4xl" aria-hidden>
+                👍
+              </p>
               <h1 className="font-serif text-2xl text-foreground">Tudo bem!</h1>
               <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
-                Participar é sempre voluntário — não participar nunca gera punição
-                nem afeta nada para você. Voltamos a convidar no próximo ciclo.
+                Participar é sempre voluntário — não participar nunca gera punição nem afeta nada
+                para você. Voltamos a convidar no próximo ciclo.
               </p>
               <Link
                 to="/colaborador"

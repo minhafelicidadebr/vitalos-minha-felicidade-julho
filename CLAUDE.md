@@ -1,15 +1,18 @@
 # CLAUDE.md — 4 Lentes VITA™
+
 > Leia este arquivo por completo antes de qualquer alteração.
 > Descreve o projeto **como ele existe hoje** — auditado do código real.
 
 ---
 
 ## 📌 Repositório oficial
+
 `https://github.com/minhafelicidadebr/app-vita-happiness-org-fable5.git`
 
 ---
 
 ## 🎯 O que é este projeto
+
 **4 Lentes VITA** — plataforma SaaS B2B, o primeiro "Sistema Operacional da Vitalidade
 Organizacional". Mede, educa, transforma e evolui a vitalidade pelas 4 Lentes
 (EU · NÓS · LIDERANÇA · ORGANIZAÇÃO), com compliance NR-1 educativo, gamificação ética
@@ -19,22 +22,22 @@ e ESG/ODS. Padrão unicórnio. Categoria: VitalOS.
 
 ## ⚙️ Stack real (auditada — não presuma)
 
-| Tecnologia | Versão | Nota crítica |
-|---|---|---|
-| React | 19.2 | |
-| TypeScript | 5.8 | strict mode |
-| Vite | 8.0 | via @lovable.dev/vite-tanstack-config |
-| TanStack Router | 1.168 | file-based — rotas em src/routes/ |
-| TanStack Start | 1.167 | SSR shell |
-| TanStack Query | 5.83 | |
-| Tailwind | 4.2 | CSS-first — SEM tailwind.config.js |
-| shadcn/ui | — | src/components/ui/ |
-| Zustand | 5.0 | |
-| Framer Motion | 12.40 | |
-| Recharts | 2.15 | dataviz — usar para radar IVO |
-| Ajv + ajv-formats | 8.20 | validação Domain Pack no boot |
-| Zod | 3.24 | |
-| **Package manager** | **bun** | SEMPRE bun — nunca npm/yarn |
+| Tecnologia          | Versão  | Nota crítica                          |
+| ------------------- | ------- | ------------------------------------- |
+| React               | 19.2    |                                       |
+| TypeScript          | 5.8     | strict mode                           |
+| Vite                | 8.0     | via @lovable.dev/vite-tanstack-config |
+| TanStack Router     | 1.168   | file-based — rotas em src/routes/     |
+| TanStack Start      | 1.167   | SSR shell                             |
+| TanStack Query      | 5.83    |                                       |
+| Tailwind            | 4.2     | CSS-first — SEM tailwind.config.js    |
+| shadcn/ui           | —       | src/components/ui/                    |
+| Zustand             | 5.0     |                                       |
+| Framer Motion       | 12.40   |                                       |
+| Recharts            | 2.15    | dataviz — usar para radar IVO         |
+| Ajv + ajv-formats   | 8.20    | validação Domain Pack no boot         |
+| Zod                 | 3.24    |                                       |
+| **Package manager** | **bun** | SEMPRE bun — nunca npm/yarn           |
 
 **Backend:** Lovable Cloud — não instale Supabase manualmente.
 **Regra da stack:** rotas em src/routes/ (file-based). Cores via tokens oklch em
@@ -105,38 +108,40 @@ src/
 
 ## 🗺️ Mapa dos 21 blocos
 
-| # | O que constrói | Arquivos principais |
-|---|---|---|
-| ✅ 0 | Fundação | engine/pack, design-system, shell, routes |
-| ✅ 1 | RBAC + persona switcher | engine/rbac/rbac.ts + AppShell (nav do pack × papel) |
-| 🔲 **2** | **Mock data layer (hooks useOrg/useIvo/useSeason)** | mocks já ricos; falta consolidar em hooks |
-| ✅ 3 | Motor IVO + radar 4 lentes | engine/index/ivo-engine.ts + routes/ivo.tsx |
-| ✅ 4 | Dashboard Colaborador | app/dashboards/colaborador + /colaborador |
-| ✅ 5 | Dashboard Líder (n≥5 visível) | app/dashboards/lider + /lider |
-| ✅ 6 | Dashboard RH/CHRO flagship | app/dashboards/rh + /rh (heatmap, kanban GRO) |
-| ✅ 7 | C-Level + SST/CIPA + Holding | /clevel, /sst, /holding |
-| ✅ 8 | Trust Ledger | engine/trust + /confianca |
-| ✅ 9 | Pulses 60s | engine/index/pulse-engine.ts + /pulse |
-| ✅ 10 | Nudge Engine MVP | engine/nudges + NudgesCard no colaborador |
-| ✅ 11 | Gamificação engine + Culture Lab | engine/gamification + engine/lab + /lab |
-| ✅ 12 | FlorescerIA mockada (10 modos) | engine/ai + /floresceria |
-| ✅ 13 | Academia do Florescimento | /academia (trilhas por papel) |
-| ✅ 14 | Embaixadorias (15) | /embaixadorias |
-| 🔲 15 | Domínio B — aprofundar (COPSOQ agregado) | /sst já cobre inventário+escuta+checklist |
-| ✅ 16 | Vitality P&L | engine/pnl + /pnl |
-| 🔲 17 | Evidências + Relatórios + Selo Empresa Viva | novas rotas |
-| ✅ 18 | Sinais Vivos | engine/signals + SignalsCard no /rh |
-| 🔲 19 | QR / Quiosque / Onboarding | nova rota |
-| 🔲 20 | Polimento UX premium | global |
-| 🔲 21 | QA final + demo day test (10 passos) | — |
+| #        | O que constrói                                      | Arquivos principais                                  |
+| -------- | --------------------------------------------------- | ---------------------------------------------------- |
+| ✅ 0     | Fundação                                            | engine/pack, design-system, shell, routes            |
+| ✅ 1     | RBAC + persona switcher                             | engine/rbac/rbac.ts + AppShell (nav do pack × papel) |
+| 🔲 **2** | **Mock data layer (hooks useOrg/useIvo/useSeason)** | mocks já ricos; falta consolidar em hooks            |
+| ✅ 3     | Motor IVO + radar 4 lentes                          | engine/index/ivo-engine.ts + routes/ivo.tsx          |
+| ✅ 4     | Dashboard Colaborador                               | app/dashboards/colaborador + /colaborador            |
+| ✅ 5     | Dashboard Líder (n≥5 visível)                       | app/dashboards/lider + /lider                        |
+| ✅ 6     | Dashboard RH/CHRO flagship                          | app/dashboards/rh + /rh (heatmap, kanban GRO)        |
+| ✅ 7     | C-Level + SST/CIPA + Holding                        | /clevel, /sst, /holding                              |
+| ✅ 8     | Trust Ledger                                        | engine/trust + /confianca                            |
+| ✅ 9     | Pulses 60s                                          | engine/index/pulse-engine.ts + /pulse                |
+| ✅ 10    | Nudge Engine MVP                                    | engine/nudges + NudgesCard no colaborador            |
+| ✅ 11    | Gamificação engine + Culture Lab                    | engine/gamification + engine/lab + /lab              |
+| ✅ 12    | FlorescerIA mockada (10 modos)                      | engine/ai + /floresceria                             |
+| ✅ 13    | Academia do Florescimento                           | /academia (trilhas por papel)                        |
+| ✅ 14    | Embaixadorias (15)                                  | /embaixadorias                                       |
+| 🔲 15    | Domínio B — aprofundar (COPSOQ agregado)            | /sst já cobre inventário+escuta+checklist            |
+| ✅ 16    | Vitality P&L                                        | engine/pnl + /pnl                                    |
+| 🔲 17    | Evidências + Relatórios + Selo Empresa Viva         | novas rotas                                          |
+| ✅ 18    | Sinais Vivos                                        | engine/signals + SignalsCard no /rh                  |
+| 🔲 19    | QR / Quiosque / Onboarding                          | nova rota                                            |
+| 🔲 20    | Polimento UX premium                                | global                                               |
+| 🔲 21    | QA final + demo day test (10 passos)                | —                                                    |
 
 ### Rotas implementadas
+
 `/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
 `/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
 `/embaixadorias` · `/design-system`
 
 ### Persona demo
+
 Seletor no header (Zustand persistido, chave `vita-persona`) — 7 papéis.
 A navegação inteira vem de `pack.navigation` filtrada por papel via
 `engine/rbac/rbac.ts`. Item "overview" resolve para o dashboard do papel.
@@ -172,29 +177,29 @@ Sincronização bidirecional automática na branch main.
 ❌ NUNCA edite os mesmos arquivos no Lovable e Claude Code ao mesmo tempo.
 
 ✅ Fluxo seguro:
-   git pull → trabalhe num lado só → bun run build (verde)
-   → git commit → git push → aguarde Lovable sync → só então edite no Lovable.
+git pull → trabalhe num lado só → bun run build (verde)
+→ git commit → git push → aguarde Lovable sync → só então edite no Lovable.
 
 Divisão de trabalho:
-  Lovable     → telas, layout visual, preview, deploy, Lovable Cloud
-  Claude Code → motores, mocks, lógica pesada, refactors, testes
+Lovable → telas, layout visual, preview, deploy, Lovable Cloud
+Claude Code → motores, mocks, lógica pesada, refactors, testes
 
 ---
 
 ## 💻 Comandos
 
-  bun install        instalar dependências (NUNCA npm install)
-  bun run dev        servidor local
-  bun run build      build de produção (deve ficar verde)
-  bun run lint       lint
-  bun run format     prettier
+bun install instalar dependências (NUNCA npm install)
+bun run dev servidor local
+bun run build build de produção (deve ficar verde)
+bun run lint lint
+bun run format prettier
 
 ---
 
 ## 📚 Referências (colocar em /docs após clonar)
 
-  SUPER_PROMPT_GENESIS_4LENTES_VITA.md   fonte da verdade de execução (21 blocos)
-  FRAMEWORK_MESTRE_EMPRESA_VIVA.md       fundamento científico, universo, negócio
+SUPER_PROMPT_GENESIS_4LENTES_VITA.md fonte da verdade de execução (21 blocos)
+FRAMEWORK_MESTRE_EMPRESA_VIVA.md fundamento científico, universo, negócio
 
 Nota: onde os documentos mencionam "Vite puro / React Router / Supabase",
 leia como "TanStack Start / TanStack Router / Lovable Cloud". A arquitetura
@@ -204,9 +209,9 @@ leia como "TanStack Start / TanStack Router / Lovable Cloud". A arquitetura
 
 ## 🎨 Paleta (sempre via token — nunca hex direto)
 
-  --color-primary      Verde profundo   #0B3D2E
-  --color-accent       Dourado          #C9A227
-  --color-background   Superfície       #F8F7F4
-  --color-foreground   Tinta            #1C2A24
+--color-primary Verde profundo #0B3D2E
+--color-accent Dourado #C9A227
+--color-background Superfície #F8F7F4
+--color-foreground Tinta #1C2A24
 
 Dark mode nativo. "Premium corporativo humano." Sem neon. Sem infantilização.

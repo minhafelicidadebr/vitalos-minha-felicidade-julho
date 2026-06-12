@@ -88,10 +88,7 @@ function asFramework(idx: ProprietaryIndex): IVOFrameworkShape {
   return idx as unknown as IVOFrameworkShape;
 }
 
-export function calculateIVO(
-  input: IVOInput,
-  packIndex: ProprietaryIndex,
-): IVOResult {
+export function calculateIVO(input: IVOInput, packIndex: ProprietaryIndex): IVOResult {
   const fw = asFramework(packIndex);
   const kMin = fw.privacy?.kAnonymityMin ?? K_ANONYMITY_MIN;
   const aggMap = new Map(input.aggregates.map((a) => [a.pillarId, a]));

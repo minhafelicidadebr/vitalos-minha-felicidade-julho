@@ -21,11 +21,7 @@ import {
   type LensResult,
   type PillarResult,
 } from "@/engine/index/ivo-engine";
-import {
-  ivoCurrentCycle,
-  ivoPreviousCycle,
-  DEMO_ORG,
-} from "@/mocks/ivo-mock";
+import { ivoCurrentCycle, ivoPreviousCycle, DEMO_ORG } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/ivo")({
   head: () => ({
@@ -102,14 +98,8 @@ function IVOPage() {
 // ─── Main content ─────────────────────────────────────────────────────────────
 
 function IVOContent({ index }: { index: ProprietaryIndex }) {
-  const currentResult = useMemo(
-    () => calculateIVO(ivoCurrentCycle, index),
-    [index],
-  );
-  const previousResult = useMemo(
-    () => calculateIVO(ivoPreviousCycle, index),
-    [index],
-  );
+  const currentResult = useMemo(() => calculateIVO(ivoCurrentCycle, index), [index]);
+  const previousResult = useMemo(() => calculateIVO(ivoPreviousCycle, index), [index]);
 
   const defaultOpenGroups = useMemo(() => {
     return new Set(
@@ -218,7 +208,11 @@ function SectionA({
   const pct = (currentResult.ivoScore / 1000) * 100;
 
   const deltaColor =
-    delta > 0 ? "text-green-600 dark:text-green-400" : delta < 0 ? "text-red-500" : "text-amber-600";
+    delta > 0
+      ? "text-green-600 dark:text-green-400"
+      : delta < 0
+        ? "text-red-500"
+        : "text-amber-600";
   const deltaArrow = delta > 0 ? "↑" : delta < 0 ? "↓" : "→";
 
   return (
@@ -249,9 +243,7 @@ function SectionA({
 
         <div className={`text-2xl font-semibold ${deltaColor}`}>
           {deltaArrow} {Math.abs(delta)} pts
-          <p className="text-xs font-normal text-muted-foreground">
-            vs {ivoPreviousCycle.cycleId}
-          </p>
+          <p className="text-xs font-normal text-muted-foreground">vs {ivoPreviousCycle.cycleId}</p>
         </div>
 
         <div className="text-2xl font-semibold text-foreground">
@@ -353,11 +345,7 @@ interface RadarDataPoint {
   anterior: number;
 }
 
-function CustomRadarTooltip({
-  active,
-  payload,
-  label,
-}: TooltipProps<number, string>) {
+function CustomRadarTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   const atual = payload.find((p) => p.dataKey === "atual")?.value ?? 0;
   const anterior = payload.find((p) => p.dataKey === "anterior")?.value ?? 0;

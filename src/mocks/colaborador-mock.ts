@@ -11,7 +11,7 @@ export const MOCK_USER = {
   avatarInitials: "MS",
   xpWeek: 340,
   xpTotal: 2_180,
-  kudosBalanceWeek: 3,   // remaining kudos to give (max 5/week)
+  kudosBalanceWeek: 3, // remaining kudos to give (max 5/week)
   kudosReceivedWeek: 2,
 } as const;
 

@@ -26,7 +26,11 @@ function EmbaixadoriasPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Embaixadorias do Florescimento
           </p>
@@ -53,7 +57,9 @@ function EmbaixadoriasPage() {
                 }`}
               >
                 <div className="flex items-start gap-2.5">
-                  <span className="text-2xl" aria-hidden>{amb.emoji}</span>
+                  <span className="text-2xl" aria-hidden>
+                    {amb.emoji}
+                  </span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-card-foreground">{amb.name}</p>
                     <p className="text-[10px] text-muted-foreground">{amb.pillarName}</p>
@@ -64,7 +70,8 @@ function EmbaixadoriasPage() {
                 </p>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-[10px] text-muted-foreground">
-                    {amb.members + (joined && !amb.joined ? 1 : !joined && amb.joined ? -1 : 0)} pessoas
+                    {amb.members + (joined && !amb.joined ? 1 : !joined && amb.joined ? -1 : 0)}{" "}
+                    pessoas
                     {amb.openMissions > 0 && ` · ${amb.openMissions} missão(ões)`}
                   </span>
                   <button
@@ -90,8 +97,8 @@ function EmbaixadoriasPage() {
           transition={{ duration: 0.45, delay: 0.1 }}
           className="text-xs text-muted-foreground"
         >
-          Sua participação fortalece a cultura — e é sempre voluntária. Sair de uma
-          embaixadoria nunca gera qualquer consequência.
+          Sua participação fortalece a cultura — e é sempre voluntária. Sair de uma embaixadoria
+          nunca gera qualquer consequência.
         </motion.p>
       </div>
     </AppShell>

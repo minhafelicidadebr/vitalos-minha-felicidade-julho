@@ -3,11 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePack } from "@/engine/pack";
 import { calculateIVO } from "@/engine/index/ivo-engine";
-import {
-  getPulseConfig,
-  getResponseLabels,
-  selectPulseItems,
-} from "@/engine/index/pulse-engine";
+import { getPulseConfig, getResponseLabels, selectPulseItems } from "@/engine/index/pulse-engine";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/quiosque")({
@@ -59,7 +55,10 @@ function QuiosquePage() {
       {/* Minimal kiosk header */}
       <header className="flex items-center justify-between border-b border-border/60 px-6 py-4">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-md bg-primary font-serif text-xl text-primary-foreground" aria-hidden>
+          <span
+            className="grid h-10 w-10 place-items-center rounded-md bg-primary font-serif text-xl text-primary-foreground"
+            aria-hidden
+          >
             4
           </span>
           <span className="font-serif text-lg">4 Lentes VITA · Quiosque</span>
@@ -79,14 +78,13 @@ function QuiosquePage() {
               exit={{ opacity: 0, y: -16 }}
               className="max-w-lg space-y-8 text-center"
             >
-              <p className="text-6xl" aria-hidden>👋</p>
-              <h1 className="font-serif text-4xl leading-tight">
-                Oi! Sua opinião vale muito.
-              </h1>
+              <p className="text-6xl" aria-hidden>
+                👋
+              </p>
+              <h1 className="font-serif text-4xl leading-tight">Oi! Sua opinião vale muito.</h1>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                São só {items.length || 3} perguntas. Ninguém fica sabendo o que você
-                respondeu — nem o chefe, nem o RH. É rápido e ajuda a melhorar
-                o trabalho de todo mundo.
+                São só {items.length || 3} perguntas. Ninguém fica sabendo o que você respondeu —
+                nem o chefe, nem o RH. É rápido e ajuda a melhorar o trabalho de todo mundo.
               </p>
               <button
                 onClick={() => setStage("answering")}
@@ -152,7 +150,9 @@ function QuiosquePage() {
               <p className="text-lg leading-relaxed text-muted-foreground">
                 Pronto, já foi. Pode chamar o próximo colega.
               </p>
-              <p className="text-sm text-muted-foreground">Esta tela volta ao início em alguns segundos…</p>
+              <p className="text-sm text-muted-foreground">
+                Esta tela volta ao início em alguns segundos…
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -23,20 +23,20 @@ import {
 
 export function ColaboradorDashboard() {
   const { index } = usePack();
-  const ivoResult = useMemo(
-    () => (index ? calculateIVO(ivoCurrentCycle, index) : null),
-    [index],
-  );
+  const ivoResult = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
 
   const now = new Date();
   const hour = now.getHours();
-  const greeting =
-    hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-8 sm:px-6">
       {/* Hero */}
-      <HeroCard greeting={greeting} ivoScore={ivoResult?.ivoScore} maturityName={ivoResult?.maturityLevel.name} />
+      <HeroCard
+        greeting={greeting}
+        ivoScore={ivoResult?.ivoScore}
+        maturityName={ivoResult?.maturityLevel.name}
+      />
 
       {/* Check-in */}
       <CheckInCard />
@@ -112,9 +112,7 @@ function HeroCard({
             className="flex flex-col items-end rounded-xl border border-border/70 bg-secondary/30 px-3 py-2 text-right hover:bg-secondary/60 transition-colors"
             title="Ver IVO completo"
           >
-            <span className="font-serif text-2xl font-semibold text-foreground">
-              {ivoScore}
-            </span>
+            <span className="font-serif text-2xl font-semibold text-foreground">{ivoScore}</span>
             <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               {maturityName ?? "IVO org"}
             </span>
@@ -161,7 +159,8 @@ function CheckInCard() {
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const affirmation = AFFIRMATIONS[Math.floor((selected ?? 0) % AFFIRMATIONS.length)] ?? AFFIRMATIONS[0]!;
+  const affirmation =
+    AFFIRMATIONS[Math.floor((selected ?? 0) % AFFIRMATIONS.length)] ?? AFFIRMATIONS[0]!;
 
   function handleSelect(i: number) {
     if (submitted) return;
@@ -198,7 +197,11 @@ function CheckInCard() {
         <p className="mt-4 text-sm text-muted-foreground">{affirmation}</p>
       ) : (
         <>
-          <div className="mt-4 flex justify-between gap-1 sm:gap-2" role="group" aria-label="Como você está hoje?">
+          <div
+            className="mt-4 flex justify-between gap-1 sm:gap-2"
+            role="group"
+            aria-label="Como você está hoje?"
+          >
             {MOODS.map((mood, i) => (
               <button
                 key={mood.label}
@@ -239,10 +242,14 @@ function PulseInviteCard() {
       className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4"
     >
       <div className="flex items-center gap-3">
-        <span className="text-xl" aria-hidden>⚡</span>
+        <span className="text-xl" aria-hidden>
+          ⚡
+        </span>
         <div>
           <p className="text-sm font-medium text-card-foreground">Pulse da quinzena disponível</p>
-          <p className="text-xs text-muted-foreground">3 perguntas · 60 segundos · anônimo · +25 XP</p>
+          <p className="text-xs text-muted-foreground">
+            3 perguntas · 60 segundos · anônimo · +25 XP
+          </p>
         </div>
       </div>
       <Link
@@ -289,12 +296,16 @@ function NudgesCard() {
           key={nudge.id}
           className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
         >
-          <span className="mt-0.5 text-lg" aria-hidden>💡</span>
+          <span className="mt-0.5 text-lg" aria-hidden>
+            💡
+          </span>
           <div className="flex-1 min-w-0">
             <p className="text-sm leading-relaxed text-card-foreground">{nudge.copy}</p>
             <div className="mt-2 flex items-center gap-3">
               {actedIds.has(nudge.id) ? (
-                <span className="text-xs text-green-600 dark:text-green-400">✓ Registrado — boa!</span>
+                <span className="text-xs text-green-600 dark:text-green-400">
+                  ✓ Registrado — boa!
+                </span>
               ) : (
                 <button
                   onClick={() => setActedIds((prev) => new Set([...prev, nudge.id]))}
@@ -345,8 +356,14 @@ function MissionsCard({ missions }: { missions: MockMission[] }) {
 
 const MISSION_TYPE_STYLES: Record<MockMission["type"], { bg: string; label: string }> = {
   micro: { bg: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", label: "Micro" },
-  macro: { bg: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300", label: "Macro" },
-  legendary: { bg: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", label: "Lendária" },
+  macro: {
+    bg: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+    label: "Macro",
+  },
+  legendary: {
+    bg: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    label: "Lendária",
+  },
 };
 
 function MissionRow({ mission }: { mission: MockMission }) {
@@ -358,7 +375,9 @@ function MissionRow({ mission }: { mission: MockMission }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${bg}`}>{label}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${bg}`}>
+              {label}
+            </span>
             <span className="text-[10px] text-muted-foreground">{reward}</span>
           </div>
           <p className="text-sm text-card-foreground">{mission.title}</p>
@@ -412,9 +431,7 @@ function KudosCard({ kudosReceived }: { kudosReceived: MockKudo[] }) {
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div>
           <p className="font-medium text-card-foreground">Kudos</p>
-          <p className="text-xs text-muted-foreground">
-            {remaining}/5 disponíveis esta semana
-          </p>
+          <p className="text-xs text-muted-foreground">{remaining}/5 disponíveis esta semana</p>
         </div>
         {!showForm && (
           <button
@@ -536,14 +553,18 @@ function BadgesCard({ badges }: { badges: MockBadge[] }) {
         {badges.map((b) => (
           <div
             key={b.id}
-            title={b.earned ? `Conquistado em ${b.earnedAt}` : "Em progresso — continue participando!"}
+            title={
+              b.earned ? `Conquistado em ${b.earnedAt}` : "Em progresso — continue participando!"
+            }
             className={`flex cursor-help flex-col items-center gap-1 rounded-xl border px-3 py-2.5 transition-opacity ${
               b.earned
                 ? "border-border/70 bg-card"
                 : "border-dashed border-border/40 opacity-40 grayscale"
             }`}
           >
-            <span className="text-2xl" aria-hidden>{b.emoji}</span>
+            <span className="text-2xl" aria-hidden>
+              {b.emoji}
+            </span>
             <span className="text-[10px] text-center text-muted-foreground max-w-[5rem] leading-tight">
               {b.name}
             </span>
@@ -621,7 +642,8 @@ function SeasonCard() {
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Próximo evento: <span className="font-medium text-foreground">{s.nextEvent}</span> · {s.nextEventDate}
+        Próximo evento: <span className="font-medium text-foreground">{s.nextEvent}</span> ·{" "}
+        {s.nextEventDate}
       </p>
     </motion.div>
   );
@@ -644,7 +666,9 @@ function FlorescerIACard() {
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-base" aria-hidden>✨</span>
+          <span className="text-base" aria-hidden>
+            ✨
+          </span>
           <p className="text-sm font-medium text-card-foreground">FlorescerIA</p>
           <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
             mockada · Bloco 12
@@ -687,7 +711,9 @@ function QuickLinksCard() {
         to="/ivo"
         className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="text-xl" aria-hidden>📊</span>
+        <span className="text-xl" aria-hidden>
+          📊
+        </span>
         <p className="text-sm font-medium text-card-foreground">IVO Completo</p>
         <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
@@ -696,7 +722,9 @@ function QuickLinksCard() {
         to="/confianca"
         className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="text-xl" aria-hidden>🔒</span>
+        <span className="text-xl" aria-hidden>
+          🔒
+        </span>
         <p className="text-sm font-medium text-card-foreground">Trust Ledger</p>
         <p className="text-[10px] text-muted-foreground">Quem vê o quê sobre você</p>
       </Link>
@@ -705,7 +733,9 @@ function QuickLinksCard() {
         to="/academia"
         className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring col-span-2 sm:col-span-1"
       >
-        <span className="text-xl" aria-hidden>🎓</span>
+        <span className="text-xl" aria-hidden>
+          🎓
+        </span>
         <p className="text-sm font-medium text-card-foreground">Academia</p>
         <p className="text-[10px] text-muted-foreground">Trilhas de 5–8 min</p>
       </Link>

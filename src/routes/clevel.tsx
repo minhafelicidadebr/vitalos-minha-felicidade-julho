@@ -26,15 +26,16 @@ export const Route = createFileRoute("/clevel")({
 });
 
 function brl(n: number) {
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  return n.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
 }
 
 function CLevelPage() {
   const { index } = usePack();
-  const result = useMemo(
-    () => (index ? calculateIVO(ivoCurrentCycle, index) : null),
-    [index],
-  );
+  const result = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
 
   if (!result) {
     return (
@@ -71,9 +72,14 @@ function CLevelPage() {
             className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
           >
             <p className="text-xs text-muted-foreground">IVO atual</p>
-            <p className="mt-1 font-serif text-5xl font-semibold text-foreground">{result.ivoScore}</p>
+            <p className="mt-1 font-serif text-5xl font-semibold text-foreground">
+              {result.ivoScore}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">{result.maturityLevel.name}</p>
-            <Link to="/ivo" className="mt-3 inline-block text-xs text-primary underline underline-offset-2">
+            <Link
+              to="/ivo"
+              className="mt-3 inline-block text-xs text-primary underline underline-offset-2"
+            >
               Ver radar completo →
             </Link>
           </motion.div>
@@ -87,14 +93,33 @@ function CLevelPage() {
             <p className="text-xs text-muted-foreground">Tendência — 4 ciclos</p>
             <div className="mt-2 h-32">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={[...CLEVEL_TREND]} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
-                  <XAxis dataKey="cycle" tick={{ fontSize: 10, fill: "currentColor" }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[450, 700]} tick={{ fontSize: 10, fill: "currentColor" }} axisLine={false} tickLine={false} />
+                <LineChart
+                  data={[...CLEVEL_TREND]}
+                  margin={{ top: 8, right: 12, bottom: 0, left: -18 }}
+                >
+                  <XAxis
+                    dataKey="cycle"
+                    tick={{ fontSize: 10, fill: "currentColor" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[450, 700]}
+                    tick={{ fontSize: 10, fill: "currentColor" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <RechartsTooltip
                     contentStyle={{ fontSize: 12, borderRadius: 8 }}
                     formatter={(v: number | string) => [`${v} pts`, "IVO"]}
                   />
-                  <Line type="monotone" dataKey="score" stroke="#0B3D2E" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#0B3D2E"
+                    strokeWidth={2.5}
+                    dot={{ r: 3 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -109,19 +134,27 @@ function CLevelPage() {
             transition={{ duration: 0.45, delay: 0.15 }}
             className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
           >
-            <p className="font-medium text-card-foreground">Vitality P&L — cenário {CLEVEL_PNL.scenario}</p>
+            <p className="font-medium text-card-foreground">
+              Vitality P&L — cenário {CLEVEL_PNL.scenario}
+            </p>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Custo de turnover/ano</dt>
-                <dd className="font-semibold tabular-nums text-foreground">{brl(CLEVEL_PNL.turnoverCostYear)}</dd>
+                <dd className="font-semibold tabular-nums text-foreground">
+                  {brl(CLEVEL_PNL.turnoverCostYear)}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Absenteísmo/ano</dt>
-                <dd className="font-semibold tabular-nums text-foreground">{brl(CLEVEL_PNL.absenteeismCostYear)}</dd>
+                <dd className="font-semibold tabular-nums text-foreground">
+                  {brl(CLEVEL_PNL.absenteeismCostYear)}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Presenteísmo/ano</dt>
-                <dd className="font-semibold tabular-nums text-foreground">{brl(CLEVEL_PNL.presenteeismCostYear)}</dd>
+                <dd className="font-semibold tabular-nums text-foreground">
+                  {brl(CLEVEL_PNL.presenteeismCostYear)}
+                </dd>
               </div>
               <div className="flex justify-between border-t border-border/50 pt-2">
                 <dt className="text-muted-foreground">Custo evitado (Δ IVO)</dt>
@@ -136,8 +169,13 @@ function CLevelPage() {
                 </dd>
               </div>
             </dl>
-            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">{CLEVEL_PNL.disclaimer}</p>
-            <Link to="/pnl" className="mt-2 inline-block text-xs text-primary underline underline-offset-2">
+            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+              {CLEVEL_PNL.disclaimer}
+            </p>
+            <Link
+              to="/pnl"
+              className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
+            >
               P&L completo com fórmulas editáveis →
             </Link>
           </motion.div>
@@ -153,7 +191,9 @@ function CLevelPage() {
               <span className="h-3 w-3 rounded-full bg-amber-500" aria-hidden />
               <p className="text-sm font-semibold text-foreground">{CLEVEL_NR1_RISK.label}</p>
             </div>
-            <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">{CLEVEL_NR1_RISK.detail}</p>
+            <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
+              {CLEVEL_NR1_RISK.detail}
+            </p>
             <Link to="/sst" className="mt-3 text-xs text-primary underline underline-offset-2">
               Painel SST completo →
             </Link>

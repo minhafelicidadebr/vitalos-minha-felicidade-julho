@@ -52,8 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { roleId, setRole } = usePersona();
   const [personaOpen, setPersonaOpen] = useState(false);
 
-  const roleLabel =
-    pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
+  const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
 
   const navItems = pack
     ? navForRole(pack, roleId)
@@ -88,7 +87,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           {/* Pack-driven nav */}
-          <nav className="hidden items-center gap-0.5 overflow-x-auto lg:flex" aria-label="Navegação principal">
+          <nav
+            className="hidden items-center gap-0.5 overflow-x-auto lg:flex"
+            aria-label="Navegação principal"
+          >
             {navItems.map((item) => (
               <Link
                 key={item.id}
@@ -112,7 +114,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
                 <span className="max-w-[8rem] truncate">{roleLabel}</span>
-                <span aria-hidden className="text-muted-foreground">▾</span>
+                <span aria-hidden className="text-muted-foreground">
+                  ▾
+                </span>
               </button>
 
               {personaOpen && (

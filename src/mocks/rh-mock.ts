@@ -100,7 +100,8 @@ export const RH_ALERTS: RHAlert[] = [
     id: "al-01",
     severity: "high",
     title: "Lente ORGANIZAÇÃO em zona crítica na Unidade Sul",
-    detail: "Score 489 — puxado por Condições & Carga (2.8 média). Sugerido: protocolo de revisão de carga + escuta ativa.",
+    detail:
+      "Score 489 — puxado por Condições & Carga (2.8 média). Sugerido: protocolo de revisão de carga + escuta ativa.",
     pillarName: "Condições & Carga de Trabalho",
     unitLabel: "Unidade Sul — Curitiba",
   },
@@ -115,7 +116,8 @@ export const RH_ALERTS: RHAlert[] = [
     id: "al-03",
     severity: "info",
     title: "Participação subiu 9 p.p. após campanha dos embaixadores",
-    detail: "78% — melhor marca histórica. Trust Ledger citado em 64% dos feedbacks como motivo de confiança.",
+    detail:
+      "78% — melhor marca histórica. Trust Ledger citado em 64% dos feedbacks como motivo de confiança.",
   },
 ];
 

@@ -17,9 +17,9 @@ export const Route = createFileRoute("/sst")({
 });
 
 const BAND_STYLE: Record<CopsoqDimension["band"], string> = {
-  "favorável": "bg-green-500",
-  "intermediário": "bg-amber-500",
-  "risco": "bg-red-500",
+  favorável: "bg-green-500",
+  intermediário: "bg-amber-500",
+  risco: "bg-red-500",
 };
 
 function CopsoqCard() {
@@ -62,16 +62,22 @@ function CopsoqCard() {
 
       <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
         Resultados agregados de toda a organização — recortes menores seguem a regra de 5+
-        respondentes. Instrumento aplicado em caráter educativo; a interpretação para fins de
-        PGR cabe a profissional habilitado.
+        respondentes. Instrumento aplicado em caráter educativo; a interpretação para fins de PGR
+        cabe a profissional habilitado.
       </p>
     </motion.div>
   );
 }
 
 const EXPOSURE_STYLE: Record<RiskCategory["exposure"], { cls: string; label: string }> = {
-  baixa: { cls: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300", label: "Baixa" },
-  moderada: { cls: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", label: "Moderada" },
+  baixa: {
+    cls: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+    label: "Baixa",
+  },
+  moderada: {
+    cls: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    label: "Moderada",
+  },
   alta: { cls: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300", label: "Alta" },
 };
 
@@ -81,7 +87,11 @@ function SSTPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Domínio B · SST / CIPA
           </p>
@@ -99,7 +109,9 @@ function SSTPage() {
           aria-label="Aviso obrigatório do Domínio B"
         >
           <p className="flex items-start gap-2 text-sm leading-relaxed text-amber-900 dark:text-amber-300">
-            <span className="mt-0.5 shrink-0" aria-hidden>ℹ</span>
+            <span className="mt-0.5 shrink-0" aria-hidden>
+              ℹ
+            </span>
             {SST_DISCLAIMER}
           </p>
         </motion.div>
@@ -121,7 +133,10 @@ function SSTPage() {
             {SST_RISK_INVENTORY.map((risk) => {
               const ex = EXPOSURE_STYLE[risk.exposure];
               return (
-                <div key={risk.id} className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+                <div
+                  key={risk.id}
+                  className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
+                >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-card-foreground">{risk.name}</p>
                     <p className="text-[10px] text-muted-foreground">
@@ -129,7 +144,9 @@ function SSTPage() {
                       {risk.actionsOpen > 0 && ` · ${risk.actionsOpen} ação(ões) em aberto`}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${ex.cls}`}>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${ex.cls}`}
+                  >
                     {ex.label}
                   </span>
                 </div>
@@ -153,7 +170,9 @@ function SSTPage() {
               <p className="font-serif text-4xl font-semibold leading-none text-foreground">
                 {SST_LISTENING.totalReportsQuarter}
               </p>
-              <p className="text-xs text-muted-foreground">relatos no trimestre · resposta média {SST_LISTENING.avgResponseDays} dias</p>
+              <p className="text-xs text-muted-foreground">
+                relatos no trimestre · resposta média {SST_LISTENING.avgResponseDays} dias
+              </p>
             </div>
             <div className="mt-4 space-y-2">
               {SST_LISTENING.byCategory.map((c) => (
@@ -163,12 +182,17 @@ function SSTPage() {
                     <span className="font-medium tabular-nums text-foreground">{c.count}</span>
                   </div>
                   <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${(c.count / maxCount) * 100}%` }} />
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${(c.count / maxCount) * 100}%` }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">{SST_LISTENING.microcopy}</p>
+            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+              {SST_LISTENING.microcopy}
+            </p>
           </motion.div>
 
           {/* GRO checklist */}
@@ -192,7 +216,9 @@ function SSTPage() {
                   >
                     {item.done ? "✓" : ""}
                   </span>
-                  <span className={`text-xs leading-relaxed ${item.done ? "text-muted-foreground" : "text-card-foreground"}`}>
+                  <span
+                    className={`text-xs leading-relaxed ${item.done ? "text-muted-foreground" : "text-card-foreground"}`}
+                  >
                     {item.label}
                   </span>
                 </li>

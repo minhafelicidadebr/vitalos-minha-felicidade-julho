@@ -82,10 +82,6 @@ export function getEthicalPrinciples(economy: GamificationEconomy): string[] {
 }
 
 /** Clamps an XP award to the daily cap given today's accumulated XP. */
-export function clampXpAward(
-  award: number,
-  earnedToday: number,
-  rules: AntiGamingRules,
-): number {
+export function clampXpAward(award: number, earnedToday: number, rules: AntiGamingRules): number {
   return Math.max(0, Math.min(award, rules.xpDailyCap - earnedToday));
 }

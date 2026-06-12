@@ -19,22 +19,12 @@ import {
   crossPerceptionBehavior,
   SIGNALS_K_MIN,
 } from "@/engine/signals/signals-engine";
-import {
-  SIGNALS,
-  PERCEPTION_BEHAVIOR_INPUT,
-  SIGNALS_CONSENT_NOTE,
-} from "@/mocks/signals-mock";
+import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
 
 export function RHDashboard() {
   const { index } = usePack();
-  const current = useMemo(
-    () => (index ? calculateIVO(ivoCurrentCycle, index) : null),
-    [index],
-  );
-  const previous = useMemo(
-    () => (index ? calculateIVO(ivoPreviousCycle, index) : null),
-    [index],
-  );
+  const current = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
+  const previous = useMemo(() => (index ? calculateIVO(ivoPreviousCycle, index) : null), [index]);
 
   if (!current || !previous) {
     return (
@@ -53,7 +43,11 @@ export function RHDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
-      <ExecHeader ivoScore={current.ivoScore} maturityName={current.maturityLevel.name} delta={delta} />
+      <ExecHeader
+        ivoScore={current.ivoScore}
+        maturityName={current.maturityLevel.name}
+        delta={delta}
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <HeatmapCard lensMeta={lensMeta} />
@@ -82,7 +76,11 @@ function ExecHeader({
   delta: number;
 }) {
   const deltaColor =
-    delta > 0 ? "text-green-600 dark:text-green-400" : delta < 0 ? "text-red-500" : "text-amber-600";
+    delta > 0
+      ? "text-green-600 dark:text-green-400"
+      : delta < 0
+        ? "text-red-500"
+        : "text-amber-600";
 
   return (
     <motion.div
@@ -92,18 +90,27 @@ function ExecHeader({
       className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
       <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground" aria-hidden>
+        <div
+          className="grid h-11 w-11 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
+          aria-hidden
+        >
           {MOCK_RH.avatarInitials}
         </div>
         <div>
-          <p className="font-serif text-xl text-card-foreground">Visão Executiva — {MOCK_RH.firstName}</p>
-          <p className="text-xs text-muted-foreground">CHRO · TechCorp Ltda · {SEASON_RH.cycleId}</p>
+          <p className="font-serif text-xl text-card-foreground">
+            Visão Executiva — {MOCK_RH.firstName}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            CHRO · TechCorp Ltda · {SEASON_RH.cycleId}
+          </p>
         </div>
       </div>
 
       <div className="flex items-end gap-6">
         <div className="text-right">
-          <p className="font-serif text-4xl font-semibold leading-none text-foreground">{ivoScore}</p>
+          <p className="font-serif text-4xl font-semibold leading-none text-foreground">
+            {ivoScore}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">{maturityName}</p>
         </div>
         <div className={`text-lg font-semibold ${deltaColor}`}>
@@ -145,7 +152,9 @@ function HeatmapCard({
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="font-medium text-card-foreground">Heatmap por unidade</p>
-          <p className="text-xs text-muted-foreground">Score por lente · recortes com n &lt; {K_ANONYMITY_MIN} ficam ocultos</p>
+          <p className="text-xs text-muted-foreground">
+            Score por lente · recortes com n &lt; {K_ANONYMITY_MIN} ficam ocultos
+          </p>
         </div>
       </div>
 
@@ -157,14 +166,23 @@ function HeatmapCard({
                 Unidade
               </th>
               {lensMeta.map((l) => (
-                <th key={l.lensId} className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                <th
+                  key={l.lensId}
+                  className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground"
+                >
                   <span className="inline-flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full" style={{ background: l.color }} aria-hidden />
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: l.color }}
+                      aria-hidden
+                    />
                     {l.short}
                   </span>
                 </th>
               ))}
-              <th className="px-2 py-1 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">n</th>
+              <th className="px-2 py-1 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                n
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -176,7 +194,10 @@ function HeatmapCard({
                     {row.unitLabel}
                   </td>
                   {hidden ? (
-                    <td colSpan={4} className="rounded-lg border border-dashed border-border/60 px-3 py-2 text-center text-xs text-muted-foreground">
+                    <td
+                      colSpan={4}
+                      className="rounded-lg border border-dashed border-border/60 px-3 py-2 text-center text-xs text-muted-foreground"
+                    >
                       🔒 Menos de {K_ANONYMITY_MIN} respostas — oculto para proteger a privacidade
                     </td>
                   ) : (
@@ -189,7 +210,9 @@ function HeatmapCard({
                       </td>
                     ))
                   )}
-                  <td className="px-2 py-2 text-right text-xs tabular-nums text-muted-foreground">{row.n}</td>
+                  <td className="px-2 py-2 text-right text-xs tabular-nums text-muted-foreground">
+                    {row.n}
+                  </td>
                 </tr>
               );
             })}
@@ -199,10 +222,18 @@ function HeatmapCard({
 
       {/* Legend */}
       <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-red-200 dark:bg-red-950" /> &lt;500 crítico</span>
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-amber-200 dark:bg-amber-950" /> 500–649</span>
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-green-200 dark:bg-green-950" /> 650–799</span>
-        <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-emerald-300 dark:bg-emerald-900" /> ≥800</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded bg-red-200 dark:bg-red-950" /> &lt;500 crítico
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded bg-amber-200 dark:bg-amber-950" /> 500–649
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded bg-green-200 dark:bg-green-950" /> 650–799
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded bg-emerald-300 dark:bg-emerald-900" /> ≥800
+        </span>
       </div>
     </motion.div>
   );
@@ -223,7 +254,9 @@ function SignalsCard() {
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
       <div className="mb-4">
-        <p className="font-medium text-card-foreground">Sinais Vivos™ — percepção × comportamento</p>
+        <p className="font-medium text-card-foreground">
+          Sinais Vivos™ — percepção × comportamento
+        </p>
         <p className="text-xs text-muted-foreground">
           O que as pessoas dizem (IVO) cruzado com o que o sistema mostra (eventos da plataforma)
         </p>
@@ -237,8 +270,13 @@ function SignalsCard() {
               <span className="text-muted-foreground">{s.label}</span>
               <span className="tabular-nums">
                 <span className="font-medium text-foreground">{s.value}%</span>{" "}
-                <span className={s.deltaVsPrev >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}>
-                  {s.deltaVsPrev >= 0 ? "↑" : "↓"}{Math.abs(s.deltaVsPrev)}
+                <span
+                  className={
+                    s.deltaVsPrev >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"
+                  }
+                >
+                  {s.deltaVsPrev >= 0 ? "↑" : "↓"}
+                  {Math.abs(s.deltaVsPrev)}
                 </span>
               </span>
             </div>
@@ -288,7 +326,9 @@ function SignalsCard() {
         ))}
       </div>
 
-      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">🔒 {SIGNALS_CONSENT_NOTE}</p>
+      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
+        🔒 {SIGNALS_CONSENT_NOTE}
+      </p>
     </motion.div>
   );
 }
@@ -308,7 +348,9 @@ function ParticipationCard() {
         <p className="font-serif text-4xl font-semibold leading-none text-foreground">
           {PARTICIPATION.overallPct}%
         </p>
-        <p className="text-xs text-green-600 dark:text-green-400">↑ +{PARTICIPATION.deltaVsPrevPct} p.p.</p>
+        <p className="text-xs text-green-600 dark:text-green-400">
+          ↑ +{PARTICIPATION.deltaVsPrevPct} p.p.
+        </p>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         {PARTICIPATION.respondents} de {PARTICIPATION.invited} pessoas
@@ -363,7 +405,8 @@ function AlertsCard({ alerts }: { alerts: RHAlert[] }) {
         })}
       </div>
       <p className="mt-3 text-[10px] text-muted-foreground">
-        Alertas apontam padrões agregados — nunca pessoas. Este indicador mostra caminhos, não culpados.
+        Alertas apontam padrões agregados — nunca pessoas. Este indicador mostra caminhos, não
+        culpados.
       </p>
     </motion.div>
   );
@@ -401,13 +444,17 @@ function KanbanCard({ columns }: { columns: KanbanColumn[] }) {
             <div className="space-y-2">
               {col.items.map((item) => (
                 <div key={item.id} className="rounded-lg border border-border/50 bg-card p-3">
-                  <p className={`text-xs ${col.id === "done" ? "text-muted-foreground line-through" : "text-card-foreground"}`}>
+                  <p
+                    className={`text-xs ${col.id === "done" ? "text-muted-foreground line-through" : "text-card-foreground"}`}
+                  >
                     {item.title}
                   </p>
                   <p className="mt-1.5 text-[10px] text-muted-foreground">{item.pillarName}</p>
                   <div className="mt-2 flex items-center justify-between gap-1">
                     <span className="text-[10px] text-muted-foreground">{item.ownerName}</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${EVIDENCE_STYLE[item.evidence]}`}>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${EVIDENCE_STYLE[item.evidence]}`}
+                    >
                       {item.evidence}
                     </span>
                   </div>
@@ -434,7 +481,9 @@ function SeasonCard() {
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
       <p className="font-medium text-card-foreground">{s.name}</p>
-      <p className="text-xs text-muted-foreground">Semana {s.weekNumber}/{s.totalWeeks}</p>
+      <p className="text-xs text-muted-foreground">
+        Semana {s.weekNumber}/{s.totalWeeks}
+      </p>
 
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
@@ -460,7 +509,9 @@ function SeasonCard() {
               }`}
               aria-hidden
             />
-            <span className={`text-[9px] ${"current" in phase && phase.current ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+            <span
+              className={`text-[9px] ${"current" in phase && phase.current ? "font-semibold text-primary" : "text-muted-foreground"}`}
+            >
               {phase.label}
             </span>
           </div>
@@ -470,7 +521,9 @@ function SeasonCard() {
       <ul className="mt-4 space-y-1.5">
         {s.highlights.map((h) => (
           <li key={h} className="flex items-start gap-2 text-xs text-muted-foreground">
-            <span className="mt-0.5 text-primary" aria-hidden>•</span>
+            <span className="mt-0.5 text-primary" aria-hidden>
+              •
+            </span>
             {h}
           </li>
         ))}

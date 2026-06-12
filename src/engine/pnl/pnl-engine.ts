@@ -16,7 +16,7 @@ export type Scenario = "conservador" | "médio" | "otimista";
 // Scenario multipliers applied to the avoided-cost estimate
 const SCENARIO_FACTOR: Record<Scenario, number> = {
   conservador: 0.5,
-  "médio": 1.0,
+  médio: 1.0,
   otimista: 1.5,
 };
 
@@ -59,11 +59,9 @@ export function calculatePnL(
   const dailySalary = inputs.avgMonthlySalary / 22;
 
   const leaversPerYear = inputs.employees * (inputs.turnoverRatePctYear / 100);
-  const turnoverCost =
-    leaversPerYear * inputs.avgMonthlySalary * inputs.replacementCostMultiplier;
+  const turnoverCost = leaversPerYear * inputs.avgMonthlySalary * inputs.replacementCostMultiplier;
 
-  const absenteeismCost =
-    inputs.employees * inputs.absenteeismDaysPerEmployeeYear * dailySalary;
+  const absenteeismCost = inputs.employees * inputs.absenteeismDaysPerEmployeeYear * dailySalary;
 
   const annualPayroll = inputs.employees * inputs.avgMonthlySalary * 12;
   const presenteeismCost = annualPayroll * (inputs.presenteeismLossPct / 100);
