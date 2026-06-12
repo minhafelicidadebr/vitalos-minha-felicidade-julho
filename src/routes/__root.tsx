@@ -85,19 +85,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Plataforma SaaS B2B premium para vitalidade organizacional. Fundação técnica em construção.",
       },
       { name: "author", content: "4 Lentes VITA" },
-      { property: "og:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
+      {
+        property: "og:title",
+        content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional",
+      },
       {
         property: "og:description",
         content: "Sistema Operacional da Vitalidade Organizacional.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
-      { name: "description", content: "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality." },
-      { property: "og:description", content: "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality." },
-      { name: "twitter:description", content: "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/cVKpCJ3fueXerkOA7ms8wsBIRzj1/social-images/social-1781229168434-editora_fe_com_ciencia_da_felicidade.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/cVKpCJ3fueXerkOA7ms8wsBIRzj1/social-images/social-1781229168434-editora_fe_com_ciencia_da_felicidade.webp" },
+      {
+        name: "twitter:title",
+        content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional",
+      },
+      {
+        name: "description",
+        content:
+          "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Vitality OS Foundation builds the core of a B2B SaaS platform for organizational vitality.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/cVKpCJ3fueXerkOA7ms8wsBIRzj1/social-images/social-1781229168434-editora_fe_com_ciencia_da_felicidade.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/cVKpCJ3fueXerkOA7ms8wsBIRzj1/social-images/social-1781229168434-editora_fe_com_ciencia_da_felicidade.webp",
+      },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
