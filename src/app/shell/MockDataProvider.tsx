@@ -12,9 +12,7 @@ interface MockDataContextValue {
 const MockDataContext = createContext<MockDataContextValue>({ enabled: false });
 
 export function MockDataProvider({ children }: { children: ReactNode }) {
-  return (
-    <MockDataContext.Provider value={{ enabled: false }}>{children}</MockDataContext.Provider>
-  );
+  return <MockDataContext.Provider value={{ enabled: false }}>{children}</MockDataContext.Provider>;
 }
 
 export function useMockData() {

@@ -12,7 +12,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh flex flex-col bg-background text-foreground">
       <header className="border-b border-border/60 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/40">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-3 group" aria-label="4 Lentes VITA — início">
+          <Link
+            to="/"
+            className="flex items-center gap-3 group"
+            aria-label="4 Lentes VITA — início"
+          >
             <span
               aria-hidden
               className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-serif text-lg shadow-sm"
