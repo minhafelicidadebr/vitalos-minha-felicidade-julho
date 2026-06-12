@@ -6,13 +6,68 @@ import {
   SST_RISK_INVENTORY,
   SST_LISTENING,
   SST_CHECKLIST,
+  COPSOQ_AGGREGATE,
   type RiskCategory,
+  type CopsoqDimension,
 } from "@/mocks/executivo-mock";
 
 export const Route = createFileRoute("/sst")({
   head: () => ({ meta: [{ title: "SST / CIPA — Domínio B educativo · 4 Lentes VITA" }] }),
   component: SSTPage,
 });
+
+const BAND_STYLE: Record<CopsoqDimension["band"], string> = {
+  "favorável": "bg-green-500",
+  "intermediário": "bg-amber-500",
+  "risco": "bg-red-500",
+};
+
+function CopsoqCard() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.12 }}
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+    >
+      <p className="font-medium text-card-foreground">COPSOQ II agregado (versão curta BR)</p>
+      <p className="text-xs text-muted-foreground">
+        n = {COPSOQ_AGGREGATE.n} · {COPSOQ_AGGREGATE.appliedLabel} · escala 0–100
+      </p>
+
+      <div className="mt-4 space-y-2.5">
+        {COPSOQ_AGGREGATE.dimensions.map((d) => (
+          <div key={d.id}>
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-muted-foreground">
+                {d.name}
+                <span className="ml-1 text-[9px] text-muted-foreground/70">
+                  ({d.direction === "menor_melhor" ? "↓ melhor" : "↑ melhor"})
+                </span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${BAND_STYLE[d.band]}`} aria-hidden />
+                <span className="font-medium tabular-nums text-foreground">{d.score}</span>
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full ${BAND_STYLE[d.band]} opacity-70`}
+                style={{ width: `${d.score}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
+        Resultados agregados de toda a organização — recortes menores seguem a regra de 5+
+        respondentes. Instrumento aplicado em caráter educativo; a interpretação para fins de
+        PGR cabe a profissional habilitado.
+      </p>
+    </motion.div>
+  );
+}
 
 const EXPOSURE_STYLE: Record<RiskCategory["exposure"], { cls: string; label: string }> = {
   baixa: { cls: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300", label: "Baixa" },
@@ -82,6 +137,8 @@ function SSTPage() {
             })}
           </div>
         </motion.div>
+
+        <CopsoqCard />
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Listening channel — aggregate volumes only */}
