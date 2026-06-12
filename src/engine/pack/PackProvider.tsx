@@ -2,12 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import Ajv, { type ErrorObject } from "ajv";
 import addFormats from "ajv-formats";
 
-import type {
-  DomainPack,
-  GamificationEconomy,
-  PackStatus,
-  ProprietaryIndex,
-} from "./pack-types";
+import type { DomainPack, GamificationEconomy, PackStatus, ProprietaryIndex } from "./pack-types";
 
 // Pack oficial + framework IVO + economia de gamificação — bundled estático.
 // Mantém a regra arquitetural: engine/ apenas LÊ o pack; nada de lógica de domínio.

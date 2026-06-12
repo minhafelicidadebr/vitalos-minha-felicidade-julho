@@ -102,8 +102,8 @@ function DesignSystemPage() {
             <p className="font-serif text-xl text-foreground">Cabeçalho terciário</p>
             <p className="max-w-2xl text-base leading-relaxed text-foreground">
               Corpo de texto em sans-serif neutra, otimizado para leitura prolongada em painéis
-              executivos. Use{" "}
-              <span className="text-muted-foreground">cor secundária</span> para metadados.
+              executivos. Use <span className="text-muted-foreground">cor secundária</span> para
+              metadados.
             </p>
             <p className="font-mono text-sm text-muted-foreground">
               const code = "estilo monoespaçado para identificadores técnicos";
