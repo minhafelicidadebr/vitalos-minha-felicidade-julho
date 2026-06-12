@@ -40,6 +40,9 @@ export function ColaboradorDashboard() {
       {/* Check-in */}
       <CheckInCard />
 
+      {/* Pulse invite */}
+      <PulseInviteCard />
+
       {/* Missions */}
       <MissionsCard missions={MOCK_MISSIONS} />
 
@@ -217,6 +220,33 @@ function CheckInCard() {
           </button>
         </>
       )}
+    </motion.div>
+  );
+}
+
+// ─── Pulse invite ─────────────────────────────────────────────────────────────
+
+function PulseInviteCard() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.08 }}
+      className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-xl" aria-hidden>⚡</span>
+        <div>
+          <p className="text-sm font-medium text-card-foreground">Pulse da quinzena disponível</p>
+          <p className="text-xs text-muted-foreground">3 perguntas · 60 segundos · anônimo · +25 XP</p>
+        </div>
+      </div>
+      <Link
+        to="/pulse"
+        className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        Responder
+      </Link>
     </motion.div>
   );
 }

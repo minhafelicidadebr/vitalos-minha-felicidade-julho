@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
+import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
@@ -28,6 +29,11 @@ const SstRoute = SstRouteImport.update({
 const RhRoute = RhRouteImport.update({
   id: '/rh',
   path: '/rh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PulseRoute = PulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiderRoute = LiderRouteImport.update({
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
+  '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
+  '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lider': typeof LiderRoute
+  '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lider'
+    | '/pulse'
     | '/rh'
     | '/sst'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lider'
+    | '/pulse'
     | '/rh'
     | '/sst'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lider'
+    | '/pulse'
     | '/rh'
     | '/sst'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
   LiderRoute: typeof LiderRoute
+  PulseRoute: typeof PulseRoute
   RhRoute: typeof RhRoute
   SstRoute: typeof SstRoute
 }
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/rh'
       fullPath: '/rh'
       preLoaderRoute: typeof RhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pulse': {
+      id: '/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof PulseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lider': {
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
   LiderRoute: LiderRoute,
+  PulseRoute: PulseRoute,
   RhRoute: RhRoute,
   SstRoute: SstRoute,
 }
