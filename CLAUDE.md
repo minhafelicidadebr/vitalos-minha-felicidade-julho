@@ -108,27 +108,37 @@ src/
 | # | O que constrói | Arquivos principais |
 |---|---|---|
 | ✅ 0 | Fundação | engine/pack, design-system, shell, routes |
-| 🔲 **1** | **Sidebar RBAC por papel** | engine/rbac + AppShell |
-| 🔲 **2** | **Mock data layer** | src/mocks + MockDataProvider |
-| 🔲 **3** | **Motor IVO + radar 4 lentes** | engine/index + routes/ivo.tsx |
-| 🔲 4 | Dashboard Colaborador | app/dashboards + rota |
-| 🔲 5 | Dashboard Líder | idem |
-| 🔲 6 | Dashboard RH/CHRO flagship | idem |
-| 🔲 7 | Dashboards C-Level, SST, Holding | idem |
-| 🔲 8 | Trust Ledger | engine/trust |
-| 🔲 9 | Pulses 60s | nova rota |
-| 🔲 10 | Nudge Engine MVP | engine/nudges |
-| 🔲 11 | Gamificação + Temporadas + Culture Lab | engine/gamification + lab |
-| 🔲 12 | FlorescerIA mockada (10 modos) | engine/ai |
+| ✅ 1 | RBAC + persona switcher | engine/rbac/rbac.ts + AppShell (nav do pack × papel) |
+| 🔲 **2** | **Mock data layer (hooks useOrg/useIvo/useSeason)** | mocks já ricos; falta consolidar em hooks |
+| ✅ 3 | Motor IVO + radar 4 lentes | engine/index/ivo-engine.ts + routes/ivo.tsx |
+| ✅ 4 | Dashboard Colaborador | app/dashboards/colaborador + /colaborador |
+| ✅ 5 | Dashboard Líder (n≥5 visível) | app/dashboards/lider + /lider |
+| ✅ 6 | Dashboard RH/CHRO flagship | app/dashboards/rh + /rh (heatmap, kanban GRO) |
+| ✅ 7 | C-Level + SST/CIPA + Holding | /clevel, /sst, /holding |
+| ✅ 8 | Trust Ledger | engine/trust + /confianca |
+| ✅ 9 | Pulses 60s | engine/index/pulse-engine.ts + /pulse |
+| ✅ 10 | Nudge Engine MVP | engine/nudges + NudgesCard no colaborador |
+| ✅ 11 | Gamificação engine + Culture Lab | engine/gamification + engine/lab + /lab |
+| ✅ 12 | FlorescerIA mockada (10 modos) | engine/ai + /floresceria |
 | 🔲 13 | Academia do Florescimento | nova rota |
 | 🔲 14 | Embaixadorias (15) | nova rota |
-| 🔲 15 | Domínio B — NR-1/SST | nova rota separada |
-| 🔲 16 | Vitality P&L | engine/pnl |
+| 🔲 15 | Domínio B — aprofundar (COPSOQ agregado) | /sst já cobre inventário+escuta+checklist |
+| ✅ 16 | Vitality P&L | engine/pnl + /pnl |
 | 🔲 17 | Evidências + Relatórios + Selo Empresa Viva | novas rotas |
 | 🔲 18 | Sinais Vivos | engine/signals |
 | 🔲 19 | QR / Quiosque / Onboarding | nova rota |
 | 🔲 20 | Polimento UX premium | global |
 | 🔲 21 | QA final + demo day test (10 passos) | — |
+
+### Rotas implementadas
+`/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
+`/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
+`/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/design-system`
+
+### Persona demo
+Seletor no header (Zustand persistido, chave `vita-persona`) — 7 papéis.
+A navegação inteira vem de `pack.navigation` filtrada por papel via
+`engine/rbac/rbac.ts`. Item "overview" resolve para o dashboard do papel.
 
 ---
 
