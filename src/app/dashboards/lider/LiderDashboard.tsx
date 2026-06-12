@@ -289,13 +289,12 @@ function CopilotCard() {
         )}
       </p>
       <div className="mt-3 flex gap-2">
-        <button
-          disabled
-          title="Culture Lab chega no Bloco 11"
-          className="cursor-not-allowed rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground opacity-50"
+        <Link
+          to="/lab"
+          className="rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          Ativar protocolo "{LEADER_COPILOT_SUGGESTION.protocol}"
-        </button>
+          Ver protocolo "{LEADER_COPILOT_SUGGESTION.protocol}" no Culture Lab
+        </Link>
       </div>
     </motion.div>
   );
@@ -395,14 +394,14 @@ function FooterLinks() {
         <p className="text-sm font-medium text-card-foreground">IVO da Organização</p>
         <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
-      <div
-        className="flex flex-col gap-1 rounded-2xl border border-dashed border-border/50 bg-card/60 p-4 opacity-60"
-        title="Em breve — Bloco 11"
+      <Link
+        to="/lab"
+        className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="text-xl" aria-hidden>🧪</span>
         <p className="text-sm font-medium text-card-foreground">Culture Lab</p>
-        <p className="text-[10px] text-muted-foreground">Em breve</p>
-      </div>
+        <p className="text-[10px] text-muted-foreground">Protocolos e experimentos</p>
+      </Link>
     </motion.div>
   );
 }

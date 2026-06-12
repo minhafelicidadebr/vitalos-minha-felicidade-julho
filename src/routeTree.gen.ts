@@ -13,6 +13,7 @@ import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as LiderRouteImport } from './routes/lider'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
@@ -39,6 +40,11 @@ const PulseRoute = PulseRouteImport.update({
 const LiderRoute = LiderRouteImport.update({
   id: '/lider',
   path: '/lider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IvoRoute = IvoRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
+  '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
+  '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
+  '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pulse': typeof PulseRoute
   '/rh': typeof RhRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/holding'
     | '/ivo'
+    | '/lab'
     | '/lider'
     | '/pulse'
     | '/rh'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/holding'
     | '/ivo'
+    | '/lab'
     | '/lider'
     | '/pulse'
     | '/rh'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/holding'
     | '/ivo'
+    | '/lab'
     | '/lider'
     | '/pulse'
     | '/rh'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
+  LabRoute: typeof LabRoute
   LiderRoute: typeof LiderRoute
   PulseRoute: typeof PulseRoute
   RhRoute: typeof RhRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/lider'
       fullPath: '/lider'
       preLoaderRoute: typeof LiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ivo': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
+  LabRoute: LabRoute,
   LiderRoute: LiderRoute,
   PulseRoute: PulseRoute,
   RhRoute: RhRoute,
