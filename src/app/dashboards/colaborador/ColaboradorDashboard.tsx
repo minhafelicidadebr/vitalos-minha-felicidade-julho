@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { calculateIVO } from "@/engine/index/ivo-engine";
+import { getNudgeLibrary, selectNudges } from "@/engine/nudges/nudge-engine";
 import { usePack } from "@/engine/pack";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 import {
@@ -42,6 +43,9 @@ export function ColaboradorDashboard() {
 
       {/* Pulse invite */}
       <PulseInviteCard />
+
+      {/* Nudges */}
+      <NudgesCard />
 
       {/* Missions */}
       <MissionsCard missions={MOCK_MISSIONS} />
@@ -247,6 +251,71 @@ function PulseInviteCard() {
       >
         Responder
       </Link>
+    </motion.div>
+  );
+}
+
+// ─── Nudges ───────────────────────────────────────────────────────────────────
+
+function NudgesCard() {
+  const { gamification } = usePack();
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [actedIds, setActedIds] = useState<Set<string>>(new Set());
+
+  const deliveries = useMemo(() => {
+    if (!gamification) return [];
+    const library = getNudgeLibrary(gamification);
+    return selectNudges(library, {
+      role: MOCK_USER.role,
+      // "n_desconexao" requires opt-in; Marina opted in (mirrors Trust Ledger)
+      optedInNudgeIds: new Set(["n_desconexao"]),
+      deliveredThisWeek: new Map(),
+      max: 2,
+    });
+  }, [gamification]);
+
+  const visible = deliveries.filter((d) => !dismissedIds.has(d.nudge.id));
+  if (visible.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.09 }}
+      className="space-y-2"
+    >
+      {visible.map(({ nudge }) => (
+        <div
+          key={nudge.id}
+          className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
+        >
+          <span className="mt-0.5 text-lg" aria-hidden>💡</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm leading-relaxed text-card-foreground">{nudge.copy}</p>
+            <div className="mt-2 flex items-center gap-3">
+              {actedIds.has(nudge.id) ? (
+                <span className="text-xs text-green-600 dark:text-green-400">✓ Registrado — boa!</span>
+              ) : (
+                <button
+                  onClick={() => setActedIds((prev) => new Set([...prev, nudge.id]))}
+                  className="text-xs font-medium text-primary underline underline-offset-2 hover:opacity-80"
+                >
+                  Fiz isso
+                </button>
+              )}
+              <button
+                onClick={() => setDismissedIds((prev) => new Set([...prev, nudge.id]))}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Dispensar
+              </button>
+              <span className="ml-auto text-[9px] text-muted-foreground">
+                máx. {nudge.frequencyCapPerWeek}×/semana · opt-out no Trust Ledger
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
     </motion.div>
   );
 }
