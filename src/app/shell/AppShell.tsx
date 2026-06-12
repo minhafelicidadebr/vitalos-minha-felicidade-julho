@@ -33,6 +33,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <nav className="flex items-center gap-1">
             <Link
+              to="/ivo"
+              className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground sm:inline-block"
+              activeProps={{ className: "bg-secondary text-secondary-foreground" }}
+            >
+              IVO
+            </Link>
+            <Link
               to="/design-system"
               className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground sm:inline-block"
               activeProps={{ className: "bg-secondary text-secondary-foreground" }}

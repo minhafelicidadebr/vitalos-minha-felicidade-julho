@@ -48,7 +48,10 @@ function Index() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link to="/design-system">Ver o Design System</Link>
+              <Link to="/ivo">Ver IVO</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/design-system">Design System</Link>
             </Button>
             <span className="text-xs text-muted-foreground">{packLabel}</span>
           </div>
