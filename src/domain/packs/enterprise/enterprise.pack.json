@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "enterprise",
+    "name": "Enterprise — placeholder",
+    "version": "0.0.0-stub",
+    "sector": "enterprise",
+    "locale": "pt-BR",
+    "description": "Placeholder. Substituído pelo Pack oficial no próximo bloco."
+  },
+  "vocabulary": {},
+  "modules": {}
+}
