@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as LiderRouteImport } from './routes/lider'
@@ -40,6 +41,11 @@ const RhRoute = RhRouteImport.update({
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuiosqueRoute = QuiosqueRouteImport.update({
+  id: '/quiosque',
+  path: '/quiosque',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PulseRoute = PulseRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
+  '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
+  '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
   '/pulse': typeof PulseRoute
+  '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/lider'
     | '/pnl'
     | '/pulse'
+    | '/quiosque'
     | '/relatorios'
     | '/rh'
     | '/sst'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/lider'
     | '/pnl'
     | '/pulse'
+    | '/quiosque'
     | '/relatorios'
     | '/rh'
     | '/sst'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/lider'
     | '/pnl'
     | '/pulse'
+    | '/quiosque'
     | '/relatorios'
     | '/rh'
     | '/sst'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   LiderRoute: typeof LiderRoute
   PnlRoute: typeof PnlRoute
   PulseRoute: typeof PulseRoute
+  QuiosqueRoute: typeof QuiosqueRoute
   RelatoriosRoute: typeof RelatoriosRoute
   RhRoute: typeof RhRoute
   SstRoute: typeof SstRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiosque': {
+      id: '/quiosque'
+      path: '/quiosque'
+      fullPath: '/quiosque'
+      preLoaderRoute: typeof QuiosqueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pulse': {
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   LiderRoute: LiderRoute,
   PnlRoute: PnlRoute,
   PulseRoute: PulseRoute,
+  QuiosqueRoute: QuiosqueRoute,
   RelatoriosRoute: RelatoriosRoute,
   RhRoute: RhRoute,
   SstRoute: SstRoute,
