@@ -119,6 +119,11 @@
     },
     { "id": "certification", "label": "Certificação", "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"] },
     {
+      "id": "esg",
+      "label": "ESG & ODS",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
+    },
+    {
       "id": "domain_b",
       "label": "SST & NR-1",
       "roles": ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO"],

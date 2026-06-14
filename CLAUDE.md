@@ -63,7 +63,7 @@ src/
     trust/        .gitkeep         # 🔲 Bloco 8
     pnl/          .gitkeep         # 🔲 Bloco 16
     ai/           .gitkeep         # 🔲 Bloco 12
-    esg/          .gitkeep         # 🔲 Bloco 14
+    esg/          esg-engine.ts    # ✅ tradutor IVO→ESRS S1/ODS/GRI/FIB (+ .test.ts)
 
   domain/packs/enterprise/
     enterprise.pack.json           # ✅ pack oficial — validado
@@ -108,38 +108,39 @@ src/
 
 ## 🗺️ Mapa dos 21 blocos
 
-| #        | O que constrói                                      | Arquivos principais                                  |
-| -------- | --------------------------------------------------- | ---------------------------------------------------- |
-| ✅ 0     | Fundação                                            | engine/pack, design-system, shell, routes            |
-| ✅ 1     | RBAC + persona switcher                             | engine/rbac/rbac.ts + AppShell (nav do pack × papel) |
-| ✅ 2     | Mock data layer (hooks tipados)                     | src/mocks/hooks.ts (useOrg/useIvo/useTeamIvo/useSeason) |
-| ✅ 3     | Motor IVO + radar 4 lentes                          | engine/index/ivo-engine.ts + routes/ivo.tsx          |
-| ✅ 4     | Dashboard Colaborador                               | app/dashboards/colaborador + /colaborador            |
-| ✅ 5     | Dashboard Líder (n≥5 visível)                       | app/dashboards/lider + /lider                        |
-| ✅ 6     | Dashboard RH/CHRO flagship                          | app/dashboards/rh + /rh (heatmap, kanban GRO)        |
-| ✅ 7     | C-Level + SST/CIPA + Holding                        | /clevel, /sst, /holding                              |
-| ✅ 8     | Trust Ledger                                        | engine/trust + /confianca                            |
-| ✅ 9     | Pulses 60s                                          | engine/index/pulse-engine.ts + /pulse                |
-| ✅ 10    | Nudge Engine MVP                                    | engine/nudges + NudgesCard no colaborador            |
-| ✅ 11    | Gamificação engine + Culture Lab                    | engine/gamification + engine/lab + /lab              |
-| ✅ 12    | FlorescerIA mockada (10 modos)                      | engine/ai + /floresceria                             |
-| ✅ 13    | Academia do Florescimento                           | /academia (trilhas por papel)                        |
-| ✅ 14    | Embaixadorias (15)                                  | /embaixadorias                                       |
-| ✅ 15    | Domínio B + COPSOQ agregado                         | /sst (inventário, escuta, checklist, COPSOQ 9 dim.)  |
-| ✅ 16    | Vitality P&L                                        | engine/pnl + /pnl                                    |
-| ✅ 17    | Evidências + Relatórios + Selo Empresa Viva         | /relatorios                                          |
-| ✅ 18    | Sinais Vivos                                        | engine/signals + SignalsCard no /rh                  |
-| ✅ 19    | Modo Quiosque (sessão efêmera)                      | /quiosque                                            |
-| 🔲 20    | Polimento UX premium                                | global                                               |
-| ✅ 21    | QA — 18/18 rotas 200, lint 0 erros, prettier        | smoke test + verificação engine≠domain               |
+| #     | O que constrói                               | Arquivos principais                                     |
+| ----- | -------------------------------------------- | ------------------------------------------------------- |
+| ✅ 0  | Fundação                                     | engine/pack, design-system, shell, routes               |
+| ✅ 1  | RBAC + persona switcher                      | engine/rbac/rbac.ts + AppShell (nav do pack × papel)    |
+| ✅ 2  | Mock data layer (hooks tipados)              | src/mocks/hooks.ts (useOrg/useIvo/useTeamIvo/useSeason) |
+| ✅ 3  | Motor IVO + radar 4 lentes                   | engine/index/ivo-engine.ts + routes/ivo.tsx             |
+| ✅ 4  | Dashboard Colaborador                        | app/dashboards/colaborador + /colaborador               |
+| ✅ 5  | Dashboard Líder (n≥5 visível)                | app/dashboards/lider + /lider                           |
+| ✅ 6  | Dashboard RH/CHRO flagship                   | app/dashboards/rh + /rh (heatmap, kanban GRO)           |
+| ✅ 7  | C-Level + SST/CIPA + Holding                 | /clevel, /sst, /holding                                 |
+| ✅ 8  | Trust Ledger                                 | engine/trust + /confianca                               |
+| ✅ 9  | Pulses 60s                                   | engine/index/pulse-engine.ts + /pulse                   |
+| ✅ 10 | Nudge Engine MVP                             | engine/nudges + NudgesCard no colaborador               |
+| ✅ 11 | Gamificação engine + Culture Lab             | engine/gamification + engine/lab + /lab                 |
+| ✅ 12 | FlorescerIA mockada (10 modos)               | engine/ai + /floresceria                                |
+| ✅ 13 | Academia do Florescimento                    | /academia (trilhas por papel)                           |
+| ✅ 14 | Embaixadorias (15)                           | /embaixadorias                                          |
+| ✅ 15 | Domínio B + COPSOQ agregado                  | /sst (inventário, escuta, checklist, COPSOQ 9 dim.)     |
+| ✅ 16 | Vitality P&L                                 | engine/pnl + /pnl                                       |
+| ✅ 17 | Evidências + Relatórios + Selo Empresa Viva  | /relatorios                                             |
+| ✅ 18 | Sinais Vivos                                 | engine/signals + SignalsCard no /rh                     |
+| ✅ 19 | Modo Quiosque (sessão efêmera)               | /quiosque                                               |
+| 🔲 20 | Polimento UX premium                         | global (reservado ao Lovable)                           |
+| ✅ 21 | QA — rotas 200, lint 0 erros, prettier       | smoke test + verificação engine≠domain                  |
+| ✅ +  | ESG · ODS · GRI · FIB (extra)                | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
 
 ### Rotas implementadas
 
 `/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
 `/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
-`/embaixadorias` · `/relatorios` (evidências + Selo) · `/quiosque` ·
-`/design-system`
+`/embaixadorias` · `/relatorios` (evidências + Selo) · `/esg` (ESG/ODS/GRI/FIB) ·
+`/quiosque` · `/design-system`
 
 ### Persona demo
 
@@ -194,6 +195,7 @@ bun run dev servidor local
 bun run build build de produção (deve ficar verde)
 bun run lint lint
 bun run format prettier
+bun run test testes de unidade dos engines (bun test)
 
 ---
 

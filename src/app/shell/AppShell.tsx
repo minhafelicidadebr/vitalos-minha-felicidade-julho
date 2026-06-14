@@ -21,6 +21,7 @@ const NAV_ROUTES: Record<string, string> = {
   reports: "/relatorios",
   action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
   domain_b: "/sst",
+  esg: "/esg",
 };
 
 // Home de cada papel (item "overview")
