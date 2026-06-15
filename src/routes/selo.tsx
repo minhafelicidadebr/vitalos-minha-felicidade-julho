@@ -71,28 +71,54 @@ function SeloPage() {
           </p>
         </motion.div>
 
-        {/* O selo */}
+        {/* O selo — emblema visual */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, delay: 0.05 }}
-          className={`flex flex-col items-center rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm`}
+          className="relative flex flex-col items-center overflow-hidden rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm print:shadow-none"
         >
           <div
-            className={`flex h-24 w-24 items-center justify-center rounded-full text-4xl ring-4 ${style.bg} ${style.ring}`}
-          >
-            <span aria-hidden>{style.emoji}</span>
+            aria-hidden
+            className={`pointer-events-none absolute inset-x-0 top-0 h-40 ${style.bg} opacity-60 blur-2xl print:hidden`}
+          />
+          <div className="relative">
+            {/* halo externo */}
+            <div
+              aria-hidden
+              className={`absolute inset-0 -m-3 rounded-full ${style.bg} opacity-50 blur-xl print:hidden`}
+            />
+            {/* anel duplo */}
+            <div
+              className={`relative grid h-32 w-32 place-items-center rounded-full ring-2 ring-offset-4 ring-offset-card ${style.ring} ${style.bg}`}
+            >
+              <div
+                className={`grid h-24 w-24 place-items-center rounded-full bg-card text-5xl ring-1 ring-inset ${style.ring} ${
+                  result.granted ? "shadow-inner" : "opacity-80 grayscale-[0.3]"
+                }`}
+              >
+                <span aria-hidden>{style.emoji}</span>
+              </div>
+            </div>
           </div>
-          <p className={`mt-4 font-serif text-2xl ${style.color}`}>{result.tierLabel}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className={`relative mt-5 font-serif text-2xl tracking-tight ${style.color}`}>
+            {result.tierLabel}
+          </p>
+          <p className="relative mt-1 text-xs text-muted-foreground">
             {org.name} · {result.essentialMet}/{result.essentialTotal} critérios essenciais
           </p>
           <span
-            className={`mt-3 rounded-full px-3 py-1 text-xs font-medium ${style.bg} ${style.color}`}
+            className={`relative mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${style.bg} ${style.color}`}
           >
+            <span
+              aria-hidden
+              className={`h-1.5 w-1.5 rounded-full ${
+                result.granted ? "bg-emerald-500" : "bg-muted-foreground/60"
+              }`}
+            />
             {result.granted ? "Selo concedido" : "Selo não concedido"}
           </span>
-          <p className="mt-3 max-w-md text-[11px] leading-relaxed text-muted-foreground">
+          <p className="relative mt-3 max-w-md text-[11px] leading-relaxed text-muted-foreground">
             {result.granted ? SEAL_INTRO.grantedNote : SEAL_INTRO.pendingNote}
           </p>
         </motion.div>
