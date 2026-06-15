@@ -182,6 +182,12 @@
     },
 
     {
+      "id": "program",
+      "label": "O Programa",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "estrategico"
+    },
+    {
       "id": "panorama",
       "label": "Panorama",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],

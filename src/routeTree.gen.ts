@@ -20,6 +20,7 @@ import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as ProgramaRouteImport } from './routes/programa'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
@@ -95,6 +96,11 @@ const QuiosqueRoute = QuiosqueRouteImport.update({
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramaRoute = ProgramaRouteImport.update({
+  id: '/programa',
+  path: '/programa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/programa'
     | '/pulse'
     | '/quiosque'
     | '/relatorio-global'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/programa'
     | '/pulse'
     | '/quiosque'
     | '/relatorio-global'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/programa'
     | '/pulse'
     | '/quiosque'
     | '/relatorio-global'
@@ -433,6 +445,7 @@ export interface RootRouteChildren {
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  ProgramaRoute: typeof ProgramaRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programa': {
+      id: '/programa'
+      path: '/programa'
+      fullPath: '/programa'
+      preLoaderRoute: typeof ProgramaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -697,6 +717,7 @@ const rootRouteChildren: RootRouteChildren = {
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  ProgramaRoute: ProgramaRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,
