@@ -38,6 +38,7 @@ const NAV_ROUTES: Record<string, string> = {
   domain_b: "/sst",
   signals: "/sinais",
   privacy: "/privacidade",
+  methodology: "/metodologia",
   program: "/programa",
   sectors: "/setores",
   panorama: "/panorama",
@@ -109,8 +110,8 @@ const NAV_GROUPS: NavGroupDef[] = [
   {
     id: "confianca",
     label: "Confiança",
-    hint: "Privacidade e governança",
-    items: ["privacy"],
+    hint: "Método, privacidade e governança",
+    items: ["methodology", "privacy"],
   },
 ];
 

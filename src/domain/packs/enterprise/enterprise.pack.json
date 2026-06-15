@@ -243,6 +243,7 @@
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
       "group": "confianca"
     },
+    { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
 
     { "id": "academy", "label": "Academia do Florescimento", "roles": "all", "group": "gestao" },
     {

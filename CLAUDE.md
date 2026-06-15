@@ -196,6 +196,7 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 `/programa` (Landing — hierarquia + 3 níveis de venda) ·
 `/setores` (Multissetorial — prova Engine≠Domínio, 2º pack Escola) ·
 `/evolucao` (Curva longitudinal — track record do IVO ciclo a ciclo) ·
+`/metodologia` (Credibilidade — compõe a jornada canônica + M.E.T.E. + ciência + compromissos éticos) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo
