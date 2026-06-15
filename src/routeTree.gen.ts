@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ViatRouteImport } from './routes/viat'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
@@ -29,6 +30,11 @@ import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ViatRoute = ViatRouteImport.update({
+  id: '/viat',
+  path: '/viat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SstRoute = SstRouteImport.update({
   id: '/sst',
   path: '/sst',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/viat': typeof ViatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/viat': typeof ViatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/viat': typeof ViatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/viat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/viat'
   id:
     | '__root__'
     | '/'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/viat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,10 +287,18 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   RhRoute: typeof RhRoute
   SstRoute: typeof SstRoute
+  ViatRoute: typeof ViatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/viat': {
+      id: '/viat'
+      path: '/viat'
+      fullPath: '/viat'
+      preLoaderRoute: typeof ViatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sst': {
       id: '/sst'
       path: '/sst'
@@ -435,6 +455,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   RhRoute: RhRoute,
   SstRoute: SstRoute,
+  ViatRoute: ViatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

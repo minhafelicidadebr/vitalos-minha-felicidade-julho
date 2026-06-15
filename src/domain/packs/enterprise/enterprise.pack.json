@@ -119,6 +119,11 @@
     },
     { "id": "certification", "label": "Certificação", "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"] },
     {
+      "id": "viat",
+      "label": "Mapa de Forças",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"]
+    },
+    {
       "id": "esg",
       "label": "ESG & ODS",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]

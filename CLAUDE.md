@@ -108,31 +108,31 @@ src/
 
 ## 🗺️ Mapa dos 21 blocos
 
-| #     | O que constrói                               | Arquivos principais                                     |
-| ----- | -------------------------------------------- | ------------------------------------------------------- |
-| ✅ 0  | Fundação                                     | engine/pack, design-system, shell, routes               |
-| ✅ 1  | RBAC + persona switcher                      | engine/rbac/rbac.ts + AppShell (nav do pack × papel)    |
-| ✅ 2  | Mock data layer (hooks tipados)              | src/mocks/hooks.ts (useOrg/useIvo/useTeamIvo/useSeason) |
-| ✅ 3  | Motor IVO + radar 4 lentes                   | engine/index/ivo-engine.ts + routes/ivo.tsx             |
-| ✅ 4  | Dashboard Colaborador                        | app/dashboards/colaborador + /colaborador               |
-| ✅ 5  | Dashboard Líder (n≥5 visível)                | app/dashboards/lider + /lider                           |
-| ✅ 6  | Dashboard RH/CHRO flagship                   | app/dashboards/rh + /rh (heatmap, kanban GRO)           |
-| ✅ 7  | C-Level + SST/CIPA + Holding                 | /clevel, /sst, /holding                                 |
-| ✅ 8  | Trust Ledger                                 | engine/trust + /confianca                               |
-| ✅ 9  | Pulses 60s                                   | engine/index/pulse-engine.ts + /pulse                   |
-| ✅ 10 | Nudge Engine MVP                             | engine/nudges + NudgesCard no colaborador               |
-| ✅ 11 | Gamificação engine + Culture Lab             | engine/gamification + engine/lab + /lab                 |
-| ✅ 12 | FlorescerIA mockada (10 modos)               | engine/ai + /floresceria                                |
-| ✅ 13 | Academia do Florescimento                    | /academia (trilhas por papel)                           |
-| ✅ 14 | Embaixadorias (15)                           | /embaixadorias                                          |
-| ✅ 15 | Domínio B + COPSOQ agregado                  | /sst (inventário, escuta, checklist, COPSOQ 9 dim.)     |
-| ✅ 16 | Vitality P&L                                 | engine/pnl + /pnl                                       |
-| ✅ 17 | Evidências + Relatórios + Selo Empresa Viva  | /relatorios                                             |
-| ✅ 18 | Sinais Vivos                                 | engine/signals + SignalsCard no /rh                     |
-| ✅ 19 | Modo Quiosque (sessão efêmera)               | /quiosque                                               |
-| 🔲 20 | Polimento UX premium                         | global (reservado ao Lovable)                           |
-| ✅ 21 | QA — rotas 200, lint 0 erros, prettier       | smoke test + verificação engine≠domain                  |
-| ✅ +  | ESG · ODS · GRI · FIB (extra)                | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
+| #     | O que constrói                              | Arquivos principais                                     |
+| ----- | ------------------------------------------- | ------------------------------------------------------- |
+| ✅ 0  | Fundação                                    | engine/pack, design-system, shell, routes               |
+| ✅ 1  | RBAC + persona switcher                     | engine/rbac/rbac.ts + AppShell (nav do pack × papel)    |
+| ✅ 2  | Mock data layer (hooks tipados)             | src/mocks/hooks.ts (useOrg/useIvo/useTeamIvo/useSeason) |
+| ✅ 3  | Motor IVO + radar 4 lentes                  | engine/index/ivo-engine.ts + routes/ivo.tsx             |
+| ✅ 4  | Dashboard Colaborador                       | app/dashboards/colaborador + /colaborador               |
+| ✅ 5  | Dashboard Líder (n≥5 visível)               | app/dashboards/lider + /lider                           |
+| ✅ 6  | Dashboard RH/CHRO flagship                  | app/dashboards/rh + /rh (heatmap, kanban GRO)           |
+| ✅ 7  | C-Level + SST/CIPA + Holding                | /clevel, /sst, /holding                                 |
+| ✅ 8  | Trust Ledger                                | engine/trust + /confianca                               |
+| ✅ 9  | Pulses 60s                                  | engine/index/pulse-engine.ts + /pulse                   |
+| ✅ 10 | Nudge Engine MVP                            | engine/nudges + NudgesCard no colaborador               |
+| ✅ 11 | Gamificação engine + Culture Lab            | engine/gamification + engine/lab + /lab                 |
+| ✅ 12 | FlorescerIA mockada (10 modos)              | engine/ai + /floresceria                                |
+| ✅ 13 | Academia do Florescimento                   | /academia (trilhas por papel)                           |
+| ✅ 14 | Embaixadorias (15)                          | /embaixadorias                                          |
+| ✅ 15 | Domínio B + COPSOQ agregado                 | /sst (inventário, escuta, checklist, COPSOQ 9 dim.)     |
+| ✅ 16 | Vitality P&L                                | engine/pnl + /pnl                                       |
+| ✅ 17 | Evidências + Relatórios + Selo Empresa Viva | /relatorios                                             |
+| ✅ 18 | Sinais Vivos                                | engine/signals + SignalsCard no /rh                     |
+| ✅ 19 | Modo Quiosque (sessão efêmera)              | /quiosque                                               |
+| 🔲 20 | Polimento UX premium                        | global (reservado ao Lovable)                           |
+| ✅ 21 | QA — rotas 200, lint 0 erros, prettier      | smoke test + verificação engine≠domain                  |
+| ✅ +  | ESG · ODS · GRI · FIB (extra)               | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
 
 ### Rotas implementadas
 
@@ -203,21 +203,23 @@ bun run test testes de unidade dos engines (bun test)
 
 > Leia ARQUITETURA_CIENTIFICA.md ANTES de implementar qualquer módulo de mensuração.
 
-| Arquivo | O que contém |
-|---|---|
-| `docs/ARQUITETURA_CIENTIFICA.md` | **Skill de orientação mestre** — 4 camadas, mapa de instrumentos, o que muda no app |
-| `docs/instrumentos/PERMA_TRABALHO.md` | PERMA 15 itens (BR 2026), psicometria, mapeamento → pilares IVO |
-| `docs/instrumentos/VIA_T.md` | VIA-T 24/48 itens, ICUFT, guardrails, missões, matriz VIA-T × PERMA+V |
-| `docs/instrumentos/COPSOQ_NR1.md` | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B |
-| `docs/instrumentos/PLAYBOOK.md` | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco |
+| Arquivo                               | O que contém                                                                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------- |
+| `docs/ARQUITETURA_CIENTIFICA.md`      | **Skill de orientação mestre** — 4 camadas, mapa de instrumentos, o que muda no app |
+| `docs/instrumentos/PERMA_TRABALHO.md` | PERMA 15 itens (BR 2026), psicometria, mapeamento → pilares IVO                     |
+| `docs/instrumentos/VIA_T.md`          | VIA-T 24/48 itens, ICUFT, guardrails, missões, matriz VIA-T × PERMA+V               |
+| `docs/instrumentos/COPSOQ_NR1.md`     | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B                       |
+| `docs/instrumentos/PLAYBOOK.md`       | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco                      |
 
 **Arquitetura de 4 camadas (nunca misturar):**
+
 - Camada 1 RISCO: COPSOQ/NR-1 → Domínio B → `/sst`
 - Camada 2 FLORESCIMENTO: PERMA → IVO/Pulses → `/ivo`, `/pulse`
 - Camada 3 FORÇAS: VIA-T v1 exploratório → `/viat` (PRÓXIMO módulo)
 - Camada 4 AÇÃO: Playbook → Culture Lab → `/lab`
 
 **Próximo módulo a construir: VIA-T (`/viat`)**
+
 - `src/engine/viat/viat-engine.ts` (pure engine: 24 forças, 6 virtudes, ICUFT)
 - `src/mocks/viat-mock.ts`
 - `src/routes/viat.tsx` (assessment → devolutiva → missão 7 dias)
