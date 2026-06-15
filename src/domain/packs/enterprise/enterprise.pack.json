@@ -93,6 +93,11 @@
     { "id": "academy", "label": "Academia do Florescimento", "roles": "all" },
     { "id": "ai", "label": "FlorescerIA", "roles": "all" },
     {
+      "id": "copilot",
+      "label": "FlorescerIA Proativa",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"]
+    },
+    {
       "id": "recognition",
       "label": "Reconhecimento",
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"]

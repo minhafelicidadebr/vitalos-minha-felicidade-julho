@@ -29,6 +29,7 @@ import { Route as ExperimentosRouteImport } from './routes/experimentos'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as CopilotoRouteImport } from './routes/copiloto'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
@@ -135,6 +136,11 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
   path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CopilotoRoute = CopilotoRouteImport.update({
+  id: '/copiloto',
+  path: '/copiloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiancaRoute = ConfiancaRouteImport.update({
   id: '/confianca',
   path: '/confianca',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
+  '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
+  '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
   '/confianca': typeof ConfiancaRoute
+  '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/clevel'
     | '/colaborador'
     | '/confianca'
+    | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/clevel'
     | '/colaborador'
     | '/confianca'
+    | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/clevel'
     | '/colaborador'
     | '/confianca'
+    | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
@@ -333,6 +345,7 @@ export interface RootRouteChildren {
   ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
   ConfiancaRoute: typeof ConfiancaRoute
+  CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EsgRoute: typeof EsgRoute
@@ -497,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/copiloto': {
+      id: '/copiloto'
+      path: '/copiloto'
+      fullPath: '/copiloto'
+      preLoaderRoute: typeof CopilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/confianca': {
       id: '/confianca'
       path: '/confianca'
@@ -541,6 +561,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
   ConfiancaRoute: ConfiancaRoute,
+  CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EsgRoute: EsgRoute,

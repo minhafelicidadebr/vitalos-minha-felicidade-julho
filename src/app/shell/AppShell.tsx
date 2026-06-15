@@ -16,6 +16,7 @@ const NAV_ROUTES: Record<string, string> = {
   ivo: "/ivo",
   pulses: "/pulse",
   ai: "/floresceria",
+  copilot: "/copiloto",
   academy: "/academia",
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
