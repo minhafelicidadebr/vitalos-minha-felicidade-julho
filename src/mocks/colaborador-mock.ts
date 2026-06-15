@@ -1,6 +1,9 @@
 // Collaborator mock data — deterministic, no individual responses
 // Persona: Marina Santos, Produto, TechCorp Ltda
 
+import { computeSeasonOverview } from "@/engine/season/season-engine";
+import { ANNUAL_PLAN, CURRENT_PROGRAM_WEEK } from "./season-mock";
+
 export const MOCK_USER = {
   id: "u-marina-01",
   name: "Marina Santos",
@@ -126,24 +129,31 @@ export const MOCK_BADGES: MockBadge[] = [
   { id: "reconhecedor_serial", name: "Reconhecedor Serial", earned: false, emoji: "⭐" },
 ];
 
+// Fonte ÚNICA: a temporada do colaborador deriva do season-engine sobre o
+// ANNUAL_PLAN — nada de estado paralelo hardcoded. O card e a rota /temporada
+// passam a contar exatamente a mesma história (week, fase, progresso).
+const _season = computeSeasonOverview(ANNUAL_PLAN, CURRENT_PROGRAM_WEEK);
+
 export const MOCK_SEASON = {
-  id: "t1-2026",
-  name: "Temporada Primavera da Vitalidade",
-  cycleId: "T1-2026",
-  phase: "transformar" as const,
-  phaseLabel: "Transformar",
-  weekNumber: 8,
-  totalWeeks: 13,
-  progressPct: Math.round((8 / 13) * 100),
-  nextEvent: "Fase Evoluir · Pulse de validação",
-  nextEventDate: "em 3 semanas",
-  phases: [
-    { id: "mensurar", label: "Mensurar", done: true },
-    { id: "educar", label: "Educar", done: true },
-    { id: "transformar", label: "Transformar", done: false, current: true },
-    { id: "evoluir", label: "Evoluir", done: false },
-  ],
-} as const;
+  id: _season.currentSeason.id,
+  name: `Temporada ${_season.currentSeason.name}`,
+  cycleId: _season.currentSeason.cycleId,
+  phase: _season.currentPhase.id,
+  phaseLabel: _season.currentPhase.label,
+  weekNumber: _season.position.weekInSeason,
+  totalWeeks: ANNUAL_PLAN.weeksPerSeason,
+  progressPct: _season.currentSeason.progressPct,
+  nextEvent: _season.nextMilestone?.label ?? "Próxima fase",
+  nextEventDate: _season.nextMilestone
+    ? `em ${_season.nextMilestone.weeksAway} ${_season.nextMilestone.weeksAway === 1 ? "semana" : "semanas"}`
+    : "—",
+  phases: _season.currentSeason.phases.map((p) => ({
+    id: p.id,
+    label: p.label,
+    done: p.status === "concluida",
+    current: p.status === "atual",
+  })),
+};
 
 // FlorescerIA — mockada (Bloco 12 implementará o real)
 export const FLORESCERIA_SUGGESTION = {
