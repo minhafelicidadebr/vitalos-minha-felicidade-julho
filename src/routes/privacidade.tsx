@@ -175,11 +175,15 @@ function PrivacidadePage() {
 
                 <div className="mt-2 grid gap-1 sm:grid-cols-2">
                   <p className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="text-emerald-500/70">✓</span>
+                    <span className="text-emerald-500/70" aria-hidden>
+                      ✓
+                    </span>
                     {ch.iaCan}
                   </p>
                   <p className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="text-red-500/60">✕</span>
+                    <span className="text-red-500/60" aria-hidden>
+                      ✕
+                    </span>
                     {ch.iaCannot}
                   </p>
                 </div>
@@ -232,7 +236,9 @@ function PrivacidadePage() {
                     key={g}
                     className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
                   >
-                    <span className="text-red-500/60">✕</span>
+                    <span className="text-red-500/60" aria-hidden>
+                      ✕
+                    </span>
                     {g}
                   </li>
                 ))}
@@ -248,7 +254,9 @@ function PrivacidadePage() {
                     key={g}
                     className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
                   >
-                    <span className="text-emerald-500/60">✓</span>
+                    <span className="text-emerald-500/60" aria-hidden>
+                      ✓
+                    </span>
                     {g}
                   </li>
                 ))}

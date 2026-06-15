@@ -296,69 +296,74 @@ function TrajectoryChart({ forecast }: { forecast: ReturnType<typeof projectFore
         <h2 className="font-serif text-lg text-foreground">Trajetória projetada do IVO</h2>
         <span className="text-xs text-muted-foreground">escala 0–1000 · banda de confiança</span>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
-          <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 11, fill: "currentColor" }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            domain={[0, 1000]}
-            tick={{ fontSize: 11, fill: "currentColor" }}
-            axisLine={false}
-            tickLine={false}
-            width={40}
-          />
-          {/* Banda de confiança (low transparente + range colorido empilhado) */}
-          <Area
-            dataKey="low"
-            stackId="band"
-            stroke="none"
-            fill="transparent"
-            isAnimationActive={false}
-          />
-          <Area
-            dataKey="bandRange"
-            stackId="band"
-            stroke="none"
-            fill={lineColor}
-            fillOpacity={0.1}
-            isAnimationActive={false}
-          />
-          {/* Linha do IVO projetado */}
-          <Line
-            dataKey="ivo"
-            stroke={lineColor}
-            strokeWidth={2.5}
-            dot={{ r: 3, fill: lineColor }}
-            isAnimationActive={false}
-          />
-          <ReferenceLine
-            y={forecast.baselineIvo}
-            stroke="currentColor"
-            strokeOpacity={0.3}
-            strokeDasharray="4 4"
-          />
-          <RechartsTooltip
-            content={({ payload, label }) => {
-              if (!payload?.length) return null;
-              const row = payload[0]?.payload as { ivo: number; low: number; bandRange: number };
-              return (
-                <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                  <p className="text-xs font-medium text-foreground">{label}</p>
-                  <p className="text-sm tabular-nums text-muted-foreground">IVO {row.ivo}</p>
-                  <p className="text-[10px] tabular-nums text-muted-foreground">
-                    faixa {row.low}–{row.low + row.bandRange}
-                  </p>
-                </div>
-              );
-            }}
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div
+        role="img"
+        aria-label={`Gráfico de linha: IVO projetado parte de ${forecast.baselineIvo} hoje e chega a ${forecast.finalIvo} ao final do horizonte (${forecast.ivoDelta >= 0 ? "+" : ""}${forecast.ivoDelta} pontos), com banda de confiança que alarga ao longo do tempo.`}
+      >
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
+            <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: "currentColor" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              domain={[0, 1000]}
+              tick={{ fontSize: 11, fill: "currentColor" }}
+              axisLine={false}
+              tickLine={false}
+              width={40}
+            />
+            {/* Banda de confiança (low transparente + range colorido empilhado) */}
+            <Area
+              dataKey="low"
+              stackId="band"
+              stroke="none"
+              fill="transparent"
+              isAnimationActive={false}
+            />
+            <Area
+              dataKey="bandRange"
+              stackId="band"
+              stroke="none"
+              fill={lineColor}
+              fillOpacity={0.1}
+              isAnimationActive={false}
+            />
+            {/* Linha do IVO projetado */}
+            <Line
+              dataKey="ivo"
+              stroke={lineColor}
+              strokeWidth={2.5}
+              dot={{ r: 3, fill: lineColor }}
+              isAnimationActive={false}
+            />
+            <ReferenceLine
+              y={forecast.baselineIvo}
+              stroke="currentColor"
+              strokeOpacity={0.3}
+              strokeDasharray="4 4"
+            />
+            <RechartsTooltip
+              content={({ payload, label }) => {
+                if (!payload?.length) return null;
+                const row = payload[0]?.payload as { ivo: number; low: number; bandRange: number };
+                return (
+                  <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                    <p className="text-xs font-medium text-foreground">{label}</p>
+                    <p className="text-sm tabular-nums text-muted-foreground">IVO {row.ivo}</p>
+                    <p className="text-[10px] tabular-nums text-muted-foreground">
+                      faixa {row.low}–{row.low + row.bandRange}
+                    </p>
+                  </div>
+                );
+              }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 }

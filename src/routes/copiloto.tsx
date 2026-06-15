@@ -161,7 +161,9 @@ function CopilotoPage() {
                     key={g}
                     className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
                   >
-                    <span className="text-red-500/60">✕</span>
+                    <span className="text-red-500/60" aria-hidden>
+                      ✕
+                    </span>
                     {g}
                   </li>
                 ))}
@@ -177,7 +179,9 @@ function CopilotoPage() {
                     key={g}
                     className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
                   >
-                    <span className="text-emerald-500/60">✓</span>
+                    <span className="text-emerald-500/60" aria-hidden>
+                      ✓
+                    </span>
                     {g}
                   </li>
                 ))}
@@ -287,7 +291,9 @@ function ProposalCard({
 
       {/* Guardrail + human-in-the-loop */}
       <p className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-        <span className="text-emerald-500/70">✓</span>
+        <span className="text-emerald-500/70" aria-hidden>
+          ✓
+        </span>
         Apenas agregados · requer sua aprovação
       </p>
 

@@ -200,7 +200,10 @@ function PanoramaPage() {
             {panorama.arc.map((step, i) => (
               <div key={step.id} className="relative">
                 {i < panorama.arc.length - 1 && (
-                  <span className="absolute right-[-10px] top-6 hidden text-muted-foreground/40 sm:block">
+                  <span
+                    aria-hidden
+                    className="absolute right-[-10px] top-6 hidden text-muted-foreground/40 sm:block"
+                  >
                     →
                   </span>
                 )}
@@ -287,7 +290,11 @@ function HeroMetric({ metric, delay }: { metric: PanoramaMetric; delay: number }
       <p className="text-[11px] text-muted-foreground">{metric.label}</p>
       <p className="mt-1 flex items-baseline gap-1.5 font-serif text-3xl text-foreground">
         {metric.value}
-        {trendIcon && <span className={`text-xs ${trendColor}`}>{trendIcon}</span>}
+        {trendIcon && (
+          <span aria-hidden className={`text-xs ${trendColor}`}>
+            {trendIcon}
+          </span>
+        )}
       </p>
       {metric.sub && (
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{metric.sub}</p>

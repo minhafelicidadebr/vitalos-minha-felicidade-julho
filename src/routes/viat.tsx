@@ -319,38 +319,42 @@ function VirtueRadar({ virtues }: { virtues: VirtueScore[] }) {
     fill: VIRTUE_COLOR[v.id] ?? "#6B7280",
   }));
 
+  const radarSummary = data.map((d) => `${d.virtue} ${d.score}`).join(", ");
+
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-4 sm:p-6">
-      <ResponsiveContainer width="100%" height={320}>
-        <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-          <PolarGrid gridType="polygon" stroke="currentColor" strokeOpacity={0.12} />
-          <PolarAngleAxis
-            dataKey="virtue"
-            tick={{ fontSize: 12, fontWeight: 500, fill: "currentColor" }}
-          />
-          <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
-          <Radar
-            name="Score"
-            dataKey="score"
-            stroke="#8B5CF6"
-            fill="#8B5CF6"
-            fillOpacity={0.15}
-            strokeWidth={2}
-          />
-          <RechartsTooltip
-            content={({ payload }) => {
-              if (!payload?.length) return null;
-              const d = payload[0];
-              return (
-                <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                  <p className="text-xs font-medium text-foreground">{d?.payload?.virtue}</p>
-                  <p className="text-sm tabular-nums text-muted-foreground">{d?.value} / 10</p>
-                </div>
-              );
-            }}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
+      <div role="img" aria-label={`Radar das seis virtudes (escala 0–10): ${radarSummary}.`}>
+        <ResponsiveContainer width="100%" height={320}>
+          <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+            <PolarGrid gridType="polygon" stroke="currentColor" strokeOpacity={0.12} />
+            <PolarAngleAxis
+              dataKey="virtue"
+              tick={{ fontSize: 12, fontWeight: 500, fill: "currentColor" }}
+            />
+            <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
+            <Radar
+              name="Score"
+              dataKey="score"
+              stroke="#8B5CF6"
+              fill="#8B5CF6"
+              fillOpacity={0.15}
+              strokeWidth={2}
+            />
+            <RechartsTooltip
+              content={({ payload }) => {
+                if (!payload?.length) return null;
+                const d = payload[0];
+                return (
+                  <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                    <p className="text-xs font-medium text-foreground">{d?.payload?.virtue}</p>
+                    <p className="text-sm tabular-nums text-muted-foreground">{d?.value} / 10</p>
+                  </div>
+                );
+              }}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Legenda de virtudes */}
       <div className="mt-2 flex flex-wrap justify-center gap-3">
@@ -670,35 +674,44 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
             Radar das Virtudes — Organização
           </h2>
           <div className="rounded-2xl border border-border/70 bg-card p-4 sm:p-6">
-            <ResponsiveContainer width="100%" height={280}>
-              <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-                <PolarGrid gridType="polygon" stroke="currentColor" strokeOpacity={0.12} />
-                <PolarAngleAxis dataKey="virtue" tick={{ fontSize: 11, fill: "currentColor" }} />
-                <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
-                <Radar
-                  name="Org"
-                  dataKey="score"
-                  stroke="#F59E0B"
-                  fill="#F59E0B"
-                  fillOpacity={0.12}
-                  strokeWidth={2}
-                />
-                <RechartsTooltip
-                  content={({ payload }) => {
-                    if (!payload?.length) return null;
-                    const d = payload[0];
-                    return (
-                      <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                        <p className="text-xs font-medium text-foreground">{d?.payload?.virtue}</p>
-                        <p className="text-sm tabular-nums text-muted-foreground">
-                          {d?.value} / 10
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            <div
+              role="img"
+              aria-label={`Radar das virtudes da organização (escala 0–10): ${radarData
+                .map((d) => `${d.virtue} ${d.score}`)
+                .join(", ")}.`}
+            >
+              <ResponsiveContainer width="100%" height={280}>
+                <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                  <PolarGrid gridType="polygon" stroke="currentColor" strokeOpacity={0.12} />
+                  <PolarAngleAxis dataKey="virtue" tick={{ fontSize: 11, fill: "currentColor" }} />
+                  <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
+                  <Radar
+                    name="Org"
+                    dataKey="score"
+                    stroke="#F59E0B"
+                    fill="#F59E0B"
+                    fillOpacity={0.12}
+                    strokeWidth={2}
+                  />
+                  <RechartsTooltip
+                    content={({ payload }) => {
+                      if (!payload?.length) return null;
+                      const d = payload[0];
+                      return (
+                        <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                          <p className="text-xs font-medium text-foreground">
+                            {d?.payload?.virtue}
+                          </p>
+                          <p className="text-sm tabular-nums text-muted-foreground">
+                            {d?.value} / 10
+                          </p>
+                        </div>
+                      );
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </section>
       )}

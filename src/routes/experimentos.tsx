@@ -206,7 +206,7 @@ function ConcludedCard({ vm }: { vm: CaseVM }) {
             <span
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${copy.bg} ${copy.color}`}
             >
-              {copy.icon} {copy.label}
+              <span aria-hidden>{copy.icon}</span> {copy.label}
             </span>
             {vm.amb && (
               <span className="text-[11px] text-muted-foreground">
