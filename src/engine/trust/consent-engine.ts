@@ -44,6 +44,20 @@ export function usableChannelIds(
 }
 
 /**
+ * Disponibilidade do canal NO NÍVEL DA ORGANIZAÇÃO (agregado), independente do
+ * consentimento individual: só exige adesão coletiva ≥ limiar e ≥ k-anon. É o
+ * gate de um painel agregado (ex.: Sinais Vivos) — diferente de `channelUsability`,
+ * que também exige o consentimento pessoal ("o que a IA observa sobre VOCÊ").
+ */
+export function orgChannelAvailable(
+  ch: ConsentChannel,
+  threshold: number = CONSENT_THRESHOLD_PCT,
+  minCount: number = MIN_CONSENT_COUNT,
+): boolean {
+  return ch.orgConsentCount >= minCount && ch.orgConsentPct >= threshold;
+}
+
+/**
  * Particiona itens que declaram `requiresChannel` em permitidos × bloqueados,
  * conforme os canais utilizáveis. Itens sem canal exigido são sempre permitidos.
  */

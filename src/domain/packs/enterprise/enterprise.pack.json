@@ -158,6 +158,11 @@
       "roles": ["CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
     },
     {
+      "id": "signals",
+      "label": "Sinais Vivos",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"]
+    },
+    {
       "id": "priorities",
       "label": "Prioridades",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]

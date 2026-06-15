@@ -147,13 +147,14 @@ src/
 | ✅ +  | Panorama Executivo (extra)                  | engine/panorama + /panorama (sintetiza o arco inteiro, 18)                 |
 | ✅ +  | FlorescerIA Proativa (extra)                | engine/ai/agent-engine + /copiloto (propõe+aprova, guardrails, 12)         |
 | ✅ +  | Benchmark Setorial (extra)                  | engine/benchmark + /benchmark (k-anon entre tenants, moat de dados, 15)    |
-| ✅ +  | Privacidade × FlorescerIA (extra)           | engine/trust/consent-engine + /privacidade (consentimento gateia a IA, 15) |
+| ✅ +  | Privacidade × FlorescerIA (extra)           | engine/trust/consent-engine + /privacidade (consentimento gateia a IA, 18) |
+| ✅ +  | Sinais Vivos · Percepção×Comportamento      | engine/signals (reconcileSignals quadrantes) + /sinais (gateado por consentimento, 16) |
 
 ### Cobertura de testes (bun test src)
 
-226 testes / 14 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+242 testes / 15 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
-priority (14), evidence (16), panorama (18), agent (15), benchmark (15), consent (15). Typecheck limpo.
+priority (14), evidence (16), panorama (18), agent (15), benchmark (15), consent (18), signals (16). Typecheck limpo.
 
 ### Rotas implementadas
 
@@ -169,6 +170,7 @@ priority (14), evidence (16), panorama (18), agent (15), benchmark (15), consent
 `/copiloto` (FlorescerIA Proativa — propõe + aprovação humana) ·
 `/benchmark` (Benchmark Setorial anônimo — k-anon entre tenants) ·
 `/privacidade` (Privacidade × FlorescerIA — consentimento gateia a IA) ·
+`/sinais` (Sinais Vivos — percepção × comportamento, Motor 1) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo

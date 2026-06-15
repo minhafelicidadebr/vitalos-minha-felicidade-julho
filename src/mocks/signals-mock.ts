@@ -74,3 +74,50 @@ export const PERCEPTION_BEHAVIOR_INPUT = [
 
 export const SIGNALS_CONSENT_NOTE =
   "Sinais Vivos usam apenas eventos da própria plataforma (kudos, rituais, planos), agregados com 5+ pessoas e mediante consentimento individual. Nunca: conteúdo de mensagens, e-mails ou produtividade individual.";
+
+export const QUADRANT_COPY: Record<
+  string,
+  { label: string; color: string; bg: string; action: string }
+> = {
+  praticado_e_sentido: {
+    label: "Praticado e sentido",
+    color: "text-emerald-700 dark:text-emerald-300",
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    action: "Manter e celebrar — percepção e comportamento andam juntos.",
+  },
+  discurso_sem_pratica: {
+    label: "Discurso sem prática",
+    color: "text-amber-700 dark:text-amber-300",
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    action: "A percepção supera o comportamento — fechar a lacuna na execução.",
+  },
+  pratica_nao_sentida: {
+    label: "Prática não percebida",
+    color: "text-sky-700 dark:text-sky-300",
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+    action: "O comportamento existe, mas não é sentido — comunicar e dar visibilidade.",
+  },
+  lacuna_dupla: {
+    label: "Lacuna dupla",
+    color: "text-red-700 dark:text-red-300",
+    bg: "bg-red-50 dark:bg-red-950/30",
+    action: "Nem praticado nem sentido — prioridade de intervenção.",
+  },
+};
+
+export const SIGNALS_INTRO = {
+  eyebrow: "Sinais Vivos · Motor 1 · Percepção × Comportamento",
+  title: "O que se diz × o que se faz",
+  lead:
+    "O IVO mede a percepção; os Sinais Vivos medem o comportamento agregado da própria " +
+    "plataforma. A interseção — não cada metade — é a inteligência: percepção sem comportamento " +
+    "é opinião, comportamento sem percepção é vigilância.",
+  lockedTitle: "Sinais Vivos aguardam consentimento coletivo",
+  lockedNote:
+    "Este painel só liga quando adesão suficiente da organização consente os Sinais Vivos " +
+    "(agregado, k≥5). Sem consentimento coletivo, não há observação comportamental — por princípio.",
+  disclaimer:
+    "Leitura indicativa por interseção de duas fontes agregadas (k≥5). Sinais Vivos jamais usam " +
+    "conteúdo de mensagens, e-mails ou produtividade individual — apenas eventos consentidos da " +
+    "plataforma. Divergência não é culpa: é uma pergunta a investigar.",
+};

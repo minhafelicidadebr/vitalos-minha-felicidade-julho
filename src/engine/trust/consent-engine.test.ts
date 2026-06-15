@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   channelUsability,
   usableChannelIds,
+  orgChannelAvailable,
   partitionByConsent,
   CONSENT_THRESHOLD_PCT,
   MIN_CONSENT_COUNT,
@@ -73,6 +74,24 @@ describe("usableChannelIds", () => {
     expect(usable.has("pulses")).toBe(true);
     expect(usable.has("signals")).toBe(false);
     expect(usable.has("nudges")).toBe(false);
+  });
+});
+
+// ─── Disponibilidade no nível da organização ─────────────────────────────────
+
+describe("orgChannelAvailable", () => {
+  test("ignora o consentimento pessoal — só adesão coletiva importa", () => {
+    expect(
+      orgChannelAvailable(ch({ personalGranted: false, orgConsentPct: 60, orgConsentCount: 300 })),
+    ).toBe(true);
+  });
+
+  test("abaixo do limiar coletivo → indisponível", () => {
+    expect(orgChannelAvailable(ch({ orgConsentPct: CONSENT_THRESHOLD_PCT - 1 }))).toBe(false);
+  });
+
+  test("abaixo do k-anon → indisponível", () => {
+    expect(orgChannelAvailable(ch({ orgConsentCount: MIN_CONSENT_COUNT - 1 }))).toBe(false);
   });
 });
 
