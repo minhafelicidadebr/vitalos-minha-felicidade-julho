@@ -1,0 +1,75 @@
+// Consent — config de domínio para a Privacidade × FlorescerIA. Liga os
+// consentimentos do Trust Ledger (CONSENT_ITEMS) aos canais de observação da IA,
+// com a adesão agregada da organização. Persona: Marina (signals desligado por
+// padrão — mostra que conceder DESBLOQUEIA capacidade, não só restringe).
+
+import type { ConsentChannel } from "@/engine/trust/consent-engine";
+
+export interface ChannelInfo extends ConsentChannel {
+  feeds: string; // o que este canal alimenta
+  iaCan: string; // o que a FlorescerIA passa a poder propor
+  iaCannot: string; // o que ela nunca faz com isso
+}
+
+// Estado inicial dos canais (Marina + agregado da org demo).
+export const CONSENT_CHANNELS: ChannelInfo[] = [
+  {
+    id: "pulses",
+    label: "Pulses de 60 segundos",
+    personalGranted: true,
+    orgConsentPct: 88,
+    orgConsentCount: 528,
+    feeds: "Percepção → IVO, prioridades e alertas de queda.",
+    iaCan: "Detectar a maior alavancagem e pilares em queda para propor ação.",
+    iaCannot: "Ver sua resposta individual — só o agregado k≥5.",
+  },
+  {
+    id: "signals",
+    label: "Sinais Vivos (telemetria agregada)",
+    personalGranted: false,
+    orgConsentPct: 41,
+    orgConsentCount: 246,
+    feeds: "Comportamento agregado (ex.: participação em rituais).",
+    iaCan: "Antecipar quedas por sinais precoces, antes do pulse confirmar.",
+    iaCannot: "Ler conteúdo de mensagens, e-mails ou produtividade individual.",
+  },
+  {
+    id: "nudges",
+    label: "Nudges de bem-estar",
+    personalGranted: true,
+    orgConsentPct: 79,
+    orgConsentCount: 474,
+    feeds: "Entrega de microintervenções aprovadas (pausas, reconhecimento).",
+    iaCan: "Sugerir como entregar uma ação aprovada, com opt-in e frequência limitada.",
+    iaCannot: "Enviar nudges sem o seu consentimento ou acima do limite semanal.",
+  },
+  {
+    id: "gamification",
+    label: "Gamificação (XP, missões, badges)",
+    personalGranted: true,
+    orgConsentPct: 72,
+    orgConsentCount: 432,
+    feeds: "Engajamento em missões e reconhecimento entre pares.",
+    iaCan: "Propor missões coletivas ligadas a um experimento.",
+    iaCannot: "Ligar XP a desempenho, promoção ou remuneração — jamais.",
+  },
+];
+
+export const REASON_COPY: Record<string, string> = {
+  ok: "Ativo",
+  revogado: "Você revogou",
+  abaixo_do_limiar: "Adesão da org abaixo do limiar",
+  k_anon: "Poucas pessoas para o k-anonimato",
+};
+
+// Alerta de Sinais Vivos — só é "observável" pela IA se o canal signals estiver permitido.
+export const SIGNAL_ALERT = { label: "participação em rituais", drop: 12 };
+
+export const PRIVACY_INTRO = {
+  eyebrow: "Trust Ledger × FlorescerIA · Privacidade Radical",
+  title: "Você decide o que a FlorescerIA enxerga",
+  lead:
+    "Cada canal abaixo é uma permissão sua. A FlorescerIA só observa o que você concede — " +
+    "e sempre no agregado. Desligue um canal e veja, ao vivo, o copiloto perder aquela " +
+    "capacidade. Ligue outro e ele ganha uma nova. O controle é seu, sem penalidade.",
+};

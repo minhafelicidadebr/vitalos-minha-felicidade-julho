@@ -9,6 +9,7 @@ export type ProposalKind =
   | "escalar_experimento"
   | "revisar_experimento"
   | "agir_pilar_em_queda"
+  | "agir_sinal"
   | "aproveitar_fase";
 
 export type ProposalUrgency = "alta" | "media" | "baixa";
@@ -38,10 +39,16 @@ export interface ObservedDecliningPillar {
   drop: number; // queda em pts desde o ciclo anterior (positivo = caiu)
 }
 
+export interface ObservedSignalAlert {
+  label: string; // ex.: "participação em rituais"
+  drop: number; // queda em % (agregado, k≥5)
+}
+
 export interface AgentObservations {
   topPriority?: ObservedPriority | null;
   experiments?: ObservedExperiment[];
   decliningPillars?: ObservedDecliningPillar[];
+  signalAlert?: ObservedSignalAlert | null; // só quando o canal Sinais Vivos é permitido
   phaseId?: string; // mensurar/educar/transformar/evoluir
   seasonName?: string;
 }
@@ -56,6 +63,7 @@ export interface AgentProposal {
   recommendation: string; // "O que sugiro"
   rationale: string; // por quê, com o número
   targetRoute: string; // para onde a aprovação leva
+  requiresChannel?: string; // canal de observação que a proposta exige (consentimento)
   requiresApproval: true; // human-in-the-loop — invariante, não opção
   guardrailsOk: true; // só agregados → passa por construção
 }
@@ -80,6 +88,7 @@ export function proposeActions(obs: AgentObservations): AgentProposal[] {
         ? "Maior retorno por esforço no estado atual — vitória rápida."
         : "Maior alavancagem esperada no estado atual.",
       targetRoute: "/experimentos",
+      requiresChannel: "pulses",
       requiresApproval: true,
       guardrailsOk: true,
     });
@@ -95,6 +104,24 @@ export function proposeActions(obs: AgentObservations): AgentProposal[] {
       recommendation: "Priorizar uma intervenção neste pilar antes da próxima aferição.",
       rationale: "Reverter cedo custa menos do que recuperar depois.",
       targetRoute: "/prioridades",
+      requiresChannel: "pulses",
+      requiresApproval: true,
+      guardrailsOk: true,
+    });
+  }
+
+  // 2b) Sinais Vivos (só quando o canal é permitido pelo consentimento).
+  if (obs.signalAlert) {
+    out.push({
+      id: "prop-sinal",
+      kind: "agir_sinal",
+      urgency: "media",
+      trigger: `Sinais Vivos: ${obs.signalAlert.label} caiu ${obs.signalAlert.drop}% (agregado, k≥5).`,
+      recommendation:
+        "Investigar o ritual afetado e reforçá-lo antes que o efeito apareça na percepção.",
+      rationale: "Comportamento agregado é um sinal precoce — antecede o que o pulse confirmará.",
+      targetRoute: "/copiloto",
+      requiresChannel: "signals",
       requiresApproval: true,
       guardrailsOk: true,
     });
@@ -113,6 +140,7 @@ export function proposeActions(obs: AgentObservations): AgentProposal[] {
         recommendation: "Escalar o protocolo para novas equipes.",
         rationale: "Funcionou nesta cultura — replicar amplia o efeito comprovado.",
         targetRoute: "/experimentos",
+        requiresChannel: "pulses",
         requiresApproval: true,
         guardrailsOk: true,
       });
@@ -125,6 +153,7 @@ export function proposeActions(obs: AgentObservations): AgentProposal[] {
         recommendation: "Revisar o protocolo ou trocar a alavanca antes de repetir.",
         rationale: "Aprender com o que não funcionou evita desperdiçar o próximo ciclo.",
         targetRoute: "/experimentos",
+        requiresChannel: "pulses",
         requiresApproval: true,
         guardrailsOk: true,
       });

@@ -27,6 +27,7 @@ export const KIND_COPY: Record<ProposalKind, { label: string; icon: string; cta:
   escalar_experimento: { label: "Escalar experimento", icon: "🚀", cta: "Aprovar escala" },
   revisar_experimento: { label: "Revisar experimento", icon: "🔧", cta: "Aprovar revisão" },
   agir_pilar_em_queda: { label: "Pilar em queda", icon: "📉", cta: "Aprovar e priorizar" },
+  agir_sinal: { label: "Sinal Vivo", icon: "📡", cta: "Aprovar investigação" },
   aproveitar_fase: { label: "Janela de fase", icon: "⏱️", cta: "Aprovar foco" },
 };
 

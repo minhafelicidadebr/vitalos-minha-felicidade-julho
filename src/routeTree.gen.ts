@@ -17,6 +17,7 @@ import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as PanoramaRouteImport } from './routes/panorama'
@@ -75,6 +76,11 @@ const QuiosqueRoute = QuiosqueRouteImport.update({
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrioridadesRoute = PrioridadesRouteImport.update({
@@ -193,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pnl'
     | '/prioridades'
+    | '/privacidade'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pnl'
     | '/prioridades'
+    | '/privacidade'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pnl'
     | '/prioridades'
+    | '/privacidade'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -371,6 +383,7 @@ export interface RootRouteChildren {
   PanoramaRoute: typeof PanoramaRoute
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
   RelatoriosRoute: typeof RelatoriosRoute
@@ -437,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prioridades': {
@@ -595,6 +615,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanoramaRoute: PanoramaRoute,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
   RelatoriosRoute: RelatoriosRoute,

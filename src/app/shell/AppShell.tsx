@@ -23,6 +23,7 @@ const NAV_ROUTES: Record<string, string> = {
   action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
   experiments: "/experimentos",
   domain_b: "/sst",
+  privacy: "/privacidade",
   panorama: "/panorama",
   benchmark: "/benchmark",
   season: "/temporada",

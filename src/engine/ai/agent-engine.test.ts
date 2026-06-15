@@ -64,6 +64,35 @@ describe("proposeActions — regras", () => {
   });
 });
 
+// ─── Canais de consentimento ─────────────────────────────────────────────────
+
+describe("proposeActions — canais de consentimento", () => {
+  test("propostas de percepção exigem o canal pulses", () => {
+    const ps = proposeActions({
+      topPriority: FULL.topPriority,
+      decliningPillars: FULL.decliningPillars,
+    });
+    expect(ps.every((p) => p.requiresChannel === "pulses")).toBe(true);
+  });
+
+  test("sinal vivo só aparece quando há signalAlert, exigindo o canal signals", () => {
+    const semSinal = proposeActions({ topPriority: FULL.topPriority });
+    expect(semSinal.some((p) => p.kind === "agir_sinal")).toBe(false);
+
+    const comSinal = proposeActions({
+      signalAlert: { label: "participação em rituais", drop: 12 },
+    });
+    const sinal = comSinal.find((p) => p.kind === "agir_sinal");
+    expect(sinal).toBeDefined();
+    expect(sinal!.requiresChannel).toBe("signals");
+  });
+
+  test("aproveitar_fase não exige canal (sempre permitido)", () => {
+    const ps = proposeActions({ phaseId: "transformar" });
+    expect(ps[0]!.requiresChannel).toBeUndefined();
+  });
+});
+
 // ─── k-anonimato ─────────────────────────────────────────────────────────────
 
 describe("proposeActions — k-anonimato", () => {
