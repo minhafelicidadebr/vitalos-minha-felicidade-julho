@@ -24,6 +24,7 @@ const NAV_ROUTES: Record<string, string> = {
   experiments: "/experimentos",
   domain_b: "/sst",
   panorama: "/panorama",
+  benchmark: "/benchmark",
   season: "/temporada",
   priorities: "/prioridades",
   forecast: "/trajetoria",

@@ -146,12 +146,13 @@ src/
 | ✅ +  | Camada de Evidência (extra)                 | engine/lab/evidence-engine + /experimentos (diff-in-diff honesto, 16)      |
 | ✅ +  | Panorama Executivo (extra)                  | engine/panorama + /panorama (sintetiza o arco inteiro, 18)                 |
 | ✅ +  | FlorescerIA Proativa (extra)                | engine/ai/agent-engine + /copiloto (propõe+aprova, guardrails, 12)         |
+| ✅ +  | Benchmark Setorial (extra)                  | engine/benchmark + /benchmark (k-anon entre tenants, moat de dados, 15)    |
 
 ### Cobertura de testes (bun test src)
 
-198 testes / 12 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+213 testes / 13 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
-priority (14), evidence (16), panorama (18), agent (12). Typecheck limpo.
+priority (14), evidence (16), panorama (18), agent (12), benchmark (15). Typecheck limpo.
 
 ### Rotas implementadas
 
@@ -165,6 +166,7 @@ priority (14), evidence (16), panorama (18), agent (12). Typecheck limpo.
 `/experimentos` (Culture Lab · camada de evidência — da prioridade à prova) ·
 `/panorama` (Panorama Executivo — o arco inteiro em uma página) ·
 `/copiloto` (FlorescerIA Proativa — propõe + aprovação humana) ·
+`/benchmark` (Benchmark Setorial anônimo — k-anon entre tenants) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo
