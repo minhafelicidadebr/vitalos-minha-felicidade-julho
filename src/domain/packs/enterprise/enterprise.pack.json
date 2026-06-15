@@ -72,62 +72,32 @@
     "sst_cipa_no_personal_data_without_legal_basis",
     "holding_respects_org_isolation"
   ],
+  "navGroups": {
+    "inicio": "Início",
+    "medir": "Medir",
+    "agir": "Agir",
+    "provar": "Provar",
+    "estrategico": "Estratégico",
+    "confianca": "Confiança",
+    "gestao": "Gestão"
+  },
   "navigation": [
-    { "id": "overview", "label": "Visão Geral", "roles": "all" },
-    { "id": "ivo", "label": "IVO", "roles": "all" },
+    { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
+
+    { "id": "ivo", "label": "IVO", "roles": "all", "group": "medir" },
     {
       "id": "pulses",
       "label": "Pulses",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"]
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+      "group": "medir"
     },
     {
-      "id": "missions",
-      "label": "Missões",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"]
+      "id": "signals",
+      "label": "Sinais Vivos",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],
+      "group": "medir"
     },
-    {
-      "id": "ambassadorships",
-      "label": "Embaixadorias",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "RH_ADMIN", "CHRO"]
-    },
-    { "id": "academy", "label": "Academia do Florescimento", "roles": "all" },
-    { "id": "ai", "label": "FlorescerIA", "roles": "all" },
-    {
-      "id": "copilot",
-      "label": "FlorescerIA Proativa",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"]
-    },
-    {
-      "id": "privacy",
-      "label": "Privacidade & IA",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"]
-    },
-    {
-      "id": "recognition",
-      "label": "Reconhecimento",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"]
-    },
-    {
-      "id": "action_plan",
-      "label": "Plano de Ação",
-      "roles": ["LIDER_EQUIPE", "RH_ADMIN", "CHRO", "SST_PROFISSIONAL"]
-    },
-    {
-      "id": "evidences",
-      "label": "Evidências",
-      "roles": ["EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"]
-    },
-    {
-      "id": "living_map",
-      "label": "Mapa Vivo",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"]
-    },
-    {
-      "id": "reports",
-      "label": "Relatórios",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "SST_PROFISSIONAL"]
-    },
-    { "id": "certification", "label": "Certificação", "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"] },
+
     {
       "id": "season",
       "label": "Cronograma",
@@ -140,60 +110,137 @@
         "C_LEVEL",
         "SST_PROFISSIONAL",
         "HOLDING_ADMIN"
-      ]
-    },
-    {
-      "id": "viat",
-      "label": "Mapa de Forças",
-      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"]
-    },
-    {
-      "id": "panorama",
-      "label": "Panorama",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
-    },
-    {
-      "id": "benchmark",
-      "label": "Benchmark Setorial",
-      "roles": ["CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
-    },
-    {
-      "id": "signals",
-      "label": "Sinais Vivos",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"]
+      ],
+      "group": "agir"
     },
     {
       "id": "priorities",
       "label": "Prioridades",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
-    },
-    {
-      "id": "experiments",
-      "label": "Experimentos",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"]
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "agir"
     },
     {
       "id": "forecast",
       "label": "Trajetória",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "agir"
+    },
+    {
+      "id": "action_plan",
+      "label": "Culture Lab",
+      "roles": ["LIDER_EQUIPE", "RH_ADMIN", "CHRO", "SST_PROFISSIONAL"],
+      "group": "agir"
+    },
+    {
+      "id": "ambassadorships",
+      "label": "Embaixadorias",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "RH_ADMIN", "CHRO"],
+      "group": "agir"
+    },
+    {
+      "id": "missions",
+      "label": "Missões",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"],
+      "group": "agir"
+    },
+    {
+      "id": "recognition",
+      "label": "Reconhecimento",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"],
+      "group": "agir"
+    },
+
+    {
+      "id": "experiments",
+      "label": "Experimentos",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"],
+      "group": "provar"
+    },
+    {
+      "id": "evidences",
+      "label": "Evidências",
+      "roles": ["EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+      "group": "provar"
+    },
+    {
+      "id": "reports",
+      "label": "Relatórios",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "SST_PROFISSIONAL"],
+      "group": "provar"
+    },
+    {
+      "id": "certification",
+      "label": "Selo Empresa Viva",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],
+      "group": "provar"
+    },
+
+    {
+      "id": "panorama",
+      "label": "Panorama",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "estrategico"
+    },
+    {
+      "id": "benchmark",
+      "label": "Benchmark Setorial",
+      "roles": ["CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "estrategico"
+    },
+    {
+      "id": "viat",
+      "label": "Mapa de Forças",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"],
+      "group": "estrategico"
+    },
+    {
+      "id": "fibt",
+      "label": "FIB-T · Ecossistema",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "estrategico"
     },
     {
       "id": "esg",
       "label": "ESG & ODS",
-      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "estrategico"
+    },
+
+    { "id": "ai", "label": "FlorescerIA", "roles": "all", "group": "confianca" },
+    {
+      "id": "copilot",
+      "label": "FlorescerIA Proativa",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"],
+      "group": "confianca"
+    },
+    {
+      "id": "privacy",
+      "label": "Privacidade & IA",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+      "group": "confianca"
+    },
+
+    { "id": "academy", "label": "Academia do Florescimento", "roles": "all", "group": "gestao" },
+    {
+      "id": "living_map",
+      "label": "Mapa Vivo",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"],
+      "group": "gestao"
     },
     {
       "id": "domain_b",
       "label": "SST & NR-1",
       "roles": ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO"],
-      "domain": "B"
+      "domain": "B",
+      "group": "gestao"
     },
     {
       "id": "admin",
       "label": "Administração",
-      "roles": ["RH_ADMIN", "CHRO", "HOLDING_ADMIN", "PLATFORM_ADMIN"]
+      "roles": ["RH_ADMIN", "CHRO", "HOLDING_ADMIN", "PLATFORM_ADMIN"],
+      "group": "gestao"
     },
-    { "id": "settings", "label": "Configurações", "roles": "all" }
+    { "id": "settings", "label": "Configurações", "roles": "all", "group": "gestao" }
   ],
   "indexRef": "./ivo-framework.json",
   "gamificationRef": "./gamification-economy.json",

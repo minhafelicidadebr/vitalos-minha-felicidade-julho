@@ -30,6 +30,7 @@ const NAV_ROUTES: Record<string, string> = {
   privacy: "/privacidade",
   panorama: "/panorama",
   benchmark: "/benchmark",
+  fibt: "/fibt",
   season: "/temporada",
   priorities: "/prioridades",
   forecast: "/trajetoria",

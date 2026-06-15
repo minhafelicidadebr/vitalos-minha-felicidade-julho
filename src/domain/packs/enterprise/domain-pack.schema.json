@@ -82,7 +82,11 @@
           "roles": {
             "oneOf": [{ "const": "all" }, { "type": "array", "items": { "type": "string" } }]
           },
-          "domain": { "enum": ["A", "B"] }
+          "domain": { "enum": ["A", "B"] },
+          "group": {
+            "description": "Grupo de navegação (arco do produto) para renderização agrupada.",
+            "enum": ["inicio", "medir", "agir", "provar", "estrategico", "confianca", "gestao"]
+          }
         }
       }
     },
