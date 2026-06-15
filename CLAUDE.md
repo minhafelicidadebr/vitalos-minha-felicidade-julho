@@ -155,11 +155,11 @@ src/
 
 ### Cobertura de testes (bun test src)
 
-316 testes / 23 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+327 testes / 24 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
 priority (14), evidence (16), panorama (18), agent (15), benchmark (15),
 consent (18), signals (16), certification (15), fibt (10), esg-report (10),
-**rbac (7, segurança)**, **nudges (8)**, **pack-contract (8, valida packs reais)**
+rbac (7), nudges (8), pack-contract (8), **trend (11, curva longitudinal)**
 
 - **integração ponta-a-ponta (10)** + **multipack (6, prova setor-agnóstico)**. Typecheck limpo.
 
@@ -188,6 +188,7 @@ consent (18), signals (16), certification (15), fibt (10), esg-report (10),
 `/relatorio-global` (Relatório Global ESG anual — síntese E/S/G + ODS) ·
 `/programa` (Landing — hierarquia + 3 níveis de venda) ·
 `/setores` (Multissetorial — prova Engine≠Domínio, 2º pack Escola) ·
+`/evolucao` (Curva longitudinal — track record do IVO ciclo a ciclo) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo

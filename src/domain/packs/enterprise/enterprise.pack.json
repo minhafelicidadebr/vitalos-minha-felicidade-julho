@@ -97,6 +97,12 @@
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],
       "group": "medir"
     },
+    {
+      "id": "trend",
+      "label": "Evolução",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "medir"
+    },
 
     {
       "id": "season",

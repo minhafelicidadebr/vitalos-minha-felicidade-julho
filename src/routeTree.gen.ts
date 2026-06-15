@@ -33,6 +33,7 @@ import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
+import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
@@ -164,6 +165,11 @@ const ExperimentosRoute = ExperimentosRouteImport.update({
   path: '/experimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvolucaoRoute = EvolucaoRouteImport.update({
+  id: '/evolucao',
+  path: '/evolucao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsgRoute = EsgRouteImport.update({
   id: '/esg',
   path: '/esg',
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/evolucao'
     | '/experimentos'
     | '/fibt'
     | '/floresceria'
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/evolucao'
     | '/experimentos'
     | '/fibt'
     | '/floresceria'
@@ -409,6 +420,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/evolucao'
     | '/experimentos'
     | '/fibt'
     | '/floresceria'
@@ -446,6 +458,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EsgRoute: typeof EsgRoute
+  EvolucaoRoute: typeof EvolucaoRoute
   ExperimentosRoute: typeof ExperimentosRoute
   FibtRoute: typeof FibtRoute
   FloresceriaRoute: typeof FloresceriaRoute
@@ -642,6 +655,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evolucao': {
+      id: '/evolucao'
+      path: '/evolucao'
+      fullPath: '/evolucao'
+      preLoaderRoute: typeof EvolucaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/esg': {
       id: '/esg'
       path: '/esg'
@@ -726,6 +746,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EsgRoute: EsgRoute,
+  EvolucaoRoute: EvolucaoRoute,
   ExperimentosRoute: ExperimentosRoute,
   FibtRoute: FibtRoute,
   FloresceriaRoute: FloresceriaRoute,
