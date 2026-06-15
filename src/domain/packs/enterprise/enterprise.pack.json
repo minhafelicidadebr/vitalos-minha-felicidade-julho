@@ -143,6 +143,11 @@
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
     },
     {
+      "id": "experiments",
+      "label": "Experimentos",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"]
+    },
+    {
       "id": "forecast",
       "label": "Trajetória",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]

@@ -20,6 +20,7 @@ const NAV_ROUTES: Record<string, string> = {
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
   action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
+  experiments: "/experimentos",
   domain_b: "/sst",
   season: "/temporada",
   priorities: "/prioridades",

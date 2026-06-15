@@ -24,6 +24,7 @@ import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
+import { Route as ExperimentosRouteImport } from './routes/experimentos'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
@@ -108,6 +109,11 @@ const FloresceriaRoute = FloresceriaRouteImport.update({
   path: '/floresceria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExperimentosRoute = ExperimentosRouteImport.update({
+  id: '/experimentos',
+  path: '/experimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsgRoute = EsgRouteImport.update({
   id: '/esg',
   path: '/esg',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/experimentos': typeof ExperimentosRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/experimentos': typeof ExperimentosRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/esg': typeof EsgRoute
+  '/experimentos': typeof ExperimentosRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/experimentos'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/experimentos'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/embaixadorias'
     | '/esg'
+    | '/experimentos'
     | '/floresceria'
     | '/holding'
     | '/ivo'
@@ -312,6 +324,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EsgRoute: typeof EsgRoute
+  ExperimentosRoute: typeof ExperimentosRoute
   FloresceriaRoute: typeof FloresceriaRoute
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FloresceriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/experimentos': {
+      id: '/experimentos'
+      path: '/experimentos'
+      fullPath: '/experimentos'
+      preLoaderRoute: typeof ExperimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/esg': {
       id: '/esg'
       path: '/esg'
@@ -504,6 +524,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EsgRoute: EsgRoute,
+  ExperimentosRoute: ExperimentosRoute,
   FloresceriaRoute: FloresceriaRoute,
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
