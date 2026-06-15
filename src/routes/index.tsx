@@ -7,64 +7,177 @@ import { usePack } from "@/engine/pack";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "4 Lentes VITA — Fundação" },
+      { title: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
       {
         name: "description",
         content:
-          "Fundação técnica (Bloco 0) da plataforma 4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional.",
+          "Medir · Agir · Provar · Certificar — o sistema operacional B2B premium para a vitalidade organizacional.",
       },
     ],
   }),
   component: Index,
 });
 
+const ARC = [
+  {
+    id: "medir",
+    step: "01",
+    title: "Medir",
+    headline: "Onde a vitalidade está hoje",
+    detail: "IVO em 4 lentes, 16 pilares, pulses de 60s e sinais vivos da operação.",
+    to: "/ivo",
+    cta: "Ver IVO",
+  },
+  {
+    id: "agir",
+    step: "02",
+    title: "Agir",
+    headline: "O que fazer a seguir, em ordem",
+    detail: "Prioridades calculadas, simulador de trajetória e protocolos do Culture Lab.",
+    to: "/prioridades",
+    cta: "Ver prioridades",
+  },
+  {
+    id: "provar",
+    step: "03",
+    title: "Provar",
+    headline: "Hipótese × observado, sem maquiagem",
+    detail: "Camada de evidência (diff-in-diff honesto) e relatórios auditáveis.",
+    to: "/experimentos",
+    cta: "Ver experimentos",
+  },
+  {
+    id: "certificar",
+    step: "04",
+    title: "Certificar",
+    headline: "Selo Empresa Viva — computado, não comprado",
+    detail: "Panorama executivo de board e o Selo derivado do arco inteiro.",
+    to: "/panorama",
+    cta: "Ver panorama",
+  },
+] as const;
+
+const PILLARS = [
+  { k: "Engine", v: "Setor-agnóstica" },
+  { k: "Domain Pack", v: "Configurável por setor" },
+  { k: "Privacidade", v: "k-anon ≥ 5, agregados" },
+  { k: "Acessibilidade", v: "WCAG 2.2 AA" },
+] as const;
+
 function Index() {
   const { status, pack } = usePack();
   const packLabel =
     status.state === "ready" && pack
-      ? `${pack.packName} · v${pack.version}${status.validation.valid ? " · schema ✓" : " · schema ⚠"}`
+      ? `${pack.packName.split("—")[0].trim()} · v${pack.version}${
+          status.validation.valid ? " · schema ✓" : " · schema ⚠"
+        }`
       : "Carregando pack…";
 
   return (
     <AppShell>
-      <section className="mx-auto max-w-5xl px-6 pt-20 pb-16 sm:pt-28">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            Bloco 0 — Fundação
-          </p>
-          <h1 className="mt-6 font-serif text-5xl leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-            Sistema Operacional da <span className="text-primary">Vitalidade Organizacional</span>.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Esta é a fundação técnica da plataforma 4 Lentes VITA. Design system, providers de
-            acessibilidade, camada Pack setor-agnóstica e shell institucional já no lugar — pronto
-            para receber os próximos blocos.
-          </p>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border/40">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_50%_0%,color-mix(in_oklab,var(--color-primary)_14%,transparent)_0%,transparent_70%)]"
+        />
+        <div className="mx-auto max-w-6xl px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+              VitalOS · Medir → Agir → Provar → Certificar
+            </p>
+            <h1 className="mt-6 max-w-4xl font-serif text-4xl leading-[1.05] tracking-tight text-foreground sm:text-6xl">
+              O sistema operacional da{" "}
+              <span className="text-primary">vitalidade organizacional</span>.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Um arco único — do diagnóstico em 4 lentes ao Selo Empresa Viva — para CHRO, C-Level
+              e líderes que querem cultura mensurável, ética e auditável.
+            </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/colaborador">Dashboard Colaborador</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/ivo">Ver IVO</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/design-system">Design System</Link>
-            </Button>
-            <span className="text-xs text-muted-foreground">{packLabel}</span>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg">
+                <Link to="/panorama">Abrir Panorama Executivo</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/ivo">Começar pelo IVO</Link>
+              </Button>
+              <span className="text-xs text-muted-foreground">{packLabel}</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Arco do produto */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              O arco do VitalOS
+            </p>
+            <h2 className="mt-2 font-serif text-2xl text-foreground sm:text-3xl">
+              Quatro passos, um único sistema.
+            </h2>
           </div>
-        </motion.div>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Cada passo é um motor próprio — e o passo seguinte é derivado, não inventado.
+          </p>
+        </div>
 
-        <div className="mt-16">
+        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {ARC.map((s, i) => (
+            <motion.li
+              key={s.id}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
+            >
+              <Link
+                to={s.to}
+                className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] tracking-widest text-muted-foreground">
+                    {s.step}
+                  </span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
+                    {s.title}
+                  </span>
+                </div>
+                <p className="mt-4 font-serif text-lg text-card-foreground">{s.headline}</p>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  {s.detail}
+                </p>
+                <span className="mt-4 inline-flex items-center text-xs font-medium text-primary">
+                  {s.cta} <span aria-hidden className="ml-1 transition-transform group-hover:translate-x-0.5">→</span>
+                </span>
+              </Link>
+            </motion.li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Painéis por papel */}
+      <section className="border-t border-border/40 bg-muted/20 py-16">
+        <div className="mx-auto max-w-6xl px-6">
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             Painéis por papel
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <h2 className="mt-2 font-serif text-2xl text-foreground sm:text-3xl">
+            Cada pessoa vê o que precisa — só o que precisa.
+          </h2>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { to: "/colaborador", k: "Colaborador", v: "Check-in, missões, kudos" },
               { to: "/lider", k: "Líder", v: "Equipe com n≥5, plano local" },
@@ -86,13 +199,12 @@ function Index() {
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          {[
-            { k: "Engine", v: "Setor-agnóstica" },
-            { k: "Domain", v: "Configurável por Pack" },
-            { k: "A11y", v: "WCAG 2.2 AA" },
-          ].map((item) => (
+      {/* Princípios */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PILLARS.map((item) => (
             <div
               key={item.k}
               className="rounded-xl border border-border/70 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
@@ -100,7 +212,7 @@ function Index() {
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 {item.k}
               </p>
-              <p className="mt-2 font-serif text-xl text-card-foreground">{item.v}</p>
+              <p className="mt-2 font-serif text-lg text-card-foreground">{item.v}</p>
             </div>
           ))}
         </div>
