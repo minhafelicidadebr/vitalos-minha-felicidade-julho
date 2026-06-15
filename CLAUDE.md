@@ -199,7 +199,30 @@ bun run test testes de unidade dos engines (bun test)
 
 ---
 
-## 📚 Referências (colocar em /docs após clonar)
+## 📚 Base científica e referências — /docs/
+
+> Leia ARQUITETURA_CIENTIFICA.md ANTES de implementar qualquer módulo de mensuração.
+
+| Arquivo | O que contém |
+|---|---|
+| `docs/ARQUITETURA_CIENTIFICA.md` | **Skill de orientação mestre** — 4 camadas, mapa de instrumentos, o que muda no app |
+| `docs/instrumentos/PERMA_TRABALHO.md` | PERMA 15 itens (BR 2026), psicometria, mapeamento → pilares IVO |
+| `docs/instrumentos/VIA_T.md` | VIA-T 24/48 itens, ICUFT, guardrails, missões, matriz VIA-T × PERMA+V |
+| `docs/instrumentos/COPSOQ_NR1.md` | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B |
+| `docs/instrumentos/PLAYBOOK.md` | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco |
+
+**Arquitetura de 4 camadas (nunca misturar):**
+- Camada 1 RISCO: COPSOQ/NR-1 → Domínio B → `/sst`
+- Camada 2 FLORESCIMENTO: PERMA → IVO/Pulses → `/ivo`, `/pulse`
+- Camada 3 FORÇAS: VIA-T v1 exploratório → `/viat` (PRÓXIMO módulo)
+- Camada 4 AÇÃO: Playbook → Culture Lab → `/lab`
+
+**Próximo módulo a construir: VIA-T (`/viat`)**
+- `src/engine/viat/viat-engine.ts` (pure engine: 24 forças, 6 virtudes, ICUFT)
+- `src/mocks/viat-mock.ts`
+- `src/routes/viat.tsx` (assessment → devolutiva → missão 7 dias)
+- Disclaimer obrigatório: "VIA-T v1 exploratório — não é diagnóstico psicológico"
+- k-anonimato: n≥5 (contextos sensíveis: n≥10)
 
 SUPER_PROMPT_GENESIS_4LENTES_VITA.md fonte da verdade de execução (21 blocos)
 FRAMEWORK_MESTRE_EMPRESA_VIVA.md fundamento científico, universo, negócio
