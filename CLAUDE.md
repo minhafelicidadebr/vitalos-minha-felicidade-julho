@@ -229,6 +229,10 @@ bun run test testes de unidade dos engines (bun test)
 | `docs/instrumentos/COPSOQ_NR1.md`     | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B                                                                    |
 | `docs/instrumentos/PLAYBOOK.md`       | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco                                                                   |
 
+> 📦 **Template portátil (não é doutrina deste projeto):** `templates/SKILL_UNIVERSAL_MENTE_FABLE5.md`
+> é um modelo reutilizável da inteligência Fable 5 para instanciar em OUTROS projetos. Para o
+> 4 Lentes VITA, a doutrina ativa continua sendo `docs/SKILL_MESTRA_FABLE5.md`.
+
 **Arquitetura de 4 camadas (nunca misturar):**
 
 - Camada 1 RISCO: COPSOQ/NR-1 → Domínio B → `/sst`
