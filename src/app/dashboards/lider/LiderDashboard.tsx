@@ -193,14 +193,14 @@ function CriticalPillars({
                     <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
                       {p.pillarName}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">n = {p.n} respondentes</p>
+                    <p className="text-xs text-muted-foreground">n = {p.n} respondentes</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-400">
                       {p.score} pts
                     </p>
                     <p
-                      className={`text-[10px] ${d >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}
+                      className={`text-xs ${d >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}
                     >
                       {d >= 0 ? "↑" : "↓"} {Math.abs(d)} vs anterior
                     </p>
@@ -304,7 +304,7 @@ function CopilotCard() {
         <div className="flex items-center gap-2">
           <span aria-hidden>✨</span>
           <p className="text-sm font-medium text-card-foreground">Copiloto do Líder</p>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
             mockado · Bloco 12
           </span>
         </div>
@@ -316,7 +316,7 @@ function CopilotCard() {
           ✕
         </button>
       </div>
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <p className="text-base leading-relaxed text-muted-foreground">
         {parts.map((part, i) =>
           i % 2 === 1 ? (
             <strong key={i} className="text-foreground">
@@ -379,13 +379,11 @@ function ActionPlanCard({ items }: { items: ActionItem[] }) {
                 >
                   {item.title}
                 </p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {item.pillarName} · {item.dueLabel}
                 </p>
               </div>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${st.cls}`}
-              >
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${st.cls}`}>
                 {st.label}
               </span>
             </div>
@@ -417,12 +415,12 @@ function LeaderMissionsCard() {
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm text-card-foreground">{m.title}</p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {m.pillarName} · +{m.xp} XP
               </p>
             </div>
             <span
-              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
+              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 m.status === "in_progress"
                   ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
                   : "bg-muted text-muted-foreground"
@@ -455,7 +453,7 @@ function FooterLinks() {
           📊
         </span>
         <p className="text-sm font-medium text-card-foreground">IVO da Organização</p>
-        <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
+        <p className="text-xs text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
       <Link
         to="/lab"
@@ -465,7 +463,7 @@ function FooterLinks() {
           🧪
         </span>
         <p className="text-sm font-medium text-card-foreground">Culture Lab</p>
-        <p className="text-[10px] text-muted-foreground">Protocolos e experimentos</p>
+        <p className="text-xs text-muted-foreground">Protocolos e experimentos</p>
       </Link>
     </motion.div>
   );

@@ -47,18 +47,18 @@ function BenchmarkPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {BENCHMARK_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{BENCHMARK_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {BENCHMARK_INTRO.lead}
           </p>
         </motion.div>
 
         {/* Seletor de coorte */}
         <div>
-          <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          <p className="mb-1.5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
             Coorte de comparação
           </p>
           <div className="flex flex-wrap gap-2">
@@ -76,7 +76,7 @@ function BenchmarkPage() {
                 <span className="block font-medium text-card-foreground">
                   {c.label.split(" · ")[0]}
                 </span>
-                <span className="block text-[10px] text-muted-foreground">
+                <span className="block text-xs text-muted-foreground">
                   {c.label.split(" · ")[1]}
                 </span>
               </button>
@@ -116,17 +116,17 @@ function BenchmarkPage() {
               {/* Maior oportunidade */}
               {result.topOpportunity && (
                 <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-primary">
+                  <p className="text-xs uppercase tracking-[0.12em] text-primary">
                     Maior oportunidade vs. o setor
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-foreground">
+                  <p className="mt-1.5 text-base leading-relaxed text-foreground">
                     <span className="font-medium">{result.topOpportunity.label}</span> está{" "}
                     {Math.abs(result.topOpportunity.gapToMedian)} pts abaixo da mediana do coorte —
                     o maior ganho relativo disponível.
                   </p>
                   <Link
                     to="/prioridades"
-                    className="mt-2 inline-block text-[11px] text-primary underline underline-offset-2"
+                    className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
                   >
                     priorizar esta lacuna →
                   </Link>
@@ -192,10 +192,10 @@ function ProtectedCohort({ result }: { result: ReturnType<typeof buildBenchmark>
         🔒
       </span>
       <h2 className="mt-2 font-serif text-xl text-foreground">Coorte protegido</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+      <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-muted-foreground">
         {BENCHMARK_INTRO.protectedNote}
       </p>
-      <p className="mt-3 text-[11px] text-muted-foreground">
+      <p className="mt-3 text-xs text-muted-foreground">
         {result.nOrgs} de {result.minOrgs} organizações mínimas neste coorte.
       </p>
     </motion.div>
@@ -283,7 +283,7 @@ function MetricRow({ row }: { row: BenchmarkRow }) {
     <div>
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="text-sm text-card-foreground">{row.label}</span>
-        <span className={`text-[11px] font-medium ${pos.color}`}>
+        <span className={`text-xs font-medium ${pos.color}`}>
           {row.score} · {signed(row.gapToMedian)} vs. mediana
         </span>
       </div>

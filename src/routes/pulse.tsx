@@ -83,13 +83,13 @@ function PulsePage() {
               exit={{ opacity: 0, y: -12 }}
               className="space-y-6 text-center"
             >
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 Pulse quinzenal
               </p>
               <h1 className="font-serif text-3xl text-foreground">
                 {items.length} perguntas. {config.durationSeconds} segundos. Anônimo.
               </h1>
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
+              <p className="mx-auto max-w-md text-base leading-relaxed text-muted-foreground">
                 Suas respostas viram apenas médias agregadas — ninguém vê o que você respondeu, nem
                 com quem. Participar vale +25 XP pela participação (nunca pelo conteúdo).
               </p>
@@ -142,7 +142,7 @@ function PulsePage() {
 
               {/* Question */}
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[10px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-xs text-muted-foreground">
                   <span
                     className="h-2 w-2 rounded-full"
                     style={{ background: items[current].lensColor }}
@@ -169,7 +169,7 @@ function PulsePage() {
                 ))}
               </div>
 
-              <p className="text-center text-[10px] text-muted-foreground">
+              <p className="text-center text-xs text-muted-foreground">
                 Sua resposta individual nunca fica no aplicativo — só agregados com 5+ pessoas.
               </p>
             </motion.div>
@@ -192,7 +192,7 @@ function PulsePage() {
                 🌱
               </motion.p>
               <h1 className="font-serif text-3xl text-foreground">Obrigado por participar</h1>
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
+              <p className="mx-auto max-w-md text-base leading-relaxed text-muted-foreground">
                 +25 XP pela participação. Suas respostas seguiram direto para a agregação anônima —
                 nem o RH, nem sua liderança, nem nós vemos o que você marcou.
               </p>
@@ -224,7 +224,7 @@ function PulsePage() {
                 👍
               </p>
               <h1 className="font-serif text-2xl text-foreground">Tudo bem!</h1>
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
+              <p className="mx-auto max-w-md text-base leading-relaxed text-muted-foreground">
                 Participar é sempre voluntário — não participar nunca gera punição nem afeta nada
                 para você. Voltamos a convidar no próximo ciclo.
               </p>

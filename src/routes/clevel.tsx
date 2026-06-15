@@ -55,7 +55,7 @@ function CLevelPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Visão C-Level · uma tela, sem rolagem infinita
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">
@@ -169,7 +169,7 @@ function CLevelPage() {
                 </dd>
               </div>
             </dl>
-            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
               {CLEVEL_PNL.disclaimer}
             </p>
             <Link

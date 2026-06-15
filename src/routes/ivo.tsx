@@ -224,7 +224,7 @@ function SectionA({
     >
       {/* Label */}
       <div>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
           IVO — Índice de Vitalidade Organizacional
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -441,7 +441,7 @@ function SectionB({
               className="group flex flex-col gap-2 rounded-xl border border-border/70 bg-card p-4 text-left transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`${lensShortName(lens.lensName)}: ${lens.score} pts — explorar pilares`}
             >
-              <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                 {lensShortName(lens.lensName)}
               </p>
               <p className="font-serif text-2xl font-semibold text-card-foreground">
@@ -625,7 +625,7 @@ function SectionD({
         role="note"
         aria-label="Aviso importante sobre o IVO"
       >
-        <p className="flex items-start gap-2 text-sm leading-relaxed text-amber-900 dark:text-amber-300">
+        <p className="flex items-start gap-2 text-base leading-relaxed text-amber-900 dark:text-amber-300">
           <span className="mt-0.5 shrink-0 text-base" aria-hidden>
             ℹ
           </span>

@@ -106,11 +106,11 @@ function CopilotoPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {COPILOTO_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{COPILOTO_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {COPILOTO_INTRO.lead}
           </p>
         </motion.div>
@@ -152,14 +152,14 @@ function CopilotoPage() {
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] text-red-600 dark:text-red-400">
+              <p className="mb-1.5 text-xs uppercase tracking-[0.12em] text-red-600 dark:text-red-400">
                 Nunca
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.never.map((g) => (
                   <li
                     key={g}
-                    className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
+                    className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground"
                   >
                     <span className="text-red-500/60" aria-hidden>
                       ✕
@@ -170,14 +170,14 @@ function CopilotoPage() {
               </ul>
             </div>
             <div>
-              <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
+              <p className="mb-1.5 text-xs uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
                 Sempre
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.always.map((g) => (
                   <li
                     key={g}
-                    className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
+                    className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground"
                   >
                     <span className="text-emerald-500/60" aria-hidden>
                       ✓
@@ -228,7 +228,7 @@ function AuditChip({
   return (
     <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
       <span className={`font-serif text-lg ${color}`}>{value}</span>
-      <span className="ml-1.5 text-[11px] text-muted-foreground">{label}</span>
+      <span className="ml-1.5 text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -269,8 +269,8 @@ function ProposalCard({
             {kind.icon}
           </span>
           <div>
-            <p className="text-[11px] font-medium text-card-foreground">{kind.label}</p>
-            <span className={`text-[10px] ${urgency.color}`}>
+            <p className="text-xs font-medium text-card-foreground">{kind.label}</p>
+            <span className={`text-xs ${urgency.color}`}>
               urgência {urgency.label.toLowerCase()}
             </span>
           </div>
@@ -290,7 +290,7 @@ function ProposalCard({
       </div>
 
       {/* Guardrail + human-in-the-loop */}
-      <p className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className="text-emerald-500/70" aria-hidden>
           ✓
         </span>
@@ -314,20 +314,20 @@ function ProposalCard({
           </button>
           <Link
             to={proposal.targetRoute}
-            className="ml-auto text-[11px] text-primary underline underline-offset-2"
+            className="ml-auto text-xs text-primary underline underline-offset-2"
           >
             ver contexto →
           </Link>
         </div>
       ) : (
         <div className="mt-4 rounded-lg bg-muted/50 px-3 py-2">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {decision === "approved" ? COPILOTO_INTRO.approvedNote : COPILOTO_INTRO.dismissedNote}
           </p>
           {decision === "approved" && (
             <Link
               to={proposal.targetRoute}
-              className="mt-1 inline-block text-[11px] text-primary underline underline-offset-2"
+              className="mt-1 inline-block text-xs text-primary underline underline-offset-2"
             >
               ir para o próximo passo →
             </Link>
@@ -351,11 +351,11 @@ function Line({
 }) {
   return (
     <div className="flex gap-2">
-      <span className="w-16 shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+      <span className="w-16 shrink-0 text-xs uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </span>
       <p
-        className={`text-sm leading-relaxed ${
+        className={`text-base leading-relaxed ${
           strong
             ? "font-medium text-card-foreground"
             : muted

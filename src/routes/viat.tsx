@@ -67,11 +67,11 @@ function ViatPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {VIAT_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{VIAT_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {VIAT_INTRO.lead}
           </p>
         </motion.div>
@@ -193,7 +193,7 @@ function DevolutivaSection({
                 >
                   <div>
                     <span className="text-sm text-card-foreground">{s.name}</span>
-                    <span className="ml-2 text-[10px] text-muted-foreground">{s.virtueName}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{s.virtueName}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-1 w-16 overflow-hidden rounded-full bg-muted">
@@ -245,7 +245,7 @@ function DevolutivaSection({
           <p className="font-serif text-3xl text-foreground">
             {result.global} <span className="font-sans text-sm text-muted-foreground">/ 10</span>
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Média das 24 forças — use como tendência, não como score definitivo.
           </p>
         </div>
@@ -276,7 +276,7 @@ function StrengthCard({ strength, rank }: { strength: StrengthScore; rank: numbe
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-background/60 text-[10px] font-semibold text-muted-foreground">
+            <span className="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-background/60 text-xs font-semibold text-muted-foreground">
               {rank}
             </span>
             <h3 className="truncate font-medium text-card-foreground">{strength.name}</h3>
@@ -287,7 +287,7 @@ function StrengthCard({ strength, rank }: { strength: StrengthScore; rank: numbe
               style={{ background: virtueColor }}
               aria-hidden
             />
-            <span className="text-[10px] text-muted-foreground">{strength.virtueName}</span>
+            <span className="text-xs text-muted-foreground">{strength.virtueName}</span>
           </div>
         </div>
         <span className={`shrink-0 font-serif text-2xl font-semibold ${copy.color}`}>
@@ -303,9 +303,7 @@ function StrengthCard({ strength, rank }: { strength: StrengthScore; rank: numbe
         />
       </div>
 
-      <span className={`mt-2 inline-block text-[10px] font-medium ${copy.color}`}>
-        {copy.label}
-      </span>
+      <span className={`mt-2 inline-block text-xs font-medium ${copy.color}`}>{copy.label}</span>
     </motion.div>
   );
 }
@@ -365,7 +363,7 @@ function VirtueRadar({ virtues }: { virtues: VirtueScore[] }) {
               style={{ background: VIRTUE_COLOR[v.id] }}
               aria-hidden
             />
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {v.name.split(" e Conhecimento")[0]} · {v.score}
             </span>
           </div>
@@ -421,7 +419,7 @@ function IcuftCard({
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{diagCopy.description}</p>
         <div className="mt-3 rounded-lg bg-muted/60 px-3 py-2">
-          <p className="text-[11px] leading-relaxed text-foreground">{diagCopy.action}</p>
+          <p className="text-xs leading-relaxed text-foreground">{diagCopy.action}</p>
         </div>
       </div>
     </div>
@@ -522,7 +520,7 @@ function AssessmentSection({ onComplete }: { onComplete: () => void }) {
           >
             {/* Progresso */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[10px] text-muted-foreground">
+              <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
                   {current + 1} de {totalItems}
                 </span>
@@ -547,7 +545,7 @@ function AssessmentSection({ onComplete }: { onComplete: () => void }) {
                   onValueChange={([v]) => setResponses((r) => ({ ...r, [item.itemId]: v ?? 5 }))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0 — Nunca descreve</span>
                   <span className="font-semibold text-foreground tabular-nums">{value}</span>
                   <span>10 — Descreve muito</span>
@@ -608,7 +606,7 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
         <div className="rounded-2xl border border-border/60 bg-card p-5">
           <p className="text-xs text-muted-foreground">Respondentes</p>
           <p className="mt-1 font-serif text-4xl text-foreground">{groupResult.n}</p>
-          <p className="text-[10px] text-muted-foreground">k-anonimato: n ≥ {groupResult.minN}</p>
+          <p className="text-xs text-muted-foreground">k-anonimato: n ≥ {groupResult.minN}</p>
         </div>
         <div className="rounded-2xl border border-border/60 bg-card p-5">
           <p className="text-xs text-muted-foreground">VIA-T Global médio</p>
@@ -656,7 +654,7 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
                 {groupResult.alerts.map((alert) => (
                   <div key={alert.id}>
                     <p className="text-sm text-amber-900 dark:text-amber-200">{alert.message}</p>
-                    <p className="mt-0.5 text-[11px] text-amber-700/70 dark:text-amber-400">
+                    <p className="mt-0.5 text-xs text-amber-700/70 dark:text-amber-400">
                       → {alert.action}
                     </p>
                   </div>
@@ -749,7 +747,7 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
                         style={{ background: virtueColor }}
                         aria-hidden
                       />
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {
                           groupResult.virtues
                             .find((v) => v.id === s.virtueId)
@@ -779,7 +777,7 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
             })}
         </div>
         {groupResult.hiddenStrengthCount > 0 && (
-          <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">
+          <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
             {groupResult.hiddenStrengthCount} força(s) oculta(s) por k-anonimato (n &lt;{" "}
             {groupResult.minN}).
           </p>
@@ -803,7 +801,7 @@ function OrgStrengthRow({ strength, rank }: { strength: ViatGroupStrength; rank:
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-card-foreground">{strength.name}</span>
-          <span className={`text-[10px] ${copy.color}`}>{copy.label}</span>
+          <span className={`text-xs ${copy.color}`}>{copy.label}</span>
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
           <div
@@ -827,7 +825,7 @@ function DisclaimerBanner({ text, compact = false }: { text: string; compact?: b
       aria-label="Aviso sobre o instrumento"
     >
       <p
-        className={`leading-relaxed text-amber-900 dark:text-amber-300 ${compact ? "text-[10px]" : "text-xs"}`}
+        className={`leading-relaxed text-amber-900 dark:text-amber-300 ${compact ? "text-xs" : "text-xs"}`}
       >
         {text}
       </p>

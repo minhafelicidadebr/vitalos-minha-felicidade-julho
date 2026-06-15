@@ -163,7 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SheetContent side="left" className="w-[88vw] max-w-sm overflow-y-auto p-0">
                 <SheetHeader className="border-b border-border/60 px-5 py-4 text-left">
                   <SheetTitle className="font-serif text-base">Navegação</SheetTitle>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                     {roleLabel}
                   </p>
                 </SheetHeader>
@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                   {groupsRendered.map((g) => (
                     <div key={g.id} className="mt-4 first:mt-0">
-                      <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                      <p className="px-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         {g.label}
                       </p>
                       <ul className="mt-1.5 space-y-0.5">
@@ -203,7 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ))}
                   {extras.length > 0 && (
                     <div className="mt-4">
-                      <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                      <p className="px-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Mais
                       </p>
                       <ul className="mt-1.5 space-y-0.5">
@@ -241,7 +241,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               <span className="hidden flex-col leading-tight md:flex">
                 <span className="font-serif text-base tracking-tight">4 Lentes VITA</span>
-                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   Sistema da Vitalidade Organizacional
                 </span>
               </span>
@@ -274,7 +274,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-60">
                     {g.hint && (
-                      <DropdownMenuLabel className="text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                      <DropdownMenuLabel className="text-xs font-normal uppercase tracking-[0.14em] text-muted-foreground">
                         {g.hint}
                       </DropdownMenuLabel>
                     )}
@@ -336,7 +336,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     aria-label="Trocar papel de demonstração"
                     className="absolute right-0 z-50 mt-1 w-56 rounded-xl border border-border bg-popover p-1 shadow-lg"
                   >
-                    <li className="px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    <li className="px-3 py-1.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
                       Demo — trocar papel
                     </li>
                     {DEMO_PERSONAS.map((id) => {

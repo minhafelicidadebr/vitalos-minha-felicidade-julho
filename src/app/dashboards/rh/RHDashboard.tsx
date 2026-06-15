@@ -162,13 +162,13 @@ function HeatmapCard({
         <table className="w-full min-w-[480px] border-separate border-spacing-1">
           <thead>
             <tr>
-              <th className="px-2 py-1 text-left text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              <th className="px-2 py-1 text-left text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Unidade
               </th>
               {lensMeta.map((l) => (
                 <th
                   key={l.lensId}
-                  className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground"
+                  className="px-2 py-1 text-center text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
                 >
                   <span className="inline-flex items-center gap-1">
                     <span
@@ -180,7 +180,7 @@ function HeatmapCard({
                   </span>
                 </th>
               ))}
-              <th className="px-2 py-1 text-right text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              <th className="px-2 py-1 text-right text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 n
               </th>
             </tr>
@@ -221,7 +221,7 @@ function HeatmapCard({
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <span className="h-2.5 w-2.5 rounded bg-red-200 dark:bg-red-950" /> &lt;500 crítico
         </span>
@@ -286,7 +286,7 @@ function SignalsCard() {
           </div>
         ))}
         {hiddenCount > 0 && (
-          <p className="rounded-lg border border-dashed border-border/60 px-3 py-2 text-[11px] text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs text-muted-foreground">
             🔒 {hiddenCount} sinal(is) oculto(s) — recortes com menos de {SIGNALS_K_MIN} pessoas
             ficam invisíveis para proteger a privacidade.
           </p>
@@ -295,7 +295,7 @@ function SignalsCard() {
 
       {/* Perception × behavior crossing */}
       <div className="mt-5 space-y-2">
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           Leituras cruzadas
         </p>
         {pairs.map((p) => (
@@ -319,14 +319,14 @@ function SignalsCard() {
                 {p.reading}
               </span>
             </div>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Percepção {p.perceptionScore} · Comportamento {p.behaviorValue}% — {p.note}
             </p>
           </div>
         ))}
       </div>
 
-      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
         🔒 {SIGNALS_CONSENT_NOTE}
       </p>
     </motion.div>
@@ -399,12 +399,12 @@ function AlertsCard({ alerts }: { alerts: RHAlert[] }) {
                 <span className={`h-2 w-2 shrink-0 rounded-full ${sv.dot}`} aria-hidden />
                 <p className="text-xs font-medium text-card-foreground">{a.title}</p>
               </div>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{a.detail}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{a.detail}</p>
             </div>
           );
         })}
       </div>
-      <p className="mt-3 text-[10px] text-muted-foreground">
+      <p className="mt-3 text-xs text-muted-foreground">
         Alertas apontam padrões agregados — nunca pessoas. Este indicador mostra caminhos, não
         culpados.
       </p>
@@ -438,7 +438,7 @@ function KanbanCard({ columns }: { columns: KanbanColumn[] }) {
       <div className="grid gap-3 sm:grid-cols-3">
         {columns.map((col) => (
           <div key={col.id} className="rounded-xl bg-muted/30 p-2">
-            <p className="mb-2 px-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            <p className="mb-2 px-1 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               {col.label} ({col.items.length})
             </p>
             <div className="space-y-2">
@@ -449,16 +449,16 @@ function KanbanCard({ columns }: { columns: KanbanColumn[] }) {
                   >
                     {item.title}
                   </p>
-                  <p className="mt-1.5 text-[10px] text-muted-foreground">{item.pillarName}</p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">{item.pillarName}</p>
                   <div className="mt-2 flex items-center justify-between gap-1">
-                    <span className="text-[10px] text-muted-foreground">{item.ownerName}</span>
+                    <span className="text-xs text-muted-foreground">{item.ownerName}</span>
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${EVIDENCE_STYLE[item.evidence]}`}
                     >
                       {item.evidence}
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">⏱ {item.dueLabel}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">⏱ {item.dueLabel}</p>
                 </div>
               ))}
             </div>

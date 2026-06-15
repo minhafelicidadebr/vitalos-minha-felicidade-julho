@@ -60,7 +60,7 @@ function CopsoqCard() {
         ))}
       </div>
 
-      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
         Resultados agregados de toda a organização — recortes menores seguem a regra de 5+
         respondentes. Instrumento aplicado em caráter educativo; a interpretação para fins de PGR
         cabe a profissional habilitado.
@@ -92,7 +92,7 @@ function SSTPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Domínio B · SST / CIPA
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Riscos psicossociais — NR-1</h1>
@@ -108,7 +108,7 @@ function SSTPage() {
           role="note"
           aria-label="Aviso obrigatório do Domínio B"
         >
-          <p className="flex items-start gap-2 text-sm leading-relaxed text-amber-900 dark:text-amber-300">
+          <p className="flex items-start gap-2 text-base leading-relaxed text-amber-900 dark:text-amber-300">
             <span className="mt-0.5 shrink-0" aria-hidden>
               ℹ
             </span>
@@ -139,13 +139,13 @@ function SSTPage() {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-card-foreground">{risk.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Pilar: {risk.relatedPillar}
                       {risk.actionsOpen > 0 && ` · ${risk.actionsOpen} ação(ões) em aberto`}
                     </p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${ex.cls}`}
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${ex.cls}`}
                   >
                     {ex.label}
                   </span>
@@ -190,7 +190,7 @@ function SSTPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
               {SST_LISTENING.microcopy}
             </p>
           </motion.div>
@@ -207,7 +207,7 @@ function SSTPage() {
               {SST_CHECKLIST.map((item) => (
                 <li key={item.id} className="flex items-start gap-2.5">
                   <span
-                    className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${
+                    className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-xs ${
                       item.done
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-muted-foreground/40"

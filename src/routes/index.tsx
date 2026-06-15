@@ -87,7 +87,7 @@ function Index() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
               VitalOS · Medir → Agir → Provar → Certificar
             </p>
@@ -117,7 +117,7 @@ function Index() {
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
               O arco do VitalOS
             </p>
             <h2 className="mt-2 font-serif text-2xl text-foreground sm:text-3xl">
@@ -147,15 +147,15 @@ function Index() {
                   className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                 />
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] tracking-widest text-muted-foreground">
+                  <span className="font-mono text-xs tracking-widest text-muted-foreground">
                     {s.step}
                   </span>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium uppercase tracking-[0.14em] text-primary">
                     {s.title}
                   </span>
                 </div>
                 <p className="mt-4 font-serif text-lg text-card-foreground">{s.headline}</p>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-2 flex-1 text-base leading-relaxed text-muted-foreground">
                   {s.detail}
                 </p>
                 <span className="mt-4 inline-flex items-center text-xs font-medium text-primary">
@@ -176,7 +176,7 @@ function Index() {
       {/* Painéis por papel */}
       <section className="border-t border-border/40 bg-muted/20 py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Painéis por papel
           </p>
           <h2 className="mt-2 font-serif text-2xl text-foreground sm:text-3xl">
@@ -197,7 +197,7 @@ function Index() {
                 to={item.to}
                 className="rounded-xl border border-border/70 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   {item.k}
                 </p>
                 <p className="mt-2 font-serif text-lg text-card-foreground">{item.v}</p>
@@ -215,9 +215,7 @@ function Index() {
               key={item.k}
               className="rounded-xl border border-border/70 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
             >
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                {item.k}
-              </p>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.k}</p>
               <p className="mt-2 font-serif text-lg text-card-foreground">{item.v}</p>
             </div>
           ))}

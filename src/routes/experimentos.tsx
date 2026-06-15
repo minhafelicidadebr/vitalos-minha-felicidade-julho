@@ -97,11 +97,11 @@ function ExperimentosPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {EXPERIMENT_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{EXPERIMENT_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {EXPERIMENT_INTRO.lead}
           </p>
         </motion.div>
@@ -204,12 +204,12 @@ function ConcludedCard({ vm }: { vm: CaseVM }) {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${copy.bg} ${copy.color}`}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${copy.bg} ${copy.color}`}
             >
               <span aria-hidden>{copy.icon}</span> {copy.label}
             </span>
             {vm.amb && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {vm.amb.emoji} {vm.amb.name}
               </span>
             )}
@@ -217,20 +217,20 @@ function ConcludedCard({ vm }: { vm: CaseVM }) {
           <h3 className="mt-1.5 font-medium text-card-foreground">
             {vm.protocol?.name ?? vm.lever?.label ?? vm.case.id}
           </h3>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {vm.case.pilotTeams.join(" · ")} · {vm.case.startedLabel} · n={v.n}
           </p>
         </div>
         {v.reportable && (
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               Efeito líquido
             </p>
             <p className={`font-serif text-3xl ${copy.color}`}>
               {v.netEffect >= 0 ? "+" : ""}
               {v.netEffect}
             </p>
-            <p className="text-[10px] text-muted-foreground">pts no pilar</p>
+            <p className="text-xs text-muted-foreground">pts no pilar</p>
           </div>
         )}
       </div>
@@ -241,12 +241,12 @@ function ConcludedCard({ vm }: { vm: CaseVM }) {
       )}
 
       {/* Nota honesta computada */}
-      <p className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-3 rounded-lg bg-muted/50 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
         {v.note}
       </p>
 
       {vm.protocol && (
-        <p className="mt-2 text-[10px] text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground">
           Base científica: {vm.protocol.scientificBasis}
         </p>
       )}
@@ -269,7 +269,7 @@ function HypothesisBar({
 
   return (
     <div className="mt-4">
-      <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
         <span>
           Hipótese: +{band.low} a +{band.high} pts
         </span>
@@ -302,9 +302,9 @@ function RunningCard({ vm }: { vm: CaseVM }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className={`text-[11px] font-medium ${status.color}`}>● {status.label}</span>
+            <span className={`text-xs font-medium ${status.color}`}>● {status.label}</span>
             {vm.amb && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {vm.amb.emoji} {vm.amb.name}
               </span>
             )}
@@ -312,22 +312,20 @@ function RunningCard({ vm }: { vm: CaseVM }) {
           <h3 className="mt-1.5 font-medium text-card-foreground">
             {vm.protocol?.name ?? vm.lever?.label}
           </h3>
-          <p className="text-[11px] text-muted-foreground">{vm.case.pilotTeams.join(" · ")}</p>
+          <p className="text-xs text-muted-foreground">{vm.case.pilotTeams.join(" · ")}</p>
         </div>
         {vm.design && (
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-              Hipótese
-            </p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Hipótese</p>
             <p className="font-serif text-2xl text-foreground">
               +{vm.design.expectedLiftBand.low}–{vm.design.expectedLiftBand.high}
             </p>
-            <p className="text-[10px] text-muted-foreground">pts esperados</p>
+            <p className="text-xs text-muted-foreground">pts esperados</p>
           </div>
         )}
       </div>
       <div className="mt-3">
-        <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+        <div className="mb-1 flex justify-between text-xs text-muted-foreground">
           <span>
             Semana {vm.case.weeksElapsed} de {vm.case.durationWeeks}
           </span>
@@ -363,7 +361,7 @@ function PlannedRow({
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {amb ? `${amb.emoji} ${amb.name}` : "Responsável a definir"}
           {design ? ` · ~${design.recommendedDurationWeeks} semanas · n≥${design.minN}` : ""}
         </p>
@@ -374,7 +372,7 @@ function PlannedRow({
             <span className="block font-serif text-lg text-foreground">
               +{design.expectedLiftBand.low}–{design.expectedLiftBand.high}
             </span>
-            <span className="text-[10px] text-muted-foreground">pts (hipótese)</span>
+            <span className="text-xs text-muted-foreground">pts (hipótese)</span>
           </span>
         )}
         <Link

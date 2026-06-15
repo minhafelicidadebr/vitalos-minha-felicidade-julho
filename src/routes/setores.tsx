@@ -43,11 +43,11 @@ function SetoresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {SETORES_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{SETORES_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {SETORES_INTRO.lead}
           </p>
         </motion.div>
@@ -63,7 +63,7 @@ function SetoresPage() {
             <p className="text-sm font-medium text-foreground">
               Os mesmos 16 motores — zero linha de engine alterada.
             </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               <code className="rounded bg-muted px-1 py-0.5">calculateIVO(ciclo, framework)</code> —
               só o framework (JSON) muda. Engine ≠ Domínio, provado.
             </p>
@@ -88,9 +88,7 @@ function SetoresPage() {
                       {st.label}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    {s.product}
-                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.product}</p>
                 </div>
               );
             })}
@@ -126,10 +124,10 @@ function SectorCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{sector}</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{sector}</p>
           <p className="font-medium text-card-foreground">{org}</p>
         </div>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {index}
         </span>
       </div>
@@ -153,7 +151,7 @@ function SectorCard({
                 style={{ width: `${(lens.score / 1000) * 100}%`, background: lens.color }}
               />
             </div>
-            <span className="w-10 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+            <span className="w-10 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
               {lens.score}
             </span>
           </div>

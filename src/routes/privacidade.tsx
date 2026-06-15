@@ -115,11 +115,11 @@ function PrivacidadePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {PRIVACY_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{PRIVACY_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {PRIVACY_INTRO.lead}
           </p>
         </motion.div>
@@ -137,7 +137,7 @@ function PrivacidadePage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium text-card-foreground">{ch.label}</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                       {ch.feeds}
                     </p>
                   </div>
@@ -158,7 +158,7 @@ function PrivacidadePage() {
                   </button>
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                   <span
                     className={`rounded-full px-2 py-0.5 font-medium ${
                       u.usable
@@ -174,13 +174,13 @@ function PrivacidadePage() {
                 </div>
 
                 <div className="mt-2 grid gap-1 sm:grid-cols-2">
-                  <p className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground">
                     <span className="text-emerald-500/70" aria-hidden>
                       ✓
                     </span>
                     {ch.iaCan}
                   </p>
-                  <p className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground">
                     <span className="text-red-500/60" aria-hidden>
                       ✕
                     </span>
@@ -198,7 +198,7 @@ function PrivacidadePage() {
             <h2 className="font-serif text-lg text-foreground">
               O que a FlorescerIA pode propor agora
             </h2>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {allowed.length} ativas · {blocked.length} bloqueadas por você
             </span>
           </div>
@@ -227,14 +227,14 @@ function PrivacidadePage() {
           <h2 className="mb-3 font-serif text-base text-foreground">Limites invioláveis</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] text-red-600 dark:text-red-400">
+              <p className="mb-1.5 text-xs uppercase tracking-[0.12em] text-red-600 dark:text-red-400">
                 Nunca
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.never.map((g) => (
                   <li
                     key={g}
-                    className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
+                    className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground"
                   >
                     <span className="text-red-500/60" aria-hidden>
                       ✕
@@ -245,14 +245,14 @@ function PrivacidadePage() {
               </ul>
             </div>
             <div>
-              <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
+              <p className="mb-1.5 text-xs uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
                 Sempre
               </p>
               <ul className="space-y-1">
                 {AI_GUARDRAILS.always.map((g) => (
                   <li
                     key={g}
-                    className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground"
+                    className="flex gap-1.5 text-xs leading-relaxed text-muted-foreground"
                   >
                     <span className="text-emerald-500/60" aria-hidden>
                       ✓
@@ -270,9 +270,7 @@ function PrivacidadePage() {
           {DATA_RIGHTS.map((r) => (
             <div key={r.id} className="rounded-2xl border border-border/60 bg-card p-4">
               <p className="text-sm font-medium text-card-foreground">{r.label}</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                {r.description}
-              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{r.description}</p>
             </div>
           ))}
         </section>
@@ -325,7 +323,7 @@ function PreviewRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-medium text-card-foreground">{kind.label}</span>
+          <span className="text-xs font-medium text-card-foreground">{kind.label}</span>
           {!blocked && (
             <span
               className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${urgency.bg} ${urgency.color}`}

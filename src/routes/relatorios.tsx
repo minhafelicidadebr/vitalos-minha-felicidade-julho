@@ -25,7 +25,7 @@ function RelatoriosPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Evidências · Relatórios · Certificação
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Prova, não promessa</h1>
@@ -70,7 +70,7 @@ function SealCard() {
           </span>
           <div>
             <p className="font-serif text-lg font-semibold text-foreground">{s.currentLevelName}</p>
-            <p className="text-[10px] text-muted-foreground">IVO {s.ivoScore} · T1/2026</p>
+            <p className="text-xs text-muted-foreground">IVO {s.ivoScore} · T1/2026</p>
           </div>
         </div>
       </div>
@@ -89,14 +89,14 @@ function SealCard() {
       </div>
 
       {/* Requirements */}
-      <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
         Requisitos do próximo nível ({doneCount}/{s.requirements.length})
       </p>
       <ul className="mt-2 space-y-2">
         {s.requirements.map((r) => (
           <li key={r.id} className="flex items-start gap-2.5">
             <span
-              className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] ${
+              className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-xs ${
                 r.done
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-muted-foreground/40"
@@ -111,13 +111,13 @@ function SealCard() {
               >
                 {r.label}
               </span>
-              <span className="ml-2 text-[10px] text-muted-foreground">{r.detail}</span>
+              <span className="ml-2 text-xs text-muted-foreground">{r.detail}</span>
             </div>
           </li>
         ))}
       </ul>
 
-      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">{s.publicNote}</p>
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{s.publicNote}</p>
     </motion.div>
   );
 }
@@ -149,7 +149,7 @@ function EvidencesCard() {
             </span>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-card-foreground">{ev.title}</p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {ev.linkedTo} · {ev.submittedBy} · {ev.date}
               </p>
             </div>
@@ -196,7 +196,7 @@ function ReportsCard() {
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                   {rep.description}
                 </p>
-                <p className="mt-1 text-[10px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Para: {rep.audience} · {rep.pages} pág.
                 </p>
               </div>
@@ -208,7 +208,7 @@ function ReportsCard() {
               </button>
             </div>
             {generatedId === rep.id && (
-              <p className="mt-2 text-[10px] text-green-600 dark:text-green-400">
+              <p className="mt-2 text-xs text-green-600 dark:text-green-400">
                 ✓ Geração simulada (demo) — exportação real de PDF chega com o backend na Fase 2.
               </p>
             )}

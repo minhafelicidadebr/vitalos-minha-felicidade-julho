@@ -62,11 +62,11 @@ function SeloPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {SEAL_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{SEAL_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {SEAL_INTRO.lead}
           </p>
         </motion.div>
@@ -118,7 +118,7 @@ function SeloPage() {
             />
             {result.granted ? "Selo concedido" : "Selo não concedido"}
           </span>
-          <p className="relative mt-3 max-w-md text-[11px] leading-relaxed text-muted-foreground">
+          <p className="relative mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
             {result.granted ? SEAL_INTRO.grantedNote : SEAL_INTRO.pendingNote}
           </p>
         </motion.div>
@@ -200,10 +200,10 @@ function CriterionRow({ criterion }: { criterion: CriterionResult }) {
               essencial
             </span>
           )}
-          <span className={`text-[10px] font-medium ${s.color}`}>{s.label}</span>
+          <span className={`text-xs font-medium ${s.color}`}>{s.label}</span>
         </div>
-        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{criterion.note}</p>
-        <p className="mt-1 text-[10px] text-muted-foreground">
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{criterion.note}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
           <span className="tabular-nums">{criterion.value}</span> · alvo: {criterion.target}
         </p>
       </div>

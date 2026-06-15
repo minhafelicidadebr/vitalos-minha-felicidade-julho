@@ -29,11 +29,11 @@ function AcademiaPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Academia do Florescimento
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Aprender é parte do trabalho</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
             Trilhas curtas (módulos de 5–8 min) selecionadas para o seu papel. Concluir rende Pontos
             de Aprendizagem — nunca cobrança.
           </p>
@@ -82,13 +82,13 @@ function PathCard({ path, delay }: { path: LearningPath; delay: number }) {
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium text-card-foreground">{path.title}</p>
             {complete && (
-              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
                 ✓ Concluída
               </span>
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">{path.description}</p>
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             {path.pillarName} · {path.modules.length} módulos · +{path.learnPoints} pts de
             aprendizagem
           </p>
@@ -122,7 +122,7 @@ function PathCard({ path, delay }: { path: LearningPath; delay: number }) {
                   >
                     {m.title}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {m.format} · {m.minutes} min
                   </p>
                 </div>

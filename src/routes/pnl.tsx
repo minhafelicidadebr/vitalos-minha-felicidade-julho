@@ -54,11 +54,9 @@ function PnLPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Vitality P&L™
-          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vitality P&L™</p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">O custo invisível, visível</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             Toda estimativa mostra a própria fórmula. Edite os inputs com os números da sua
             realidade — honestidade metodológica é a feature.
           </p>
@@ -118,7 +116,7 @@ function PnLPage() {
             {/* Headline numbers */}
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Custo corrente/ano
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
@@ -126,7 +124,7 @@ function PnLPage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-green-300/50 bg-green-50/50 p-4 shadow-sm dark:border-green-800/50 dark:bg-green-950/20">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Custo evitável
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-green-700 dark:text-green-400 sm:text-2xl">
@@ -134,7 +132,7 @@ function PnLPage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-red-300/50 bg-red-50/50 p-4 shadow-sm dark:border-red-900/50 dark:bg-red-950/20">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Inação (12m)
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-red-600 dark:text-red-400 sm:text-2xl">
@@ -160,7 +158,7 @@ function PnLPage() {
                         {brl(line.value)}
                       </p>
                     </div>
-                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                       = {line.formula}
                     </p>
                   </div>

@@ -21,13 +21,11 @@ function LabPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Culture Lab™
-          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Culture Lab™</p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">
             Cultura como ciência experimental
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             Ative um protocolo baseado em evidência em equipes-piloto, meça antes/depois contra
             grupos de comparação e descubra o que funciona <em>na sua</em> cultura.
           </p>
@@ -66,18 +64,18 @@ function ExperimentsSection({ experiments }: { experiments: Experiment[] }) {
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-medium text-card-foreground">{ex.protocolName}</p>
               <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[ex.status]}`}
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[ex.status]}`}
               >
                 {ex.status}
               </span>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {ex.pilotTeams.length} equipe(s): {ex.pilotTeams.join(", ")} · {ex.startedLabel}
             </p>
 
             {ex.status === "rodando" && (
               <div className="mt-3">
-                <div className="flex justify-between text-[10px] text-muted-foreground">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>
                     Semana {ex.weeksElapsed} de {ex.durationWeeks}
                   </span>
@@ -108,10 +106,10 @@ function ExperimentsSection({ experiments }: { experiments: Experiment[] }) {
                     +{ex.result.after - ex.result.before}
                   </span>
                 </div>
-                <p className="mt-1 text-center text-[10px] text-muted-foreground">
+                <p className="mt-1 text-center text-xs text-muted-foreground">
                   Comparação (sem protocolo): +{ex.result.comparisonDelta} no mesmo período
                 </p>
-                <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   {ex.result.confidenceNote}
                 </p>
               </div>
@@ -165,7 +163,7 @@ function ProtocolLibrary({ protocols }: { protocols: ProtocolDef[] }) {
               >
                 <div>
                   <p className="text-sm font-medium text-card-foreground">{p.name}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {p.targetPillarName} · {p.durationWeeks} semanas · efeito esperado{" "}
                     {p.expectedEffect}
                   </p>
@@ -182,7 +180,7 @@ function ProtocolLibrary({ protocols }: { protocols: ProtocolDef[] }) {
               {isOpen && (
                 <div className="border-t border-border/50 px-5 py-4 space-y-3">
                   <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                       Passos
                     </p>
                     <ol className="mt-1.5 space-y-1">
@@ -197,7 +195,7 @@ function ProtocolLibrary({ protocols }: { protocols: ProtocolDef[] }) {
                       ))}
                     </ol>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     📚 {p.scientificBasis} · mínimo {p.minTeamSize} pessoas por equipe (k-anonymity)
                   </p>
                   {activatedId === p.id ? (

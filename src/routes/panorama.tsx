@@ -154,7 +154,7 @@ function PanoramaPage() {
           className="flex flex-wrap items-start justify-between gap-3"
         >
           <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
               Panorama Executivo · {org.name}
             </p>
             <h1 className="mt-1 font-serif text-3xl text-foreground">Vitalidade em uma página</h1>
@@ -207,13 +207,11 @@ function PanoramaPage() {
                     →
                   </span>
                 )}
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                   {step.label}
                 </p>
                 <p className="mt-1 font-medium text-card-foreground">{step.headline}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {step.detail}
-                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
               </div>
             ))}
           </div>
@@ -222,29 +220,31 @@ function PanoramaPage() {
         {/* Narrativa */}
         <section className="rounded-2xl border border-border/60 bg-muted/30 p-5">
           <h2 className="mb-2 font-serif text-base text-foreground">Leitura para a diretoria</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">{panorama.narrative}</p>
+          <p className="text-base leading-relaxed text-muted-foreground">{panorama.narrative}</p>
         </section>
 
         {/* Próxima ação + prova */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-primary">Próxima ação</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-foreground">{panorama.nextAction}</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-primary">Próxima ação</p>
+            <p className="mt-1.5 text-base leading-relaxed text-foreground">
+              {panorama.nextAction}
+            </p>
             <Link
               to="/prioridades"
-              className="mt-3 inline-block text-[11px] text-primary underline underline-offset-2"
+              className="mt-3 inline-block text-xs text-primary underline underline-offset-2"
             >
               ver a fila de prioridades →
             </Link>
           </div>
           <div className="rounded-2xl border border-border/60 bg-card p-5">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               Prova acumulada
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-foreground">{panorama.proofLine}</p>
+            <p className="mt-1.5 text-base leading-relaxed text-foreground">{panorama.proofLine}</p>
             <Link
               to="/experimentos"
-              className="mt-3 inline-block text-[11px] text-primary underline underline-offset-2"
+              className="mt-3 inline-block text-xs text-primary underline underline-offset-2"
             >
               ver os experimentos →
             </Link>
@@ -287,7 +287,7 @@ function HeroMetric({ metric, delay }: { metric: PanoramaMetric; delay: number }
       transition={{ duration: 0.35, delay }}
       className="rounded-2xl border border-border/60 bg-card p-4"
     >
-      <p className="text-[11px] text-muted-foreground">{metric.label}</p>
+      <p className="text-xs text-muted-foreground">{metric.label}</p>
       <p className="mt-1 flex items-baseline gap-1.5 font-serif text-3xl text-foreground">
         {metric.value}
         {trendIcon && (
@@ -297,7 +297,7 @@ function HeroMetric({ metric, delay }: { metric: PanoramaMetric; delay: number }
         )}
       </p>
       {metric.sub && (
-        <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{metric.sub}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{metric.sub}</p>
       )}
     </motion.div>
   );

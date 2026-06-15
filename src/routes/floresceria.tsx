@@ -40,7 +40,7 @@ function FlorescerIAPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             FlorescerIA™ · respostas mockadas — Fase 2 conecta o modelo real
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">
@@ -112,14 +112,14 @@ function FlorescerIAPage() {
               transition={{ duration: 0.3 }}
               className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
             >
-              <p className="text-sm leading-relaxed text-card-foreground whitespace-pre-line">
+              <p className="text-base leading-relaxed text-card-foreground whitespace-pre-line">
                 {response.text}
               </p>
 
               {/* Proposal — human-in-the-loop */}
               {response.proposal && (
                 <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">
                     Proposta — requer sua aprovação
                   </p>
                   <p className="mt-1.5 text-sm font-medium text-card-foreground">
@@ -172,7 +172,7 @@ function FlorescerIAPage() {
           <p className="mb-3 font-medium text-card-foreground">Guardrails invioláveis</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-red-600 dark:text-red-400">
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.14em] text-red-600 dark:text-red-400">
                 Nunca
               </p>
               <ul className="space-y-1">
@@ -190,7 +190,7 @@ function FlorescerIAPage() {
               </ul>
             </div>
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-green-700 dark:text-green-400">
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.14em] text-green-700 dark:text-green-400">
                 Sempre
               </p>
               <ul className="space-y-1">

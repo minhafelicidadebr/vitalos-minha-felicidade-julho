@@ -68,11 +68,11 @@ function EvolucaoPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {TREND_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{TREND_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {TREND_INTRO.lead}
           </p>
         </motion.div>
@@ -84,7 +84,7 @@ function EvolucaoPage() {
             <p className={`mt-1 font-serif text-2xl ${mom.color}`}>
               <span aria-hidden>{mom.icon}</span> {mom.label}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {signed(trend.slopePerCycle)} pts/ciclo em média
             </p>
           </div>
@@ -98,12 +98,12 @@ function EvolucaoPage() {
                 {signed(trend.totalDelta)}
               </span>
             </p>
-            <p className="text-[10px] text-muted-foreground">de {trend.firstIvo} no 1º ciclo</p>
+            <p className="text-xs text-muted-foreground">de {trend.firstIvo} no 1º ciclo</p>
           </div>
           <div className="rounded-2xl border border-border/60 bg-card p-5">
             <p className="text-xs text-muted-foreground">Tendência do próximo ciclo</p>
             <p className="mt-1 font-serif text-3xl text-foreground">~{trend.projectedNext}</p>
-            <p className="text-[10px] text-muted-foreground">extrapolação linear (não promessa)</p>
+            <p className="text-xs text-muted-foreground">extrapolação linear (não promessa)</p>
           </div>
         </div>
 
@@ -173,7 +173,7 @@ function EvolucaoPage() {
             ))}
           </div>
           {trend.bestLens && trend.worstLens && trend.bestLens.id !== trend.worstLens.id && (
-            <p className="mt-3 text-[11px] text-muted-foreground">
+            <p className="mt-3 text-xs text-muted-foreground">
               <span className="font-medium text-emerald-600 dark:text-emerald-400">
                 {trend.bestLens.name}
               </span>{" "}
@@ -211,7 +211,7 @@ function LensRow({ lens }: { lens: LensTrend }) {
     <div className="flex items-center gap-3">
       <span className="w-36 shrink-0 truncate text-sm text-card-foreground">{lens.name}</span>
       <div className="flex flex-1 items-center gap-2">
-        <span className="w-10 text-right text-[11px] tabular-nums text-muted-foreground">
+        <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
           {lens.first}
         </span>
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
@@ -220,7 +220,7 @@ function LensRow({ lens }: { lens: LensTrend }) {
             style={{ width: `${(lens.last / 1000) * 100}%` }}
           />
         </div>
-        <span className="w-10 text-[11px] tabular-nums text-foreground">{lens.last}</span>
+        <span className="w-10 text-xs tabular-nums text-foreground">{lens.last}</span>
       </div>
       <span
         className={`w-12 shrink-0 text-right text-xs font-medium tabular-nums ${up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}

@@ -21,11 +21,9 @@ function TrustPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Trust Ledger™
-          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Trust Ledger™</p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Sua privacidade, verificável</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
             Esta tela mostra exatamente o que cada pessoa pode — e não pode — ver sobre você. Não é
             política de privacidade em juridiquês: é a interface da confiança.
           </p>
@@ -55,7 +53,7 @@ function PromisesCard() {
         {TRUST_PROMISES.map((p) => (
           <li
             key={p}
-            className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground"
+            className="flex items-start gap-2.5 text-base leading-relaxed text-muted-foreground"
           >
             <span className="mt-0.5 shrink-0 text-primary" aria-hidden>
               🔒
@@ -87,7 +85,7 @@ function VisibilityCard() {
             <p className="mb-2 text-sm font-semibold text-card-foreground">{rule.audienceLabel}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-green-700 dark:text-green-400">
+                <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.14em] text-green-700 dark:text-green-400">
                   Pode ver
                 </p>
                 <ul className="space-y-1">
@@ -109,7 +107,7 @@ function VisibilityCard() {
               </div>
               {rule.cannotSee.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-red-600 dark:text-red-400">
+                  <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.14em] text-red-600 dark:text-red-400">
                     Nunca vê
                   </p>
                   <ul className="space-y-1">
@@ -172,7 +170,7 @@ function ConsentsCard() {
                 {c.description}
               </p>
               {savedId === c.id && (
-                <p className="mt-1 text-[10px] text-green-600 dark:text-green-400">
+                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                   ✓ Preferência salva
                 </p>
               )}
@@ -225,7 +223,7 @@ function RightsCard() {
             <p className="text-sm font-medium text-card-foreground">{right.label}</p>
             <p className="text-xs leading-relaxed text-muted-foreground">{right.description}</p>
             {requested === right.id && (
-              <p className="mt-1 text-[10px] text-green-600 dark:text-green-400">
+              <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                 ✓ Solicitação registrada (demo) — em produção, processada em até 15 dias
               </p>
             )}

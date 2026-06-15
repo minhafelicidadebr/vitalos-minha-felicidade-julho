@@ -71,7 +71,7 @@ function SinaisPage() {
               🔒
             </span>
             <h2 className="mt-2 font-serif text-xl text-foreground">{SIGNALS_INTRO.lockedTitle}</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-muted-foreground">
               {SIGNALS_INTRO.lockedNote}
             </p>
             <Link
@@ -96,7 +96,7 @@ function SinaisPage() {
           <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:col-span-1">
             <p className="text-xs text-muted-foreground">Alinhamento percepção × comportamento</p>
             <p className="mt-1 font-serif text-5xl text-foreground">{data.alignmentIndex}</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               0 = dizem e fazem o oposto · 100 = idênticos
             </p>
           </div>
@@ -112,7 +112,7 @@ function SinaisPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {QUADRANT_COPY[data.topDivergence.quadrant]!.action}
                 </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   percepção {data.topDivergence.perceptionScore} · comportamento{" "}
                   {data.topDivergence.behaviorValue} · {data.divergentCount} divergência(s) no total
                 </p>
@@ -152,7 +152,7 @@ function SinaisPage() {
                     style={{ width: `${s.value}%` }}
                   />
                 </div>
-                <span className="w-20 shrink-0 text-right text-[11px] text-muted-foreground">
+                <span className="w-20 shrink-0 text-right text-xs text-muted-foreground">
                   {s.value}
                   <span
                     className={
@@ -169,11 +169,11 @@ function SinaisPage() {
             ))}
           </div>
           {hiddenCount > 0 && (
-            <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400">
+            <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
               {hiddenCount} sinal(is) oculto(s) por k-anonimato (n &lt; 5).
             </p>
           )}
-          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             {SIGNALS_CONSENT_NOTE}
           </p>
         </section>
@@ -215,11 +215,11 @@ function Header() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
     >
-      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
         {SIGNALS_INTRO.eyebrow}
       </p>
       <h1 className="mt-1 font-serif text-3xl text-foreground">{SIGNALS_INTRO.title}</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+      <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
         {SIGNALS_INTRO.lead}
       </p>
     </motion.div>
@@ -231,15 +231,15 @@ function QuadrantCard({ quadrant, pairs }: { quadrant: Quadrant; pairs: Reconcil
   return (
     <div className={`rounded-2xl border border-border/60 p-4 ${copy.bg}`}>
       <p className={`text-sm font-medium ${copy.color}`}>{copy.label}</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{copy.action}</p>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{copy.action}</p>
       <div className="mt-2.5 space-y-1">
         {pairs.length === 0 ? (
-          <p className="text-[11px] text-muted-foreground/70">— nenhum pilar aqui</p>
+          <p className="text-xs text-muted-foreground/70">— nenhum pilar aqui</p>
         ) : (
           pairs.map((p) => (
             <div key={p.pillarId} className="flex items-center justify-between gap-2">
               <span className="truncate text-xs text-card-foreground">{p.pillarName}</span>
-              <span className="shrink-0 text-[10px] text-muted-foreground">
+              <span className="shrink-0 text-xs text-muted-foreground">
                 P {p.perceptionScore} · C {p.behaviorValue}
               </span>
             </div>

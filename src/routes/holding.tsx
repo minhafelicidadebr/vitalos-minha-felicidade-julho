@@ -23,7 +23,7 @@ function HoldingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Holding</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Holding</p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">Carteira de Vitalidade</h1>
         </motion.div>
 
@@ -47,9 +47,7 @@ function HoldingPage() {
               key={s.label}
               className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
             >
-              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {s.label}
-              </p>
+              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{s.label}</p>
               <p className="mt-1 font-serif text-2xl font-semibold text-foreground">{s.value}</p>
             </div>
           ))}
@@ -68,7 +66,7 @@ function HoldingPage() {
           <div className="overflow-x-auto px-3 pb-4">
             <table className="w-full min-w-[560px]">
               <thead>
-                <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <tr className="text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
                   <th className="px-3 py-2 font-medium">Organização</th>
                   <th className="px-3 py-2 font-medium text-right">Pessoas</th>
                   <th className="px-3 py-2 font-medium text-right">IVO</th>
@@ -86,7 +84,7 @@ function HoldingPage() {
                     >
                       <td className="rounded-l-xl px-3 py-3">
                         <p className="font-medium text-card-foreground">{org.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{org.sector}</p>
+                        <p className="text-xs text-muted-foreground">{org.sector}</p>
                       </td>
                       <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
                         {org.employees.toLocaleString("pt-BR")}
@@ -97,7 +95,7 @@ function HoldingPage() {
                             <span className="font-semibold tabular-nums text-foreground">
                               {org.ivoScore}
                             </span>
-                            <p className="text-[10px] text-muted-foreground">{org.maturityName}</p>
+                            <p className="text-xs text-muted-foreground">{org.maturityName}</p>
                           </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">ciclo em curso</span>

@@ -47,11 +47,11 @@ function FibtPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {FIBT_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{FIBT_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {FIBT_INTRO.lead}
           </p>
         </motion.div>
@@ -118,7 +118,7 @@ function FibtPage() {
                   </p>
                 </div>
                 <p className="mt-1 font-serif text-3xl text-foreground">{e.value}</p>
-                <p className="text-[10px] text-muted-foreground">/ 100 médio dos domínios</p>
+                <p className="text-xs text-muted-foreground">/ 100 médio dos domínios</p>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {e.domains.map((d) => (
                     <span
@@ -132,7 +132,7 @@ function FibtPage() {
               </div>
             ))}
           </div>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             Veja a prontidão completa em{" "}
             <Link to="/esg" className="underline underline-offset-2 hover:text-foreground">
               ESG &amp; ODS
@@ -159,7 +159,7 @@ function FibtPage() {
                       style={{ width: `${d.normalized}%`, background: color }}
                     />
                   </div>
-                  <span className="w-20 shrink-0 text-right text-[11px] text-muted-foreground">
+                  <span className="w-20 shrink-0 text-right text-xs text-muted-foreground">
                     {d.normalized}/100 · {d.mean}/4
                   </span>
                 </div>

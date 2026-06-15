@@ -54,7 +54,7 @@ function DesignSystemPage() {
     <AppShell>
       <div className="mx-auto max-w-6xl px-6 py-12">
         <header className="mb-10">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             Fundação · Design System
           </p>
           <h1 className="mt-3 font-serif text-4xl tracking-tight text-foreground">
@@ -83,7 +83,7 @@ function DesignSystemPage() {
                 />
                 <div className="p-3">
                   <p className="font-mono text-xs text-foreground">--color-{c.token}</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">{c.description}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{c.description}</p>
                 </div>
               </div>
             ))}

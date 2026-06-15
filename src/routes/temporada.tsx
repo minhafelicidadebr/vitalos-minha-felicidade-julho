@@ -41,11 +41,11 @@ function TemporadaPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {SEASON_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{SEASON_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {SEASON_INTRO.lead}
           </p>
         </motion.div>
@@ -126,7 +126,7 @@ function StageChip({
       <span className="text-xs font-semibold" style={{ color }}>
         {label}
       </span>
-      <span className="text-[10px] text-muted-foreground">{sub}</span>
+      <span className="text-xs text-muted-foreground">{sub}</span>
     </span>
   );
   return route ? (
@@ -147,10 +147,10 @@ function JourneySpineBanner() {
       className="rounded-2xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-5 shadow-sm"
       aria-label="Por que esta ordem"
     >
-      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
         Por que esta ordem
       </p>
-      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-card-foreground">
+      <p className="mt-1.5 max-w-3xl text-base leading-relaxed text-card-foreground">
         {JOURNEY_RATIONALE}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-1.5">
@@ -212,7 +212,7 @@ function CurrentStatusStrip({ overview }: { overview: ReturnType<typeof computeS
           {yearProgressPct}
           <span className="text-base text-muted-foreground">%</span>
         </p>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Semana {overview.programWeek} de {overview.totalWeeks}
         </p>
       </div>
@@ -222,7 +222,7 @@ function CurrentStatusStrip({ overview }: { overview: ReturnType<typeof computeS
         {nextMilestone ? (
           <>
             <p className="mt-1 text-sm font-medium text-foreground">{nextMilestone.label}</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {nextMilestone.kind === "fase" ? "Próxima fase" : "Nova temporada"} · em{" "}
               {nextMilestone.weeksAway} {nextMilestone.weeksAway === 1 ? "semana" : "semanas"}
             </p>
@@ -306,7 +306,7 @@ function SeasonTrack({
     >
       {/* Cabeçalho da temporada */}
       <div className="mb-1.5 flex items-center justify-between gap-1 px-1">
-        <span className="text-[10px] font-semibold text-muted-foreground">{season.cycleId}</span>
+        <span className="text-xs font-semibold text-muted-foreground">{season.cycleId}</span>
         <StatusDot status={season.status} color={season.color} />
       </div>
 
@@ -382,7 +382,7 @@ function SeasonDetailPanel({
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/50 px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               {season.layerLabel}
             </span>
             <StatusBadge status={season.status} />
@@ -391,7 +391,7 @@ function SeasonDetailPanel({
           <p className="mt-1 text-sm italic text-muted-foreground">“{season.question}”</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-muted-foreground">Instrumento âncora</p>
+          <p className="text-xs text-muted-foreground">Instrumento âncora</p>
           <p
             className="rounded-lg px-2.5 py-1 text-sm font-medium"
             style={{ background: `${season.color}1A`, color: season.color }}
@@ -439,7 +439,7 @@ function SeasonDetailPanel({
               <div className="flex-1 pb-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h4 className="font-medium text-card-foreground">{phase.label}</h4>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     semanas {phase.weekStart}–{phase.weekEnd}
                   </span>
                   {isCurrent && (
@@ -451,7 +451,7 @@ function SeasonDetailPanel({
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-base leading-relaxed text-muted-foreground">
                   {phase.objective}
                 </p>
 
@@ -460,13 +460,13 @@ function SeasonDetailPanel({
                   {phase.instruments.map((inst) => (
                     <span
                       key={inst}
-                      className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground"
+                      className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground"
                     >
                       {inst}
                     </span>
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">Entrega:</span> {phase.deliverable}
                 </p>
               </div>
@@ -502,7 +502,7 @@ function ThisWeekPanel({ overview }: { overview: ReturnType<typeof computeSeason
     <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h3 className="font-serif text-lg text-foreground">O que fazer esta semana</h3>
-        <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
           Fase {currentPhase.label}
         </span>
       </div>
@@ -526,7 +526,7 @@ function ThisWeekPanel({ overview }: { overview: ReturnType<typeof computeSeason
               <div className="flex-1">
                 <p className="text-sm text-card-foreground">{activity.title}</p>
                 <span
-                  className="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium"
+                  className="mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium"
                   style={{ background: `${ownerColor}1A`, color: ownerColor }}
                 >
                   {activity.owner}
@@ -537,7 +537,7 @@ function ThisWeekPanel({ overview }: { overview: ReturnType<typeof computeSeason
         })}
       </div>
 
-      <p className="mt-3 text-[11px] text-muted-foreground">
+      <p className="mt-3 text-xs text-muted-foreground">
         Cada atividade tem um responsável claro. É assim que o dado vira ação — e a ação vira
         evidência para o Selo Empresa Viva.
       </p>
@@ -560,12 +560,12 @@ function MeteGlossary() {
         {METE_GLOSSARY.map((m, i) => (
           <div key={m.id} className="rounded-xl border border-border/50 bg-card p-3">
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                 {i + 1}
               </span>
               <p className="text-sm font-medium text-card-foreground">{m.label}</p>
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{m.gist}</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{m.gist}</p>
           </div>
         ))}
       </div>

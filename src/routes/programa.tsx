@@ -28,7 +28,7 @@ function ProgramaPage() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             {PROGRAMA_HERO.eyebrow}
           </p>
           <h1 className="mx-auto mt-3 max-w-3xl font-serif text-4xl leading-tight text-foreground sm:text-5xl">
@@ -61,7 +61,7 @@ function ProgramaPage() {
           <h2 className="font-serif text-2xl text-foreground">{PROGRAMA_PROBLEM.title}</h2>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {PROGRAMA_PROBLEM.bullets.map((b) => (
-              <li key={b} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+              <li key={b} className="flex gap-2 text-base leading-relaxed text-muted-foreground">
                 <span className="text-red-500/60" aria-hidden>
                   ✕
                 </span>
@@ -90,13 +90,9 @@ function ProgramaPage() {
                     →
                   </span>
                 )}
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {j.q}
-                </p>
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{j.q}</p>
                 <p className="mt-1 text-sm font-medium text-card-foreground">{j.lens}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {j.promise}
-                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{j.promise}</p>
               </div>
             ))}
           </div>
@@ -118,7 +114,7 @@ function ProgramaPage() {
                   i > 0 ? "border-t border-border/40" : ""
                 }`}
               >
-                <span className="w-36 shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <span className="w-36 shrink-0 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   {h.layer}
                 </span>
                 <span className="font-serif text-lg text-foreground">{h.value}</span>
@@ -135,7 +131,7 @@ function ProgramaPage() {
           <h2 className="font-serif text-2xl text-foreground">O que nenhum concorrente oferece</h2>
           <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
             {PROGRAMA_DIFFERENTIATORS.map((d) => (
-              <li key={d} className="flex gap-2 text-sm leading-relaxed text-foreground">
+              <li key={d} className="flex gap-2 text-base leading-relaxed text-foreground">
                 <span className="text-emerald-500/70" aria-hidden>
                   ✓
                 </span>
@@ -160,7 +156,7 @@ function ProgramaPage() {
           <h2 className="mx-auto max-w-xl font-serif text-2xl text-foreground">
             {PROGRAMA_CLOSING.title}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {PROGRAMA_CLOSING.text}
           </p>
           <Link
@@ -178,7 +174,7 @@ function ProgramaPage() {
 function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
       <h2 className="mt-1 font-serif text-2xl text-foreground sm:text-3xl">{title}</h2>
     </div>
   );
@@ -194,15 +190,13 @@ function TierCard({ tier }: { tier: ProgramaTier }) {
       }`}
     >
       {tier.featured && (
-        <span className="mb-3 w-fit rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium text-primary">
+        <span className="mb-3 w-fit rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
           Mais escolhido
         </span>
       )}
       <h3 className="font-serif text-xl text-foreground">{tier.name}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{tier.tagline}</p>
-      <p className="mt-3 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
-        {tier.forWho}
-      </p>
+      <p className="mt-3 text-xs uppercase tracking-[0.1em] text-muted-foreground">{tier.forWho}</p>
       <ul className="mt-3 flex-1 space-y-2">
         {tier.includes.map((it) => (
           <li key={it} className="flex gap-2 text-[13px] leading-relaxed text-card-foreground">

@@ -61,11 +61,11 @@ function PrioridadesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {PRIORITY_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{PRIORITY_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {PRIORITY_INTRO.lead}
           </p>
         </motion.div>
@@ -174,14 +174,14 @@ function HeroPriority({ item }: { item: PriorityItem }) {
             <div className="flex flex-wrap items-center gap-2">
               {lens && (
                 <span
-                  className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                  className="rounded-full px-2 py-0.5 text-xs font-medium"
                   style={{ background: `${lens.color}1A`, color: lens.color }}
                 >
                   {lens.label}
                 </span>
               )}
               {item.isQuickWin && (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                   Vitória rápida
                 </span>
               )}
@@ -191,19 +191,17 @@ function HeroPriority({ item }: { item: PriorityItem }) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            Alavancagem
-          </p>
+          <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Alavancagem</p>
           <p className="font-serif text-4xl text-emerald-600 dark:text-emerald-400">
             +{item.expectedIvoLift}
           </p>
-          <p className="text-[10px] text-muted-foreground">pts de IVO / temporada</p>
+          <p className="text-xs text-muted-foreground">pts de IVO / temporada</p>
         </div>
       </div>
 
       {/* Pilares endereçados */}
       <div className="mt-4 px-6">
-        <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="mb-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
           Pilares que esta intervenção move
         </p>
         <div className="space-y-2">
@@ -216,7 +214,7 @@ function HeroPriority({ item }: { item: PriorityItem }) {
                   style={{ width: `${(p.score / 1000) * 100}%` }}
                 />
               </div>
-              <span className="w-28 shrink-0 text-right text-[11px] text-muted-foreground">
+              <span className="w-28 shrink-0 text-right text-xs text-muted-foreground">
                 {p.score} · lacuna {p.gap}
               </span>
             </div>
@@ -239,13 +237,13 @@ function HeroPriority({ item }: { item: PriorityItem }) {
           <span className="text-sm font-medium" style={{ color: effort.color }}>
             {effort.label}
           </span>
-          <span className="ml-2 text-[11px] text-muted-foreground">
+          <span className="ml-2 text-xs text-muted-foreground">
             {EVIDENCE_COPY[item.evidenceLevel]}
           </span>
         </CompositionCell>
         <CompositionCell label="Destrava em ESG">
           <span className="text-sm font-medium text-card-foreground">{esg.count} indicadores</span>
-          <span className="ml-2 text-[11px] text-muted-foreground">
+          <span className="ml-2 text-xs text-muted-foreground">
             {esg.codes.slice(0, 3).join(" · ")}
           </span>
         </CompositionCell>
@@ -273,7 +271,7 @@ function HeroPriority({ item }: { item: PriorityItem }) {
 function CompositionCell({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="bg-card px-5 py-3">
-      <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
+      <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
       <div className="mt-1 flex flex-wrap items-baseline">{children}</div>
     </div>
   );
@@ -327,21 +325,21 @@ function PriorityRow({
           {/* Chips de composição */}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {amb && (
-              <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+              <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
                 {amb.emoji} {amb.name}
               </span>
             )}
             <span
-              className="rounded-full px-2 py-0.5 text-[10px]"
+              className="rounded-full px-2 py-0.5 text-xs"
               style={{ background: `${effort.color}1A`, color: effort.color }}
             >
               {effort.label}
             </span>
-            <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+            <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
               {esg.count} ESG
             </span>
             {item.addressedPillars[0] && (
-              <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+              <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
                 {item.addressedPillars.length} pilar(es) · lacuna {item.addressedPillars[0].gap}
               </span>
             )}
@@ -350,7 +348,7 @@ function PriorityRow({
 
         <div className="shrink-0 text-right">
           <p className="font-serif text-2xl text-foreground">{headline}</p>
-          <p className="text-[10px] text-muted-foreground">{headlineSub}</p>
+          <p className="text-xs text-muted-foreground">{headlineSub}</p>
         </div>
       </div>
     </motion.div>

@@ -190,7 +190,7 @@ function RelatorioGlobalPage() {
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 {REPORT_INTRO.eyebrow}
               </p>
               <h1 className="mt-1 font-serif text-3xl text-foreground">{REPORT_INTRO.title}</h1>
@@ -206,7 +206,7 @@ function RelatorioGlobalPage() {
             </button>
           </div>
 
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {REPORT_INTRO.lead}
           </p>
 
@@ -223,7 +223,7 @@ function RelatorioGlobalPage() {
                 <span className="text-sm font-medium text-primary">{report.overallBandLabel}</span>
               )}
             </div>
-            <p className="max-w-md text-sm leading-relaxed text-foreground">{report.headline}</p>
+            <p className="max-w-md text-base leading-relaxed text-foreground">{report.headline}</p>
           </div>
 
           {/* ODS cobertos */}
@@ -232,7 +232,7 @@ function RelatorioGlobalPage() {
               {report.odsCovered.map((o) => (
                 <span
                   key={o}
-                  className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-muted-foreground"
+                  className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
                   title={ODS_LABEL[o]}
                 >
                   {o} · {ODS_LABEL[o]}
@@ -259,13 +259,11 @@ function RelatorioGlobalPage() {
                     →
                   </span>
                 )}
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                   {q.quarter}
                 </p>
                 <p className="mt-1 font-medium text-card-foreground">{q.lensName}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {q.highlight}
-                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{q.highlight}</p>
               </div>
             ))}
           </div>
@@ -282,7 +280,7 @@ function RelatorioGlobalPage() {
         {/* Prova consolidada */}
         <section className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-border/60 bg-card p-5">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               Transformação comprovada
             </p>
             <p className="mt-1 font-serif text-3xl text-foreground">
@@ -294,13 +292,13 @@ function RelatorioGlobalPage() {
             <p className="text-xs text-muted-foreground">experimentos com efeito medido</p>
             <Link
               to="/experimentos"
-              className="mt-2 inline-block text-[11px] text-primary underline underline-offset-2"
+              className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
             >
               ver evidências →
             </Link>
           </div>
           <div className="rounded-2xl border border-border/60 bg-card p-5">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               Certificação
             </p>
             <p className="mt-1 font-serif text-2xl text-foreground">{report.proof.sealLabel}</p>
@@ -309,7 +307,7 @@ function RelatorioGlobalPage() {
             </p>
             <Link
               to="/selo"
-              className="mt-2 inline-block text-[11px] text-primary underline underline-offset-2"
+              className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
             >
               ver o selo →
             </Link>
@@ -336,7 +334,7 @@ function RelatorioGlobalPage() {
                   <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
                     {m.measures}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground/80">Base: {m.science}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground/80">Base: {m.science}</p>
                 </div>
               </div>
             ))}
@@ -394,7 +392,7 @@ function DimensionCard({ dimension }: { dimension: EsgDimensionReport }) {
           </span>
           <div>
             <p className="font-medium text-card-foreground">{dimension.label}</p>
-            <p className="text-[11px] text-muted-foreground">{dimension.narrative}</p>
+            <p className="text-xs text-muted-foreground">{dimension.narrative}</p>
           </div>
         </div>
         <div className="text-right">

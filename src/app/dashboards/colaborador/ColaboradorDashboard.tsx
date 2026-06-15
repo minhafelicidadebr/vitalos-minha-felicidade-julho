@@ -113,7 +113,7 @@ function HeroCard({
             title="Ver IVO completo"
           >
             <span className="font-serif text-2xl font-semibold text-foreground">{ivoScore}</span>
-            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
               {maturityName ?? "IVO org"}
             </span>
           </Link>
@@ -133,7 +133,7 @@ function HeroCard({
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col rounded-lg bg-muted/50 px-3 py-2">
-      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
+      <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
       <span className="text-sm font-semibold text-foreground">{value}</span>
     </div>
   );
@@ -214,7 +214,7 @@ function CheckInCard() {
                 }`}
               >
                 <span aria-hidden>{mood.emoji}</span>
-                <span className="text-[10px] text-muted-foreground">{mood.label}</span>
+                <span className="text-xs text-muted-foreground">{mood.label}</span>
               </button>
             ))}
           </div>
@@ -300,7 +300,7 @@ function NudgesCard() {
             💡
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm leading-relaxed text-card-foreground">{nudge.copy}</p>
+            <p className="text-base leading-relaxed text-card-foreground">{nudge.copy}</p>
             <div className="mt-2 flex items-center gap-3">
               {actedIds.has(nudge.id) ? (
                 <span className="text-xs text-green-600 dark:text-green-400">
@@ -375,15 +375,13 @@ function MissionRow({ mission }: { mission: MockMission }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${bg}`}>
-              {label}
-            </span>
-            <span className="text-[10px] text-muted-foreground">{reward}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${bg}`}>{label}</span>
+            <span className="text-xs text-muted-foreground">{reward}</span>
           </div>
           <p className="text-sm text-card-foreground">{mission.title}</p>
-          <p className="text-[10px] text-muted-foreground">{mission.pillarName}</p>
+          <p className="text-xs text-muted-foreground">{mission.pillarName}</p>
         </div>
-        <span className="shrink-0 text-[10px] text-muted-foreground">{mission.daysLeft}d</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{mission.daysLeft}d</span>
       </div>
       {mission.progressPct > 0 && (
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
@@ -508,7 +506,7 @@ function KudosCard({ kudosReceived }: { kudosReceived: MockKudo[] }) {
       {/* Received kudos */}
       {kudosReceived.length > 0 && (
         <div className="border-t border-border/50 px-3 pb-4 pt-3 space-y-2">
-          <p className="px-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="px-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
             Recebidos esta semana
           </p>
           {kudosReceived.map((k) => (
@@ -529,9 +527,9 @@ function KudoReceivedRow({ kudo }: { kudo: MockKudo }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-medium text-card-foreground">{kudo.fromName}</span>
-          <span className="text-[10px] text-muted-foreground">{kudo.date}</span>
+          <span className="text-xs text-muted-foreground">{kudo.date}</span>
         </div>
-        <span className="text-[10px] text-muted-foreground">{kudo.pillarName}</span>
+        <span className="text-xs text-muted-foreground">{kudo.pillarName}</span>
         <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{kudo.message}</p>
       </div>
     </div>
@@ -565,7 +563,7 @@ function BadgesCard({ badges }: { badges: MockBadge[] }) {
             <span className="text-2xl" aria-hidden>
               {b.emoji}
             </span>
-            <span className="text-[10px] text-center text-muted-foreground max-w-[5rem] leading-tight">
+            <span className="text-xs text-center text-muted-foreground max-w-[5rem] leading-tight">
               {b.name}
             </span>
             {b.earned && b.earnedAt && (
@@ -670,7 +668,7 @@ function FlorescerIACard() {
             ✨
           </span>
           <p className="text-sm font-medium text-card-foreground">FlorescerIA</p>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
             mockada · Bloco 12
           </span>
         </div>
@@ -682,7 +680,7 @@ function FlorescerIACard() {
           ✕
         </button>
       </div>
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <p className="text-base leading-relaxed text-muted-foreground">
         {parts.map((part, i) =>
           i % 2 === 1 ? (
             <strong key={i} className="text-foreground">
@@ -715,7 +713,7 @@ function QuickLinksCard() {
           📊
         </span>
         <p className="text-sm font-medium text-card-foreground">IVO Completo</p>
-        <p className="text-[10px] text-muted-foreground">Radar das 4 Lentes</p>
+        <p className="text-xs text-muted-foreground">Radar das 4 Lentes</p>
       </Link>
 
       <Link
@@ -726,7 +724,7 @@ function QuickLinksCard() {
           🔒
         </span>
         <p className="text-sm font-medium text-card-foreground">Trust Ledger</p>
-        <p className="text-[10px] text-muted-foreground">Quem vê o quê sobre você</p>
+        <p className="text-xs text-muted-foreground">Quem vê o quê sobre você</p>
       </Link>
 
       <Link
@@ -737,7 +735,7 @@ function QuickLinksCard() {
           🎓
         </span>
         <p className="text-sm font-medium text-card-foreground">Academia</p>
-        <p className="text-[10px] text-muted-foreground">Trilhas de 5–8 min</p>
+        <p className="text-xs text-muted-foreground">Trilhas de 5–8 min</p>
       </Link>
     </motion.div>
   );

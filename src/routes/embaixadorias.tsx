@@ -31,11 +31,11 @@ function EmbaixadoriasPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Embaixadorias do Florescimento
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">15 frentes, uma cultura</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             Cada embaixadoria cuida de um pilar na prática — com missões reais, não cargos
             honorários. Participar é voluntário, sair é livre, e o impacto é coletivo.
           </p>
@@ -62,14 +62,14 @@ function EmbaixadoriasPage() {
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-card-foreground">{amb.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{amb.pillarName}</p>
+                    <p className="text-xs text-muted-foreground">{amb.pillarName}</p>
                   </div>
                 </div>
                 <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
                   {amb.description}
                 </p>
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {amb.members + (joined && !amb.joined ? 1 : !joined && amb.joined ? -1 : 0)}{" "}
                     pessoas
                     {amb.openMissions > 0 && ` · ${amb.openMissions} missão(ões)`}

@@ -62,11 +62,11 @@ function EsgPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {ESG_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{ESG_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {ESG_INTRO.lead}
           </p>
         </motion.div>
@@ -145,7 +145,7 @@ function OverviewCard({ readiness }: { readiness: EsgReadiness }) {
             {readiness.measurableDatapoints}
             <span className="text-base text-muted-foreground">/{readiness.totalDatapoints}</span>
           </p>
-          <p className="text-[10px] text-muted-foreground">{coverage}% de cobertura</p>
+          <p className="text-xs text-muted-foreground">{coverage}% de cobertura</p>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ function OverviewCard({ readiness }: { readiness: EsgReadiness }) {
             </div>
             <p className="mt-1 font-serif text-xl text-foreground">{fw.score ?? "—"}</p>
             {fw.band && (
-              <span className={`text-[10px] font-medium ${BAND_STYLE[fw.band].text}`}>
+              <span className={`text-xs font-medium ${BAND_STYLE[fw.band].text}`}>
                 {fw.bandLabel}
               </span>
             )}
@@ -194,7 +194,7 @@ function FrameworkCard({ fw, delay }: { fw: FrameworkCoverage; delay: number }) 
           <span className="h-3 w-3 rounded-sm" style={{ background: fw.color }} aria-hidden />
           <div>
             <p className="font-medium text-card-foreground">{fw.name}</p>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               {KIND_LABEL[fw.kind]}
             </p>
           </div>
@@ -215,13 +215,13 @@ function FrameworkCard({ fw, delay }: { fw: FrameworkCoverage; delay: number }) 
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                     {dp.code}
                   </span>
                   <span className="text-sm text-card-foreground">{dp.label}</span>
                 </div>
                 {dp.rationale && (
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {dp.rationale}
                   </p>
                 )}
@@ -238,7 +238,7 @@ function FrameworkCard({ fw, delay }: { fw: FrameworkCoverage; delay: number }) 
                   ))}
                 </div>
                 {dp.hiddenPillarIds.length > 0 && (
-                  <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
                     {dp.hiddenPillarIds.length} pilar(es) oculto(s) por k-anonimato (n&lt;5).
                   </p>
                 )}
@@ -254,7 +254,7 @@ function FrameworkCard({ fw, delay }: { fw: FrameworkCoverage; delay: number }) 
                     <span className="font-medium tabular-nums text-foreground">{dp.score}</span>
                   </span>
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">não mensurável</span>
+                  <span className="text-xs text-muted-foreground">não mensurável</span>
                 )}
               </div>
             </div>

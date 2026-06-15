@@ -123,11 +123,11 @@ function TrajetoriaPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {FORECAST_INTRO.eyebrow}
           </p>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{FORECAST_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {FORECAST_INTRO.lead}
           </p>
         </motion.div>
@@ -242,7 +242,7 @@ function SegmentedControl({
 }) {
   return (
     <div>
-      <p className="mb-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+      <p className="mb-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
       <div className="flex gap-1 rounded-xl border border-border/60 bg-muted/40 p-1">
         {options.map((opt) => (
           <button
@@ -354,7 +354,7 @@ function TrajectoryChart({ forecast }: { forecast: ReturnType<typeof projectFore
                   <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
                     <p className="text-xs font-medium text-foreground">{label}</p>
                     <p className="text-sm tabular-nums text-muted-foreground">IVO {row.ivo}</p>
-                    <p className="text-[10px] tabular-nums text-muted-foreground">
+                    <p className="text-xs tabular-nums text-muted-foreground">
                       faixa {row.low}–{row.low + row.bandRange}
                     </p>
                   </div>
@@ -388,12 +388,12 @@ function IvoImpactCard({ forecast }: { forecast: ReturnType<typeof projectForeca
         de <span className="tabular-nums">{forecast.baselineIvo}</span> hoje
       </p>
       {forecast.finalMaturity && (
-        <span className="mt-2 inline-block rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+        <span className="mt-2 inline-block rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
           {forecast.finalMaturity}
         </span>
       )}
       {forecast.finalMaturity !== forecast.baselineMaturity && forecast.baselineMaturity && (
-        <p className="mt-1.5 text-[10px] text-muted-foreground">
+        <p className="mt-1.5 text-xs text-muted-foreground">
           Sobe de “{forecast.baselineMaturity}”
         </p>
       )}
@@ -412,7 +412,7 @@ function PnlImpactCard({ avoidedCost, ivoDelta }: { avoidedCost: number; ivoDelt
       </p>
       <Link
         to="/pnl"
-        className="mt-2 inline-block text-[11px] text-primary underline underline-offset-2"
+        className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
       >
         ver memória de cálculo →
       </Link>
@@ -441,7 +441,7 @@ function EsgImpactCard({ now, next }: { now: number | null; next: number | null 
       </p>
       <Link
         to="/esg"
-        className="mt-2 inline-block text-[11px] text-primary underline underline-offset-2"
+        className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
       >
         ver tradução ESG →
       </Link>
@@ -473,9 +473,7 @@ function LeverCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <h3 className="font-medium text-card-foreground">{lever.label}</h3>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            {lever.description}
-          </p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{lever.description}</p>
         </div>
         {/* Switch visual */}
         <span
@@ -546,7 +544,7 @@ function PillarShiftsPanel({ forecast }: { forecast: ReturnType<typeof projectFo
               >
                 {up ? "+" : ""}
                 {p.delta}
-                <span className="ml-1 text-[10px] text-muted-foreground">→{p.to}</span>
+                <span className="ml-1 text-xs text-muted-foreground">→{p.to}</span>
               </span>
             </div>
           );
