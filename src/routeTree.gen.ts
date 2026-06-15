@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ViatRouteImport } from './routes/viat'
+import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
@@ -33,6 +34,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ViatRoute = ViatRouteImport.update({
   id: '/viat',
   path: '/viat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemporadaRoute = TemporadaRouteImport.update({
+  id: '/temporada',
+  path: '/temporada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SstRoute = SstRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/temporada': typeof TemporadaRoute
   '/viat': typeof ViatRoute
 }
 export interface FileRoutesByTo {
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/temporada': typeof TemporadaRoute
   '/viat': typeof ViatRoute
 }
 export interface FileRoutesById {
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/sst': typeof SstRoute
+  '/temporada': typeof TemporadaRoute
   '/viat': typeof ViatRoute
 }
 export interface FileRouteTypes {
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/temporada'
     | '/viat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/temporada'
     | '/viat'
   id:
     | '__root__'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/rh'
     | '/sst'
+    | '/temporada'
     | '/viat'
   fileRoutesById: FileRoutesById
 }
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   RhRoute: typeof RhRoute
   SstRoute: typeof SstRoute
+  TemporadaRoute: typeof TemporadaRoute
   ViatRoute: typeof ViatRoute
 }
 
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/viat'
       fullPath: '/viat'
       preLoaderRoute: typeof ViatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/temporada': {
+      id: '/temporada'
+      path: '/temporada'
+      fullPath: '/temporada'
+      preLoaderRoute: typeof TemporadaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sst': {
@@ -455,6 +475,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   RhRoute: RhRoute,
   SstRoute: SstRoute,
+  TemporadaRoute: TemporadaRoute,
   ViatRoute: ViatRoute,
 }
 export const routeTree = rootRouteImport

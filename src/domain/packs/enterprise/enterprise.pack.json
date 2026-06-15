@@ -119,6 +119,20 @@
     },
     { "id": "certification", "label": "Certificação", "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"] },
     {
+      "id": "season",
+      "label": "Cronograma",
+      "roles": [
+        "COLABORADOR",
+        "EMBAIXADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "SST_PROFISSIONAL",
+        "HOLDING_ADMIN"
+      ]
+    },
+    {
       "id": "viat",
       "label": "Mapa de Forças",
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"]

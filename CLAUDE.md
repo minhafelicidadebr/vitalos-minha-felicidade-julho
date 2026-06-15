@@ -133,6 +133,14 @@ src/
 | 🔲 20 | Polimento UX premium                        | global (reservado ao Lovable)                           |
 | ✅ 21 | QA — rotas 200, lint 0 erros, prettier      | smoke test + verificação engine≠domain                  |
 | ✅ +  | ESG · ODS · GRI · FIB (extra)               | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
+| ✅ +  | VIA-T v1 Exploratório (extra)               | engine/viat + /viat (24 forças, ICUFT, 29 testes)       |
+| ✅ +  | Cronograma M.E.T.E. (extra)                 | engine/season + /temporada (plano anual, 22 testes)     |
+
+### Cobertura de testes (bun test src)
+
+114 testes / 7 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+ivo (16), pnl (16), pulse (9), gamification (13), season (22).
+Typecheck limpo (`@types/bun` + `"bun"` em tsconfig types).
 
 ### Rotas implementadas
 
@@ -140,6 +148,7 @@ src/
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
 `/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
 `/embaixadorias` · `/relatorios` (evidências + Selo) · `/esg` (ESG/ODS/GRI/FIB) ·
+`/viat` (Mapa de Forças) · `/temporada` (Cronograma M.E.T.E.) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo
@@ -215,16 +224,16 @@ bun run test testes de unidade dos engines (bun test)
 
 - Camada 1 RISCO: COPSOQ/NR-1 → Domínio B → `/sst`
 - Camada 2 FLORESCIMENTO: PERMA → IVO/Pulses → `/ivo`, `/pulse`
-- Camada 3 FORÇAS: VIA-T v1 exploratório → `/viat` (PRÓXIMO módulo)
+- Camada 3 FORÇAS: VIA-T v1 exploratório → `/viat` ✅ construído
 - Camada 4 AÇÃO: Playbook → Culture Lab → `/lab`
 
-**Próximo módulo a construir: VIA-T (`/viat`)**
+**Orquestração temporal: Cronograma M.E.T.E. (`/temporada`)** ✅ construído
 
-- `src/engine/viat/viat-engine.ts` (pure engine: 24 forças, 6 virtudes, ICUFT)
-- `src/mocks/viat-mock.ts`
-- `src/routes/viat.tsx` (assessment → devolutiva → missão 7 dias)
-- Disclaimer obrigatório: "VIA-T v1 exploratório — não é diagnóstico psicológico"
-- k-anonimato: n≥5 (contextos sensíveis: n≥10)
+- `src/engine/season/season-engine.ts` (puro: plano anual → estado operacional)
+- `src/mocks/season-mock.ts` (4 temporadas × 13 semanas, cada lente = 1 temporada)
+- `src/routes/temporada.tsx` (timeline anual + ciclo M.E.T.E. + atividades por papel)
+- Ciclo: Mensurar (aplicar instrumento) → Educar → Transformar → Evoluir
+- T1 IVO/PERMA · T2 VIA-T · T3 COPSOQ/NR-1 · T4 Re-IVO + ESG/Selo
 
 SUPER_PROMPT_GENESIS_4LENTES_VITA.md fonte da verdade de execução (21 blocos)
 FRAMEWORK_MESTRE_EMPRESA_VIVA.md fundamento científico, universo, negócio
