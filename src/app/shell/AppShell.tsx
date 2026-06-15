@@ -13,13 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 /**
  * AppShell — header institucional + navegação dirigida pelo pack × papel,
@@ -99,7 +93,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "estrategico",
     label: "Estratégico",
     hint: "Visão de board e portfólio",
-    items: ["panorama", "benchmark", "esg", "viat", "domain_b"],
+    items: ["panorama", "benchmark", "esg", "fibt", "viat", "domain_b"],
   },
   {
     id: "comunidade",

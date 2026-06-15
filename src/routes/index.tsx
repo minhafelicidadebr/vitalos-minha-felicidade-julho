@@ -96,8 +96,8 @@ function Index() {
               <span className="text-primary">vitalidade organizacional</span>.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Um arco único — do diagnóstico em 4 lentes ao Selo Empresa Viva — para CHRO, C-Level
-              e líderes que querem cultura mensurável, ética e auditável.
+              Um arco único — do diagnóstico em 4 lentes ao Selo Empresa Viva — para CHRO, C-Level e
+              líderes que querem cultura mensurável, ética e auditável.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -159,7 +159,13 @@ function Index() {
                   {s.detail}
                 </p>
                 <span className="mt-4 inline-flex items-center text-xs font-medium text-primary">
-                  {s.cta} <span aria-hidden className="ml-1 transition-transform group-hover:translate-x-0.5">→</span>
+                  {s.cta}{" "}
+                  <span
+                    aria-hidden
+                    className="ml-1 transition-transform group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
                 </span>
               </Link>
             </motion.li>
