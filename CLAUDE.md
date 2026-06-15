@@ -3,6 +3,12 @@
 > Leia este arquivo por completo antes de qualquer alteração.
 > Descreve o projeto **como ele existe hoje** — auditado do código real.
 
+> 🧭 **PRIMEIRA LEITURA OBRIGATÓRIA:** `docs/SKILL_MESTRA_FABLE5.md` — a meta-skill que
+> faz você raciocinar como o **Fable 5** (o supercomitê fundador que planejou este app).
+> Ela governa TODA ação de desenvolvimento premium: postura, ritual ToT, a tríade
+> engine/mock/rota, as assinaturas Fable 5, invariantes e auto-auditoria. Quando o usuário
+> pedir "nível estado da arte / ToT / alta performance", isso já é o default desta skill.
+
 ---
 
 ## 📌 Repositório oficial
@@ -135,7 +141,7 @@ src/
 | ✅ +  | ESG · ODS · GRI · FIB (extra)               | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
 | ✅ +  | VIA-T v1 Exploratório (extra)               | engine/viat + /viat (24 forças, ICUFT, 29 testes)       |
 | ✅ +  | Cronograma M.E.T.E. (extra)                 | engine/season + /temporada (plano anual, 22 testes)     |
-| ✅ +  | Simulador de Trajetória (extra)             | engine/forecast + /trajetoria (compõe IVO+P&L+ESG, 20)   |
+| ✅ +  | Simulador de Trajetória (extra)             | engine/forecast + /trajetoria (compõe IVO+P&L+ESG, 20)  |
 
 ### Cobertura de testes (bun test src)
 
@@ -214,13 +220,14 @@ bun run test testes de unidade dos engines (bun test)
 
 > Leia ARQUITETURA_CIENTIFICA.md ANTES de implementar qualquer módulo de mensuração.
 
-| Arquivo                               | O que contém                                                                        |
-| ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `docs/ARQUITETURA_CIENTIFICA.md`      | **Skill de orientação mestre** — 4 camadas, mapa de instrumentos, o que muda no app |
-| `docs/instrumentos/PERMA_TRABALHO.md` | PERMA 15 itens (BR 2026), psicometria, mapeamento → pilares IVO                     |
-| `docs/instrumentos/VIA_T.md`          | VIA-T 24/48 itens, ICUFT, guardrails, missões, matriz VIA-T × PERMA+V               |
-| `docs/instrumentos/COPSOQ_NR1.md`     | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B                       |
-| `docs/instrumentos/PLAYBOOK.md`       | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco                      |
+| Arquivo                               | O que contém                                                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/SKILL_MESTRA_FABLE5.md`         | **🧭 Meta-skill — A Mente Fable 5.** Postura, ritual ToT, tríade, assinaturas, invariantes, auto-auditoria. Lê-se ANTES de tudo. |
+| `docs/ARQUITETURA_CIENTIFICA.md`      | **Skill de orientação mestre** — 4 camadas, mapa de instrumentos, o que muda no app                                              |
+| `docs/instrumentos/PERMA_TRABALHO.md` | PERMA 15 itens (BR 2026), psicometria, mapeamento → pilares IVO                                                                  |
+| `docs/instrumentos/VIA_T.md`          | VIA-T 24/48 itens, ICUFT, guardrails, missões, matriz VIA-T × PERMA+V                                                            |
+| `docs/instrumentos/COPSOQ_NR1.md`     | COPSOQ II / NCOPSII, NR-1, Guia MTE 2026, separação Domínio B                                                                    |
+| `docs/instrumentos/PLAYBOOK.md`       | Work-Wellbeing Playbook 2.0 — protocolos por pilar/força/risco                                                                   |
 
 **Arquitetura de 4 camadas (nunca misturar):**
 
