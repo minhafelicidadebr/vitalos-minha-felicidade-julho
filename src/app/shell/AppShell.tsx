@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { MotionConfig } from "framer-motion";
 import { Menu, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { A11yMenu } from "./A11yMenu";
 import { usePack } from "@/engine/pack";
 import { navForRole, usePersona } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
@@ -363,6 +364,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 )}
               </div>
 
+              <A11yMenu />
               <ThemeToggle />
             </div>
           </div>
