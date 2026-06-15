@@ -17,6 +17,7 @@ import { Route as SinaisRouteImport } from './routes/sinais'
 import { Route as SeloRouteImport } from './routes/selo'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -79,6 +80,11 @@ const RhRoute = RhRouteImport.update({
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatorioGlobalRoute = RelatorioGlobalRouteImport.update({
+  id: '/relatorio-global',
+  path: '/relatorio-global',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuiosqueRoute = QuiosqueRouteImport.update({
@@ -221,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
@@ -323,6 +332,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/pulse'
     | '/quiosque'
+    | '/relatorio-global'
     | '/relatorios'
     | '/rh'
     | '/selo'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/pulse'
     | '/quiosque'
+    | '/relatorio-global'
     | '/relatorios'
     | '/rh'
     | '/selo'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/pulse'
     | '/quiosque'
+    | '/relatorio-global'
     | '/relatorios'
     | '/rh'
     | '/selo'
@@ -423,6 +435,7 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
+  RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
   RhRoute: typeof RhRoute
   SeloRoute: typeof SeloRoute
@@ -489,6 +502,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorio-global': {
+      id: '/relatorio-global'
+      path: '/relatorio-global'
+      fullPath: '/relatorio-global'
+      preLoaderRoute: typeof RelatorioGlobalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiosque': {
@@ -679,6 +699,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
+  RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
   RhRoute: RhRoute,
   SeloRoute: SeloRoute,

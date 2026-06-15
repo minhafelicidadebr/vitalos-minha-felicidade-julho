@@ -30,6 +30,7 @@ const NAV_ROUTES: Record<string, string> = {
   academy: "/academia",
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
+  esg_report: "/relatorio-global",
   certification: "/selo",
   action_plan: "/lab",
   experiments: "/experimentos",
@@ -87,7 +88,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "provar",
     label: "Provar",
     hint: "Evidência e certificação",
-    items: ["experiments", "reports", "certification"],
+    items: ["experiments", "reports", "esg_report", "certification"],
   },
   {
     id: "estrategico",

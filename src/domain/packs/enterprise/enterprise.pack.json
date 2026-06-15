@@ -169,6 +169,12 @@
       "group": "provar"
     },
     {
+      "id": "esg_report",
+      "label": "Relatório Global ESG",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
+      "group": "provar"
+    },
+    {
       "id": "certification",
       "label": "Selo Empresa Viva",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],

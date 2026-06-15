@@ -150,14 +150,21 @@ src/
 | ✅ +  | Privacidade × FlorescerIA (extra)           | engine/trust/consent-engine + /privacidade (consentimento gateia a IA, 18)             |
 | ✅ +  | Sinais Vivos · Percepção×Comportamento      | engine/signals (reconcileSignals quadrantes) + /sinais (gateado por consentimento, 16) |
 | ✅ +  | Selo Empresa Viva (motor de certificação)   | engine/certification + /selo (elegibilidade computada do arco, não comprada, 15)       |
+| ✅ +  | FIB-T · lente de ecossistema (Furtado 2020) | engine/fibt + /fibt (32 itens, 3 fatores, 9 domínios, ponte ESG, 10)                    |
+| ✅ +  | Relatório Global ESG anual                  | engine/esg-report + /relatorio-global (síntese E/S/G + ODS dos 5 instrumentos, 10)      |
 
 ### Cobertura de testes (bun test src)
 
-267 testes / 17 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+287 testes / 19 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
 priority (14), evidence (16), panorama (18), agent (15), benchmark (15),
-consent (18), signals (16), certification (15) + **integração ponta-a-ponta (10)**
-que encadeia todos os motores com os mocks reais. Typecheck limpo.
+consent (18), signals (16), certification (15), fibt (10), esg-report (10)
++ **integração ponta-a-ponta (10)**. Typecheck limpo.
+
+> Nav: agrupada por ciclo do produto (Medir·Agir·Provar·Estratégico·Comunidade·
+> Confiança) — `NAV_GROUPS` vive HARDCODED no `AppShell.tsx` (refactor visual do
+> Lovable). Ao adicionar rota: pack `navigation` (+`group`) + `NAV_ROUTES` +
+> incluir o id no grupo certo de `NAV_GROUPS`. Coordenar com o Lovable no AppShell.
 
 ### Rotas implementadas
 
@@ -175,6 +182,8 @@ que encadeia todos os motores com os mocks reais. Typecheck limpo.
 `/privacidade` (Privacidade × FlorescerIA — consentimento gateia a IA) ·
 `/sinais` (Sinais Vivos — percepção × comportamento, Motor 1) ·
 `/selo` (Selo Empresa Viva — certificação computada do arco) ·
+`/fibt` (FIB-T — lente de ecossistema, Furtado 2020) ·
+`/relatorio-global` (Relatório Global ESG anual — síntese E/S/G + ODS) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo
