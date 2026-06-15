@@ -1,15 +1,20 @@
 // Plano anual operacional — config de domínio (não é engine). Mapeia o ciclo
-// M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) das 4 lentes ao longo de
-// 4 temporadas × 13 semanas (52 semanas = 1 ano). Cada temporada é ancorada num
-// instrumento científico (camada de medição) e roda o ciclo completo.
+// M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) ao longo de 4 temporadas
+// × 13 semanas (52 semanas = 1 ano). Cada temporada é ancorada num instrumento
+// científico e roda o ciclo completo.
 //
-// Responde à pergunta estratégica: "como o gestor operacionaliza as 4 lentes
-// dentro de um cronograma?" — cada aferição vira uma temporada, e as atividades
-// pós-aferição (Educar/Transformar/Evoluir) preenchem o trimestre.
+// ORDEM CANÔNICA (espinha Furtado/anexo): Risco → Bem-Comum → Florescimento →
+// Forças → Síntese. A IDENTIDADE de cada temporada (nome, instrumento, camada,
+// pergunta, cor) deriva de CANONICAL_JOURNEY — fonte única compartilhada com
+// /programa e /relatorio-global. Aqui ficam apenas os detalhes operacionais
+// (fases M.E.T.E. e atividades).
 //
-// Fonte científica: docs/ARQUITETURA_CIENTIFICA.md (4 camadas de medição).
+// Fonte científica: src/domain/journey.ts + docs/ARQUITETURA_CIENTIFICA.md.
 
 import type { AnnualPlan, MetePhaseDef, SeasonActivity } from "@/engine/season/season-engine";
+import { CANONICAL_JOURNEY } from "@/domain/journey";
+
+const [RISCO, BEM_COMUM, FLORESCIMENTO, FORCAS] = CANONICAL_JOURNEY;
 
 // Fronteiras M.E.T.E. comuns às 4 temporadas (13 semanas):
 //   Mensurar  w1–3   · Educar  w4–6   · Transformar w7–10  · Evoluir w11–13
@@ -27,9 +32,121 @@ function metePhases(over: {
   ];
 }
 
-// ─── T1 · Primavera da Vitalidade — Camada 2 (Florescimento, PERMA/IVO) ───────
+// ─── T1 · Fundação Segura — Camada 1 (Risco psicossocial, COPSOQ/NR-1) ────────
 
-const T1_ACTIVITIES: SeasonActivity[] = [
+const FUNDACAO_ACTIVITIES: SeasonActivity[] = [
+  {
+    week: 1,
+    title: "Aplicar o COPSOQ (Domínio B) — inventário de riscos psicossociais",
+    owner: "SST",
+    phaseId: "mensurar",
+  },
+  {
+    week: 2,
+    title: "Garantir anonimato e mínimo de 5 respondentes por recorte",
+    owner: "SST",
+    phaseId: "mensurar",
+  },
+  {
+    week: 4,
+    title: "Interpretar resultados com profissional habilitado e a CIPA",
+    owner: "SST",
+    phaseId: "educar",
+  },
+  {
+    week: 5,
+    title: "Educação sobre NR-1/GRO e fatores de risco psicossocial",
+    owner: "RH",
+    phaseId: "educar",
+  },
+  {
+    week: 7,
+    title: "Elaborar o plano de ação (GRO) por categoria de risco",
+    owner: "SST",
+    phaseId: "transformar",
+  },
+  {
+    week: 8,
+    title: "Implementar medidas de controle das dimensões em risco",
+    owner: "Líder",
+    phaseId: "transformar",
+  },
+  {
+    week: 11,
+    title: "Monitorar exposição e registrar evidência documental",
+    owner: "SST",
+    phaseId: "evoluir",
+  },
+  {
+    week: 13,
+    title: "Atualizar o PGR e preparar a Temporada do Bem-Comum",
+    owner: "CHRO",
+    phaseId: "evoluir",
+  },
+];
+
+// ─── T2 · Raízes do Bem-Comum — Camada 2 (Ecossistema, FIB-T) ─────────────────
+
+const BEM_COMUM_ACTIVITIES: SeasonActivity[] = [
+  {
+    week: 1,
+    title: "Abrir o censo FIB-T (32 itens, 9 domínios de vida)",
+    owner: "RH",
+    phaseId: "mensurar",
+  },
+  {
+    week: 2,
+    title: "Mobilizar embaixadores para participação ampla (alvo ≥ 70%)",
+    owner: "Embaixador",
+    phaseId: "mensurar",
+  },
+  {
+    week: 3,
+    title: "Fechar a coleta e calcular o índice FIB-T do ecossistema",
+    owner: "RH",
+    phaseId: "mensurar",
+  },
+  {
+    week: 4,
+    title: "Devolutiva coletiva: ler os 9 domínios sem rótulo individual",
+    owner: "Líder",
+    phaseId: "educar",
+  },
+  {
+    week: 5,
+    title: "Rodas de escuta sobre os domínios mais frágeis",
+    owner: "RH",
+    phaseId: "educar",
+  },
+  {
+    week: 7,
+    title: "Pactos de equipe nos domínios de bem-comum (tempo, comunidade)",
+    owner: "Líder",
+    phaseId: "transformar",
+  },
+  {
+    week: 8,
+    title: "Iniciar iniciativas no Culture Lab para os domínios críticos",
+    owner: "RH",
+    phaseId: "transformar",
+  },
+  {
+    week: 11,
+    title: "Pulse FIB-T: medir a variação dos domínios tocados",
+    owner: "Colaborador",
+    phaseId: "evoluir",
+  },
+  {
+    week: 13,
+    title: "Ligar o ganho à ponte ESG e preparar a Temporada do Florescimento",
+    owner: "CHRO",
+    phaseId: "evoluir",
+  },
+];
+
+// ─── T3 · Florescimento — Camada 3 (Vitalidade, PERMA+V → IVO) ────────────────
+
+const FLORESCIMENTO_ACTIVITIES: SeasonActivity[] = [
   {
     week: 1,
     title: "Abrir a campanha do IVO (PERMA, 15 itens) para toda a organização",
@@ -80,15 +197,15 @@ const T1_ACTIVITIES: SeasonActivity[] = [
   },
   {
     week: 13,
-    title: "Consolidar evidências e planejar a Temporada das Forças",
+    title: "Consolidar evidências e preparar a Temporada das Forças",
     owner: "CHRO",
     phaseId: "evoluir",
   },
 ];
 
-// ─── T2 · Verão das Forças — Camada 3 (Forças, VIA-T v1) ──────────────────────
+// ─── T4 · Forças em Cultura — Camada 4 (Forças, VIA-T) + síntese do ano ───────
 
-const T2_ACTIVITIES: SeasonActivity[] = [
+const FORCAS_ACTIVITIES: SeasonActivity[] = [
   {
     week: 1,
     title: "Abrir o Mapa de Forças VIA-T (48 itens + ICUFT)",
@@ -127,119 +244,13 @@ const T2_ACTIVITIES: SeasonActivity[] = [
   },
   {
     week: 11,
-    title: "Remedir o ICUFT: o ambiente passou a permitir usar as forças?",
+    title: "Remedir o ICUFT e gerar a prontidão ESG/ODS/FIB do ano",
     owner: "RH",
     phaseId: "evoluir",
   },
   {
     week: 13,
-    title: "Mapear potencial subutilizado e preparar a Temporada da Segurança",
-    owner: "CHRO",
-    phaseId: "evoluir",
-  },
-];
-
-// ─── T3 · Outono da Segurança — Camada 1 (Risco, COPSOQ/NR-1) ─────────────────
-
-const T3_ACTIVITIES: SeasonActivity[] = [
-  {
-    week: 1,
-    title: "Aplicar o COPSOQ (Domínio B) — inventário de riscos psicossociais",
-    owner: "SST",
-    phaseId: "mensurar",
-  },
-  {
-    week: 2,
-    title: "Garantir anonimato e mínimo de 5 respondentes por recorte",
-    owner: "SST",
-    phaseId: "mensurar",
-  },
-  {
-    week: 4,
-    title: "Interpretar resultados com profissional habilitado e a CIPA",
-    owner: "SST",
-    phaseId: "educar",
-  },
-  {
-    week: 5,
-    title: "Educação sobre NR-1/GRO e fatores de risco psicossocial",
-    owner: "RH",
-    phaseId: "educar",
-  },
-  {
-    week: 7,
-    title: "Elaborar o plano de ação (GRO) por categoria de risco",
-    owner: "SST",
-    phaseId: "transformar",
-  },
-  {
-    week: 8,
-    title: "Implementar medidas de controle das dimensões em risco",
-    owner: "Líder",
-    phaseId: "transformar",
-  },
-  {
-    week: 11,
-    title: "Monitorar exposição e registrar evidência documental",
-    owner: "SST",
-    phaseId: "evoluir",
-  },
-  {
-    week: 13,
-    title: "Atualizar o PGR e preparar a Temporada da Cultura",
-    owner: "CHRO",
-    phaseId: "evoluir",
-  },
-];
-
-// ─── T4 · Inverno da Cultura — Camada 4 (Ação/Consolidação, Playbook + ESG) ───
-
-const T4_ACTIVITIES: SeasonActivity[] = [
-  {
-    week: 1,
-    title: "Remedir o IVO anual e calcular o delta vs. T1",
-    owner: "RH",
-    phaseId: "mensurar",
-  },
-  {
-    week: 2,
-    title: "Consolidar dados das 4 camadas do ano em um só painel",
-    owner: "CHRO",
-    phaseId: "mensurar",
-  },
-  {
-    week: 4,
-    title: "Relatório anual de cultura e town hall de resultados",
-    owner: "CHRO",
-    phaseId: "educar",
-  },
-  {
-    week: 5,
-    title: "Revisar o Pacto de Cultura com base no que mudou",
-    owner: "Líder",
-    phaseId: "educar",
-  },
-  {
-    week: 7,
-    title: "Protocolos de consolidação e ativação das embaixadorias",
-    owner: "Embaixador",
-    phaseId: "transformar",
-  },
-  {
-    week: 8,
-    title: "Experimentos finais para os pilares ainda frágeis",
-    owner: "RH",
-    phaseId: "transformar",
-  },
-  {
-    week: 11,
-    title: "Gerar a prontidão ESG/ODS/FIB e organizar evidências",
-    owner: "RH",
-    phaseId: "evoluir",
-  },
-  {
-    week: 13,
-    title: "Emitir o Selo Empresa Viva e planejar o próximo ano",
+    title: "Emitir o Relatório Global e o Selo Empresa Viva; planejar o próximo ano",
     owner: "CHRO",
     phaseId: "evoluir",
   },
@@ -252,84 +263,14 @@ export const ANNUAL_PLAN: AnnualPlan = {
     {
       id: "t1-2026",
       index: 1,
-      name: "Primavera da Vitalidade",
-      cycleId: "T1-2026",
-      layer: 2,
-      layerLabel: "Camada 2 · Florescimento",
-      question: "Como as pessoas estão?",
-      primaryInstrument: "IVO + PERMA",
-      color: "#10B981",
-      startLabel: "Jan–Mar",
-      phases: metePhases({
-        mensurar: {
-          objective: "Estabelecer o IVO basal do ano com o PERMA (15 itens).",
-          instruments: ["IVO", "PERMA"],
-          deliverable: "Radar das 4 lentes + IVO basal",
-        },
-        educar: {
-          objective: "Traduzir os dados em entendimento: o que cada pilar significa.",
-          instruments: ["Devolutiva", "FlorescerIA"],
-          deliverable: "Workshops por equipe nos pilares frágeis",
-        },
-        transformar: {
-          objective: "Rodar protocolos de evidência para os pilares críticos.",
-          instruments: ["Culture Lab", "Playbook"],
-          deliverable: "Experimentos ativos com métrica e responsável",
-        },
-        evoluir: {
-          objective: "Validar o efeito e consolidar o aprendizado da temporada.",
-          instruments: ["Pulse", "Relatórios"],
-          deliverable: "Evidência de variação do IVO + plano da T2",
-        },
-      }),
-      activities: T1_ACTIVITIES,
-    },
-    {
-      id: "t2-2026",
-      index: 2,
-      name: "Verão das Forças",
-      cycleId: "T2-2026",
-      layer: 3,
-      layerLabel: "Camada 3 · Forças",
-      question: "Como cada um contribui?",
-      primaryInstrument: "VIA-T v1",
-      color: "#F59E0B",
-      startLabel: "Abr–Jun",
-      phases: metePhases({
-        mensurar: {
-          objective: "Mapear forças percebidas e as condições de uso (ICUFT).",
-          instruments: ["VIA-T", "ICUFT"],
-          deliverable: "Top 5 forças por pessoa + virtudes da equipe",
-        },
-        educar: {
-          objective: "Devolver forças como linguagem de desenvolvimento, não avaliação.",
-          instruments: ["Devolutiva VIA-T", "Missões 7 dias"],
-          deliverable: "Missões de 7 dias + leitura coletiva",
-        },
-        transformar: {
-          objective: "Realinhar trabalho e trilhas às forças de cada um.",
-          instruments: ["Academia", "Job crafting"],
-          deliverable: "Trilhas personalizadas + tarefas realinhadas",
-        },
-        evoluir: {
-          objective: "Remedir o ICUFT e revelar potencial subutilizado.",
-          instruments: ["ICUFT", "Dashboard coletivo"],
-          deliverable: "Mapa de potencial subutilizado",
-        },
-      }),
-      activities: T2_ACTIVITIES,
-    },
-    {
-      id: "t3-2026",
-      index: 3,
-      name: "Outono da Segurança",
-      cycleId: "T3-2026",
-      layer: 1,
-      layerLabel: "Camada 1 · Risco (Domínio B)",
-      question: "O que ameaça as pessoas?",
-      primaryInstrument: "COPSOQ / NR-1",
-      color: "#DC2626",
-      startLabel: "Jul–Set",
+      name: RISCO.seasonName,
+      cycleId: RISCO.cycleId,
+      layer: RISCO.layer,
+      layerLabel: RISCO.layerLabel,
+      question: RISCO.guidingQuestion,
+      primaryInstrument: RISCO.instrument,
+      color: RISCO.color,
+      startLabel: RISCO.startLabel,
       phases: metePhases({
         mensurar: {
           objective: "Inventariar a exposição a fatores de risco psicossocial.",
@@ -352,48 +293,119 @@ export const ANNUAL_PLAN: AnnualPlan = {
           deliverable: "Evidência documental + PGR atualizado",
         },
       }),
-      activities: T3_ACTIVITIES,
+      activities: FUNDACAO_ACTIVITIES,
+    },
+    {
+      id: "t2-2026",
+      index: 2,
+      name: BEM_COMUM.seasonName,
+      cycleId: BEM_COMUM.cycleId,
+      layer: BEM_COMUM.layer,
+      layerLabel: BEM_COMUM.layerLabel,
+      question: BEM_COMUM.guidingQuestion,
+      primaryInstrument: BEM_COMUM.instrument,
+      color: BEM_COMUM.color,
+      startLabel: BEM_COMUM.startLabel,
+      phases: metePhases({
+        mensurar: {
+          objective: "Medir a Felicidade Interna Bruta em 9 domínios de vida (32 itens).",
+          instruments: ["FIB-T", "Censo de bem-estar"],
+          deliverable: "Índice FIB-T + perfil dos 9 domínios (n≥5)",
+        },
+        educar: {
+          objective: "Devolver os domínios frágeis como agenda coletiva, sem rótulo individual.",
+          instruments: ["Devolutiva FIB-T", "Rodas de escuta"],
+          deliverable: "Mapa dos domínios prioritários por área",
+        },
+        transformar: {
+          objective: "Agir sobre os domínios de bem-comum mais frágeis (tempo, comunidade, saúde).",
+          instruments: ["Culture Lab", "Pactos de equipe"],
+          deliverable: "Iniciativas de bem-comum em curso",
+        },
+        evoluir: {
+          objective: "Remedir os domínios tocados e ligar o ganho à ponte ESG.",
+          instruments: ["Pulse FIB-T", "Ponte ESG"],
+          deliverable: "Variação dos domínios + contribuição social (S)",
+        },
+      }),
+      activities: BEM_COMUM_ACTIVITIES,
+    },
+    {
+      id: "t3-2026",
+      index: 3,
+      name: FLORESCIMENTO.seasonName,
+      cycleId: FLORESCIMENTO.cycleId,
+      layer: FLORESCIMENTO.layer,
+      layerLabel: FLORESCIMENTO.layerLabel,
+      question: FLORESCIMENTO.guidingQuestion,
+      primaryInstrument: FLORESCIMENTO.instrument,
+      color: FLORESCIMENTO.color,
+      startLabel: FLORESCIMENTO.startLabel,
+      phases: metePhases({
+        mensurar: {
+          objective: "Estabelecer o IVO basal do ano com o PERMA (15 itens).",
+          instruments: ["IVO", "PERMA"],
+          deliverable: "Radar das 4 lentes + IVO basal",
+        },
+        educar: {
+          objective: "Traduzir os dados em entendimento: o que cada pilar significa.",
+          instruments: ["Devolutiva", "FlorescerIA"],
+          deliverable: "Workshops por equipe nos pilares frágeis",
+        },
+        transformar: {
+          objective: "Rodar protocolos de evidência para os pilares críticos.",
+          instruments: ["Culture Lab", "Playbook"],
+          deliverable: "Experimentos ativos com métrica e responsável",
+        },
+        evoluir: {
+          objective: "Validar o efeito e consolidar o aprendizado da temporada.",
+          instruments: ["Pulse", "Relatórios"],
+          deliverable: "Evidência de variação do IVO + plano da T4",
+        },
+      }),
+      activities: FLORESCIMENTO_ACTIVITIES,
     },
     {
       id: "t4-2026",
       index: 4,
-      name: "Inverno da Cultura",
-      cycleId: "T4-2026",
-      layer: 4,
-      layerLabel: "Camada 4 · Ação & Prova",
-      question: "O que fazer e como provar?",
-      primaryInstrument: "Re-IVO + ESG/Selo",
-      color: "#7C3AED",
-      startLabel: "Out–Dez",
+      name: FORCAS.seasonName,
+      cycleId: FORCAS.cycleId,
+      layer: FORCAS.layer,
+      layerLabel: FORCAS.layerLabel,
+      question: FORCAS.guidingQuestion,
+      primaryInstrument: FORCAS.instrument,
+      color: FORCAS.color,
+      startLabel: FORCAS.startLabel,
       phases: metePhases({
         mensurar: {
-          objective: "Remedir o IVO anual e consolidar as 4 camadas do ano.",
-          instruments: ["IVO", "Painel anual"],
-          deliverable: "Delta anual do IVO + visão consolidada",
+          objective: "Mapear forças percebidas e as condições de uso (ICUFT).",
+          instruments: ["VIA-T", "ICUFT"],
+          deliverable: "Top 5 forças por pessoa + virtudes da equipe",
         },
         educar: {
-          objective: "Contar a história do ano e revisar o Pacto de Cultura.",
-          instruments: ["Relatório anual", "Town hall"],
-          deliverable: "Narrativa de cultura + pacto revisado",
+          objective: "Devolver forças como linguagem de desenvolvimento, não avaliação.",
+          instruments: ["Devolutiva VIA-T", "Missões 7 dias"],
+          deliverable: "Missões de 7 dias + leitura coletiva",
         },
         transformar: {
-          objective: "Consolidar ganhos via embaixadorias e protocolos finais.",
-          instruments: ["Embaixadorias", "Culture Lab"],
-          deliverable: "Ativação das embaixadorias",
+          objective: "Realinhar trabalho e trilhas às forças de cada um.",
+          instruments: ["Academia", "Job crafting"],
+          deliverable: "Trilhas personalizadas + tarefas realinhadas",
         },
         evoluir: {
-          objective: "Provar com dado: prontidão ESG e Selo Empresa Viva.",
-          instruments: ["ESG/ODS/FIB", "Selo Empresa Viva"],
-          deliverable: "Relatório ESG + Selo + plano do próximo ano",
+          objective: "Remedir o ICUFT e fechar o ano: Relatório Global ESG + Selo Empresa Viva.",
+          instruments: ["ICUFT", "ESG/ODS/FIB", "Selo Empresa Viva"],
+          deliverable:
+            "Potencial subutilizado + Relatório Global ESG + Selo + plano do próximo ano",
         },
       }),
-      activities: T4_ACTIVITIES,
+      activities: FORCAS_ACTIVITIES,
     },
   ],
 };
 
-// "Hoje" determinístico do programa: T1, semana 8 → fase Transformar.
-// (alinhado ao card de temporada do dashboard do colaborador)
+// "Hoje" determinístico do programa: T1 (Fundação Segura), semana 8 → Transformar.
+// (o card de temporada do dashboard do colaborador deriva deste mesmo valor)
 export const CURRENT_PROGRAM_WEEK = 8;
 
 // Mapa de cores por papel responsável (chips de atividade).
@@ -424,9 +436,9 @@ export const METE_GLOSSARY: Array<{ id: string; label: string; gist: string }> =
 
 export const SEASON_INTRO = {
   eyebrow: "Cronograma Operacional · Ciclo M.E.T.E.",
-  title: "A Jornada das 4 Lentes em 1 Ano",
+  title: "A Jornada de Vitalidade em 1 Ano",
   lead:
-    "Cada lente vira uma temporada de 13 semanas e roda o ciclo completo " +
-    "Mensurar → Educar → Transformar → Evoluir. Aferir é só o começo: o trimestre " +
-    "inteiro existe para virar o dado em ação e prova.",
+    "Quatro instrumentos, quatro temporadas de 13 semanas, na ordem que importa: " +
+    "primeiro o que pode adoecer, depois o que faz florescer. Cada estação roda o ciclo " +
+    "Mensurar → Educar → Transformar → Evoluir — aferir é só o começo.",
 };

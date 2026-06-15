@@ -2,6 +2,8 @@
 // a hierarquia corrigida do ecossistema e os 3 níveis de contratação, com
 // narrativa de infoproduto premium. É copy de domínio; sem engine.
 
+import { CANONICAL_JOURNEY } from "@/domain/journey";
+
 export const PROGRAMA_HERO = {
   eyebrow: "VitalOS · Sistema Operacional da Vitalidade",
   category: "Clima se mede. Vitalidade se opera.",
@@ -64,12 +66,10 @@ export const PROGRAMA_HIERARCHY: Array<{ layer: string; value: string; note: str
   },
 ];
 
-// A jornada (o método) — os 4 trimestres + síntese.
+// A jornada (o método) — os 4 trimestres derivam da jornada canônica (fonte
+// única: mesma sequência de /temporada e /relatorio-global) + a síntese Q5.
 export const PROGRAMA_JOURNEY: Array<{ q: string; lens: string; promise: string }> = [
-  { q: "T1", lens: "COPSOQ — Compliance", promise: "Blindagem NR-1 e mapa de risco psicossocial." },
-  { q: "T2", lens: "FIB-T — Ecossistema", promise: "A felicidade que o sistema sustenta." },
-  { q: "T3", lens: "PERMA+V — Performance", promise: "Florescimento e capital psicológico." },
-  { q: "T4", lens: "VIA-T — Cultura", promise: "Forças de caráter e cultura de potência." },
+  ...CANONICAL_JOURNEY.map((s) => ({ q: s.quarter, lens: s.lensName, promise: s.headline })),
   { q: "Q5", lens: "Relatório Global ESG", promise: "A prova consolidada do ano." },
 ];
 

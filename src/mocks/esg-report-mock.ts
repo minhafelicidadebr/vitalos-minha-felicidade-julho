@@ -4,6 +4,7 @@
 // rótulos de ODS e o fato de Domínio B (COPSOQ) que ainda não tem motor próprio.
 
 import type { QuarterSummary, MethodologyEntry } from "@/engine/esg-report/esg-report-engine";
+import { CANONICAL_JOURNEY } from "@/domain/journey";
 
 // Prontidão COPSOQ/Domínio B (risco-invertido, 0–1000). Em produção viria do
 // módulo de SST; aqui é um fato declarado, agregado (k≥5).
@@ -22,32 +23,13 @@ export const ODS_LABEL: Record<string, string> = {
 
 // Jornada anual — ordem do programa (compliance como cunha → ecossistema →
 // performance → cultura), espelhando o anexo FT Wellbeing.
-export const JOURNEY_QUARTERS: QuarterSummary[] = [
-  {
-    quarter: "T1",
-    lensName: "COPSOQ — Compliance",
-    instrument: "COPSOQ II / NR-1",
-    highlight: "Blindagem jurídica e mapa de risco psicossocial.",
-  },
-  {
-    quarter: "T2",
-    lensName: "FIB-T — Ecossistema",
-    instrument: "FIB-T (Furtado, 2020)",
-    highlight: "A felicidade que o sistema sustenta: território, saúde e bem-comum.",
-  },
-  {
-    quarter: "T3",
-    lensName: "PERMA+V — Performance",
-    instrument: "PERMA+V → IVO",
-    highlight: "Florescimento e capital psicológico convertidos em IVO.",
-  },
-  {
-    quarter: "T4",
-    lensName: "VIA-T — Cultura",
-    instrument: "VIA-T v1",
-    highlight: "Forças de caráter e cultura de potência.",
-  },
-];
+// Deriva da jornada canônica (fonte única) — não reescrever à mão.
+export const JOURNEY_QUARTERS: QuarterSummary[] = CANONICAL_JOURNEY.map((s) => ({
+  quarter: s.quarter,
+  lensName: s.lensName,
+  instrument: s.instrument,
+  highlight: s.headline,
+}));
 
 export const METHODOLOGY: MethodologyEntry[] = [
   {

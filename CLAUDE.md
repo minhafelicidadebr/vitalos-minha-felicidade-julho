@@ -155,16 +155,18 @@ src/
 
 ### Cobertura de testes (bun test src)
 
-330 testes / 25 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+335 testes / 26 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
 priority (14), evidence (16), panorama (18), agent (15), benchmark (15),
 consent (18), signals (16), certification (15), fibt (10), esg-report (10),
 rbac (7), nudges (8), pack-contract (8), trend (11),
-**season-consistency (3, fonte única do card de temporada)**
+season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 
-> Nota de arquitetura: o `MOCK_SEASON` do dashboard do colaborador **deriva** de
-> `computeSeasonOverview(ANNUAL_PLAN, CURRENT_PROGRAM_WEEK)` — não há estado de
-> temporada hardcoded em paralelo. Card do colaborador e `/temporada` = uma só verdade.
+> Nota de arquitetura — fonte única: (1) o `MOCK_SEASON` do dashboard do colaborador
+> **deriva** de `computeSeasonOverview(ANNUAL_PLAN, …)`. (2) A **jornada canônica**
+> (`src/domain/journey.ts`, espinha Risco→Bem-Comum→Florescimento→Forças→Síntese) é a
+> ÚNICA fonte da sequência: `/temporada` (ANNUAL_PLAN), `/programa` (PROGRAMA_JOURNEY) e
+> `/relatorio-global` (JOURNEY_QUARTERS) todos derivam dela — não podem divergir.
 
 - **integração ponta-a-ponta (10)** + **multipack (6, prova setor-agnóstico)**. Typecheck limpo.
 

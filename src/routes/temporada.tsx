@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { computeSeasonOverview, type ComputedSeason } from "@/engine/season/season-engine";
@@ -10,6 +10,7 @@ import {
   METE_GLOSSARY,
   OWNER_COLOR,
 } from "@/mocks/season-mock";
+import { CANONICAL_JOURNEY, JOURNEY_CAPSTONE, JOURNEY_RATIONALE } from "@/domain/journey";
 
 export const Route = createFileRoute("/temporada")({
   head: () => ({ meta: [{ title: "Cronograma das 4 Lentes — 4 Lentes VITA" }] }),
@@ -48,6 +49,9 @@ function TemporadaPage() {
             {SEASON_INTRO.lead}
           </p>
         </motion.div>
+
+        {/* Por que esta ordem — a espinha metodológica como ponto de prova */}
+        <JourneySpineBanner />
 
         {/* Status atual em destaque */}
         <CurrentStatusStrip overview={overview} />
@@ -98,6 +102,79 @@ function TemporadaPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+// ─── Espinha metodológica · "por que esta ordem" ─────────────────────────────
+
+function StageChip({
+  label,
+  sub,
+  color,
+  route,
+}: {
+  label: string;
+  sub: string;
+  color: string;
+  route?: string;
+}) {
+  const inner = (
+    <span
+      className="inline-flex flex-col rounded-xl border px-3 py-1.5"
+      style={{ borderColor: `${color}40` }}
+    >
+      <span className="text-xs font-semibold" style={{ color }}>
+        {label}
+      </span>
+      <span className="text-[10px] text-muted-foreground">{sub}</span>
+    </span>
+  );
+  return route ? (
+    <Link to={route} className="transition-opacity hover:opacity-75">
+      {inner}
+    </Link>
+  ) : (
+    inner
+  );
+}
+
+function JourneySpineBanner() {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.08 }}
+      className="rounded-2xl border border-border/70 bg-gradient-to-br from-card to-muted/30 p-5 shadow-sm"
+      aria-label="Por que esta ordem"
+    >
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        Por que esta ordem
+      </p>
+      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-card-foreground">
+        {JOURNEY_RATIONALE}
+      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
+        {CANONICAL_JOURNEY.map((s) => (
+          <Fragment key={s.key}>
+            <StageChip
+              label={s.seasonName}
+              sub={s.instrumentShort}
+              color={s.color}
+              route={s.route}
+            />
+            <span className="text-muted-foreground/50" aria-hidden>
+              →
+            </span>
+          </Fragment>
+        ))}
+        <StageChip
+          label="Síntese"
+          sub="Relatório Global"
+          color="#64748B"
+          route={JOURNEY_CAPSTONE.route}
+        />
+      </div>
+    </motion.section>
   );
 }
 
