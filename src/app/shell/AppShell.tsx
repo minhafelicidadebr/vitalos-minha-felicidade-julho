@@ -1,18 +1,32 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { MotionConfig } from "framer-motion";
+import { Menu, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { usePack } from "@/engine/pack";
 import { navForRole, usePersona } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 /**
- * AppShell — header institucional + navegação dirigida pelo pack × papel
- * (Bloco 1: RBAC + seletor de persona para demo) + rodapé.
+ * AppShell — header institucional + navegação dirigida pelo pack × papel,
+ * agrupada pelo ciclo do produto (Medir · Agir · Provar · Estratégico · Confiança).
  */
 
 // Mapeia ids de navegação do pack para rotas implementadas.
-// Itens sem rota ainda não aparecem (vão entrando bloco a bloco).
 const NAV_ROUTES: Record<string, string> = {
   overview: "/", // por papel, abaixo
   ivo: "/ivo",
@@ -23,7 +37,7 @@ const NAV_ROUTES: Record<string, string> = {
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
   certification: "/selo",
-  action_plan: "/lab", // Culture Lab abriga protocolos/experimentos por ora
+  action_plan: "/lab",
   experiments: "/experimentos",
   domain_b: "/sst",
   signals: "/sinais",
@@ -38,7 +52,6 @@ const NAV_ROUTES: Record<string, string> = {
   esg: "/esg",
 };
 
-// Home de cada papel (item "overview")
 const ROLE_HOME: Record<string, string> = {
   COLABORADOR: "/colaborador",
   EMBAIXADOR: "/colaborador",
@@ -51,7 +64,6 @@ const ROLE_HOME: Record<string, string> = {
   HOLDING_ADMIN: "/holding",
 };
 
-// Papéis exibidos no seletor de demo (com dashboards implementados)
 const DEMO_PERSONAS = [
   "COLABORADOR",
   "LIDER_EQUIPE",
@@ -62,15 +74,57 @@ const DEMO_PERSONAS = [
   "HOLDING_ADMIN",
 ] as const;
 
+// Grupos do ciclo do produto. Itens fora destes grupos caem em "Mais".
+type NavGroupDef = { id: string; label: string; hint?: string; items: string[] };
+const NAV_GROUPS: NavGroupDef[] = [
+  {
+    id: "medir",
+    label: "Medir",
+    hint: "Onde a vitalidade está hoje",
+    items: ["ivo", "pulses", "signals", "season"],
+  },
+  {
+    id: "agir",
+    label: "Agir",
+    hint: "O que fazer a seguir",
+    items: ["priorities", "forecast", "action_plan", "copilot"],
+  },
+  {
+    id: "provar",
+    label: "Provar",
+    hint: "Evidência e certificação",
+    items: ["experiments", "reports", "certification"],
+  },
+  {
+    id: "estrategico",
+    label: "Estratégico",
+    hint: "Visão de board e portfólio",
+    items: ["panorama", "benchmark", "esg", "viat", "domain_b"],
+  },
+  {
+    id: "comunidade",
+    label: "Comunidade",
+    hint: "Pessoas, forças e cultura",
+    items: ["academy", "ambassadorships", "ai"],
+  },
+  {
+    id: "confianca",
+    label: "Confiança",
+    hint: "Privacidade e governança",
+    items: ["privacy"],
+  },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { pack } = usePack();
   const { roleId, setRole } = usePersona();
   const { reduceMotion } = useA11y();
   const [personaOpen, setPersonaOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
 
-  const navItems = pack
+  const visibleItems = pack
     ? navForRole(pack, roleId)
         .map((item) => ({
           ...item,
@@ -78,6 +132,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         }))
         .filter((item) => Boolean(item.to))
     : [];
+
+  const overview = visibleItems.find((i) => i.id === "overview");
+  const groupedIds = new Set(NAV_GROUPS.flatMap((g) => g.items));
+  const groupsRendered = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: visibleItems.filter((vi) => g.items.includes(vi.id)),
+  })).filter((g) => g.items.length > 0);
+  const extras = visibleItems.filter((i) => i.id !== "overview" && !groupedIds.has(i.id));
 
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
@@ -88,8 +150,86 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           Pular para o conteúdo
         </a>
-        <header className="border-b border-border/60 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/40">
-          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        <header className="sticky top-0 z-40 border-b border-border/60 bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/50 print:hidden">
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+            {/* Mobile drawer trigger */}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/60 text-foreground transition-colors hover:bg-muted/40 lg:hidden"
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="h-5 w-5" aria-hidden />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[88vw] max-w-sm overflow-y-auto p-0">
+                <SheetHeader className="border-b border-border/60 px-5 py-4 text-left">
+                  <SheetTitle className="font-serif text-base">Navegação</SheetTitle>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {roleLabel}
+                  </p>
+                </SheetHeader>
+                <div className="px-3 py-4">
+                  {overview && (
+                    <Link
+                      to={overview.to!}
+                      onClick={() => setMobileOpen(false)}
+                      className="mb-3 flex min-h-[44px] items-center rounded-lg bg-secondary/60 px-3 py-2.5 text-sm font-medium text-secondary-foreground"
+                      activeProps={{ className: "bg-secondary" }}
+                    >
+                      {overview.label}
+                    </Link>
+                  )}
+                  {groupsRendered.map((g) => (
+                    <div key={g.id} className="mt-4 first:mt-0">
+                      <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                        {g.label}
+                      </p>
+                      <ul className="mt-1.5 space-y-0.5">
+                        {g.items.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              to={item.to!}
+                              onClick={() => setMobileOpen(false)}
+                              className="flex min-h-[44px] items-center rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted/60"
+                              activeProps={{
+                                className: "bg-secondary text-secondary-foreground",
+                              }}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  {extras.length > 0 && (
+                    <div className="mt-4">
+                      <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                        Mais
+                      </p>
+                      <ul className="mt-1.5 space-y-0.5">
+                        {extras.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              to={item.to!}
+                              onClick={() => setMobileOpen(false)}
+                              className="flex min-h-[44px] items-center rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted/60"
+                              activeProps={{
+                                className: "bg-secondary text-secondary-foreground",
+                              }}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
             <Link
               to="/"
               className="flex shrink-0 items-center gap-3 group"
@@ -109,37 +249,87 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
             </Link>
 
-            {/* Pack-driven nav */}
+            {/* Desktop grouped nav */}
             <nav
-              className="hidden items-center gap-0.5 overflow-x-auto lg:flex"
+              className="ml-2 hidden flex-1 items-center gap-0.5 lg:flex"
               aria-label="Navegação principal"
             >
-              {navItems.map((item) => (
+              {overview && (
                 <Link
-                  key={item.id}
-                  to={item.to!}
-                  className="whitespace-nowrap rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
+                  to={overview.to!}
+                  className="rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
                   activeProps={{ className: "bg-secondary text-secondary-foreground" }}
                 >
-                  {item.label}
+                  {overview.label}
                 </Link>
+              )}
+              {groupsRendered.map((g) => (
+                <DropdownMenu key={g.id}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-secondary data-[state=open]:text-secondary-foreground"
+                      aria-label={`${g.label} — abrir menu`}
+                    >
+                      {g.label}
+                      <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-60">
+                    {g.hint && (
+                      <DropdownMenuLabel className="text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                        {g.hint}
+                      </DropdownMenuLabel>
+                    )}
+                    {g.items.map((item) => (
+                      <DropdownMenuItem key={item.id} asChild>
+                        <Link
+                          to={item.to!}
+                          className="cursor-pointer"
+                          activeProps={{ className: "bg-secondary text-secondary-foreground" }}
+                        >
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ))}
+              {extras.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
+                      aria-label="Mais — abrir menu"
+                    >
+                      Mais
+                      <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {extras.map((item) => (
+                      <DropdownMenuItem key={item.id} asChild>
+                        <Link to={item.to!} className="cursor-pointer">
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               {/* Persona switcher (mock auth — demo) */}
               <div className="relative">
                 <button
                   onClick={() => setPersonaOpen((o) => !o)}
                   aria-expanded={personaOpen}
                   aria-haspopup="listbox"
-                  className="flex items-center gap-2 rounded-md border border-border/60 bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex h-10 items-center gap-2 rounded-md border border-border/60 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
-                  <span className="max-w-[8rem] truncate">{roleLabel}</span>
-                  <span aria-hidden className="text-muted-foreground">
-                    ▾
-                  </span>
+                  <span className="hidden max-w-[8rem] truncate sm:inline">{roleLabel}</span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
                 </button>
 
                 {personaOpen && (
@@ -178,30 +368,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <ThemeToggle />
             </div>
           </div>
-
-          {/* Mobile nav strip */}
-          <nav
-            className="flex gap-0.5 overflow-x-auto border-t border-border/40 px-3 py-1.5 lg:hidden"
-            aria-label="Navegação principal (mobile)"
-          >
-            {navItems.map((item) => (
-              <Link
-                key={item.id}
-                to={item.to!}
-                className="whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
-                activeProps={{ className: "bg-secondary text-secondary-foreground" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
         </header>
 
         <main id="main" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
 
-        <footer className="border-t border-border/60 py-6">
+        <footer className="border-t border-border/60 py-6 print:hidden">
           <div className="mx-auto max-w-7xl px-6 text-xs text-muted-foreground">
             4 Lentes VITA™ · MVP mock-first em construção
           </div>
