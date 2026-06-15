@@ -14,6 +14,7 @@ import { Route as TrajetoriaRouteImport } from './routes/trajetoria'
 import { Route as TemporadaRouteImport } from './routes/temporada'
 import { Route as SstRouteImport } from './routes/sst'
 import { Route as SinaisRouteImport } from './routes/sinais'
+import { Route as SeloRouteImport } from './routes/selo'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
@@ -62,6 +63,11 @@ const SstRoute = SstRouteImport.update({
 const SinaisRoute = SinaisRouteImport.update({
   id: '/sinais',
   path: '/sinais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeloRoute = SeloRouteImport.update({
+  id: '/selo',
+  path: '/selo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
+  '/selo': typeof SeloRoute
   '/sinais': typeof SinaisRoute
   '/sst': typeof SstRoute
   '/temporada': typeof TemporadaRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
+  '/selo': typeof SeloRoute
   '/sinais': typeof SinaisRoute
   '/sst': typeof SstRoute
   '/temporada': typeof TemporadaRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
   '/rh': typeof RhRoute
+  '/selo': typeof SeloRoute
   '/sinais': typeof SinaisRoute
   '/sst': typeof SstRoute
   '/temporada': typeof TemporadaRoute
@@ -306,6 +315,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorios'
     | '/rh'
+    | '/selo'
     | '/sinais'
     | '/sst'
     | '/temporada'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorios'
     | '/rh'
+    | '/selo'
     | '/sinais'
     | '/sst'
     | '/temporada'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorios'
     | '/rh'
+    | '/selo'
     | '/sinais'
     | '/sst'
     | '/temporada'
@@ -400,6 +412,7 @@ export interface RootRouteChildren {
   QuiosqueRoute: typeof QuiosqueRoute
   RelatoriosRoute: typeof RelatoriosRoute
   RhRoute: typeof RhRoute
+  SeloRoute: typeof SeloRoute
   SinaisRoute: typeof SinaisRoute
   SstRoute: typeof SstRoute
   TemporadaRoute: typeof TemporadaRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/sinais'
       fullPath: '/sinais'
       preLoaderRoute: typeof SinaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selo': {
+      id: '/selo'
+      path: '/selo'
+      fullPath: '/selo'
+      preLoaderRoute: typeof SeloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -640,6 +660,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuiosqueRoute: QuiosqueRoute,
   RelatoriosRoute: RelatoriosRoute,
   RhRoute: RhRoute,
+  SeloRoute: SeloRoute,
   SinaisRoute: SinaisRoute,
   SstRoute: SstRoute,
   TemporadaRoute: TemporadaRoute,
