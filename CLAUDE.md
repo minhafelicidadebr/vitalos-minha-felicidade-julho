@@ -155,12 +155,12 @@ src/
 
 ### Cobertura de testes (bun test src)
 
-287 testes / 19 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+293 testes / 20 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
 priority (14), evidence (16), panorama (18), agent (15), benchmark (15),
 consent (18), signals (16), certification (15), fibt (10), esg-report (10)
 
-- **integração ponta-a-ponta (10)**. Typecheck limpo.
+- **integração ponta-a-ponta (10)** + **multipack (6, prova setor-agnóstico)**. Typecheck limpo.
 
 > Nav: agrupada por ciclo do produto (Medir·Agir·Provar·Estratégico·Comunidade·
 > Confiança) — `NAV_GROUPS` vive HARDCODED no `AppShell.tsx` (refactor visual do
@@ -185,6 +185,8 @@ consent (18), signals (16), certification (15), fibt (10), esg-report (10)
 `/selo` (Selo Empresa Viva — certificação computada do arco) ·
 `/fibt` (FIB-T — lente de ecossistema, Furtado 2020) ·
 `/relatorio-global` (Relatório Global ESG anual — síntese E/S/G + ODS) ·
+`/programa` (Landing — hierarquia + 3 níveis de venda) ·
+`/setores` (Multissetorial — prova Engine≠Domínio, 2º pack Escola) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo

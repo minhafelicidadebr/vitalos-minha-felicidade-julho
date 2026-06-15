@@ -188,6 +188,12 @@
       "group": "estrategico"
     },
     {
+      "id": "sectors",
+      "label": "Multissetorial",
+      "roles": ["CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA", "PLATFORM_ADMIN"],
+      "group": "estrategico"
+    },
+    {
       "id": "panorama",
       "label": "Panorama",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],

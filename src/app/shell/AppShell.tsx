@@ -38,6 +38,7 @@ const NAV_ROUTES: Record<string, string> = {
   signals: "/sinais",
   privacy: "/privacidade",
   program: "/programa",
+  sectors: "/setores",
   panorama: "/panorama",
   benchmark: "/benchmark",
   fibt: "/fibt",
@@ -95,7 +96,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "estrategico",
     label: "Estratégico",
     hint: "Visão de board e portfólio",
-    items: ["program", "panorama", "benchmark", "esg", "fibt", "viat", "domain_b"],
+    items: ["program", "sectors", "panorama", "benchmark", "esg", "fibt", "viat", "domain_b"],
   },
   {
     id: "comunidade",

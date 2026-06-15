@@ -1,0 +1,195 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json#/definitions/proprietaryIndex",
+  "id": "iev",
+  "name": "IEV — Índice de Vitalidade Escolar",
+  "version": "1.0.0",
+  "status": "experimental",
+  "scale": { "min": 0, "max": 1000 },
+  "responseScale": {
+    "type": "likert",
+    "min": 1,
+    "max": 5,
+    "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"]
+  },
+  "formula": {
+    "pillarScore": "mean(items)",
+    "normalized": "(pillarScore - 1) / 4",
+    "lensScore": "sum(relativeWeight * normalized) * 1000",
+    "index": "sum(pillarWeight * normalized) * 1000"
+  },
+  "privacy": {
+    "kAnonymityMin": 5,
+    "individualScoresVisible": false,
+    "rawResponsesReadableBy": ["edge_function:iev-calc"],
+    "neverFeedPerformanceReview": true
+  },
+  "mandatoryDisclaimer": "O IEV é um índice proprietário experimental para vitalidade escolar. Não é instrumento clínico, não mede felicidade individual de estudantes ou educadores, não diagnostica transtornos e não substitui avaliação profissional. Seu valor está na tendência agregada e na orientação de ações na comunidade escolar.",
+  "lenses": [
+    {
+      "id": "aluno",
+      "name": "ALUNO — Estudante",
+      "color": "#2563EB",
+      "guidingQuestion": "Como cada estudante floresce e aprende?",
+      "scientificBasis": [
+        "PERMA+V",
+        "Educação Positiva",
+        "Self-Determination Theory",
+        "Pertencimento escolar"
+      ],
+      "pillars": [
+        {
+          "id": "pertencimento_escolar",
+          "name": "Pertencimento Escolar",
+          "weight": 0.08,
+          "sampleItems": [
+            "Sinto que pertenço a esta escola.",
+            "Tenho ao menos um adulto de confiança na escola."
+          ]
+        },
+        {
+          "id": "engajamento_aprendizagem",
+          "name": "Engajamento na Aprendizagem",
+          "weight": 0.07,
+          "sampleItems": [
+            "Acho as aulas interessantes na maior parte do tempo.",
+            "Tenho vontade de aprender coisas novas aqui."
+          ]
+        },
+        {
+          "id": "seguranca_emocional",
+          "name": "Segurança Emocional",
+          "weight": 0.08,
+          "sampleItems": [
+            "Sinto-me seguro(a) para errar e perguntar.",
+            "Posso pedir ajuda quando estou com dificuldade."
+          ]
+        },
+        {
+          "id": "proposito_aprender",
+          "name": "Propósito de Aprender",
+          "weight": 0.05,
+          "sampleItems": ["Entendo por que o que aprendo é importante para minha vida."]
+        }
+      ]
+    },
+    {
+      "id": "turma",
+      "name": "TURMA — Convivência & Pares",
+      "color": "#16A34A",
+      "guidingQuestion": "Como as relações na turma sustentam o florescimento?",
+      "scientificBasis": ["Clima de sala", "Aprendizagem socioemocional", "Prevenção ao bullying"],
+      "pillars": [
+        {
+          "id": "convivencia_respeito",
+          "name": "Convivência & Respeito",
+          "weight": 0.07,
+          "sampleItems": ["Na minha turma, as pessoas se tratam com respeito."]
+        },
+        {
+          "id": "cooperacao_pares",
+          "name": "Cooperação entre Pares",
+          "weight": 0.06,
+          "sampleItems": ["Meus colegas me ajudam quando preciso."]
+        },
+        {
+          "id": "voz_participacao",
+          "name": "Voz & Participação",
+          "weight": 0.06,
+          "sampleItems": ["Minhas ideias são ouvidas na turma e na escola."]
+        },
+        {
+          "id": "ambiente_seguro",
+          "name": "Ambiente Livre de Violência",
+          "weight": 0.05,
+          "sampleItems": ["Não presencio nem sofro situações de humilhação ou bullying."]
+        }
+      ]
+    },
+    {
+      "id": "educador",
+      "name": "EDUCADOR — Docentes",
+      "color": "#CA8A04",
+      "guidingQuestion": "Como os educadores são sustentados para sustentar?",
+      "scientificBasis": ["Bem-estar docente", "JD-R Model", "Desenvolvimento profissional"],
+      "pillars": [
+        {
+          "id": "realizacao_docente",
+          "name": "Realização Docente",
+          "weight": 0.07,
+          "sampleItems": ["Sinto que meu trabalho como educador(a) faz diferença."]
+        },
+        {
+          "id": "suporte_pedagogico",
+          "name": "Suporte Pedagógico",
+          "weight": 0.06,
+          "sampleItems": ["Recebo apoio pedagógico e material para ensinar bem."]
+        },
+        {
+          "id": "desenvolvimento_professor",
+          "name": "Desenvolvimento Profissional",
+          "weight": 0.06,
+          "sampleItems": ["Tenho oportunidades reais de me desenvolver na profissão."]
+        },
+        {
+          "id": "carga_sustentavel",
+          "name": "Carga Sustentável",
+          "weight": 0.07,
+          "sampleItems": ["Minha carga de trabalho e a jornada são sustentáveis."]
+        }
+      ]
+    },
+    {
+      "id": "escola",
+      "name": "ESCOLA — Comunidade & Sistema",
+      "color": "#7C3AED",
+      "guidingQuestion": "Como a escola, como sistema, protege e potencializa?",
+      "scientificBasis": ["Clima escolar", "Inclusão e equidade", "Engajamento da família"],
+      "pillars": [
+        {
+          "id": "clima_escolar",
+          "name": "Clima Escolar",
+          "weight": 0.07,
+          "sampleItems": ["O clima geral da escola é acolhedor e organizado."]
+        },
+        {
+          "id": "inclusao_equidade",
+          "name": "Inclusão & Equidade",
+          "weight": 0.06,
+          "sampleItems": ["Pessoas diferentes têm as mesmas oportunidades aqui."]
+        },
+        {
+          "id": "familia_comunidade",
+          "name": "Família & Comunidade",
+          "weight": 0.05,
+          "sampleItems": ["A escola dialoga bem com as famílias e a comunidade."]
+        },
+        {
+          "id": "proposito_institucional",
+          "name": "Propósito Institucional",
+          "weight": 0.04,
+          "sampleItems": ["A escola tem um propósito claro que orienta as decisões."]
+        }
+      ]
+    }
+  ],
+  "maturityLevels": [
+    { "min": 0, "max": 199, "name": "Escola Desperta", "badge": "desperta" },
+    { "min": 200, "max": 349, "name": "Escola em Conexão", "badge": "conexao" },
+    { "min": 350, "max": 499, "name": "Escola Colaborativa", "badge": "colaborativa" },
+    { "min": 500, "max": 649, "name": "Escola Saudável", "badge": "saudavel" },
+    { "min": 650, "max": 799, "name": "Escola Sustentável", "badge": "sustentavel" },
+    { "min": 800, "max": 924, "name": "Escola Referência", "badge": "referencia" },
+    { "min": 925, "max": 1000, "name": "Escola Viva", "badge": "viva" }
+  ],
+  "pulse": {
+    "durationSeconds": 60,
+    "itemsPerPulse": 3,
+    "cadence": "biweekly",
+    "rotationStrategy": "lowest-scoring-pillars-first",
+    "optOut": true
+  },
+  "cuts": {
+    "allowed": ["school", "grade", "class", "shift"],
+    "rule": "hide cut when respondents < kAnonymityMin"
+  }
+}
