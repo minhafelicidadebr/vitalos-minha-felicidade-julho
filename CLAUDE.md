@@ -143,13 +143,14 @@ src/
 | ✅ +  | Cronograma M.E.T.E. (extra)                 | engine/season + /temporada (plano anual, 22 testes)                        |
 | ✅ +  | Simulador de Trajetória (extra)             | engine/forecast + /trajetoria (compõe IVO+P&L+ESG, 25)                     |
 | ✅ +  | Diagnóstico Integrado (extra)               | engine/priority + /prioridades (compõe IVO+forecast+ESG+embaixadorias, 14) |
-| ✅ +  | Camada de Evidência (extra)                 | engine/lab/evidence-engine + /experimentos (diff-in-diff honesto, 16)     |
+| ✅ +  | Camada de Evidência (extra)                 | engine/lab/evidence-engine + /experimentos (diff-in-diff honesto, 16)      |
+| ✅ +  | Panorama Executivo (extra)                  | engine/panorama + /panorama (sintetiza o arco inteiro, 18)                 |
 
 ### Cobertura de testes (bun test src)
 
-168 testes / 10 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+186 testes / 11 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
 ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
-priority (14), evidence (16). Typecheck limpo (`@types/bun` + `"bun"` em tsconfig types).
+priority (14), evidence (16), panorama (18). Typecheck limpo (`@types/bun` + `"bun"`).
 
 ### Rotas implementadas
 
@@ -161,6 +162,7 @@ priority (14), evidence (16). Typecheck limpo (`@types/bun` + `"bun"` em tsconfi
 `/trajetoria` (Simulador de Trajetória — IVO×P&L×ESG) ·
 `/prioridades` (Diagnóstico Integrado — fila de prioridades) ·
 `/experimentos` (Culture Lab · camada de evidência — da prioridade à prova) ·
+`/panorama` (Panorama Executivo — o arco inteiro em uma página) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo

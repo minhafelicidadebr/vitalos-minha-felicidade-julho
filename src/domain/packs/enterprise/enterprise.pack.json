@@ -138,6 +138,11 @@
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"]
     },
     {
+      "id": "panorama",
+      "label": "Panorama",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]
+    },
+    {
       "id": "priorities",
       "label": "Prioridades",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN", "GESTOR_CARTEIRA"]

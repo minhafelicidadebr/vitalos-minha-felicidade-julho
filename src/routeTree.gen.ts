@@ -19,6 +19,7 @@ import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as PanoramaRouteImport } from './routes/panorama'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
@@ -82,6 +83,11 @@ const PrioridadesRoute = PrioridadesRouteImport.update({
 const PnlRoute = PnlRouteImport.update({
   id: '/pnl',
   path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanoramaRoute = PanoramaRouteImport.update({
+  id: '/panorama',
+  path: '/panorama',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiderRoute = LiderRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
+  '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/panorama'
     | '/pnl'
     | '/prioridades'
     | '/pulse'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/panorama'
     | '/pnl'
     | '/prioridades'
     | '/pulse'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/ivo'
     | '/lab'
     | '/lider'
+    | '/panorama'
     | '/pnl'
     | '/prioridades'
     | '/pulse'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   IvoRoute: typeof IvoRoute
   LabRoute: typeof LabRoute
   LiderRoute: typeof LiderRoute
+  PanoramaRoute: typeof PanoramaRoute
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PulseRoute: typeof PulseRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/pnl'
       fullPath: '/pnl'
       preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panorama': {
+      id: '/panorama'
+      path: '/panorama'
+      fullPath: '/panorama'
+      preLoaderRoute: typeof PanoramaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lider': {
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   IvoRoute: IvoRoute,
   LabRoute: LabRoute,
   LiderRoute: LiderRoute,
+  PanoramaRoute: PanoramaRoute,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PulseRoute: PulseRoute,
