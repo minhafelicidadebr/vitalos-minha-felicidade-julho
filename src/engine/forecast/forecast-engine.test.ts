@@ -3,6 +3,8 @@ import {
   projectForecast,
   ivoFromPillars,
   maturityFor,
+  expectedLeverLift,
+  SCENARIO_FACTOR,
   CEILING,
   NATURAL_DRIFT,
   type ForecastInput,
@@ -262,5 +264,46 @@ describe("projectForecast — metadados", () => {
 
   test("CEILING aplicado de forma coerente", () => {
     expect(CEILING).toBe(900);
+  });
+});
+
+// ─── expectedLeverLift (composto pela priorização) ───────────────────────────
+
+describe("expectedLeverLift", () => {
+  const factor = SCENARIO_FACTOR.medio;
+
+  test("contribuição positiva para pilar visível-alvo", () => {
+    const lift = expectedLeverLift(pillars(), LEVERS[0]!, factor); // alvo: energia
+    expect(lift.ivoLift).toBeGreaterThan(0);
+    expect(lift.perPillar).toHaveLength(1);
+    expect(lift.perPillar[0]!.pillarId).toBe("energia");
+  });
+
+  test("ivoLift ≈ soma das contribuições (arredondado uma vez, ±1)", () => {
+    const lift = expectedLeverLift(pillars(), LEVERS[1]!, factor); // alvo: seguranca+clareza
+    const sum = lift.perPillar.reduce((s, p) => s + p.ivoContribution, 0);
+    // o engine arredonda a soma não-arredondada (mais preciso); tolerância de 1 pt
+    expect(Math.abs(lift.ivoLift - sum)).toBeLessThanOrEqual(1);
+  });
+
+  test("pilar-alvo oculto é excluído e contado", () => {
+    const withHidden = pillars();
+    withHidden[0] = { ...withHidden[0]!, visible: false };
+    const lift = expectedLeverLift(withHidden, LEVERS[0]!, factor);
+    expect(lift.ivoLift).toBe(0);
+    expect(lift.hiddenTargetCount).toBe(1);
+    expect(lift.perPillar).toHaveLength(0);
+  });
+
+  test("retornos decrescentes: pilar baixo contribui mais que alto", () => {
+    const low = expectedLeverLift(pillars({ energia: 200 }), LEVERS[0]!, factor).ivoLift;
+    const high = expectedLeverLift(pillars({ energia: 800 }), LEVERS[0]!, factor).ivoLift;
+    expect(low).toBeGreaterThan(high);
+  });
+
+  test("perPillar ordenado por contribuição decrescente", () => {
+    const lift = expectedLeverLift(pillars({ seguranca: 200, clareza: 700 }), LEVERS[1]!, factor);
+    const c = lift.perPillar.map((p) => p.ivoContribution);
+    for (let i = 1; i < c.length; i++) expect(c[i - 1]!).toBeGreaterThanOrEqual(c[i]!);
   });
 });

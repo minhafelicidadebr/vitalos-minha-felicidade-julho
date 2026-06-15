@@ -17,6 +17,7 @@ import { Route as RhRouteImport } from './routes/rh'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LabRouteImport } from './routes/lab'
@@ -70,6 +71,11 @@ const QuiosqueRoute = QuiosqueRouteImport.update({
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrioridadesRoute = PrioridadesRouteImport.update({
+  id: '/prioridades',
+  path: '/prioridades',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PnlRoute = PnlRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
+  '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
+  '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/pnl': typeof PnlRoute
+  '/prioridades': typeof PrioridadesRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
   '/relatorios': typeof RelatoriosRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/pnl'
+    | '/prioridades'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/pnl'
+    | '/prioridades'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/pnl'
+    | '/prioridades'
     | '/pulse'
     | '/quiosque'
     | '/relatorios'
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   LabRoute: typeof LabRoute
   LiderRoute: typeof LiderRoute
   PnlRoute: typeof PnlRoute
+  PrioridadesRoute: typeof PrioridadesRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
   RelatoriosRoute: typeof RelatoriosRoute
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prioridades': {
+      id: '/prioridades'
+      path: '/prioridades'
+      fullPath: '/prioridades'
+      preLoaderRoute: typeof PrioridadesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pnl': {
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   LabRoute: LabRoute,
   LiderRoute: LiderRoute,
   PnlRoute: PnlRoute,
+  PrioridadesRoute: PrioridadesRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
   RelatoriosRoute: RelatoriosRoute,

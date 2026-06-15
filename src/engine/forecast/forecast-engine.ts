@@ -130,6 +130,60 @@ function bandHalfWidth(season: number, deltaFromBaseline: number): number {
   return Math.round(10 * Math.sqrt(season) + 0.15 * Math.abs(deltaFromBaseline));
 }
 
+// ─── Alavancagem isolada de uma alavanca (para priorização) ───────────────────
+
+export interface LeverLiftPillar {
+  pillarId: string;
+  name: string;
+  score: number;
+  rawLift: number; // pontos somados ao pilar em 1 temporada
+  ivoContribution: number; // peso × ganho do pilar = pts de IVO
+}
+
+export interface LeverLift {
+  ivoLift: number; // contribuição esperada da alavanca no IVO (1 temporada)
+  perPillar: LeverLiftPillar[]; // pilares visíveis-alvo, por contribuição decrescente
+  hiddenTargetCount: number; // pilares-alvo ocultos por k-anonimato
+}
+
+/**
+ * Contribuição ISOLADA de uma alavanca no IVO em uma temporada — sem o recuo
+ * natural dos pilares não-alvo. É a medida honesta de "quanto esta alavanca,
+ * sozinha, move o IVO a partir do estado atual", com retornos decrescentes e
+ * respeitando k-anonimato. Composta pelo motor de priorização.
+ */
+export function expectedLeverLift(
+  pillars: ForecastPillar[],
+  lever: ForecastLever,
+  scenarioFactor: number,
+): LeverLift {
+  const targets = new Set(lever.targetPillarIds);
+  const perPillar: LeverLiftPillar[] = [];
+  let hiddenTargetCount = 0;
+  let total = 0;
+
+  for (const p of pillars) {
+    if (!targets.has(p.pillarId)) continue;
+    if (!p.visible) {
+      hiddenTargetCount += 1;
+      continue;
+    }
+    const raw = effectiveLift(lever.pointsPerSeason, scenarioFactor, p.score);
+    const contribution = p.weight * raw;
+    total += contribution;
+    perPillar.push({
+      pillarId: p.pillarId,
+      name: p.name,
+      score: p.score,
+      rawLift: Math.round(raw),
+      ivoContribution: Math.round(contribution),
+    });
+  }
+
+  perPillar.sort((a, b) => b.ivoContribution - a.ivoContribution);
+  return { ivoLift: Math.round(total), perPillar, hiddenTargetCount };
+}
+
 // ─── Projeção ─────────────────────────────────────────────────────────────────
 
 export function projectForecast(input: ForecastInput): ForecastResult {

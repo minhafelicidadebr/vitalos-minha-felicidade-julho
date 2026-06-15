@@ -141,13 +141,14 @@ src/
 | ✅ +  | ESG · ODS · GRI · FIB (extra)               | engine/esg + /esg (deriva do IVO, k-anon, 9 testes)     |
 | ✅ +  | VIA-T v1 Exploratório (extra)               | engine/viat + /viat (24 forças, ICUFT, 29 testes)       |
 | ✅ +  | Cronograma M.E.T.E. (extra)                 | engine/season + /temporada (plano anual, 22 testes)     |
-| ✅ +  | Simulador de Trajetória (extra)             | engine/forecast + /trajetoria (compõe IVO+P&L+ESG, 20)  |
+| ✅ +  | Simulador de Trajetória (extra)             | engine/forecast + /trajetoria (compõe IVO+P&L+ESG, 25)  |
+| ✅ +  | Diagnóstico Integrado (extra)               | engine/priority + /prioridades (compõe IVO+forecast+ESG+embaixadorias, 14) |
 
 ### Cobertura de testes (bun test src)
 
-134 testes / 8 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
-ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (20).
-Typecheck limpo (`@types/bun` + `"bun"` em tsconfig types).
+152 testes / 9 arquivos, 0 falhas. Engines com testes: esg (9), viat (29),
+ivo (16), pnl (16), pulse (9), gamification (13), season (22), forecast (25),
+priority (14). Typecheck limpo (`@types/bun` + `"bun"` em tsconfig types).
 
 ### Rotas implementadas
 
@@ -157,6 +158,7 @@ Typecheck limpo (`@types/bun` + `"bun"` em tsconfig types).
 `/embaixadorias` · `/relatorios` (evidências + Selo) · `/esg` (ESG/ODS/GRI/FIB) ·
 `/viat` (Mapa de Forças) · `/temporada` (Cronograma M.E.T.E.) ·
 `/trajetoria` (Simulador de Trajetória — IVO×P&L×ESG) ·
+`/prioridades` (Diagnóstico Integrado — fila de prioridades) ·
 `/quiosque` · `/design-system`
 
 ### Persona demo
