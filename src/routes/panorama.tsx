@@ -145,7 +145,7 @@ function PanoramaPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0 print:space-y-4">
         {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
