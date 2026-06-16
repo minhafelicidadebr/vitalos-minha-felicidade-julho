@@ -1,9 +1,28 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { usePack } from "@/engine/pack";
+import { calculateIVO } from "@/engine/index/ivo-engine";
+import { buildTrend, type Momentum } from "@/engine/trend/trend-engine";
+import { rankPriorities } from "@/engine/priority/priority-engine";
+import { detectEarlyWarnings } from "@/engine/ai/earlywarning-engine";
+import { buildGroundedAnswer, type GroundedAnswer } from "@/engine/ai/grounding-engine";
 import { AI_GUARDRAILS } from "@/engine/ai/ai-types";
+import { getSectorData } from "@/mocks/sector-data";
+import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
 import { AI_MODES, AI_RESPONSES } from "@/mocks/floresceria-mock";
+
+const MOMENTUM_LABEL: Record<Momentum, string> = {
+  acelerando: "acelerando",
+  subindo: "subindo",
+  estavel: "estável",
+  caindo: "em queda",
+};
+
+// O modo "Ler o heatmap" (Analista de Sinais) passa a compor os motores ao vivo,
+// com fontes citadas — em vez do texto estático. Os demais modos seguem mockados.
+const GROUNDED_MODE_ID = "ler_heatmap";
 
 export const Route = createFileRoute("/floresceria")({
   head: () => ({ meta: [{ title: "FlorescerIA — copilota da vitalidade · 4 Lentes VITA" }] }),
@@ -24,8 +43,75 @@ function FlorescerIAPage() {
   const [activeModeId, setActiveModeId] = useState<string | null>(null);
   const [approvalState, setApprovalState] = useState<"none" | "approved" | "rejected">("none");
 
+  const { index, packId, t } = usePack();
   const modes = useMemo(() => AI_MODES.filter((m) => m.roles.includes(role)), [role]);
   const response = activeModeId ? AI_RESPONSES[activeModeId] : null;
+
+  // Resposta ATERRADA do modo Analista de Sinais: compõe IVO + trend + early-warning
+  // + priority numa resposta citada. Prova de que a IA lê os motores e não inventa.
+  const grounded = useMemo<GroundedAnswer | null>(() => {
+    if (!index) return null;
+    const sector = getSectorData(packId);
+    const current = calculateIVO(sector.currentCycle, index);
+    const previous = calculateIVO(sector.previousCycle, index);
+
+    const points = sector.trendCycles.map((c) => {
+      const r = calculateIVO(c, index);
+      return {
+        cycleId: r.cycleId,
+        label: r.cycleId,
+        ivo: r.ivoScore,
+        lenses: r.lenses.map((l) => ({
+          id: l.lensId,
+          name: l.lensName.split(" — ")[0] ?? l.lensName,
+          score: l.score,
+        })),
+      };
+    });
+    const trend = buildTrend(points);
+
+    const pillars = pillarsFromIvo(current);
+    const top = rankPriorities(pillars, FORECAST_LEVERS, { scenario: "medio" }).items[0] ?? null;
+
+    const prevScores = new Map(
+      previous.lenses.flatMap((l) => l.pillars.map((p) => [p.pillarId, p.score] as const)),
+    );
+    const declining = current.lenses
+      .flatMap((l) => l.pillars)
+      .filter((p) => p.visible && prevScores.has(p.pillarId))
+      .map((p) => ({
+        pillarId: p.pillarId,
+        name: p.pillarName,
+        score: p.score,
+        drop: (prevScores.get(p.pillarId) ?? p.score) - p.score,
+      }))
+      .filter((d) => d.drop >= 6)
+      .slice(0, 3);
+
+    const warning = detectEarlyWarnings({
+      trend,
+      reconciliation: null,
+      decliningPillars: declining,
+      topMove: null,
+      observableChannels: new Set(["pulses"]),
+    });
+    const topAlert = warning.alerts[0] ?? null;
+
+    return buildGroundedAnswer({
+      ivoLabel: t("index", "IVO"),
+      ivoScore: current.ivoScore,
+      maturityName: current.maturityLevel.name,
+      momentumLabel: MOMENTUM_LABEL[trend.momentum],
+      slopePerCycle: trend.slopePerCycle,
+      worstLens: trend.worstLens
+        ? { name: trend.worstLens.name, delta: trend.worstLens.delta }
+        : null,
+      topAlert: topAlert ? { title: topAlert.title, evidence: topAlert.evidence } : null,
+      // Só recomenda se a alavanca tem efeito real no setor ativo (não fabrica +0).
+      topMove:
+        top && top.expectedIvoLift > 0 ? { label: top.label, lift: top.expectedIvoLift } : null,
+    });
+  }, [index, packId, t]);
 
   function selectMode(id: string) {
     setActiveModeId(id);
@@ -112,9 +198,13 @@ function FlorescerIAPage() {
               transition={{ duration: 0.3 }}
               className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
             >
-              <p className="text-base leading-relaxed text-card-foreground whitespace-pre-line">
-                {response.text}
-              </p>
+              {activeModeId === GROUNDED_MODE_ID && grounded ? (
+                <GroundedAnswerCard answer={grounded} />
+              ) : (
+                <p className="text-base leading-relaxed text-card-foreground whitespace-pre-line">
+                  {response.text}
+                </p>
+              )}
 
               {/* Proposal — human-in-the-loop */}
               {response.proposal && (
@@ -167,6 +257,7 @@ function FlorescerIAPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.15 }}
+          id="floresceria-guardrails"
           className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
         >
           <p className="mb-3 font-medium text-card-foreground">Guardrails invioláveis</p>
@@ -214,5 +305,47 @@ function FlorescerIAPage() {
         </motion.div>
       </div>
     </AppShell>
+  );
+}
+
+// ─── Resposta aterrada (composta dos motores, com fontes) ─────────────────────
+
+function GroundedAnswerCard({ answer }: { answer: GroundedAnswer }) {
+  return (
+    <div>
+      <p className="text-base leading-relaxed text-card-foreground">{answer.headline}</p>
+
+      <ul className="mt-3 space-y-2.5">
+        {answer.points.map((p, i) => (
+          <li key={i} className="rounded-xl border border-border/60 bg-background px-4 py-3">
+            <p className="text-sm font-medium text-card-foreground">{p.claim}</p>
+            <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">{p.evidence}</p>
+            <Link
+              to={p.sourceRoute}
+              className="mt-1 inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2"
+            >
+              fonte: {p.sourceLabel} →
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {answer.recommendation && (
+        <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">
+            Recomendação
+          </p>
+          <p className="mt-1 text-sm text-card-foreground">{answer.recommendation.text}</p>
+          <Link
+            to={answer.recommendation.sourceRoute}
+            className="mt-1 inline-block text-xs text-primary underline underline-offset-2"
+          >
+            ver em Prioridades →
+          </Link>
+        </div>
+      )}
+
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{answer.disclaimer}</p>
+    </div>
   );
 }

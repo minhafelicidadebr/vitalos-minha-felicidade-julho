@@ -13,6 +13,8 @@ import { computeSeasonOverview } from "@/engine/season/season-engine";
 import { buildTrend } from "@/engine/trend/trend-engine";
 import { reconcileSignals } from "@/engine/signals/signals-engine";
 import { orgChannelAvailable } from "@/engine/trust/consent-engine";
+import { getNudgeLibrary } from "@/engine/nudges/nudge-engine";
+import { planDelivery, type DeliveryPlan } from "@/engine/nudges/orchestration-engine";
 import {
   detectEarlyWarnings,
   type EarlyWarningResult,
@@ -35,7 +37,16 @@ import {
   STATUS_COPY,
   SEVERITY_COPY,
   SOURCE_COPY,
+  LACO_INTRO,
 } from "@/mocks/copiloto-mock";
+
+interface LoopState {
+  pillarName: string;
+  leverLabel: string;
+  lift: number;
+  owner: string | null;
+  plan: DeliveryPlan;
+}
 
 export const Route = createFileRoute("/copiloto")({
   head: () => ({ meta: [{ title: "FlorescerIA Proativa — 4 Lentes VITA" }] }),
@@ -46,13 +57,14 @@ type Decision = "pending" | "approved" | "dismissed";
 
 function CopilotoPage() {
   const { current, previous } = useIvo();
-  const { index } = usePack();
+  const { index, gamification } = usePack();
 
-  const { proposals, warning } = useMemo<{
+  const { proposals, warning, loop } = useMemo<{
     proposals: AgentProposal[];
     warning: EarlyWarningResult | null;
+    loop: LoopState | null;
   }>(() => {
-    if (!current) return { proposals: [], warning: null };
+    if (!current) return { proposals: [], warning: null, loop: null };
     const pillars = pillarsFromIvo(current);
 
     // Prioridade #1 + dono
@@ -155,8 +167,38 @@ function CopilotoPage() {
       });
     }
 
-    return { proposals, warning };
-  }, [current, previous, index]);
+    // ── Laço M.E.T.E.: Propor → Entregar → Medir ──
+    // A prioridade #1 vira um plano de entrega concreto (nudge-engine), expondo o
+    // que aguarda opt-in / está no teto de frequência. Fecha o ciclo da IA proativa.
+    let loop: LoopState | null = null;
+    if (top && gamification) {
+      const library = getNudgeLibrary(gamification);
+      const pillarHasNudge = (id?: string) => Boolean(id) && library.some((n) => n.pillarId === id);
+      // Maior alavancagem que JÁ tem nudge pronto; senão, a #1 (estado-vazio honesto).
+      const chosen =
+        priorities.items.find((it) => pillarHasNudge(it.addressedPillars[0]?.pillarId)) ?? top;
+      const chosenOwner = chosen.addressedPillars[0]
+        ? ambassadorshipForPillar(chosen.addressedPillars[0].pillarId)
+        : owner;
+      const pillar = chosen.addressedPillars[0] ?? null;
+      const plan = planDelivery(library, {
+        pillarId: pillar?.pillarId ?? "",
+        role: "COLABORADOR",
+        optedInNudgeIds: new Set<string>(),
+        deliveredThisWeek: new Map<string, number>(),
+        max: 3,
+      });
+      loop = {
+        pillarName: pillar?.name ?? chosen.label,
+        leverLabel: chosen.label,
+        lift: chosen.expectedIvoLift,
+        owner: chosenOwner?.name ?? null,
+        plan,
+      };
+    }
+
+    return { proposals, warning, loop };
+  }, [current, previous, index, gamification]);
 
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const decide = (id: string, d: Decision) => setDecisions((prev) => ({ ...prev, [id]: d }));
@@ -215,6 +257,9 @@ function CopilotoPage() {
             </div>
           )}
         </div>
+
+        {/* Laço M.E.T.E. */}
+        {loop && <LacoSection loop={loop} />}
 
         {/* Guardrails */}
         <section className="rounded-2xl border border-border/60 bg-muted/30 p-5">
@@ -339,6 +384,114 @@ function VigilanciaSection({ warning }: { warning: EarlyWarningResult }) {
         — só agregados (k≥5), só canais consentidos. Tendência, não promessa.
       </p>
     </motion.section>
+  );
+}
+
+// ─── Laço M.E.T.E. · Propor → Entregar → Medir ────────────────────────────────
+
+function LacoSection({ loop }: { loop: LoopState }) {
+  const { plan } = loop;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+      aria-label="Laço M.E.T.E. da proposta à prova"
+    >
+      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        {LACO_INTRO.eyebrow}
+      </p>
+      <h2 className="mt-1 font-serif text-xl text-foreground">{LACO_INTRO.title}</h2>
+      <p className="mt-1.5 text-base leading-relaxed text-muted-foreground">{LACO_INTRO.lead}</p>
+
+      <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+        {/* Propor */}
+        <LoopStage step="01" label={LACO_INTRO.stages.propor} tone="primary">
+          <p className="text-sm font-medium text-card-foreground">{loop.leverLabel}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            +{loop.lift} pts em <span className="font-medium">{loop.pillarName}</span>
+            {loop.owner ? ` · ${loop.owner}` : ""}
+          </p>
+        </LoopStage>
+
+        {/* Entregar */}
+        <LoopStage step="02" label={LACO_INTRO.stages.entregar} tone="default">
+          {plan.delivered.length > 0 ? (
+            <ul className="space-y-1">
+              {plan.delivered.map((d) => (
+                <li key={d.nudge.id} className="flex gap-1.5 text-xs text-card-foreground">
+                  <span className="text-primary" aria-hidden>
+                    ✓
+                  </span>
+                  <span className="leading-snug">{d.nudge.copy}</span>
+                </li>
+              ))}
+            </ul>
+          ) : plan.candidateCount > 0 ? (
+            <p className="text-xs leading-snug text-muted-foreground">
+              Há {plan.candidateCount} nudge{plan.candidateCount > 1 ? "s" : ""} para este pilar,
+              mas a entrega{" "}
+              <span className="font-medium text-foreground">aguarda consentimento</span> — a IA não
+              envia sem opt-in.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Sem nudge pronto para este pilar — candidato a criar no Culture Lab.
+            </p>
+          )}
+          {(plan.optInPending > 0 || plan.capped > 0) && (
+            <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+              {plan.optInPending > 0 && `${plan.optInPending} aguardando opt-in`}
+              {plan.optInPending > 0 && plan.capped > 0 && " · "}
+              {plan.capped > 0 && `${plan.capped} no teto da semana`}
+              {" — respeitado por princípio."}
+            </p>
+          )}
+        </LoopStage>
+
+        {/* Medir */}
+        <LoopStage step="03" label={LACO_INTRO.stages.medir} tone="default">
+          <p className="text-xs text-muted-foreground">
+            Virar experimento e medir o efeito real (diff-in-diff honesto).
+          </p>
+          <Link
+            to="/experimentos"
+            className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
+          >
+            abrir a camada de evidência →
+          </Link>
+        </LoopStage>
+      </ol>
+    </motion.section>
+  );
+}
+
+function LoopStage({
+  step,
+  label,
+  tone,
+  children,
+}: {
+  step: string;
+  label: string;
+  tone: "primary" | "default";
+  children: React.ReactNode;
+}) {
+  return (
+    <li
+      className={`rounded-xl border p-3.5 ${
+        tone === "primary" ? "border-primary/30 bg-primary/5" : "border-border/60 bg-background"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[10px] tracking-widest text-muted-foreground">{step}</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+          {label}
+        </span>
+      </div>
+      <div className="mt-2">{children}</div>
+    </li>
   );
 }
 

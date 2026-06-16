@@ -80,6 +80,22 @@ export const SOURCE_COPY: Record<AlertSource, { icon: string; label: string }> =
   divergencia: { icon: "📡", label: "Discurso × Prática" },
 };
 
+// ─── Laço M.E.T.E. · Propor → Entregar → Medir (orchestration-engine) ─────────
+
+export const LACO_INTRO = {
+  eyebrow: "Laço M.E.T.E. · da proposta à prova",
+  title: "Aprovar não é o fim — é o começo do ciclo",
+  lead:
+    "A maior alavancagem de hoje vira um plano de entrega concreto (nudges, com opt-in " +
+    "e teto de frequência respeitados) e, depois, um experimento mensurável. Mensurar → " +
+    "Educar → Transformar → Evoluir, fechado.",
+  stages: {
+    propor: "Propor",
+    entregar: "Entregar",
+    medir: "Medir",
+  },
+};
+
 export const COPILOTO_INTRO = {
   eyebrow: "FlorescerIA · Modo Proativo",
   title: "A copilota que propõe — você decide",

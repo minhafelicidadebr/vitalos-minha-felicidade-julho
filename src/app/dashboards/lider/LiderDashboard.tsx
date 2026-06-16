@@ -1,9 +1,19 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { calculateIVO, K_ANONYMITY_MIN } from "@/engine/index/ivo-engine";
 import type { PillarResult } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
+import { buildTrend } from "@/engine/trend/trend-engine";
+import { rankPriorities } from "@/engine/priority/priority-engine";
+import {
+  detectEarlyWarnings,
+  type EarlyWarningResult,
+  type RiskAlert,
+} from "@/engine/ai/earlywarning-engine";
+import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
+import { ambassadorshipForPillar } from "@/mocks/priority-mock";
+import { STATUS_COPY, SEVERITY_COPY, SOURCE_COPY } from "@/mocks/copiloto-mock";
 import {
   MOCK_LEADER,
   teamCurrentCycle,
@@ -11,7 +21,6 @@ import {
   TEAM_CUTS,
   LEADER_MISSIONS,
   ACTION_PLAN,
-  LEADER_COPILOT_SUGGESTION,
   type ActionItem,
 } from "@/mocks/lider-mock";
 
@@ -20,6 +29,58 @@ export function LiderDashboard() {
 
   const current = useMemo(() => (index ? calculateIVO(teamCurrentCycle, index) : null), [index]);
   const previous = useMemo(() => (index ? calculateIVO(teamPreviousCycle, index) : null), [index]);
+
+  // Alerta precoce DA EQUIPE — compõe trend + priority no escopo do líder, gateado
+  // por k-anon (só pilares visíveis). Sinais comportamentais não são observáveis
+  // por equipe → a divergência vira uma camada bloqueada honesta (não o dado).
+  const warning = useMemo<EarlyWarningResult | null>(() => {
+    if (!current || !previous) return null;
+    const pillars = pillarsFromIvo(current);
+    const priorities = rankPriorities(pillars, FORECAST_LEVERS, { scenario: "medio" });
+    const top = priorities.items[0] ?? null;
+    const owner = top?.addressedPillars[0]
+      ? ambassadorshipForPillar(top.addressedPillars[0].pillarId)
+      : null;
+
+    const prevScores = new Map(
+      previous.lenses.flatMap((l) => l.pillars.map((p) => [p.pillarId, p.score] as const)),
+    );
+    const declining = current.lenses
+      .flatMap((l) => l.pillars)
+      .filter((p) => p.visible && prevScores.has(p.pillarId))
+      .map((p) => ({
+        pillarId: p.pillarId,
+        name: p.pillarName,
+        score: p.score,
+        drop: (prevScores.get(p.pillarId) ?? p.score) - p.score,
+      }))
+      .filter((d) => d.drop >= 6)
+      .sort((a, b) => b.drop - a.drop)
+      .slice(0, 3);
+
+    const points = [previous, current].map((r) => ({
+      cycleId: r.cycleId,
+      label: r.cycleId,
+      ivo: r.ivoScore,
+      lenses: r.lenses.map((l) => ({ id: l.lensId, name: l.lensName, score: l.score })),
+    }));
+    const trend = buildTrend(points);
+
+    return detectEarlyWarnings({
+      trend,
+      reconciliation: null,
+      decliningPillars: declining,
+      topMove: top
+        ? {
+            label: top.label,
+            lift: top.expectedIvoLift,
+            isQuickWin: top.isQuickWin,
+            owner: owner?.name ?? null,
+          }
+        : null,
+      observableChannels: new Set(["pulses"]),
+    });
+  }, [current, previous]);
 
   if (!current || !previous) {
     return (
@@ -55,7 +116,7 @@ export function LiderDashboard() {
       <PrivacyBanner />
       <CriticalPillars criticals={criticals} strengths={strengths} prevByPillar={prevByPillar} />
       <CutsCard />
-      <CopilotCard />
+      {warning && <TeamVigilanciaCard warning={warning} />}
       <ActionPlanCard items={ACTION_PLAN} />
       <LeaderMissionsCard />
       <FooterLinks />
@@ -285,14 +346,10 @@ function CutsCard() {
   );
 }
 
-// ─── Copilot ──────────────────────────────────────────────────────────────────
+// ─── Copiloto do Líder · Vigilância da equipe (early-warning composto) ─────────
 
-function CopilotCard() {
-  const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
-
-  const parts = LEADER_COPILOT_SUGGESTION.text.split(/\*\*(.+?)\*\*/g);
-
+function TeamVigilanciaCard({ warning }: { warning: EarlyWarningResult }) {
+  const status = STATUS_COPY[warning.status];
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -300,42 +357,97 @@ function CopilotCard() {
       transition={{ duration: 0.45, delay: 0.2 }}
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span aria-hidden>✨</span>
-          <p className="text-sm font-medium text-card-foreground">Copiloto do Líder</p>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            mockado · Bloco 12
-          </span>
+          <p className="text-sm font-medium text-card-foreground">
+            Copiloto do Líder · Vigilância da equipe
+          </p>
         </div>
-        <button
-          onClick={() => setDismissed(true)}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Dispensar sugestão"
+        <span
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium"
+          style={{ color: status.dot }}
         >
-          ✕
-        </button>
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: status.dot }}
+            aria-hidden
+          />
+          {status.label}
+        </span>
       </div>
-      <p className="text-base leading-relaxed text-muted-foreground">
-        {parts.map((part, i) =>
-          i % 2 === 1 ? (
-            <strong key={i} className="text-foreground">
-              {part}
-            </strong>
-          ) : (
-            <span key={i}>{part}</span>
-          ),
-        )}
-      </p>
-      <div className="mt-3 flex gap-2">
+
+      <p className="text-base leading-relaxed text-muted-foreground">{warning.headline}</p>
+
+      {warning.alerts.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {warning.alerts.map((a) => (
+            <TeamAlertRow key={a.id} alert={a} />
+          ))}
+        </div>
+      )}
+
+      {warning.blocked.map((b) => (
+        <div
+          key={b.channel}
+          className="mt-2 flex items-start gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-3 py-2"
+        >
+          <span className="mt-0.5 text-sm" aria-hidden>
+            🔒
+          </span>
+          <p className="text-xs leading-relaxed text-muted-foreground">{b.note}</p>
+        </div>
+      ))}
+
+      <div className="mt-3 flex flex-wrap gap-2">
         <Link
           to="/lab"
-          className="rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50"
         >
-          Ver protocolo "{LEADER_COPILOT_SUGGESTION.protocol}" no Culture Lab
+          Levar ao Culture Lab
+        </Link>
+        <Link
+          to="/prioridades"
+          className="rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50"
+        >
+          Ver prioridades
         </Link>
       </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Lê os motores (tendência + prioridades) só no agregado k≥{K_ANONYMITY_MIN}. Tendência, não
+        promessa.
+      </p>
     </motion.div>
+  );
+}
+
+function TeamAlertRow({ alert }: { alert: RiskAlert }) {
+  const sev = SEVERITY_COPY[alert.severity];
+  const src = SOURCE_COPY[alert.source];
+  return (
+    <div
+      className="rounded-xl border-l-4 bg-background px-3 py-2"
+      style={{ borderLeftColor: sev.dot }}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm" aria-hidden>
+          {src.icon}
+        </span>
+        <span className="text-sm font-medium text-card-foreground">{alert.title}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${sev.bg} ${sev.color}`}>
+          {sev.label}
+        </span>
+      </div>
+      <p className="mt-1 text-xs tabular-nums text-muted-foreground">{alert.evidence}</p>
+      {alert.recommendedMove && (
+        <p className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-muted/50 px-2.5 py-1.5 text-xs text-foreground">
+          <span className="text-primary" aria-hidden>
+            →
+          </span>
+          {alert.recommendedMove}
+        </p>
+      )}
+    </div>
   );
 }
 
