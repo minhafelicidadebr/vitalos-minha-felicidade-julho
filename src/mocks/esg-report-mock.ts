@@ -73,4 +73,14 @@ export const REPORT_INTRO = {
     "Relatório indicativo de prontidão ESG, agregado (k≥5). Não constitui asseguração contábil " +
     "ou auditoria independente; traduz índices internos (experimentais) para a linguagem de " +
     "mercado, para apoiar — não substituir — o relatório oficial de sustentabilidade.",
+  // Artefato de impressão (board-ready)
+  kicker: "Documento de Conselho",
+  confidential: "Confidencial — uso interno do conselho. Dados agregados (k≥5).",
+  printHint: "Dica: na caixa de impressão, escolha “Salvar como PDF” em tamanho A4.",
+  generatedBy: "Gerado pelo 4 Lentes VITA™ · VitalOS",
 };
+
+// Data de geração legível (pt-BR), estável por render.
+export function formatReportDate(d: Date = new Date()): string {
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}

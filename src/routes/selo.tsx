@@ -8,6 +8,7 @@ import { evaluateEvidence } from "@/engine/lab/evidence-engine";
 import { EXPERIMENT_CASES } from "@/mocks/experiment-mock";
 import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
 import { DOMAIN_B_READY, TIER_STYLE, STATUS_STYLE, SEAL_INTRO } from "@/mocks/certification-mock";
+import { formatReportDate } from "@/mocks/esg-report-mock";
 
 export const Route = createFileRoute("/selo")({
   head: () => ({ meta: [{ title: "Selo Empresa Viva — 4 Lentes VITA" }] }),
@@ -55,20 +56,48 @@ function SeloPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 print:py-0">
+        {/* Timbre institucional — só na impressão */}
+        <div className="print-only mb-4 border-b border-border pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
+                4
+              </span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Certificado de Conselho
+            </span>
+          </div>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {org.name} · Selo Empresa Viva · Emitido em {formatReportDate()}
+          </p>
+        </div>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
+          className="flex flex-wrap items-start justify-between gap-3"
         >
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {SEAL_INTRO.eyebrow}
-          </p>
-          <h1 className="mt-1 font-serif text-3xl text-foreground">{SEAL_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            {SEAL_INTRO.lead}
-          </p>
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              {SEAL_INTRO.eyebrow}
+            </p>
+            <h1 className="mt-1 font-serif text-3xl text-foreground">{SEAL_INTRO.title}</h1>
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
+              {SEAL_INTRO.lead}
+            </p>
+          </div>
+          <button
+            onClick={() => window.print()}
+            title="Na caixa de impressão, escolha “Salvar como PDF” em tamanho A4."
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
+          >
+            <span aria-hidden>⤓</span> Exportar certificado
+          </button>
         </motion.div>
 
         {/* O selo — emblema visual */}
@@ -165,7 +194,15 @@ function SeloPage() {
           <p className="text-xs leading-relaxed text-muted-foreground">{SEAL_INTRO.publicNote}</p>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
+        {/* Rodapé institucional — só na impressão */}
+        <div className="print-only mt-4 border-t border-border pt-3">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>Confidencial — uso interno do conselho. Dados agregados (k≥5).</span>
+            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground print:hidden">
           O selo compõe a maturidade do{" "}
           <Link to="/ivo" className="underline underline-offset-2 hover:text-foreground">
             IVO

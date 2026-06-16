@@ -21,7 +21,14 @@ import {
   type LensResult,
   type PillarResult,
 } from "@/engine/index/ivo-engine";
-import { ivoCurrentCycle, ivoPreviousCycle, DEMO_ORG } from "@/mocks/ivo-mock";
+import { getSectorData } from "@/mocks/sector-data";
+
+interface MaturityLevel {
+  min: number;
+  max: number;
+  name: string;
+  badge: string;
+}
 
 export const Route = createFileRoute("/ivo")({
   head: () => ({
@@ -52,7 +59,7 @@ function lensShortName(name: string) {
 // ─── Status guard ────────────────────────────────────────────────────────────
 
 function IVOPage() {
-  const { status, index } = usePack();
+  const { status, index, packId } = usePack();
 
   if (status.state === "idle" || status.state === "loading") {
     return (
@@ -90,16 +97,22 @@ function IVOPage() {
 
   return (
     <AppShell>
-      <IVOContent index={index} />
+      <IVOContent index={index} packId={packId} />
     </AppShell>
   );
 }
 
 // ─── Main content ─────────────────────────────────────────────────────────────
 
-function IVOContent({ index }: { index: ProprietaryIndex }) {
-  const currentResult = useMemo(() => calculateIVO(ivoCurrentCycle, index), [index]);
-  const previousResult = useMemo(() => calculateIVO(ivoPreviousCycle, index), [index]);
+function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string }) {
+  const data = useMemo(() => getSectorData(packId), [packId]);
+  const currentResult = useMemo(() => calculateIVO(data.currentCycle, index), [data, index]);
+  const previousResult = useMemo(() => calculateIVO(data.previousCycle, index), [data, index]);
+
+  // Vocabulário do setor ativo — tudo derivado do framework/pack, nada hardcoded.
+  const indexName = index.name as string;
+  const maturityLevels = (index.maturityLevels as MaturityLevel[]) ?? [];
+  const scaleMax = ((index.scale as { max?: number } | undefined)?.max as number) ?? 1000;
 
   const defaultOpenGroups = useMemo(() => {
     return new Set(
@@ -166,6 +179,13 @@ function IVOContent({ index }: { index: ProprietaryIndex }) {
         previousResult={previousResult}
         displayScore={displayScore}
         delta={delta}
+        indexName={indexName}
+        orgName={data.org.name}
+        participationRate={data.org.participationRate}
+        currentCycleId={data.currentCycle.cycleId}
+        previousCycleId={data.previousCycle.cycleId}
+        maturityLevels={maturityLevels}
+        scaleMax={scaleMax}
       />
 
       {/* ── SEÇÃO B — Radar das 4 Lentes ── */}
@@ -174,6 +194,8 @@ function IVOContent({ index }: { index: ProprietaryIndex }) {
         previousResult={previousResult}
         radarData={radarData}
         onLensClick={scrollToLens}
+        currentCycleId={data.currentCycle.cycleId}
+        previousCycleId={data.previousCycle.cycleId}
       />
 
       {/* ── SEÇÃO C — Pilares agrupados ── */}
@@ -198,14 +220,28 @@ function SectionA({
   currentResult,
   displayScore,
   delta,
+  indexName,
+  orgName,
+  participationRate,
+  currentCycleId,
+  previousCycleId,
+  maturityLevels,
+  scaleMax,
 }: {
   currentResult: IVOResult;
   previousResult: IVOResult;
   displayScore: number;
   delta: number;
+  indexName: string;
+  orgName: string;
+  participationRate: number;
+  currentCycleId: string;
+  previousCycleId: string;
+  maturityLevels: MaturityLevel[];
+  scaleMax: number;
 }) {
   const maturity = currentResult.maturityLevel;
-  const pct = (currentResult.ivoScore / 1000) * 100;
+  const pct = (currentResult.ivoScore / scaleMax) * 100;
 
   const deltaColor =
     delta > 0
@@ -224,11 +260,9 @@ function SectionA({
     >
       {/* Label */}
       <div>
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          IVO — Índice de Vitalidade Organizacional
-        </p>
+        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{indexName}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {DEMO_ORG.name} · Temporada {ivoCurrentCycle.cycleId}
+          {orgName} · Temporada {currentCycleId}
         </p>
       </div>
 
@@ -243,11 +277,11 @@ function SectionA({
 
         <div className={`text-2xl font-semibold ${deltaColor}`}>
           {deltaArrow} {Math.abs(delta)} pts
-          <p className="text-xs font-normal text-muted-foreground">vs {ivoPreviousCycle.cycleId}</p>
+          <p className="text-xs font-normal text-muted-foreground">vs {previousCycleId}</p>
         </div>
 
         <div className="text-2xl font-semibold text-foreground">
-          {DEMO_ORG.participationRate}%
+          {participationRate}%
           <p className="text-xs font-normal text-muted-foreground">participação</p>
         </div>
 
@@ -269,7 +303,13 @@ function SectionA({
       </div>
 
       {/* Maturity progress bar */}
-      <MaturityBar score={currentResult.ivoScore} pct={pct} maturityBadge={maturity.badge} />
+      <MaturityBar
+        score={currentResult.ivoScore}
+        pct={pct}
+        maturityBadge={maturity.badge}
+        levels={maturityLevels}
+        scaleMax={scaleMax}
+      />
     </motion.div>
   );
 }
@@ -278,20 +318,22 @@ function MaturityBar({
   score,
   pct,
   maturityBadge,
+  levels,
+  scaleMax,
 }: {
   score: number;
   pct: number;
   maturityBadge: string;
+  levels: MaturityLevel[];
+  scaleMax: number;
 }) {
-  const zones = [
-    { badge: "desperta", label: "Desperta", width: 20 },
-    { badge: "conexao", label: "Em Conexão", width: 15 },
-    { badge: "colaborativa", label: "Colaborativa", width: 15 },
-    { badge: "saudavel", label: "Saudável", width: 15 },
-    { badge: "sustentavel", label: "Sustentável", width: 15 },
-    { badge: "referencia", label: "Referência", width: 12.5 },
-    { badge: "viva", label: "Empresa Viva", width: 7.5 },
-  ];
+  // Zonas derivadas do framework do setor ativo — sem rótulos hardcoded de empresa.
+  const zones = levels.map((l) => ({
+    badge: l.badge,
+    label: l.name,
+    width: ((l.max - l.min + 1) / scaleMax) * 100,
+  }));
+  const ticks = [...levels.map((l) => l.min), scaleMax];
 
   return (
     <div className="space-y-2">
@@ -300,16 +342,17 @@ function MaturityBar({
         role="progressbar"
         aria-valuenow={score}
         aria-valuemin={0}
-        aria-valuemax={1000}
-        aria-label={`Score IVO: ${score} de 1000`}
+        aria-valuemax={scaleMax}
+        aria-label={`Score do índice: ${score} de ${scaleMax}`}
       >
         <div className="flex h-full w-full">
           {zones.map((z) => (
             <div
               key={z.badge}
+              title={z.label}
               style={{
                 width: `${z.width}%`,
-                background: MATURITY_ZONE_COLORS[z.badge],
+                background: MATURITY_ZONE_COLORS[z.badge] ?? "#86efac",
                 opacity: z.badge === maturityBadge ? 1 : 0.45,
               }}
               className="h-full transition-opacity"
@@ -324,14 +367,9 @@ function MaturityBar({
       </div>
       {/* Zone labels */}
       <div className="flex justify-between px-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">
-        <span>0</span>
-        <span>200</span>
-        <span>350</span>
-        <span>500</span>
-        <span>650</span>
-        <span>800</span>
-        <span>925</span>
-        <span>1000</span>
+        {ticks.map((t, i) => (
+          <span key={`${t}-${i}`}>{t}</span>
+        ))}
       </div>
     </div>
   );
@@ -377,11 +415,15 @@ function SectionB({
   previousResult,
   radarData,
   onLensClick,
+  currentCycleId,
+  previousCycleId,
 }: {
   currentResult: IVOResult;
   previousResult: IVOResult;
   radarData: RadarDataPoint[];
   onLensClick: (lensId: string) => void;
+  currentCycleId: string;
+  previousCycleId: string;
 }) {
   return (
     <motion.div
@@ -403,7 +445,7 @@ function SectionB({
             />
             <PolarRadiusAxis domain={[0, 1000]} tick={false} axisLine={false} />
             <Radar
-              name={ivoCurrentCycle.cycleId}
+              name={currentCycleId}
               dataKey="atual"
               stroke={CHART_CURRENT}
               fill={CHART_CURRENT}
@@ -411,7 +453,7 @@ function SectionB({
               strokeWidth={2.5}
             />
             <Radar
-              name={ivoPreviousCycle.cycleId}
+              name={previousCycleId}
               dataKey="anterior"
               stroke={CHART_PREV}
               fill="transparent"

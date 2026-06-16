@@ -3,17 +3,39 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { useIvo } from "@/mocks/hooks";
+import { usePack } from "@/engine/pack";
+import { calculateIVO } from "@/engine/index/ivo-engine";
 import { proposeActions, type AgentProposal } from "@/engine/ai/agent-engine";
 import { AI_GUARDRAILS } from "@/engine/ai/ai-types";
 import { rankPriorities } from "@/engine/priority/priority-engine";
 import { evaluateEvidence } from "@/engine/lab/evidence-engine";
 import { computeSeasonOverview } from "@/engine/season/season-engine";
+import { buildTrend } from "@/engine/trend/trend-engine";
+import { reconcileSignals } from "@/engine/signals/signals-engine";
+import { orgChannelAvailable } from "@/engine/trust/consent-engine";
+import {
+  detectEarlyWarnings,
+  type EarlyWarningResult,
+  type RiskAlert,
+  type BlockedLayer,
+} from "@/engine/ai/earlywarning-engine";
 import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
 import { ambassadorshipForPillar } from "@/mocks/priority-mock";
 import { EXPERIMENT_CASES } from "@/mocks/experiment-mock";
 import { ANNUAL_PLAN, CURRENT_PROGRAM_WEEK } from "@/mocks/season-mock";
 import { PROTOCOLS } from "@/mocks/lab-mock";
-import { URGENCY_COPY, KIND_COPY, COPILOTO_INTRO } from "@/mocks/copiloto-mock";
+import { TREND_CYCLES } from "@/mocks/trend-mock";
+import { PERCEPTION_BEHAVIOR_INPUT } from "@/mocks/signals-mock";
+import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
+import {
+  URGENCY_COPY,
+  KIND_COPY,
+  COPILOTO_INTRO,
+  VIGILANCIA_INTRO,
+  STATUS_COPY,
+  SEVERITY_COPY,
+  SOURCE_COPY,
+} from "@/mocks/copiloto-mock";
 
 export const Route = createFileRoute("/copiloto")({
   head: () => ({ meta: [{ title: "FlorescerIA Proativa — 4 Lentes VITA" }] }),
@@ -24,9 +46,13 @@ type Decision = "pending" | "approved" | "dismissed";
 
 function CopilotoPage() {
   const { current, previous } = useIvo();
+  const { index } = usePack();
 
-  const proposals = useMemo(() => {
-    if (!current) return [];
+  const { proposals, warning } = useMemo<{
+    proposals: AgentProposal[];
+    warning: EarlyWarningResult | null;
+  }>(() => {
+    if (!current) return { proposals: [], warning: null };
     const pillars = pillarsFromIvo(current);
 
     // Prioridade #1 + dono
@@ -73,7 +99,7 @@ function CopilotoPage() {
 
     const season = computeSeasonOverview(ANNUAL_PLAN, CURRENT_PROGRAM_WEEK);
 
-    return proposeActions({
+    const proposals = proposeActions({
       topPriority: top
         ? {
             leverId: top.leverId,
@@ -88,7 +114,49 @@ function CopilotoPage() {
       phaseId: season.currentPhase.id,
       seasonName: season.currentSeason.name,
     });
-  }, [current, previous]);
+
+    // ── Vigilância · Alerta Precoce ──
+    // Compõe quatro motores: trend (curva), signals (divergência), consent (gate)
+    // e priority (primeiro movimento). A IA proativa agora OBSERVA, não só propõe.
+    let warning: EarlyWarningResult | null = null;
+    if (index) {
+      const points = TREND_CYCLES.map((c) => {
+        const r = calculateIVO(c, index);
+        return {
+          cycleId: c.cycleId,
+          label: c.cycleId,
+          ivo: r.ivoScore,
+          lenses: r.lenses.map((l) => ({ id: l.lensId, name: l.lensName, score: l.score })),
+        };
+      });
+      const trend = buildTrend(points);
+
+      // Canais que a IA pode observar no agregado (consentimento coletivo, k-anon).
+      const observableChannels = new Set(
+        CONSENT_CHANNELS.filter((ch) => orgChannelAvailable(ch)).map((ch) => ch.id),
+      );
+      const reconciliation = observableChannels.has("signals")
+        ? reconcileSignals([...PERCEPTION_BEHAVIOR_INPUT])
+        : null;
+
+      warning = detectEarlyWarnings({
+        trend,
+        reconciliation,
+        decliningPillars: declining,
+        topMove: top
+          ? {
+              label: top.label,
+              lift: top.expectedIvoLift,
+              isQuickWin: top.isQuickWin,
+              owner: owner?.name ?? null,
+            }
+          : null,
+        observableChannels,
+      });
+    }
+
+    return { proposals, warning };
+  }, [current, previous, index]);
 
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const decide = (id: string, d: Decision) => setDecisions((prev) => ({ ...prev, [id]: d }));
@@ -114,6 +182,9 @@ function CopilotoPage() {
             {COPILOTO_INTRO.lead}
           </p>
         </motion.div>
+
+        {/* Vigilância · Alerta Precoce */}
+        {warning && <VigilanciaSection warning={warning} />}
 
         {/* Trilha de auditoria */}
         <div className="flex flex-wrap gap-3">
@@ -207,6 +278,123 @@ function CopilotoPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+// ─── Vigilância · Alerta Precoce ──────────────────────────────────────────────
+
+function VigilanciaSection({ warning }: { warning: EarlyWarningResult }) {
+  const status = STATUS_COPY[warning.status];
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.05 }}
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+      aria-label="Vigilância e alerta precoce"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            {VIGILANCIA_INTRO.eyebrow}
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-foreground">{VIGILANCIA_INTRO.title}</h2>
+        </div>
+        <span
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium"
+          style={{ color: status.dot }}
+        >
+          <span className="h-2 w-2 rounded-full" style={{ background: status.dot }} aria-hidden />
+          {status.label}
+        </span>
+      </div>
+
+      <p className="mt-2 text-base leading-relaxed text-muted-foreground">{warning.headline}</p>
+
+      {warning.alerts.length > 0 && (
+        <div className="mt-4 space-y-2.5">
+          {warning.alerts.map((a) => (
+            <RiskAlertCard key={a.id} alert={a} />
+          ))}
+        </div>
+      )}
+
+      {warning.blocked.map((b) => (
+        <BlockedLayerCard key={b.channel} layer={b} />
+      ))}
+
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+        Compõe{" "}
+        <Link to="/evolucao" className="underline underline-offset-2 hover:text-foreground">
+          Evolução
+        </Link>
+        ,{" "}
+        <Link to="/sinais" className="underline underline-offset-2 hover:text-foreground">
+          Sinais Vivos
+        </Link>{" "}
+        e{" "}
+        <Link to="/privacidade" className="underline underline-offset-2 hover:text-foreground">
+          Privacidade
+        </Link>{" "}
+        — só agregados (k≥5), só canais consentidos. Tendência, não promessa.
+      </p>
+    </motion.section>
+  );
+}
+
+function RiskAlertCard({ alert }: { alert: RiskAlert }) {
+  const sev = SEVERITY_COPY[alert.severity];
+  const src = SOURCE_COPY[alert.source];
+  return (
+    <div
+      className="rounded-xl border-l-4 bg-background px-4 py-3"
+      style={{ borderLeftColor: sev.dot }}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-base" aria-hidden>
+          {src.icon}
+        </span>
+        <span className="text-sm font-medium text-card-foreground">{alert.title}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${sev.bg} ${sev.color}`}>
+          {sev.label}
+        </span>
+        {alert.requiresChannel && (
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+            canal: {alert.requiresChannel}
+          </span>
+        )}
+        <Link
+          to={alert.targetRoute}
+          className="ml-auto text-xs text-primary underline underline-offset-2"
+        >
+          ver →
+        </Link>
+      </div>
+      <p className="mt-1.5 text-sm tabular-nums text-muted-foreground">{alert.evidence}</p>
+      <p className="mt-1 text-sm leading-relaxed text-card-foreground">{alert.interpretation}</p>
+      {alert.recommendedMove && (
+        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-muted/50 px-3 py-2 text-sm text-foreground">
+          <span className="text-primary" aria-hidden>
+            →
+          </span>
+          {alert.recommendedMove}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function BlockedLayerCard({ layer }: { layer: BlockedLayer }) {
+  return (
+    <div className="mt-2.5 flex items-start gap-2.5 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-3">
+      <span className="mt-0.5 text-base" aria-hidden>
+        🔒
+      </span>
+      <div>
+        <p className="text-sm font-medium text-card-foreground">{layer.title}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{layer.note}</p>
+      </div>
+    </div>
   );
 }
 

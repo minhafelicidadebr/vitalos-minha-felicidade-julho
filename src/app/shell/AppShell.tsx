@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { Menu, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { A11yMenu } from "./A11yMenu";
+import { PackSwitcher } from "./PackSwitcher";
 import { usePack } from "@/engine/pack";
 import { navForRole, usePersona } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
@@ -64,7 +65,8 @@ const ROLE_HOME: Record<string, string> = {
   HOLDING_ADMIN: "/holding",
 };
 
-const DEMO_PERSONAS = [
+// Fallback caso o pack ativo não declare demoPersonas (mantém compat retroativa).
+const DEMO_PERSONAS_FALLBACK = [
   "COLABORADOR",
   "LIDER_EQUIPE",
   "RH_ADMIN",
@@ -123,6 +125,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
+
+  // Personas de demonstração vêm do pack ativo — pack-driven, não hardcoded.
+  const demoPersonas =
+    (pack?.demoPersonas as string[] | undefined) ?? (DEMO_PERSONAS_FALLBACK as readonly string[]);
 
   const visibleItems = pack
     ? navForRole(pack, roleId)
@@ -341,7 +347,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <li className="px-3 py-1.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
                       Demo — trocar papel
                     </li>
-                    {DEMO_PERSONAS.map((id) => {
+                    {demoPersonas.map((id) => {
                       const label = pack?.roles?.find((r) => r.id === id)?.label ?? id;
                       return (
                         <li key={id} role="option" aria-selected={roleId === id}>
@@ -365,6 +371,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 )}
               </div>
 
+              <PackSwitcher />
               <A11yMenu />
               <ThemeToggle />
             </div>

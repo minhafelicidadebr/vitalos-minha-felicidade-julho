@@ -1,21 +1,46 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import Ajv, { type ErrorObject } from "ajv";
 import addFormats from "ajv-formats";
 
 import type { DomainPack, GamificationEconomy, PackStatus, ProprietaryIndex } from "./pack-types";
 
-// Pack oficial + framework IVO + economia de gamificação — bundled estático.
-// Mantém a regra arquitetural: engine/ apenas LÊ o pack; nada de lógica de domínio.
-import enterprisePack from "@/domain/packs/enterprise/enterprise.pack.json";
-import ivoFramework from "@/domain/packs/enterprise/ivo-framework.json";
-import gamificationEconomy from "@/domain/packs/enterprise/gamification-economy.json";
+// O Engine apenas LÊ o registro de packs (domain/). Engine ≠ Domínio preservado:
+// nenhuma lógica de domínio vive aqui — só o carregamento + validação Ajv do pack
+// ativo, resolvido por id a partir do registro setor-agnóstico.
+import { resolvePackBundle, DEFAULT_PACK_ID } from "@/domain/packs/registry";
 import packSchema from "@/domain/packs/enterprise/domain-pack.schema.json";
+
+// ─── Store do pack ativo (persistido) ─────────────────────────────────────────
+// Igual ao seletor de persona: a escolha de setor sobrevive ao reload. Trocar de
+// pack é uma capacidade de runtime, não um rebuild.
+interface PackState {
+  packId: string;
+  setPackId: (packId: string) => void;
+}
+
+export const usePackStore = create<PackState>()(
+  persist(
+    (set) => ({
+      packId: DEFAULT_PACK_ID,
+      setPackId: (packId) => set({ packId }),
+    }),
+    { name: "vita-pack" },
+  ),
+);
 
 interface PackContextValue {
   status: PackStatus;
   pack: DomainPack | null;
   index: ProprietaryIndex | null;
   gamification: GamificationEconomy | null;
+  /** Id do pack ativo (setor). */
+  packId: string;
+  /** Rótulo institucional do setor ativo (ex.: "Empresa", "Escola"). */
+  sectorLabel: string;
+  /** Troca o setor ativo em runtime. */
+  setPackId: (packId: string) => void;
   t: (token: string, fallback?: string) => string;
   hasRole: (roleId: string) => boolean;
   reload: () => void;
@@ -37,8 +62,8 @@ function validatePack(pack: unknown): ValidationResult {
   return { valid: Boolean(valid), errors: validate.errors ?? null };
 }
 
-function logValidation(pack: DomainPack, result: ValidationResult) {
-  const tag = "[Pack:enterprise]";
+function logValidation(packId: string, pack: DomainPack, result: ValidationResult) {
+  const tag = `[Pack:${packId}]`;
   if (result.valid) {
     // eslint-disable-next-line no-console
     console.log(
@@ -60,23 +85,41 @@ function logValidation(pack: DomainPack, result: ValidationResult) {
 
 export function PackProvider({
   children,
-  packId = "enterprise",
+  packId: seedPackId,
 }: {
   children: ReactNode;
+  /** Setor inicial. Só semeia o store quando ainda não há escolha persistida. */
   packId?: string;
 }) {
+  const activePackId = usePackStore((s) => s.packId);
+  const setActivePackId = usePackStore((s) => s.setPackId);
   const [status, setStatus] = useState<PackStatus>({ state: "idle" });
   const [reloadKey, setReloadKey] = useState(0);
+
+  // Semeia o setor inicial uma única vez (ex.: testes/forçar pack), sem sobrepor
+  // a escolha do usuário em reloads subsequentes.
+  useEffect(() => {
+    if (seedPackId && seedPackId !== DEFAULT_PACK_ID && activePackId === DEFAULT_PACK_ID) {
+      setActivePackId(seedPackId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setStatus({ state: "loading" });
     try {
-      const pack = enterprisePack as unknown as DomainPack;
-      const index = ivoFramework as unknown as ProprietaryIndex;
-      const gamification = gamificationEconomy as unknown as GamificationEconomy;
+      const bundle = resolvePackBundle(activePackId);
+      const pack = bundle.pack;
+      const index = bundle.index;
+      const gamification = bundle.gamification;
 
       const validation = validatePack(pack);
-      logValidation(pack, validation);
+      logValidation(activePackId, pack, validation);
+
+      // Marca o setor no DOM — hook leve para theming/QA sem reescrever tokens.
+      if (typeof document !== "undefined") {
+        document.documentElement.dataset.pack = activePackId;
+      }
 
       setStatus({
         state: "ready",
@@ -91,11 +134,10 @@ export function PackProvider({
         message: err instanceof Error ? err.message : "Falha ao carregar pack",
       };
       // eslint-disable-next-line no-console
-      console.error("[Pack:enterprise] erro de carregamento", err);
+      console.error(`[Pack:${activePackId}] erro de carregamento`, err);
       setStatus({ state: "error", error });
     }
-    // packId reservado para multi-pack futuro
-  }, [packId, reloadKey]);
+  }, [activePackId, reloadKey]);
 
   const value = useMemo<PackContextValue>(() => {
     const pack = status.state === "ready" ? status.pack : null;
@@ -106,11 +148,14 @@ export function PackProvider({
       pack,
       index,
       gamification,
+      packId: activePackId,
+      sectorLabel: resolvePackBundle(activePackId).sectorLabel,
+      setPackId: setActivePackId,
       t: (token, fallback) => pack?.labels?.[token] ?? fallback ?? token,
       hasRole: (roleId) => Boolean(pack?.roles?.some((r) => r.id === roleId)),
       reload: () => setReloadKey((k) => k + 1),
     };
-  }, [status]);
+  }, [status, activePackId, setActivePackId]);
 
   return <PackContext.Provider value={value}>{children}</PackContext.Provider>;
 }

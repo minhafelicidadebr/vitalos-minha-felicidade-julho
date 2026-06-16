@@ -1,0 +1,215 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json",
+  "packId": "school",
+  "packName": "AlegrIA — Rede da Vitalidade Escolar: Missão Escola Viva",
+  "version": "1.0.0",
+  "language": "pt-BR",
+  "promise": "Quando a comunidade escolar floresce, a aprendizagem deixa de ser cobrança e vira pertencimento.",
+  "hierarchy": {
+    "levels": [
+      { "id": "network", "label": "Rede / Secretaria", "labelPlural": "Redes / Secretarias" },
+      { "id": "school", "label": "Escola", "labelPlural": "Escolas", "parent": "network" },
+      { "id": "grade", "label": "Série / Ano", "labelPlural": "Séries / Anos", "parent": "school" },
+      { "id": "class", "label": "Turma", "labelPlural": "Turmas", "parent": "grade" },
+      {
+        "id": "shift",
+        "label": "Turno",
+        "labelPlural": "Turnos",
+        "parent": "class",
+        "optional": true
+      }
+    ]
+  },
+  "labels": {
+    "member": "Estudante",
+    "members": "Estudantes",
+    "leader": "Educador(a)",
+    "manager": "Coordenação Pedagógica",
+    "hrAdmin": "Direção",
+    "executive": "Secretaria de Educação",
+    "ambassador": "Embaixador(a) do Bem-Viver",
+    "index": "IEV",
+    "indexFull": "Índice de Vitalidade Escolar",
+    "ai": "AlegrIA",
+    "academy": "Trilha do Florescer Escolar",
+    "season": "Temporada do Florescer",
+    "seal": "Selo Escola Viva",
+    "livingMap": "Mapa Vivo da Escola",
+    "pact": "Pacto de Convivência",
+    "domainB": "Clima Escolar & Proteção (Convivência)"
+  },
+  "roles": [
+    { "id": "PLATFORM_ADMIN", "label": "Admin da Plataforma", "scope": "platform" },
+    { "id": "SECRETARIA_EDU", "label": "Secretaria de Educação / Rede", "scope": "holding" },
+    { "id": "GESTOR_REDE", "label": "Gestor de Rede", "scope": "portfolio" },
+    { "id": "DIRETOR", "label": "Direção", "scope": "organization" },
+    { "id": "COORDENADOR", "label": "Coordenação Pedagógica", "scope": "organization" },
+    { "id": "ORIENTADOR", "label": "Orientação Educacional", "scope": "organization" },
+    {
+      "id": "C_LEVEL_EDU",
+      "label": "Conselho / Mantenedora",
+      "scope": "organization",
+      "readOnly": true
+    },
+    { "id": "EDUCADOR", "label": "Educador(a)", "scope": "team" },
+    { "id": "EMBAIXADOR", "label": "Embaixador(a) do Bem-Viver", "scope": "organization" },
+    { "id": "ESTUDANTE", "label": "Estudante", "scope": "self" },
+    { "id": "FAMILIA", "label": "Família / Responsável", "scope": "self" },
+    {
+      "id": "CONSULTOR_EXTERNO",
+      "label": "Consultor Externo",
+      "scope": "scoped_reports",
+      "temporary": true
+    }
+  ],
+  "demoPersonas": ["ESTUDANTE", "EDUCADOR", "COORDENADOR", "DIRETOR", "FAMILIA", "SECRETARIA_EDU"],
+  "defaultRole": "DIRETOR",
+  "rbacInvariants": [
+    "individual_responses_never_visible_to_client_roles",
+    "student_minor_data_requires_guardian_legal_basis",
+    "educator_sees_own_class_aggregate_only_if_n>=5",
+    "wellbeing_and_iev_never_feed_student_grading_or_teacher_evaluation",
+    "convivencia_data_separated_from_disciplinary_records",
+    "network_respects_school_isolation"
+  ],
+  "navGroups": {
+    "inicio": "Início",
+    "medir": "Medir",
+    "agir": "Agir",
+    "provar": "Provar",
+    "estrategico": "Estratégico",
+    "confianca": "Confiança",
+    "gestao": "Gestão"
+  },
+  "navigation": [
+    { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
+    {
+      "id": "ivo",
+      "label": "IEV",
+      "roles": [
+        "DIRETOR",
+        "COORDENADOR",
+        "ORIENTADOR",
+        "C_LEVEL_EDU",
+        "SECRETARIA_EDU",
+        "GESTOR_REDE"
+      ],
+      "group": "medir"
+    },
+    {
+      "id": "sectors",
+      "label": "Multissetorial",
+      "roles": ["DIRETOR", "COORDENADOR", "SECRETARIA_EDU", "GESTOR_REDE", "PLATFORM_ADMIN"],
+      "group": "estrategico"
+    },
+    { "id": "ai", "label": "AlegrIA", "roles": "all", "group": "confianca" },
+    {
+      "id": "methodology",
+      "label": "Metodologia",
+      "roles": "all",
+      "group": "confianca"
+    }
+  ],
+  "indexRef": "./iev-framework.json",
+  "gamificationRef": "../enterprise/gamification-economy.json",
+  "ai": {
+    "name": "AlegrIA",
+    "fullName": "AlegrIA — Copilota de Bem-Viver, Convivência e Aprendizagem com Sentido",
+    "modes": [
+      {
+        "id": "conselheira_florescimento",
+        "label": "Conselheira de Bem-Viver",
+        "roles": ["ESTUDANTE", "FAMILIA"]
+      },
+      { "id": "copiloto_educador", "label": "Copiloto do Educador", "roles": ["EDUCADOR"] },
+      {
+        "id": "copiloto_gestao",
+        "label": "Copiloto da Gestão Escolar",
+        "roles": ["DIRETOR", "COORDENADOR"]
+      },
+      { "id": "tutora_aprendizagem", "label": "Tutora de Aprendizagem", "roles": "all" },
+      {
+        "id": "analista_clima",
+        "label": "Analista de Clima Escolar",
+        "roles": ["DIRETOR", "COORDENADOR", "ORIENTADOR"]
+      },
+      {
+        "id": "mediadora_linguagem",
+        "label": "Mediadora de Convivência Respeitosa",
+        "roles": ["EDUCADOR", "COORDENADOR"]
+      }
+    ],
+    "guardrailsNever": [
+      "clinical_diagnosis",
+      "individual_happiness_measurement",
+      "expose_employee",
+      "expose_student",
+      "suggest_punishment_or_retaliation",
+      "replace_licensed_professional",
+      "rank_students_or_teachers",
+      "mix_domain_a_b",
+      "feed_grading_or_teacher_evaluation",
+      "claim_legal_validity"
+    ],
+    "guardrailsAlways": [
+      "age_appropriate_clear_language",
+      "acknowledge_limits",
+      "refer_to_professional_when_needed",
+      "aggregate_data_only",
+      "practical_next_steps",
+      "explain_iev_experimental",
+      "protect_minors_by_default"
+    ]
+  },
+  "branding": {
+    "primary": "#143C5A",
+    "accent": "#E8A33D",
+    "surface": "#F7F6F2",
+    "darkMode": true,
+    "tone": "acolhedor_educativo_premium",
+    "forbidden": ["infantilização", "cores neon", "linguagem punitiva", "ranking de alunos"]
+  },
+  "microcopy": {
+    "welcome": "Bem-vindo(a) à sua comunidade de aprendizagem.",
+    "privacy": "Os dados são agregados e protegem estudantes e educadores.",
+    "indicator": "Este indicador mostra caminhos, não culpados.",
+    "voluntary": "Sua participação fortalece a convivência — e é sempre voluntária.",
+    "emptyMissions": "Nenhuma ação disponível agora. Que tal propor uma?",
+    "emptySeason": "Primeira temporada do florescer ainda não iniciada.",
+    "kAnonymity": "Este recorte tem menos de 5 respostas e fica oculto para proteger a privacidade."
+  },
+  "ambassadorships": [
+    "convivencia_respeito",
+    "escuta_estudantil",
+    "acolhimento_novos",
+    "antibullying_seguranca",
+    "saude_movimento",
+    "inclusao_acessibilidade",
+    "diversidade_equidade",
+    "sustentabilidade_bem_comum",
+    "leitura_curiosidade",
+    "familia_escola",
+    "bem_estar_docente",
+    "cultura_celebracao"
+  ],
+  "certification": {
+    "name": "Selo Escola Viva",
+    "levels": [
+      "desperta",
+      "conexao",
+      "colaborativa",
+      "saudavel",
+      "sustentavel",
+      "referencia",
+      "viva"
+    ],
+    "criteria": [
+      "maturity_level",
+      "iev_score",
+      "participation_rate",
+      "convivencia_evidences",
+      "improvement_projects_completed"
+    ],
+    "validityMonths": 12
+  }
+}

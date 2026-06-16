@@ -28,7 +28,36 @@ export const SCHOOL_CYCLE: IVOInput = {
   ],
 };
 
-export const SCHOOL_ORG = { name: "Colégio Horizonte (demo)" };
+export const SCHOOL_ORG = {
+  name: "Colégio Horizonte (demo)",
+  totalStudents: 540,
+  participationRate: 81,
+} as const;
+
+// Ciclo anterior (2025-S2) — médias um pouco menores, para uma trajetória honesta
+// de melhora (delta positivo) quando o IEV é exibido em `/ivo` sob o pack escolar.
+export const SCHOOL_CYCLE_PREVIOUS: IVOInput = {
+  organizationId: "escola-demo",
+  cycleId: "2025-S2",
+  aggregates: [
+    { pillarId: "pertencimento_escolar", mean: 3.4, n: 116 },
+    { pillarId: "engajamento_aprendizagem", mean: 3.0, n: 116 },
+    { pillarId: "seguranca_emocional", mean: 3.3, n: 116 },
+    { pillarId: "proposito_aprender", mean: 3.2, n: 116 },
+    { pillarId: "convivencia_respeito", mean: 3.3, n: 114 },
+    { pillarId: "cooperacao_pares", mean: 3.4, n: 114 },
+    { pillarId: "voz_participacao", mean: 2.8, n: 114 },
+    { pillarId: "ambiente_seguro", mean: 3.1, n: 114 },
+    { pillarId: "realizacao_docente", mean: 3.5, n: 21 },
+    { pillarId: "suporte_pedagogico", mean: 2.9, n: 21 },
+    { pillarId: "desenvolvimento_professor", mean: 3.0, n: 21 },
+    { pillarId: "carga_sustentavel", mean: 2.6, n: 21 },
+    { pillarId: "clima_escolar", mean: 3.3, n: 134 },
+    { pillarId: "inclusao_equidade", mean: 3.2, n: 134 },
+    { pillarId: "familia_comunidade", mean: 2.9, n: 134 },
+    { pillarId: "proposito_institucional", mean: 3.4, n: 134 },
+  ],
+};
 
 // Roadmap multissetorial — o Engine nasce pronto para novos packs sem mudar código.
 export const SECTOR_ROADMAP = [

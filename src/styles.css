@@ -225,3 +225,93 @@
     }
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Impressão — artefato board-ready (A4)
+ * Transforma telas de prova (Relatório Global ESG, Selo Empresa Viva) num
+ * documento limpo para o conselho: tema claro forçado, sem chrome do app, sem
+ * sombras/animações, quebras de página controladas. Vale para "Salvar como PDF".
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/* Utilitários só-de-impressão (espelham o padrão `print:hidden` do Tailwind). */
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Tokens em tema claro, independentemente de dark mode / alto contraste. */
+  :root,
+  .dark,
+  .a11y-high-contrast,
+  .dark.a11y-high-contrast {
+    --background: #ffffff;
+    --foreground: #1c2a24;
+    --card: #ffffff;
+    --card-foreground: #1c2a24;
+    --popover: #ffffff;
+    --popover-foreground: #1c2a24;
+    --primary: #0b3d2e;
+    --primary-foreground: #ffffff;
+    --secondary: #eaefea;
+    --secondary-foreground: #1c2a24;
+    --muted: #f2f1ec;
+    --muted-foreground: #55615a;
+    --accent: #c9a227;
+    --accent-foreground: #1c2a24;
+    --border: #d8d8d0;
+    --input: #d8d8d0;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm 14mm 18mm;
+  }
+
+  html {
+    font-size: 10.5pt;
+    background: #fff;
+  }
+  body {
+    background: #fff;
+    color: #1c2a24;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Sem animações nem deslocamentos remanescentes do Framer ao imprimir. */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  /* Não fatiar cartões/seções entre páginas; títulos não ficam órfãos. */
+  section,
+  article,
+  [role="note"],
+  .break-avoid {
+    break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  .break-before {
+    break-before: page;
+  }
+
+  /* Links impressos não precisam do azul/sublinhado de tela. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

@@ -64,6 +64,16 @@
     { "id": "PARCEIRO_LOCAL", "label": "Parceiro", "scope": "opportunities" },
     { "id": "CUSTOMER_SUCCESS", "label": "Customer Success", "scope": "account_health" }
   ],
+  "demoPersonas": [
+    "COLABORADOR",
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "C_LEVEL",
+    "SST_PROFISSIONAL",
+    "HOLDING_ADMIN"
+  ],
+  "defaultRole": "COLABORADOR",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "leader_sees_own_team_aggregate_only_if_n>=5",

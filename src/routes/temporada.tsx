@@ -86,19 +86,30 @@ function TemporadaPage() {
         <MeteGlossary />
 
         <p className="text-center text-xs text-muted-foreground">
-          O cronograma orquestra os dados de{" "}
-          <Link to="/ivo" className="underline underline-offset-2 hover:text-foreground">
-            IVO
+          A jornada anual encadeia{" "}
+          <Link to="/sst" className="underline underline-offset-2 hover:text-foreground">
+            COPSOQ/NR-1
           </Link>
           ,{" "}
+          <Link to="/fibt" className="underline underline-offset-2 hover:text-foreground">
+            FIB-T
+          </Link>
+          ,{" "}
+          <Link to="/ivo" className="underline underline-offset-2 hover:text-foreground">
+            IVO/PERMA
+          </Link>{" "}
+          e{" "}
           <Link to="/viat" className="underline underline-offset-2 hover:text-foreground">
             VIA-T
           </Link>{" "}
-          e{" "}
-          <Link to="/sst" className="underline underline-offset-2 hover:text-foreground">
-            SST
+          até a{" "}
+          <Link
+            to="/relatorio-global"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            síntese ESG
           </Link>{" "}
-          numa única jornada anual.
+          — primeiro o que protege, depois o que faz florescer.
         </p>
       </div>
     </AppShell>

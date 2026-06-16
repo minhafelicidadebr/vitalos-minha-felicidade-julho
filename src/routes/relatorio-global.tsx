@@ -24,6 +24,7 @@ import {
   ODS_LABEL,
   COPSOQ_READINESS,
   REPORT_INTRO,
+  formatReportDate,
 } from "@/mocks/esg-report-mock";
 
 export const Route = createFileRoute("/relatorio-global")({
@@ -181,6 +182,24 @@ function RelatorioGlobalPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-7 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0 print:space-y-5">
+        {/* Timbre institucional — só na impressão (cabeçalho do documento) */}
+        <div className="print-only mb-4 border-b border-border pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
+                4
+              </span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {REPORT_INTRO.kicker}
+            </span>
+          </div>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {report.orgName} · Relatório Global ESG {report.year} · Emitido em {formatReportDate()}
+          </p>
+        </div>
+
         {/* Capa */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
@@ -200,9 +219,10 @@ function RelatorioGlobalPage() {
             </div>
             <button
               onClick={() => window.print()}
-              className="rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
+              title={REPORT_INTRO.printHint}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
             >
-              Exportar / Imprimir
+              <span aria-hidden>⤓</span> Exportar PDF do conselho
             </button>
           </div>
 
@@ -315,7 +335,7 @@ function RelatorioGlobalPage() {
         </section>
 
         {/* Metodologia — design instrucional */}
-        <section className="rounded-2xl border border-border/60 bg-muted/30 p-5 sm:p-6">
+        <section className="break-before rounded-2xl border border-border/60 bg-muted/30 p-5 sm:p-6">
           <h2 className="font-serif text-xl text-foreground">A metodologia, em ciência</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             {REPORT_INTRO.methodologyLead}
@@ -350,6 +370,19 @@ function RelatorioGlobalPage() {
             {REPORT_INTRO.disclaimer}
           </p>
         </div>
+
+        {/* Rodapé institucional — só na impressão (assinatura do documento) */}
+        <div className="print-only mt-4 border-t border-border pt-3">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>{REPORT_INTRO.confidential}</span>
+            <span>{REPORT_INTRO.generatedBy}</span>
+          </div>
+        </div>
+
+        {/* Dica de impressão — só na tela */}
+        <p className="text-center text-xs text-muted-foreground print:hidden">
+          {REPORT_INTRO.printHint}
+        </p>
 
         <p className="text-center text-xs text-muted-foreground print:hidden">
           Cada KPI é derivado e auditável — vem dos motores de{" "}
