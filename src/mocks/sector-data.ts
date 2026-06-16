@@ -8,12 +8,20 @@
 
 import type { IVOInput } from "@/engine/index/ivo-engine";
 import { ivoCurrentCycle, ivoPreviousCycle, DEMO_ORG } from "./ivo-mock";
-import { SCHOOL_CYCLE, SCHOOL_CYCLE_PREVIOUS, SCHOOL_ORG } from "./school-mock";
+import { TREND_CYCLES } from "./trend-mock";
+import {
+  SCHOOL_CYCLE,
+  SCHOOL_CYCLE_PREVIOUS,
+  SCHOOL_TREND_CYCLES,
+  SCHOOL_ORG,
+} from "./school-mock";
 
 export interface SectorData {
   org: { name: string; participationRate: number };
   currentCycle: IVOInput;
   previousCycle: IVOInput;
+  /** Curva longitudinal (ciclos históricos) para /evolucao — buildTrend a consome. */
+  trendCycles: IVOInput[];
 }
 
 const SECTOR_DATA: Record<string, SectorData> = {
@@ -21,11 +29,13 @@ const SECTOR_DATA: Record<string, SectorData> = {
     org: { name: DEMO_ORG.name, participationRate: DEMO_ORG.participationRate },
     currentCycle: ivoCurrentCycle,
     previousCycle: ivoPreviousCycle,
+    trendCycles: TREND_CYCLES,
   },
   school: {
     org: { name: SCHOOL_ORG.name, participationRate: SCHOOL_ORG.participationRate },
     currentCycle: SCHOOL_CYCLE,
     previousCycle: SCHOOL_CYCLE_PREVIOUS,
+    trendCycles: SCHOOL_TREND_CYCLES,
   },
 };
 

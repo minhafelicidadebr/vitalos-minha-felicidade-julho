@@ -15,7 +15,8 @@ import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { buildTrend, type TrendPoint, type LensTrend } from "@/engine/trend/trend-engine";
-import { TREND_CYCLES, MOMENTUM_COPY, TREND_INTRO } from "@/mocks/trend-mock";
+import { MOMENTUM_COPY, TREND_INTRO } from "@/mocks/trend-mock";
+import { getSectorData } from "@/mocks/sector-data";
 
 export const Route = createFileRoute("/evolucao")({
   head: () => ({ meta: [{ title: "Evolução · Curva Longitudinal — 4 Lentes VITA" }] }),
@@ -25,12 +26,13 @@ export const Route = createFileRoute("/evolucao")({
 const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 
 function EvolucaoPage() {
-  const { index } = usePack();
+  const { index, packId } = usePack();
 
   const trend = useMemo(() => {
     if (!index) return null;
-    // Compõe o motor IVO sobre cada ciclo histórico.
-    const points: TrendPoint[] = TREND_CYCLES.map((cycle) => {
+    // Compõe o motor IVO sobre cada ciclo histórico do SETOR ativo.
+    const cycles = getSectorData(packId).trendCycles;
+    const points: TrendPoint[] = cycles.map((cycle) => {
       const r = calculateIVO(cycle, index);
       return {
         cycleId: r.cycleId,
@@ -44,7 +46,7 @@ function EvolucaoPage() {
       };
     });
     return buildTrend(points);
-  }, [index]);
+  }, [index, packId]);
 
   if (!trend || trend.lastIvo === null) {
     return (

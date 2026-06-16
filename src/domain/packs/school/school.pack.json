@@ -97,6 +97,12 @@
       "group": "medir"
     },
     {
+      "id": "trend",
+      "label": "Evolução",
+      "roles": ["DIRETOR", "COORDENADOR", "C_LEVEL_EDU", "SECRETARIA_EDU", "GESTOR_REDE"],
+      "group": "medir"
+    },
+    {
       "id": "sectors",
       "label": "Multissetorial",
       "roles": ["DIRETOR", "COORDENADOR", "SECRETARIA_EDU", "GESTOR_REDE", "PLATFORM_ADMIN"],

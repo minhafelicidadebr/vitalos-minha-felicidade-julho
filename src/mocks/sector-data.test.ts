@@ -47,6 +47,13 @@ for (const [packId, fw] of Object.entries(FRAMEWORKS)) {
       expect(data.org.participationRate).toBeLessThanOrEqual(100);
     });
 
+    test("a curva longitudinal tem ≥2 ciclos, todos coerentes com o framework", () => {
+      expect(data.trendCycles.length).toBeGreaterThanOrEqual(2);
+      for (const cycle of data.trendCycles) {
+        for (const a of cycle.aggregates) expect(valid.has(a.pillarId)).toBe(true);
+      }
+    });
+
     test("calculateIVO produz um índice não-trivial (>0) — prova de coerência", () => {
       const result = calculateIVO(data.currentCycle, fw);
       expect(result.ivoScore).toBeGreaterThan(0);

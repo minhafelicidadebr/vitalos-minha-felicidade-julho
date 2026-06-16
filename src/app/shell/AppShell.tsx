@@ -63,6 +63,16 @@ const ROLE_HOME: Record<string, string> = {
   SST_PROFISSIONAL: "/sst",
   CIPA_MEMBRO: "/sst",
   HOLDING_ADMIN: "/holding",
+  // Pack Escola (AlegrIA) — todos os papéis aterram no painel da Direção (agregado).
+  DIRETOR: "/escola",
+  COORDENADOR: "/escola",
+  ORIENTADOR: "/escola",
+  SECRETARIA_EDU: "/escola",
+  GESTOR_REDE: "/escola",
+  C_LEVEL_EDU: "/escola",
+  EDUCADOR: "/escola",
+  ESTUDANTE: "/escola",
+  FAMILIA: "/escola",
 };
 
 // Fallback caso o pack ativo não declare demoPersonas (mantém compat retroativa).

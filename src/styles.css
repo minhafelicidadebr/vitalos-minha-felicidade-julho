@@ -157,6 +157,46 @@
   --sidebar-ring: oklch(0.74 0.135 85);
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ * Tema por SETOR (Domain Pack) — dirigido por data-pack no <html> (PackProvider).
+ * Trocar de setor recolore o app: prova viva, e visível, do Engine ≠ Domínio.
+ * Curado por pack (contraste deliberado em light/dark) em vez de injetar o hex do
+ * JSON cru — branding honesto E acessível. O accent do switcher lê pack.branding.
+ * Não toca --foreground/--background/--border, então a11y de contraste continua
+ * soberana (ver blocos a11y abaixo, que vencem por ordem nos tokens de contraste).
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/* Escola (AlegrIA) — azul institucional + dourado acolhedor */
+[data-pack="school"] {
+  --primary: oklch(0.34 0.07 245);
+  --primary-foreground: oklch(0.98 0.005 95);
+  --secondary: oklch(0.93 0.02 240);
+  --secondary-foreground: oklch(0.3 0.05 245);
+  --accent: oklch(0.76 0.13 70);
+  --accent-foreground: oklch(0.24 0.04 70);
+  --ring: oklch(0.34 0.07 245);
+  --chart-1: oklch(0.34 0.07 245);
+  --chart-2: oklch(0.76 0.13 70);
+  --sidebar-primary: oklch(0.34 0.07 245);
+  --sidebar-ring: oklch(0.34 0.07 245);
+  --sidebar-accent: oklch(0.92 0.02 240);
+  --sidebar-accent-foreground: oklch(0.3 0.05 245);
+}
+.dark[data-pack="school"] {
+  --primary: oklch(0.7 0.1 245);
+  --primary-foreground: oklch(0.18 0.03 245);
+  --secondary: oklch(0.28 0.05 245);
+  --secondary-foreground: oklch(0.95 0.008 95);
+  --accent: oklch(0.42 0.07 245);
+  --accent-foreground: oklch(0.95 0.008 95);
+  --ring: oklch(0.7 0.1 245);
+  --chart-1: oklch(0.7 0.1 245);
+  --chart-2: oklch(0.76 0.13 70);
+  --sidebar-primary: oklch(0.7 0.1 245);
+  --sidebar-ring: oklch(0.7 0.1 245);
+  --sidebar-accent: oklch(0.28 0.05 245);
+}
+
 /* Acessibilidade — A11yProvider toggles */
 .a11y-high-contrast {
   --foreground: oklch(0.08 0.01 165);

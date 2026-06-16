@@ -36,6 +36,7 @@ import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
 import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
+import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
@@ -181,6 +182,11 @@ const EsgRoute = EsgRouteImport.update({
   path: '/esg',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EscolaRoute = EscolaRouteImport.update({
+  id: '/escola',
+  path: '/escola',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
   id: '/embaixadorias',
   path: '/embaixadorias',
@@ -237,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
   '/experimentos': typeof ExperimentosRoute
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
+    | '/escola'
     | '/esg'
     | '/evolucao'
     | '/experimentos'
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
+    | '/escola'
     | '/esg'
     | '/evolucao'
     | '/experimentos'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/embaixadorias'
+    | '/escola'
     | '/esg'
     | '/evolucao'
     | '/experimentos'
@@ -469,6 +481,7 @@ export interface RootRouteChildren {
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
+  EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
   EvolucaoRoute: typeof EvolucaoRoute
   ExperimentosRoute: typeof ExperimentosRoute
@@ -689,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EsgRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/escola': {
+      id: '/escola'
+      path: '/escola'
+      fullPath: '/escola'
+      preLoaderRoute: typeof EscolaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embaixadorias': {
       id: '/embaixadorias'
       path: '/embaixadorias'
@@ -765,6 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
+  EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,
   EvolucaoRoute: EvolucaoRoute,
   ExperimentosRoute: ExperimentosRoute,
