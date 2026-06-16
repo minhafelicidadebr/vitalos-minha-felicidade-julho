@@ -146,6 +146,24 @@ function PanoramaPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0 print:space-y-4">
+        {/* Timbre institucional — só na impressão */}
+        <div className="print-only mb-4 border-b border-border pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
+                4
+              </span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Panorama de Conselho
+            </span>
+          </div>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {org.name} · Panorama Executivo · Emitido em {today}
+          </p>
+        </div>
+
         {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -169,9 +187,10 @@ function PanoramaPage() {
             </span>
             <button
               onClick={() => window.print()}
-              className="rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Na caixa de impressão, escolha “Salvar como PDF” em tamanho A4."
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
             >
-              Imprimir
+              <span aria-hidden>⤓</span> Exportar PDF do conselho
             </button>
           </div>
         </motion.div>
@@ -266,6 +285,14 @@ function PanoramaPage() {
           </Link>
           .
         </p>
+
+        {/* Rodapé institucional — só na impressão */}
+        <div className="print-only mt-4 border-t border-border pt-3">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>Confidencial — uso interno do conselho. Dados agregados (k≥5).</span>
+            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+          </div>
+        </div>
       </div>
     </AppShell>
   );

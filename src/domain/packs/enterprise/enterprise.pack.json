@@ -196,6 +196,12 @@
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],
       "group": "provar"
     },
+    {
+      "id": "cycle_close",
+      "label": "Fechamento de Ciclo",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN"],
+      "group": "provar"
+    },
 
     {
       "id": "program",

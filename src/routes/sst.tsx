@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { usePack } from "@/engine/pack";
+import { summarizeNR1Readiness } from "@/engine/domainb/nr1-readiness-engine";
+import { useOrg } from "@/mocks/hooks";
+import { formatReportDate } from "@/mocks/esg-report-mock";
 import {
   SST_DISCLAIMER,
   SST_RISK_INVENTORY,
@@ -83,19 +88,69 @@ const EXPOSURE_STYLE: Record<RiskCategory["exposure"], { cls: string; label: str
 
 function SSTPage() {
   const maxCount = Math.max(...SST_LISTENING.byCategory.map((c) => c.count));
+  const { pack } = usePack();
+  const org = useOrg();
+
+  // Síntese EDUCATIVA de prontidão — compõe COPSOQ + inventário + checklist GRO.
+  const readiness = useMemo(
+    () =>
+      summarizeNR1Readiness({
+        copsoqDimensions: COPSOQ_AGGREGATE.dimensions.map((d) => ({ band: d.band })),
+        riskExposures: SST_RISK_INVENTORY.map((r) => ({
+          exposure: r.exposure,
+          actionsOpen: r.actionsOpen,
+        })),
+        checklist: SST_CHECKLIST.map((c) => ({ done: c.done })),
+      }),
+    [],
+  );
+
+  // Disclaimer obrigatório — verbatim do pack (Domínio B), fonte única.
+  const domainB = pack?.domainB as { mandatoryDisclaimer?: string } | undefined;
+  const mandatoryDisclaimer = domainB?.mandatoryDisclaimer ?? SST_DISCLAIMER;
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 print:py-0">
+        {/* Timbre institucional — só na impressão */}
+        <div className="print-only mb-4 border-b border-border pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
+                4
+              </span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Dossiê Educativo NR-1 · Domínio B
+            </span>
+          </div>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {org.name} · Material preparatório (não é PGR) · Emitido em {formatReportDate()}
+          </p>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
+          className="flex flex-wrap items-start justify-between gap-3"
         >
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            Domínio B · SST / CIPA
-          </p>
-          <h1 className="mt-1 font-serif text-3xl text-foreground">Riscos psicossociais — NR-1</h1>
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Domínio B · SST / CIPA
+            </p>
+            <h1 className="mt-1 font-serif text-3xl text-foreground">
+              Riscos psicossociais — NR-1
+            </h1>
+          </div>
+          <button
+            onClick={() => window.print()}
+            title="Na caixa de impressão, escolha “Salvar como PDF” em tamanho A4."
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
+          >
+            <span aria-hidden>⤓</span> Exportar dossiê NR-1
+          </button>
         </motion.div>
 
         {/* Mandatory disclaimer — always visible, top of page */}
@@ -112,9 +167,44 @@ function SSTPage() {
             <span className="mt-0.5 shrink-0" aria-hidden>
               ℹ
             </span>
-            {SST_DISCLAIMER}
+            {mandatoryDisclaimer}
           </p>
         </motion.div>
+
+        {/* Síntese de prontidão educativa (compõe COPSOQ + inventário + checklist) */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.07 }}
+          className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+        >
+          <p className="font-medium text-card-foreground">Síntese de prontidão educativa NR-1</p>
+          <p className="text-xs text-muted-foreground">
+            Leitura agregada (k≥5) para apoiar — não substituir — o trabalho do profissional
+            habilitado.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            <ReadinessStat
+              value={readiness.dimensionsByBand.risco}
+              label="Dimensões em risco"
+              tone={readiness.riskDimensions > 0 ? "warn" : "ok"}
+            />
+            <ReadinessStat
+              value={readiness.highExposureRisks}
+              label="Exposição alta"
+              tone={readiness.highExposureRisks > 0 ? "warn" : "ok"}
+            />
+            <ReadinessStat value={readiness.openActions} label="Ações em aberto" tone="neutral" />
+            <ReadinessStat
+              value={`${readiness.checklistPct}%`}
+              label="Checklist GRO"
+              tone="neutral"
+            />
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            {readiness.readinessNote}
+          </p>
+        </motion.section>
 
         {/* Risk inventory */}
         <motion.div
@@ -225,15 +315,47 @@ function SSTPage() {
               ))}
             </ul>
             <button
-              disabled
-              title="Em breve — Bloco 17 (Relatórios)"
-              className="mt-4 w-full cursor-not-allowed rounded-lg border border-input py-2 text-xs font-medium text-muted-foreground opacity-50"
+              onClick={() => window.print()}
+              className="mt-4 w-full rounded-lg border border-input py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 print:hidden"
             >
               Exportar trilha documental (PDF)
             </button>
           </motion.div>
         </div>
+
+        {/* Rodapé institucional — só na impressão */}
+        <div className="print-only mt-4 border-t border-border pt-3">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>
+              Confidencial · Material educativo preparatório — não constitui PGR nem laudo.
+            </span>
+            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+          </div>
+        </div>
       </div>
     </AppShell>
+  );
+}
+
+function ReadinessStat({
+  value,
+  label,
+  tone,
+}: {
+  value: number | string;
+  label: string;
+  tone: "ok" | "warn" | "neutral";
+}) {
+  const color =
+    tone === "warn"
+      ? "text-amber-700 dark:text-amber-300"
+      : tone === "ok"
+        ? "text-emerald-700 dark:text-emerald-300"
+        : "text-foreground";
+  return (
+    <div className="rounded-xl border border-border/60 bg-background p-3">
+      <p className={`font-serif text-2xl ${color}`}>{value}</p>
+      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{label}</p>
+    </div>
   );
 }
