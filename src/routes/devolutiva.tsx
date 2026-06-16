@@ -7,10 +7,17 @@ import { usePersona } from "@/engine/rbac/rbac";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { buildTrend, type Momentum } from "@/engine/trend/trend-engine";
 import { rankPriorities } from "@/engine/priority/priority-engine";
-import { buildDevolutiva, type DevolutivaLens } from "@/engine/educar/devolutiva-engine";
+import {
+  buildDevolutiva,
+  buildStrengthsDevolutiva,
+  type DevolutivaLens,
+  type Devolutiva,
+  type DevolutivaBlock,
+} from "@/engine/educar/devolutiva-engine";
 import { getSectorData } from "@/mocks/sector-data";
 import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
 import { getActiveWave } from "@/mocks/campaign-mock";
+import { ORG_VIAT_RESULT } from "@/mocks/viat-mock";
 
 export const Route = createFileRoute("/devolutiva")({
   head: () => ({ meta: [{ title: "Devolutiva da Onda · Educar — 4 Lentes VITA" }] }),
@@ -92,6 +99,29 @@ function DevolutivaPage() {
     );
   }, [index, packId, t, audience]);
 
+  // Devolutiva de FORÇAS (VIA-T) — só na empresa (ORG_VIAT_RESULT é da empresa).
+  const forcas = useMemo<Devolutiva | null>(() => {
+    if (packId !== "enterprise") return null;
+    const top10 = ORG_VIAT_RESULT.top10 as Array<{ name: string; avgScore: number }>;
+    const visibleAsc = [
+      ...(ORG_VIAT_RESULT.strengths as Array<{ name: string; avgScore: number; visible: boolean }>),
+    ]
+      .filter((s) => s.visible)
+      .sort((a, b) => a.avgScore - b.avgScore);
+    const emerging = visibleAsc[0] ?? null;
+    return buildStrengthsDevolutiva(
+      {
+        instrumentLabel: "VIA-T v1 · Forças de caráter",
+        season: "Forças em Cultura",
+        signatureStrength: top10[0] ? { name: top10[0].name, score: top10[0].avgScore } : null,
+        topStrengths: top10.slice(0, 3).map((s) => ({ name: s.name, score: s.avgScore })),
+        emergingStrength: emerging ? { name: emerging.name, score: emerging.avgScore } : null,
+        developmentRoute: "/academia",
+      },
+      audience,
+    );
+  }, [packId, audience]);
+
   if (!devolutiva) {
     return (
       <AppShell>
@@ -118,45 +148,23 @@ function DevolutivaPage() {
           </h1>
         </motion.header>
 
-        <ol className="space-y-3">
-          {devolutiva.blocks.map((b, i) => (
-            <motion.li
-              key={b.kicker}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.05 + i * 0.05 }}
-              className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
-            >
-              <div className="flex items-center gap-2">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 font-mono text-[11px] font-semibold text-primary">
-                  {i + 1}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                  {b.kicker}
-                </span>
-              </div>
-              <p className="mt-2 font-serif text-lg text-foreground">{b.title}</p>
-              <p className="mt-1 text-base leading-relaxed text-muted-foreground">{b.body}</p>
-              {b.cta && (
-                <Link
-                  to={b.cta.route}
-                  className="mt-3 inline-flex items-center gap-1 rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-                >
-                  {b.cta.label} →
-                </Link>
-              )}
-            </motion.li>
-          ))}
-        </ol>
+        <BlockList blocks={devolutiva.blocks} />
 
-        <div
-          className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-5 py-4 dark:bg-amber-950/20"
-          role="note"
-        >
-          <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-300">
-            {devolutiva.honestyNote}
-          </p>
-        </div>
+        <HonestyNote text={devolutiva.honestyNote} />
+
+        {/* Devolutiva de Forças (VIA-T) — Educar da Camada 3 */}
+        {forcas && (
+          <section className="space-y-3 border-t border-border/50 pt-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Educar · Devolutiva de Forças
+              </p>
+              <h2 className="mt-1 font-serif text-2xl text-foreground">{forcas.headline}</h2>
+            </div>
+            <BlockList blocks={forcas.blocks} />
+            <HonestyNote text={forcas.honestyNote} />
+          </section>
+        )}
 
         <p className="text-center text-xs text-muted-foreground">
           A devolutiva fecha o eixo <span className="font-medium">Educar</span> e abre o{" "}
@@ -167,5 +175,51 @@ function DevolutivaPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+function BlockList({ blocks }: { blocks: DevolutivaBlock[] }) {
+  return (
+    <ol className="space-y-3">
+      {blocks.map((b, i) => (
+        <motion.li
+          key={b.kicker}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.05 + i * 0.05 }}
+          className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+        >
+          <div className="flex items-center gap-2">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 font-mono text-[11px] font-semibold text-primary">
+              {i + 1}
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              {b.kicker}
+            </span>
+          </div>
+          <p className="mt-2 font-serif text-lg text-foreground">{b.title}</p>
+          <p className="mt-1 text-base leading-relaxed text-muted-foreground">{b.body}</p>
+          {b.cta && (
+            <Link
+              to={b.cta.route}
+              className="mt-3 inline-flex items-center gap-1 rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              {b.cta.label} →
+            </Link>
+          )}
+        </motion.li>
+      ))}
+    </ol>
+  );
+}
+
+function HonestyNote({ text }: { text: string }) {
+  return (
+    <div
+      className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-5 py-4 dark:bg-amber-950/20"
+      role="note"
+    >
+      <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-300">{text}</p>
+    </div>
   );
 }

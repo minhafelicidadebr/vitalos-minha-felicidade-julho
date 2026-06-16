@@ -107,3 +107,78 @@ export function buildDevolutiva(input: DevolutivaInput, audience: DevolutivaAudi
 
   return { audience, headline, blocks, honestyNote: HONESTY_NOTE };
 }
+
+// ─── Devolutiva de FORÇAS (VIA-T) — positiva, jamais diagnóstico/ranking ──────
+
+export interface StrengthsDevolutivaInput {
+  instrumentLabel: string;
+  season: string;
+  /** Força mais expressa na cultura (não "a melhor pessoa" — a força coletiva). */
+  signatureStrength: { name: string; score: number } | null;
+  topStrengths: Array<{ name: string; score: number }>;
+  /** Força a CULTIVAR — enquadrada como oportunidade de crescimento, não déficit. */
+  emergingStrength: { name: string; score: number } | null;
+  developmentRoute: string;
+}
+
+// Guardrail VIA-T (verbatim do espírito do instrumento): exploratório, agregado,
+// autodesenvolvimento — nunca diagnóstico, ranking de pessoas, seleção ou avaliação.
+const STRENGTHS_HONESTY_NOTE =
+  "VIA-T v1 exploratório — forças percebidas no trabalho, agregadas (n≥5) para " +
+  "autodesenvolvimento e cultura. Não é diagnóstico, não é ranking de pessoas e não se usa " +
+  "para seleção, promoção, remuneração ou desligamento.";
+
+export function buildStrengthsDevolutiva(
+  input: StrengthsDevolutivaInput,
+  audience: DevolutivaAudience,
+): Devolutiva {
+  const individual = audience === "individual";
+  const blocks: DevolutivaBlock[] = [];
+
+  blocks.push({
+    kicker: "Medimos",
+    title: `${input.instrumentLabel} · estação ${input.season}`,
+    body: individual
+      ? "Sua percepção de forças entrou no mapa coletivo da cultura — sempre no agregado."
+      : "A onda mapeou as forças de caráter percebidas no trabalho, de forma agregada.",
+  });
+
+  blocks.push({
+    kicker: "Aprendemos",
+    title: input.signatureStrength
+      ? `Força assinatura da cultura: ${input.signatureStrength.name}`
+      : "As forças que a cultura mais expressa",
+    body: "É a força que a comunidade mais reconhece no dia a dia — um ativo para apoiar mudanças.",
+  });
+
+  const top = input.topStrengths
+    .slice(0, 3)
+    .map((s) => s.name)
+    .join(", ");
+  blocks.push({
+    kicker: "O que significa",
+    title: "Forças sobre as quais construir",
+    body: top
+      ? `A cultura se apoia em ${top}. Mudanças pegam mais rápido quando partem destas forças.`
+      : "A cultura tem forças distribuídas — boa base para experimentar.",
+  });
+
+  blocks.push({
+    kicker: "Próximo passo",
+    title: input.emergingStrength
+      ? `Cultivar ${input.emergingStrength.name} — a oportunidade de crescimento`
+      : "Aplicar as forças em um projeto concreto",
+    body: individual
+      ? "Explore as suas forças e como exercê-las mais no trabalho — no seu ritmo, sem comparação."
+      : "Desenhar uma ação que use as forças assinatura para desenvolver a força emergente.",
+    cta: individual
+      ? { label: "Explorar forças", route: input.developmentRoute }
+      : { label: "Levar ao Culture Lab", route: "/lab" },
+  });
+
+  const headline = individual
+    ? "Suas forças importam — veja o que a cultura reconhece e como crescer."
+    : "O mapa de forças fechou. Eis sobre o que construir — e o que cultivar.";
+
+  return { audience, headline, blocks, honestyNote: STRENGTHS_HONESTY_NOTE };
+}

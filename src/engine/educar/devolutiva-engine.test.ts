@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { buildDevolutiva, type DevolutivaInput } from "./devolutiva-engine";
+import {
+  buildDevolutiva,
+  buildStrengthsDevolutiva,
+  type DevolutivaInput,
+  type StrengthsDevolutivaInput,
+} from "./devolutiva-engine";
 
 function base(over: Partial<DevolutivaInput> = {}): DevolutivaInput {
   return {
@@ -62,5 +67,49 @@ describe("devolutiva — diverge por audiência", () => {
 
   test("o aviso de honestidade está sempre presente", () => {
     expect(buildDevolutiva(base(), "coletivo").honestyNote).toContain("não promessa");
+  });
+});
+
+// ─── Devolutiva de FORÇAS (VIA-T) ─────────────────────────────────────────────
+
+function strengthsBase(over: Partial<StrengthsDevolutivaInput> = {}): StrengthsDevolutivaInput {
+  return {
+    instrumentLabel: "VIA-T v1 · Forças de caráter",
+    season: "Forças em Cultura",
+    signatureStrength: { name: "Curiosidade", score: 7.4 },
+    topStrengths: [
+      { name: "Curiosidade", score: 7.4 },
+      { name: "Trabalho em equipe", score: 7.1 },
+      { name: "Justiça e equidade", score: 6.9 },
+    ],
+    emergingStrength: { name: "Gratidão", score: 5.6 },
+    developmentRoute: "/academia",
+    ...over,
+  };
+}
+
+describe("devolutiva de forças — positiva e dentro dos guardrails VIA-T", () => {
+  test("celebra a força assinatura e nomeia as top forças", () => {
+    const d = buildStrengthsDevolutiva(strengthsBase(), "coletivo");
+    expect(d.blocks[1]!.title).toContain("Curiosidade");
+    expect(d.blocks[2]!.body).toContain("Trabalho em equipe");
+  });
+
+  test("a força a desenvolver é enquadrada como OPORTUNIDADE, não déficit", () => {
+    const d = buildStrengthsDevolutiva(strengthsBase(), "coletivo");
+    expect(d.blocks[3]!.title).toContain("Cultivar Gratidão");
+    expect(d.blocks[3]!.title).toContain("oportunidade");
+  });
+
+  test("o aviso jamais permite ranking de pessoas / seleção (guardrail VIA-T)", () => {
+    const note = buildStrengthsDevolutiva(strengthsBase(), "coletivo").honestyNote;
+    expect(note).toContain("não é ranking de pessoas");
+    expect(note).toContain("seleção");
+  });
+
+  test("individual → desenvolvimento sem comparação (Academia)", () => {
+    const d = buildStrengthsDevolutiva(strengthsBase(), "individual");
+    expect(d.blocks[3]!.cta?.route).toBe("/academia");
+    expect(d.blocks[3]!.body).toContain("sem comparação");
   });
 });
