@@ -41,6 +41,7 @@ import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
+import { Route as EmbaixadorRouteImport } from './routes/embaixador'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
@@ -211,6 +212,11 @@ const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
   path: '/embaixadorias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbaixadorRoute = EmbaixadorRouteImport.update({
+  id: '/embaixador',
+  path: '/embaixador',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
   id: '/devolutiva',
   path: '/devolutiva',
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -310,6 +317,7 @@ export interface FileRoutesByTo {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/embaixador'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -442,6 +452,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/embaixador'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -485,6 +496,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/embaixador'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -529,6 +541,7 @@ export interface RootRouteChildren {
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  EmbaixadorRoute: typeof EmbaixadorRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
@@ -789,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbaixadoriasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embaixador': {
+      id: '/embaixador'
+      path: '/embaixador'
+      fullPath: '/embaixador'
+      preLoaderRoute: typeof EmbaixadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devolutiva': {
       id: '/devolutiva'
       path: '/devolutiva'
@@ -865,6 +885,7 @@ const rootRouteChildren: RootRouteChildren = {
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   DevolutivaRoute: DevolutivaRoute,
+  EmbaixadorRoute: EmbaixadorRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,

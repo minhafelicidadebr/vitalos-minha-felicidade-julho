@@ -58,7 +58,7 @@ const NAV_ROUTES: Record<string, string> = {
 
 const ROLE_HOME: Record<string, string> = {
   COLABORADOR: "/colaborador",
-  EMBAIXADOR: "/colaborador",
+  EMBAIXADOR: "/embaixador",
   LIDER_EQUIPE: "/lider",
   RH_ADMIN: "/rh",
   CHRO: "/rh",
