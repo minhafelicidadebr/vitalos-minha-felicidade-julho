@@ -171,7 +171,6 @@ function SeloPage() {
           </div>
         </motion.div>
 
-
         {/* Critérios auditáveis */}
         <section className="rounded-2xl border border-border/70 bg-card shadow-sm">
           <header className="border-b border-border/50 px-5 py-4">

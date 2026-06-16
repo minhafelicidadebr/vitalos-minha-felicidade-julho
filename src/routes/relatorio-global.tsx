@@ -238,7 +238,6 @@ function RelatorioGlobalPage() {
           </p>
         </div>
 
-
         {/* Capa */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}

@@ -1,14 +1,57 @@
-// Onda de medição — dados de demonstração do eixo MENSURAR. A onda ativa aplica o
-// instrumento da estação atual (Florescimento → PERMA+V/IVO). Inclui um recorte com
-// n<5 (Diretoria) para provar, ao vivo, a trava de privacidade: o líder NÃO vê a
-// taxa desse recorte, mas as respostas ainda contam no agregado. Agregados fictícios.
+// Ondas de medição — registro por setor. Cada estação da jornada aplica seu
+// instrumento como UMA onda; o ano é uma sequência de ondas (uma fechada após a
+// outra, a do trimestre corrente aberta, a próxima agendada). A Escola tem a sua
+// onda própria (IEV), provando que Mensurar é setor-agnóstico. Agregados fictícios;
+// um recorte com n<5 em cada onda ativa prova a trava de privacidade ao vivo.
 
-import type { MeasurementWaveInput, IndividualStatus } from "@/engine/campaign/campaign-engine";
+import type { MeasurementWaveInput } from "@/engine/campaign/campaign-engine";
 
 // Injetado no motor (pureza). Alinhado à data corrente do ambiente.
 export const TODAY = "2026-06-16";
 
-export const ACTIVE_WAVE_INPUT: MeasurementWaveInput = {
+// ─── Ondas da Empresa (a jornada canônica, trimestre a trimestre) ─────────────
+
+const WAVE_COPSOQ: MeasurementWaveInput = {
+  id: "onda-2026-t1-copsoq",
+  instrumentLabel: "COPSOQ II · NR-1",
+  instrumentShort: "COPSOQ",
+  season: "Fundação Segura",
+  opensOn: "2026-01-08",
+  closesOn: "2026-01-22",
+  today: TODAY,
+  invitedTotal: 480,
+  respondedTotal: 403,
+  segments: [
+    { segmentId: "eng", label: "Engenharia", invited: 120, responded: 104 },
+    { segmentId: "ops", label: "Operações", invited: 140, responded: 116 },
+    { segmentId: "com", label: "Comercial", invited: 95, responded: 79 },
+    { segmentId: "pc", label: "Pessoas & Cultura", invited: 40, responded: 36 },
+    { segmentId: "noite", label: "Turno noite (Sul)", invited: 77, responded: 61 },
+    { segmentId: "dir", label: "Diretoria", invited: 8, responded: 7 },
+  ],
+};
+
+const WAVE_FIBT: MeasurementWaveInput = {
+  id: "onda-2026-t2-fibt",
+  instrumentLabel: "FIB-T · Felicidade Interna Bruta",
+  instrumentShort: "FIB-T",
+  season: "Raízes do Bem-Comum",
+  opensOn: "2026-04-08",
+  closesOn: "2026-04-22",
+  today: TODAY,
+  invitedTotal: 480,
+  respondedTotal: 379,
+  segments: [
+    { segmentId: "eng", label: "Engenharia", invited: 120, responded: 95 },
+    { segmentId: "ops", label: "Operações", invited: 140, responded: 104 },
+    { segmentId: "com", label: "Comercial", invited: 95, responded: 79 },
+    { segmentId: "pc", label: "Pessoas & Cultura", invited: 40, responded: 33 },
+    { segmentId: "noite", label: "Turno noite (Sul)", invited: 77, responded: 64 },
+    { segmentId: "dir", label: "Diretoria", invited: 8, responded: 4 }, // n<5
+  ],
+};
+
+const WAVE_PERMA: MeasurementWaveInput = {
   id: "onda-2026-t3-perma",
   instrumentLabel: "PERMA+V → IVO",
   instrumentShort: "PERMA+V / IVO",
@@ -28,34 +71,80 @@ export const ACTIVE_WAVE_INPUT: MeasurementWaveInput = {
   ],
 };
 
-// Status do colaborador demo nesta onda (alterna a visão individual).
-export const MY_WAVE_STATUS: IndividualStatus = "pendente";
+const WAVE_VIAT: MeasurementWaveInput = {
+  id: "onda-2026-t4-viat",
+  instrumentLabel: "VIA-T v1 · Forças de caráter",
+  instrumentShort: "VIA-T",
+  season: "Forças em Cultura",
+  opensOn: "2026-10-08",
+  closesOn: "2026-10-22",
+  today: TODAY,
+  invitedTotal: 480,
+  respondedTotal: 0,
+  segments: [
+    { segmentId: "eng", label: "Engenharia", invited: 120, responded: 0 },
+    { segmentId: "ops", label: "Operações", invited: 140, responded: 0 },
+    { segmentId: "com", label: "Comercial", invited: 95, responded: 0 },
+    { segmentId: "pc", label: "Pessoas & Cultura", invited: 40, responded: 0 },
+    { segmentId: "noite", label: "Turno noite (Sul)", invited: 77, responded: 0 },
+    { segmentId: "dir", label: "Diretoria", invited: 8, responded: 0 },
+  ],
+};
 
-// Histórico de ondas do ano (só exibição) — a sequência da jornada canônica.
-export interface PastWave {
-  id: string;
-  instrumentShort: string;
-  season: string;
-  windowLabel: string;
-  participationPct: number;
+export const ENTERPRISE_WAVES: MeasurementWaveInput[] = [
+  WAVE_COPSOQ,
+  WAVE_FIBT,
+  WAVE_PERMA,
+  WAVE_VIAT,
+];
+
+// Compat: a onda ATIVA da empresa (consumida por /responder e /devolutiva).
+export const ACTIVE_WAVE_INPUT = WAVE_PERMA;
+
+// ─── Onda da Escola (IEV) — Mensurar é setor-agnóstico ────────────────────────
+
+const WAVE_ESCOLA: MeasurementWaveInput = {
+  id: "onda-2026-escola-iev",
+  instrumentLabel: "PERMA+V escolar → IEV",
+  instrumentShort: "IEV",
+  season: "Florescimento Escolar",
+  opensOn: "2026-06-09",
+  closesOn: "2026-06-23",
+  today: TODAY,
+  invitedTotal: 540,
+  respondedTotal: 396,
+  segments: [
+    { segmentId: "fund1", label: "Fundamental I", invited: 180, responded: 140 },
+    { segmentId: "fund2", label: "Fundamental II", invited: 200, responded: 148 },
+    { segmentId: "medio", label: "Ensino Médio", invited: 120, responded: 86 },
+    { segmentId: "docentes", label: "Educadores", invited: 32, responded: 19 },
+    { segmentId: "direcao", label: "Direção", invited: 8, responded: 3 }, // n<5 → oculto
+  ],
+};
+
+export const SCHOOL_WAVES: MeasurementWaveInput[] = [WAVE_ESCOLA];
+
+// ─── Seletores por setor ──────────────────────────────────────────────────────
+
+const MS_PER_DAY = 86_400_000;
+function day(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Date.UTC(y!, (m ?? 1) - 1, d ?? 1);
+}
+function isOpen(w: MeasurementWaveInput): boolean {
+  const t = day(w.today);
+  return t >= day(w.opensOn) && t <= day(w.closesOn);
 }
 
-export const PAST_WAVES: PastWave[] = [
-  {
-    id: "onda-2026-t1-copsoq",
-    instrumentShort: "COPSOQ",
-    season: "Fundação Segura",
-    windowLabel: "Jan → Mar",
-    participationPct: 84,
-  },
-  {
-    id: "onda-2026-t2-fibt",
-    instrumentShort: "FIB-T",
-    season: "Raízes do Bem-Comum",
-    windowLabel: "Abr → Jun",
-    participationPct: 79,
-  },
-];
+export function getSectorWaves(packId: string): MeasurementWaveInput[] {
+  return packId === "school" ? SCHOOL_WAVES : ENTERPRISE_WAVES;
+}
+
+/** A onda em andamento do setor; se nenhuma estiver aberta, a mais recente. */
+export function getActiveWave(packId: string): MeasurementWaveInput {
+  const waves = getSectorWaves(packId);
+  return waves.find(isOpen) ?? waves[waves.length - 1]!;
+}
 
 export const ONDA_INTRO = {
   eyebrow: "Mensurar · Onda Ativa",

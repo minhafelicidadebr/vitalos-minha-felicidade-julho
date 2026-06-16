@@ -1,37 +1,64 @@
-// Consistência da onda: prova que a campanha NÃO pode divergir da jornada canônica
-// (o instrumento de cada onda é um instrumento da jornada) e que o agregado é
-// honesto (o total bate com a soma dos recortes — nada de número solto).
+// Consistência das ondas: a campanha NÃO pode divergir da jornada canônica (cada
+// onda da empresa aplica um instrumento da jornada) e o agregado é honesto (total =
+// soma dos recortes). Cobre também o seletor por setor (Mensurar é setor-agnóstico).
 
 import { describe, expect, test } from "bun:test";
-import { ACTIVE_WAVE_INPUT, PAST_WAVES } from "./campaign-mock";
+import {
+  ENTERPRISE_WAVES,
+  SCHOOL_WAVES,
+  getActiveWave,
+  getSectorWaves,
+  ACTIVE_WAVE_INPUT,
+} from "./campaign-mock";
+import { computeWave, type MeasurementWaveInput } from "@/engine/campaign/campaign-engine";
 import { CANONICAL_JOURNEY } from "@/domain/journey";
 
 const JOURNEY_INSTRUMENTS = new Set(CANONICAL_JOURNEY.map((s) => s.instrumentShort));
 
-describe("campaign-mock — fonte única (jornada canônica)", () => {
-  test("o instrumento da onda ativa pertence à jornada canônica", () => {
-    expect(JOURNEY_INSTRUMENTS.has(ACTIVE_WAVE_INPUT.instrumentShort)).toBe(true);
-  });
+function sumsAreHonest(w: MeasurementWaveInput) {
+  const inv = w.segments.reduce((s, seg) => s + seg.invited, 0);
+  const res = w.segments.reduce((s, seg) => s + seg.responded, 0);
+  expect(w.invitedTotal).toBe(inv);
+  expect(w.respondedTotal).toBe(res);
+}
 
-  test("todo instrumento do histórico de ondas pertence à jornada", () => {
-    for (const w of PAST_WAVES) {
+describe("campaign-mock — empresa segue a jornada canônica", () => {
+  test("toda onda da empresa aplica um instrumento da jornada", () => {
+    for (const w of ENTERPRISE_WAVES) {
       expect(JOURNEY_INSTRUMENTS.has(w.instrumentShort)).toBe(true);
     }
   });
+
+  test("as 4 ondas cobrem os 4 instrumentos da jornada", () => {
+    expect(new Set(ENTERPRISE_WAVES.map((w) => w.instrumentShort)).size).toBe(4);
+  });
+
+  test("o total de cada onda é a soma dos recortes (agregado honesto)", () => {
+    for (const w of [...ENTERPRISE_WAVES, ...SCHOOL_WAVES]) sumsAreHonest(w);
+  });
 });
 
-describe("campaign-mock — agregado honesto (total = soma das partes)", () => {
-  test("o total de convidados é a soma dos recortes", () => {
-    const sum = ACTIVE_WAVE_INPUT.segments.reduce((s, seg) => s + seg.invited, 0);
-    expect(ACTIVE_WAVE_INPUT.invitedTotal).toBe(sum);
+describe("campaign-mock — seletor por setor", () => {
+  test("a onda ativa da empresa está aberta e é a do compat ACTIVE_WAVE_INPUT", () => {
+    const active = getActiveWave("enterprise");
+    expect(computeWave(active).state).toMatch(/aberta|encerrando/);
+    expect(active.id).toBe(ACTIVE_WAVE_INPUT.id);
   });
 
-  test("o total de respondentes é a soma dos recortes", () => {
-    const sum = ACTIVE_WAVE_INPUT.segments.reduce((s, seg) => s + seg.responded, 0);
-    expect(ACTIVE_WAVE_INPUT.respondedTotal).toBe(sum);
+  test("a Escola tem a sua própria onda ativa (IEV) — Mensurar é setor-agnóstico", () => {
+    const active = getActiveWave("school");
+    expect(active.instrumentShort).toBe("IEV");
+    expect(computeWave(active).state).toMatch(/aberta|encerrando/);
   });
 
-  test("há um recorte com n<5 para provar a trava de privacidade ao vivo", () => {
-    expect(ACTIVE_WAVE_INPUT.segments.some((s) => s.responded < 5)).toBe(true);
+  test("setor desconhecido cai para a linha da empresa", () => {
+    expect(getSectorWaves("inexistente")).toBe(ENTERPRISE_WAVES);
+  });
+
+  test("cada onda ativa tem um recorte com n<5 (prova a trava ao vivo)", () => {
+    for (const id of ["enterprise", "school"]) {
+      const active = getActiveWave(id);
+      expect(active.segments.some((s) => s.responded < 5)).toBe(true);
+    }
   });
 });

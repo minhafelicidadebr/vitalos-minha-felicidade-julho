@@ -10,8 +10,9 @@ import {
   type IndividualWaveView,
   type SegmentResult,
 } from "@/engine/campaign/campaign-engine";
+import { usePack } from "@/engine/pack";
 import { useWaveResponses } from "@/engine/survey/survey-store";
-import { ACTIVE_WAVE_INPUT, PAST_WAVES, ONDA_INTRO, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";
+import { getActiveWave, getSectorWaves, ONDA_INTRO, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";
 
 export const Route = createFileRoute("/onda")({
   head: () => ({ meta: [{ title: "Onda Ativa · Mensurar — 4 Lentes VITA" }] }),
@@ -23,14 +24,17 @@ const INDIVIDUAL_ROLES = new Set(["COLABORADOR", "EMBAIXADOR", "ESTUDANTE", "FAM
 
 function OndaPage() {
   const { roleId } = usePersona();
+  const { packId } = usePack();
   const isIndividual = INDIVIDUAL_ROLES.has(roleId);
+  const waveInput = getActiveWave(packId);
 
-  const responded = useWaveResponses((s) => s.hasResponded(ACTIVE_WAVE_INPUT.id));
-  const wave = useMemo(() => computeWave(ACTIVE_WAVE_INPUT), []);
+  const responded = useWaveResponses((s) => s.hasResponded(waveInput.id));
+  const wave = useMemo(() => computeWave(waveInput), [waveInput]);
   const individual = useMemo(
-    () => buildIndividualView(ACTIVE_WAVE_INPUT, responded ? "respondeu" : "pendente"),
-    [responded],
+    () => buildIndividualView(waveInput, responded ? "respondeu" : "pendente"),
+    [waveInput, responded],
   );
+  const timeline = useMemo(() => getSectorWaves(packId).map((w) => computeWave(w)), [packId]);
   const stateStyle = WAVE_STATE_STYLE[wave.state]!;
 
   return (
@@ -66,7 +70,11 @@ function OndaPage() {
           em ação: a gestão vê taxas agregadas; nunca quem respondeu.
         </div>
 
-        {isIndividual ? <IndividualView view={individual} /> : <LeaderView wave={wave} />}
+        {isIndividual ? (
+          <IndividualView view={individual} />
+        ) : (
+          <LeaderView wave={wave} timeline={timeline} />
+        )}
       </div>
     </AppShell>
   );
@@ -166,7 +174,7 @@ function Assurance({ icon, title, text }: { icon: string; title: string; text: s
 
 // ─── Visão do LÍDER / RH ──────────────────────────────────────────────────────
 
-function LeaderView({ wave }: { wave: MeasurementWave }) {
+function LeaderView({ wave, timeline }: { wave: MeasurementWave; timeline: MeasurementWave[] }) {
   const { ledger } = wave;
   return (
     <motion.div
@@ -301,31 +309,37 @@ function LeaderView({ wave }: { wave: MeasurementWave }) {
         </div>
       </section>
 
-      {/* Ondas do ano */}
+      {/* Ondas do ano — a jornada de instrumentos, trimestre a trimestre */}
       <section>
         <h2 className="mb-3 font-serif text-lg text-foreground">{ONDA_INTRO.historyTitle}</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {PAST_WAVES.map((w) => (
-            <div key={w.id} className="rounded-2xl border border-border/60 bg-card p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-card-foreground">
-                  {w.instrumentShort}
-                </span>
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                  {w.participationPct}%
-                </span>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {timeline.map((w) => {
+            const st = WAVE_STATE_STYLE[w.state]!;
+            const active = w.id === wave.id;
+            return (
+              <div
+                key={w.id}
+                className={`rounded-2xl border p-4 ${
+                  active ? "border-primary/40 bg-primary/5" : "border-border/60 bg-card"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-card-foreground">
+                    {w.instrumentShort}
+                  </span>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${st.cls}`}>
+                    {st.label}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">{w.season}</p>
+                {w.state !== "agendada" && (
+                  <p className="mt-1 text-xs font-semibold text-foreground">
+                    {w.participationPct}% participação
+                  </p>
+                )}
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {w.season} · {w.windowLabel}
-              </p>
-            </div>
-          ))}
-          <div className="rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4">
-            <span className="text-sm font-medium text-primary">{wave.instrumentShort}</span>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {wave.season} · em andamento ({wave.participationPct}%)
-            </p>
-          </div>
+            );
+          })}
         </div>
       </section>
     </motion.div>

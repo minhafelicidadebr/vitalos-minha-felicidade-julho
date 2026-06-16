@@ -10,7 +10,7 @@ import { rankPriorities } from "@/engine/priority/priority-engine";
 import { buildDevolutiva, type DevolutivaLens } from "@/engine/educar/devolutiva-engine";
 import { getSectorData } from "@/mocks/sector-data";
 import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
-import { ACTIVE_WAVE_INPUT } from "@/mocks/campaign-mock";
+import { getActiveWave } from "@/mocks/campaign-mock";
 
 export const Route = createFileRoute("/devolutiva")({
   head: () => ({ meta: [{ title: "Devolutiva da Onda · Educar — 4 Lentes VITA" }] }),
@@ -37,6 +37,7 @@ function DevolutivaPage() {
 
   const devolutiva = useMemo(() => {
     if (!index) return null;
+    const activeWave = getActiveWave(packId);
     const sector = getSectorData(packId);
     const current = calculateIVO(sector.currentCycle, index);
 
@@ -75,9 +76,9 @@ function DevolutivaPage() {
 
     return buildDevolutiva(
       {
-        instrumentLabel: ACTIVE_WAVE_INPUT.instrumentLabel,
-        instrumentShort: ACTIVE_WAVE_INPUT.instrumentShort,
-        season: ACTIVE_WAVE_INPUT.season,
+        instrumentLabel: activeWave.instrumentLabel,
+        instrumentShort: activeWave.instrumentShort,
+        season: activeWave.season,
         indexLabel: t("index", "IVO"),
         indexScore: current.ivoScore,
         maturityName: current.maturityLevel.name,
