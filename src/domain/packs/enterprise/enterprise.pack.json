@@ -94,6 +94,7 @@
   "navigation": [
     { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
 
+    { "id": "wave", "label": "Onda Ativa", "roles": "all", "group": "medir" },
     { "id": "ivo", "label": "IVO", "roles": "all", "group": "medir" },
     {
       "id": "pulses",

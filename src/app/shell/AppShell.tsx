@@ -48,6 +48,7 @@ const NAV_ROUTES: Record<string, string> = {
   fibt: "/fibt",
   season: "/temporada",
   trend: "/evolucao",
+  wave: "/onda",
   priorities: "/prioridades",
   forecast: "/trajetoria",
   viat: "/viat",
@@ -94,7 +95,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "medir",
     label: "Medir",
     hint: "Onde a vitalidade está hoje",
-    items: ["ivo", "pulses", "signals", "trend", "season"],
+    items: ["wave", "ivo", "pulses", "signals", "trend", "season"],
   },
   {
     id: "agir",

@@ -26,6 +26,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as PanoramaRouteImport } from './routes/panorama'
+import { Route as OndaRouteImport } from './routes/onda'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LabRouteImport } from './routes/lab'
@@ -131,6 +132,11 @@ const PnlRoute = PnlRouteImport.update({
 const PanoramaRoute = PanoramaRouteImport.update({
   id: '/panorama',
   path: '/panorama',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OndaRoute = OndaRouteImport.update({
+  id: '/onda',
+  path: '/onda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/onda': typeof OndaRoute
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/onda': typeof OndaRoute
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/lab': typeof LabRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/onda': typeof OndaRoute
   '/panorama': typeof PanoramaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
@@ -384,6 +393,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/metodologia'
+    | '/onda'
     | '/panorama'
     | '/pnl'
     | '/prioridades'
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/metodologia'
+    | '/onda'
     | '/panorama'
     | '/pnl'
     | '/prioridades'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/lider'
     | '/metodologia'
+    | '/onda'
     | '/panorama'
     | '/pnl'
     | '/prioridades'
@@ -505,6 +517,7 @@ export interface RootRouteChildren {
   LabRoute: typeof LabRoute
   LiderRoute: typeof LiderRoute
   MetodologiaRoute: typeof MetodologiaRoute
+  OndaRoute: typeof OndaRoute
   PanoramaRoute: typeof PanoramaRoute
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
@@ -643,6 +656,13 @@ declare module '@tanstack/react-router' {
       path: '/panorama'
       fullPath: '/panorama'
       preLoaderRoute: typeof PanoramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onda': {
+      id: '/onda'
+      path: '/onda'
+      fullPath: '/onda'
+      preLoaderRoute: typeof OndaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metodologia': {
@@ -817,6 +837,7 @@ const rootRouteChildren: RootRouteChildren = {
   LabRoute: LabRoute,
   LiderRoute: LiderRoute,
   MetodologiaRoute: MetodologiaRoute,
+  OndaRoute: OndaRoute,
   PanoramaRoute: PanoramaRoute,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
