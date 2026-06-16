@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { LandingHero } from "@/features/landing/components/LandingHero";
 import { ProblemSection } from "@/features/landing/components/ProblemSection";
+import { WhyItMattersSection } from "@/features/landing/components/WhyItMattersSection";
+import { ImpactCalculatorSection } from "@/features/landing/components/ImpactCalculatorSection";
 import { FourLensesSection } from "@/features/landing/components/FourLensesSection";
 import { GlobalEsgSection } from "@/features/landing/components/GlobalEsgSection";
 import { MethodologySection } from "@/features/landing/components/MethodologySection";
@@ -9,6 +11,8 @@ import { ProductModulesSection } from "@/features/landing/components/ProductModu
 import { DashboardPreviewSection } from "@/features/landing/components/DashboardPreviewSection";
 import { PersonaPathwaysSection } from "@/features/landing/components/PersonaPathwaysSection";
 import { TrustSection } from "@/features/landing/components/TrustSection";
+import { Nr1Section } from "@/features/landing/components/Nr1Section";
+import { InstituteSection } from "@/features/landing/components/InstituteSection";
 import { LandingCtaSection } from "@/features/landing/components/LandingCtaSection";
 import { LandingModal } from "@/features/landing/components/LandingModal";
 import { useLandingModal } from "@/features/landing/hooks/useLandingModal";
@@ -78,13 +82,17 @@ function LandingPage() {
       <main id="landing-main" tabIndex={-1} className="outline-none">
         <LandingHero onAction={onAction} />
         <ProblemSection />
+        <WhyItMattersSection onAction={onAction} />
+        <ImpactCalculatorSection />
         <FourLensesSection />
         <GlobalEsgSection />
         <MethodologySection />
+        <Nr1Section onAction={onAction} />
         <ProductModulesSection />
         <DashboardPreviewSection onAction={onAction} />
         <PersonaPathwaysSection />
         <TrustSection />
+        <InstituteSection />
         <LandingCtaSection onAction={onAction} />
       </main>
 
