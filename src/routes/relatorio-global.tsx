@@ -182,6 +182,44 @@ function RelatorioGlobalPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-7 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0 print:space-y-5">
+        {/* Capa do documento — só na impressão (1ª folha A4) */}
+        <section
+          className="print-only print-cover"
+          aria-hidden
+          style={{ minHeight: "calc(100vh - 38mm)" }}
+        >
+          <div className="flex h-full min-h-[230mm] flex-col justify-between py-10">
+            <div className="flex items-center gap-3">
+              <span className="grid h-12 w-12 place-items-center rounded bg-primary font-serif text-2xl text-primary-foreground">
+                4
+              </span>
+              <span className="text-sm font-medium tracking-wide text-foreground">
+                4 Lentes VITA™ · VitalOS
+              </span>
+            </div>
+
+            <div className="mx-auto max-w-xl text-center">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                {REPORT_INTRO.eyebrow}
+              </p>
+              <h1 className="mt-4 font-serif text-4xl leading-tight text-foreground">
+                {REPORT_INTRO.title}
+              </h1>
+              <p className="mt-6 text-base text-foreground">{report.orgName}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Ano {report.year}</p>
+              <div className="mx-auto mt-10 h-px w-24 bg-border" />
+              <p className="mt-6 text-[11px] uppercase tracking-[0.22em] text-primary">
+                Confidencial — uso interno do conselho
+              </p>
+            </div>
+
+            <div className="flex items-end justify-between text-[10px] text-muted-foreground">
+              <span>Emitido em {formatReportDate()}</span>
+              <span>{REPORT_INTRO.generatedBy}</span>
+            </div>
+          </div>
+        </section>
+
         {/* Timbre institucional — só na impressão (cabeçalho do documento) */}
         <div className="print-only mb-4 border-b border-border pb-3">
           <div className="flex items-center justify-between">
@@ -199,6 +237,7 @@ function RelatorioGlobalPage() {
             {report.orgName} · Relatório Global ESG {report.year} · Emitido em {formatReportDate()}
           </p>
         </div>
+
 
         {/* Capa */}
         <motion.section

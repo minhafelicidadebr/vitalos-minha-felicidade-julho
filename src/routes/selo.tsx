@@ -100,17 +100,20 @@ function SeloPage() {
           </button>
         </motion.div>
 
-        {/* O selo — emblema visual */}
+        {/* O selo — emblema visual (no print: certificado emoldurado) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, delay: 0.05 }}
-          className="relative flex flex-col items-center overflow-hidden rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm print:shadow-none"
+          className="relative flex flex-col items-center overflow-hidden rounded-2xl border border-border/70 bg-card p-8 text-center shadow-sm print:shadow-none print:print-certificate print-certificate"
         >
           <div
             aria-hidden
             className={`pointer-events-none absolute inset-x-0 top-0 h-40 ${style.bg} opacity-60 blur-2xl print:hidden`}
           />
+          <p className="print-only mb-4 font-serif text-[11px] uppercase tracking-[0.3em] text-primary">
+            Certificado Empresa Viva
+          </p>
           <div className="relative">
             {/* halo externo */}
             <div
@@ -150,7 +153,24 @@ function SeloPage() {
           <p className="relative mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
             {result.granted ? SEAL_INTRO.grantedNote : SEAL_INTRO.pendingNote}
           </p>
+
+          {/* Linha de assinatura/validade — só impressão */}
+          <div className="print-only mt-10 grid w-full max-w-md grid-cols-2 gap-8 text-left">
+            <div>
+              <div className="h-px w-full bg-foreground/60" />
+              <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                Assinatura do conselho
+              </p>
+            </div>
+            <div>
+              <div className="h-px w-full bg-foreground/60" />
+              <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                Emitido em {formatReportDate()} · válido por 12 meses
+              </p>
+            </div>
+          </div>
         </motion.div>
+
 
         {/* Critérios auditáveis */}
         <section className="rounded-2xl border border-border/70 bg-card shadow-sm">
