@@ -10,13 +10,8 @@ import {
   type IndividualWaveView,
   type SegmentResult,
 } from "@/engine/campaign/campaign-engine";
-import {
-  ACTIVE_WAVE_INPUT,
-  MY_WAVE_STATUS,
-  PAST_WAVES,
-  ONDA_INTRO,
-  WAVE_STATE_STYLE,
-} from "@/mocks/campaign-mock";
+import { useWaveResponses } from "@/engine/survey/survey-store";
+import { ACTIVE_WAVE_INPUT, PAST_WAVES, ONDA_INTRO, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";
 
 export const Route = createFileRoute("/onda")({
   head: () => ({ meta: [{ title: "Onda Ativa · Mensurar — 4 Lentes VITA" }] }),
@@ -30,8 +25,12 @@ function OndaPage() {
   const { roleId } = usePersona();
   const isIndividual = INDIVIDUAL_ROLES.has(roleId);
 
+  const responded = useWaveResponses((s) => s.hasResponded(ACTIVE_WAVE_INPUT.id));
   const wave = useMemo(() => computeWave(ACTIVE_WAVE_INPUT), []);
-  const individual = useMemo(() => buildIndividualView(ACTIVE_WAVE_INPUT, MY_WAVE_STATUS), []);
+  const individual = useMemo(
+    () => buildIndividualView(ACTIVE_WAVE_INPUT, responded ? "respondeu" : "pendente"),
+    [responded],
+  );
   const stateStyle = WAVE_STATE_STYLE[wave.state]!;
 
   return (
@@ -110,15 +109,13 @@ function IndividualView({ view }: { view: IndividualWaveView }) {
 
         {view.canRespond && (
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
+            <Link
+              to="/responder"
               className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              title="O formulário do instrumento entra na Fase 2 (mock-first agora)."
             >
-              Responder agora (≈8 min)
-            </button>
-            <span className="text-xs text-muted-foreground">
-              formulário do instrumento · Fase 2
-            </span>
+              Responder agora (≈ poucos minutos)
+            </Link>
+            <span className="text-xs text-muted-foreground">instrumento jogável (mock-first)</span>
           </div>
         )}
       </section>

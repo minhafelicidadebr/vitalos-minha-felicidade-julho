@@ -130,6 +130,7 @@
       ],
       "group": "agir"
     },
+    { "id": "devolutiva", "label": "Devolutiva da Onda", "roles": "all", "group": "agir" },
     {
       "id": "priorities",
       "label": "Prioridades",

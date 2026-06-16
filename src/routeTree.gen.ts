@@ -17,6 +17,7 @@ import { Route as SinaisRouteImport } from './routes/sinais'
 import { Route as SetoresRouteImport } from './routes/setores'
 import { Route as SeloRouteImport } from './routes/selo'
 import { Route as RhRouteImport } from './routes/rh'
+import { Route as ResponderRouteImport } from './routes/responder'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
@@ -40,6 +41,7 @@ import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
+import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
@@ -87,6 +89,11 @@ const SeloRoute = SeloRouteImport.update({
 const RhRoute = RhRouteImport.update({
   id: '/rh',
   path: '/rh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResponderRoute = ResponderRouteImport.update({
+  id: '/responder',
+  path: '/responder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RelatoriosRoute = RelatoriosRouteImport.update({
@@ -204,6 +211,11 @@ const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
   path: '/embaixadorias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevolutivaRoute = DevolutivaRouteImport.update({
+  id: '/devolutiva',
+  path: '/devolutiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
@@ -254,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -277,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
+  '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
@@ -295,6 +309,7 @@ export interface FileRoutesByTo {
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -318,6 +333,7 @@ export interface FileRoutesByTo {
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
+  '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
@@ -337,6 +353,7 @@ export interface FileRoutesById {
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
@@ -360,6 +377,7 @@ export interface FileRoutesById {
   '/quiosque': typeof QuiosqueRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
+  '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
@@ -380,6 +398,7 @@ export interface FileRouteTypes {
     | '/confianca'
     | '/copiloto'
     | '/design-system'
+    | '/devolutiva'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -403,6 +422,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorio-global'
     | '/relatorios'
+    | '/responder'
     | '/rh'
     | '/selo'
     | '/setores'
@@ -421,6 +441,7 @@ export interface FileRouteTypes {
     | '/confianca'
     | '/copiloto'
     | '/design-system'
+    | '/devolutiva'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -444,6 +465,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorio-global'
     | '/relatorios'
+    | '/responder'
     | '/rh'
     | '/selo'
     | '/setores'
@@ -462,6 +484,7 @@ export interface FileRouteTypes {
     | '/confianca'
     | '/copiloto'
     | '/design-system'
+    | '/devolutiva'
     | '/embaixadorias'
     | '/escola'
     | '/esg'
@@ -485,6 +508,7 @@ export interface FileRouteTypes {
     | '/quiosque'
     | '/relatorio-global'
     | '/relatorios'
+    | '/responder'
     | '/rh'
     | '/selo'
     | '/setores'
@@ -504,6 +528,7 @@ export interface RootRouteChildren {
   ConfiancaRoute: typeof ConfiancaRoute
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  DevolutivaRoute: typeof DevolutivaRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
@@ -527,6 +552,7 @@ export interface RootRouteChildren {
   QuiosqueRoute: typeof QuiosqueRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
+  ResponderRoute: typeof ResponderRoute
   RhRoute: typeof RhRoute
   SeloRoute: typeof SeloRoute
   SetoresRoute: typeof SetoresRoute
@@ -593,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/rh'
       fullPath: '/rh'
       preLoaderRoute: typeof RhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/responder': {
+      id: '/responder'
+      path: '/responder'
+      fullPath: '/responder'
+      preLoaderRoute: typeof ResponderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/relatorios': {
@@ -756,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbaixadoriasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/devolutiva': {
+      id: '/devolutiva'
+      path: '/devolutiva'
+      fullPath: '/devolutiva'
+      preLoaderRoute: typeof DevolutivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/design-system': {
       id: '/design-system'
       path: '/design-system'
@@ -824,6 +864,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiancaRoute: ConfiancaRoute,
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
+  DevolutivaRoute: DevolutivaRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,
@@ -847,6 +888,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuiosqueRoute: QuiosqueRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
+  ResponderRoute: ResponderRoute,
   RhRoute: RhRoute,
   SeloRoute: SeloRoute,
   SetoresRoute: SetoresRoute,
@@ -859,3 +901,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
