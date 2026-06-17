@@ -27,6 +27,7 @@ import { useLandingModal } from "@/features/landing/hooks/useLandingModal";
 import type { CtaAction } from "@/features/landing/data/landing-copy";
 import { DemoGateForm } from "@/app/shell/DemoGate";
 import { useDemoGate } from "@/app/shell/demo-gate";
+import { ThemeToggle } from "@/app/shell/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
