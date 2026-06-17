@@ -4,7 +4,12 @@
 // qualificadores honestos (exploratório/educativo) — nunca como promessa clínica
 // ou jurídica.
 
-export type LandingModalType = "journey" | "dashboard" | "executive";
+export type LandingModalType =
+  | "journey"
+  | "dashboard"
+  | "executive"
+  | "lenses-deep"
+  | "method-deep";
 
 export type CtaAction = { kind: "modal"; modal: LandingModalType } | { kind: "route"; to: string };
 
@@ -97,6 +102,64 @@ export const LENSES = {
       tone: "violet",
     },
   ],
+  cta: {
+    label: "Ver a ciência por trás das lentes",
+    action: { kind: "modal", modal: "lenses-deep" },
+    variant: "primary",
+  } as Cta,
+};
+
+// ─── Deep dive · As 4 Lentes (ciência aplicada) ───────────────────────────────
+export const LENSES_DEEP = {
+  title: "As 4 Lentes VITA™ — a ciência viva por trás de cada decisão",
+  subtitle:
+    "Quatro instrumentos validados que, juntos, traduzem a complexidade humana em sinais acionáveis. Nenhum sozinho responde — combinados, formam o primeiro Sistema Operacional da Vitalidade Organizacional.",
+  hook: "Pessoas não cabem em um único termômetro. A vitalidade emerge na intersecção de risco, ecossistema, florescimento e forças.",
+  pillars: [
+    {
+      q: "Q1 · Compliance & Blindagem",
+      instrument: "COPSOQ II / NR-1",
+      science:
+        "Copenhagen Psychosocial Questionnaire — referência internacional em fatores psicossociais (Kristensen, NRCWE).",
+      what: "Mapeia educativamente exigências, controle, suporte, recompensa e ambientes adoecedores.",
+      why: "Antecipa risco psicossocial antes que vire afastamento, passivo trabalhista ou crise — alinhado à NR-1 (Guia MTE 2026).",
+      tone: "sky",
+    },
+    {
+      q: "Q2 · Ecossistema & Governança",
+      instrument: "FIB-T (Furtado, 2020)",
+      science:
+        "Felicidade Interna Bruta no Trabalho — 32 itens, 3 fatores, 9 domínios. Ponte direta entre bem-estar e ESG.",
+      what: "Leitura sistêmica do bem-comum, tempo, comunidade, vitalidade e governança organizacional.",
+      why: "Conecta cultura a indicadores E/S/G rastreáveis e ao relato de sustentabilidade do conselho.",
+      tone: "emerald",
+    },
+    {
+      q: "Q3 · Performance & Flow",
+      instrument: "PERMA+V (Seligman / Butler & Kern)",
+      science:
+        "Psicologia Positiva aplicada ao trabalho — Positive emotions, Engagement, Relationships, Meaning, Achievement + Vitality.",
+      what: "Mensura florescimento, engajamento real, sentido percebido e energia disponível para entregar.",
+      why: "Florescimento prediz +21% produtividade, +300% criatividade e -59% burnout (Gallup, Fredrickson, OMS).",
+      tone: "rose",
+    },
+    {
+      q: "Q4 · Cultura & Forças",
+      instrument: "VIA-T v1 (exploratório, adaptado de Peterson & Seligman)",
+      science:
+        "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
+      what: "Identifica forças, talentos, virtudes e diversidade de potência dentro de cada time.",
+      why: "Times que jogam com suas forças têm 6× mais engajamento e 3× mais qualidade de vida no trabalho.",
+      tone: "violet",
+    },
+  ],
+  closing:
+    "Cada lente é honesta sobre seus limites. Juntas, formam evidência — não opinião. É assim que se governa a vitalidade humana com o rigor de um sistema operacional.",
+  cta: {
+    label: "Quero ver isso aplicado na minha organização",
+    action: { kind: "modal", modal: "executive" },
+    variant: "primary",
+  } as Cta,
 };
 
 // ─── 4 (Q5) · Relatório Global ESG ────────────────────────────────────────────
@@ -139,6 +202,70 @@ export const METHODOLOGY = {
       text: "Dashboards, relatórios, selo, benchmark, ESG e inteligência preditiva.",
     },
   ],
+  cta: {
+    label: "Entender o método M.E.T.E. em profundidade",
+    action: { kind: "modal", modal: "method-deep" },
+    variant: "primary",
+  } as Cta,
+};
+
+// ─── Deep dive · Método M.E.T.E. (ciência do aprendizado aplicada) ────────────
+export const METHOD_DEEP = {
+  title: "M.E.T.E. — o ciclo anual que transforma dado em evidência",
+  subtitle:
+    "Mensurar · Educar · Transformar · Evoluir. Um ano dividido em quatro temporadas, cada uma fundamentada na ciência do aprendizado adulto, da mudança comportamental e da gestão baseada em evidência.",
+  hook: "A maior parte das pesquisas de clima morre num PDF. O M.E.T.E. transforma o ciclo inteiro em aprendizado vivo da organização.",
+  stages: [
+    {
+      n: "01",
+      title: "Mensurar",
+      science: "Psicometria · COPSOQ, FIB-T, PERMA+V, VIA-T",
+      what: "Diagnóstico científico aplicado por trimestre. Baseline rastreável ao instrumento, k-anonimato ≥ 5 garantido por construção.",
+      learning:
+        "Princípio da consciência (Kolb): toda mudança duradoura começa com uma percepção honesta da realidade atual.",
+      tone: "sky",
+    },
+    {
+      n: "02",
+      title: "Educar",
+      science: "Microaprendizagem · Andragogia · Trilhas FlorescerIA",
+      what: "Conteúdos aplicados, micro-doses, vídeos, podcasts e copilota de IA que devolve sentido ao dado coletado.",
+      learning:
+        "Curva de Ebbinghaus + Bloom revisado: aprendizado espaçado, contextualizado e ativado supera 4× o e-learning tradicional.",
+      tone: "emerald",
+    },
+    {
+      n: "03",
+      title: "Transformar",
+      science: "Behavioral Design · Nudges · Gamificação cooperativa",
+      what: "Missões, experimentos, Culture Lab e planos de ação por time — co-criados, não impostos.",
+      learning:
+        "BJ Fogg: comportamento = motivação × habilidade × gatilho. A plataforma desenha os três no fluxo de trabalho.",
+      tone: "rose",
+    },
+    {
+      n: "04",
+      title: "Evoluir",
+      science: "Evidence-based management · ESG · Selo Empresa Viva",
+      what: "Dashboards, relatórios anuais, benchmark setorial anônimo, inteligência preditiva e certificação computada do arco.",
+      learning:
+        "Deming: o que não se mede não se melhora; o que se mede e se comunica gera cultura. O ciclo recomeça com novo baseline.",
+      tone: "violet",
+    },
+  ],
+  pillars: [
+    "Cada temporada dura ≈ 13 semanas — cadência de aprendizado, não de checklist.",
+    "Cada lente entra na hora certa: primeiro o risco, depois o florescimento, depois as forças, depois a síntese.",
+    "Cada papel — colaborador, líder, RH, C-Level — tem o seu painel e o seu nudge no tempo certo.",
+    "Cada ciclo deixa rastro auditável: nada se perde, tudo se compõe na evidência do ano.",
+  ],
+  closing:
+    "M.E.T.E. não é uma metodologia decorativa. É como uma organização adulta aprende a si mesma — com método, ética e evidência.",
+  cta: {
+    label: "Ver a jornada de 12 meses em detalhe",
+    action: { kind: "modal", modal: "journey" },
+    variant: "primary",
+  } as Cta,
 };
 
 // ─── 6 · O que a plataforma entrega ───────────────────────────────────────────

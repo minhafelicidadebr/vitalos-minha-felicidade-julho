@@ -13,6 +13,9 @@ import {
   JOURNEY,
   DASHBOARD_PREVIEW,
   EXECUTIVE_FORM,
+  LENSES_DEEP,
+  METHOD_DEEP,
+  type CtaAction,
   type LandingModalType,
 } from "../data/landing-copy";
 import { TONE_CLASS } from "./icons";
@@ -20,16 +23,158 @@ import { TONE_CLASS } from "./icons";
 export function LandingModal({
   open,
   onClose,
+  onAction,
 }: {
   open: LandingModalType | null;
   onClose: () => void;
+  onAction?: (action: CtaAction) => void;
 }) {
   return (
     <Dialog open={open !== null} onOpenChange={(o) => !o && onClose()}>
       {open === "journey" && <JourneyModal />}
       {open === "dashboard" && <DashboardModal />}
       {open === "executive" && <ExecutiveModal />}
+      {open === "lenses-deep" && <LensesDeepModal onAction={onAction} onClose={onClose} />}
+      {open === "method-deep" && <MethodDeepModal onAction={onAction} onClose={onClose} />}
     </Dialog>
+  );
+}
+
+// ─── Modal · Deep dive · As 4 Lentes ──────────────────────────────────────────
+
+function LensesDeepModal({
+  onAction,
+  onClose,
+}: {
+  onAction?: (action: CtaAction) => void;
+  onClose: () => void;
+}) {
+  const d = LENSES_DEEP;
+  return (
+    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-serif text-2xl leading-tight text-foreground">
+          {d.title}
+        </DialogTitle>
+        <DialogDescription className="text-sm leading-relaxed">{d.subtitle}</DialogDescription>
+      </DialogHeader>
+      <p className="-mt-1 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 font-serif text-sm italic leading-relaxed text-foreground">
+        {d.hook}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {d.pillars.map((p) => {
+          const tone = TONE_CLASS[p.tone] ?? TONE_CLASS.sky!;
+          return (
+            <article
+              key={p.q}
+              className={`rounded-2xl border border-border/70 bg-card p-4 ring-1 ring-inset ${tone.ring}`}
+            >
+              <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${tone.text}`}>
+                {p.q}
+              </p>
+              <p className="mt-1 font-serif text-base text-card-foreground">{p.instrument}</p>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Base científica
+              </p>
+              <p className="text-xs leading-relaxed text-foreground/80">{p.science}</p>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                O que mede
+              </p>
+              <p className="text-xs leading-relaxed text-foreground/80">{p.what}</p>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Por que importa
+              </p>
+              <p className="text-xs leading-relaxed text-foreground/80">{p.why}</p>
+            </article>
+          );
+        })}
+      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">{d.closing}</p>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <Button
+          size="lg"
+          onClick={() => {
+            onClose();
+            onAction?.(d.cta.action);
+          }}
+        >
+          {d.cta.label}
+        </Button>
+      </div>
+    </DialogContent>
+  );
+}
+
+// ─── Modal · Deep dive · Método M.E.T.E. ──────────────────────────────────────
+
+function MethodDeepModal({
+  onAction,
+  onClose,
+}: {
+  onAction?: (action: CtaAction) => void;
+  onClose: () => void;
+}) {
+  const d = METHOD_DEEP;
+  return (
+    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-serif text-2xl leading-tight text-foreground">
+          {d.title}
+        </DialogTitle>
+        <DialogDescription className="text-sm leading-relaxed">{d.subtitle}</DialogDescription>
+      </DialogHeader>
+      <p className="-mt-1 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 font-serif text-sm italic leading-relaxed text-foreground">
+        {d.hook}
+      </p>
+      <ol className="space-y-3">
+        {d.stages.map((s) => {
+          const tone = TONE_CLASS[s.tone] ?? TONE_CLASS.sky!;
+          return (
+            <li
+              key={s.n}
+              className={`flex gap-4 rounded-2xl border border-border/70 bg-card p-4 ring-1 ring-inset ${tone.ring}`}
+            >
+              <span
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-mono text-base font-semibold ${tone.bg} ${tone.text}`}
+              >
+                {s.n}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-serif text-lg text-card-foreground">{s.title}</p>
+                <p className={`text-[11px] font-medium uppercase tracking-[0.12em] ${tone.text}`}>
+                  {s.science}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-foreground/80">{s.what}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground/70">Ciência do aprendizado:</span>{" "}
+                  {s.learning}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <ul className="grid gap-2 rounded-2xl bg-muted/30 p-4 sm:grid-cols-2">
+        {d.pillars.map((p) => (
+          <li key={p} className="flex gap-2 text-xs leading-relaxed text-foreground/80">
+            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+            {p}
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm leading-relaxed text-muted-foreground">{d.closing}</p>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <Button
+          size="lg"
+          onClick={() => {
+            onClose();
+            onAction?.(d.cta.action);
+          }}
+        >
+          {d.cta.label}
+        </Button>
+      </div>
+    </DialogContent>
   );
 }
 

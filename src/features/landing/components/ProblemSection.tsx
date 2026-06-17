@@ -15,18 +15,22 @@ export function ProblemSection() {
           {PROBLEM.text}
         </p>
 
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PROBLEM.cards.map((c) => {
             const Icon = landingIcon(c.icon);
             return (
               <li
                 key={c.title}
-                className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]"
+                className="group flex items-start gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:shadow-lg"
               >
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                  <Icon className="h-4 w-4" aria-hidden />
+                <span
+                  aria-hidden
+                  className="relative mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-destructive/15 via-destructive/10 to-transparent text-destructive ring-1 ring-inset ring-destructive/20 shadow-inner"
+                >
+                  <span className="absolute inset-0 rounded-2xl bg-destructive/0 transition-colors group-hover:bg-destructive/5" />
+                  <Icon className="relative h-5 w-5" />
                 </span>
-                <p className="text-sm font-medium text-card-foreground">{c.title}</p>
+                <p className="text-sm font-medium leading-snug text-card-foreground">{c.title}</p>
               </li>
             );
           })}
