@@ -28,7 +28,7 @@ export const LENS_DELTAS: LensDelta[] = resultAfter.lenses.map((lensAfter) => {
   const delta = after - before;
   return {
     lensId: lensAfter.lensId,
-    lensLabel: lensAfter.lensLabel,
+    lensLabel: lensAfter.lensName,
     before,
     after,
     delta,
@@ -38,8 +38,12 @@ export const LENS_DELTAS: LensDelta[] = resultAfter.lenses.map((lensAfter) => {
 
 // ─── P&L (custo evitado) ─────────────────────────────────────────────────────
 
-const ivoDelta = Math.round(resultAfter.totalScore) - Math.round(resultBefore.totalScore);
-const pnl = calculatePnL(DEFAULT_INPUTS, ivoDelta, "conservador");
+const ivoDelta = Math.round(resultAfter.ivoScore) - Math.round(resultBefore.ivoScore);
+// Cenário médio (caso representativo) — o conservador subestima demais o ciclo demo.
+const pnl = calculatePnL(DEFAULT_INPUTS, ivoDelta, "médio");
+
+// Custo declarado do programa (demo): ~R$ 180/colaborador/ano.
+const ESTIMATED_PROGRAM_COST_BRL = 90_000;
 
 // ─── Experimentos confirmados ─────────────────────────────────────────────────
 
@@ -54,8 +58,8 @@ const confirmedCount = evidencedCases.filter((c) => {
 
 const certResult = certify(
   {
-    ivoScore: Math.round(resultAfter.totalScore),
-    previousIvoScore: Math.round(resultBefore.totalScore),
+    ivoScore: Math.round(resultAfter.ivoScore),
+    previousIvoScore: Math.round(resultBefore.ivoScore),
     participationPct: DEMO_ORG.participationRate,
     experimentsConfirmed: confirmedCount,
     domainBReady: DOMAIN_B_READY,
@@ -70,11 +74,11 @@ const certResult = certify(
 export const IMPACT_REPORT = buildImpactReport({
   programWeeks: 13,
   employees: DEMO_ORG.totalCollaborators,
-  ivoScoreBefore: Math.round(resultBefore.totalScore),
-  ivoScoreAfter: Math.round(resultAfter.totalScore),
+  ivoScoreBefore: Math.round(resultBefore.ivoScore),
+  ivoScoreAfter: Math.round(resultAfter.ivoScore),
   lensDeltas: LENS_DELTAS,
-  avoidedCostBRL: pnl.avoidedCost,
-  estimatedProgramCostBRL: 240_000,
+  avoidedCostBRL: Math.round(pnl.avoidedCost),
+  estimatedProgramCostBRL: ESTIMATED_PROGRAM_COST_BRL,
   experimentsTotal: evidencedCases.length,
   experimentsConfirmed: confirmedCount,
   certGranted: certResult.granted,

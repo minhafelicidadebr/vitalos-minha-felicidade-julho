@@ -95,4 +95,12 @@ describe("buildImpactReport", () => {
     const r = buildImpactReport(BASE);
     expect(r.disclaimer.length).toBeGreaterThan(0);
   });
+
+  it("não quebra com score NaN — faixa de maturidade sempre resolve", () => {
+    // Regressão: campos undefined (ex.: nome de campo errado no mock) viravam NaN
+    // e a busca de faixa retornava undefined → crash em .band.
+    const r = buildImpactReport({ ...BASE, ivoScoreAfter: NaN, certEssentialTotal: 0 });
+    expect(r.maturity.band).toBeDefined();
+    expect(Number.isFinite(r.maturity.score)).toBe(true);
+  });
 });

@@ -132,8 +132,9 @@ export function buildImpactReport(input: ImpactInput): ImpactReport {
   const evidScore = Math.round(confRate * 30);
   const certScore = input.certGranted ? 10 : Math.round((input.certEssentialMet / Math.max(input.certEssentialTotal, 1)) * 10);
   const rawScore = weekScore + ivoScore + evidScore + certScore;
-  const matScore = Math.min(rawScore, 100);
-  const bandDef = BAND_THRESHOLDS.find((b) => matScore >= b.min)!;
+  // Clamp a [0,100] e garante número finito — protege a busca de faixa de NaN.
+  const matScore = Number.isFinite(rawScore) ? Math.min(Math.max(rawScore, 0), 100) : 0;
+  const bandDef = BAND_THRESHOLDS.find((b) => matScore >= b.min) ?? BAND_THRESHOLDS[BAND_THRESHOLDS.length - 1]!;
   const maturity: MaturityResult = {
     score: matScore,
     band: bandDef.band,

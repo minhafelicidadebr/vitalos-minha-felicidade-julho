@@ -600,15 +600,15 @@ export const PROOF_NUMBERS = {
   lead: "Baseado em dados fictícios de demonstração, processados pelos mesmos motores que operam em produção. Os números refletem o que o sistema mede — não promessas contratuais.",
   items: [
     {
-      value: "+94 pts",
+      value: "+50 pts",
       label: "Variação IVO",
-      note: "Score de vitalidade organizacional ciclo anterior → atual",
+      note: "Score de vitalidade organizacional: 568 → 618 no ciclo demo",
       color: "emerald",
     },
     {
-      value: "3.2×",
+      value: "1.8×",
       label: "ROI estimado",
-      note: "Custo evitado (turnover + absenteísmo + presenteísmo) ÷ investimento",
+      note: "Custo evitado (turnover + absenteísmo + presenteísmo) ÷ investimento (cenário médio)",
       color: "primary",
     },
     {
@@ -630,7 +630,7 @@ export const PROOF_NUMBERS = {
       color: "violet",
     },
     {
-      value: "475",
+      value: "476",
       label: "Testes automatizados",
       note: "Os motores da plataforma são verificados continuamente",
       color: "slate",
