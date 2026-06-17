@@ -31,24 +31,53 @@ import { useDemoGate } from "@/app/shell/demo-gate";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "4 Lentes VITA™ — O Sistema Operacional da Vitalidade Organizacional" },
+      { title: "Programa VitalOS™ — Felicidade e Crescimento para Todos" },
       {
         name: "description",
         content:
-          "Plataforma SaaS para transformar bem-estar, riscos psicossociais, cultura e performance humana em dados, ações e evidências — com as 4 Lentes VITA™.",
+          "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências.",
       },
     ],
   }),
   component: LandingPage,
 });
 
+/** Logo simbólica do Programa VitalOS™ — quatro pétalas vivas (EU · NÓS ·
+ * LIDERANÇA · ORGANIZAÇÃO) em torno de um núcleo de vitalidade. SVG puro,
+ * usa tokens semânticos (currentColor + accent). */
+function VitalOsLogo({ className = "h-9 w-9" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 40 40"
+      aria-hidden
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <radialGradient id="vlos-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* Pétalas — 4 lentes */}
+      <g fill="currentColor" opacity="0.9">
+        <ellipse cx="20" cy="9" rx="4" ry="7" />
+        <ellipse cx="20" cy="31" rx="4" ry="7" />
+        <ellipse cx="9" cy="20" rx="7" ry="4" />
+        <ellipse cx="31" cy="20" rx="7" ry="4" />
+      </g>
+      {/* Núcleo */}
+      <circle cx="20" cy="20" r="9" fill="url(#vlos-core)" />
+      <circle cx="20" cy="20" r="3.2" fill="var(--color-accent)" />
+    </svg>
+  );
+}
+
 function LandingPage() {
   const navigate = useNavigate();
   const { openModal, close, runAction } = useLandingModal();
   const onAction = (action: CtaAction) => runAction(action, (to) => navigate({ to }));
 
-  // Portão de demonstração: o CTA "Entrar no app" abre o pedido de senha.
-  // Se já destravado nesta máquina, entra direto no painel.
   const unlocked = useDemoGate((s) => s.unlocked);
   const [gateOpen, setGateOpen] = useState(false);
   const enterApp = () => {
@@ -68,22 +97,29 @@ function LandingPage() {
       {/* Header da landing (glass) */}
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/55">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-6">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="4 Lentes VITA — início">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 text-primary"
+            aria-label="Programa VitalOS — início"
+          >
             <span
               aria-hidden
-              className="grid h-9 w-9 place-items-center rounded-md bg-primary font-serif text-lg text-primary-foreground shadow-sm"
+              className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10"
             >
-              4
+              <VitalOsLogo className="h-6 w-6 text-primary-foreground" />
             </span>
             <span className="hidden flex-col leading-tight sm:flex">
-              <span className="font-serif text-base tracking-tight">4 Lentes VITA™</span>
+              <span className="font-serif text-base tracking-tight text-foreground">
+                Programa VitalOS™
+              </span>
               <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Sistema da Vitalidade Organizacional
+                Felicidade e Crescimento para Todos
               </span>
             </span>
           </Link>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
@@ -104,9 +140,9 @@ function LandingPage() {
         <ProblemSection />
         <WhyItMattersSection onAction={onAction} />
         <ImpactCalculatorSection />
-        <FourLensesSection />
+        <FourLensesSection onAction={onAction} />
         <GlobalEsgSection />
-        <MethodologySection />
+        <MethodologySection onAction={onAction} />
         <Nr1Section onAction={onAction} />
         <ProductModulesSection />
         <DashboardPreviewSection onAction={onAction} />
@@ -119,7 +155,8 @@ function LandingPage() {
       <footer className="border-t border-border/50 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-6 sm:flex-row sm:items-center">
           <p className="text-xs text-muted-foreground">
-            4 Lentes VITA™ · VitalOS — Sistema Operacional da Vitalidade Organizacional.
+            Programa VitalOS™ · Felicidade e Crescimento para Todos — Sistema Operacional da
+            Vitalidade Organizacional.
           </p>
           <nav className="flex flex-wrap gap-4 text-xs text-muted-foreground" aria-label="Rodapé">
             <Link to="/metodologia" className="hover:text-foreground">
@@ -135,9 +172,9 @@ function LandingPage() {
         </div>
       </footer>
 
-      <LandingModal open={openModal} onClose={close} />
+      <LandingModal open={openModal} onClose={close} onAction={onAction} />
 
-      {/* Portão de senha do demo (CTA → app navegável) */}
+      {/* Portão de senha do demo */}
       <Dialog open={gateOpen} onOpenChange={setGateOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
