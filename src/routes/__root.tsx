@@ -124,6 +124,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "https://storage.googleapis.com/gpt-engineer-file-uploads/gAbJSNNrAmaA4nPOZ6pNot731AB2/social-images/social-1781238226919-hellokitty.webp",
       },
+      { property: "og:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
+      { name: "twitter:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
+      { name: "description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
+      { property: "og:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
+      { name: "twitter:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/842acc4b-1242-459d-b559-dc967ea466a0/id-preview-32983166--292740c3-dda6-488c-b2bc-34a4f1979283.lovable.app-1781702322036.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/842acc4b-1242-459d-b559-dc967ea466a0/id-preview-32983166--292740c3-dda6-488c-b2bc-34a4f1979283.lovable.app-1781702322036.png" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
