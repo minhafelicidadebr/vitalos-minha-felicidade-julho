@@ -24,10 +24,10 @@ produto (telas, fluxos, features), não de código.
 
 ---
 
-## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-16)
+## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17)
 
 ### 2.1 Testes e build
-- **444 testes / 40 arquivos — 0 falhas** ✅
+- **447 testes / 41 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
 
@@ -86,16 +86,18 @@ Mensurar (onda + questionário)
 **Estratégico:** `/trajetoria`, `/prioridades`, `/temporada`, `/esg`, `/setores`, `/privacidade`, `/escola`
 **Comunidade:** `/embaixador`, `/embaixadorias`, `/academia`, `/lab`, `/floresceria`
 **Confiança:** `/confianca`, `/metodologia`, `/privacidade`, `/programa`
-**Outros:** `/landing`, `/devolutiva`, `/responder`, `/quiosque`, `/design-system`
+**Entrada:** `/` (landing pública, sem AppShell) · `/painel` (hub do app, requer senha demo)
+**Outros:** `/landing` (redirect → `/`), `/devolutiva`, `/responder`, `/quiosque`, `/design-system`
 
 ### 2.5 Commits recentes (estado do `main`)
 
 ```
+43b5c9a  feat(gate): landing em / + portão demo + /painel  ← MAIS RECENTE
+56fe3f0  docs(handover): passaporte premium Fable 5 para Opus 4.8
 e13c6ef  merge(landing): landing page premium — Sistema Operacional da Vitalidade
 2bbd089  feat(landing): custo↔retorno + calculadora de impacto + NR-1 + Instituto (premium)
 ecf883d  feat(landing): landing page premium modular "Sistema Operacional da Vitalidade"
 5a80b0e  feat(H1 5-7): painel do Embaixador + Academia 2.0 + gamificação viva
-8662190  feat(H1 4): VIA-T como campanha + devolutiva de forças
 ```
 
 ---
@@ -230,10 +232,12 @@ Divisão de trabalho:
 
 ## 8 · O QUE CONSTRUIR A SEGUIR
 
-### Prioridade 1 — Landing page no nav e UX polish
-A rota `/landing` existe mas pode não estar linkada no nav principal.
-Verificar se o header tem um link "Conheça o VitalOS" → `/landing` acessível externamente.
-**Lovable pode fazer o polimento visual da landing** (é UI pura, sem engine).
+### Prioridade 1 — UX polish da landing e portão demo ✅ (feito em 2026-06-17)
+- `/` é agora a landing pública (sem AppShell). ✅
+- Portão demo (`DemoGate`) protege todo o app — senha: **luzpazeamor**. ✅
+- `/painel` é o hub navegável (antigo `/`). ✅
+- **Lovable pode fazer polimento visual** do formulário do portão e da landing (UI pura, sem engine).
+- Pendente: animação de "desbloqueio" ao entrar no painel (Framer Motion fade-in).
 
 ### Prioridade 2 — Bloco 20 (UX polish global)
 Reservado para o Lovable: mobile first, hover states, micro-animações, empty states
@@ -335,12 +339,22 @@ https://github.com/minhafelicidadebr/app-vita-happiness-org-fable5
 **Lovable (preview e deploy):**
 Acesse https://lovable.dev → "My Projects" → encontre "app-vita-happiness-org-fable5".
 O Lovable sincroniza automaticamente com o GitHub `main` após cada push.
+A URL de preview do Lovable abre diretamente em `/` — a landing pública.
 
 **Dev local:**
 ```bash
 bun install && bun run dev
 ```
 Abra `http://localhost:5173` (ou a porta exibida no terminal).
+
+**Fluxo de acesso ao demo:**
+1. Abre em `/` → landing pública
+2. Clica "Entrar no app" ou "Explorar app (demo)"
+3. Modal pede senha: `luzpazeamor`
+4. Entra em `/painel` → hub navegável completo
+
+**Rotas públicas (sem senha):** `/` · `/metodologia` · `/programa`
+**Rotas protegidas (requerem senha demo):** todas as demais (AppShell as guarda)
 
 ---
 
