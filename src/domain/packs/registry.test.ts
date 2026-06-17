@@ -59,8 +59,8 @@ describe("registry — packs registrados", () => {
     test(`pack "${id}" — papéis de navegação existem na lista de papéis`, () => {
       const roleIds = new Set(bundle.pack.roles.map((r) => r.id));
       for (const nav of bundle.pack.navigation) {
-        if (nav.roles === "all") continue;
-        const navRoles = nav.roles as unknown as string[];
+        if (nav.roles === ("all" as unknown)) continue;
+        const navRoles = nav.roles as string[];
         for (const r of navRoles) {
           expect(roleIds.has(r)).toBe(true);
         }
