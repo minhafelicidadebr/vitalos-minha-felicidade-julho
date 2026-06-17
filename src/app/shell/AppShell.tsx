@@ -5,6 +5,8 @@ import { Menu, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { A11yMenu } from "./A11yMenu";
 import { PackSwitcher } from "./PackSwitcher";
+import { DemoGateScreen } from "./DemoGate";
+import { useDemoGate } from "./demo-gate";
 import { usePack } from "@/engine/pack";
 import { navForRole, usePersona } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
@@ -137,6 +139,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [personaOpen, setPersonaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Portão de demonstração — fronteira única entre a landing pública e o app.
+  // Enquanto o localStorage não rehidrata, mostramos o portão (estado seguro):
+  // servidor e 1ª renderização do cliente coincidem (sem mismatch de hidratação).
+  const gateUnlocked = useDemoGate((s) => s.unlocked);
+  const gateHydrated = useDemoGate((s) => s.hasHydrated);
+  if (!gateHydrated || !gateUnlocked) {
+    return <DemoGateScreen />;
+  }
+
   const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
 
   // Personas de demonstração vêm do pack ativo — pack-driven, não hardcoded.
@@ -147,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? navForRole(pack, roleId)
         .map((item) => ({
           ...item,
-          to: item.id === "overview" ? (ROLE_HOME[roleId] ?? "/") : NAV_ROUTES[item.id],
+          to: item.id === "overview" ? (ROLE_HOME[roleId] ?? "/painel") : NAV_ROUTES[item.id],
         }))
         .filter((item) => Boolean(item.to))
     : [];
@@ -250,9 +261,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
 
             <Link
-              to="/"
+              to="/painel"
               className="flex shrink-0 items-center gap-3 group"
-              aria-label="4 Lentes VITA — início"
+              aria-label="4 Lentes VITA — painel"
             >
               <span
                 aria-hidden

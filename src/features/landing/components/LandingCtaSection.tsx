@@ -7,7 +7,13 @@ const VARIANT: Record<string, "default" | "outline" | "ghost"> = {
   ghost: "ghost",
 };
 
-export function LandingCtaSection({ onAction }: { onAction: (action: CtaAction) => void }) {
+export function LandingCtaSection({
+  onAction,
+  onEnterApp,
+}: {
+  onAction: (action: CtaAction) => void;
+  onEnterApp?: () => void;
+}) {
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
       <div
@@ -32,6 +38,11 @@ export function LandingCtaSection({ onAction }: { onAction: (action: CtaAction) 
               {cta.label}
             </Button>
           ))}
+          {onEnterApp && (
+            <Button size="lg" variant="outline" onClick={onEnterApp}>
+              Explorar app (demo)
+            </Button>
+          )}
         </div>
       </div>
     </section>
