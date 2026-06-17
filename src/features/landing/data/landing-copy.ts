@@ -16,10 +16,10 @@ export interface Cta {
 
 // ─── 1 · Hero ─────────────────────────────────────────────────────────────────
 export const HERO = {
-  eyebrow: "VitalOS · 4 Lentes VITA™",
+  eyebrow: "Programa Felicidade e crescimentos para Todos - VITALOS™",
   headline: "O Sistema Operacional da Vitalidade Organizacional",
   subheadline:
-    "Transforme bem-estar, riscos psicossociais, cultura e performance humana em dados, ações, relatórios e evidências — com uma plataforma SaaS baseada nas 4 Lentes VITA™.",
+    "Transforme bem-estar, riscos psicossociais, cultura e performance humana em dados, ações, relatórios e evidências — com uma infraestrutura operacional integrada com ciência da felicidade, IA e práticas ESG",
   support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Comprove evolução.",
   ctas: [
     {
