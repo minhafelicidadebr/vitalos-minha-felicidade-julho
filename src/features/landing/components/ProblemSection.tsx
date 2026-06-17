@@ -3,8 +3,16 @@ import { landingIcon } from "./icons";
 
 export function ProblemSection() {
   return (
-    <section className="border-b border-border/40 bg-muted/20 py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="landing-light-grid relative overflow-hidden border-b border-border/40 bg-background py-16 sm:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-border)_42%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-border)_34%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-35"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-destructive/35 to-transparent"
+      />
+      <div className="relative mx-auto max-w-6xl px-6">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
           {PROBLEM.eyebrow}
         </p>
@@ -21,11 +29,11 @@ export function ProblemSection() {
             return (
               <li
                 key={c.title}
-                className="group flex items-start gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:shadow-lg"
+                className="landing-light-card group flex items-start gap-4 rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:shadow-xl"
               >
                 <span
                   aria-hidden
-                  className="relative mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-destructive/15 via-destructive/10 to-transparent text-destructive ring-1 ring-inset ring-destructive/20 shadow-inner"
+                  className="landing-light-icon relative mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-destructive ring-1 ring-inset ring-destructive/20"
                 >
                   <span className="absolute inset-0 rounded-2xl bg-destructive/0 transition-colors group-hover:bg-destructive/5" />
                   <Icon className="relative h-5 w-5" />

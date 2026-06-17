@@ -1,5 +1,15 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Cog,
+  Flame,
+  LogOut,
+  Rocket,
+  ShieldCheck,
+  Users,
+  Workflow,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WHY_IT_MATTERS, type CtaAction } from "../data/landing-copy";
 
@@ -7,6 +17,39 @@ const VARIANT: Record<string, "default" | "outline" | "ghost"> = {
   primary: "default",
   outline: "outline",
   ghost: "ghost",
+};
+
+const RETURN_ICON: Record<string, LucideIcon> = {
+  cog: Cog,
+  workflow: Workflow,
+  rocket: Rocket,
+  users: Users,
+  shield: ShieldCheck,
+  "log-out": LogOut,
+  flame: Flame,
+};
+
+const RETURN_TONE: Record<string, { text: string; border: string; glow: string }> = {
+  emerald: {
+    text: "text-emerald-600 dark:text-emerald-300",
+    border: "border-emerald-500/25",
+    glow: "from-emerald-500/16",
+  },
+  cyan: {
+    text: "text-cyan-600 dark:text-cyan-300",
+    border: "border-cyan-500/25",
+    glow: "from-cyan-500/16",
+  },
+  rose: {
+    text: "text-rose-600 dark:text-rose-300",
+    border: "border-rose-500/25",
+    glow: "from-rose-500/16",
+  },
+  amber: {
+    text: "text-amber-600 dark:text-amber-300",
+    border: "border-amber-500/25",
+    glow: "from-amber-500/16",
+  },
 };
 
 export function WhyItMattersSection({ onAction }: { onAction: (action: CtaAction) => void }) {
@@ -81,26 +124,43 @@ export function WhyItMattersSection({ onAction }: { onAction: (action: CtaAction
 
           {/* Retorno (ganho) */}
           <div>
-            <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden /> {w.returnTitle}
-            </p>
+            <div className="mb-4">
+              <p className="flex items-start gap-2 text-sm font-semibold leading-snug text-emerald-700 dark:text-emerald-300">
+                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                {w.returnTitle}
+              </p>
+              <p className="mt-2 pl-4 text-xs leading-relaxed text-muted-foreground">
+                {w.returnSource}
+              </p>
+            </div>
             <div className="grid gap-2.5 sm:grid-cols-2">
-              {w.returns.map((r, i) => (
-                <motion.div
-                  key={r.label}
-                  initial={{ opacity: 0, x: 10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: i * 0.05 }}
-                  className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4"
-                >
-                  <p className="font-serif text-2xl font-semibold text-emerald-600 dark:text-emerald-300">
-                    {r.value}
-                  </p>
-                  <p className="text-sm text-card-foreground">{r.label}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground/70">{r.source}</p>
-                </motion.div>
-              ))}
+              {w.returns.map((r, i) => {
+                const Icon = RETURN_ICON[r.icon] ?? Cog;
+                const tone = RETURN_TONE[r.tone] ?? RETURN_TONE.emerald!;
+                return (
+                  <motion.div
+                    key={r.label}
+                    initial={{ opacity: 0, x: 10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.35, delay: i * 0.05 }}
+                    className={`group relative isolate min-h-[148px] overflow-hidden rounded-2xl border bg-card/55 p-4 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-lg ${tone.border}`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`absolute inset-0 -z-10 bg-gradient-to-br ${tone.glow} via-transparent to-transparent opacity-75`}
+                    />
+                    <Icon
+                      className={`h-8 w-8 stroke-[1.7] ${tone.text} transition-transform duration-300 group-hover:scale-105`}
+                      aria-hidden
+                    />
+                    <p className={`mt-3 font-serif text-2xl font-semibold ${tone.text}`}>
+                      {r.value}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-snug text-card-foreground">{r.label}</p>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>

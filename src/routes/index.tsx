@@ -16,7 +16,8 @@ import { FourLensesSection } from "@/features/landing/components/FourLensesSecti
 import { GlobalEsgSection } from "@/features/landing/components/GlobalEsgSection";
 import { MethodologySection } from "@/features/landing/components/MethodologySection";
 import { ProductModulesSection } from "@/features/landing/components/ProductModulesSection";
-import { DashboardPreviewSection } from "@/features/landing/components/DashboardPreviewSection";
+import { EcosystemApplicationsSection } from "@/features/landing/components/EcosystemApplicationsSection";
+import { EducationalInnovationsSection } from "@/features/landing/components/EducationalInnovationsSection";
 import { PersonaPathwaysSection } from "@/features/landing/components/PersonaPathwaysSection";
 import { TrustSection } from "@/features/landing/components/TrustSection";
 import { Nr1Section } from "@/features/landing/components/Nr1Section";
@@ -49,12 +50,7 @@ export const Route = createFileRoute("/")({
  * usa tokens semânticos (currentColor + accent). */
 function VitalOsLogo({ className = "h-9 w-9" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 40 40"
-      aria-hidden
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="vlos-core" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.95" />
@@ -122,12 +118,7 @@ function LandingPage() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={enterApp}
-            >
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={enterApp}>
               Entrar no app
             </Button>
             <Button size="sm" onClick={() => onAction({ kind: "modal", modal: "executive" })}>
@@ -147,7 +138,8 @@ function LandingPage() {
         <MethodologySection onAction={onAction} />
         <Nr1Section onAction={onAction} />
         <ProductModulesSection />
-        <DashboardPreviewSection onAction={onAction} />
+        <EcosystemApplicationsSection onAction={onAction} />
+        <EducationalInnovationsSection onAction={onAction} />
         <PersonaPathwaysSection />
         <TrustSection />
         <ProofNumbersSection />

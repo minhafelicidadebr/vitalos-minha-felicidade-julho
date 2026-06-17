@@ -1,25 +1,159 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import { LENSES, CATEGORY, type CtaAction } from "../data/landing-copy";
+import { ArrowRight, FileText } from "lucide-react";
+import { LENSES, CATEGORY, IVO_LENSES, IVO_BRAND, type CtaAction } from "../data/landing-copy";
 import { TONE_CLASS } from "./icons";
-import strategyLenses from "@/assets/strategy-lenses.jpg";
+import strategyLenses from "@/assets/strategy-lenses-hologram-transparent.png";
+
+function IvoBrandMark() {
+  return (
+    <div className="flex flex-col gap-5 rounded-3xl border border-accent/25 bg-background/65 p-5 shadow-xl shadow-primary/5 backdrop-blur">
+      <div className="flex items-center gap-4">
+        <svg
+          viewBox="0 0 96 96"
+          aria-hidden
+          className="h-20 w-20 shrink-0 text-primary drop-shadow-[0_0_18px_rgba(201,162,39,0.26)]"
+        >
+          <defs>
+            <radialGradient id="ivo-mark-core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.95" />
+              <stop offset="72%" stopColor="var(--color-primary)" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="48" cy="48" r="34" fill="none" stroke="currentColor" strokeOpacity="0.22" />
+          <circle
+            cx="48"
+            cy="48"
+            r="42"
+            fill="none"
+            stroke="var(--color-accent)"
+            strokeDasharray="5 8"
+            strokeOpacity="0.55"
+          />
+          <ellipse cx="48" cy="21" rx="8" ry="15" fill="currentColor" opacity="0.88" />
+          <ellipse cx="48" cy="75" rx="8" ry="15" fill="currentColor" opacity="0.42" />
+          <ellipse cx="21" cy="48" rx="15" ry="8" fill="currentColor" opacity="0.62" />
+          <ellipse cx="75" cy="48" rx="15" ry="8" fill="currentColor" opacity="0.72" />
+          <circle cx="48" cy="48" r="22" fill="url(#ivo-mark-core)" />
+          <text
+            x="48"
+            y="53"
+            textAnchor="middle"
+            className="fill-background font-serif text-[17px] font-bold"
+          >
+            IVO
+          </text>
+        </svg>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
+            {IVO_BRAND.acronym}
+          </p>
+          <p className="font-serif text-xl leading-tight text-card-foreground">{IVO_BRAND.name}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{IVO_BRAND.promise}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {IVO_BRAND.axes.map((axis) => (
+          <span
+            key={axis}
+            className="rounded-xl border border-border/60 bg-card/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary"
+          >
+            {axis}
+          </span>
+        ))}
+      </div>
+      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        {IVO_BRAND.signature}
+      </p>
+    </div>
+  );
+}
 
 export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) => void }) {
   return (
     <section className="relative overflow-hidden py-16 sm:py-20">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(60%_80%_at_50%_0%,color-mix(in_oklab,var(--color-primary)_14%,transparent)_0%,transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
       />
       <div className="mx-auto max-w-6xl px-6">
         {/* Nova categoria */}
-        <div className="mx-auto max-w-3xl text-center">
+        <div id="nova-categoria" className="mx-auto max-w-3xl scroll-mt-24 text-center">
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             {CATEGORY.eyebrow}
           </p>
           <h2 className="mt-2 font-serif text-2xl text-foreground sm:text-3xl">{CATEGORY.title}</h2>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{CATEGORY.text}</p>
+        </div>
+
+        {/* IVO — Índice de Vitalidade Organizacional */}
+        <div className="mt-12 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
+          <div className="grid gap-0 lg:grid-cols-[0.9fr_1.4fr]">
+            <div className="border-b border-border/60 bg-primary/5 p-6 sm:p-8 lg:border-r lg:border-b-0">
+              <IvoBrandMark />
+              <p className="mt-7 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                {IVO_LENSES.eyebrow}
+              </p>
+              <h3 className="mt-3 font-serif text-2xl leading-tight text-card-foreground sm:text-3xl">
+                {IVO_LENSES.title}
+              </h3>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {IVO_LENSES.text}
+              </p>
+              <div className="mt-6 rounded-2xl border border-primary/15 bg-background/70 p-4">
+                <p className="font-serif text-base leading-relaxed text-card-foreground">
+                  {IVO_LENSES.insight}
+                </p>
+              </div>
+            </div>
+
+            <ol className="grid gap-3 bg-background/45 p-4 sm:grid-cols-2 sm:p-5">
+              {IVO_LENSES.lenses.map((lens, index) => {
+                const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+                return (
+                  <li
+                    key={lens.id}
+                    className={`group relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm ring-1 ring-inset ${tone.ring} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`absolute inset-x-0 top-0 h-1 ${tone.dot} opacity-90`}
+                    />
+                    <div className="relative flex items-start gap-4">
+                      <span
+                        className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-mono text-sm font-semibold ${tone.bg} ${tone.text} ring-1 ring-inset ${tone.ring} shadow-sm`}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p
+                            className={`text-xs font-semibold uppercase tracking-[0.14em] ${tone.text}`}
+                          >
+                            {lens.label}
+                          </p>
+                          <span className="rounded-full border border-border/60 bg-background/65 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                            Lente IVO
+                          </span>
+                        </div>
+                        <h4 className="mt-1 font-serif text-xl text-card-foreground">
+                          {lens.title}
+                        </h4>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                          {lens.text}
+                        </p>
+                        <div className="my-4 h-px bg-gradient-to-r from-border/0 via-border to-border/0" />
+                        <p className="border-l border-border/70 pl-3 text-xs leading-relaxed text-card-foreground/80">
+                          {lens.signal}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         </div>
 
         {/* As 4 Lentes — header com imagem estratégica */}
@@ -35,66 +169,161 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
               Quatro instrumentos validados internacionalmente, orquestrados em uma única jornada
               anual — risco, ecossistema, florescimento e forças, lendo a organização inteira.
             </p>
-            <div className="mt-6">
-              <Button
-                size="lg"
-                onClick={() => onAction(LENSES.cta.action)}
-                className="group relative gap-2 overflow-hidden bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
-              >
-                <Sparkles className="h-4 w-4" aria-hidden />
-                {LENSES.cta.label}
-                <span
-                  aria-hidden
-                  className="absolute inset-y-0 -left-10 w-10 -skew-x-12 bg-white/20 blur-md transition-transform duration-700 group-hover:translate-x-[28rem]"
-                />
-              </Button>
+            <div className="mt-6 rounded-2xl border border-border/70 bg-card/70 p-4 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
+                Jornada instrucional
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{LENSES.annual}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {LENSES.items.map((item) => (
+                  <span
+                    key={item.q}
+                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs text-card-foreground"
+                  >
+                    <span className="font-mono font-semibold text-primary">{item.q}</span>
+                    {item.instrument}
+                  </span>
+                ))}
+                <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden />
+                <span className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs text-card-foreground">
+                  <FileText className="h-3.5 w-3.5 text-accent" aria-hidden />
+                  {LENSES.finale.title}
+                </span>
+              </div>
             </div>
           </div>
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0.88, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-black/20"
+            className="relative isolate min-h-[260px] overflow-visible sm:min-h-[320px]"
           >
+            <div
+              aria-hidden
+              className="absolute inset-x-[10%] top-[28%] z-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent"
+            />
+            <motion.span
+              aria-hidden
+              initial={{ rotate: 0 }}
+              whileInView={{ rotate: 360 }}
+              viewport={{ once: false }}
+              transition={{ duration: 42, repeat: Infinity, ease: "linear" }}
+              className="absolute left-1/2 top-1/2 z-0 h-[78%] w-[92%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-primary/20"
+            />
+            <motion.span
+              aria-hidden
+              initial={{ rotate: 0 }}
+              whileInView={{ rotate: -360 }}
+              viewport={{ once: false }}
+              transition={{ duration: 58, repeat: Infinity, ease: "linear" }}
+              className="absolute left-1/2 top-1/2 z-0 h-[56%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/20"
+            />
             <img
               src={strategyLenses}
               alt="Quatro lentes interconectadas representando bem-estar, ecossistema, performance e cultura"
               loading="lazy"
-              width={1600}
-              height={1024}
-              className="h-full w-full object-cover"
+              width={1040}
+              height={585}
+              className="relative z-10 h-full min-h-[260px] w-full object-contain opacity-[0.96] drop-shadow-[0_22px_56px_rgba(0,160,150,0.28)] [filter:saturate(1.18)_contrast(1.04)_drop-shadow(0_0_24px_rgba(201,162,39,0.24))]"
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-background/60 via-transparent to-transparent"
+              className="pointer-events-none absolute inset-0 z-20 rounded-[2rem] bg-[repeating-linear-gradient(0deg,transparent_0px,transparent_4px,rgba(255,255,255,0.08)_4px,rgba(255,255,255,0.08)_5px)] opacity-40 mix-blend-overlay [mask-image:radial-gradient(ellipse_at_center,black_0%,transparent_72%)]"
             />
+            <div className="relative z-30 mx-auto mt-3 grid max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+              {LENSES.items.map((item) => {
+                const tone = TONE_CLASS[item.tone] ?? TONE_CLASS.sky!;
+                return (
+                  <span
+                    key={item.q}
+                    className={`inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-card-foreground shadow-sm backdrop-blur ring-1 ring-inset ${tone.ring}`}
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full ${tone.dot}`} aria-hidden />
+                    <span className={tone.text}>Etapa {item.q}</span>
+                    <span className="truncate text-muted-foreground">{item.instrument}</span>
+                  </span>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {LENSES.items.map((lens) => {
+          {LENSES.items.map((lens, index) => {
             const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+            const modal = lens.modal as Extract<CtaAction, { kind: "modal" }>["modal"];
             return (
               <article
                 key={lens.q}
-                className={`group relative flex h-full flex-col rounded-2xl border border-border/70 bg-card p-6 shadow-sm ring-1 ring-inset ${tone.ring} transition-all hover:-translate-y-1 hover:shadow-xl`}
+                className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.11)_0%,rgba(255,255,255,0.045)_52%,rgba(201,162,39,0.08)_100%)] p-5 text-white shadow-2xl shadow-black/15 backdrop-blur-2xl ring-1 ring-inset ${tone.ring} transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.095] hover:shadow-black/25`}
               >
-                <div className="flex items-center justify-between">
+                <span
+                  aria-hidden
+                  className={`absolute inset-x-0 top-0 h-1 ${tone.dot} opacity-90`}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,0.16),transparent_34%),linear-gradient(to_right,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:auto,34px_34px,34px_34px] opacity-80"
+                />
+                <div className="relative flex items-center justify-between gap-3">
                   <span
-                    className={`inline-flex h-10 items-center rounded-xl px-3 font-mono text-sm font-semibold ${tone.bg} ${tone.text}`}
+                    className={`inline-flex h-10 items-center rounded-xl px-3 font-mono text-sm font-semibold ${tone.bg} ${tone.text} ring-1 ring-inset ${tone.ring}`}
                   >
                     {lens.q}
                   </span>
-                  <span className={`h-2.5 w-2.5 rounded-full ${tone.dot}`} aria-hidden />
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 backdrop-blur">
+                    <span className={`h-2.5 w-2.5 rounded-full ${tone.dot}`} aria-hidden />
+                    Etapa {index + 1}/4
+                  </span>
                 </div>
-                <p className="mt-4 font-serif text-2xl text-card-foreground">{lens.instrument}</p>
-                <p className={`text-xs font-medium uppercase tracking-[0.14em] ${tone.text}`}>
+
+                <div className={`relative mt-4 h-16 ${tone.text}`}>
+                  <svg viewBox="0 0 220 72" className="h-full w-full" aria-hidden>
+                    <path
+                      d="M18 54 C58 14 162 14 202 54"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeDasharray="5 7"
+                      strokeLinecap="round"
+                      strokeWidth="2.5"
+                      opacity="0.42"
+                    />
+                    <path
+                      d="M18 54 C58 14 162 14 202 54"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeWidth="5"
+                      opacity="0.14"
+                    />
+                    <circle cx="18" cy="54" r="6" fill="currentColor" opacity="0.72" />
+                    <circle cx="110" cy="26" r="4.5" fill="currentColor" opacity="0.52" />
+                    <circle cx="202" cy="54" r="6" fill="currentColor" opacity="0.72" />
+                  </svg>
+                </div>
+
+                <p className="relative mt-1 font-serif text-2xl text-white">{lens.instrument}</p>
+                <p
+                  className={`relative text-xs font-semibold uppercase tracking-[0.14em] ${tone.text}`}
+                >
                   {lens.theme}
                 </p>
-                <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">
+                <p className="relative mt-2 inline-flex w-fit rounded-full border border-white/15 bg-white/[0.07] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/72 backdrop-blur">
+                  {lens.period}
+                </p>
+                <p className="relative mt-3 flex-1 text-sm leading-relaxed text-white/76">
                   {lens.text}
                 </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onAction({ kind: "modal", modal })}
+                  className="relative mt-5 w-full justify-between gap-3 border-white/18 bg-white/[0.065] text-white backdrop-blur hover:bg-white/15 hover:text-white"
+                >
+                  Entender {lens.instrument}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Button>
               </article>
             );
           })}

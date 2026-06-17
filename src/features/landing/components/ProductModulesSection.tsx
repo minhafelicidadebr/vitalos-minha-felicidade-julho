@@ -3,8 +3,16 @@ import { landingIcon } from "./icons";
 
 export function ProductModulesSection() {
   return (
-    <section className="py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="landing-light-grid relative overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-border)_42%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-border)_34%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-35"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent"
+      />
+      <div className="relative mx-auto max-w-6xl px-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -22,7 +30,7 @@ export function ProductModulesSection() {
             return (
               <article
                 key={m.title}
-                className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
+                className="landing-light-card group relative flex h-full flex-col overflow-hidden rounded-2xl p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
               >
                 <span
                   aria-hidden
@@ -30,7 +38,7 @@ export function ProductModulesSection() {
                 />
                 <span
                   aria-hidden
-                  className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/10 text-primary ring-1 ring-inset ring-primary/20 shadow-inner"
+                  className="landing-light-icon relative flex h-14 w-14 items-center justify-center rounded-2xl text-primary ring-1 ring-inset ring-primary/20"
                 >
                   <Icon className="h-6 w-6" />
                 </span>

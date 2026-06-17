@@ -32,8 +32,16 @@ export function ImpactCalculatorSection() {
   const set = (key: keyof ImpactParams, v: number) => setParams((p) => ({ ...p, [key]: v }));
 
   return (
-    <section className="border-b border-border/40 bg-muted/20 py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="landing-light-grid relative overflow-hidden border-b border-border/40 bg-background py-16 sm:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-border)_42%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-border)_34%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-35"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent"
+      />
+      <div className="relative mx-auto max-w-6xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-accent">{c.eyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl leading-tight text-foreground sm:text-4xl">
@@ -47,14 +55,14 @@ export function ImpactCalculatorSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.45 }}
-          className="mt-10 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-lg"
+          className="landing-light-card mt-10 overflow-hidden rounded-3xl"
         >
           {/* Cabeçalho do card + abas */}
           <div className="border-b border-border/50 p-5 sm:p-6">
             <p className="font-serif text-xl text-card-foreground">{c.cardTitle}</p>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{c.cardLead}</p>
             <div
-              className="mt-4 inline-flex rounded-xl border border-border/60 bg-background p-1"
+              className="mt-4 inline-flex rounded-xl border border-primary/15 bg-white/45 p-1 shadow-inner backdrop-blur"
               role="tablist"
               aria-label="Modo da calculadora"
             >
@@ -159,7 +167,10 @@ function CostPanel({ cost }: { cost: ReturnType<typeof computeCost> }) {
       </p>
       <ul className="mt-3 space-y-2.5">
         {cost.lines.map((l) => (
-          <li key={l.id} className="rounded-xl border border-border/60 bg-background p-3.5">
+          <li
+            key={l.id}
+            className="rounded-xl border border-amber-200/60 bg-white/45 p-3.5 shadow-sm backdrop-blur"
+          >
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-medium text-card-foreground">{l.label}</p>
               <p className="font-mono text-sm font-semibold tabular-nums text-rose-600 dark:text-rose-300">
@@ -200,14 +211,14 @@ function RoiPanel({ roi }: { roi: ReturnType<typeof computeRoi> }) {
         {CALCULATOR.roiHeader}
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2.5">
-        <div className="rounded-xl border border-border/60 bg-background p-4">
+        <div className="rounded-xl border border-emerald-200/70 bg-white/45 p-4 shadow-sm backdrop-blur">
           <p className="text-xs text-muted-foreground">Investimento sugerido</p>
           <p className="mt-1 font-serif text-2xl font-semibold tabular-nums text-foreground">
             {formatBRL(roi.investment)}
           </p>
           <p className="text-[10px] text-muted-foreground">≈ 2% da massa salarial</p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-background p-4">
+        <div className="rounded-xl border border-emerald-200/70 bg-white/45 p-4 shadow-sm backdrop-blur">
           <p className="text-xs text-muted-foreground">Recuperação estimada</p>
           <p className="mt-1 font-serif text-2xl font-semibold tabular-nums text-foreground">
             {formatBRL(roi.recovery)}

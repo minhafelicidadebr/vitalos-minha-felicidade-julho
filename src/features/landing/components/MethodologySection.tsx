@@ -2,37 +2,40 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { METHODOLOGY, type CtaAction } from "../data/landing-copy";
-import strategyBoardroom from "@/assets/strategy-boardroom.jpg";
+import methodologyHumanInnovation from "@/assets/methodology-human-innovation-cycle.jpg";
 
 export function MethodologySection({ onAction }: { onAction: (action: CtaAction) => void }) {
   return (
-    <section className="relative overflow-hidden border-y border-border/40 bg-muted/20 py-16 sm:py-20">
+    <section className="landing-light-grid relative isolate overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-80 bg-[radial-gradient(60%_80%_at_50%_100%,color-mix(in_oklab,var(--color-accent)_12%,transparent)_0%,transparent_70%)]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 w-full overflow-hidden lg:w-[68%]"
+      >
+        <img
+          src={methodologyHumanInnovation}
+          alt=""
+          loading="lazy"
+          width={1672}
+          height={941}
+          className="h-full w-full object-cover object-center opacity-[0.46] mix-blend-multiply [filter:saturate(1.08)_contrast(1.05)_brightness(1.08)] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_100%)]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,247,244,0.98)_0%,rgba(248,247,244,0.82)_18%,rgba(255,252,237,0.24)_54%,rgba(255,252,237,0.1)_100%)]" />
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 z-0 h-full w-[58%] bg-[radial-gradient(circle_at_76%_24%,rgba(201,162,39,0.22)_0%,transparent_35%),radial-gradient(circle_at_42%_72%,rgba(11,61,46,0.14)_0%,transparent_42%)]"
       />
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-black/20"
-          >
-            <img
-              src={strategyBoardroom}
-              alt="Boardroom executivo com visualizações de dados de vitalidade organizacional"
-              loading="lazy"
-              width={1600}
-              height={1024}
-              className="h-full w-full object-cover"
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-accent/10"
-            />
-          </motion.div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-border)_42%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-border)_34%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-35"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/45 to-transparent"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-6">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
               {METHODOLOGY.eyebrow}
@@ -42,8 +45,8 @@ export function MethodologySection({ onAction }: { onAction: (action: CtaAction)
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Um ciclo anual em quatro estações, fundamentado em psicometria, andragogia, behavioral
-              design e gestão baseada em evidência. O que normalmente morre num relatório, aqui
-              vira aprendizado vivo da organização.
+              design e gestão baseada em evidência. O que normalmente morre num relatório, aqui vira
+              aprendizado vivo da organização.
             </p>
             <div className="mt-6">
               <Button
@@ -60,6 +63,52 @@ export function MethodologySection({ onAction }: { onAction: (action: CtaAction)
               </Button>
             </div>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0.88, x: 16 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative isolate min-h-[340px] overflow-visible sm:min-h-[400px] lg:min-h-[470px]"
+          >
+            <div
+              aria-hidden
+              className="absolute right-[-10%] top-[8%] h-[78%] w-[112%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(11,61,46,0.2)_0%,rgba(201,162,39,0.12)_42%,transparent_70%)] blur-3xl"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-x-2 top-[16%] h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"
+            />
+            <div
+              aria-hidden
+              className="absolute left-[8%] top-[18%] h-[64%] w-[82%] rounded-full border border-dashed border-primary/18"
+            />
+            <div
+              aria-hidden
+              className="absolute left-[17%] top-[29%] h-[42%] w-[62%] rounded-full border border-accent/18"
+            />
+            <motion.span
+              aria-hidden
+              initial={{ x: "-18%" }}
+              whileInView={{ x: "18%" }}
+              viewport={{ once: false }}
+              transition={{
+                duration: 5.5,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut",
+              }}
+              className="absolute left-[8%] top-[34%] z-20 h-px w-[78%] bg-gradient-to-r from-transparent via-accent/70 to-transparent"
+            />
+            <div
+              aria-hidden
+              className="absolute bottom-[18%] right-[12%] h-2 w-2 rounded-full bg-accent shadow-[0_0_28px_rgba(201,162,39,0.75)]"
+            />
+            <div
+              aria-hidden
+              className="absolute left-[15%] top-[26%] h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_28px_rgba(11,61,46,0.42)]"
+            />
+          </motion.div>
         </div>
 
         <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -73,8 +122,8 @@ export function MethodologySection({ onAction }: { onAction: (action: CtaAction)
                   →
                 </span>
               )}
-              <div className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/15 font-mono text-base font-semibold text-primary shadow-inner">
+              <div className="landing-light-card flex h-full flex-col rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-xl">
+                <span className="landing-light-icon flex h-12 w-12 items-center justify-center rounded-2xl font-mono text-base font-semibold text-primary ring-1 ring-inset ring-primary/20">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <p className="mt-4 font-serif text-xl text-card-foreground">{step.title}</p>

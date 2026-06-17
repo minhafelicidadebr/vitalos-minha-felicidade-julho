@@ -9,9 +9,25 @@ export type LandingModalType =
   | "dashboard"
   | "executive"
   | "lenses-deep"
-  | "method-deep";
+  | "method-deep"
+  | "lens-copsoq"
+  | "lens-fibt"
+  | "lens-perma"
+  | "lens-viat"
+  | "nr1-playbook"
+  | "innovation-yale"
+  | "innovation-multiscience"
+  | "innovation-nr1"
+  | "application-enterprises"
+  | "application-education"
+  | "application-governments"
+  | "application-cities"
+  | "application-communities";
 
-export type CtaAction = { kind: "modal"; modal: LandingModalType } | { kind: "route"; to: string };
+export type CtaAction =
+  | { kind: "modal"; modal: LandingModalType }
+  | { kind: "route"; to: string }
+  | { kind: "anchor"; id: string };
 
 export interface Cta {
   label: string;
@@ -21,10 +37,10 @@ export interface Cta {
 
 // ─── 1 · Hero ─────────────────────────────────────────────────────────────────
 export const HERO = {
-  eyebrow: "Programa Felicidade e crescimentos para Todos - VITALOS™",
+  eyebrow: "Programa Felicidade e Crescimento para Todos - VITALOS™",
   headline: "O Sistema Operacional da Vitalidade Organizacional",
   subheadline:
-    "Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações, relatórios e evidências — Programa Felicidade e Crescimentos para Todos VITALOS™.",
+    "Transforme bem-estar, riscos psicossociais, cultura e performance humana em dados, ações, relatórios e evidências — com uma infraestrutura operacional integrada com ciência da felicidade, IA e práticas ESG em conformidade com NR-1.",
   support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Comprove evolução.",
   ctas: [
     {
@@ -34,7 +50,7 @@ export const HERO = {
     },
     {
       label: "Ver metodologia das 4 Lentes",
-      action: { kind: "route", to: "/metodologia" },
+      action: { kind: "anchor", id: "nova-categoria" },
       variant: "outline",
     },
     {
@@ -50,7 +66,7 @@ export const HERO = {
 export const PROBLEM = {
   eyebrow: "O problema",
   title: "Quase sempre, o risco humano só aparece quando já é tarde",
-  text: "A maior parte das organizações só percebe seus riscos humanos quando eles já viraram afastamento, turnover, conflito, baixa produtividade ou passivo trabalhista. O Vita Happiness Org ajuda gestores a enxergar antes, agir melhor e comprovar evolução com dados.",
+  text: "A maior parte das organizações só percebe seus riscos humanos quando eles já viraram afastamento, turnover, conflito, baixa produtividade ou passivo trabalhista. O VitalOS ajuda gestores a enxergar antes, agir melhor e comprovar evolução com dados.",
   cards: [
     { icon: "shield-alert", title: "Riscos psicossociais não mapeados" },
     { icon: "puzzle", title: "Clima e cultura fragmentados" },
@@ -64,42 +80,109 @@ export const PROBLEM = {
 // ─── 3 · Nova categoria ───────────────────────────────────────────────────────
 export const CATEGORY = {
   eyebrow: "Nova categoria",
-  title: "De programas isolados para um sistema operacional humano",
-  text: "O Vita Happiness Org não é apenas uma pesquisa de clima, nem apenas um dashboard de RH. É uma plataforma de inteligência organizacional que integra diagnóstico, educação, transformação, IA, gamificação ética, relatórios e certificação em uma jornada anual de evolução.",
+  title:
+    "De programas isolados para um sistema operacional de florescimento com crescimento institucional",
+  text: "O Sistema Operacional VitalOS não é apenas uma pesquisa de clima, nem apenas um dashboard de RH. É uma infraestrutura de inteligência organizacional que integra diagnóstico, educação, transformação, IA, gamificação ética, relatórios e certificação em uma jornada anual de evolução, conectando florescimento humano, compliance, ESG social e crescimento institucional em linguagem executiva.",
+};
+
+// ─── 3b · IVO pelas 4 lentes ─────────────────────────────────────────────────
+export const IVO_LENSES = {
+  eyebrow: "IVO — Índice de Vitalidade Organizacional",
+  title: "O olhar que conecta florescimento humano e crescimento institucional",
+  text: "O IVO organiza a atenção da liderança em quatro níveis interdependentes: a experiência da pessoa, a qualidade dos vínculos, a prática da liderança e o desenho institucional. Essa leitura evita reduzir bem-estar a sentimento individual e transforma vitalidade em sistema operável.",
+  insight:
+    "Quando EU, NÓS, LIDERANÇA e ORGANIZAÇÃO evoluem juntos, o dado deixa de ser diagnóstico estático e vira direção de crescimento: mais energia, confiança, clareza e capacidade coletiva de agir.",
+  lenses: [
+    {
+      id: "eu",
+      label: "EU",
+      title: "Vitalidade da pessoa",
+      text: "Energia, propósito, autonomia e crescimento percebidos no trabalho.",
+      signal: "A pessoa sente que tem recurso interno para florescer.",
+      tone: "sky",
+    },
+    {
+      id: "nos",
+      label: "NÓS",
+      title: "Qualidade dos vínculos",
+      text: "Confiança, cooperação, reconhecimento e pertencimento no time.",
+      signal: "O time vira ambiente seguro para aprender, contribuir e sustentar rituais.",
+      tone: "emerald",
+    },
+    {
+      id: "lideranca",
+      label: "LIDERANÇA",
+      title: "Prática de gestão",
+      text: "Clareza, justiça, feedback, cuidado ativo e regulação da carga.",
+      signal: "A liderança transforma intenção cultural em rotina observável.",
+      tone: "amber",
+    },
+    {
+      id: "organizacao",
+      label: "ORGANIZAÇÃO",
+      title: "Sistema institucional",
+      text: "Políticas, governança, condições, coerência e compromisso com bem-comum.",
+      signal: "A instituição cria as condições para o florescimento não depender de heroísmo.",
+      tone: "violet",
+    },
+  ],
+};
+
+export const IVO_BRAND = {
+  acronym: "IVO",
+  name: "Índice de Vitalidade Organizacional",
+  promise: "Vitalidade que conecta pessoas, vínculos, liderança e sistema institucional.",
+  axes: ["EU", "NÓS", "LIDERANÇA", "ORGANIZAÇÃO"],
+  signature: "medir • aprender • transformar • comprovar",
 };
 
 // ─── 4 · As 4 Lentes VITA™ (Q1–Q4) ────────────────────────────────────────────
 export const LENSES = {
   eyebrow: "As 4 Lentes VITA™",
   title: "Nenhuma ferramenta sozinha explica a complexidade humana",
+  annual:
+    "Programa anual em quatro trimestres: cada lente entra no momento certo, transforma aprendizado em ação e consagra o ciclo no Relatório Global ESG.",
+  finale: {
+    q: "Q5",
+    title: "Relatório Global ESG",
+    text: "Síntese anual board-ready: evidências, evolução, recomendações e maturidade institucional.",
+  },
   items: [
     {
       q: "Q1",
+      period: "Trimestre 1",
       instrument: "COPSOQ",
-      theme: "Compliance & Blindagem",
+      theme: "Compliance & Prevenção",
       text: "Mapeamento educativo de fatores psicossociais, riscos organizacionais e prioridades de prevenção.",
       tone: "sky",
+      modal: "lens-copsoq",
     },
     {
       q: "Q2",
+      period: "Trimestre 2",
       instrument: "FIB-T",
       theme: "Ecossistema & Governança",
       text: "Leitura sistêmica da qualidade de vida no trabalho — bem-comum, tempo, comunidade, vitalidade e governança.",
       tone: "emerald",
+      modal: "lens-fibt",
     },
     {
       q: "Q3",
+      period: "Trimestre 3",
       instrument: "PERMA+V",
       theme: "Performance & Flow",
       text: "Mensuração de florescimento, energia, engajamento, relações, sentido, realização e vitalidade.",
       tone: "rose",
+      modal: "lens-perma",
     },
     {
       q: "Q4",
+      period: "Trimestre 4",
       instrument: "VIA-T",
       theme: "Cultura & Forças",
       text: "Mapeamento exploratório de forças, talentos, virtudes e diversidade de potência nas equipes.",
       tone: "violet",
+      modal: "lens-viat",
     },
   ],
   cta: {
@@ -117,7 +200,7 @@ export const LENSES_DEEP = {
   hook: "Pessoas não cabem em um único termômetro. A vitalidade emerge na intersecção de risco, ecossistema, florescimento e forças.",
   pillars: [
     {
-      q: "Q1 · Compliance & Blindagem",
+      q: "Q1 · Compliance & Prevenção",
       instrument: "COPSOQ II / NR-1",
       science:
         "Copenhagen Psychosocial Questionnaire — referência internacional em fatores psicossociais (Kristensen, NRCWE).",
@@ -140,14 +223,13 @@ export const LENSES_DEEP = {
       science:
         "Psicologia Positiva aplicada ao trabalho — Positive emotions, Engagement, Relationships, Meaning, Achievement + Vitality.",
       what: "Mensura florescimento, engajamento real, sentido percebido e energia disponível para entregar.",
-      why: "Florescimento prediz +21% produtividade, +300% criatividade e -59% burnout (Gallup, Fredrickson, OMS).",
+      why: "Florescimento no trabalho se associa a mais engajamento, criatividade e saúde sustentável; no VITALOS, qualquer impacto vira hipótese mensurada, não promessa.",
       tone: "rose",
     },
     {
       q: "Q4 · Cultura & Forças",
       instrument: "VIA-T v1 (exploratório, adaptado de Peterson & Seligman)",
-      science:
-        "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
+      science: "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
       what: "Identifica forças, talentos, virtudes e diversidade de potência dentro de cada time.",
       why: "Times que jogam com suas forças têm 6× mais engajamento e 3× mais qualidade de vida no trabalho.",
       tone: "violet",
@@ -161,6 +243,116 @@ export const LENSES_DEEP = {
     variant: "primary",
   } as Cta,
 };
+
+export const LENS_TOOL_MODALS = {
+  "lens-copsoq": {
+    quarter: "Q1 · Trimestre 1",
+    instrument: "COPSOQ",
+    theme: "Compliance & Prevenção",
+    title: "O mapa preventivo dos fatores psicossociais",
+    subtitle:
+      "A primeira lente cria segurança metodológica: antes de falar em felicidade, a organização precisa enxergar o que pode adoecer pessoas e times.",
+    neuroHook:
+      "O cérebro aprende melhor quando reduz incerteza. O COPSOQ transforma risco difuso em mapa visual, linguagem comum e prioridade de ação.",
+    measures: [
+      "Exigências do trabalho",
+      "Autonomia e controle",
+      "Suporte social",
+      "Reconhecimento",
+      "Conflitos e insegurança",
+    ],
+    learningFlow: [
+      "Nomear o risco",
+      "Priorizar recortes agregados",
+      "Criar plano preventivo",
+      "Registrar evidência NR-1",
+    ],
+    output:
+      "Matriz educativa de riscos psicossociais, prioridades de prevenção e recomendações agregadas.",
+    evidence:
+      "Baseado no Copenhagen Psychosocial Questionnaire como referência internacional para fatores psicossociais no trabalho.",
+    tone: "sky",
+  },
+  "lens-fibt": {
+    quarter: "Q2 · Trimestre 2",
+    instrument: "FIB-T",
+    theme: "Ecossistema & Governança",
+    title: "A leitura sistêmica do bem-comum no trabalho",
+    subtitle:
+      "Depois de reduzir risco, a segunda lente amplia a visão: qualidade de vida, vínculos, tempo, comunidade, governança e vitalidade institucional.",
+    neuroHook:
+      "Pessoas engajam quando percebem pertencimento e justiça. O FIB-T traduz o bem-comum em sinais organizacionais que líderes conseguem governar.",
+    measures: ["Bem-comum", "Tempo e equilíbrio", "Comunidade", "Vitalidade", "Governança"],
+    learningFlow: [
+      "Ler o ecossistema",
+      "Encontrar padrões de confiança",
+      "Educar lideranças",
+      "Conectar a ESG social",
+    ],
+    output:
+      "Mapa de qualidade de vida no trabalho com sinais de governança humana e maturidade cultural.",
+    evidence:
+      "Inspirado na lógica da Felicidade Interna Bruta aplicada ao contexto de trabalho e à governança de bem-estar.",
+    tone: "emerald",
+  },
+  "lens-perma": {
+    quarter: "Q3 · Trimestre 3",
+    instrument: "PERMA+V",
+    theme: "Performance & Flow",
+    title: "O pulso do florescimento, energia e realização",
+    subtitle:
+      "A terceira lente mede o que sustenta performance humana: emoções positivas, engajamento, relações, sentido, realização e vitalidade.",
+    neuroHook:
+      "Florescimento não é ornamento: ele regula energia, atenção, criatividade e persistência. PERMA+V torna esses recursos observáveis.",
+    measures: [
+      "Emoções positivas",
+      "Engajamento",
+      "Relações",
+      "Sentido",
+      "Realização",
+      "Vitalidade",
+    ],
+    learningFlow: [
+      "Mensurar energia",
+      "Interpretar motivadores",
+      "Ativar microaprendizagens",
+      "Testar experimentos de flow",
+    ],
+    output:
+      "Radar de florescimento e vitalidade com hipóteses de intervenção para times e lideranças.",
+    evidence:
+      "Baseado na Psicologia Positiva aplicada ao trabalho, com leitura ética e agregada dos fatores de florescimento.",
+    tone: "rose",
+  },
+  "lens-viat": {
+    quarter: "Q4 · Trimestre 4",
+    instrument: "VIA-T",
+    theme: "Cultura & Forças",
+    title: "A cartografia das forças que dão potência à cultura",
+    subtitle:
+      "A quarta lente fecha o ciclo antes da síntese ESG: identifica forças, talentos, virtudes e diversidade de potência nas equipes.",
+    neuroHook:
+      "O aprendizado acelera quando pessoas reconhecem suas forças e sabem onde aplicá-las. VIA-T transforma virtude em repertório de ação coletiva.",
+    measures: [
+      "Forças de caráter",
+      "Virtudes",
+      "Talentos percebidos",
+      "Diversidade de potência",
+      "Rituais culturais",
+    ],
+    learningFlow: [
+      "Reconhecer forças",
+      "Combinar complementaridades",
+      "Desenhar rituais",
+      "Preparar síntese anual",
+    ],
+    output:
+      "Mapa exploratório de forças e virtudes para cultura, reconhecimento e desenvolvimento de lideranças.",
+    evidence:
+      "Inspirado no campo VIA de forças de caráter, usado aqui como lente exploratória de desenvolvimento, não como avaliação individual.",
+    tone: "violet",
+  },
+} as const;
 
 // ─── 4 (Q5) · Relatório Global ESG ────────────────────────────────────────────
 export const GLOBAL_ESG = {
@@ -247,7 +439,7 @@ export const METHOD_DEEP = {
       n: "04",
       title: "Evoluir",
       science: "Evidence-based management · ESG · Selo Empresa Viva",
-      what: "Dashboards, relatórios anuais, benchmark setorial anônimo, inteligência preditiva e certificação computada do arco.",
+      what: "Dashboards, relatórios anuais, benchmark setorial anônimo, inteligência preditiva e certificação computada do ciclo anual.",
       learning:
         "Deming: o que não se mede não se melhora; o que se mede e se comunica gera cultura. O ciclo recomeça com novo baseline.",
       tone: "violet",
@@ -308,9 +500,270 @@ export const MODULES = {
       title: "Relatório Global ESG",
       desc: "Síntese anual de evidências, pronta para o conselho.",
     },
-    { icon: "award", title: "Selo VITA", desc: "Certificação computada do arco — não comprada." },
+    {
+      icon: "award",
+      title: "Selo VITA",
+      desc: "Certificação computada do ciclo anual — não comprada.",
+    },
   ],
 };
+
+// ─── 6b · Ecossistemas de aplicação ──────────────────────────────────────────
+export const APPLICATIONS = {
+  eyebrow: "Ecossistema operacional",
+  title: "O mesmo sistema de vitalidade, adaptado a diferentes organizações",
+  lead: "O VitalOS preserva a lógica central do IVO — pessoas, vínculos, liderança e sistema institucional — e adapta linguagem, indicadores, rituais e evidências ao contexto onde o florescimento precisa acontecer.",
+  items: [
+    {
+      modal: "application-enterprises",
+      icon: "briefcase",
+      label: "Empresas",
+      title: "VitalOS Empresas",
+      text: "Bem-estar corporativo, compliance NR-1, ESG social e gestão de riscos psicossociais para organizações de todos os portes.",
+      signal:
+        "Sinal estratégico: saúde mental, cultura e produtividade já são pauta de risco, reputação e crescimento.",
+      cta: "Transforme sua organização",
+      tone: "sky",
+    },
+    {
+      modal: "application-education",
+      icon: "graduation-cap",
+      label: "Educação",
+      title: "VitalOS Educação",
+      text: "EdTech para escolas, redes de ensino e IES com Educação Positiva, clima escolar e florescimento de estudantes e educadores.",
+      signal:
+        "Sinal estratégico: exaustão docente, pertencimento estudantil e segurança emocional pedem gestão contínua.",
+      cta: "Conheça para escolas",
+      tone: "emerald",
+    },
+    {
+      modal: "application-governments",
+      icon: "layout-dashboard",
+      label: "Governos",
+      title: "VitalOS Gov",
+      text: "GovTech de bem-estar público: FIB Cidades, saúde mental de servidores e políticas baseadas em evidências.",
+      signal:
+        "Sinal estratégico: a Agenda 2030 pede métricas humanas, territoriais e socioambientais para decisões públicas.",
+      cta: "Veja para governos",
+      tone: "amber",
+    },
+    {
+      modal: "application-cities",
+      icon: "compass",
+      label: "Cidades",
+      title: "VitalOS Cidades",
+      text: "Sistema operacional de felicidade urbana com FIB Cidades, Mini PERMA e dashboards territoriais.",
+      signal:
+        "Sinal estratégico: ODS 11 exige cidades e comunidades mais sustentáveis, inclusivas, seguras e resilientes.",
+      cta: "Explore para cidades",
+      tone: "rose",
+    },
+    {
+      modal: "application-communities",
+      icon: "users-round",
+      label: "Comunidades",
+      title: "VitalOS Comunidades",
+      text: "Infraestrutura de bem-estar, convivência, cuidado e corresponsabilidade para condomínios, bairros e comunidades.",
+      signal:
+        "Sinal estratégico: transformar onde se vive em ecossistema de apoio reduz isolamento e aumenta pertencimento.",
+      cta: "Descubra comunidades",
+      tone: "violet",
+    },
+  ],
+} as const;
+
+export const APPLICATION_MODALS = {
+  "application-enterprises": {
+    eyebrow: "Adaptação IVO · Empresas",
+    title: "Índice de Vitalidade Organizacional para crescimento institucional",
+    subtitle:
+      "Nas empresas, o IVO transforma saúde mental, cultura, liderança e ESG social em uma agenda executiva de prevenção, performance humana e governança.",
+    thesis:
+      "Vitalidade corporativa não é benefício isolado: é capacidade institucional de proteger pessoas, desenvolver times e sustentar crescimento com evidência.",
+    lenses: [
+      {
+        label: "Eu",
+        title: "Energia e autonomia do colaborador",
+        text: "Lê recursos internos, carga percebida, propósito, segurança emocional e condição de florescer no trabalho.",
+        tone: "sky",
+      },
+      {
+        label: "Nós",
+        title: "Confiança e cooperação no time",
+        text: "Observa pertencimento, reconhecimento, segurança psicológica e qualidade dos rituais coletivos.",
+        tone: "emerald",
+      },
+      {
+        label: "Liderança",
+        title: "Gestão que regula risco e desempenho",
+        text: "Traduz cuidado, clareza, feedback, justiça e gestão de carga em prática observável.",
+        tone: "amber",
+      },
+      {
+        label: "Organização",
+        title: "Governança, NR-1 e ESG social",
+        text: "Conecta políticas, evidências, prevenção e coerência institucional para decisão de conselho.",
+        tone: "violet",
+      },
+    ],
+    learning:
+      "A ciência do aprendizado entra em microciclos: diagnóstico, devolutiva, prática de liderança, experimento de cultura e evidência para governança.",
+    outcome:
+      "Entrega para gestores: mapa de riscos e potências, prioridades por criticidade, trilhas de desenvolvimento e relatório executivo auditável.",
+  },
+  "application-education": {
+    eyebrow: "Adaptação IVO · Educação",
+    title: "Vitalidade educacional para escolas, redes e IES",
+    subtitle:
+      "Na educação, o IVO lê o florescimento de estudantes, educadores, equipes pedagógicas e gestão institucional como um ecossistema de aprendizagem.",
+    thesis:
+      "Uma instituição educacional floresce quando aprender, conviver e cuidar deixam de ser ações separadas e viram cultura mensurável.",
+    lenses: [
+      {
+        label: "Eu",
+        title: "Estudante e educador com recursos internos",
+        text: "Mapeia vitalidade, sentido, emoções, segurança para aprender e percepção de progresso.",
+        tone: "sky",
+      },
+      {
+        label: "Nós",
+        title: "Turmas e equipes com pertencimento",
+        text: "Observa vínculos, clima escolar, cooperação, respeito, convivência e apoio entre pares.",
+        tone: "emerald",
+      },
+      {
+        label: "Liderança",
+        title: "Gestão pedagógica e cuidado ativo",
+        text: "Acompanha escuta, clareza, apoio a professores, mediação de conflitos e coerência educativa.",
+        tone: "amber",
+      },
+      {
+        label: "Instituição",
+        title: "Política de bem-estar e aprendizagem",
+        text: "Conecta projeto pedagógico, Educação Positiva, dados, família, território e governança escolar.",
+        tone: "violet",
+      },
+    ],
+    learning:
+      "O design instrucional usa devolutivas visuais, rituais socioemocionais, trilhas para educadores e práticas curtas que entram na rotina pedagógica.",
+    outcome:
+      "Entrega para gestores: mapa de clima e florescimento, prioridades por segmento, trilhas formativas e evidências para redes, conselhos e famílias.",
+  },
+  "application-governments": {
+    eyebrow: "Adaptação IVO · Governos",
+    title: "Vitalidade governamental para servidores, políticas e território",
+    subtitle:
+      "Em governos, o IVO vira infraestrutura GovTech para saúde mental de servidores, bem-estar público, FIB Cidades e decisões intersetoriais.",
+    thesis:
+      "Política pública de bem-estar exige escuta contínua, recortes territoriais, indicadores compreensíveis e capacidade de coordenar ações entre áreas.",
+    lenses: [
+      {
+        label: "Eu",
+        title: "Servidor e cidadão com dignidade",
+        text: "Lê vitalidade, acesso, segurança emocional, sentido de serviço e percepção de qualidade de vida.",
+        tone: "sky",
+      },
+      {
+        label: "Nós",
+        title: "Equipes públicas e comunidades",
+        text: "Observa confiança, colaboração, convivência, redes de apoio e capital social.",
+        tone: "emerald",
+      },
+      {
+        label: "Liderança",
+        title: "Gestão pública orientada por evidências",
+        text: "Traduz prioridades, cuidado com servidores, transparência e corresponsabilidade em rotina decisória.",
+        tone: "amber",
+      },
+      {
+        label: "Sistema",
+        title: "Governança intersetorial e ODS",
+        text: "Conecta saúde, educação, assistência, segurança, cultura, território e indicadores da Agenda 2030.",
+        tone: "violet",
+      },
+    ],
+    learning:
+      "A aprendizagem acontece por painéis territoriais, laboratórios de política pública, formação de lideranças e ciclos de prestação de contas.",
+    outcome:
+      "Entrega para gestores: diagnóstico territorial, priorização intersetorial, trilhas de cuidado para servidores e relatórios de impacto público.",
+  },
+  "application-cities": {
+    eyebrow: "Adaptação IVO · Cidades",
+    title: "Vitalidade urbana para felicidade pública e comunidades sustentáveis",
+    subtitle:
+      "Nas cidades, o IVO se expande para bairros, serviços, convivência, pertencimento e qualidade de vida territorial.",
+    thesis:
+      "Uma cidade floresce quando dados humanos ajudam a decidir onde investir, que vínculos fortalecer e quais serviços precisam evoluir.",
+    lenses: [
+      {
+        label: "Eu",
+        title: "Morador com bem-estar percebido",
+        text: "Lê segurança, mobilidade emocional, acesso, tempo, saúde, sentido de lugar e esperança.",
+        tone: "sky",
+      },
+      {
+        label: "Nós",
+        title: "Bairro com vínculos e confiança",
+        text: "Observa convivência, redes de apoio, cultura, participação e pertencimento comunitário.",
+        tone: "emerald",
+      },
+      {
+        label: "Liderança",
+        title: "Gestão territorial e escuta ativa",
+        text: "Acompanha capacidade de responder, comunicar prioridades e coordenar agentes locais.",
+        tone: "amber",
+      },
+      {
+        label: "Cidade",
+        title: "ODS 11 e governança urbana",
+        text: "Conecta dados de bem-estar, sustentabilidade, inclusão, segurança, serviços e planejamento urbano.",
+        tone: "violet",
+      },
+    ],
+    learning:
+      "O método combina mapas participativos, devolutivas por território, missões comunitárias e aprendizagem cívica baseada em evidências.",
+    outcome:
+      "Entrega para gestores: dashboard territorial, mapa de vulnerabilidades e potências, prioridades por bairro e relatório de felicidade urbana.",
+  },
+  "application-communities": {
+    eyebrow: "Adaptação IVO · Comunidades",
+    title: "Vitalidade comunitária para convivência, apoio e pertencimento",
+    subtitle:
+      "Em comunidades, condomínios e bairros, o IVO vira tecnologia social para fortalecer relações, cuidado mútuo e cultura de convivência.",
+    thesis:
+      "O lugar onde se vive também pode ser um ecossistema de florescimento: menos isolamento, mais confiança, mais participação e mais cuidado.",
+    lenses: [
+      {
+        label: "Eu",
+        title: "Pessoa com segurança e pertencimento",
+        text: "Lê bem-estar percebido, solidão, apoio, participação e sentido de comunidade.",
+        tone: "sky",
+      },
+      {
+        label: "Nós",
+        title: "Relações de vizinhança e apoio",
+        text: "Observa cooperação, confiança, convivência, acolhimento e resolução de conflitos.",
+        tone: "emerald",
+      },
+      {
+        label: "Liderança",
+        title: "Síndicos, lideranças e guardiões locais",
+        text: "Traduz escuta, mediação, comunicação e mobilização em práticas simples e recorrentes.",
+        tone: "amber",
+      },
+      {
+        label: "Comunidade",
+        title: "Infraestrutura social de cuidado",
+        text: "Conecta espaços, regras, rituais, canais de ajuda, cultura e corresponsabilidade.",
+        tone: "violet",
+      },
+    ],
+    learning:
+      "A ciência do aprendizado vira rituais leves: encontros, missões de convivência, desafios cooperativos e devolutivas visuais por comunidade.",
+    outcome:
+      "Entrega para gestores locais: mapa de pertencimento, prioridades de convivência, agenda de cuidado comunitário e evidências de participação.",
+  },
+} as const;
 
 // ─── DashboardPreview (mock visual) ───────────────────────────────────────────
 export const DASHBOARD_PREVIEW = {
@@ -334,6 +787,195 @@ export const DASHBOARD_PREVIEW = {
     variant: "outline",
   } as Cta,
 };
+
+// ─── 6c · Inovações Educacionais ─────────────────────────────────────────────
+export const EDUCATIONAL_INNOVATIONS = {
+  eyebrow: "Inovações Educacionais",
+  title: "Formações que transformam ciência da felicidade em aprendizagem viva",
+  lead: "Um ecossistema EdTech de alto impacto: ciência rigorosa, IA tutora, gamificação ética, design instrucional e evidências aplicadas para escolas, empresas, governos e comunidades.",
+  imageAlt:
+    "Educadores, estudantes e líderes em um laboratório de aprendizagem com interfaces holográficas sobre felicidade, dados e inovação educacional",
+  highlights: [
+    "IA tutora",
+    "Gamificação ética",
+    "Evidências verificáveis",
+    "Aprendizagem aplicada",
+  ],
+  items: [
+    {
+      modal: "innovation-yale",
+      sourceUrl: "https://curso-yale-felicidade.lovable.app/",
+      q: "01",
+      title: "Ciência do Bem-Estar para Adolescentes",
+      subtitle: "Curso mais concorrido da Universidade de Yale",
+      text: "Curso gratuito em português, inspirado no curso aberto de Yale, com 5 semanas, Tutora de IA treinada, quizzes, flashcards, simuladores e ferramentas de auto-observação.",
+      signal:
+        "Transforma conceitos abstratos de bem-estar em micro-hábitos, prática emocional e engajamento de juventudes.",
+      tone: "sky",
+    },
+    {
+      modal: "innovation-multiscience",
+      sourceUrl: "https://curso-multi-ciencia-felicidade.lovable.app/",
+      q: "02",
+      title: "Ciência da Felicidade Aplicações",
+      subtitle:
+        "A Ciência da Felicidade como ferramenta do florescimento humano, vetor do desenvolvimento sustentável e progresso socioeconômico",
+      text: "Percurso que integra Psicologia Positiva, Neurociência aplicada, Ciência das Emoções, filosofia, economia comportamental e do bem-comum, direito ao bem-estar e bem-estar organizacional.",
+      signal:
+        "Converte repertório científico complexo em trilhas, módulos, práticas e linguagem acessível para multiplicadores.",
+      tone: "emerald",
+    },
+    {
+      modal: "innovation-nr1",
+      sourceUrl: "https://nr1-playbook.lovable.app/",
+      q: "03",
+      title: "NR-1 com Ciência do Bem-Estar Laboral",
+      subtitle: "3.000+ artigos científicos curados sob chancela da University of Oxford",
+      subtitleLines: [
+        "3.000+ artigos científicos",
+        "Curados sob chancela da",
+        "University of Oxford",
+      ],
+      text: "Playbook educacional que conecta NR-1, COPSOQ, ISO 45003, com 12 drivers, IA tutora e documentação para GRO/PGR.",
+      signal:
+        "Tira a NR-1 da burocracia e a transforma em jornada de aprendizagem, prevenção e governança psicossocial.",
+      tone: "amber",
+    },
+  ],
+} as const;
+
+export const EDUCATIONAL_INNOVATION_MODALS = {
+  "innovation-yale": {
+    eyebrow: "Formação 01 · Ciência do Bem-Estar para Adolescentes",
+    title:
+      "O curso mais concorrido de Yale traduzido em uma jornada gamificada de bem-estar juvenil",
+    subtitle:
+      "Uma experiência educacional desenhada para traduzir psicologia positiva em hábitos treináveis, linguagem jovem e prática contínua.",
+    sourceUrl: "https://curso-yale-felicidade.lovable.app/",
+    thesis:
+      "O diferencial não está em explicar felicidade. Está em fazer o estudante praticar, refletir, testar e consolidar repertórios de bem-estar com tutoria, feedback e progressão.",
+    pillars: [
+      {
+        label: "Conteúdo",
+        title: "5 semanas com ciência aplicada",
+        text: "Estrutura inspirada no curso aberto de Yale, reformulada para adolescentes em português e com práticas semanais.",
+        tone: "sky",
+      },
+      {
+        label: "IA",
+        title: "Tutora de IA treinada como mediação socrática",
+        text: "A IA orienta perguntas, explica conceitos, adapta linguagem e cita evidências para sustentar aprendizagem.",
+        tone: "emerald",
+      },
+      {
+        label: "Prática",
+        title: "Quiz, flashcards e simuladores",
+        text: "Repetição espaçada, feedback imediato e cenários de decisão transformam teoria em memória e comportamento.",
+        tone: "amber",
+      },
+      {
+        label: "Impacto",
+        title: "Bem-estar como alfabetização emocional",
+        text: "Termômetro emocional, diário, desafios e mapa mental ajudam o estudante a observar padrões e agir melhor.",
+        tone: "violet",
+      },
+    ],
+    learningFlow: [
+      "Atenção: começa com uma promessa simples e verificável de bem-estar treinável.",
+      "Engajamento: usa XP, streaks, desafios e feedback para reduzir abandono.",
+      "Consolidação: combina prática distribuída, reflexão e repetição ativa.",
+      "Transferência: conecta escolhas reais da adolescência a consequências e repertórios saudáveis.",
+    ],
+    outcome:
+      "Para escolas e programas sociais, a formação vira uma camada de Educação Positiva com linguagem jovem, evidências, dados agregados e experiência digital de alto engajamento.",
+  },
+  "innovation-multiscience": {
+    eyebrow: "Formação 02 · Ciência da Felicidade Aplicações",
+    title: "A Ciência da Felicidade como ferramenta de florescimento, sustentabilidade e progresso",
+    subtitle:
+      "Um percurso premium que organiza campos científicos diferentes em uma jornada coerente de florescimento humano, sustentabilidade, educação e organizações.",
+    sourceUrl: "https://curso-multi-ciencia-felicidade.lovable.app/",
+    thesis:
+      "A inovação está em conectar ciência, filosofia, dados, ODS, educação e gestão em uma gramática única para formar pessoas capazes de aplicar felicidade com rigor.",
+    pillars: [
+      {
+        label: "Base",
+        title: "PERMA+V, SPIRE, hedonia e eudaimonia",
+        text: "Fundamentos de florescimento humano organizados com clareza conceitual e aplicabilidade pessoal.",
+        tone: "sky",
+      },
+      {
+        label: "Planeta",
+        title: "ODS, biofilia e indicadores além do PIB",
+        text: "Bem-estar subjetivo conectado a desenvolvimento sustentável, cidades felizes e métricas públicas.",
+        tone: "emerald",
+      },
+      {
+        label: "Trabalho",
+        title: "Flow, PsyCap e segurança psicológica",
+        text: "Felicidade como vetor de produtividade, criatividade, inovação e cultura organizacional.",
+        tone: "amber",
+      },
+      {
+        label: "Educação",
+        title: "Educação Positiva, CASEL e VIA",
+        text: "Competências socioemocionais, forças de caráter e práticas pedagógicas para sistemas educacionais.",
+        tone: "violet",
+      },
+    ],
+    learningFlow: [
+      "Curadoria: transforma múltiplas ciências em eixos de compreensão progressiva.",
+      "Mapa mental: conecta conceitos para reduzir sobrecarga cognitiva.",
+      "Prática: converte frameworks em exercícios, diagnósticos e repertórios de aplicação.",
+      "Multiplicação: forma linguagem comum para educadores, gestores, comunidades e políticas públicas.",
+    ],
+    outcome:
+      "Para o VitalOS, essa formação funciona como camada de capacitação avançada: prepara lideranças e multiplicadores para interpretar dados humanos e desenhar intervenções de florescimento com profundidade.",
+  },
+  "innovation-nr1": {
+    eyebrow: "Formação 03 · NR-1 com Ciência do Bem-Estar Laboral",
+    title: "NR-1, COPSOQ e ciência do bem-estar como jornada educacional de prevenção",
+    subtitle:
+      "Um playbook que transforma NR-1, COPSOQ e ISO 45003 em experiência de aprendizagem para líderes, RH, SST e governança.",
+    sourceUrl: "https://nr1-playbook.lovable.app/",
+    thesis:
+      "A inovação é tirar o risco psicossocial da planilha e colocá-lo em um ciclo de mensuração, entendimento, transformação, educação e governança.",
+    pillars: [
+      {
+        label: "Mensurar",
+        title: "COPSOQ com leitura organizacional",
+        text: "Questionário e dimensões psicossociais ajudam a identificar perigos, exposição e prioridades preventivas.",
+        tone: "sky",
+      },
+      {
+        label: "Entender",
+        title: "Matriz dimensão × driver",
+        text: "A leitura conecta COPSOQ, JD-R, ISO 45003 e Work Wellbeing Playbook para orientar decisões.",
+        tone: "emerald",
+      },
+      {
+        label: "Transformar",
+        title: "Backlog de prevenção e evidência",
+        text: "Achados viram ações, responsáveis, indicadores, trilhas e documentação para GRO/PGR.",
+        tone: "amber",
+      },
+      {
+        label: "Governar",
+        title: "12 drivers e prontidão auditável",
+        text: "Lideranças aprendem por trilhas gamificadas com IA tutora, relatórios e catálogo documental.",
+        tone: "violet",
+      },
+    ],
+    learningFlow: [
+      "Clareza: nomeia riscos psicossociais em linguagem executiva e educativa.",
+      "Priorização: reduz ansiedade regulatória ao mostrar o que deve ser tratado primeiro.",
+      "Aprendizagem: forma lideranças por microconteúdos, simulações e feedback.",
+      "Evidência: consolida trilhas, decisões e documentos para governança responsável.",
+    ],
+    outcome:
+      "Para empresas, a formação vira uma ponte entre compliance, cultura de cuidado e ESG social: menos reatividade, mais prevenção e mais evidência.",
+  },
+} as const;
 
 // ─── 7 · Para quem é ──────────────────────────────────────────────────────────
 export const PERSONAS = {
@@ -527,14 +1169,17 @@ export const WHY_IT_MATTERS = {
       source: "Estimativas internacionais de economia da saúde mental",
     },
   ],
-  returnTitle: "O retorno de florescer",
+  returnTitle: "Benefícios organizacionais e econômicos de promover a felicidade para todos",
+  returnSource:
+    "Síntese divulgada por Delivering Happiness, com referências a pesquisas de Gallup, Shawn Achor e Martin Seligman.",
   returns: [
-    { value: "+21%", label: "Produtividade", source: "Gallup, 2023", dir: "up" },
-    { value: "+45%", label: "Adaptabilidade", source: "Achor, 2010", dir: "up" },
-    { value: "+300%", label: "Criatividade / Inovação", source: "Fredrickson, 2009", dir: "up" },
-    { value: "-37%", label: "Absenteísmo / Turnover", source: "Gallup, 2022", dir: "down" },
-    { value: "-48%", label: "Acidentes de trabalho", source: "Seligman, 2011", dir: "down" },
-    { value: "-59%", label: "Burnout", source: "Gallup / OMS", dir: "down" },
+    { value: "+21%", label: "Produtividade", icon: "cog", tone: "emerald" },
+    { value: "+45%", label: "Adaptabilidade à mudança", icon: "workflow", tone: "cyan" },
+    { value: "+300%", label: "Inovação", icon: "rocket", tone: "rose" },
+    { value: "-37%", label: "Absenteísmo", icon: "users", tone: "amber" },
+    { value: "-48%", label: "Acidentes de trabalho", icon: "shield", tone: "emerald" },
+    { value: "-59%", label: "Probabilidade de deixar a empresa", icon: "log-out", tone: "cyan" },
+    { value: "4x menor", label: "Probabilidade de burnout", icon: "flame", tone: "amber" },
   ],
   roi: {
     ratio: "4:1",
@@ -581,63 +1226,133 @@ export const NR1 = {
   bullets: [
     { icon: "shield-check", text: "COPSOQ II + matriz NR-1 (referência MTE 2026)" },
     { icon: "scroll", text: "Playbook Oxford · +3.000 papers revisados" },
-    { icon: "file-bar-chart", text: "Material/laudo em PDF auditável" },
+    { icon: "file-bar-chart", text: "Relatório educativo em PDF auditável" },
     { icon: "sparkles", text: "Plano de ação com apoio do chatbot de IA" },
   ],
   cta: {
     label: "Conhecer a Rede NR-1",
-    action: { kind: "route", to: "/sst" },
+    action: { kind: "modal", modal: "nr1-playbook" },
     variant: "outline",
   } as Cta,
   disclaimer:
     "Material educativo e preparatório. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 exigem profissional legalmente habilitado.",
 };
 
-// ─── Números Vivos (prova do programa — dados demo, computados pelos motores) ──
+export const NR1_PLAYBOOK_MODAL = {
+  eyebrow: "Rede NR-1 + COPSOQ",
+  title: "Da obrigação regulatória ao plano de bem-estar com evidência",
+  subtitle:
+    "Síntese instrucional do playbook NR-1/COPSOQ: organizar escopo, aplicar escuta psicossocial, traduzir dimensões críticas em drivers de bem-estar e deixar rastros para governança do GRO/PGR.",
+  sourceLabel: "Playbook NR-1/COPSOQ",
+  sourceUrl: "https://nr1-playbook.lovable.app/nr1-copsoq",
+  thesis:
+    "COPSOQ organiza a escuta. NR-1 define a obrigação. ISO 45003 dá a linguagem de gestão. O Playbook de Bem-Estar orienta ações educativas para reduzir risco, desenvolver líderes e sustentar evidências.",
+  flow: [
+    {
+      k: "01",
+      title: "Planejar",
+      text: "Delimitar escopo, unidades, grupos de trabalhadores, responsável técnico, comunicação e cronograma.",
+      tone: "sky",
+    },
+    {
+      k: "02",
+      title: "Identificar",
+      text: "Coletar sinais psicossociais com governança, anonimato por token e leitura agregada por dimensão.",
+      tone: "amber",
+    },
+    {
+      k: "03",
+      title: "Correlacionar",
+      text: "Conectar dimensões COPSOQ a drivers de bem-estar para priorizar o que deve virar ação.",
+      tone: "emerald",
+    },
+    {
+      k: "04",
+      title: "Transformar",
+      text: "Converter achados em backlog de prevenção, responsáveis, indicadores, aprendizagem e evidências.",
+      tone: "rose",
+    },
+    {
+      k: "05",
+      title: "Governar",
+      text: "Consolidar registros, relatórios, decisões e acompanhamento para auditoria, ESG social e melhoria contínua.",
+      tone: "violet",
+    },
+  ],
+  deliverables: [
+    "Escopo documentado e comunicação institucional clara",
+    "Mapa educativo de fatores psicossociais por dimensão",
+    "Matriz dimensão × driver para orientar prioridades",
+    "Top prioridades executivas para plano de prevenção",
+    "Catálogo de evidências para validação técnica e governança",
+  ],
+  guardrails: [
+    "A plataforma apoia diagnóstico educativo, documentação e decisão gerencial.",
+    "A avaliação legal do PGR/GRO deve ser validada por profissional habilitado.",
+    "Dados pessoais devem ser tratados de forma agregada, consentida e com anonimato operacional.",
+  ],
+  closing:
+    "A Rede NR-1 não transforma compliance em burocracia. Ela transforma obrigação em rotina inteligente de cuidado, aprendizagem e proteção institucional.",
+} as const;
+
+// ─── Números Vivos (prova metodológica — sem dados fictícios) ─────────────────
 export const PROOF_NUMBERS = {
   eyebrow: "Números Vivos",
   title: "O que um ciclo de programa entrega",
-  lead: "Baseado em dados fictícios de demonstração, processados pelos mesmos motores que operam em produção. Os números refletem o que o sistema mede — não promessas contratuais.",
-  items: [
+  lead: "Sem inventar indicadores. A força do ciclo está na qualidade dos sinais que ele organiza: risco, vitalidade, aprendizagem, evidência e governança em um sistema que gestores conseguem operar.",
+  managementSignal:
+    "Para a liderança, o VitalOS transforma dados humanos em uma pauta executiva: onde há risco, onde existe potência, qual intervenção merece prioridade e que evidência sustenta a próxima decisão.",
+  layers: [
     {
-      value: "+50 pts",
-      label: "Variação IVO",
-      note: "Score de vitalidade organizacional: 568 → 618 no ciclo demo",
-      color: "emerald",
-    },
-    {
-      value: "1.8×",
-      label: "ROI estimado",
-      note: "Custo evitado (turnover + absenteísmo + presenteísmo) ÷ investimento (cenário médio)",
-      color: "primary",
-    },
-    {
-      value: "2/3",
-      label: "Experimentos confirmados",
-      note: "Diferença-em-diferenças: efeito líquido positivo e replicável",
-      color: "amber",
-    },
-    {
-      value: "480",
-      label: "Pessoas impactadas",
-      note: "Organização demo — dados agregados (k-anonimato ≥ 5)",
+      label: "Leitura sistêmica",
+      note: "Integra risco psicossocial, qualidade de vida, florescimento, forças e governança em uma visão única.",
       color: "sky",
     },
     {
-      value: "13 semanas",
-      label: "Ciclo completo",
-      note: "De diagnóstico ao relatório de impacto board-ready",
-      color: "violet",
+      label: "Priorização executiva",
+      note: "Converte sinais dispersos em agenda de decisão: prevenir, educar, redesenhar rotinas e acompanhar evolução.",
+      color: "amber",
     },
     {
-      value: "476",
-      label: "Testes automatizados",
-      note: "Os motores da plataforma são verificados continuamente",
-      color: "slate",
+      label: "Evidência rastreável",
+      note: "Cada artefato nasce de uma lente, uma hipótese, uma ação e um registro que pode ser apresentado à governança.",
+      color: "emerald",
     },
   ],
+  outcomes: [
+    {
+      stage: "Ver",
+      title: "Risco antes da crise",
+      text: "A gestão passa a enxergar fatores psicossociais, carga, suporte, confiança e vulnerabilidades antes que virem afastamento ou conflito.",
+      color: "sky",
+    },
+    {
+      stage: "Escolher",
+      title: "Intervenção com foco",
+      text: "O comitê deixa de discutir opinião e passa a decidir por prioridade, criticidade, viabilidade e potencial de aprendizado.",
+      color: "amber",
+    },
+    {
+      stage: "Desenvolver",
+      title: "Liderança acionável",
+      text: "Dados viram rituais de gestão, microaprendizagens, experimentos de cultura e planos que cabem na rotina das equipes.",
+      color: "emerald",
+    },
+    {
+      stage: "Comprovar",
+      title: "Governança pronta",
+      text: "A organização consolida relatórios, trilhas de evidência, recomendações e síntese ESG social sem depender de narrativas soltas.",
+      color: "violet",
+    },
+  ],
+  artifacts: [
+    "Mapa IVO pelas lentes Eu, Nós, Liderança e Organização",
+    "Backlog de prevenção e desenvolvimento priorizado",
+    "Trilhas educativas conectadas aos achados do ciclo",
+    "Relatório executivo para RH, SST, ESG, conselho e governança",
+  ],
   disclaimer:
-    "Dados fictícios de demonstração — processados pelos motores reais da plataforma. Variações IVO são correlacionais; estimativas financeiras usam parâmetros declarados, não garantias contratuais.",
+    "Indicadores quantitativos aparecem somente quando a organização informa bases reais e autoriza o processamento. Esta seção apresenta entregáveis metodológicos, não resultados fictícios.",
 };
 
 // ─── Instituto Felicidade Para Todos (proponente) ─────────────────────────────
@@ -645,7 +1360,7 @@ export const INSTITUTE = {
   eyebrow: "Quem está por trás",
   name: "Instituto Felicidade Para Todos",
   tagline: "Ecossistemas sustentáveis de felicidade humana, socioambiental e organizacional.",
-  text: "O Instituto Felicidade Para Todos é uma organização de impacto social que une ciência, dados e tecnologia para transformar realidades. Atua por quatro pilares — Mensuração, Educação, Transformação e Evolução — e detém o Recorde Mundial de aplicação da Pesquisa de Felicidade Interna Bruta (FIB).",
+  text: "O Instituto Felicidade Para Todos combina pesquisa aplicada, mobilização social, educação positiva e tecnologia para criar ecossistemas de bem-estar mensurável. Sua atuação conecta felicidade como política de desenvolvimento humano, cultura organizacional, ODS, ESG social e aprendizagem coletiva com linguagem acessível para comunidades, empresas e instituições públicas.",
   stats: [
     { value: "+110.000", label: "Aplicações FIB · Recorde Mundial" },
     { value: "+219", label: "Municípios impactados" },
@@ -654,7 +1369,7 @@ export const INSTITUTE = {
   ],
   // Logos oficiais do Instituto (uso de marca do proponente).
   logoLight:
-    "https://static.wixstatic.com/media/575677_04ecbb3d6dcc4c2fa42da8ea5211c91f~mv2.png/v1/fill/w_600,h_238,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/1_edited.png",
+    "https://static.wixstatic.com/media/575677_22e0dfa7c2cd4eb896bb7a33223c585e~mv2.png/v1/fill/w_600,h_219,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/3_edited.png",
   logoMark:
     "https://static.wixstatic.com/media/575677_11e5bfdb643b47d28d70ff33bf0c1646~mv2.png/v1/fill/w_236,h_236,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6.png",
 };

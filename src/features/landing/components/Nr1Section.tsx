@@ -61,13 +61,13 @@ export function Nr1Section({ onAction }: { onAction: (action: CtaAction) => void
               </p>
             </div>
 
-            {/* Mock visual de "laudo auditável" + chatbot */}
+            {/* Mock visual de relatório educativo + chatbot */}
             <div className="relative">
               <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-md">
                 <div className="flex items-center gap-2 border-b border-border/50 pb-3">
                   <FileCheck2 className="h-5 w-5 text-sky-600 dark:text-sky-400" aria-hidden />
                   <p className="text-sm font-medium text-card-foreground">
-                    Laudo NR-1 · COPSOQ II (demonstração)
+                    Relatório educativo NR-1 · COPSOQ II (demonstração)
                   </p>
                   <span className="ml-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
                     PDF

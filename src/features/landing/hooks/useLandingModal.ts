@@ -15,7 +15,10 @@ export function useLandingModal() {
   const runAction = useCallback(
     (action: CtaAction, navigate: (to: string) => void) => {
       if (action.kind === "modal") open(action.modal);
-      else navigate(action.to);
+      else if (action.kind === "anchor") {
+        document.getElementById(action.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", `#${action.id}`);
+      } else navigate(action.to);
     },
     [open],
   );

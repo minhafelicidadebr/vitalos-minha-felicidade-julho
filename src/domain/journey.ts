@@ -43,7 +43,7 @@ export const CANONICAL_JOURNEY: JourneyStage[] = [
     layer: 1,
     layerLabel: "Camada 1 · Risco psicossocial",
     guidingQuestion: "O que pode adoecer aqui?",
-    headline: "Blindagem NR-1 e mapa de risco psicossocial.",
+    headline: "Prevenção NR-1 e mapa de risco psicossocial.",
     rationale:
       "Primeiro o que pode adoecer. Antes de florescer, garantir que não há dano " +
       "ativo — é o piso ético e a porta de entrada legal (NR-1/GRO).",

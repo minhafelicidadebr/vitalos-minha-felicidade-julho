@@ -274,6 +274,131 @@
  * ────────────────────────────────────────────────────────────────────────── */
 
 /* Utilitários só-de-impressão (espelham o padrão `print:hidden` do Tailwind). */
+@layer components {
+  .landing-light-grid {
+    --background: oklch(0.985 0.004 95);
+    --foreground: oklch(0.235 0.018 165);
+    --card: oklch(0.996 0.004 95);
+    --card-foreground: oklch(0.235 0.018 165);
+    --popover: oklch(0.998 0.002 95);
+    --popover-foreground: oklch(0.235 0.018 165);
+    --muted: oklch(0.945 0.008 95);
+    --muted-foreground: oklch(0.45 0.018 160);
+    --border: oklch(0.86 0.012 120);
+    --input: oklch(0.88 0.01 120);
+    position: relative;
+    isolation: isolate;
+    background-color: oklch(0.985 0.006 95);
+    background-image:
+      radial-gradient(circle at 15% 12%, rgba(201, 162, 39, 0.18), transparent 34%),
+      radial-gradient(circle at 88% 16%, rgba(11, 61, 46, 0.12), transparent 30%),
+      radial-gradient(circle at 52% 102%, rgba(201, 162, 39, 0.12), transparent 28%),
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 252, 237, 0.92) 52%,
+        rgba(240, 248, 240, 0.9) 100%
+      );
+    color: var(--foreground);
+  }
+
+  .landing-light-grid::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(to right, rgba(201, 162, 39, 0.105) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(11, 61, 46, 0.075) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(180deg, transparent 0%, black 12%, black 88%, transparent 100%);
+  }
+
+  .landing-light-grid::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(201, 162, 39, 0.1) 50%, transparent 100%),
+      radial-gradient(ellipse at 50% 0%, rgba(11, 61, 46, 0.08), transparent 45%);
+    opacity: 0.9;
+  }
+
+  .landing-light-grid > :not([aria-hidden]) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .landing-light-card {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgba(201, 162, 39, 0.28);
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.74) 0%,
+      rgba(255, 253, 242, 0.55) 54%,
+      rgba(240, 248, 240, 0.46) 100%
+    );
+    box-shadow:
+      0 22px 70px rgba(11, 61, 46, 0.1),
+      0 8px 24px rgba(201, 162, 39, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(18px);
+  }
+
+  .landing-light-card::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.72), transparent 34%),
+      linear-gradient(to right, rgba(201, 162, 39, 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(11, 61, 46, 0.04) 1px, transparent 1px);
+    background-size:
+      auto,
+      34px 34px,
+      34px 34px;
+  }
+
+  .landing-light-card::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    z-index: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(201, 162, 39, 0.66),
+      rgba(11, 61, 46, 0.42),
+      transparent
+    );
+  }
+
+  .landing-light-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .landing-light-icon {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.92), transparent 34%),
+      linear-gradient(135deg, rgba(201, 162, 39, 0.2), rgba(11, 61, 46, 0.1));
+    box-shadow:
+      0 14px 34px rgba(11, 61, 46, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+}
+
 .print-only {
   display: none;
 }
