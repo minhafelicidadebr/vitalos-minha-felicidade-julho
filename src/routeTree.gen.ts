@@ -30,6 +30,7 @@ import { Route as PanoramaRouteImport } from './routes/panorama'
 import { Route as OndaRouteImport } from './routes/onda'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as LiderRouteImport } from './routes/lider'
+import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as HoldingRouteImport } from './routes/holding'
@@ -155,6 +156,11 @@ const MetodologiaRoute = MetodologiaRouteImport.update({
 const LiderRoute = LiderRouteImport.update({
   id: '/lider',
   path: '/lider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LabRoute = LabRouteImport.update({
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
+  '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
   '/onda': typeof OndaRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
+  '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
   '/onda': typeof OndaRoute
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/holding': typeof HoldingRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
+  '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
   '/onda': typeof OndaRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lab'
+    | '/landing'
     | '/lider'
     | '/metodologia'
     | '/onda'
@@ -464,6 +474,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lab'
+    | '/landing'
     | '/lider'
     | '/metodologia'
     | '/onda'
@@ -508,6 +519,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/ivo'
     | '/lab'
+    | '/landing'
     | '/lider'
     | '/metodologia'
     | '/onda'
@@ -553,6 +565,7 @@ export interface RootRouteChildren {
   HoldingRoute: typeof HoldingRoute
   IvoRoute: typeof IvoRoute
   LabRoute: typeof LabRoute
+  LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
   MetodologiaRoute: typeof MetodologiaRoute
   OndaRoute: typeof OndaRoute
@@ -723,6 +736,13 @@ declare module '@tanstack/react-router' {
       path: '/lider'
       fullPath: '/lider'
       preLoaderRoute: typeof LiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lab': {
@@ -897,6 +917,7 @@ const rootRouteChildren: RootRouteChildren = {
   HoldingRoute: HoldingRoute,
   IvoRoute: IvoRoute,
   LabRoute: LabRoute,
+  LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
   MetodologiaRoute: MetodologiaRoute,
   OndaRoute: OndaRoute,

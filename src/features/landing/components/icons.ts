@@ -1,0 +1,93 @@
+// Registro de ícones da landing (lucide). Mantém os componentes limpos: a copy
+// referencia o ícone por string; aqui resolvemos para o componente.
+import {
+  ShieldAlert,
+  Puzzle,
+  BatteryLow,
+  Gem,
+  FileX,
+  Activity,
+  LayoutDashboard,
+  Users,
+  Compass,
+  UserRound,
+  Sparkles,
+  ShieldCheck,
+  FileBarChart,
+  Award,
+  ShieldPlus,
+  Briefcase,
+  GraduationCap,
+  UsersRound,
+  Lock,
+  CheckCircle2,
+  Scroll,
+  Split,
+  Ban,
+  type LucideIcon,
+} from "lucide-react";
+
+export const LANDING_ICONS: Record<string, LucideIcon> = {
+  "shield-alert": ShieldAlert,
+  puzzle: Puzzle,
+  "battery-low": BatteryLow,
+  gem: Gem,
+  "file-x": FileX,
+  activity: Activity,
+  "layout-dashboard": LayoutDashboard,
+  users: Users,
+  compass: Compass,
+  "user-round": UserRound,
+  sparkles: Sparkles,
+  "shield-check": ShieldCheck,
+  "file-bar-chart": FileBarChart,
+  award: Award,
+  "shield-plus": ShieldPlus,
+  briefcase: Briefcase,
+  "graduation-cap": GraduationCap,
+  "users-round": UsersRound,
+  lock: Lock,
+  "check-circle": CheckCircle2,
+  scroll: Scroll,
+  split: Split,
+  ban: Ban,
+};
+
+export function landingIcon(name: string): LucideIcon {
+  return LANDING_ICONS[name] ?? Sparkles;
+}
+
+// Tons por lente/quadrante — classes Tailwind (consistente com o resto do app,
+// que usa utilitários de paleta; sem hex solto em componente).
+export const TONE_CLASS: Record<string, { text: string; bg: string; ring: string; dot: string }> = {
+  sky: {
+    text: "text-sky-700 dark:text-sky-300",
+    bg: "bg-sky-500/10",
+    ring: "ring-sky-500/30",
+    dot: "bg-sky-500",
+  },
+  emerald: {
+    text: "text-emerald-700 dark:text-emerald-300",
+    bg: "bg-emerald-500/10",
+    ring: "ring-emerald-500/30",
+    dot: "bg-emerald-500",
+  },
+  rose: {
+    text: "text-rose-700 dark:text-rose-300",
+    bg: "bg-rose-500/10",
+    ring: "ring-rose-500/30",
+    dot: "bg-rose-500",
+  },
+  violet: {
+    text: "text-violet-700 dark:text-violet-300",
+    bg: "bg-violet-500/10",
+    ring: "ring-violet-500/30",
+    dot: "bg-violet-500",
+  },
+  amber: {
+    text: "text-amber-700 dark:text-amber-300",
+    bg: "bg-amber-500/10",
+    ring: "ring-amber-500/30",
+    dot: "bg-amber-500",
+  },
+};
