@@ -60,7 +60,8 @@ describe("registry — packs registrados", () => {
       const roleIds = new Set(bundle.pack.roles.map((r) => r.id));
       for (const nav of bundle.pack.navigation) {
         if (nav.roles === "all") continue;
-        for (const r of nav.roles as string[]) {
+        const navRoles = nav.roles as unknown as string[];
+        for (const r of navRoles) {
           expect(roleIds.has(r)).toBe(true);
         }
       }
