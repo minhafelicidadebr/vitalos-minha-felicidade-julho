@@ -26,6 +26,7 @@ import { Route as ProgramaRouteImport } from './routes/programa'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as PanoramaRouteImport } from './routes/panorama'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as OndaRouteImport } from './routes/onda'
@@ -137,6 +138,11 @@ const PrioridadesRoute = PrioridadesRouteImport.update({
 const PnlRoute = PnlRouteImport.update({
   id: '/pnl',
   path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoAcaoRoute = PlanoAcaoRouteImport.update({
+  id: '/plano-acao',
+  path: '/plano-acao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PanoramaRoute = PanoramaRouteImport.update({
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -349,6 +356,7 @@ export interface FileRoutesByTo {
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
     | '/onda'
     | '/painel'
     | '/panorama'
+    | '/plano-acao'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/onda'
     | '/painel'
     | '/panorama'
+    | '/plano-acao'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -536,6 +547,7 @@ export interface FileRouteTypes {
     | '/onda'
     | '/painel'
     | '/panorama'
+    | '/plano-acao'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -583,6 +595,7 @@ export interface RootRouteChildren {
   OndaRoute: typeof OndaRoute
   PainelRoute: typeof PainelRoute
   PanoramaRoute: typeof PanoramaRoute
+  PlanoAcaoRoute: typeof PlanoAcaoRoute
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       path: '/pnl'
       fullPath: '/pnl'
       preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano-acao': {
+      id: '/plano-acao'
+      path: '/plano-acao'
+      fullPath: '/plano-acao'
+      preLoaderRoute: typeof PlanoAcaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/panorama': {
@@ -943,6 +963,7 @@ const rootRouteChildren: RootRouteChildren = {
   OndaRoute: OndaRoute,
   PainelRoute: PainelRoute,
   PanoramaRoute: PanoramaRoute,
+  PlanoAcaoRoute: PlanoAcaoRoute,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PrivacidadeRoute: PrivacidadeRoute,

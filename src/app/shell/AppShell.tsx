@@ -37,7 +37,8 @@ const NAV_ROUTES: Record<string, string> = {
   esg_report: "/relatorio-global",
   certification: "/selo",
   cycle_close: "/fechamento",
-  action_plan: "/lab",
+  action_plan: "/plano-acao",
+  lab: "/lab",
   experiments: "/experimentos",
   domain_b: "/sst",
   signals: "/sinais",
@@ -122,7 +123,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "comunidade",
     label: "Comunidade",
     hint: "Pessoas, forças e cultura",
-    items: ["academy", "ambassadorships", "ai"],
+    items: ["academy", "ambassadorships", "lab", "ai"],
   },
   {
     id: "confianca",

@@ -138,13 +138,19 @@
       "group": "agir"
     },
     {
+      "id": "action_plan",
+      "label": "Plano de Ação",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"],
+      "group": "agir"
+    },
+    {
       "id": "forecast",
       "label": "Trajetória",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN", "GESTOR_CARTEIRA"],
       "group": "agir"
     },
     {
-      "id": "action_plan",
+      "id": "lab",
       "label": "Culture Lab",
       "roles": ["LIDER_EQUIPE", "RH_ADMIN", "CHRO", "SST_PROFISSIONAL"],
       "group": "agir"
