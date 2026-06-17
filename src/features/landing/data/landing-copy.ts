@@ -267,6 +267,9 @@ export const METHOD_DEEP = {
     variant: "primary",
   } as Cta,
 };
+
+// ─── 6 · O que a plataforma entrega ───────────────────────────────────────────
+export const MODULES = {
   eyebrow: "A plataforma",
   title: "Tudo o que a organização precisa, em um só sistema",
   items: [
