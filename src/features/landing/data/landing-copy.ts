@@ -593,6 +593,53 @@ export const NR1 = {
     "Material educativo e preparatório. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 exigem profissional legalmente habilitado.",
 };
 
+// ─── Números Vivos (prova do programa — dados demo, computados pelos motores) ──
+export const PROOF_NUMBERS = {
+  eyebrow: "Números Vivos",
+  title: "O que um ciclo de programa entrega",
+  lead: "Baseado em dados fictícios de demonstração, processados pelos mesmos motores que operam em produção. Os números refletem o que o sistema mede — não promessas contratuais.",
+  items: [
+    {
+      value: "+94 pts",
+      label: "Variação IVO",
+      note: "Score de vitalidade organizacional ciclo anterior → atual",
+      color: "emerald",
+    },
+    {
+      value: "3.2×",
+      label: "ROI estimado",
+      note: "Custo evitado (turnover + absenteísmo + presenteísmo) ÷ investimento",
+      color: "primary",
+    },
+    {
+      value: "2/3",
+      label: "Experimentos confirmados",
+      note: "Diferença-em-diferenças: efeito líquido positivo e replicável",
+      color: "amber",
+    },
+    {
+      value: "480",
+      label: "Pessoas impactadas",
+      note: "Organização demo — dados agregados (k-anonimato ≥ 5)",
+      color: "sky",
+    },
+    {
+      value: "13 semanas",
+      label: "Ciclo completo",
+      note: "De diagnóstico ao relatório de impacto board-ready",
+      color: "violet",
+    },
+    {
+      value: "475",
+      label: "Testes automatizados",
+      note: "Os motores da plataforma são verificados continuamente",
+      color: "slate",
+    },
+  ],
+  disclaimer:
+    "Dados fictícios de demonstração — processados pelos motores reais da plataforma. Variações IVO são correlacionais; estimativas financeiras usam parâmetros declarados, não garantias contratuais.",
+};
+
 // ─── Instituto Felicidade Para Todos (proponente) ─────────────────────────────
 export const INSTITUTE = {
   eyebrow: "Quem está por trás",

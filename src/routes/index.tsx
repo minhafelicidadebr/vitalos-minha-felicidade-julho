@@ -20,6 +20,7 @@ import { DashboardPreviewSection } from "@/features/landing/components/Dashboard
 import { PersonaPathwaysSection } from "@/features/landing/components/PersonaPathwaysSection";
 import { TrustSection } from "@/features/landing/components/TrustSection";
 import { Nr1Section } from "@/features/landing/components/Nr1Section";
+import { ProofNumbersSection } from "@/features/landing/components/ProofNumbersSection";
 import { InstituteSection } from "@/features/landing/components/InstituteSection";
 import { LandingCtaSection } from "@/features/landing/components/LandingCtaSection";
 import { LandingModal } from "@/features/landing/components/LandingModal";
@@ -149,6 +150,7 @@ function LandingPage() {
         <DashboardPreviewSection onAction={onAction} />
         <PersonaPathwaysSection />
         <TrustSection />
+        <ProofNumbersSection />
         <InstituteSection />
         <LandingCtaSection onAction={onAction} onEnterApp={enterApp} />
       </main>
