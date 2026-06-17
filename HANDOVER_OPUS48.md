@@ -24,10 +24,10 @@ produto (telas, fluxos, features), não de código.
 
 ---
 
-## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17)
+## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17 — pós-sprints A/B/C)
 
 ### 2.1 Testes e build
-- **447 testes / 41 arquivos — 0 falhas** ✅
+- **475 testes / 43 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
 
@@ -40,6 +40,26 @@ Mensurar (onda + questionário)
   → Educar (devolutiva contextual)
     → Transformar (priority → lab → experimentos → copiloto)
       → Evoluir (trend / evolucao / fechamento)
+```
+
+### 2.2b Sprints premium Fable 5 concluídos (2026-06-17)
+
+| Sprint | Rota | Engine | Testes | O que entrega |
+|--------|------|--------|--------|---------------|
+| **A** | `/plano-acao` | `action-plan-engine` | 14 | Plano Operacional Trimestral: fila de prioridades → cronograma 13 semanas, escalonamento por embaixadoria, status futuro/em_andamento/concluido |
+| **B** | `/impacto` | `impact-engine` | 14 | Relatório de Impacto board-ready: delta IVO por lente, ROI, nível de evidência, maturidade do programa |
+| **C** | `/` (landing) | — | — | Seção "Números Vivos": 6 cards com métricas do ciclo demo computadas pelos motores reais |
+
+**Fix estrutural:** Culture Lab nav id corrigido de `action_plan` para `lab` — eliminava duplicata que quebrava testes.
+
+**Commits:**
+```
+e1211e4  merge: rebase Lovable improvements (VitalOsLogo, ThemeToggle header, lenses-deep modal)
+7917af1  feat(sprint-c): landing Números Vivos — 6 cards de prova
+d17bdef  feat(sprint-b): /impacto — Relatório de Impacto do Programa
+e8c2cb3  feat(sprint-a): /plano-acao — Plano Operacional Trimestral
+eac42e8  (Lovable) improvements to landing  ← puxado via rebase
+43b5c9a  feat(gate): landing em / + portão demo + /painel
 ```
 
 ### 2.3 Engines implementados (`src/engine/`)
@@ -69,6 +89,8 @@ Mensurar (onda + questionário)
 | `fibt/`            | fibt-engine                | 10     | FIB-T (Furtado 2020) — 32 itens, 9 domínios   |
 | `esg-report/`      | esg-report-engine          | 10     | Relatório anual E/S/G (síntese 5 instrumentos) |
 | `trend/`           | trend-engine               | 11     | Curva longitudinal IVO (momentum, projeção)    |
+| `action-plan/`     | action-plan-engine         | 14     | Plano trimestral: agenda ações por embaixadoria |
+| `impact/`          | impact-engine              | 14     | Relatório de impacto: delta IVO + ROI + evidência |
 | `campaign/`        | campaign-engine            | 14     | Onda Ativa (dupla-visão privacidade)           |
 | `survey/`          | survey-engine              | —      | Runtime de questionário (loop Onda↔Responder)  |
 | `educar/`          | devolutiva-engine          | —      | Devolutiva contextual pós-resultado            |
@@ -78,26 +100,27 @@ Mensurar (onda + questionário)
 
 ### 2.4 Rotas implementadas (`src/routes/`)
 
-43 rotas. Grupo de nav por ciclo:
+45 rotas. Grupo de nav por ciclo:
 
 **Medir:** `/onda`, `/ivo`, `/pulse`, `/viat`, `/fibt`
-**Agir:** `/colaborador`, `/lider`, `/rh`, `/clevel`, `/sst`, `/holding`, `/pnl`, `/copiloto`
-**Provar:** `/experimentos`, `/relatorios`, `/selo`, `/panorama`, `/sinais`, `/evolucao`, `/fechamento`, `/benchmark`, `/relatorio-global`
+**Agir:** `/colaborador`, `/lider`, `/rh`, `/clevel`, `/sst`, `/holding`, `/pnl`, `/copiloto`, `/plano-acao` ← **NOVO Sprint A**
+**Provar:** `/impacto` ← **NOVO Sprint B** · `/experimentos`, `/relatorios`, `/selo`, `/panorama`, `/sinais`, `/evolucao`, `/fechamento`, `/benchmark`, `/relatorio-global`
 **Estratégico:** `/trajetoria`, `/prioridades`, `/temporada`, `/esg`, `/setores`, `/privacidade`, `/escola`
 **Comunidade:** `/embaixador`, `/embaixadorias`, `/academia`, `/lab`, `/floresceria`
 **Confiança:** `/confianca`, `/metodologia`, `/privacidade`, `/programa`
-**Entrada:** `/` (landing pública, sem AppShell) · `/painel` (hub do app, requer senha demo)
+**Entrada:** `/` (landing pública com Números Vivos ← **Sprint C**) · `/painel` (hub do app, requer senha demo)
 **Outros:** `/landing` (redirect → `/`), `/devolutiva`, `/responder`, `/quiosque`, `/design-system`
 
 ### 2.5 Commits recentes (estado do `main`)
 
 ```
-43b5c9a  feat(gate): landing em / + portão demo + /painel  ← MAIS RECENTE
+e1211e4  merge: rebase Lovable improvements + Sprint C  ← MAIS RECENTE
+7917af1  feat(sprint-c): landing Números Vivos — 6 cards de prova
+d17bdef  feat(sprint-b): /impacto — Relatório de Impacto do Programa
+e8c2cb3  feat(sprint-a): /plano-acao — Plano Operacional Trimestral
+eac42e8  (Lovable) improvements to landing
+43b5c9a  feat(gate): landing em / + portão demo + /painel
 56fe3f0  docs(handover): passaporte premium Fable 5 para Opus 4.8
-e13c6ef  merge(landing): landing page premium — Sistema Operacional da Vitalidade
-2bbd089  feat(landing): custo↔retorno + calculadora de impacto + NR-1 + Instituto (premium)
-ecf883d  feat(landing): landing page premium modular "Sistema Operacional da Vitalidade"
-5a80b0e  feat(H1 5-7): painel do Embaixador + Academia 2.0 + gamificação viva
 ```
 
 ---
@@ -197,7 +220,7 @@ bun install
 bun run dev       # dev server local (porta aleatória ou 5173)
 bun run build     # build de produção — deve ficar verde
 bun run format    # prettier
-bun test src      # 444 testes — deve ficar verde
+bun test src      # 475 testes — deve ficar verde
 bun x tsc --noEmit  # typecheck — deve ficar limpo
 ```
 
