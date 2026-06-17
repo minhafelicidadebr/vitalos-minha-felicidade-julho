@@ -35,6 +35,7 @@ import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
+import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as FibtRouteImport } from './routes/fibt'
@@ -185,6 +186,11 @@ const IvoRoute = IvoRouteImport.update({
   path: '/ivo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImpactoRoute = ImpactoRouteImport.update({
+  id: '/impacto',
+  path: '/impacto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HoldingRoute = HoldingRouteImport.update({
   id: '/holding',
   path: '/holding',
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
+  '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
+  '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
   '/holding': typeof HoldingRoute
+  '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/fibt'
     | '/floresceria'
     | '/holding'
+    | '/impacto'
     | '/ivo'
     | '/lab'
     | '/landing'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/fibt'
     | '/floresceria'
     | '/holding'
+    | '/impacto'
     | '/ivo'
     | '/lab'
     | '/landing'
@@ -539,6 +550,7 @@ export interface FileRouteTypes {
     | '/fibt'
     | '/floresceria'
     | '/holding'
+    | '/impacto'
     | '/ivo'
     | '/lab'
     | '/landing'
@@ -587,6 +599,7 @@ export interface RootRouteChildren {
   FibtRoute: typeof FibtRoute
   FloresceriaRoute: typeof FloresceriaRoute
   HoldingRoute: typeof HoldingRoute
+  ImpactoRoute: typeof ImpactoRoute
   IvoRoute: typeof IvoRoute
   LabRoute: typeof LabRoute
   LandingRoute: typeof LandingRoute
@@ -799,6 +812,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IvoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/impacto': {
+      id: '/impacto'
+      path: '/impacto'
+      fullPath: '/impacto'
+      preLoaderRoute: typeof ImpactoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/holding': {
       id: '/holding'
       path: '/holding'
@@ -955,6 +975,7 @@ const rootRouteChildren: RootRouteChildren = {
   FibtRoute: FibtRoute,
   FloresceriaRoute: FloresceriaRoute,
   HoldingRoute: HoldingRoute,
+  ImpactoRoute: ImpactoRoute,
   IvoRoute: IvoRoute,
   LabRoute: LabRoute,
   LandingRoute: LandingRoute,

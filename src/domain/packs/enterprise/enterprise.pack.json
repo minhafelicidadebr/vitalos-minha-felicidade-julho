@@ -175,6 +175,12 @@
     },
 
     {
+      "id": "impact",
+      "label": "Relatório de Impacto",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN"],
+      "group": "provar"
+    },
+    {
       "id": "experiments",
       "label": "Experimentos",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"],
