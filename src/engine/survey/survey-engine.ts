@@ -4,17 +4,46 @@
 // existe para entrar no agregado (n≥k). A persistência real é Fase 2; aqui o estado
 // é de sessão. Nunca importa de domain/.
 
-export type LikertValue = 1 | 2 | 3 | 4 | 5;
+export type SurveyValue = number;
 
 export interface SurveyItem {
   id: string;
   pillarId: string;
   text: string;
+  section?: string;
   /** Item de redação invertida (pontuação reversa na agregação — Fase 2). */
   reverse?: boolean;
 }
 
-export type SurveyResponses = Record<string, LikertValue | undefined>;
+export interface SurveyScaleOption {
+  value: SurveyValue;
+  label: string;
+}
+
+export interface SurveyScale {
+  presentation: "buttons" | "slider";
+  options: SurveyScaleOption[];
+  minLabel: string;
+  maxLabel: string;
+}
+
+export interface SurveyDefinition {
+  id: string;
+  instrumentShort: string;
+  items: SurveyItem[];
+  scale: SurveyScale;
+  intro: {
+    eyebrow: string;
+    lead: string;
+    disclaimer: string;
+    thanksTitle: string;
+    thanksBody: string;
+  };
+  completionRoute: "/devolutiva" | "/viat";
+  completionLabel: string;
+}
+
+export type SurveyResponses = Record<string, SurveyValue | undefined>;
 
 export interface SurveyProgress {
   total: number;
@@ -35,4 +64,8 @@ export function surveyProgress(items: SurveyItem[], responses: SurveyResponses):
     isComplete: total > 0 && answered === total,
     firstUnansweredId: firstUnanswered?.id ?? null,
   };
+}
+
+export function isAllowedSurveyValue(scale: SurveyScale, value: SurveyValue): boolean {
+  return scale.options.some((option) => option.value === value);
 }

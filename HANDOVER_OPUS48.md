@@ -15,7 +15,7 @@ primeiro **Sistema Operacional da Vitalidade**: mede, educa, transforma e compro
 florescimento das pessoas nas organizações (ciclo M.E.T.E.). Categoria nova, não feature.
 
 **Repositório GitHub:**
-`https://github.com/minhafelicidadebr/app-vita-happiness-org-fable5.git`
+`https://github.com/minhafelicidadebr/vitalos-org-fable5.git`
 
 **Deploy:** Lovable Cloud (sincronização automática via GitHub `main`).
 O Lovable puxa automaticamente qualquer push para `main`.
@@ -25,11 +25,11 @@ produto (telas, fluxos, features), não de código.
 
 ---
 
-## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17 — pós-sprints A/B/C)
+## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-18 — pós-runtime multi-instrumento)
 
 ### 2.1 Testes e build
 
-- **476 testes / 43 arquivos — 0 falhas** ✅
+- **484 testes / 44 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
 
@@ -65,6 +65,16 @@ eac42e8  (Lovable) improvements to landing  ← puxado via rebase
 43b5c9a  feat(gate): landing em / + portão demo + /painel
 ```
 
+### 2.2c Fechamento do questionário multi-instrumento (2026-06-18)
+
+- `/responder` agora deriva setor e instrumento da onda ativa, sem ficar preso ao PERMA+V.
+- Registro demonstrativo cobre COPSOQ, FIB-T, PERMA+V/IVO, VIA-T e IEV.
+- Cada instrumento preserva escala, itens, seções, disclaimer e destino de devolutiva próprios.
+- O IEV cobre os 16 pilares: Aluno, Turma, Educador e Escola.
+- Estado vazio honesto substitui qualquer fallback inventado.
+- Respostas existem apenas durante a sessão; o store persiste somente o ID da onda respondida.
+- Decisão ToT: `docs/DECISAO_SURVEY_MULTIINSTRUMENTO_2026-06-18.md`.
+
 ### 2.3 Engines implementados (`src/engine/`)
 
 | Diretório        | Engine                   | Testes | O que faz                                         |
@@ -95,7 +105,7 @@ eac42e8  (Lovable) improvements to landing  ← puxado via rebase
 | `action-plan/`   | action-plan-engine       | 14     | Plano trimestral: agenda ações por embaixadoria   |
 | `impact/`        | impact-engine            | 14     | Relatório de impacto: delta IVO + ROI + evidência |
 | `campaign/`      | campaign-engine          | 14     | Onda Ativa (dupla-visão privacidade)              |
-| `survey/`        | survey-engine            | —      | Runtime de questionário (loop Onda↔Responder)     |
+| `survey/`        | survey-engine            | 6      | Runtime multi-instrumento (loop Onda↔Responder)   |
 | `educar/`        | devolutiva-engine        | —      | Devolutiva contextual pós-resultado               |
 | `academia/`      | academia-engine          | —      | Trilhas recomendadas pela lente fraca             |
 | `domainb/`       | nr1-readiness-engine     | —      | NR-1 readiness (COPSOQ + checklist)               |
@@ -378,10 +388,11 @@ Quando dois princípios colidirem:
 ## 12 · LINK DE ACESSO AO APP
 
 **Repositório GitHub:**
-https://github.com/minhafelicidadebr/app-vita-happiness-org-fable5
+https://github.com/minhafelicidadebr/vitalos-org-fable5
 
 **Lovable (preview e deploy):**
-Acesse https://lovable.dev → "My Projects" → encontre "app-vita-happiness-org-fable5".
+Acesse https://lovable.dev → "My Projects" → encontre o projeto conectado a
+`minhafelicidadebr/vitalos-org-fable5`.
 O Lovable sincroniza automaticamente com o GitHub `main` após cada push.
 A URL de preview do Lovable abre diretamente em `/` — a landing pública.
 

@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { surveyProgress, type SurveyItem, type SurveyResponses } from "./survey-engine";
+import {
+  isAllowedSurveyValue,
+  surveyProgress,
+  type SurveyItem,
+  type SurveyResponses,
+  type SurveyScale,
+} from "./survey-engine";
 
 const ITEMS: SurveyItem[] = [
   { id: "i1", pillarId: "p1", text: "a" },
@@ -37,5 +43,30 @@ describe("survey — progresso", () => {
     const p = surveyProgress(ITEMS, r);
     expect(p.isComplete).toBe(false);
     expect(p.firstUnansweredId).toBe("i3");
+  });
+
+  test("zero é resposta válida em instrumentos 0–4/0–10", () => {
+    const p = surveyProgress(ITEMS, { i1: 0 });
+    expect(p.answered).toBe(1);
+    expect(p.firstUnansweredId).toBe("i2");
+  });
+});
+
+describe("survey — escala injetada", () => {
+  const scale: SurveyScale = {
+    presentation: "buttons",
+    options: [
+      { value: 0, label: "Nunca" },
+      { value: 2, label: "Às vezes" },
+      { value: 4, label: "Sempre" },
+    ],
+    minLabel: "Nunca",
+    maxLabel: "Sempre",
+  };
+
+  test("aceita somente valores declarados pela definição do instrumento", () => {
+    expect(isAllowedSurveyValue(scale, 0)).toBe(true);
+    expect(isAllowedSurveyValue(scale, 4)).toBe(true);
+    expect(isAllowedSurveyValue(scale, 3)).toBe(false);
   });
 });
