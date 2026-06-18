@@ -22,7 +22,11 @@ export type LandingModalType =
   | "application-education"
   | "application-governments"
   | "application-cities"
-  | "application-communities";
+  | "application-communities"
+  | "ivo-eu"
+  | "ivo-nos"
+  | "ivo-lideranca"
+  | "ivo-organizacao";
 
 export type CtaAction =
   | { kind: "modal"; modal: LandingModalType }
@@ -33,6 +37,19 @@ export interface Cta {
   label: string;
   action: CtaAction;
   variant?: "primary" | "outline" | "ghost";
+}
+
+type IvoDimensionModalType = Extract<LandingModalType, `ivo-${string}`>;
+
+interface IvoDimensionCopy {
+  id: string;
+  label: string;
+  title: string;
+  text: string;
+  signal: string;
+  tone: string;
+  modal: IvoDimensionModalType;
+  cta: string;
 }
 
 // ─── 1 · Hero ─────────────────────────────────────────────────────────────────
@@ -49,7 +66,7 @@ export const HERO = {
       variant: "primary",
     },
     {
-      label: "Ver metodologia das 4 Lentes",
+      label: "Ver 4 Dimensões e 4 Lentes",
       action: { kind: "anchor", id: "nova-categoria" },
       variant: "outline",
     },
@@ -81,18 +98,18 @@ export const PROBLEM = {
 export const CATEGORY = {
   eyebrow: "Nova categoria",
   title:
-    "De programas isolados para um sistema operacional de florescimento com crescimento institucional",
+    "De programas isolados para um sistema operacional de florescimento humano com crescimento institucional",
   text: "O Sistema Operacional VitalOS não é apenas uma pesquisa de clima, nem apenas um dashboard de RH. É uma infraestrutura de inteligência organizacional que integra diagnóstico, educação, transformação, IA, gamificação ética, relatórios e certificação em uma jornada anual de evolução, conectando florescimento humano, compliance, ESG social e crescimento institucional em linguagem executiva.",
 };
 
-// ─── 3b · IVO pelas 4 lentes ─────────────────────────────────────────────────
-export const IVO_LENSES = {
-  eyebrow: "IVO — Índice de Vitalidade Organizacional",
-  title: "O olhar que conecta florescimento humano e crescimento institucional",
-  text: "O IVO organiza a atenção da liderança em quatro níveis interdependentes: a experiência da pessoa, a qualidade dos vínculos, a prática da liderança e o desenho institucional. Essa leitura evita reduzir bem-estar a sentimento individual e transforma vitalidade em sistema operável.",
+// ─── 3b · As 4 Dimensões da Vitalidade Organizacional ─────────────────────────
+export const IVO_DIMENSIONS = {
+  eyebrow: "As 4 Dimensões da Vitalidade Organizacional",
+  title: "Onde a vitalidade acontece e onde a transformação precisa chegar",
+  text: "O IVO organiza a atenção da liderança em quatro dimensões interdependentes: a experiência da pessoa, a qualidade dos vínculos, a prática da liderança e o sistema institucional. Essa arquitetura evita reduzir bem-estar a sentimento individual e mostra onde observar, aprender e agir.",
   insight:
     "Quando EU, NÓS, LIDERANÇA e ORGANIZAÇÃO evoluem juntos, o dado deixa de ser diagnóstico estático e vira direção de crescimento: mais energia, confiança, clareza e capacidade coletiva de agir.",
-  lenses: [
+  dimensions: [
     {
       id: "eu",
       label: "EU",
@@ -100,6 +117,8 @@ export const IVO_LENSES = {
       text: "Energia, propósito, autonomia e crescimento percebidos no trabalho.",
       signal: "A pessoa sente que tem recurso interno para florescer.",
       tone: "sky",
+      modal: "ivo-eu",
+      cta: "Explorar a dimensão EU",
     },
     {
       id: "nos",
@@ -108,6 +127,8 @@ export const IVO_LENSES = {
       text: "Confiança, cooperação, reconhecimento e pertencimento no time.",
       signal: "O time vira ambiente seguro para aprender, contribuir e sustentar rituais.",
       tone: "emerald",
+      modal: "ivo-nos",
+      cta: "Explorar a dimensão NÓS",
     },
     {
       id: "lideranca",
@@ -116,6 +137,8 @@ export const IVO_LENSES = {
       text: "Clareza, justiça, feedback, cuidado ativo e regulação da carga.",
       signal: "A liderança transforma intenção cultural em rotina observável.",
       tone: "amber",
+      modal: "ivo-lideranca",
+      cta: "Explorar a dimensão LIDERANÇA",
     },
     {
       id: "organizacao",
@@ -124,8 +147,18 @@ export const IVO_LENSES = {
       text: "Políticas, governança, condições, coerência e compromisso com bem-comum.",
       signal: "A instituição cria as condições para o florescimento não depender de heroísmo.",
       tone: "violet",
+      modal: "ivo-organizacao",
+      cta: "Explorar a dimensão ORGANIZAÇÃO",
     },
-  ],
+  ] satisfies IvoDimensionCopy[],
+  bridge: {
+    eyebrow: "Arquitetura VitalOS 4 × 4",
+    title: "As dimensões mostram onde agir. As lentes mostram como compreender e evoluir.",
+    text: "Em cada trimestre, uma Lente VITA™ observa as quatro dimensões da vitalidade. O resultado é uma leitura sistêmica que conecta pessoa, vínculos, liderança e organização à prevenção, ao bem-comum, ao florescimento e às forças.",
+    dimensionsLabel: "Onde a vitalidade acontece",
+    lensesLabel: "Como a vitalidade é lida e desenvolvida",
+    equation: "4 dimensões × 4 lentes × 4 trimestres",
+  },
 };
 
 export const IVO_BRAND = {
@@ -136,12 +169,315 @@ export const IVO_BRAND = {
   signature: "medir • aprender • transformar • comprovar",
 };
 
+export const IVO_DIMENSION_MODALS = {
+  "ivo-eu": {
+    index: "01",
+    label: "EU",
+    title: "Vitalidade começa quando a pessoa recupera energia para agir",
+    subtitle:
+      "A dimensão EU torna visíveis os recursos internos que sustentam presença, autonomia, propósito e crescimento no trabalho, sem reduzir o indivíduo a uma nota.",
+    thesis:
+      "Antes de pedir mais desempenho, a organização precisa compreender se as pessoas dispõem de energia, clareza e margem psicológica para contribuir.",
+    neuroHook:
+      "O cérebro investe atenção quando percebe segurança, significado e possibilidade de escolha. A dimensão EU converte essas percepções em sinais agregados para orientar desenvolvimento, não vigilância.",
+    tone: "sky",
+    icon: "user",
+    drivers: [
+      {
+        label: "Energia",
+        title: "Recurso disponível",
+        text: "Vitalidade física e emocional para sustentar atenção, presença e recuperação.",
+      },
+      {
+        label: "Propósito",
+        title: "Sentido percebido",
+        text: "Conexão entre esforço cotidiano, contribuição e algo que vale a pena construir.",
+      },
+      {
+        label: "Autonomia",
+        title: "Capacidade de escolha",
+        text: "Margem para decidir, organizar o trabalho e influenciar a própria experiência.",
+      },
+      {
+        label: "Crescimento",
+        title: "Futuro possível",
+        text: "Percepção de aprendizagem, desenvolvimento e avanço profissional sustentável.",
+      },
+    ],
+    learningFlow: [
+      {
+        k: "01",
+        title: "Perceber",
+        text: "A pessoa reconhece seu estado com linguagem simples e sem julgamento.",
+      },
+      {
+        k: "02",
+        title: "Compreender",
+        text: "A devolutiva transforma o dado em significado e repertório de ação.",
+      },
+      {
+        k: "03",
+        title: "Experimentar",
+        text: "Micropráticas e missões testam mudanças possíveis na rotina real.",
+      },
+      {
+        k: "04",
+        title: "Evoluir",
+        text: "Novos pulsos mostram se energia, autonomia e sentido ganharam consistência.",
+      },
+    ],
+    activations: [
+      {
+        title: "FlorescerIA",
+        text: "Tutoria contextual para interpretar sinais e escolher práticas adequadas.",
+      },
+      {
+        title: "Academia VitalOS",
+        text: "Trilhas breves de autorregulação, forças, propósito, flow e vitalidade.",
+      },
+      {
+        title: "Pulsos éticos",
+        text: "Acompanhamento agregado, consentido e protegido por k-anonimato.",
+      },
+    ],
+    outcome:
+      "Gestores recebem tendências coletivas para melhorar condições e desenvolvimento. A pessoa recebe linguagem, escolhas e recursos para florescer sem exposição individual.",
+    guardrail: "Desenvolvimento sem diagnóstico clínico, ranking ou monitoramento individual.",
+  },
+  "ivo-nos": {
+    index: "02",
+    label: "NÓS",
+    title: "Times florescem quando confiança deixa de ser discurso e vira experiência",
+    subtitle:
+      "A dimensão NÓS observa a qualidade dos vínculos que transforma um grupo de pessoas em ambiente seguro para cooperar, aprender e realizar.",
+    thesis:
+      "Pertencimento não nasce em campanhas. Ele emerge de interações repetidas nas quais as pessoas podem contribuir, discordar, pedir ajuda e ser reconhecidas.",
+    neuroHook:
+      "Segurança relacional reduz o custo cognitivo da autoproteção. Quando o time percebe confiança e reciprocidade, mais energia fica disponível para aprendizagem, criatividade e colaboração.",
+    tone: "emerald",
+    icon: "users",
+    drivers: [
+      {
+        label: "Confiança",
+        title: "Previsibilidade relacional",
+        text: "Acordos, coerência e liberdade para falar sem medo de punição indevida.",
+      },
+      {
+        label: "Cooperação",
+        title: "Inteligência coletiva",
+        text: "Capacidade de compartilhar recursos, resolver tensões e agir em conjunto.",
+      },
+      {
+        label: "Reconhecimento",
+        title: "Contribuição percebida",
+        text: "Sinais concretos de que esforço, ideias e avanços são vistos pelo grupo.",
+      },
+      {
+        label: "Pertencimento",
+        title: "Lugar legítimo",
+        text: "Experiência de inclusão, identidade compartilhada e participação significativa.",
+      },
+    ],
+    learningFlow: [
+      {
+        k: "01",
+        title: "Escutar",
+        text: "Pulsos agregados revelam padrões de confiança e fricção sem expor pessoas.",
+      },
+      {
+        k: "02",
+        title: "Dialogar",
+        text: "A equipe transforma sinais em perguntas e acordos de convivência.",
+      },
+      {
+        k: "03",
+        title: "Ritualizar",
+        text: "Reconhecimento, feedback e cooperação entram na cadência do trabalho.",
+      },
+      {
+        k: "04",
+        title: "Sustentar",
+        text: "Indicadores e experimentos mostram quais rituais fortalecem os vínculos.",
+      },
+    ],
+    activations: [
+      {
+        title: "Rituais de time",
+        text: "Check-ins, pactos, retrospectivas e reconhecimento com intenção pedagógica.",
+      },
+      {
+        title: "Missões cooperativas",
+        text: "Gamificação ética que recompensa progresso coletivo, não competição interna.",
+      },
+      {
+        title: "Mapa de vínculos",
+        text: "Leitura agregada de confiança, pertencimento e segurança para aprender.",
+      },
+    ],
+    outcome:
+      "A liderança enxerga onde o vínculo amplia ou bloqueia a capacidade coletiva e recebe caminhos concretos para transformar clima em práticas sociais observáveis.",
+    guardrail:
+      "Leitura de padrões coletivos, nunca exposição de conflitos ou opiniões individuais.",
+  },
+  "ivo-lideranca": {
+    index: "03",
+    label: "LIDERANÇA",
+    title: "A cultura se torna real naquilo que a liderança repete",
+    subtitle:
+      "A dimensão LIDERANÇA traduz intenção cultural em comportamentos observáveis: clareza, justiça, feedback, cuidado ativo e regulação responsável da carga.",
+    thesis:
+      "Pessoas não experimentam a estratégia no PowerPoint. Elas experimentam prioridades, decisões, conversas e limites estabelecidos por quem lidera.",
+    neuroHook:
+      "Ambiguidade, injustiça e imprevisibilidade mantêm o cérebro em estado de ameaça. Clareza, voz e feedback reduzem incerteza e liberam capacidade para decidir e executar.",
+    tone: "amber",
+    icon: "compass",
+    drivers: [
+      {
+        label: "Clareza",
+        title: "Direção compreensível",
+        text: "Prioridades, papéis, critérios e expectativas que orientam decisões cotidianas.",
+      },
+      {
+        label: "Justiça",
+        title: "Coerência decisória",
+        text: "Processos percebidos como explicáveis, consistentes e abertos à escuta.",
+      },
+      {
+        label: "Feedback",
+        title: "Aprendizagem contínua",
+        text: "Conversas frequentes que reconhecem avanços e tornam o próximo passo possível.",
+      },
+      {
+        label: "Cuidado ativo",
+        title: "Carga sustentável",
+        text: "Atenção a sinais de sobrecarga, recursos disponíveis e condições de execução.",
+      },
+    ],
+    learningFlow: [
+      {
+        k: "01",
+        title: "Enxergar",
+        text: "A liderança recebe sinais agregados sobre a experiência real da gestão.",
+      },
+      {
+        k: "02",
+        title: "Aprender",
+        text: "Trilhas convertem lacunas em repertório prático de liderança humana.",
+      },
+      {
+        k: "03",
+        title: "Praticar",
+        text: "Experimentos aplicam novos rituais em decisões, carga, feedback e reconhecimento.",
+      },
+      {
+        k: "04",
+        title: "Comprovar",
+        text: "Pulsos e evidências mostram se a prática gerencial mudou a experiência do time.",
+      },
+    ],
+    activations: [
+      {
+        title: "Copiloto de liderança",
+        text: "Recomendações contextuais com aprovação humana e rastreabilidade.",
+      },
+      {
+        title: "Trilhas aplicadas",
+        text: "Microaprendizagens sobre segurança psicológica, feedback e carga.",
+      },
+      {
+        title: "Experimentos de gestão",
+        text: "Planos curtos com hipótese, responsável, indicador e veredito.",
+      },
+    ],
+    outcome:
+      "A organização deixa de avaliar liderança apenas por intenção ou resultado final e passa a desenvolver práticas que conectam confiança, saúde, execução e aprendizagem.",
+    guardrail:
+      "Desenvolvimento gerencial baseado em padrões agregados, sem ranking punitivo de líderes.",
+  },
+  "ivo-organizacao": {
+    index: "04",
+    label: "ORGANIZAÇÃO",
+    title: "Florescimento sustentável precisa estar incorporado ao sistema",
+    subtitle:
+      "A dimensão ORGANIZAÇÃO verifica se políticas, governança, recursos e decisões institucionais tornam a vitalidade possível, coerente e duradoura.",
+    thesis:
+      "Quando o bem-estar depende de esforço individual ou de líderes excepcionais, ele é frágil. A maturidade começa quando o sistema protege, aprende e melhora por desenho.",
+    neuroHook:
+      "Coerência institucional reduz cinismo e aumenta confiança. Quando discurso, regra e experiência se alinham, as pessoas investem mais energia porque o ambiente se torna previsível e legítimo.",
+    tone: "violet",
+    icon: "building",
+    drivers: [
+      {
+        label: "Políticas",
+        title: "Regras que protegem",
+        text: "Diretrizes e critérios que incorporam prevenção, equidade e desenvolvimento.",
+      },
+      {
+        label: "Governança",
+        title: "Decisão rastreável",
+        text: "Papéis, fóruns, evidências e responsabilidades para agir e prestar contas.",
+      },
+      {
+        label: "Condições",
+        title: "Recursos reais",
+        text: "Carga, tecnologia, tempo e suporte compatíveis com o trabalho esperado.",
+      },
+      {
+        label: "Coerência",
+        title: "Promessa vivida",
+        text: "Alinhamento entre valores declarados, decisões, incentivos e experiência humana.",
+      },
+    ],
+    learningFlow: [
+      {
+        k: "01",
+        title: "Integrar",
+        text: "Dados humanos entram na governança junto a risco, estratégia e ESG.",
+      },
+      {
+        k: "02",
+        title: "Priorizar",
+        text: "Lacunas sistêmicas viram backlog com responsáveis, prazos e critérios.",
+      },
+      {
+        k: "03",
+        title: "Transformar",
+        text: "Políticas, processos e recursos são testados por experimentos controlados.",
+      },
+      {
+        k: "04",
+        title: "Prestar contas",
+        text: "Relatórios consolidam evolução, evidências e maturidade institucional.",
+      },
+    ],
+    activations: [
+      {
+        title: "Governança ESG",
+        text: "Indicadores sociais conectados a evidências, planos e relato executivo.",
+      },
+      {
+        title: "NR-1 e ISO 45003",
+        text: "Prevenção psicossocial integrada ao GRO/PGR e à melhoria contínua.",
+      },
+      {
+        title: "Relatório Global",
+        text: "Síntese board-ready das quatro dimensões, lentes aplicadas, decisões e evolução anual.",
+      },
+    ],
+    outcome:
+      "Conselho, RH, SST e lideranças passam a compartilhar uma infraestrutura comum para prevenir riscos, desenvolver pessoas e demonstrar evolução institucional.",
+    guardrail:
+      "Governança com dados agregados, finalidade explícita, consentimento e trilha de auditoria.",
+  },
+} as const;
+
 // ─── 4 · As 4 Lentes VITA™ (Q1–Q4) ────────────────────────────────────────────
 export const LENSES = {
-  eyebrow: "As 4 Lentes VITA™",
-  title: "Nenhuma ferramenta sozinha explica a complexidade humana",
+  eyebrow: "4 Lentes VITA™ de Mensuração, Aprendizagem e Evolução",
+  title: "Quatro leituras complementares para desenvolver as mesmas quatro dimensões",
+  lead: "COPSOQ, FIB-T, PERMA+V e VIA-T entram em sequência ao longo do ano. Cada lente observa EU, NÓS, LIDERANÇA e ORGANIZAÇÃO por um ângulo científico distinto.",
   annual:
-    "Programa anual em quatro trimestres: cada lente entra no momento certo, transforma aprendizado em ação e consagra o ciclo no Relatório Global ESG.",
+    "Programa anual em quatro trimestres: cada lente entra no momento certo, lê as quatro dimensões, transforma aprendizado em ação e consagra o ciclo no Relatório Global ESG.",
   finale: {
     q: "Q5",
     title: "Relatório Global ESG",
@@ -194,10 +530,10 @@ export const LENSES = {
 
 // ─── Deep dive · As 4 Lentes (ciência aplicada) ───────────────────────────────
 export const LENSES_DEEP = {
-  title: "As 4 Lentes VITA™ — a ciência viva por trás de cada decisão",
+  title: "As 4 Lentes VITA™ — mensuração, aprendizagem e evolução em cada trimestre",
   subtitle:
-    "Quatro instrumentos validados que, juntos, traduzem a complexidade humana em sinais acionáveis. Nenhum sozinho responde — combinados, formam o primeiro Sistema Operacional da Vitalidade Organizacional.",
-  hook: "Pessoas não cabem em um único termômetro. A vitalidade emerge na intersecção de risco, ecossistema, florescimento e forças.",
+    "Quatro instrumentos complementares que observam as mesmas dimensões — EU, NÓS, LIDERANÇA e ORGANIZAÇÃO — por ângulos científicos distintos. Juntos, traduzem complexidade humana em aprendizagem e ação.",
+  hook: "As dimensões mostram onde a vitalidade acontece. As lentes revelam como ela precisa ser compreendida, desenvolvida e acompanhada ao longo do ano.",
   pillars: [
     {
       q: "Q1 · Compliance & Prevenção",
@@ -359,7 +695,7 @@ export const GLOBAL_ESG = {
   eyebrow: "Q5 · Inteligência Sistêmica",
   badge: "Relatório Global ESG",
   title: "O ano inteiro, sintetizado em evidência",
-  text: "Síntese anual com evolução, evidências, recomendações, indicadores e maturidade organizacional — as quatro lentes consolidadas na linguagem de ESG e governança.",
+  text: "Síntese anual com evolução, evidências, recomendações, indicadores e maturidade organizacional — as quatro lentes aplicadas às quatro dimensões e consolidadas na linguagem de ESG e governança.",
   points: [
     "Evolução longitudinal por lente",
     "Indicadores E/S/G rastreáveis ao instrumento",
@@ -512,7 +848,7 @@ export const MODULES = {
 export const APPLICATIONS = {
   eyebrow: "Ecossistema operacional",
   title: "O mesmo sistema de vitalidade, adaptado a diferentes organizações",
-  lead: "O VitalOS preserva a lógica central do IVO — pessoas, vínculos, liderança e sistema institucional — e adapta linguagem, indicadores, rituais e evidências ao contexto onde o florescimento precisa acontecer.",
+  lead: "O VitalOS preserva as quatro dimensões do IVO — EU, NÓS, LIDERANÇA e ORGANIZAÇÃO — e adapta linguagem, indicadores, rituais e evidências ao contexto onde o florescimento precisa acontecer.",
   items: [
     {
       modal: "application-enterprises",
@@ -580,7 +916,7 @@ export const APPLICATION_MODALS = {
       "Nas empresas, o IVO transforma saúde mental, cultura, liderança e ESG social em uma agenda executiva de prevenção, performance humana e governança.",
     thesis:
       "Vitalidade corporativa não é benefício isolado: é capacidade institucional de proteger pessoas, desenvolver times e sustentar crescimento com evidência.",
-    lenses: [
+    dimensions: [
       {
         label: "Eu",
         title: "Energia e autonomia do colaborador",
@@ -618,7 +954,7 @@ export const APPLICATION_MODALS = {
       "Na educação, o IVO lê o florescimento de estudantes, educadores, equipes pedagógicas e gestão institucional como um ecossistema de aprendizagem.",
     thesis:
       "Uma instituição educacional floresce quando aprender, conviver e cuidar deixam de ser ações separadas e viram cultura mensurável.",
-    lenses: [
+    dimensions: [
       {
         label: "Eu",
         title: "Estudante e educador com recursos internos",
@@ -656,7 +992,7 @@ export const APPLICATION_MODALS = {
       "Em governos, o IVO vira infraestrutura GovTech para saúde mental de servidores, bem-estar público, FIB Cidades e decisões intersetoriais.",
     thesis:
       "Política pública de bem-estar exige escuta contínua, recortes territoriais, indicadores compreensíveis e capacidade de coordenar ações entre áreas.",
-    lenses: [
+    dimensions: [
       {
         label: "Eu",
         title: "Servidor e cidadão com dignidade",
@@ -694,7 +1030,7 @@ export const APPLICATION_MODALS = {
       "Nas cidades, o IVO se expande para bairros, serviços, convivência, pertencimento e qualidade de vida territorial.",
     thesis:
       "Uma cidade floresce quando dados humanos ajudam a decidir onde investir, que vínculos fortalecer e quais serviços precisam evoluir.",
-    lenses: [
+    dimensions: [
       {
         label: "Eu",
         title: "Morador com bem-estar percebido",
@@ -732,7 +1068,7 @@ export const APPLICATION_MODALS = {
       "Em comunidades, condomínios e bairros, o IVO vira tecnologia social para fortalecer relações, cuidado mútuo e cultura de convivência.",
     thesis:
       "O lugar onde se vive também pode ser um ecossistema de florescimento: menos isolamento, mais confiança, mais participação e mais cuidado.",
-    lenses: [
+    dimensions: [
       {
         label: "Eu",
         title: "Pessoa com segurança e pertencimento",
@@ -775,7 +1111,7 @@ export const DASHBOARD_PREVIEW = {
     { label: "Participação", value: "78%", sub: "agregada (n≥5)" },
     { label: "Tendência", value: "↑ +51", sub: "vs. ciclo anterior" },
   ],
-  lenses: [
+  dimensions: [
     { name: "EU", score: 71 },
     { name: "NÓS", score: 64 },
     { name: "LIDERANÇA", score: 58 },
@@ -1047,7 +1383,7 @@ export const TRUST = {
 // ─── 9 · CTA final ────────────────────────────────────────────────────────────
 export const FINAL_CTA = {
   title: "Pronto para enxergar a vitalidade da sua organização com mais clareza?",
-  text: "Agende uma demonstração e veja como as 4 Lentes VITA™ podem transformar dados humanos em estratégia, ação e impacto.",
+  text: "Agende uma demonstração e veja como as 4 Dimensões do IVO e as 4 Lentes VITA™ transformam dados humanos em estratégia, aprendizagem, ação e impacto.",
   buttons: [
     {
       label: "Agendar demonstração",
@@ -1346,7 +1682,7 @@ export const PROOF_NUMBERS = {
     },
   ],
   artifacts: [
-    "Mapa IVO pelas lentes Eu, Nós, Liderança e Organização",
+    "Mapa IVO pelas dimensões EU, NÓS, LIDERANÇA e ORGANIZAÇÃO",
     "Backlog de prevenção e desenvolvimento priorizado",
     "Trilhas educativas conectadas aos achados do ciclo",
     "Relatório executivo para RH, SST, ESG, conselho e governança",

@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import {
+  ArrowRight,
+  BrainCircuit,
+  Building2,
+  Compass,
+  ExternalLink,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +27,7 @@ import {
   JOURNEY,
   DASHBOARD_PREVIEW,
   EXECUTIVE_FORM,
+  IVO_DIMENSION_MODALS,
   LENSES_DEEP,
   LENS_TOOL_MODALS,
   METHOD_DEEP,
@@ -28,6 +40,14 @@ import { TONE_CLASS } from "./icons";
 type LensToolModalType = keyof typeof LENS_TOOL_MODALS;
 type ApplicationModalType = keyof typeof APPLICATION_MODALS;
 type EducationalInnovationModalType = keyof typeof EDUCATIONAL_INNOVATION_MODALS;
+type IvoDimensionModalType = keyof typeof IVO_DIMENSION_MODALS;
+
+const IVO_MODAL_ICON: Record<string, LucideIcon> = {
+  user: UserRound,
+  users: UsersRound,
+  compass: Compass,
+  building: Building2,
+};
 
 function isLensToolModalType(value: LandingModalType | null): value is LensToolModalType {
   return value !== null && value in LENS_TOOL_MODALS;
@@ -43,6 +63,10 @@ function isEducationalInnovationModalType(
   return value !== null && value in EDUCATIONAL_INNOVATION_MODALS;
 }
 
+function isIvoDimensionModalType(value: LandingModalType | null): value is IvoDimensionModalType {
+  return value !== null && value in IVO_DIMENSION_MODALS;
+}
+
 export function LandingModal({
   open,
   onClose,
@@ -55,6 +79,7 @@ export function LandingModal({
   const lensToolModal = isLensToolModalType(open) ? open : null;
   const applicationModal = isApplicationModalType(open) ? open : null;
   const educationalInnovationModal = isEducationalInnovationModalType(open) ? open : null;
+  const ivoDimensionModal = isIvoDimensionModalType(open) ? open : null;
 
   return (
     <Dialog open={open !== null} onOpenChange={(o) => !o && onClose()}>
@@ -64,6 +89,9 @@ export function LandingModal({
       {open === "lenses-deep" && <LensesDeepModal onAction={onAction} onClose={onClose} />}
       {open === "method-deep" && <MethodDeepModal onAction={onAction} onClose={onClose} />}
       {open === "nr1-playbook" && <Nr1PlaybookModal onAction={onAction} onClose={onClose} />}
+      {ivoDimensionModal && (
+        <IvoDimensionModal type={ivoDimensionModal} onAction={onAction} onClose={onClose} />
+      )}
       {applicationModal && (
         <ApplicationIvoModal type={applicationModal} onAction={onAction} onClose={onClose} />
       )}
@@ -82,6 +110,254 @@ export function LandingModal({
 }
 
 // ─── Modal · Inovação educacional ────────────────────────────────────────────
+
+function IvoDimensionModal({
+  type,
+  onAction,
+  onClose,
+}: {
+  type: IvoDimensionModalType;
+  onAction?: (action: CtaAction) => void;
+  onClose: () => void;
+}) {
+  const d = IVO_DIMENSION_MODALS[type];
+  const tone = TONE_CLASS[d.tone] ?? TONE_CLASS.sky!;
+  const Icon = IVO_MODAL_ICON[d.icon] ?? Sparkles;
+  const diagramPositions = [
+    "col-start-2 row-start-1",
+    "col-start-1 row-start-2",
+    "col-start-3 row-start-2",
+    "col-start-2 row-start-3",
+  ];
+
+  return (
+    <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto p-0 sm:rounded-2xl">
+      <DialogHeader className="relative overflow-hidden border-b border-white/10 bg-institutional-deep px-6 py-7 pr-14 text-left text-white sm:px-8">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(201,162,39,0.2),transparent_30%),radial-gradient(circle_at_88%_76%,rgba(16,185,129,0.16),transparent_34%),linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:auto,auto,54px_54px,54px_54px]"
+        />
+        <div aria-hidden className={`absolute inset-x-0 top-0 h-1 ${tone.dot} opacity-90`} />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
+          <span
+            className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/[0.08] ${tone.text} shadow-2xl backdrop-blur`}
+          >
+            <Icon className="h-8 w-8" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${tone.bg} ${tone.text}`}
+              >
+                {d.index} · {d.label}
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
+                Dimensão IVO
+              </span>
+            </div>
+            <DialogTitle className="mt-3 max-w-3xl font-serif text-2xl leading-tight text-white sm:text-3xl">
+              {d.title}
+            </DialogTitle>
+            <DialogDescription className="mt-2 max-w-3xl text-sm leading-relaxed text-white/70">
+              {d.subtitle}
+            </DialogDescription>
+          </div>
+        </div>
+      </DialogHeader>
+
+      <div className="space-y-5 bg-background p-5 sm:p-7">
+        <div className="grid gap-5 lg:grid-cols-[0.84fr_1.16fr]">
+          <section
+            className={`relative overflow-hidden rounded-3xl border border-border/70 bg-card p-5 ring-1 ring-inset ${tone.ring}`}
+          >
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-border)_44%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-border)_36%,transparent)_1px,transparent_1px)] bg-[size:42px_42px] opacity-35"
+            />
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${tone.text}`}>
+                  Mapa vivo da dimensão
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Quatro sinais que formam uma experiência
+                </p>
+              </div>
+              <BrainCircuit className={`h-5 w-5 ${tone.text}`} aria-hidden />
+            </div>
+
+            <div className="relative mt-5 grid min-h-[390px] grid-cols-[1fr_1.18fr_1fr] grid-rows-3 items-center gap-2">
+              <span
+                aria-hidden
+                className={`absolute left-1/2 top-[15%] h-[70%] w-px -translate-x-1/2 ${tone.dot} opacity-25`}
+              />
+              <span
+                aria-hidden
+                className={`absolute left-[15%] top-1/2 h-px w-[70%] -translate-y-1/2 ${tone.dot} opacity-25`}
+              />
+
+              {d.drivers.map((driver, index) => (
+                <div
+                  key={driver.label}
+                  className={`relative z-10 rounded-2xl border border-border/70 bg-background/80 px-2 py-3 text-center shadow-sm backdrop-blur ${diagramPositions[index]}`}
+                >
+                  <p
+                    className={`text-[9px] font-semibold uppercase tracking-[0.12em] ${tone.text}`}
+                  >
+                    {driver.label}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium leading-tight text-card-foreground">
+                    {driver.title}
+                  </p>
+                </div>
+              ))}
+
+              <div
+                className={`relative z-20 col-start-2 row-start-2 mx-auto grid h-28 w-28 place-items-center rounded-full border border-border/70 ${tone.bg} shadow-[0_18px_50px_rgba(11,61,46,0.14)] ring-1 ring-inset ${tone.ring}`}
+              >
+                <span
+                  aria-hidden
+                  className={`absolute inset-3 rounded-full border border-dashed ${tone.ring}`}
+                />
+                <div className="relative text-center">
+                  <Icon className={`mx-auto h-7 w-7 ${tone.text}`} aria-hidden />
+                  <p className={`mt-1 font-serif text-xl ${tone.text}`}>{d.label}</p>
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Vitalidade
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative mt-4 rounded-2xl border border-accent/25 bg-accent/5 p-4">
+              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                Atenção que gera valor
+              </p>
+              <p className="mt-2 font-serif text-sm leading-relaxed text-card-foreground">
+                {d.neuroHook}
+              </p>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="rounded-3xl border border-border/70 bg-card p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                O que esta dimensão revela
+              </p>
+              <p className="mt-2 font-serif text-lg leading-relaxed text-card-foreground">
+                {d.thesis}
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {d.drivers.map((driver) => (
+                  <article
+                    key={driver.label}
+                    className={`rounded-2xl border border-border/70 bg-background/55 p-4 ring-1 ring-inset ${tone.ring}`}
+                  >
+                    <p
+                      className={`text-[10px] font-semibold uppercase tracking-[0.15em] ${tone.text}`}
+                    >
+                      {driver.label}
+                    </p>
+                    <h3 className="mt-1 font-serif text-base text-card-foreground">
+                      {driver.title}
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {driver.text}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-border/70 bg-card p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Ciência do aprendizado aplicada
+              </p>
+              <ol className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {d.learningFlow.map((step) => (
+                  <li key={step.k} className="relative rounded-2xl bg-muted/35 p-3">
+                    <span
+                      className={`grid h-8 w-8 place-items-center rounded-xl font-mono text-[10px] font-semibold ${tone.bg} ${tone.text}`}
+                    >
+                      {step.k}
+                    </span>
+                    <p className="mt-3 font-serif text-sm text-card-foreground">{step.title}</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      {step.text}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        </div>
+
+        <section className="rounded-3xl border border-border/70 bg-card p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Como o VitalOS desenvolve esta dimensão
+              </p>
+              <p className="mt-1 text-sm text-card-foreground">
+                Tecnologia, educação e governança trabalhando como um único sistema.
+              </p>
+            </div>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+              Sinal → aprendizagem → ação → evidência
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {d.activations.map((activation, index) => (
+              <article
+                key={activation.title}
+                className={`relative overflow-hidden rounded-2xl border border-border/70 bg-background/55 p-4 ring-1 ring-inset ${tone.ring}`}
+              >
+                <span
+                  aria-hidden
+                  className={`absolute inset-y-0 left-0 w-1 ${tone.dot} opacity-80`}
+                />
+                <p className={`font-mono text-[10px] font-semibold ${tone.text}`}>0{index + 1}</p>
+                <h3 className="mt-2 font-serif text-base text-card-foreground">
+                  {activation.title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  {activation.text}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-5 rounded-3xl border border-primary/20 bg-primary/5 p-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+              Valor para a gestão
+            </p>
+            <p className="mt-2 font-serif text-base leading-relaxed text-card-foreground">
+              {d.outcome}
+            </p>
+            <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              {d.guardrail}
+            </p>
+          </div>
+          <Button
+            size="lg"
+            className="min-w-56 gap-2"
+            onClick={() => {
+              onClose();
+              onAction?.({ kind: "modal", modal: "executive" });
+            }}
+          >
+            Desenvolver esta dimensão
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Button>
+        </section>
+      </div>
+    </DialogContent>
+  );
+}
 
 function EducationalInnovationModal({
   type,
@@ -241,20 +517,20 @@ function ApplicationIvoModal({
             </p>
             <p className="mt-3 font-serif text-xl leading-tight text-card-foreground">{d.thesis}</p>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              {d.lenses.map((lens) => {
-                const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+              {d.dimensions.map((dimension) => {
+                const tone = TONE_CLASS[dimension.tone] ?? TONE_CLASS.sky!;
                 return (
                   <div
-                    key={lens.label}
+                    key={dimension.label}
                     className={`rounded-2xl border border-border/70 bg-card p-4 ring-1 ring-inset ${tone.ring}`}
                   >
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${tone.bg} ${tone.text}`}
                     >
-                      {lens.label}
+                      {dimension.label}
                     </span>
                     <p className="mt-3 font-serif text-base leading-tight text-card-foreground">
-                      {lens.title}
+                      {dimension.title}
                     </p>
                   </div>
                 );
@@ -273,24 +549,26 @@ function ApplicationIvoModal({
         <section className="space-y-4">
           <div className="rounded-3xl border border-border/70 bg-card p-5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Como as 4 lentes mudam de contexto
+              Como as 4 dimensões se adaptam ao contexto
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {d.lenses.map((lens) => {
-                const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+              {d.dimensions.map((dimension) => {
+                const tone = TONE_CLASS[dimension.tone] ?? TONE_CLASS.sky!;
                 return (
                   <article
-                    key={lens.title}
+                    key={dimension.title}
                     className={`rounded-2xl border border-border/70 bg-background/60 p-4 ring-1 ring-inset ${tone.ring}`}
                   >
                     <p
                       className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${tone.text}`}
                     >
-                      {lens.label}
+                      {dimension.label}
                     </p>
-                    <h3 className="mt-1 font-serif text-lg text-card-foreground">{lens.title}</h3>
+                    <h3 className="mt-1 font-serif text-lg text-card-foreground">
+                      {dimension.title}
+                    </h3>
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                      {lens.text}
+                      {dimension.text}
                     </p>
                   </article>
                 );
@@ -838,18 +1116,20 @@ function DashboardModal() {
         ))}
       </div>
       <div className="space-y-2.5">
-        {d.lenses.map((l) => (
-          <div key={l.name} className="flex items-center gap-3">
-            <span className="w-28 shrink-0 text-xs font-medium text-card-foreground">{l.name}</span>
+        {d.dimensions.map((dimension) => (
+          <div key={dimension.name} className="flex items-center gap-3">
+            <span className="w-28 shrink-0 text-xs font-medium text-card-foreground">
+              {dimension.name}
+            </span>
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary"
-                style={{ width: `${l.score}%` }}
+                style={{ width: `${dimension.score}%` }}
                 aria-hidden
               />
             </div>
             <span className="w-8 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-              {l.score}
+              {dimension.score}
             </span>
           </div>
         ))}

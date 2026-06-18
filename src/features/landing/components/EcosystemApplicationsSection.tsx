@@ -66,7 +66,7 @@ export function EcosystemApplicationsSection({
                 <div className="flex items-center justify-between gap-3">
                   <span
                     aria-hidden
-                    className={`relative grid h-12 w-12 place-items-center rounded-2xl ${tone.bg} ${toneText} ring-1 ring-inset ${tone.ring}`}
+                    className={`landing-light-icon relative grid h-12 w-12 place-items-center rounded-2xl ${toneText} ring-1 ring-inset ring-primary/20`}
                   >
                     <Icon className="h-5 w-5" />
                   </span>

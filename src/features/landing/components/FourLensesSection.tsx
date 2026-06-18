@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FileText } from "lucide-react";
-import { LENSES, CATEGORY, IVO_LENSES, IVO_BRAND, type CtaAction } from "../data/landing-copy";
+import { ArrowRight, FileText, Grid3X3, ScanSearch } from "lucide-react";
+import { LENSES, CATEGORY, IVO_DIMENSIONS, IVO_BRAND, type CtaAction } from "../data/landing-copy";
 import { TONE_CLASS } from "./icons";
 import strategyLenses from "@/assets/strategy-lenses-hologram-transparent.png";
 
@@ -87,40 +87,40 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{CATEGORY.text}</p>
         </div>
 
-        {/* IVO — Índice de Vitalidade Organizacional */}
+        {/* IVO — 4 Dimensões da Vitalidade Organizacional */}
         <div className="mt-12 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
           <div className="grid gap-0 lg:grid-cols-[0.9fr_1.4fr]">
             <div className="border-b border-border/60 bg-primary/5 p-6 sm:p-8 lg:border-r lg:border-b-0">
               <IvoBrandMark />
               <p className="mt-7 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                {IVO_LENSES.eyebrow}
+                {IVO_DIMENSIONS.eyebrow}
               </p>
               <h3 className="mt-3 font-serif text-2xl leading-tight text-card-foreground sm:text-3xl">
-                {IVO_LENSES.title}
+                {IVO_DIMENSIONS.title}
               </h3>
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                {IVO_LENSES.text}
+                {IVO_DIMENSIONS.text}
               </p>
               <div className="mt-6 rounded-2xl border border-primary/15 bg-background/70 p-4">
                 <p className="font-serif text-base leading-relaxed text-card-foreground">
-                  {IVO_LENSES.insight}
+                  {IVO_DIMENSIONS.insight}
                 </p>
               </div>
             </div>
 
             <ol className="grid gap-3 bg-background/45 p-4 sm:grid-cols-2 sm:p-5">
-              {IVO_LENSES.lenses.map((lens, index) => {
-                const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+              {IVO_DIMENSIONS.dimensions.map((dimension, index) => {
+                const tone = TONE_CLASS[dimension.tone] ?? TONE_CLASS.sky!;
                 return (
                   <li
-                    key={lens.id}
-                    className={`group relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm ring-1 ring-inset ${tone.ring} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                    key={dimension.id}
+                    className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm ring-1 ring-inset ${tone.ring} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
                   >
                     <span
                       aria-hidden
                       className={`absolute inset-x-0 top-0 h-1 ${tone.dot} opacity-90`}
                     />
-                    <div className="relative flex items-start gap-4">
+                    <div className="relative flex flex-1 items-start gap-4">
                       <span
                         className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-mono text-sm font-semibold ${tone.bg} ${tone.text} ring-1 ring-inset ${tone.ring} shadow-sm`}
                       >
@@ -131,24 +131,38 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
                           <p
                             className={`text-xs font-semibold uppercase tracking-[0.14em] ${tone.text}`}
                           >
-                            {lens.label}
+                            {dimension.label}
                           </p>
                           <span className="rounded-full border border-border/60 bg-background/65 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                            Lente IVO
+                            Dimensão IVO
                           </span>
                         </div>
                         <h4 className="mt-1 font-serif text-xl text-card-foreground">
-                          {lens.title}
+                          {dimension.title}
                         </h4>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                          {lens.text}
+                          {dimension.text}
                         </p>
                         <div className="my-4 h-px bg-gradient-to-r from-border/0 via-border to-border/0" />
                         <p className="border-l border-border/70 pl-3 text-xs leading-relaxed text-card-foreground/80">
-                          {lens.signal}
+                          {dimension.signal}
                         </p>
                       </div>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        onAction({
+                          kind: "modal",
+                          modal: dimension.modal,
+                        })
+                      }
+                      className="relative mt-5 w-full justify-between gap-3 bg-background/55 text-card-foreground backdrop-blur hover:bg-background/85"
+                    >
+                      {dimension.cta}
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                    </Button>
                   </li>
                 );
               })}
@@ -156,7 +170,82 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           </div>
         </div>
 
-        {/* As 4 Lentes — header com imagem estratégica */}
+        <div className="relative mt-10 overflow-hidden rounded-3xl border border-white/10 bg-institutional-deep p-5 text-white shadow-2xl shadow-black/15 sm:p-7">
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(201,162,39,0.17),transparent_32%),radial-gradient(circle_at_88%_76%,rgba(16,185,129,0.14),transparent_34%),linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:auto,auto,52px_52px,52px_52px]"
+          />
+          <div className="relative">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+                  {IVO_DIMENSIONS.bridge.eyebrow}
+                </p>
+                <h3 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
+                  {IVO_DIMENSIONS.bridge.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/68">
+                  {IVO_DIMENSIONS.bridge.text}
+                </p>
+              </div>
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 font-mono text-xs font-semibold text-accent">
+                <Grid3X3 className="h-4 w-4" aria-hidden />
+                {IVO_DIMENSIONS.bridge.equation}
+              </span>
+            </div>
+
+            <div className="mt-7 grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+              <div>
+                <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                  <Grid3X3 className="h-3.5 w-3.5 text-accent" aria-hidden />
+                  {IVO_DIMENSIONS.bridge.dimensionsLabel}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {IVO_DIMENSIONS.dimensions.map((dimension) => {
+                    const tone = TONE_CLASS[dimension.tone] ?? TONE_CLASS.sky!;
+                    return (
+                      <span
+                        key={dimension.id}
+                        className={`rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold ${tone.text} backdrop-blur`}
+                      >
+                        {dimension.label}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center">
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-accent/30 bg-accent/10 font-serif text-2xl text-accent shadow-[0_0_32px_rgba(201,162,39,0.16)]">
+                  ×
+                </span>
+              </div>
+
+              <div>
+                <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                  <ScanSearch className="h-3.5 w-3.5 text-emerald-300" aria-hidden />
+                  {IVO_DIMENSIONS.bridge.lensesLabel}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {LENSES.items.map((lens) => {
+                    const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
+                    return (
+                      <span
+                        key={lens.q}
+                        className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs backdrop-blur"
+                      >
+                        <span className={`font-mono font-semibold ${tone.text}`}>{lens.q}</span>
+                        <span className="ml-2 text-white/72">{lens.instrument}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* As 4 Lentes VITA — header com imagem estratégica */}
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -166,8 +255,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
               {LENSES.title}
             </h3>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Quatro instrumentos validados internacionalmente, orquestrados em uma única jornada
-              anual — risco, ecossistema, florescimento e forças, lendo a organização inteira.
+              {LENSES.lead}
             </p>
             <div className="mt-6 rounded-2xl border border-border/70 bg-card/70 p-4 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
