@@ -37,7 +37,7 @@ const AXIS_STYLE: Record<MissionAxis, { label: string; cls: string }> = {
 };
 
 export const Route = createFileRoute("/embaixador")({
-  head: () => ({ meta: [{ title: "Painel do Embaixador — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Painel do Embaixador — 4 Lentes VitalOS™" }] }),
   component: EmbaixadorPage,
 });
 

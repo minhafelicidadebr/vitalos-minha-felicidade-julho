@@ -4,7 +4,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { HOLDING_PORTFOLIO, HOLDING_SUMMARY, type PortfolioCompany } from "@/mocks/executivo-mock";
 
 export const Route = createFileRoute("/holding")({
-  head: () => ({ meta: [{ title: "Holding — Carteira de Vitalidade · 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Holding — Carteira de Vitalidade · 4 Lentes VitalOS™" }] }),
   component: HoldingPage,
 });
 

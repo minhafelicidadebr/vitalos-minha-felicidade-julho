@@ -25,7 +25,7 @@ const MOMENTUM_LABEL: Record<Momentum, string> = {
 const GROUNDED_MODE_ID = "ler_heatmap";
 
 export const Route = createFileRoute("/floresceria")({
-  head: () => ({ meta: [{ title: "FlorescerIA — copilota da vitalidade · 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "FlorescerIA — copilota da vitalidade · 4 Lentes VitalOS™" }] }),
   component: FlorescerIAPage,
 });
 

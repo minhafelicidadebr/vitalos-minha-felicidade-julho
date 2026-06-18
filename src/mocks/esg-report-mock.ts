@@ -77,7 +77,7 @@ export const REPORT_INTRO = {
   kicker: "Documento de Conselho",
   confidential: "Confidencial — uso interno do conselho. Dados agregados (k≥5).",
   printHint: "Dica: na caixa de impressão, escolha “Salvar como PDF” em tamanho A4.",
-  generatedBy: "Gerado pelo 4 Lentes VITA™ · VitalOS",
+  generatedBy: "Gerado pelo 4 Lentes VitalOS™ · VitalOS",
 };
 
 // Data de geração legível (pt-BR), estável por render.

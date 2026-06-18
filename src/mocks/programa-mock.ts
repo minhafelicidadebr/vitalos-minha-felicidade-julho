@@ -31,7 +31,7 @@ export const PROGRAMA_PROBLEM = {
 export const PROGRAMA_HIERARCHY: Array<{ layer: string; value: string; note: string }> = [
   {
     layer: "Marca",
-    value: "4 Lentes VITA™",
+    value: "4 Lentes VitalOS™",
     note: "EU · NÓS · LIDERANÇA · ORGANIZAÇÃO — como a vitalidade é lida em qualquer momento.",
   },
   {

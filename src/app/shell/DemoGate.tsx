@@ -82,7 +82,7 @@ export function DemoGateScreen() {
             4
           </span>
           <span className="flex flex-col leading-tight">
-            <span className="font-serif text-base tracking-tight">4 Lentes VITA™</span>
+            <span className="font-serif text-base tracking-tight">4 Lentes VitalOS™</span>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Demonstração protegida
             </span>
@@ -100,7 +100,10 @@ export function DemoGateScreen() {
         </div>
 
         <div className="mt-6 border-t border-border/50 pt-4 text-center">
-          <a href="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <a
+            href="/"
+            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
             ← Voltar à página inicial
           </a>
         </div>

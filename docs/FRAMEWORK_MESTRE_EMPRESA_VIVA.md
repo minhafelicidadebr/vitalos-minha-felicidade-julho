@@ -2,7 +2,7 @@
 
 # REDE DO BEM-ESTAR ORGANIZACIONAL: MISSÃO EMPRESA VIVA
 
-## 4 LENTES VITA™ — O Sistema Operacional da Vitalidade Organizacional
+## 4 LENTES VitalOS™ — O Sistema Operacional da Vitalidade Organizacional
 
 **Documento-Bíblia do Ecossistema SaaS · Versão 1.0 GENESIS · Junho 2026**
 **Segmento:** Empresas e organizações do setor privado (expansível por Domain Packs a condomínios, escolas, governos, saúde e comunidades)
@@ -94,7 +94,7 @@
 
 ## 1.1 POR QUE NARRATIVA EM AMBIENTE CORPORATIVO (E COMO NÃO INFANTILIZAR)
 
-Adultos não aderem a "joguinhos" — aderem a **significado, ritmo e pertencimento**. A camada narrativa do VITA não é fantasia: é **dramaturgia organizacional sóbria**, no registro de uma expedição profissional (como uma tripulação, não como um RPG). Ela existe para resolver os três assassinos de programas de bem-estar: a fadiga de iniciativa ("mais um programa de RH"), a falta de arco (começa e nunca termina) e a ausência de celebração (esforço sem reconhecimento). Regra estética inviolável: **linguagem adulta, visual premium, zero mascotes infantis.**
+Adultos não aderem a "joguinhos" — aderem a **significado, ritmo e pertencimento**. A camada narrativa do VitalOS™ não é fantasia: é **dramaturgia organizacional sóbria**, no registro de uma expedição profissional (como uma tripulação, não como um RPG). Ela existe para resolver os três assassinos de programas de bem-estar: a fadiga de iniciativa ("mais um programa de RH"), a falta de arco (começa e nunca termina) e a ausência de celebração (esforço sem reconhecimento). Regra estética inviolável: **linguagem adulta, visual premium, zero mascotes infantis.**
 
 ## 1.2 O MUNDO E A AMEAÇA
 
@@ -173,7 +173,7 @@ Cada força tem: indicadores que a detectam (pilares IVO + sinais), protocolos q
 
 ## 2.1 AS QUATRO LENTES: BASE TEÓRICA E HIPÓTESES CAUSAIS
 
-A tese científica do VITA: **bem-estar organizacional é fenômeno multinível**. Intervenções falham quando atacam o nível errado (ex.: oferecer meditação — nível EU — para um problema de sobrecarga estrutural — nível ORGANIZAÇÃO). As 4 Lentes são um protocolo de diagnóstico diferencial:
+A tese científica do VitalOS™: **bem-estar organizacional é fenômeno multinível**. Intervenções falham quando atacam o nível errado (ex.: oferecer meditação — nível EU — para um problema de sobrecarga estrutural — nível ORGANIZAÇÃO). As 4 Lentes são um protocolo de diagnóstico diferencial:
 
 **LENTE 1 — EU (Indivíduo).** Base: PERMA+V (Seligman) — emoções positivas, engajamento, relações, significado, realização + vitalidade; Capital Psicológico (Luthans): esperança, autoeficácia, resiliência, otimismo; WHO-5 como referência de bem-estar subjetivo; Teoria da Autodeterminação (Deci & Ryan): autonomia, competência, pertencimento como necessidades básicas; job crafting (Wrzesniewski). Hipótese causal: indivíduos com necessidades básicas atendidas e forças em uso reportam maior vitalidade e menor exaustão.
 
@@ -270,7 +270,7 @@ Participação 100% voluntária com opt-out sem pergunta · k≥5 em qualquer re
 
 ## 4.4 DEVOLUTIVAS (a regra dos 7 dias)
 
-Padrão de mercado: devolutiva em 4–8 semanas → confiança morta. Padrão VITA: **agregados em até 7 dias**, em três camadas — **Colaborador:** radar da organização + "o que faremos com isso" + convite a missões. **Equipe (n≥5):** radar próprio + 1 pilar-foco sugerido + protocolos recomendados. **RH/diretoria:** completo + priorização + rascunho de plano pela FlorescerIA (aprovação humana). Toda devolutiva termina com ação proposta — nunca com o dado seco.
+Padrão de mercado: devolutiva em 4–8 semanas → confiança morta. Padrão VitalOS™: **agregados em até 7 dias**, em três camadas — **Colaborador:** radar da organização + "o que faremos com isso" + convite a missões. **Equipe (n≥5):** radar próprio + 1 pilar-foco sugerido + protocolos recomendados. **RH/diretoria:** completo + priorização + rascunho de plano pela FlorescerIA (aprovação humana). Toda devolutiva termina com ação proposta — nunca com o dado seco.
 
 ---
 
@@ -416,7 +416,7 @@ MVP: organization_id + pack JSON estático validado por `domain-pack.schema.json
 
 ## 10.1 MERCADO E POSICIONAMENTO
 
-Categoria criada: **Vitality Operating System**. Cunha: NR-1 psicossocial (demanda compulsória com prazo). Expansão: vitalidade, ESG, marca empregadora. Estrutura TAM/SAM/SOM a validar com dados correntes: TAM = empresas BR ≥20 func. obrigadas ao GRO × ticket anual; SAM = 50–5.000 func. em setores de pressão regulatória/talento; SOM 3 anos via canal de consultorias SST/contabilidades. **Matriz competitiva:** clima (mede e para) × benefícios (indivíduo sem sistema) × consultorias (não escalam) — o VITA ocupa sozinho o quadrante _mede + educa + transforma + comprova + certifica_.
+Categoria criada: **Vitality Operating System**. Cunha: NR-1 psicossocial (demanda compulsória com prazo). Expansão: vitalidade, ESG, marca empregadora. Estrutura TAM/SAM/SOM a validar com dados correntes: TAM = empresas BR ≥20 func. obrigadas ao GRO × ticket anual; SAM = 50–5.000 func. em setores de pressão regulatória/talento; SOM 3 anos via canal de consultorias SST/contabilidades. **Matriz competitiva:** clima (mede e para) × benefícios (indivíduo sem sistema) × consultorias (não escalam) — o VitalOS™ ocupa sozinho o quadrante _mede + educa + transforma + comprova + certifica_.
 
 ## 10.2 OFERTA E PRICING (PEPM, faixas a validar)
 

@@ -4,7 +4,7 @@ import { RHDashboard } from "@/app/dashboards/rh/RHDashboard";
 
 export const Route = createFileRoute("/rh")({
   head: () => ({
-    meta: [{ title: "Visão Executiva RH/CHRO — 4 Lentes VITA" }],
+    meta: [{ title: "Visão Executiva RH/CHRO — 4 Lentes VitalOS™" }],
   }),
   component: RHPage,
 });

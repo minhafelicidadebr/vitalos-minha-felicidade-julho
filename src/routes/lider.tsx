@@ -4,7 +4,7 @@ import { LiderDashboard } from "@/app/dashboards/lider/LiderDashboard";
 
 export const Route = createFileRoute("/lider")({
   head: () => ({
-    meta: [{ title: "Dashboard do Líder — 4 Lentes VITA" }],
+    meta: [{ title: "Dashboard do Líder — 4 Lentes VitalOS™" }],
   }),
   component: LiderPage,
 });

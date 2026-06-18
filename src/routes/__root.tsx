@@ -78,16 +78,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0B3D2E" },
-      { title: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
+      { title: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
       {
         name: "description",
         content:
           "VitalOS é uma plataforma SaaS B2B para operar vitalidade organizacional com dados agregados, ações, evidências e governança.",
       },
-      { name: "author", content: "4 Lentes VITA" },
+      { name: "author", content: "4 Lentes VitalOS™" },
       {
         property: "og:title",
-        content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional",
+        content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional",
       },
       {
         property: "og:description",
@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional",
+        content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional",
       },
       {
         name: "twitter:description",
@@ -115,8 +115,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/842acc4b-1242-459d-b559-dc967ea466a0/id-preview-32983166--292740c3-dda6-488c-b2bc-34a4f1979283.lovable.app-1781702322036.png",
       },
-      { property: "og:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
-      { name: "twitter:title", content: "4 Lentes VITA — Sistema Operacional da Vitalidade Organizacional" },
+      { property: "og:title", content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
+      { name: "twitter:title", content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
       { name: "description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
       { property: "og:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
       { name: "twitter:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },

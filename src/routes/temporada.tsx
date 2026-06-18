@@ -13,7 +13,7 @@ import {
 import { CANONICAL_JOURNEY, JOURNEY_CAPSTONE, JOURNEY_RATIONALE } from "@/domain/journey";
 
 export const Route = createFileRoute("/temporada")({
-  head: () => ({ meta: [{ title: "Cronograma das 4 Lentes — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Cronograma das 4 Lentes — 4 Lentes VitalOS™" }] }),
   component: TemporadaPage,
 });
 

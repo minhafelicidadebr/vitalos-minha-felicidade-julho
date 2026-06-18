@@ -8,7 +8,7 @@ import { getPulseConfig, getResponseLabels, selectPulseItems } from "@/engine/in
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/pulse")({
-  head: () => ({ meta: [{ title: "Pulse 60s — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Pulse 60s — 4 Lentes VitalOS™" }] }),
   component: PulsePage,
 });
 

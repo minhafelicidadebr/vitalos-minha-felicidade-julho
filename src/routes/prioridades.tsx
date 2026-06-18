@@ -17,7 +17,7 @@ import {
 } from "@/mocks/priority-mock";
 
 export const Route = createFileRoute("/prioridades")({
-  head: () => ({ meta: [{ title: "Diagnóstico Integrado — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Diagnóstico Integrado — 4 Lentes VitalOS™" }] }),
   component: PrioridadesPage,
 });
 

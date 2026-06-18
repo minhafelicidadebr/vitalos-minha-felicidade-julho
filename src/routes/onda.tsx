@@ -15,7 +15,7 @@ import { useWaveResponses } from "@/engine/survey/survey-store";
 import { getActiveWave, getSectorWaves, ONDA_INTRO, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";
 
 export const Route = createFileRoute("/onda")({
-  head: () => ({ meta: [{ title: "Onda Ativa · Mensurar — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Onda Ativa · Mensurar — 4 Lentes VitalOS™" }] }),
   component: OndaPage,
 });
 

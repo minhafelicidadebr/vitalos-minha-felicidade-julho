@@ -10,7 +10,7 @@ import {
 } from "@/engine/impact/impact-engine";
 
 export const Route = createFileRoute("/impacto")({
-  head: () => ({ meta: [{ title: "Relatório de Impacto — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Relatório de Impacto — 4 Lentes VitalOS™" }] }),
   component: Impacto,
 });
 

@@ -13,7 +13,7 @@ import {
 } from "@/mocks/fibt-mock";
 
 export const Route = createFileRoute("/fibt")({
-  head: () => ({ meta: [{ title: "FIB-T · Felicidade Interna Bruta — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "FIB-T · Felicidade Interna Bruta — 4 Lentes VitalOS™" }] }),
   component: FibtPage,
 });
 

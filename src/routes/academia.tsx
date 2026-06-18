@@ -10,7 +10,7 @@ import { getSectorData } from "@/mocks/sector-data";
 import { LEARNING_PATHS, pathProgress, type LearningPath } from "@/mocks/academia-mock";
 
 export const Route = createFileRoute("/academia")({
-  head: () => ({ meta: [{ title: "Academia do Florescimento — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Academia do Florescimento — 4 Lentes VitalOS™" }] }),
   component: AcademiaPage,
 });
 

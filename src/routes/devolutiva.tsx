@@ -20,7 +20,7 @@ import { getActiveWave } from "@/mocks/campaign-mock";
 import { ORG_VIAT_RESULT } from "@/mocks/viat-mock";
 
 export const Route = createFileRoute("/devolutiva")({
-  head: () => ({ meta: [{ title: "Devolutiva da Onda · Educar — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Devolutiva da Onda · Educar — 4 Lentes VitalOS™" }] }),
   component: DevolutivaPage,
 });
 

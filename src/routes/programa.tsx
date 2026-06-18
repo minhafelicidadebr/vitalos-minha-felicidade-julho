@@ -13,7 +13,7 @@ import {
 } from "@/mocks/programa-mock";
 
 export const Route = createFileRoute("/programa")({
-  head: () => ({ meta: [{ title: "O Programa · Metodologia — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "O Programa · Metodologia — 4 Lentes VitalOS™" }] }),
   component: ProgramaPage,
 });
 

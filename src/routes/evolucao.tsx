@@ -19,7 +19,7 @@ import { MOMENTUM_COPY, TREND_INTRO } from "@/mocks/trend-mock";
 import { getSectorData } from "@/mocks/sector-data";
 
 export const Route = createFileRoute("/evolucao")({
-  head: () => ({ meta: [{ title: "Evolução · Curva Longitudinal — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Evolução · Curva Longitudinal — 4 Lentes VitalOS™" }] }),
   component: EvolucaoPage,
 });
 

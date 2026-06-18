@@ -154,7 +154,7 @@ export const IVO_DIMENSIONS = {
   bridge: {
     eyebrow: "Arquitetura VitalOS 4 × 4",
     title: "As dimensões mostram onde agir. As lentes mostram como compreender e evoluir.",
-    text: "Em cada trimestre, uma Lente VITA™ observa as quatro dimensões da vitalidade. O resultado é uma leitura sistêmica que conecta pessoa, vínculos, liderança e organização à prevenção, ao bem-comum, ao florescimento e às forças.",
+    text: "Em cada trimestre, uma Lente VitalOS™ observa as quatro dimensões da vitalidade. O resultado é uma leitura sistêmica que conecta pessoa, vínculos, liderança e organização à prevenção, ao bem-comum, ao florescimento e às forças.",
     dimensionsLabel: "Onde a vitalidade acontece",
     lensesLabel: "Como a vitalidade é lida e desenvolvida",
     equation: "4 dimensões × 4 lentes × 4 trimestres",
@@ -471,9 +471,9 @@ export const IVO_DIMENSION_MODALS = {
   },
 } as const;
 
-// ─── 4 · As 4 Lentes VITA™ (Q1–Q4) ────────────────────────────────────────────
+// ─── 4 · As 4 Lentes VitalOS™ (Q1–Q4) ─────────────────────────────────────────
 export const LENSES = {
-  eyebrow: "4 Lentes VITA™ de Mensuração, Aprendizagem e Evolução",
+  eyebrow: "4 Lentes VitalOS™ de Mensuração, Aprendizagem e Evolução",
   title: "Quatro leituras complementares para desenvolver as mesmas quatro dimensões",
   lead: "COPSOQ, FIB-T, PERMA+V e VIA-T entram em sequência ao longo do ano. Cada lente observa EU, NÓS, LIDERANÇA e ORGANIZAÇÃO por um ângulo científico distinto.",
   annual:
@@ -530,7 +530,7 @@ export const LENSES = {
 
 // ─── Deep dive · As 4 Lentes (ciência aplicada) ───────────────────────────────
 export const LENSES_DEEP = {
-  title: "As 4 Lentes VITA™ — mensuração, aprendizagem e evolução em cada trimestre",
+  title: "As 4 Lentes VitalOS™ — mensuração, aprendizagem e evolução em cada trimestre",
   subtitle:
     "Quatro instrumentos complementares que observam as mesmas dimensões — EU, NÓS, LIDERANÇA e ORGANIZAÇÃO — por ângulos científicos distintos. Juntos, traduzem complexidade humana em aprendizagem e ação.",
   hook: "As dimensões mostram onde a vitalidade acontece. As lentes revelam como ela precisa ser compreendida, desenvolvida e acompanhada ao longo do ano.",
@@ -838,7 +838,7 @@ export const MODULES = {
     },
     {
       icon: "award",
-      title: "Selo VITA",
+      title: "Selo VitalOS™",
       desc: "Certificação computada do ciclo anual — não comprada.",
     },
   ],
@@ -1383,7 +1383,7 @@ export const TRUST = {
 // ─── 9 · CTA final ────────────────────────────────────────────────────────────
 export const FINAL_CTA = {
   title: "Pronto para enxergar a vitalidade da sua organização com mais clareza?",
-  text: "Agende uma demonstração e veja como as 4 Dimensões do IVO e as 4 Lentes VITA™ transformam dados humanos em estratégia, aprendizagem, ação e impacto.",
+  text: "Agende uma demonstração e veja como as 4 Dimensões do IVO e as 4 Lentes VitalOS™ transformam dados humanos em estratégia, aprendizagem, ação e impacto.",
   buttons: [
     {
       label: "Agendar demonstração",
@@ -1440,7 +1440,7 @@ export const JOURNEY = {
       q: "Q5",
       instrument: "ESG",
       theme: "Síntese Global",
-      text: "Relatório Global ESG + Selo VITA — a prova consolidada do ano.",
+      text: "Relatório Global ESG + Selo VitalOS™ — a prova consolidada do ano.",
       tone: "amber",
     },
   ],
@@ -1449,7 +1449,7 @@ export const JOURNEY = {
 // ─── Modal · Receber apresentação executiva (form visual, sem backend) ────────
 export const EXECUTIVE_FORM = {
   title: "Receber apresentação executiva",
-  subtitle: "Deixe seus dados e o time VITA entra em contato. (Demonstração — sem envio real.)",
+  subtitle: "Deixe seus dados e o time VitalOS™ entra em contato. (Demonstração — sem envio real.)",
   fields: [
     { id: "nome", label: "Nome", type: "text", placeholder: "Seu nome" },
     {
@@ -1470,7 +1470,7 @@ export const EXECUTIVE_FORM = {
     "Educação / instituições de ensino",
   ],
   submitLabel: "Enviar (demonstração)",
-  successTitle: "Tudo certo — em produção, sua solicitação seguiria para o time VITA.",
+  successTitle: "Tudo certo — em produção, sua solicitação seguiria para o time VitalOS™.",
   successText: "Esta é uma demonstração visual: nenhum dado foi enviado ou armazenado.",
 };
 

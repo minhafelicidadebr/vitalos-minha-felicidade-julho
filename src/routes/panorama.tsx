@@ -17,7 +17,7 @@ import { EXPERIMENT_CASES } from "@/mocks/experiment-mock";
 import { ANNUAL_PLAN, CURRENT_PROGRAM_WEEK } from "@/mocks/season-mock";
 
 export const Route = createFileRoute("/panorama")({
-  head: () => ({ meta: [{ title: "Panorama Executivo — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Panorama Executivo — 4 Lentes VitalOS™" }] }),
   component: PanoramaPage,
 });
 
@@ -153,7 +153,7 @@ function PanoramaPage() {
               <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
                 4
               </span>
-              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VitalOS™</span>
             </div>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Panorama de Conselho
@@ -290,7 +290,7 @@ function PanoramaPage() {
         <div className="print-only mt-4 border-t border-border pt-3">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <span>Confidencial — uso interno do conselho. Dados agregados (k≥5).</span>
-            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+            <span>Gerado pelo 4 Lentes VitalOS™ · VitalOS</span>
           </div>
         </div>
       </div>

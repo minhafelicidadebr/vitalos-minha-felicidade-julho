@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { MotionConfig } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 import { Menu, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { A11yMenu } from "./A11yMenu";
@@ -175,7 +175,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
-      <div className="min-h-dvh flex flex-col bg-background text-foreground">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="min-h-dvh flex flex-col bg-background text-foreground"
+      >
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-background"
@@ -265,7 +270,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link
               to="/painel"
               className="flex shrink-0 items-center gap-3 group"
-              aria-label="4 Lentes VITA — painel"
+              aria-label="4 Lentes VitalOS™ — painel"
             >
               <span
                 aria-hidden
@@ -274,7 +279,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 4
               </span>
               <span className="hidden flex-col leading-tight md:flex">
-                <span className="font-serif text-base tracking-tight">4 Lentes VITA</span>
+                <span className="font-serif text-base tracking-tight">4 Lentes VitalOS™</span>
                 <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   Sistema da Vitalidade Organizacional
                 </span>
@@ -410,10 +415,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <footer className="border-t border-border/60 py-6 print:hidden">
           <div className="mx-auto max-w-7xl px-6 text-xs text-muted-foreground">
-            4 Lentes VITA™ · MVP mock-first em construção
+            4 Lentes VitalOS™ · MVP mock-first em construção
           </div>
         </footer>
-      </div>
+      </motion.div>
     </MotionConfig>
   );
 }

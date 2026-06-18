@@ -7,7 +7,7 @@ import type { ConsentItem } from "@/engine/trust/trust-types";
 
 export const Route = createFileRoute("/confianca")({
   head: () => ({
-    meta: [{ title: "Trust Ledger — Sua privacidade, verificável · 4 Lentes VITA" }],
+    meta: [{ title: "Trust Ledger — Sua privacidade, verificável · 4 Lentes VitalOS™" }],
   }),
   component: TrustPage,
 });

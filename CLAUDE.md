@@ -1,4 +1,4 @@
-# CLAUDE.md — 4 Lentes VITA™
+# CLAUDE.md — 4 Lentes VitalOS™
 
 > Leia este arquivo por completo antes de qualquer alteração.
 > Descreve o projeto **como ele existe hoje** — auditado do código real.
@@ -19,7 +19,7 @@
 
 ## 🎯 O que é este projeto
 
-**4 Lentes VITA** — plataforma SaaS B2B, o primeiro "Sistema Operacional da Vitalidade
+**4 Lentes VitalOS™** — plataforma SaaS B2B, o primeiro "Sistema Operacional da Vitalidade
 Organizacional". Mede, educa, transforma e evolui a vitalidade pelas 4 Lentes
 (EU · NÓS · LIDERANÇA · ORGANIZAÇÃO), com compliance NR-1 educativo, gamificação ética
 e ESG/ODS. Padrão unicórnio. Categoria: VitalOS.
@@ -102,7 +102,7 @@ src/
 ## ✅ Bloco 0 entregue — não recriar
 
 - Design system completo (/design-system)
-- Paleta VITA em tokens oklch
+- Paleta VitalOS™ em tokens oklch
 - Dark mode com persistência em localStorage
 - A11yProvider (redução de movimento, alto contraste, escala de fonte)
 - PackProvider com Ajv: 4 JSONs carregados e validados
@@ -271,7 +271,7 @@ bun run test testes de unidade dos engines (bun test)
 
 > 📦 **Template portátil (não é doutrina deste projeto):** `templates/SKILL_UNIVERSAL_MENTE_FABLE5.md`
 > é um modelo reutilizável da inteligência Fable 5 para instanciar em OUTROS projetos. Para o
-> 4 Lentes VITA, a doutrina ativa continua sendo `docs/SKILL_MESTRA_FABLE5.md`.
+> 4 Lentes VitalOS™, a doutrina ativa continua sendo `docs/SKILL_MESTRA_FABLE5.md`.
 
 **Arquitetura de 4 camadas (nunca misturar):**
 

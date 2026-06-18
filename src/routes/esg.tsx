@@ -15,7 +15,7 @@ import { ESG_MAPPING, ESG_INTRO, KIND_LABEL } from "@/mocks/esg-mock";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/esg")({
-  head: () => ({ meta: [{ title: "ESG · ODS · FIB — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "ESG · ODS · FIB — 4 Lentes VitalOS™" }] }),
   component: EsgPage,
 });
 

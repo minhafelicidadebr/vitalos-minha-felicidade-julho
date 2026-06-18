@@ -26,7 +26,7 @@ import {
 } from "@/mocks/experiment-mock";
 
 export const Route = createFileRoute("/experimentos")({
-  head: () => ({ meta: [{ title: "Culture Lab · Evidência — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Culture Lab · Evidência — 4 Lentes VitalOS™" }] }),
   component: ExperimentosPage,
 });
 

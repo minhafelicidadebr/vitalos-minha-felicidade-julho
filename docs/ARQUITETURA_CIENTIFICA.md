@@ -1,4 +1,4 @@
-# Arquitetura Científica — 4 Lentes VITA™
+# Arquitetura Científica — 4 Lentes VitalOS™
 
 > **Skill de orientação** — leia antes de implementar qualquer módulo de mensuração.
 > Este documento é a fonte de verdade sobre QUAIS instrumentos fazem O QUÊ e ONDE

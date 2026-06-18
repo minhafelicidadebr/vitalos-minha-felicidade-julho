@@ -1,6 +1,6 @@
 # SKILL UNIVERSAL — A Mente Fable 5 (modelo portátil)
 
-> **Modelo padrão reutilizável.** NÃO é doutrina deste app (para o 4 Lentes VITA use
+> **Modelo padrão reutilizável.** NÃO é doutrina deste app (para o 4 Lentes VitalOS™ use
 > `docs/SKILL_MESTRA_FABLE5.md`). Este arquivo é um **template** para você copiar em
 > qualquer projeto iniciado/planejado pelo **Fable 5**, instanciá-lo, e fazer o Opus 4.8
 > (ou qualquer modelo) raciocinar no "formato Fable 5" — com a mesma assertividade técnica,
@@ -184,7 +184,7 @@ Aponte o `CLAUDE.md` do projeto para ele como primeira leitura.
 
 ---
 
-# PARTE III — EXEMPLO INSTANCIADO (referência compacta: 4 Lentes VITA / VitalOS)
+# PARTE III — EXEMPLO INSTANCIADO (referência compacta: 4 Lentes VitalOS™ / VitalOS)
 
 Para ver o abstrato virar concreto, eis como os slots foram preenchidos no app que originou
 este modelo (doutrina completa em `docs/SKILL_MESTRA_FABLE5.md`):

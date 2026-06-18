@@ -34,7 +34,7 @@ import type {
 } from "@/engine/viat/viat-engine";
 
 export const Route = createFileRoute("/viat")({
-  head: () => ({ meta: [{ title: "Mapa de Forças VIA-T — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Mapa de Forças VIA-T — 4 Lentes VitalOS™" }] }),
   component: ViatPage,
 });
 

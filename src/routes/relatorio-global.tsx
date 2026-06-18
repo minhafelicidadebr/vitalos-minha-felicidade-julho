@@ -28,7 +28,7 @@ import {
 } from "@/mocks/esg-report-mock";
 
 export const Route = createFileRoute("/relatorio-global")({
-  head: () => ({ meta: [{ title: "Relatório Global ESG — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Relatório Global ESG — 4 Lentes VitalOS™" }] }),
   component: RelatorioGlobalPage,
 });
 
@@ -194,7 +194,7 @@ function RelatorioGlobalPage() {
                 4
               </span>
               <span className="text-sm font-medium tracking-wide text-foreground">
-                4 Lentes VITA™ · VitalOS
+                4 Lentes VitalOS™ · VitalOS
               </span>
             </div>
 
@@ -227,7 +227,7 @@ function RelatorioGlobalPage() {
               <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
                 4
               </span>
-              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VitalOS™</span>
             </div>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               {REPORT_INTRO.kicker}

@@ -1,5 +1,5 @@
 /**
- * Referência dos tokens semânticos do design system 4 Lentes VITA.
+ * Referência dos tokens semânticos do design system 4 Lentes VitalOS™.
  * As cores reais são definidas em src/styles.css (oklch).
  * Esta lista existe para uso por documentação e pelo showcase.
  */

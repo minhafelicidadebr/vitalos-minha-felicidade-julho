@@ -7,7 +7,7 @@ import { usePack } from "@/engine/pack";
 export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [
-      { title: "Painel — 4 Lentes VITA" },
+      { title: "Painel — 4 Lentes VitalOS™" },
       {
         name: "description",
         content:

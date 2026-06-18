@@ -178,7 +178,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           <div className="relative">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-institutional-gold">
                   {IVO_DIMENSIONS.bridge.eyebrow}
                 </p>
                 <h3 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
@@ -188,7 +188,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
                   {IVO_DIMENSIONS.bridge.text}
                 </p>
               </div>
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 font-mono text-xs font-semibold text-accent">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-institutional-gold/40 bg-institutional-gold/10 px-4 py-2 font-mono text-xs font-semibold text-institutional-gold">
                 <Grid3X3 className="h-4 w-4" aria-hidden />
                 {IVO_DIMENSIONS.bridge.equation}
               </span>
@@ -245,7 +245,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           </div>
         </div>
 
-        {/* As 4 Lentes VITA — header com imagem estratégica */}
+        {/* As 4 Lentes VitalOS™ — header com imagem estratégica */}
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">

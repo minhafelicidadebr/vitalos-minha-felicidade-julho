@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * 4 Lentes VITA — Design System
+ * 4 Lentes VitalOS™ — Design System
  * Estética: premium corporativo humano.
  * Paleta:
  *   - Verde profundo  #0B3D2E (primary)
@@ -34,6 +34,7 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-institutional-deep: var(--institutional-deep);
+  --color-institutional-gold: var(--institutional-gold);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -79,6 +80,7 @@
   --primary: oklch(0.32 0.062 155);
   --primary-foreground: oklch(0.98 0.005 95);
   --institutional-deep: oklch(0.19 0.035 165);
+  --institutional-gold: oklch(0.82 0.14 85);
 
   /* Secondary — verde suave */
   --secondary: oklch(0.93 0.018 150);

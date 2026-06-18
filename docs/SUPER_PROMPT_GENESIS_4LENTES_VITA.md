@@ -1,6 +1,6 @@
 # SUPER PROMPT GENESIS — LOVABLE/CODEX
 
-## 4 LENTES VITA™ — O Sistema Operacional da Vitalidade Organizacional
+## 4 LENTES VitalOS™ — O Sistema Operacional da Vitalidade Organizacional
 
 ### Construção do zero · Segmento Empresarial · Padrão Unicórnio
 
@@ -13,7 +13,7 @@
 
 Você atuará como um **supercomitê fundador de elite** — o time que uma empresa de venture building montaria para criar, do zero, um unicórnio de categoria nova. Raciocínio equivalente a pós-doutores e operadores com 20+ anos em: arquitetura SaaS B2B multi-tenant (React 18, TypeScript, Vite, Tailwind, shadcn/ui, Supabase, Edge Functions, pgvector), Lovable/Codex, engenharia de IA generativa e agêntica, RAG, UX/IX research, design systems, gamificação ética (SDT/Octalysis), acessibilidade WCAG 2.2 AA, ciência de dados e psicometria (COPSOQ, WHO-5, UWES), Ciência da Felicidade e do Florescimento (PERMA+V, FIB, Oxford Wellbeing), neurociência afetiva, psicologia positiva organizacional, economia comportamental (EAST/COM-B), ciência da aprendizagem, educação positiva, filosofia da felicidade, segurança psicológica (Edmondson), NR-1/GRO/ISO 45003, ESG/ESRS S1, LGPD, growth B2B e venture design.
 
-**Sua missão:** construir do zero a plataforma **4 Lentes VITA™**, o primeiro **Sistema Operacional da Vitalidade Organizacional** — uma categoria nova de software, não "mais uma ferramenta de clima". Construa como quem funda uma empresa, não como quem entrega um app: cada decisão deve sobreviver a due diligence técnica, científica e jurídica.
+**Sua missão:** construir do zero a plataforma **4 Lentes VitalOS™**, o primeiro **Sistema Operacional da Vitalidade Organizacional** — uma categoria nova de software, não "mais uma ferramenta de clima". Construa como quem funda uma empresa, não como quem entrega um app: cada decisão deve sobreviver a due diligence técnica, científica e jurídica.
 
 **Regras de doutrina:**
 
@@ -37,7 +37,7 @@ O mercado oferece três coisas que **não resolvem o problema**:
 
 **A lacuna:** nenhuma solução fecha o ciclo completo _medir → entender → agir → comprovar_ com ciência, em tempo real, protegendo o indivíduo e gerando prova auditável (para o CFO, para o auditor da NR-1, para o investidor de ESG).
 
-**A categoria que o 4 Lentes VITA cria:** **Vitality Operating System (VitalOS)** — assim como o ERP virou o sistema operacional do dinheiro e o CRM o sistema operacional do cliente, o VitalOS é o sistema operacional das pessoas enquanto sistema vivo. Tagline de categoria: **"Clima se mede. Vitalidade se opera."**
+**A categoria que o 4 Lentes VitalOS™ cria:** **Vitality Operating System (VitalOS)** — assim como o ERP virou o sistema operacional do dinheiro e o CRM o sistema operacional do cliente, o VitalOS é o sistema operacional das pessoas enquanto sistema vivo. Tagline de categoria: **"Clima se mede. Vitalidade se opera."**
 
 ## 2. OS SETE MOTORES PROPRIETÁRIOS (o coração dos 120%+)
 
@@ -174,7 +174,7 @@ PLATFORM_ADMIN · HOLDING_ADMIN · GESTOR_CARTEIRA · CHRO · RH_ADMIN · C_LEVE
 
 - **Categoria:** Vitality Operating System. **Tagline:** "Clima se mede. Vitalidade se opera."
 - **Por quê:** "Empresas não quebram só por falta de caixa. Quebram por falta de vitalidade."
-- **Inimigo narrativo:** o "PDF de clima" — o diagnóstico que morre na gaveta. Toda comunicação posiciona o VITA como o fim da era do diagnóstico-sem-ação.
+- **Inimigo narrativo:** o "PDF de clima" — o diagnóstico que morre na gaveta. Toda comunicação posiciona o VitalOS™ como o fim da era do diagnóstico-sem-ação.
 - **Prova:** Culture Lab (efeito medido), Vitality P&L (custo visível), Selo Empresa Viva (status público), Trust Ledger (confiança verificável).
 - **Mensagens por persona:** CEO/CFO — "O custo invisível já está no seu DRE; nós o tornamos visível e reversível." · CHRO — "Saia do achismo: opere cultura com a precisão de um CFO." · SST — "NR-1 psicossocial sem pânico: inventário, evidência e plano organizados." · Líder — "Sua equipe em uma tela, sem expor ninguém." · Colaborador — "Sua voz, protegida. Sua participação, reconhecida."
 
@@ -252,7 +252,7 @@ Antes de cada decisão: 1. Isso prova a tese VitalOS ou é feature de vaidade? 2
 
 ## 21. RESULTADO ESPERADO
 
-Um MVP greenfield do **4 Lentes VITA™** que, em 15 minutos de demo, faça um CHRO dizer "nunca vi nada assim", um CFO dizer "agora eu entendo o custo", um auditor dizer "isto é sério", um colaborador dizer "nisto eu confio" — e um investidor dizer "isto é uma categoria nova com moat de dados".
+Um MVP greenfield do **4 Lentes VitalOS™** que, em 15 minutos de demo, faça um CHRO dizer "nunca vi nada assim", um CFO dizer "agora eu entendo o custo", um auditor dizer "isto é sério", um colaborador dizer "nisto eu confio" — e um investidor dizer "isto é uma categoria nova com moat de dados".
 
 > **"Clima se mede. Vitalidade se opera. Quando as pessoas florescem, a empresa vira comunidade — e a comunidade vira resultado."**
 

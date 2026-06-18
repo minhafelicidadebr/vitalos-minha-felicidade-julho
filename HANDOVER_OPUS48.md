@@ -1,4 +1,4 @@
-# HANDOVER — VitalOS / 4 Lentes VITA™
+# HANDOVER — VitalOS / 4 Lentes VitalOS™
 ## Documento de Passagem de Bastão para o Opus 4.8
 
 > **Leia TUDO antes de executar qualquer ação.** Este documento é o passaporte completo
@@ -9,7 +9,7 @@
 
 ## 1 · O QUE É ESTE PROJETO
 
-**4 Lentes VITA** ("VitalOS") — plataforma SaaS B2B para bem-estar organizacional. O
+**4 Lentes VitalOS™** ("VitalOS") — plataforma SaaS B2B para bem-estar organizacional. O
 primeiro **Sistema Operacional da Vitalidade**: mede, educa, transforma e comprova o
 florescimento das pessoas nas organizações (ciclo M.E.T.E.). Categoria nova, não feature.
 
@@ -27,7 +27,7 @@ produto (telas, fluxos, features), não de código.
 ## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17 — pós-sprints A/B/C)
 
 ### 2.1 Testes e build
-- **475 testes / 43 arquivos — 0 falhas** ✅
+- **476 testes / 43 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
 
@@ -260,7 +260,7 @@ Divisão de trabalho:
 - Portão demo (`DemoGate`) protege todo o app — senha: **luzpazeamor**. ✅
 - `/painel` é o hub navegável (antigo `/`). ✅
 - **Lovable pode fazer polimento visual** do formulário do portão e da landing (UI pura, sem engine).
-- Pendente: animação de "desbloqueio" ao entrar no painel (Framer Motion fade-in).
+- Animação de desbloqueio ao entrar no painel (Framer Motion fade-in, respeitando redução de movimento). ✅
 
 ### Prioridade 2 — Bloco 20 (UX polish global)
 Reservado para o Lovable: mobile first, hover states, micro-animações, empty states

@@ -74,7 +74,7 @@ export const SCHOOL_CYCLE_PREVIOUS: IVOInput = {
 
 // Roadmap multissetorial — o Engine nasce pronto para novos packs sem mudar código.
 export const SECTOR_ROADMAP = [
-  { id: "enterprise", label: "Empresa", product: "VitalOS · 4 Lentes VITA", status: "ativo" },
+  { id: "enterprise", label: "Empresa", product: "VitalOS · 4 Lentes VitalOS™", status: "ativo" },
   { id: "school", label: "Escola", product: "AlegrIA · IEV", status: "demo" },
   { id: "condominium", label: "Condomínio", product: "ConvivIA · IBEC", status: "roadmap" },
   { id: "government", label: "Cidade / Governo", product: "CidadanIA · IVC", status: "roadmap" },

@@ -7,7 +7,7 @@ import { getPulseConfig, getResponseLabels, selectPulseItems } from "@/engine/in
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/quiosque")({
-  head: () => ({ meta: [{ title: "Quiosque — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Quiosque — 4 Lentes VitalOS™" }] }),
   component: QuiosquePage,
 });
 
@@ -61,7 +61,7 @@ function QuiosquePage() {
           >
             4
           </span>
-          <span className="font-serif text-lg">4 Lentes VITA · Quiosque</span>
+          <span className="font-serif text-lg">4 Lentes VitalOS™ · Quiosque</span>
         </div>
         <Link to="/" className="text-sm text-muted-foreground underline underline-offset-2">
           sair do modo quiosque

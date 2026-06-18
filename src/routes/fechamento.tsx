@@ -16,7 +16,7 @@ import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
 import { formatReportDate } from "@/mocks/esg-report-mock";
 
 export const Route = createFileRoute("/fechamento")({
-  head: () => ({ meta: [{ title: "Fechamento de Ciclo · Governança — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Fechamento de Ciclo · Governança — 4 Lentes VitalOS™" }] }),
   component: FechamentoPage,
 });
 
@@ -122,7 +122,7 @@ function FechamentoPage() {
               <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
                 4
               </span>
-              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VitalOS™</span>
             </div>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Ata de Fechamento de Ciclo
@@ -235,7 +235,7 @@ function FechamentoPage() {
         <div className="print-only mt-4 border-t border-border pt-3">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <span>Confidencial — uso interno do conselho. Dados agregados (k≥5).</span>
-            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+            <span>Gerado pelo 4 Lentes VitalOS™ · VitalOS</span>
           </div>
         </div>
       </div>

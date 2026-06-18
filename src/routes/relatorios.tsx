@@ -5,7 +5,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { EVIDENCES, REPORTS, SEAL_STATUS, type Evidence } from "@/mocks/relatorios-mock";
 
 export const Route = createFileRoute("/relatorios")({
-  head: () => ({ meta: [{ title: "Evidências, Relatórios e Selo — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Evidências, Relatórios e Selo — 4 Lentes VitalOS™" }] }),
   component: RelatoriosPage,
 });
 

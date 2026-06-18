@@ -10,7 +10,7 @@ import {
 } from "@/engine/pnl/pnl-engine";
 
 export const Route = createFileRoute("/pnl")({
-  head: () => ({ meta: [{ title: "Vitality P&L — a linguagem do CFO · 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Vitality P&L — a linguagem do CFO · 4 Lentes VitalOS™" }] }),
   component: PnLPage,
 });
 

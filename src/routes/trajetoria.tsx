@@ -35,7 +35,7 @@ import {
 } from "@/mocks/forecast-mock";
 
 export const Route = createFileRoute("/trajetoria")({
-  head: () => ({ meta: [{ title: "Simulador de Trajetória — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Simulador de Trajetória — 4 Lentes VitalOS™" }] }),
   component: TrajetoriaPage,
 });
 

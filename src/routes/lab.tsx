@@ -7,7 +7,7 @@ import type { ProtocolDef, Experiment } from "@/engine/lab/lab-types";
 
 export const Route = createFileRoute("/lab")({
   head: () => ({
-    meta: [{ title: "Culture Lab — cultura como ciência experimental · 4 Lentes VITA" }],
+    meta: [{ title: "Culture Lab — cultura como ciência experimental · 4 Lentes VitalOS™" }],
   }),
   component: LabPage,
 });

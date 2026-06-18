@@ -6,7 +6,7 @@ import { STATUS_MESSAGES } from "@/engine/action-plan/action-plan-engine";
 import type { ActionItem } from "@/engine/action-plan/action-plan-engine";
 
 export const Route = createFileRoute("/plano-acao")({
-  head: () => ({ meta: [{ title: "Plano de Ação — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Plano de Ação — 4 Lentes VitalOS™" }] }),
   component: PlanoAcao,
 });
 

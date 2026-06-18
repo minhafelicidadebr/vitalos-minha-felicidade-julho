@@ -23,7 +23,7 @@ import { KIND_COPY, URGENCY_COPY } from "@/mocks/copiloto-mock";
 import { DATA_RIGHTS } from "@/mocks/trust-mock";
 
 export const Route = createFileRoute("/privacidade")({
-  head: () => ({ meta: [{ title: "Privacidade × FlorescerIA — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Privacidade × FlorescerIA — 4 Lentes VitalOS™" }] }),
   component: PrivacidadePage,
 });
 

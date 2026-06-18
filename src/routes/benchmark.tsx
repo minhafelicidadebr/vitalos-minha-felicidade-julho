@@ -12,7 +12,7 @@ import {
 } from "@/mocks/benchmark-mock";
 
 export const Route = createFileRoute("/benchmark")({
-  head: () => ({ meta: [{ title: "Benchmark Setorial — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Benchmark Setorial — 4 Lentes VitalOS™" }] }),
   component: BenchmarkPage,
 });
 

@@ -14,11 +14,11 @@ import { Inbox, AlertTriangle } from "lucide-react";
 export const Route = createFileRoute("/design-system")({
   head: () => ({
     meta: [
-      { title: "Design System · 4 Lentes VITA" },
+      { title: "Design System · 4 Lentes VitalOS™" },
       {
         name: "description",
         content:
-          "Demonstração dos tokens, tipografia, componentes e estados do design system 4 Lentes VITA.",
+          "Demonstração dos tokens, tipografia, componentes e estados do design system 4 Lentes VitalOS™.",
       },
     ],
   }),
@@ -58,7 +58,7 @@ function DesignSystemPage() {
             Fundação · Design System
           </p>
           <h1 className="mt-3 font-serif text-4xl tracking-tight text-foreground">
-            4 Lentes VITA — Tokens & Componentes
+            4 Lentes VitalOS™ — Tokens & Componentes
           </h1>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">
             Premium corporativo humano. Verde profundo institucional, dourado de acento, superfície
@@ -139,7 +139,10 @@ function DesignSystemPage() {
           </div>
         </Section>
 
-        <Section title="Botões" description="Variantes padrão do shadcn aplicadas ao tema VITA.">
+        <Section
+          title="Botões"
+          description="Variantes padrão do shadcn aplicadas ao tema VitalOS™."
+        >
           <div className="flex flex-wrap items-center gap-3">
             <Button>Primário</Button>
             <Button variant="secondary">Secundário</Button>

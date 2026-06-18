@@ -10,7 +10,7 @@ import { ivoCurrentCycle, DEMO_ORG } from "@/mocks/ivo-mock";
 import { SCHOOL_CYCLE, SCHOOL_ORG, SECTOR_ROADMAP, SETORES_INTRO } from "@/mocks/school-mock";
 
 export const Route = createFileRoute("/setores")({
-  head: () => ({ meta: [{ title: "Multissetorial · Engine ≠ Domínio — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Multissetorial · Engine ≠ Domínio — 4 Lentes VitalOS™" }] }),
   component: SetoresPage,
 });
 

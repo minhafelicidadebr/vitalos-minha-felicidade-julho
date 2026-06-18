@@ -49,7 +49,7 @@ interface LoopState {
 }
 
 export const Route = createFileRoute("/copiloto")({
-  head: () => ({ meta: [{ title: "FlorescerIA Proativa — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "FlorescerIA Proativa — 4 Lentes VitalOS™" }] }),
   component: CopilotoPage,
 });
 

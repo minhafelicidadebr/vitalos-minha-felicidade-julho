@@ -12,7 +12,7 @@ import { ACTIVE_WAVE_INPUT } from "@/mocks/campaign-mock";
 import { PERMA_ITEMS, PERMA_RESPONSE_SCALE, SURVEY_INTRO } from "@/mocks/survey-mock";
 
 export const Route = createFileRoute("/responder")({
-  head: () => ({ meta: [{ title: "Responder · Onda Ativa — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Responder · Onda Ativa — 4 Lentes VitalOS™" }] }),
   component: ResponderPage,
 });
 

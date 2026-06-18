@@ -17,7 +17,7 @@ import {
 } from "@/mocks/executivo-mock";
 
 export const Route = createFileRoute("/sst")({
-  head: () => ({ meta: [{ title: "SST / CIPA — Domínio B educativo · 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "SST / CIPA — Domínio B educativo · 4 Lentes VitalOS™" }] }),
   component: SSTPage,
 });
 
@@ -119,7 +119,7 @@ function SSTPage() {
               <span className="grid h-7 w-7 place-items-center rounded bg-primary font-serif text-sm text-primary-foreground">
                 4
               </span>
-              <span className="text-sm font-medium text-foreground">4 Lentes VITA™</span>
+              <span className="text-sm font-medium text-foreground">4 Lentes VitalOS™</span>
             </div>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Dossiê Educativo NR-1 · Domínio B
@@ -329,7 +329,7 @@ function SSTPage() {
             <span>
               Confidencial · Material educativo preparatório — não constitui PGR nem laudo.
             </span>
-            <span>Gerado pelo 4 Lentes VITA™ · VitalOS</span>
+            <span>Gerado pelo 4 Lentes VitalOS™ · VitalOS</span>
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ interface MaturityLevel {
 
 export const Route = createFileRoute("/ivo")({
   head: () => ({
-    meta: [{ title: "IVO — Índice de Vitalidade Organizacional · 4 Lentes VITA" }],
+    meta: [{ title: "IVO — Índice de Vitalidade Organizacional · 4 Lentes VitalOS™" }],
   }),
   component: IVOPage,
 });

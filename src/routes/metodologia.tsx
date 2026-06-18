@@ -18,7 +18,7 @@ import {
 } from "@/mocks/metodologia-mock";
 
 export const Route = createFileRoute("/metodologia")({
-  head: () => ({ meta: [{ title: "Metodologia · A Ciência da Vitalidade — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Metodologia · A Ciência da Vitalidade — 4 Lentes VitalOS™" }] }),
   component: MetodologiaPage,
 });
 

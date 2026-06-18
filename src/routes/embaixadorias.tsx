@@ -5,7 +5,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { AMBASSADORSHIPS } from "@/mocks/embaixadorias-mock";
 
 export const Route = createFileRoute("/embaixadorias")({
-  head: () => ({ meta: [{ title: "Embaixadorias do Florescimento — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Embaixadorias do Florescimento — 4 Lentes VitalOS™" }] }),
   component: EmbaixadoriasPage,
 });
 

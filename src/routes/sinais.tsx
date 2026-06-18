@@ -20,7 +20,7 @@ import {
 import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
 
 export const Route = createFileRoute("/sinais")({
-  head: () => ({ meta: [{ title: "Sinais Vivos · Percepção × Comportamento — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Sinais Vivos · Percepção × Comportamento — 4 Lentes VitalOS™" }] }),
   component: SinaisPage,
 });
 

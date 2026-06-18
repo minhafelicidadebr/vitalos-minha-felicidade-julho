@@ -21,7 +21,7 @@ import {
 } from "@/mocks/executivo-mock";
 
 export const Route = createFileRoute("/clevel")({
-  head: () => ({ meta: [{ title: "Visão C-Level — 4 Lentes VITA" }] }),
+  head: () => ({ meta: [{ title: "Visão C-Level — 4 Lentes VitalOS™" }] }),
   component: CLevelPage,
 });
 

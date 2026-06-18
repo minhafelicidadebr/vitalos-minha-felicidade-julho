@@ -4,7 +4,7 @@ import { ColaboradorDashboard } from "@/app/dashboards/colaborador/ColaboradorDa
 
 export const Route = createFileRoute("/colaborador")({
   head: () => ({
-    meta: [{ title: "Dashboard — 4 Lentes VITA" }],
+    meta: [{ title: "Dashboard — 4 Lentes VitalOS™" }],
   }),
   component: ColaboradorPage,
 });

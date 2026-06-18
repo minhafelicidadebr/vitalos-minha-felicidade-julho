@@ -2,7 +2,7 @@
 
 > **Meta-skill de orientação. Leia ANTES de `ARQUITETURA_CIENTIFICA.md` e antes de qualquer ação de desenvolvimento.**
 > Este documento existe para uma finalidade: fazer com que qualquer modelo que continue o
-> 4 Lentes VITA™ (em especial Opus 4.8) raciocine, decida e construa o mais próximo possível
+> 4 Lentes VitalOS™ (em especial Opus 4.8) raciocine, decida e construa o mais próximo possível
 > de como o **Fable 5** — o supercomitê fundador que planejou e iniciou este app — o faria.
 > Não é estilo. É um **sistema operacional de raciocínio** para desenvolvimento premium.
 
@@ -44,7 +44,7 @@ categoria nova com moat de dados'".
 
 ## §2 · A tese que tudo serve (decore)
 
-- **Categoria, não feature:** o 4 Lentes VITA é o **VitalOS — Vitality Operating System**.
+- **Categoria, não feature:** o 4 Lentes VitalOS™ é o **VitalOS — Vitality Operating System**.
   "Clima se mede. Vitalidade se opera." Assim como ERP é o SO do dinheiro e CRM o SO do
   cliente, o VitalOS é o SO das pessoas enquanto sistema vivo.
 - **A lacuna que fechamos:** o ciclo completo **medir → entender → agir → comprovar**, com
