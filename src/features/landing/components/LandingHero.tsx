@@ -38,19 +38,22 @@ export function LandingHero({ onAction }: { onAction: (action: CtaAction) => voi
         className="pointer-events-none absolute left-0 top-0 -z-10 h-full w-[58%] bg-[radial-gradient(circle_at_25%_20%,rgba(201,162,39,0.16)_0%,transparent_34%),radial-gradient(circle_at_70%_86%,rgba(0,180,150,0.14)_0%,transparent_42%)]"
       />
 
-      <div className="mx-auto grid min-h-[680px] max-w-6xl items-center gap-10 px-6 pt-16 pb-14 sm:pt-24 sm:pb-20 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-6xl items-center gap-10 px-4 py-14 sm:min-h-[680px] sm:px-6 sm:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:py-24">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="max-w-3xl"
+          className="min-w-0 max-w-3xl"
         >
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-white/70 backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            {HERO.eyebrow}
+          <p className="inline-flex max-w-full items-start gap-2 rounded-2xl border border-white/15 bg-white/[0.08] px-3 py-2 text-[10px] font-medium uppercase leading-relaxed tracking-[0.16em] text-white/70 backdrop-blur sm:items-center sm:rounded-full sm:py-1 sm:text-xs sm:tracking-[0.18em]">
+            <span
+              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent sm:mt-1"
+              aria-hidden
+            />
+            <span>{HERO.eyebrow}</span>
           </p>
 
-          <h1 className="mt-6 max-w-4xl font-serif text-4xl leading-[1.05] tracking-tight text-white sm:text-6xl">
+          <h1 className="mt-6 max-w-4xl font-serif text-[clamp(2.5rem,10vw,3.75rem)] leading-[1.02] tracking-[-0.035em] text-white sm:text-6xl lg:text-[4.2rem]">
             O Sistema Operacional da{" "}
             <span className="bg-gradient-to-r from-accent via-[#d9f66f] to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(201,162,39,0.28)]">
               Vitalidade Organizacional
@@ -61,13 +64,13 @@ export function LandingHero({ onAction }: { onAction: (action: CtaAction) => voi
             {HERO.subheadline}
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
             {HERO.ctas.map((cta) => (
               <Button
                 key={cta.label}
                 size="lg"
                 variant={VARIANT[cta.variant ?? "primary"]}
-                className={CTA_CLASS[cta.variant ?? "primary"]}
+                className={`w-full sm:w-auto ${CTA_CLASS[cta.variant ?? "primary"]}`}
                 onClick={() => onAction(cta.action)}
               >
                 {cta.label}
@@ -75,7 +78,10 @@ export function LandingHero({ onAction }: { onAction: (action: CtaAction) => voi
             ))}
           </div>
 
-          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Princípios da plataforma">
+          <ul
+            className="mt-8 flex flex-wrap gap-2 sm:max-w-2xl"
+            aria-label="Princípios da plataforma"
+          >
             {HERO.signals.map((s) => (
               <li
                 key={s}

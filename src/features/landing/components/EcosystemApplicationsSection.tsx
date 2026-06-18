@@ -17,7 +17,10 @@ export function EcosystemApplicationsSection({
   onAction: (action: CtaAction) => void;
 }) {
   return (
-    <section className="landing-light-grid relative overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20">
+    <section
+      id="aplicacoes"
+      className="landing-light-grid relative scroll-mt-24 overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20"
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(120,93,16,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(120,93,16,0.065)_1px,transparent_1px)] bg-[size:64px_64px] opacity-60"

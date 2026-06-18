@@ -72,7 +72,7 @@ function IvoBrandMark() {
 
 export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) => void }) {
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20">
+    <section id="solucao" className="relative scroll-mt-24 overflow-hidden py-16 sm:py-20">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"

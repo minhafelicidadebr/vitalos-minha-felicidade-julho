@@ -31,6 +31,12 @@ import { DemoGateForm } from "@/app/shell/DemoGate";
 import { useDemoGate } from "@/app/shell/demo-gate";
 import { ThemeToggle } from "@/app/shell/ThemeToggle";
 
+const LANDING_NAV = [
+  ["Solução", "#solucao"],
+  ["Metodologia", "#metodologia"],
+  ["Aplicações", "#aplicacoes"],
+] as const;
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -93,36 +99,56 @@ function LandingPage() {
       </a>
 
       {/* Header da landing (glass) */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/55">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-6">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/82 shadow-[0_1px_0_color-mix(in_oklab,var(--color-border)_55%,transparent)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/72">
+        <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link
             to="/"
-            className="flex items-center gap-2.5 text-primary"
+            className="group flex min-w-0 items-center gap-2.5 text-primary"
             aria-label="Programa VitalOS — início"
           >
             <span
               aria-hidden
-              className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10"
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl"
             >
               <VitalOsLogo className="h-6 w-6 text-primary-foreground" />
             </span>
-            <span className="hidden flex-col leading-tight sm:flex">
+            <span className="hidden min-w-0 flex-col leading-tight min-[480px]:flex">
               <span className="font-serif text-base tracking-tight text-foreground">
                 Programa VitalOS™
               </span>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
                 Felicidade e Crescimento para Todos
               </span>
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <nav
+            className="hidden items-center gap-1 rounded-full border border-border/60 bg-card/55 p-1 shadow-sm backdrop-blur lg:flex"
+            aria-label="Navegação da página"
+          >
+            {LANDING_NAV.map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-full px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={enterApp}>
+            <Button variant="ghost" size="sm" className="hidden xl:inline-flex" onClick={enterApp}>
               Entrar no app
             </Button>
-            <Button size="sm" onClick={() => onAction({ kind: "modal", modal: "executive" })}>
-              Agendar demonstração
+            <Button
+              size="sm"
+              className="rounded-full px-3 shadow-md shadow-primary/15 sm:px-4"
+              onClick={() => onAction({ kind: "modal", modal: "executive" })}
+            >
+              <span className="sm:hidden">Agendar</span>
+              <span className="hidden sm:inline">Agendar demonstração</span>
             </Button>
           </div>
         </div>

@@ -6,7 +6,10 @@ import methodologyHumanInnovation from "@/assets/methodology-human-innovation-cy
 
 export function MethodologySection({ onAction }: { onAction: (action: CtaAction) => void }) {
   return (
-    <section className="landing-light-grid relative isolate overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20">
+    <section
+      id="metodologia"
+      className="landing-light-grid relative isolate scroll-mt-24 overflow-hidden border-y border-border/40 bg-background py-16 sm:py-20"
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 right-0 z-0 w-full overflow-hidden lg:w-[68%]"
