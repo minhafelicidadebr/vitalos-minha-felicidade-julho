@@ -1,7 +1,15 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, MotionConfig } from "framer-motion";
-import { Menu, ChevronDown } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  Home,
+  Menu,
+  ShieldCheck,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { A11yMenu } from "./A11yMenu";
 import { PackSwitcher } from "./PackSwitcher";
@@ -17,7 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 /**
  * AppShell — header institucional + navegação dirigida pelo pack × papel,
@@ -134,10 +142,31 @@ const NAV_GROUPS: NavGroupDef[] = [
   },
 ];
 
+const MOBILE_GROUP_ICONS: Record<string, LucideIcon> = {
+  medir: Activity,
+  agir: Sparkles,
+  provar: ShieldCheck,
+};
+
+function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
+      <g fill="currentColor" opacity="0.92">
+        <ellipse cx="20" cy="9" rx="4" ry="7" />
+        <ellipse cx="20" cy="31" rx="4" ry="7" />
+        <ellipse cx="9" cy="20" rx="7" ry="4" />
+        <ellipse cx="31" cy="20" rx="7" ry="4" />
+      </g>
+      <circle cx="20" cy="20" r="4" fill="var(--color-accent)" />
+    </svg>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { pack } = usePack();
+  const { pack, sectorLabel } = usePack();
   const { roleId, setRole } = usePersona();
   const { reduceMotion } = useA11y();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [personaOpen, setPersonaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -172,6 +201,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     items: visibleItems.filter((vi) => g.items.includes(vi.id)),
   })).filter((g) => g.items.length > 0);
   const extras = visibleItems.filter((i) => i.id !== "overview" && !groupedIds.has(i.id));
+  const mobileTabs = [
+    { id: "inicio", label: "Início", to: "/painel", icon: Home, routes: ["/painel"] },
+    ...groupsRendered
+      .filter((group) => MOBILE_GROUP_ICONS[group.id] && group.items[0])
+      .slice(0, 3)
+      .map((group) => ({
+        id: group.id,
+        label: group.label,
+        to: group.items[0]!.to!,
+        icon: MOBILE_GROUP_ICONS[group.id]!,
+        routes: group.items.map((item) => item.to!),
+      })),
+  ];
 
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
@@ -187,50 +229,102 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           Pular para o conteúdo
         </a>
-        <header className="sticky top-0 z-40 border-b border-border/60 bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/50 print:hidden">
+        <header className="sticky top-0 z-40 border-b border-border/60 bg-card/78 shadow-[0_1px_0_color-mix(in_oklab,var(--color-border)_58%,transparent)] backdrop-blur-xl supports-[backdrop-filter]:bg-card/62 print:hidden">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
             {/* Mobile drawer trigger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/60 text-foreground transition-colors hover:bg-muted/40 lg:hidden"
-                  aria-label="Abrir menu"
-                >
-                  <Menu className="h-5 w-5" aria-hidden />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[88vw] max-w-sm overflow-y-auto p-0">
-                <SheetHeader className="border-b border-border/60 px-5 py-4 text-left">
-                  <SheetTitle className="font-serif text-base">Navegação</SheetTitle>
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    {roleLabel}
-                  </p>
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/60 text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-muted/50 hover:shadow-md xl:hidden"
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" aria-hidden />
+              </button>
+              <SheetContent
+                side="left"
+                className="w-[90vw] max-w-sm overflow-y-auto border-r-border/60 bg-background/96 p-0 backdrop-blur-xl"
+              >
+                <SheetHeader className="border-b border-border/60 bg-card/55 px-5 py-5 text-left">
+                  <div className="flex items-center gap-3">
+                    <span
+                      aria-hidden
+                      className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10"
+                    >
+                      <VitalOsMark className="h-7 w-7" />
+                    </span>
+                    <div className="min-w-0">
+                      <SheetTitle className="font-serif text-base">Programa VitalOS™</SheetTitle>
+                      <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                        Sistema da Vitalidade Organizacional
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <div className="rounded-xl border border-border/60 bg-background/70 px-3 py-2">
+                      <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+                        Perfil
+                      </p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+                        {roleLabel}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-background/70 px-3 py-2">
+                      <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+                        Setor
+                      </p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+                        {sectorLabel}
+                      </p>
+                    </div>
+                  </div>
                 </SheetHeader>
                 <div className="px-3 py-4">
+                  <Link
+                    to="/painel"
+                    onClick={() => setMobileOpen(false)}
+                    className="mb-3 flex min-h-[48px] items-center gap-3 rounded-2xl border border-primary/15 bg-primary/8 px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary/12"
+                    activeProps={{ className: "border-primary/30 bg-primary/12 text-primary" }}
+                  >
+                    <span
+                      aria-hidden
+                      className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"
+                    >
+                      <Home className="h-4 w-4" />
+                    </span>
+                    Central VitalOS™
+                  </Link>
                   {overview && (
                     <Link
                       to={overview.to!}
                       onClick={() => setMobileOpen(false)}
-                      className="mb-3 flex min-h-[44px] items-center rounded-lg bg-secondary/60 px-3 py-2.5 text-sm font-medium text-secondary-foreground"
-                      activeProps={{ className: "bg-secondary" }}
+                      className="mb-5 flex min-h-[44px] items-center rounded-xl border border-border/50 bg-secondary/55 px-3 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                      activeProps={{ className: "border-primary/25 bg-secondary" }}
                     >
-                      {overview.label}
+                      Meu painel · {overview.label}
                     </Link>
                   )}
                   {groupsRendered.map((g) => (
-                    <div key={g.id} className="mt-4 first:mt-0">
-                      <p className="px-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                        {g.label}
-                      </p>
-                      <ul className="mt-1.5 space-y-0.5">
+                    <div key={g.id} className="mt-5 first:mt-0">
+                      <div className="px-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                          {g.label}
+                        </p>
+                        {g.hint && (
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                            {g.hint}
+                          </p>
+                        )}
+                      </div>
+                      <ul className="mt-2 space-y-1">
                         {g.items.map((item) => (
                           <li key={item.id}>
                             <Link
                               to={item.to!}
                               onClick={() => setMobileOpen(false)}
-                              className="flex min-h-[44px] items-center rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted/60"
+                              className="flex min-h-[44px] items-center rounded-xl px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted/60"
                               activeProps={{
-                                className: "bg-secondary text-secondary-foreground",
+                                className:
+                                  "bg-secondary font-medium text-secondary-foreground shadow-sm",
                               }}
                             >
                               {item.label}
@@ -269,18 +363,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <Link
               to="/painel"
-              className="flex shrink-0 items-center gap-3 group"
+              className="group flex min-w-0 shrink-0 items-center gap-3"
               aria-label="4 Lentes VitalOS™ — painel"
             >
               <span
                 aria-hidden
-                className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-serif text-lg shadow-sm"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/18 ring-1 ring-inset ring-white/10 transition-transform duration-300 group-hover:-translate-y-0.5"
               >
-                4
+                <VitalOsMark className="h-6 w-6" />
               </span>
-              <span className="hidden flex-col leading-tight md:flex">
-                <span className="font-serif text-base tracking-tight">4 Lentes VitalOS™</span>
-                <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="hidden min-w-0 flex-col leading-tight md:flex">
+                <span className="truncate font-serif text-base tracking-tight">
+                  Programa VitalOS™
+                </span>
+                <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground lg:block">
                   Sistema da Vitalidade Organizacional
                 </span>
               </span>
@@ -288,7 +384,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {/* Desktop grouped nav */}
             <nav
-              className="ml-2 hidden flex-1 items-center gap-0.5 lg:flex"
+              className="ml-2 hidden flex-1 items-center gap-0.5 xl:flex"
               aria-label="Navegação principal"
             >
               {overview && (
@@ -365,7 +461,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className="flex h-10 items-center gap-2 rounded-md border border-border/60 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
-                  <span className="hidden max-w-[8rem] truncate sm:inline">{roleLabel}</span>
+                  <span className="hidden max-w-[8rem] truncate xl:inline">{roleLabel}</span>
                   <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
                 </button>
 
@@ -409,11 +505,45 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main id="main" tabIndex={-1} className="flex-1 outline-none">
+        <main id="main" tabIndex={-1} className="flex-1 pb-24 outline-none xl:pb-0">
           {children}
         </main>
 
-        <footer className="border-t border-border/60 py-6 print:hidden">
+        <nav
+          className="fixed inset-x-3 bottom-3 z-40 grid overflow-hidden rounded-2xl border border-border/70 bg-card/88 p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl supports-[backdrop-filter]:bg-card/78 xl:hidden print:hidden"
+          style={{
+            gridTemplateColumns: `repeat(${mobileTabs.length + 1}, minmax(0, 1fr))`,
+          }}
+          aria-label="Navegação rápida"
+        >
+          {mobileTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = tab.routes.includes(pathname);
+            return (
+              <Link
+                key={tab.id}
+                to={tab.to}
+                aria-current={isActive ? "page" : undefined}
+                className={`group flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium transition-colors hover:bg-muted/55 hover:text-foreground ${
+                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+                <span className="max-w-full truncate">{tab.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="group flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/55 hover:text-foreground"
+            aria-label="Abrir menu completo"
+          >
+            <Menu className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+            <span>Menu</span>
+          </button>
+        </nav>
+
+        <footer className="border-t border-border/60 pt-6 pb-28 xl:py-6 print:hidden">
           <div className="mx-auto max-w-7xl px-6 text-xs text-muted-foreground">
             4 Lentes VitalOS™ · MVP mock-first em construção
           </div>

@@ -1,4 +1,5 @@
 # HANDOVER — VitalOS / 4 Lentes VitalOS™
+
 ## Documento de Passagem de Bastão para o Opus 4.8
 
 > **Leia TUDO antes de executar qualquer ação.** Este documento é o passaporte completo
@@ -27,6 +28,7 @@ produto (telas, fluxos, features), não de código.
 ## 2 · ONDE VOCÊ ESTÁ (estado 2026-06-17 — pós-sprints A/B/C)
 
 ### 2.1 Testes e build
+
 - **476 testes / 43 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
@@ -44,15 +46,16 @@ Mensurar (onda + questionário)
 
 ### 2.2b Sprints premium Fable 5 concluídos (2026-06-17)
 
-| Sprint | Rota | Engine | Testes | O que entrega |
-|--------|------|--------|--------|---------------|
-| **A** | `/plano-acao` | `action-plan-engine` | 14 | Plano Operacional Trimestral: fila de prioridades → cronograma 13 semanas, escalonamento por embaixadoria, status futuro/em_andamento/concluido |
-| **B** | `/impacto` | `impact-engine` | 14 | Relatório de Impacto board-ready: delta IVO por lente, ROI, nível de evidência, maturidade do programa |
-| **C** | `/` (landing) | — | — | Seção "Números Vivos": 6 cards com métricas do ciclo demo computadas pelos motores reais |
+| Sprint | Rota          | Engine               | Testes | O que entrega                                                                                                                                   |
+| ------ | ------------- | -------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A**  | `/plano-acao` | `action-plan-engine` | 14     | Plano Operacional Trimestral: fila de prioridades → cronograma 13 semanas, escalonamento por embaixadoria, status futuro/em_andamento/concluido |
+| **B**  | `/impacto`    | `impact-engine`      | 14     | Relatório de Impacto board-ready: delta IVO por lente, ROI, nível de evidência, maturidade do programa                                          |
+| **C**  | `/` (landing) | —                    | —      | Seção "Números Vivos": 6 cards com métricas do ciclo demo computadas pelos motores reais                                                        |
 
 **Fix estrutural:** Culture Lab nav id corrigido de `action_plan` para `lab` — eliminava duplicata que quebrava testes.
 
 **Commits:**
+
 ```
 e1211e4  merge: rebase Lovable improvements (VitalOsLogo, ThemeToggle header, lenses-deep modal)
 7917af1  feat(sprint-c): landing Números Vivos — 6 cards de prova
@@ -64,39 +67,39 @@ eac42e8  (Lovable) improvements to landing  ← puxado via rebase
 
 ### 2.3 Engines implementados (`src/engine/`)
 
-| Diretório          | Engine                     | Testes | O que faz                                      |
-| ------------------ | -------------------------- | ------ | ---------------------------------------------- |
-| `index/`           | ivo-engine, pulse-engine   | 25     | IVO 2.0 (4 lentes, 16 pilares) + pulsos 60s   |
-| `esg/`             | esg-engine                 | 9      | IVO→ESRS S1/ODS/GRI/FIB                       |
-| `viat/`            | viat-engine                | 29     | VIA-T v1 exploratório (24 forças, ICUFT)       |
-| `season/`          | season-engine              | 22     | Cronograma M.E.T.E. anual (4T × 13s)          |
-| `forecast/`        | forecast-engine            | 25     | Trajetória IVO + P&L + ESG (what-if)           |
-| `priority/`        | priority-engine            | 14     | Fila de prioridades composta (IVO lift)        |
-| `lab/`             | evidence-engine            | 16     | diff-in-diff honesto, veredito científico      |
-| `panorama/`        | panorama-engine            | 18     | Síntese executiva: 7 engines → 1 página        |
-| `ai/`              | agent-engine               | 15     | FlorescerIA proativa (human-in-the-loop)        |
-|                    | earlywarning-engine        | 10     | Alerta precoce: trend+signals+consent          |
-|                    | orchestration-engine       | —      | M.E.T.E. orchestration (nudge → delivery)      |
-|                    | grounding-engine           | —      | Resposta aterrada com fontes (anti-halluc.)    |
-| `benchmark/`       | benchmark-engine           | 15     | Benchmarking setorial k-anon entre tenants     |
-| `trust/`           | consent-engine             | 18     | Consentimento gateia a FlorescerIA             |
-| `signals/`         | signals-engine             | 16     | Percepção × comportamento (4 quadrantes)       |
-| `certification/`   | certification-engine       | 15     | Selo Empresa Viva (computado, não comprado)    |
-| `pnl/`             | pnl-engine                 | 16     | Vitality P&L (custo evitado)                   |
-| `gamification/`    | gamification-engine        | 13     | XP ético, kudos, missões (SDT/Octalysis)       |
-| `nudges/`          | nudges-engine              | 8      | Nudge MVP (opt-in, freq cap, targeting)        |
-| `rbac/`            | rbac-engine                | 7      | Nav filtrada por papel (k-anon no nav)         |
-| `fibt/`            | fibt-engine                | 10     | FIB-T (Furtado 2020) — 32 itens, 9 domínios   |
-| `esg-report/`      | esg-report-engine          | 10     | Relatório anual E/S/G (síntese 5 instrumentos) |
-| `trend/`           | trend-engine               | 11     | Curva longitudinal IVO (momentum, projeção)    |
-| `action-plan/`     | action-plan-engine         | 14     | Plano trimestral: agenda ações por embaixadoria |
-| `impact/`          | impact-engine              | 14     | Relatório de impacto: delta IVO + ROI + evidência |
-| `campaign/`        | campaign-engine            | 14     | Onda Ativa (dupla-visão privacidade)           |
-| `survey/`          | survey-engine              | —      | Runtime de questionário (loop Onda↔Responder)  |
-| `educar/`          | devolutiva-engine          | —      | Devolutiva contextual pós-resultado            |
-| `academia/`        | academia-engine            | —      | Trilhas recomendadas pela lente fraca          |
-| `domainb/`         | nr1-readiness-engine       | —      | NR-1 readiness (COPSOQ + checklist)            |
-| `pack/`            | PackProvider, pack-types   | 8      | Carrega/valida Domain Pack (Ajv)               |
+| Diretório        | Engine                   | Testes | O que faz                                         |
+| ---------------- | ------------------------ | ------ | ------------------------------------------------- |
+| `index/`         | ivo-engine, pulse-engine | 25     | IVO 2.0 (4 lentes, 16 pilares) + pulsos 60s       |
+| `esg/`           | esg-engine               | 9      | IVO→ESRS S1/ODS/GRI/FIB                           |
+| `viat/`          | viat-engine              | 29     | VIA-T v1 exploratório (24 forças, ICUFT)          |
+| `season/`        | season-engine            | 22     | Cronograma M.E.T.E. anual (4T × 13s)              |
+| `forecast/`      | forecast-engine          | 25     | Trajetória IVO + P&L + ESG (what-if)              |
+| `priority/`      | priority-engine          | 14     | Fila de prioridades composta (IVO lift)           |
+| `lab/`           | evidence-engine          | 16     | diff-in-diff honesto, veredito científico         |
+| `panorama/`      | panorama-engine          | 18     | Síntese executiva: 7 engines → 1 página           |
+| `ai/`            | agent-engine             | 15     | FlorescerIA proativa (human-in-the-loop)          |
+|                  | earlywarning-engine      | 10     | Alerta precoce: trend+signals+consent             |
+|                  | orchestration-engine     | —      | M.E.T.E. orchestration (nudge → delivery)         |
+|                  | grounding-engine         | —      | Resposta aterrada com fontes (anti-halluc.)       |
+| `benchmark/`     | benchmark-engine         | 15     | Benchmarking setorial k-anon entre tenants        |
+| `trust/`         | consent-engine           | 18     | Consentimento gateia a FlorescerIA                |
+| `signals/`       | signals-engine           | 16     | Percepção × comportamento (4 quadrantes)          |
+| `certification/` | certification-engine     | 15     | Selo Empresa Viva (computado, não comprado)       |
+| `pnl/`           | pnl-engine               | 16     | Vitality P&L (custo evitado)                      |
+| `gamification/`  | gamification-engine      | 13     | XP ético, kudos, missões (SDT/Octalysis)          |
+| `nudges/`        | nudges-engine            | 8      | Nudge MVP (opt-in, freq cap, targeting)           |
+| `rbac/`          | rbac-engine              | 7      | Nav filtrada por papel (k-anon no nav)            |
+| `fibt/`          | fibt-engine              | 10     | FIB-T (Furtado 2020) — 32 itens, 9 domínios       |
+| `esg-report/`    | esg-report-engine        | 10     | Relatório anual E/S/G (síntese 5 instrumentos)    |
+| `trend/`         | trend-engine             | 11     | Curva longitudinal IVO (momentum, projeção)       |
+| `action-plan/`   | action-plan-engine       | 14     | Plano trimestral: agenda ações por embaixadoria   |
+| `impact/`        | impact-engine            | 14     | Relatório de impacto: delta IVO + ROI + evidência |
+| `campaign/`      | campaign-engine          | 14     | Onda Ativa (dupla-visão privacidade)              |
+| `survey/`        | survey-engine            | —      | Runtime de questionário (loop Onda↔Responder)     |
+| `educar/`        | devolutiva-engine        | —      | Devolutiva contextual pós-resultado               |
+| `academia/`      | academia-engine          | —      | Trilhas recomendadas pela lente fraca             |
+| `domainb/`       | nr1-readiness-engine     | —      | NR-1 readiness (COPSOQ + checklist)               |
+| `pack/`          | PackProvider, pack-types | 8      | Carrega/valida Domain Pack (Ajv)                  |
 
 ### 2.4 Rotas implementadas (`src/routes/`)
 
@@ -131,11 +134,13 @@ eac42e8  (Lovable) improvements to landing
 > Abaixo está o destilado operacional para ativação rápida.
 
 ### 3.1 Postura
+
 Você não é "um assistente que entrega features". Você é o **supercomitê fundador de elite
 (Fable 5)** continuando a construção de um unicórnio de categoria nova. Cada decisão deve
 sobreviver a due diligence técnica, científica e jurídica.
 
 ### 3.2 A Tese (decore — toda decisão serve isto ou é vaidade)
+
 - **VitalOS = SO da vitalidade.** "Clima se mede. Vitalidade se opera."
 - **O ciclo completo:** medir → entender → agir → comprovar (concorrentes medem e param)
 - **7 motores integrados** — a disrupção é a integração, não uma feature isolada
@@ -143,18 +148,21 @@ sobreviver a due diligence técnica, científica e jurídica.
 - **Moat:** dataset de eficácia de protocolos do Culture Lab (k-anon entre tenants)
 
 ### 3.3 Ritual ToT (Tree of Thoughts) — obrigatório em toda decisão relevante
+
 1. Olhe por ≥ 3 lentes disciplinares (ciência + UX + dados + ética + negócio)
 2. Gere ≥ 5 ramos: (A) mínimo viável · (B) robusto · (C) simular · (D) adiar · (E) integrar · (F) abstrair para engine
 3. Pontue (0–10) por: valor · risco · custo · alinhamento tese · reusabilidade
 4. Documente a escolha e a justificativa
 
 ### 3.4 A Tríade (ordem obrigatória)
+
 ```
 engine puro (src/engine/) → testes (bun test) → mock (src/mocks/)
 → rota (src/routes/) → wiring (pack nav + AppShell NAV_ROUTES) → build verde → commit
 ```
 
 ### 3.5 As 8 Assinaturas Fable 5
+
 1. **Compor, não acumular** — toda necessidade nova deve compor engines existentes primeiro
 2. **Honestidade como feature** — fórmula visível, retornos decrescentes, banda de confiança
 3. **Ciência antes de código** — leia `docs/instrumentos/` antes de qualquer módulo de mensuração
@@ -187,20 +195,21 @@ Use: "Mapa VIA-T v1 — Forças percebidas no trabalho" ou "VIA-T v1 Exploratór
 
 ## 5 · STACK (nunca desvie)
 
-| Tecnologia        | Versão | Nota crítica                                 |
-| ----------------- | ------ | -------------------------------------------- |
-| React             | 19.2   |                                              |
-| TypeScript        | 5.8    | strict mode — zero `any`                     |
-| Vite/TanStack     | 8.0    | via @lovable.dev/vite-tanstack-config        |
-| TanStack Router   | 1.168  | file-based — rotas em `src/routes/`          |
-| Tailwind          | 4.2    | CSS-first — SEM tailwind.config.js           |
-| Zustand           | 5.0    | estado persisto (vita-persona, vita-pack)    |
-| Framer Motion     | 12.40  | animações sutis (0.3–0.45s), MotionConfig    |
-| Recharts          | 2.15   | gráficos (radar IVO, trend lines)            |
-| Ajv               | 8.20   | validação Domain Pack no boot                |
-| **Package mgr**   | **bun**| SEMPRE bun — nunca npm/yarn                  |
+| Tecnologia      | Versão  | Nota crítica                              |
+| --------------- | ------- | ----------------------------------------- |
+| React           | 19.2    |                                           |
+| TypeScript      | 5.8     | strict mode — zero `any`                  |
+| Vite/TanStack   | 8.0     | via @lovable.dev/vite-tanstack-config     |
+| TanStack Router | 1.168   | file-based — rotas em `src/routes/`       |
+| Tailwind        | 4.2     | CSS-first — SEM tailwind.config.js        |
+| Zustand         | 5.0     | estado persisto (vita-persona, vita-pack) |
+| Framer Motion   | 12.40   | animações sutis (0.3–0.45s), MotionConfig |
+| Recharts        | 2.15    | gráficos (radar IVO, trend lines)         |
+| Ajv             | 8.20    | validação Domain Pack no boot             |
+| **Package mgr** | **bun** | SEMPRE bun — nunca npm/yarn               |
 
 **Paleta (via token — nunca hex direto em componente):**
+
 - `--color-primary` Verde profundo `#0B3D2E`
 - `--color-accent` Dourado `#C9A227`
 - `--color-background` Superfície `#F8F7F4`
@@ -244,6 +253,7 @@ Divisão de trabalho:
 ```
 
 **Ao adicionar nova rota:**
+
 1. Criar engine em `src/engine/<dominio>/`
 2. Criar `src/routes/<rota>.tsx`
 3. Adicionar item `navigation` no `src/domain/packs/enterprise/enterprise.pack.json`
@@ -256,6 +266,7 @@ Divisão de trabalho:
 ## 8 · O QUE CONSTRUIR A SEGUIR
 
 ### Prioridade 1 — UX polish da landing e portão demo ✅ (feito em 2026-06-17)
+
 - `/` é agora a landing pública (sem AppShell). ✅
 - Portão demo (`DemoGate`) protege todo o app — senha: **luzpazeamor**. ✅
 - `/painel` é o hub navegável (antigo `/`). ✅
@@ -263,42 +274,52 @@ Divisão de trabalho:
 - Animação de desbloqueio ao entrar no painel (Framer Motion fade-in, respeitando redução de movimento). ✅
 
 ### Prioridade 2 — Bloco 20 (UX polish global)
-Reservado para o Lovable: mobile first, hover states, micro-animações, empty states
-que faltam, consistência de espaçamento. Fale com o usuário antes de implementar
-para alinhar o que específico priorizar.
+
+- Landing, hero e portão demo com acabamento premium e auditoria desktop/mobile. ✅
+- AppShell com identidade unificada, drawer contextual e dock mobile derivado de pack × papel. ✅
+- Próxima fatia: auditar estados vazios/carregando/erro e consistência de espaçamento nas rotas de
+  maior uso.
 
 ### Prioridade 3 — H2 · Conexão real (Fase 2, Lovable Cloud)
+
 Quando o usuário tiver créditos Lovable suficientes e o mock-first MVP aprovado:
 
 **Sprint 8 — Auth real (Lovable Cloud/Supabase)**
+
 - Login social (Google/LinkedIn) ou magic link
 - Row Level Security (RLS) por tenant
 - Rota `/login` e guard de auth no `__root.tsx`
 - Engine: manter mock-first com feature flag `USE_REAL_AUTH`
 
 **Sprint 9 — Persistência de ondas**
+
 - Supabase edge function: `POST /api/waves` (recebe respostas, agrega, k-anon server-side)
 - Substituir `campaign-mock.ts` por hook que chama a edge function
 - NUNCA armazenar resposta individual no cliente
 
 **Sprint 10 — Multi-tenant**
+
 - Tabela `organizations` + `org_members`
 - PackProvider resolve pack por `org.pack_id` (não hardcoded enterprise)
 - Domain Pack configurável via Supabase (org pode ter variações do pack)
 
 **Sprint 11 — LLM em produção (FlorescerIA)**
+
 - Edge function: `POST /api/copilot` (chama Anthropic claude-sonnet-4-6 ou Opus 4.8)
 - grounding-engine passa contexto: IVO + priority + evidence + season como `system`
 - guardrails: só agregados, k-anon verificado server-side, consentimento verificado
 - Substituir mock proposals do agent-engine por respostas reais
 
 **Sprint 12 — Benchmark real**
+
 - Edge function `POST /api/benchmark` — computa cohort de forma server-side
 - Nenhum dado de outro tenant jamais chega ao cliente — só resultado agregado
 - k-anon entre tenants: MIN_COHORT_ORGS = 5 (já implementado no engine)
 
 ### Prioridade 4 — Novos Domain Packs
+
 O engine é setor-agnóstico. Packs em roadmap:
+
 - `condominio` → ConvivIA (IEV adaptado para condôminos/funcionários)
 - `governo` → CidadanIA (bem-estar de servidores públicos)
 - `saude` → CuidarIA (equipes de saúde, PCMSO)
@@ -365,12 +386,15 @@ O Lovable sincroniza automaticamente com o GitHub `main` após cada push.
 A URL de preview do Lovable abre diretamente em `/` — a landing pública.
 
 **Dev local:**
+
 ```bash
 bun install && bun run dev
 ```
+
 Abra `http://localhost:5173` (ou a porta exibida no terminal).
 
 **Fluxo de acesso ao demo:**
+
 1. Abre em `/` → landing pública
 2. Clica "Entrar no app" ou "Explorar app (demo)"
 3. Modal pede senha: `luzpazeamor`

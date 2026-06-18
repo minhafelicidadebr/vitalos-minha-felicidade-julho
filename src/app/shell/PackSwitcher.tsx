@@ -44,7 +44,7 @@ export function PackSwitcher() {
         <Button
           variant="outline"
           size="sm"
-          className="h-10 gap-2 px-3"
+          className="h-10 gap-2 rounded-xl px-3"
           aria-label={`Setor ativo: ${sectorLabel}. Trocar setor`}
         >
           <span
@@ -53,7 +53,7 @@ export function PackSwitcher() {
             aria-hidden
           />
           <ActiveIcon className="h-4 w-4 opacity-80" aria-hidden />
-          <span className="hidden text-xs font-medium sm:inline">{active.sectorLabel}</span>
+          <span className="hidden text-xs font-medium xl:inline">{active.sectorLabel}</span>
           <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
         </Button>
       </PopoverTrigger>
