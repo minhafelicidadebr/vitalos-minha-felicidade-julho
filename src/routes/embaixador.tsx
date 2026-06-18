@@ -18,7 +18,7 @@ import {
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { getSectorData } from "@/mocks/sector-data";
 import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
-import { LEARNING_PATHS } from "@/mocks/academia-mock";
+import { getLearningPaths } from "@/mocks/academia-mock";
 import { AMBASSADORSHIPS } from "@/mocks/embaixadorias-mock";
 
 const AXIS_STYLE: Record<MissionAxis, { label: string; cls: string }> = {
@@ -56,13 +56,16 @@ function EmbaixadorPage() {
     const current = calculateIVO(getSectorData(packId).currentCycle, index);
     const pillars = pillarsFromIvo(current);
     const top = rankPriorities(pillars, FORECAST_LEVERS, { scenario: "medio" }).items[0] ?? null;
-    const lowest = current.lenses
+    const priorityPillars = current.lenses
       .flatMap((l) => l.pillars)
       .filter((p) => p.visible)
       .sort((a, b) => a.score - b.score)
       .slice(0, 4)
-      .map((p) => p.pillarName);
-    const ranked = recommendPaths(LEARNING_PATHS, { lowestPillarNames: lowest, roleId });
+      .map((p) => ({ id: p.pillarId, label: p.pillarName }));
+    const ranked = recommendPaths(getLearningPaths(packId), {
+      priorityPillars,
+      roleId,
+    });
     const recommended = ranked.find((r) => r.relevance === "prioritaria") ?? ranked[0] ?? null;
     return deriveLiveMissions(
       {

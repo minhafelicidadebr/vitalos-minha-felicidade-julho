@@ -275,7 +275,21 @@
     },
     { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
 
-    { "id": "academy", "label": "Academia do Florescimento", "roles": "all", "group": "gestao" },
+    {
+      "id": "academy",
+      "label": "Academia do Florescimento",
+      "roles": [
+        "COLABORADOR",
+        "EMBAIXADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "HOLDING_ADMIN",
+        "GESTOR_CARTEIRA"
+      ],
+      "group": "gestao"
+    },
     {
       "id": "living_map",
       "label": "Mapa Vivo",

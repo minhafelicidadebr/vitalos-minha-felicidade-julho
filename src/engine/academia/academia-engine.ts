@@ -1,42 +1,111 @@
-// Academia engine — puro. Torna a aprendizagem DIRIGIDA PELO DADO: dada a leitura
-// da organização (os pilares/forças mais fracos) e o papel, ranqueia as trilhas —
-// priorizando as que endereçam o que a comunidade mais precisa agora. Compõe a
-// saída do IVO/VIA-T com o catálogo de trilhas; não inventa conteúdo. Educar deixa
-// de ser estático. Nunca importa de domain/.
+// Academia engine — puro. Compõe sinais de aprendizagem sem conhecer setor:
+// necessidades coletivas (IVO/IEV agregado) definem prioridade; forças pessoais
+// declaradas (VIA-T) definem afinidade. O motor só ranqueia catálogo injetado,
+// nunca interpreta resposta bruta, não computa perfil e não importa de domain/.
 
-export type PathRelevance = "prioritaria" | "recomendada" | "complementar";
+export type PathRelevance = "prioritaria" | "afinidade" | "recomendada";
+
+export interface LearningSignal {
+  id: string;
+  label: string;
+}
 
 export interface RankablePath {
   id: string;
-  pillarName: string;
   roles: string[];
+  targetPillarIds: string[];
+  targetStrengthIds?: string[];
 }
 
 export interface RankedPath<P extends RankablePath> {
   path: P;
   relevance: PathRelevance;
-  /** Pilar fraco que esta trilha endereça (quando prioritária). */
-  matchedPillar: string | null;
+  matchedPillars: LearningSignal[];
+  matchedStrengths: LearningSignal[];
+  /**
+   * Explica a ordenação sem fingir precisão científica: prioridade coletiva
+   * pesa mais que afinidade pessoal; o número não é exposto como score humano.
+   */
+  relevanceWeight: number;
 }
 
-const ORDER: Record<PathRelevance, number> = { prioritaria: 0, recomendada: 1, complementar: 2 };
+export interface RecommendPathsOptions {
+  roleId: string;
+  priorityPillars: LearningSignal[];
+  affinityStrengths?: LearningSignal[];
+}
+
+export interface RoleLearningTargets {
+  pillarIds: string[];
+  strengthIds: string[];
+}
+
+const PRIORITY_WEIGHT = 100;
+const AFFINITY_WEIGHT = 20;
+
+function normalize(id: string): string {
+  return id.trim().toLocaleLowerCase("pt-BR");
+}
+
+function matchingSignals(targetIds: string[], signals: LearningSignal[]): LearningSignal[] {
+  const targets = new Set(targetIds.map(normalize));
+  return signals.filter((signal) => targets.has(normalize(signal.id)));
+}
+
+export function getRoleLearningTargets<P extends RankablePath>(
+  paths: P[],
+  roleId: string,
+): RoleLearningTargets {
+  const visible = paths.filter((path) => path.roles.includes(roleId));
+  return {
+    pillarIds: [...new Set(visible.flatMap((path) => path.targetPillarIds))],
+    strengthIds: [...new Set(visible.flatMap((path) => path.targetStrengthIds ?? []))],
+  };
+}
 
 export function recommendPaths<P extends RankablePath>(
   paths: P[],
-  opts: { lowestPillarNames: string[]; roleId: string },
+  opts: RecommendPathsOptions,
 ): RankedPath<P>[] {
-  const weak = new Set(opts.lowestPillarNames.map((n) => n.toLowerCase()));
+  const affinityStrengths = opts.affinityStrengths ?? [];
 
-  const ranked: RankedPath<P>[] = paths
-    .filter((p) => p.roles.includes(opts.roleId))
-    .map((p) => {
-      const matched = weak.has(p.pillarName.toLowerCase());
-      const relevance: PathRelevance = matched ? "prioritaria" : "recomendada";
-      return { path: p, relevance, matchedPillar: matched ? p.pillarName : null };
-    });
+  return paths
+    .map((path, catalogOrder) => {
+      if (!path.roles.includes(opts.roleId)) return null;
 
-  return ranked
-    .map((r, i) => ({ r, i }))
-    .sort((a, b) => ORDER[a.r.relevance] - ORDER[b.r.relevance] || a.i - b.i)
-    .map(({ r }) => r);
+      const matchedPillars = matchingSignals(path.targetPillarIds, opts.priorityPillars);
+      const matchedStrengths = matchingSignals(path.targetStrengthIds ?? [], affinityStrengths);
+      const relevance: PathRelevance =
+        matchedPillars.length > 0
+          ? "prioritaria"
+          : matchedStrengths.length > 0
+            ? "afinidade"
+            : "recomendada";
+      const relevanceWeight =
+        matchedPillars.length * PRIORITY_WEIGHT + matchedStrengths.length * AFFINITY_WEIGHT;
+
+      return {
+        ranked: {
+          path,
+          relevance,
+          matchedPillars,
+          matchedStrengths,
+          relevanceWeight,
+        } satisfies RankedPath<P>,
+        catalogOrder,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        ranked: RankedPath<P>;
+        catalogOrder: number;
+      } => item !== null,
+    )
+    .sort(
+      (a, b) =>
+        b.ranked.relevanceWeight - a.ranked.relevanceWeight || a.catalogOrder - b.catalogOrder,
+    )
+    .map(({ ranked }) => ranked);
 }

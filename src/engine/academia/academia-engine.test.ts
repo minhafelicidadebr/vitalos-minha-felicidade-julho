@@ -1,41 +1,104 @@
 import { describe, expect, test } from "bun:test";
-import { recommendPaths, type RankablePath } from "./academia-engine";
+import {
+  getRoleLearningTargets,
+  recommendPaths,
+  type LearningSignal,
+  type RankablePath,
+} from "./academia-engine";
 
 const PATHS: RankablePath[] = [
-  { id: "lp-a", pillarName: "Energia & Vitalidade", roles: ["COLABORADOR", "RH_ADMIN"] },
-  { id: "lp-b", pillarName: "Propósito & Significado", roles: ["COLABORADOR"] },
-  { id: "lp-c", pillarName: "Justiça & Coerência", roles: ["RH_ADMIN"] }, // outro papel
+  {
+    id: "energia",
+    roles: ["COLABORADOR", "RH_ADMIN"],
+    targetPillarIds: ["energia_vitalidade"],
+    targetStrengthIds: ["autorregulacao", "esperanca"],
+  },
+  {
+    id: "aprendizagem",
+    roles: ["COLABORADOR"],
+    targetPillarIds: ["crescimento_maestria"],
+    targetStrengthIds: ["curiosidade", "amor_aprendizado"],
+  },
+  {
+    id: "justica",
+    roles: ["RH_ADMIN"],
+    targetPillarIds: ["justica_coerencia"],
+  },
 ];
 
-describe("academia — recomendação dirigida pelo dado", () => {
-  test("trilha que endereça um pilar fraco vira prioritária e vem primeiro", () => {
-    const r = recommendPaths(PATHS, {
-      lowestPillarNames: ["Energia & Vitalidade"],
+const PILLARS: LearningSignal[] = [{ id: "energia_vitalidade", label: "Energia & Vitalidade" }];
+const STRENGTHS: LearningSignal[] = [
+  { id: "curiosidade", label: "Curiosidade" },
+  { id: "amor_aprendizado", label: "Amor ao aprendizado" },
+];
+
+describe("academia — curadoria explicável por necessidade e afinidade", () => {
+  test("necessidade coletiva torna a trilha prioritária e vence afinidade pessoal", () => {
+    const result = recommendPaths(PATHS, {
+      priorityPillars: PILLARS,
+      affinityStrengths: STRENGTHS,
       roleId: "COLABORADOR",
     });
-    expect(r[0]!.path.id).toBe("lp-a");
-    expect(r[0]!.relevance).toBe("prioritaria");
-    expect(r[0]!.matchedPillar).toBe("Energia & Vitalidade");
+
+    expect(result.map((item) => item.path.id)).toEqual(["energia", "aprendizagem"]);
+    expect(result[0]!.relevance).toBe("prioritaria");
+    expect(result[0]!.matchedPillars[0]?.label).toBe("Energia & Vitalidade");
+    expect(result[1]!.relevance).toBe("afinidade");
+    expect(result[1]!.matchedStrengths).toHaveLength(2);
   });
 
-  test("filtra pelas trilhas visíveis ao papel", () => {
-    const r = recommendPaths(PATHS, { lowestPillarNames: [], roleId: "COLABORADOR" });
-    expect(r.map((x) => x.path.id).sort()).toEqual(["lp-a", "lp-b"]); // lp-c é só RH
-  });
-
-  test("sem pilar fraco correspondente → recomendada (não fabrica prioridade)", () => {
-    const r = recommendPaths(PATHS, {
-      lowestPillarNames: ["Inexistente"],
+  test("trilha pode combinar prioridade coletiva e afinidade sem perder a precedência", () => {
+    const result = recommendPaths(PATHS, {
+      priorityPillars: PILLARS,
+      affinityStrengths: [{ id: "esperanca", label: "Esperança" }],
       roleId: "COLABORADOR",
     });
-    expect(r.every((x) => x.relevance === "recomendada")).toBe(true);
+
+    expect(result[0]!.path.id).toBe("energia");
+    expect(result[0]!.relevance).toBe("prioritaria");
+    expect(result[0]!.matchedPillars).toHaveLength(1);
+    expect(result[0]!.matchedStrengths).toHaveLength(1);
   });
 
-  test("o casamento de pilar é case-insensitive", () => {
-    const r = recommendPaths(PATHS, {
-      lowestPillarNames: ["energia & vitalidade"],
+  test("filtra rigorosamente pelo papel", () => {
+    const result = recommendPaths(PATHS, {
+      priorityPillars: [],
+      roleId: "COLABORADOR",
+    });
+
+    expect(result.map((item) => item.path.id)).toEqual(["energia", "aprendizagem"]);
+  });
+
+  test("expõe somente alvos de aprendizagem autorizados ao papel", () => {
+    expect(getRoleLearningTargets(PATHS, "COLABORADOR")).toEqual({
+      pillarIds: ["energia_vitalidade", "crescimento_maestria"],
+      strengthIds: ["autorregulacao", "esperanca", "curiosidade", "amor_aprendizado"],
+    });
+    expect(getRoleLearningTargets(PATHS, "RH_ADMIN")).toEqual({
+      pillarIds: ["energia_vitalidade", "justica_coerencia"],
+      strengthIds: ["autorregulacao", "esperanca"],
+    });
+  });
+
+  test("sem sinal correspondente mantém recomendação honesta e ordem do catálogo", () => {
+    const result = recommendPaths(PATHS, {
+      priorityPillars: [{ id: "inexistente", label: "Inexistente" }],
+      affinityStrengths: [{ id: "outra", label: "Outra" }],
+      roleId: "COLABORADOR",
+    });
+
+    expect(result.map((item) => item.path.id)).toEqual(["energia", "aprendizagem"]);
+    expect(result.every((item) => item.relevance === "recomendada")).toBe(true);
+    expect(result.every((item) => item.relevanceWeight === 0)).toBe(true);
+  });
+
+  test("casamento de ids tolera caixa e espaços sem depender de labels", () => {
+    const result = recommendPaths(PATHS, {
+      priorityPillars: [{ id: " ENERGIA_VITALIDADE ", label: "Energia" }],
       roleId: "RH_ADMIN",
     });
-    expect(r.find((x) => x.path.id === "lp-a")?.relevance).toBe("prioritaria");
+
+    expect(result[0]!.path.id).toBe("energia");
+    expect(result[0]!.relevance).toBe("prioritaria");
   });
 });

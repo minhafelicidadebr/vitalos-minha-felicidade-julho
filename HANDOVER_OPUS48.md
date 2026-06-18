@@ -29,7 +29,7 @@ produto (telas, fluxos, features), não de código.
 
 ### 2.1 Testes e build
 
-- **484 testes / 44 arquivos — 0 falhas** ✅
+- **493 testes / 45 arquivos — 0 falhas** ✅
 - `bun run build` — verde ✅
 - `bun x tsc --noEmit` — limpo ✅
 
@@ -75,6 +75,17 @@ eac42e8  (Lovable) improvements to landing  ← puxado via rebase
 - Respostas existem apenas durante a sessão; o store persiste somente o ID da onda respondida.
 - Decisão ToT: `docs/DECISAO_SURVEY_MULTIINSTRUMENTO_2026-06-18.md`.
 
+### 2.2d Academia adaptativa e multissetorial (2026-06-18)
+
+- A curadoria combina necessidades coletivas do IVO/IEV com afinidades opcionais do VIA-T.
+- Cada recomendação explica sua origem: prioridade coletiva, afinidade de força ou papel.
+- Pilares são filtrados pelo escopo de aprendizagem autorizado ao papel antes do ranking.
+- A escola ganhou catálogo próprio para Estudante, Educador, Família e gestão.
+- O pack Escola passou a expor `Trilha do Florescer Escolar` na navegação.
+- Academia ficou no Domínio A; conteúdos e papéis exclusivos de NR-1 permanecem em `/sst`.
+- Progresso continua mock-first e somente de sessão; nenhum sinal alimenta avaliação individual.
+- Decisão ToT: `docs/DECISAO_ACADEMIA_ADAPTATIVA_2026-06-18.md`.
+
 ### 2.3 Engines implementados (`src/engine/`)
 
 | Diretório        | Engine                   | Testes | O que faz                                         |
@@ -107,7 +118,7 @@ eac42e8  (Lovable) improvements to landing  ← puxado via rebase
 | `campaign/`      | campaign-engine          | 14     | Onda Ativa (dupla-visão privacidade)              |
 | `survey/`        | survey-engine            | 6      | Runtime multi-instrumento (loop Onda↔Responder)   |
 | `educar/`        | devolutiva-engine        | —      | Devolutiva contextual pós-resultado               |
-| `academia/`      | academia-engine          | —      | Trilhas recomendadas pela lente fraca             |
+| `academia/`      | academia-engine          | 6      | Curadoria por necessidade, força, pack e papel    |
 | `domainb/`       | nr1-readiness-engine     | —      | NR-1 readiness (COPSOQ + checklist)               |
 | `pack/`          | PackProvider, pack-types | 8      | Carrega/valida Domain Pack (Ajv)                  |
 

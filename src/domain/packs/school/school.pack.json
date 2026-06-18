@@ -115,6 +115,12 @@
       "label": "Metodologia",
       "roles": "all",
       "group": "confianca"
+    },
+    {
+      "id": "academy",
+      "label": "Trilha do Florescer Escolar",
+      "roles": "all",
+      "group": "gestao"
     }
   ],
   "indexRef": "./iev-framework.json",

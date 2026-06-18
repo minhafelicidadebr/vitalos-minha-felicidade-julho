@@ -1,4 +1,7 @@
-// Academia do Florescimento — learning paths per role, deterministic mock
+// Catálogo mock-first da Academia. Vocabulário e conteúdo vivem no domínio;
+// o academia-engine recebe apenas alvos, papéis e sinais para ordenar.
+
+import type { RankablePath } from "@/engine/academia/academia-engine";
 
 export interface AcademyModule {
   id: string;
@@ -8,12 +11,11 @@ export interface AcademyModule {
   done: boolean;
 }
 
-export interface LearningPath {
-  id: string;
+export interface LearningPath extends RankablePath {
+  packIds: string[];
   title: string;
   description: string;
-  roles: string[];
-  pillarName: string;
+  focusLabel: string;
   modules: AcademyModule[];
   learnPoints: number;
 }
@@ -21,9 +23,10 @@ export interface LearningPath {
 export const LEARNING_PATHS: LearningPath[] = [
   {
     id: "lp-fundamentos",
+    packIds: ["enterprise"],
     title: "Fundamentos do Florescimento",
     description:
-      "O que a ciência diz sobre florescer no trabalho — e o que depende de você vs do sistema.",
+      "O que a ciência diz sobre florescer no trabalho — e o que depende de você versus do sistema.",
     roles: [
       "COLABORADOR",
       "EMBAIXADOR",
@@ -31,16 +34,17 @@ export const LEARNING_PATHS: LearningPath[] = [
       "RH_ADMIN",
       "CHRO",
       "C_LEVEL",
-      "SST_PROFISSIONAL",
       "HOLDING_ADMIN",
     ],
-    pillarName: "Propósito & Significado",
+    focusLabel: "Propósito & Significado",
+    targetPillarIds: ["proposito_significado", "cultura_bem_estar"],
+    targetStrengthIds: ["proposito", "perspectiva", "esperanca"],
     learnPoints: 60,
     modules: [
       { id: "m1", title: "PERMA+V em 7 minutos", minutes: 7, format: "vídeo", done: true },
       {
         id: "m2",
-        title: "As 4 Lentes: por que o nível importa",
+        title: "As 4 Lentes: pessoa, relações, liderança e sistema",
         minutes: 6,
         format: "leitura",
         done: true,
@@ -56,10 +60,13 @@ export const LEARNING_PATHS: LearningPath[] = [
   },
   {
     id: "lp-energia",
+    packIds: ["enterprise"],
     title: "Energia que se Renova",
-    description: "Microdescansos, sono e os limites saudáveis que protegem sua vitalidade.",
-    roles: ["COLABORADOR", "EMBAIXADOR"],
-    pillarName: "Energia & Vitalidade",
+    description: "Microdescansos, sono e limites saudáveis que protegem a vitalidade.",
+    roles: ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE"],
+    focusLabel: "Energia & Vitalidade",
+    targetPillarIds: ["energia_vitalidade", "equilibrio_autonomia"],
+    targetStrengthIds: ["autorregulacao", "entusiasmo", "prudencia", "esperanca"],
     learnPoints: 45,
     modules: [
       { id: "m1", title: "A ciência das pausas reais", minutes: 6, format: "vídeo", done: true },
@@ -74,16 +81,54 @@ export const LEARNING_PATHS: LearningPath[] = [
     ],
   },
   {
+    id: "lp-aprender",
+    packIds: ["enterprise"],
+    title: "Aprender, Experimentar, Ensinar",
+    description:
+      "Transforme curiosidade em repertório aplicado e compartilhe conhecimento sem criar sobrecarga.",
+    roles: ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+    focusLabel: "Crescimento & Maestria",
+    targetPillarIds: ["crescimento_maestria", "desenvolvimento_pessoas"],
+    targetStrengthIds: ["curiosidade", "amor_aprendizado", "criatividade", "perspectiva"],
+    learnPoints: 55,
+    modules: [
+      {
+        id: "m1",
+        title: "Curiosidade produtiva: perguntas antes de respostas",
+        minutes: 6,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Prática: micromentoria de 10 minutos",
+        minutes: 8,
+        format: "prática",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Experimento: aplique uma ideia em escala segura",
+        minutes: 7,
+        format: "prática",
+        done: false,
+      },
+    ],
+  },
+  {
     id: "lp-seguranca-lider",
+    packIds: ["enterprise"],
     title: "Liderando com Segurança Psicológica",
-    description: "Como criar o clima onde as pessoas avisam antes de quebrar — base: Edmondson.",
+    description: "Crie o clima onde as pessoas avisam antes de quebrar — base: Edmondson.",
     roles: ["LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
-    pillarName: "Segurança Psicológica",
+    focusLabel: "Segurança Psicológica",
+    targetPillarIds: ["seguranca_psicologica", "cuidado_ativo"],
+    targetStrengthIds: ["bravura", "honestidade", "humildade", "inteligencia_social"],
     learnPoints: 80,
     modules: [
       {
         id: "m1",
-        title: "O que segurança psicológica NÃO é",
+        title: "O que segurança psicológica não é",
         minutes: 7,
         format: "vídeo",
         done: false,
@@ -106,42 +151,14 @@ export const LEARNING_PATHS: LearningPath[] = [
     ],
   },
   {
-    id: "lp-nr1",
-    title: "NR-1 Psicossocial sem Pânico",
-    description: "O essencial da gestão de riscos psicossociais — educativo, preparatório ao PGR.",
-    roles: ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO", "LIDER_EQUIPE"],
-    pillarName: "Condições & Carga de Trabalho",
-    learnPoints: 70,
-    modules: [
-      {
-        id: "m1",
-        title: "O que a NR-1 realmente exige",
-        minutes: 8,
-        format: "leitura",
-        done: false,
-      },
-      {
-        id: "m2",
-        title: "Inventário de riscos na prática",
-        minutes: 7,
-        format: "vídeo",
-        done: false,
-      },
-      {
-        id: "m3",
-        title: "Evidências que sustentam o GRO",
-        minutes: 6,
-        format: "leitura",
-        done: false,
-      },
-    ],
-  },
-  {
     id: "lp-reconhecimento",
+    packIds: ["enterprise"],
     title: "A Arte do Reconhecimento",
-    description: "Kudos que fortalecem cultura — específicos, sinceros e frequentes.",
+    description: "Reconhecimento específico, sincero e frequente que fortalece relações.",
     roles: ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE"],
-    pillarName: "Reconhecimento entre Pares",
+    focusLabel: "Reconhecimento entre Pares",
+    targetPillarIds: ["reconhecimento_pares", "cooperacao_confianca"],
+    targetStrengthIds: ["gratidao", "bondade", "apreciacao", "vinculo"],
     learnPoints: 40,
     modules: [
       {
@@ -153,8 +170,205 @@ export const LEARNING_PATHS: LearningPath[] = [
       },
       {
         id: "m2",
-        title: "Prática: escreva 1 kudo específico",
+        title: "Prática: escreva um reconhecimento específico",
         minutes: 5,
+        format: "prática",
+        done: false,
+      },
+    ],
+  },
+  {
+    id: "lp-escola-curiosidade",
+    packIds: ["school"],
+    title: "Aprender com Curiosidade e Sentido",
+    description: "Estratégias curtas para conectar perguntas, interesse e propósito de aprender.",
+    roles: ["ESTUDANTE"],
+    focusLabel: "Engajamento na Aprendizagem",
+    targetPillarIds: ["engajamento_aprendizagem", "proposito_aprender"],
+    learnPoints: 35,
+    modules: [
+      {
+        id: "m1",
+        title: "Como transformar dúvida em pergunta potente",
+        minutes: 5,
+        format: "vídeo",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Prática: ligue uma aula a algo que importa para você",
+        minutes: 7,
+        format: "prática",
+        done: false,
+      },
+      { id: "m3", title: "Quiz: seu jeito de aprender", minutes: 4, format: "quiz", done: false },
+    ],
+  },
+  {
+    id: "lp-escola-pertencimento",
+    packIds: ["school"],
+    title: "Pertencer, Participar e Pedir Ajuda",
+    description:
+      "Reconheça redes de apoio, pratique voz respeitosa e saiba quando procurar um adulto de confiança.",
+    roles: ["ESTUDANTE", "FAMILIA"],
+    focusLabel: "Pertencimento & Voz",
+    targetPillarIds: ["pertencimento_escolar", "voz_participacao", "seguranca_emocional"],
+    learnPoints: 40,
+    modules: [
+      {
+        id: "m1",
+        title: "Mapa de pessoas e espaços de confiança",
+        minutes: 6,
+        format: "prática",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Como pedir ajuda com clareza",
+        minutes: 5,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Prática: uma ideia para melhorar a convivência",
+        minutes: 7,
+        format: "prática",
+        done: false,
+      },
+    ],
+  },
+  {
+    id: "lp-escola-sala-segura",
+    packIds: ["school"],
+    title: "Sala Segura para Errar e Aprender",
+    description:
+      "Rotinas pedagógicas que reduzem medo de participar e transformam erro em aprendizagem.",
+    roles: ["EDUCADOR", "COORDENADOR", "ORIENTADOR", "DIRETOR"],
+    focusLabel: "Segurança Emocional",
+    targetPillarIds: ["seguranca_emocional", "convivencia_respeito"],
+    learnPoints: 65,
+    modules: [
+      {
+        id: "m1",
+        title: "Erro produtivo sem exposição",
+        minutes: 7,
+        format: "vídeo",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Três frases que abrem participação",
+        minutes: 5,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Prática: protocolo de pergunta anônima",
+        minutes: 8,
+        format: "prática",
+        done: false,
+      },
+    ],
+  },
+  {
+    id: "lp-escola-docente",
+    packIds: ["school"],
+    title: "Energia Docente Sustentável",
+    description:
+      "Proteja foco, colaboração e recuperação sem individualizar problemas que pertencem ao sistema.",
+    roles: ["EDUCADOR", "COORDENADOR", "DIRETOR", "SECRETARIA_EDU", "GESTOR_REDE"],
+    focusLabel: "Carga Sustentável & Suporte",
+    targetPillarIds: ["carga_sustentavel", "suporte_pedagogico", "realizacao_docente"],
+    learnPoints: 60,
+    modules: [
+      {
+        id: "m1",
+        title: "Carga docente: pessoa e sistema",
+        minutes: 7,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Prática: mapa de drenagem e suporte",
+        minutes: 8,
+        format: "prática",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Acordos de colaboração pedagógica",
+        minutes: 6,
+        format: "vídeo",
+        done: false,
+      },
+    ],
+  },
+  {
+    id: "lp-escola-familia",
+    packIds: ["school"],
+    title: "Família e Escola em Parceria",
+    description:
+      "Converse sobre aprendizagem e convivência com escuta, clareza e corresponsabilidade.",
+    roles: ["FAMILIA", "DIRETOR", "COORDENADOR", "ORIENTADOR"],
+    focusLabel: "Família & Comunidade",
+    targetPillarIds: ["familia_comunidade", "clima_escolar"],
+    learnPoints: 35,
+    modules: [
+      {
+        id: "m1",
+        title: "Escuta antes de solução",
+        minutes: 5,
+        format: "vídeo",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Guia de conversa família–escola",
+        minutes: 6,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Prática: um acordo possível para esta semana",
+        minutes: 7,
+        format: "prática",
+        done: false,
+      },
+    ],
+  },
+  {
+    id: "lp-escola-clima",
+    packIds: ["school"],
+    title: "Clima Escolar que Aprende",
+    description:
+      "Use sinais agregados para criar condições de pertencimento, equidade e propósito institucional.",
+    roles: ["DIRETOR", "COORDENADOR", "ORIENTADOR", "SECRETARIA_EDU", "GESTOR_REDE", "C_LEVEL_EDU"],
+    focusLabel: "Clima Escolar",
+    targetPillarIds: ["clima_escolar", "inclusao_equidade", "proposito_institucional"],
+    learnPoints: 75,
+    modules: [
+      {
+        id: "m1",
+        title: "Ler o IEV sem procurar culpados",
+        minutes: 7,
+        format: "leitura",
+        done: false,
+      },
+      {
+        id: "m2",
+        title: "Da prioridade coletiva ao primeiro experimento",
+        minutes: 8,
+        format: "vídeo",
+        done: false,
+      },
+      {
+        id: "m3",
+        title: "Prática: pacto de melhoria em 30 dias",
+        minutes: 8,
         format: "prática",
         done: false,
       },
@@ -162,7 +376,13 @@ export const LEARNING_PATHS: LearningPath[] = [
   },
 ];
 
+export function getLearningPaths(packId: string): LearningPath[] {
+  return LEARNING_PATHS.filter((path) => path.packIds.includes(packId));
+}
+
 export function pathProgress(path: LearningPath): number {
   if (path.modules.length === 0) return 0;
-  return Math.round((path.modules.filter((m) => m.done).length / path.modules.length) * 100);
+  return Math.round(
+    (path.modules.filter((module) => module.done).length / path.modules.length) * 100,
+  );
 }
