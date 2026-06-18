@@ -78,7 +78,7 @@ const ROLE_HOME: Record<string, string> = {
   SST_PROFISSIONAL: "/sst",
   CIPA_MEMBRO: "/sst",
   HOLDING_ADMIN: "/holding",
-  // Pack Escola (AlegrIA) — todos os papéis aterram no painel da Direção (agregado).
+  // Fallbacks por papel. Packs podem declarar overviewRoute para uma home adaptativa.
   DIRETOR: "/escola",
   COORDENADOR: "/escola",
   ORIENTADOR: "/escola",
@@ -180,6 +180,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
+  const configuredOverviewRoute =
+    typeof pack?.overviewRoute === "string" ? pack.overviewRoute : undefined;
+  const roleHome = configuredOverviewRoute ?? ROLE_HOME[roleId] ?? "/painel";
 
   // Personas de demonstração vêm do pack ativo — pack-driven, não hardcoded.
   const demoPersonas =
@@ -189,7 +192,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? navForRole(pack, roleId)
         .map((item) => ({
           ...item,
-          to: item.id === "overview" ? (ROLE_HOME[roleId] ?? "/painel") : NAV_ROUTES[item.id],
+          to: item.id === "overview" ? roleHome : NAV_ROUTES[item.id],
         }))
         .filter((item) => Boolean(item.to))
     : [];
@@ -202,7 +205,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   })).filter((g) => g.items.length > 0);
   const extras = visibleItems.filter((i) => i.id !== "overview" && !groupedIds.has(i.id));
   const mobileTabs = [
-    { id: "inicio", label: "Início", to: "/painel", icon: Home, routes: ["/painel"] },
+    { id: "inicio", label: "Início", to: roleHome, icon: Home, routes: [roleHome] },
     ...groupsRendered
       .filter((group) => MOBILE_GROUP_ICONS[group.id] && group.items[0])
       .slice(0, 3)

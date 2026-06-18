@@ -1,0 +1,152 @@
+import {
+  hasAudienceCapability,
+  resolveAudiencePolicy,
+  type AudiencePolicy,
+  type AudienceResolution,
+} from "@/engine/audience/audience-engine";
+
+export type SchoolAudienceCapability =
+  | "collective_index"
+  | "collective_lenses"
+  | "collective_trend"
+  | "wave_aggregate";
+
+export type SchoolHomeRoute = "/onda" | "/academia" | "/floresceria" | "/metodologia";
+
+export interface SchoolHomeAction {
+  id: "wave" | "academy" | "ai" | "method";
+  eyebrow: string;
+  title: string;
+  description: string;
+  to: SchoolHomeRoute;
+}
+
+export interface SchoolAudiencePolicy extends AudiencePolicy<SchoolAudienceCapability> {
+  audienceLabel: string;
+  eyebrow: string;
+  title: string;
+  lead: string;
+  privacyTitle: string;
+  privacyNote: string;
+  actions: readonly SchoolHomeAction[];
+}
+
+const PARTICIPANT_ACTIONS: readonly SchoolHomeAction[] = [
+  {
+    id: "wave",
+    eyebrow: "Mensurar · sua voz",
+    title: "Participar da onda aberta",
+    description:
+      "Responda em poucos minutos. O conteúdo da sua resposta não aparece para direção, educadores ou colegas.",
+    to: "/onda",
+  },
+  {
+    id: "academy",
+    eyebrow: "Educar · trilha adaptativa",
+    title: "Aprender com o contexto de agora",
+    description:
+      "Acesse experiências selecionadas para o seu papel, sem notas, ranking ou uso em avaliação.",
+    to: "/academia",
+  },
+  {
+    id: "ai",
+    eyebrow: "Apoiar · AlegrIA",
+    title: "Transformar uma dúvida em próximo passo",
+    description:
+      "Use a copilota com limites explícitos: orientação educativa, nunca diagnóstico ou decisão sobre pessoas.",
+    to: "/floresceria",
+  },
+  {
+    id: "method",
+    eyebrow: "Confiar · método",
+    title: "Entender o que é medido — e o que não é",
+    description:
+      "Veja como anonimato, agregação e limites científicos protegem a comunidade escolar.",
+    to: "/metodologia",
+  },
+];
+
+export const SCHOOL_AUDIENCE_POLICIES: readonly SchoolAudiencePolicy[] = [
+  {
+    id: "management",
+    audienceLabel: "Gestão escolar",
+    roleIds: [
+      "PLATFORM_ADMIN",
+      "SECRETARIA_EDU",
+      "GESTOR_REDE",
+      "DIRETOR",
+      "COORDENADOR",
+      "ORIENTADOR",
+      "C_LEVEL_EDU",
+    ],
+    capabilities: ["collective_index", "collective_lenses", "collective_trend", "wave_aggregate"],
+    eyebrow: "Painel da Direção · Vitalidade Escolar",
+    title: "A saúde viva da sua comunidade escolar",
+    lead: "O IEV em quatro lentes — estudante, turma, educador e escola — lido pela gestão em uma página: onde florescer, onde proteger e para onde a curva aponta.",
+    privacyTitle: "Leitura coletiva, nunca vigilância",
+    privacyNote:
+      "A gestão recebe somente agregados protegidos. Respostas individuais e a identidade de quem não respondeu permanecem invisíveis.",
+    actions: [],
+  },
+  {
+    id: "educator",
+    audienceLabel: "Educador(a)",
+    roleIds: ["EDUCADOR", "EMBAIXADOR"],
+    capabilities: [],
+    eyebrow: "Meu espaço · prática e cuidado",
+    title: "Cuidar da prática sem transformar cuidado em avaliação",
+    lead: "Participe da escuta, acesse aprendizagem pertinente ao seu papel e encontre próximos passos aplicáveis à rotina escolar.",
+    privacyTitle: "Este não é o painel da direção",
+    privacyNote:
+      "Você não recebe o IEV completo nem recortes de outras turmas. Enquanto não houver agregado autorizado da sua própria turma com n≥5, o sistema permanece no modo participante.",
+    actions: PARTICIPANT_ACTIONS,
+  },
+  {
+    id: "student",
+    audienceLabel: "Estudante",
+    roleIds: ["ESTUDANTE"],
+    capabilities: [],
+    eyebrow: "Meu espaço · voz e pertencimento",
+    title: "Sua experiência importa. Sua privacidade também.",
+    lead: "Aqui você participa da escuta, encontra práticas para conviver e aprender melhor e entende como a escola usa dados sem expor pessoas.",
+    privacyTitle: "Nenhuma resposta vira nota ou rótulo",
+    privacyNote:
+      "Sua participação é voluntária. Respostas entram apenas em agregados protegidos e nunca alimentam nota, ranking, punição ou avaliação de educadores.",
+    actions: PARTICIPANT_ACTIONS,
+  },
+  {
+    id: "family",
+    audienceLabel: "Família / Responsável",
+    roleIds: ["FAMILIA"],
+    capabilities: [],
+    eyebrow: "Meu espaço · família e escola",
+    title: "Participar com clareza, confiança e corresponsabilidade",
+    lead: "Acompanhe a proposta de escuta, contribua com a comunidade e acesse conteúdos que aproximam família, aprendizagem e bem-viver.",
+    privacyTitle: "Proteção de estudantes por padrão",
+    privacyNote:
+      "O VitalOS™ não mostra respostas individuais nem perfis de estudantes. A leitura coletiva só é publicada com proteção de anonimato.",
+    actions: PARTICIPANT_ACTIONS,
+  },
+];
+
+export const SCHOOL_SAFE_FALLBACK_POLICY: SchoolAudiencePolicy = {
+  id: "safe_fallback",
+  audienceLabel: "Participante",
+  roleIds: [],
+  capabilities: [],
+  eyebrow: "Espaço protegido · acesso mínimo",
+  title: "Seu espaço está disponível em modo protegido",
+  lead: "Este papel ainda não possui uma experiência específica. Por segurança, apenas recursos de participação e aprendizagem ficam disponíveis.",
+  privacyTitle: "Menor acesso por padrão",
+  privacyNote:
+    "Quando uma permissão não está claramente configurada, o VitalOS™ não presume acesso a indicadores coletivos.",
+  actions: PARTICIPANT_ACTIONS,
+};
+
+export function resolveSchoolAudience(roleId: string): AudienceResolution<SchoolAudiencePolicy> {
+  return resolveAudiencePolicy(SCHOOL_AUDIENCE_POLICIES, roleId, SCHOOL_SAFE_FALLBACK_POLICY);
+}
+
+export function canViewSchoolAggregate(roleId: string): boolean {
+  return hasAudienceCapability(resolveSchoolAudience(roleId).policy, "wave_aggregate");
+}

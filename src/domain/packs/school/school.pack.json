@@ -4,6 +4,7 @@
   "packName": "AlegrIA — Rede da Vitalidade Escolar: Missão Escola Viva",
   "version": "1.0.0",
   "language": "pt-BR",
+  "overviewRoute": "/escola",
   "promise": "Quando a comunidade escolar floresce, a aprendizagem deixa de ser cobrança e vira pertencimento.",
   "hierarchy": {
     "levels": [

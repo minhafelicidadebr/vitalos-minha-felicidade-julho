@@ -13,6 +13,7 @@ import {
 import { usePack } from "@/engine/pack";
 import { useWaveResponses } from "@/engine/survey/survey-store";
 import { getActiveWave, getSectorWaves, ONDA_INTRO, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";
+import { canViewSchoolAggregate } from "@/mocks/school-home-mock";
 
 export const Route = createFileRoute("/onda")({
   head: () => ({ meta: [{ title: "Onda Ativa · Mensurar — 4 Lentes VitalOS™" }] }),
@@ -24,8 +25,10 @@ const INDIVIDUAL_ROLES = new Set(["COLABORADOR", "EMBAIXADOR", "ESTUDANTE", "FAM
 
 function OndaPage() {
   const { roleId } = usePersona();
-  const { packId } = usePack();
-  const isIndividual = INDIVIDUAL_ROLES.has(roleId);
+  const { packId, t } = usePack();
+  const isIndividual =
+    packId === "school" ? !canViewSchoolAggregate(roleId) : INDIVIDUAL_ROLES.has(roleId);
+  const indexLabel = t("index", "IVO");
   const waveInput = getActiveWave(packId);
 
   const responded = useWaveResponses((s) => s.hasResponded(waveInput.id));
@@ -64,16 +67,16 @@ function OndaPage() {
         {/* Revelação da dupla-visão */}
         <div className="rounded-xl border border-border/60 bg-secondary/30 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
           <span className="font-medium text-foreground">
-            Você está vendo esta onda como {isIndividual ? "colaborador(a)" : "gestão"}.
+            Você está vendo esta onda como {isIndividual ? "participante" : "gestão"}.
           </span>{" "}
           Troque o papel no topo para ver a MESMA onda pela outra ótica — é a trava de privacidade
           em ação: a gestão vê taxas agregadas; nunca quem respondeu.
         </div>
 
         {isIndividual ? (
-          <IndividualView view={individual} />
+          <IndividualView view={individual} indexLabel={indexLabel} />
         ) : (
-          <LeaderView wave={wave} timeline={timeline} />
+          <LeaderView wave={wave} timeline={timeline} indexLabel={indexLabel} />
         )}
       </div>
     </AppShell>
@@ -82,7 +85,7 @@ function OndaPage() {
 
 // ─── Visão do INDIVÍDUO ───────────────────────────────────────────────────────
 
-function IndividualView({ view }: { view: IndividualWaveView }) {
+function IndividualView({ view, indexLabel }: { view: IndividualWaveView; indexLabel: string }) {
   const responded = view.myStatus === "respondeu";
   return (
     <motion.div
@@ -138,8 +141,8 @@ function IndividualView({ view }: { view: IndividualWaveView }) {
       <section className="rounded-2xl border border-border/60 bg-muted/30 p-5">
         <p className="font-medium text-card-foreground">O que acontece com a sua resposta</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Ela entra no agregado (n≥5), vira leitura coletiva no IVO e, no fim da onda, devolve
-          aprendizagem e ações — Mensurar → Educar → Transformar → Evoluir.
+          Ela entra no agregado (n≥5), vira leitura coletiva no {indexLabel} e, no fim da onda,
+          devolve aprendizagem e ações — Mensurar → Educar → Transformar → Evoluir.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
@@ -174,7 +177,15 @@ function Assurance({ icon, title, text }: { icon: string; title: string; text: s
 
 // ─── Visão do LÍDER / RH ──────────────────────────────────────────────────────
 
-function LeaderView({ wave, timeline }: { wave: MeasurementWave; timeline: MeasurementWave[] }) {
+function LeaderView({
+  wave,
+  timeline,
+  indexLabel,
+}: {
+  wave: MeasurementWave;
+  timeline: MeasurementWave[];
+  indexLabel: string;
+}) {
   const { ledger } = wave;
   return (
     <motion.div
@@ -287,7 +298,7 @@ function LeaderView({ wave, timeline }: { wave: MeasurementWave; timeline: Measu
               to="/ivo"
               className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
             >
-              ver o IVO desta onda →
+              ver o {indexLabel} desta onda →
             </Link>
           )}
         </div>
