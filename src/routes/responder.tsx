@@ -13,8 +13,14 @@ import {
   type SurveyValue,
 } from "@/engine/survey/survey-engine";
 import { useWaveResponses } from "@/engine/survey/survey-store";
+import {
+  getAntiGamingRules,
+  getParticipationLedgerConfig,
+} from "@/engine/gamification/gamification-engine";
+import { useParticipationLedger } from "@/engine/gamification/participation-store";
 import type { MeasurementWaveInput } from "@/engine/campaign/campaign-engine";
 import { getActiveWave } from "@/mocks/campaign-mock";
+import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 
 export const Route = createFileRoute("/responder")({
@@ -58,10 +64,13 @@ function ResponderPage() {
 }
 
 function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: SurveyDefinition }) {
+  const { gamification } = usePack();
   const { hasResponded, markResponded } = useWaveResponses();
+  const recordParticipation = useParticipationLedger((state) => state.record);
   const already = hasResponded(wave.id);
   const [responses, setResponses] = useState<SurveyResponses>({});
   const [submitted, setSubmitted] = useState(false);
+  const [awardedXp, setAwardedXp] = useState<number | null>(null);
   const progress = surveyProgress(survey.items, responses);
 
   function answer(id: string, value: SurveyValue) {
@@ -72,6 +81,19 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
   function submit() {
     if (!progress.isComplete) return;
     markResponded(wave.id);
+    if (gamification) {
+      const result = recordParticipation(
+        {
+          id: `wave-response:${wave.id}`,
+          kind: "wave_response",
+          sourceId: wave.id,
+          occurredOn: GAMIFICATION_TODAY,
+        },
+        getParticipationLedgerConfig(gamification).awards,
+        getAntiGamingRules(gamification),
+      );
+      setAwardedXp(result.event?.xpAwarded ?? 0);
+    }
     setSubmitted(true);
   }
 
@@ -93,6 +115,13 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
             <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
               {survey.intro.thanksBody}
             </p>
+            {submitted && awardedXp !== null && (
+              <p className="mx-auto mt-3 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+                {awardedXp > 0
+                  ? `+${awardedXp} XP pela participação — nunca pelo conteúdo das respostas.`
+                  : "Participação registrada. O teto ético de XP já foi alcançado hoje."}
+              </p>
+            )}
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 to="/onda"

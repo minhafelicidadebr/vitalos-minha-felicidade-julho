@@ -40,6 +40,7 @@ const NAV_ROUTES: Record<string, string> = {
   ai: "/floresceria",
   copilot: "/copiloto",
   academy: "/academia",
+  missions: "/missoes",
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
   esg_report: "/relatorio-global",
@@ -114,7 +115,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "agir",
     label: "Agir",
     hint: "O que fazer a seguir",
-    items: ["devolutiva", "priorities", "forecast", "action_plan", "copilot"],
+    items: ["devolutiva", "priorities", "forecast", "action_plan", "copilot", "missions"],
   },
   {
     id: "provar",

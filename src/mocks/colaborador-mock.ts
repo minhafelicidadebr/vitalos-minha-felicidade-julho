@@ -12,60 +12,7 @@ export const MOCK_USER = {
   department: "Produto",
   team: "Experiência do Usuário",
   avatarInitials: "MS",
-  xpWeek: 340,
-  xpTotal: 2_180,
-  kudosBalanceWeek: 3, // remaining kudos to give (max 5/week)
-  kudosReceivedWeek: 2,
 } as const;
-
-export interface MockMission {
-  id: string;
-  type: "micro" | "macro" | "legendary";
-  pillarId: string;
-  pillarName: string;
-  title: string;
-  xp?: number;
-  impact?: number;
-  progressPct: number;
-  status: "pending" | "in_progress" | "completed";
-  daysLeft: number;
-}
-
-export const MOCK_MISSIONS: MockMission[] = [
-  {
-    id: "m_micro_kudo_semana",
-    type: "micro",
-    pillarId: "reconhecimento_pares",
-    pillarName: "Reconhecimento entre Pares",
-    title: "Reconheça um colega esta semana",
-    xp: 20,
-    progressPct: 60,
-    status: "in_progress",
-    daysLeft: 3,
-  },
-  {
-    id: "m_micro_pausa_real",
-    type: "micro",
-    pillarId: "energia_vitalidade",
-    pillarName: "Energia & Vitalidade",
-    title: "Faça 3 pausas reais de 5 minutos hoje",
-    xp: 15,
-    progressPct: 0,
-    status: "pending",
-    daysLeft: 1,
-  },
-  {
-    id: "m_macro_almoco_cruzado",
-    type: "macro",
-    pillarId: "comunicacao_pertencimento",
-    pillarName: "Comunicação & Pertencimento",
-    title: "Organize um almoço cruzado entre duas áreas",
-    impact: 50,
-    progressPct: 30,
-    status: "in_progress",
-    daysLeft: 18,
-  },
-];
 
 export interface MockKudo {
   id: string;
@@ -112,21 +59,6 @@ export const MOCK_KUDOS_PILLARS = [
   { id: "seguranca_psicologica", name: "Segurança Psicológica" },
   { id: "comunicacao_pertencimento", name: "Comunicação & Pertencimento" },
   { id: "crescimento_maestria", name: "Crescimento & Maestria" },
-];
-
-export interface MockBadge {
-  id: string;
-  name: string;
-  earned: boolean;
-  earnedAt?: string;
-  emoji: string;
-}
-
-export const MOCK_BADGES: MockBadge[] = [
-  { id: "primeiro_passo", name: "Primeiro Passo", earned: true, earnedAt: "Jan 2026", emoji: "🌱" },
-  { id: "espelho_ativo", name: "Espelho Ativo", earned: true, earnedAt: "Mar 2026", emoji: "🪞" },
-  { id: "colega_que_conecta", name: "Colega que Conecta", earned: false, emoji: "🤝" },
-  { id: "reconhecedor_serial", name: "Reconhecedor Serial", earned: false, emoji: "⭐" },
 ];
 
 // Fonte ÚNICA: a temporada do colaborador deriva do season-engine sobre o

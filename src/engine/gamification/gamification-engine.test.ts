@@ -4,6 +4,7 @@ import {
   getBadges,
   getAntiGamingRules,
   getEthicalPrinciples,
+  getParticipationLedgerConfig,
   clampXpAward,
 } from "./gamification-engine";
 import type { GamificationEconomy } from "../pack/pack-types";
@@ -38,6 +39,25 @@ const ECONOMY = {
     { id: "b2", name: "Guardião", scope: "team", trigger: "streak_4", role: "EMBAIXADOR" },
   ],
   antiGaming: { xpDailyCap: 120, kudosWeeklyBudget: 4, duplicateMissionCooldownHours: 24 },
+  participationLedger: {
+    awards: [
+      {
+        kind: "wave_response",
+        category: "participation",
+        xp: 25,
+        maxPerDay: 1,
+      },
+    ],
+    badges: [
+      {
+        id: "voice",
+        name: "Voz presente",
+        emoji: "🗣",
+        threshold: 1,
+        kind: "wave_response",
+      },
+    ],
+  },
 } as unknown as GamificationEconomy;
 
 // ─── Missions ────────────────────────────────────────────────────────────────
@@ -121,6 +141,31 @@ describe("getEthicalPrinciples", () => {
 
   test("ausente → lista vazia", () => {
     expect(getEthicalPrinciples({ version: "1" } as GamificationEconomy)).toEqual([]);
+  });
+});
+
+describe("getParticipationLedgerConfig", () => {
+  test("maps injected award and badge policies", () => {
+    const config = getParticipationLedgerConfig(ECONOMY);
+
+    expect(config.awards[0]).toEqual({
+      kind: "wave_response",
+      category: "participation",
+      xp: 25,
+      maxPerDay: 1,
+    });
+    expect(config.badges[0]).toMatchObject({
+      id: "voice",
+      kind: "wave_response",
+      threshold: 1,
+    });
+  });
+
+  test("missing policy returns an empty ledger config", () => {
+    expect(getParticipationLedgerConfig({ version: "1" } as GamificationEconomy)).toEqual({
+      awards: [],
+      badges: [],
+    });
   });
 });
 

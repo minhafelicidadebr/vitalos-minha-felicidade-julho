@@ -211,6 +211,55 @@
     "duplicateMissionCooldownHours": 20,
     "noXpForPulseContent": "xp granted for participation only, never tied to answer values"
   },
+  "participationLedger": {
+    "awards": [
+      { "kind": "wave_response", "category": "participation", "xp": 25, "maxPerDay": 1 },
+      { "kind": "pulse_completed", "category": "participation", "xp": 25, "maxPerDay": 1 },
+      { "kind": "check_in", "category": "participation", "xp": 15, "maxPerDay": 1 },
+      { "kind": "learning_module", "category": "learning", "xp": 10, "maxPerDay": 8 },
+      { "kind": "learning_path", "category": "learning", "xp": 20, "maxPerDay": 2 },
+      { "kind": "kudo_sent", "category": "contribution", "xp": 10, "maxPerDay": 5 },
+      { "kind": "nudge_action", "category": "contribution", "xp": 5, "maxPerDay": 3 },
+      { "kind": "mission_evidence", "category": "contribution", "xp": 20, "maxPerDay": 2 }
+    ],
+    "badges": [
+      {
+        "id": "primeiro_passo",
+        "name": "Primeiro Passo",
+        "emoji": "🌱",
+        "threshold": 1,
+        "kind": "pulse_completed"
+      },
+      {
+        "id": "voz_presente",
+        "name": "Voz Presente",
+        "emoji": "🗣️",
+        "threshold": 1,
+        "kind": "wave_response"
+      },
+      {
+        "id": "aprendiz_em_movimento",
+        "name": "Aprendiz em Movimento",
+        "emoji": "📚",
+        "threshold": 3,
+        "category": "learning"
+      },
+      {
+        "id": "cultura_em_acao",
+        "name": "Cultura em Ação",
+        "emoji": "✦",
+        "threshold": 3,
+        "category": "contribution"
+      },
+      {
+        "id": "reconhecimento_em_movimento",
+        "name": "Reconhecimento em Movimento",
+        "emoji": "🤝",
+        "threshold": 3,
+        "kind": "kudo_sent"
+      }
+    ]
+  },
   "nudgeLibrarySeed": [
     {
       "id": "n_pausa_timely",

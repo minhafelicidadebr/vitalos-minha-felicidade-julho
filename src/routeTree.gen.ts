@@ -30,6 +30,7 @@ import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as PanoramaRouteImport } from './routes/panorama'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as OndaRouteImport } from './routes/onda'
+import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -159,6 +160,11 @@ const PainelRoute = PainelRouteImport.update({
 const OndaRoute = OndaRouteImport.update({
   id: '/onda',
   path: '/onda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissoesRoute = MissoesRouteImport.update({
+  id: '/missoes',
+  path: '/missoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
@@ -361,6 +368,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/metodologia': typeof MetodologiaRoute
+  '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
   '/painel': typeof PainelRoute
   '/panorama': typeof PanoramaRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/metodologia'
+    | '/missoes'
     | '/onda'
     | '/painel'
     | '/panorama'
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/metodologia'
+    | '/missoes'
     | '/onda'
     | '/painel'
     | '/panorama'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/metodologia'
+    | '/missoes'
     | '/onda'
     | '/painel'
     | '/panorama'
@@ -605,6 +617,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
   MetodologiaRoute: typeof MetodologiaRoute
+  MissoesRoute: typeof MissoesRoute
   OndaRoute: typeof OndaRoute
   PainelRoute: typeof PainelRoute
   PanoramaRoute: typeof PanoramaRoute
@@ -775,6 +788,13 @@ declare module '@tanstack/react-router' {
       path: '/onda'
       fullPath: '/onda'
       preLoaderRoute: typeof OndaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missoes': {
+      id: '/missoes'
+      path: '/missoes'
+      fullPath: '/missoes'
+      preLoaderRoute: typeof MissoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metodologia': {
@@ -981,6 +1001,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
   MetodologiaRoute: MetodologiaRoute,
+  MissoesRoute: MissoesRoute,
   OndaRoute: OndaRoute,
   PainelRoute: PainelRoute,
   PanoramaRoute: PanoramaRoute,

@@ -4,6 +4,15 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePersona } from "@/engine/rbac/rbac";
 import { usePack } from "@/engine/pack";
+import {
+  getAntiGamingRules,
+  getParticipationLedgerConfig,
+} from "@/engine/gamification/gamification-engine";
+import {
+  hasParticipationEvidence,
+  type ParticipationRecordResult,
+} from "@/engine/gamification/participation-ledger";
+import { useParticipationLedger } from "@/engine/gamification/participation-store";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import {
   getRoleLearningTargets,
@@ -14,6 +23,7 @@ import {
 } from "@/engine/academia/academia-engine";
 import { getSectorData } from "@/mocks/sector-data";
 import { getLearningPaths, pathProgress, type LearningPath } from "@/mocks/academia-mock";
+import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { MARINA_VIAT_RESULT, VIAT_INTRO } from "@/mocks/viat-mock";
 
 export const Route = createFileRoute("/academia")({
@@ -298,13 +308,56 @@ function RecommendationBasis({
 
 function PathCard({ ranked, delay }: { ranked: RankedPath<LearningPath>; delay: number }) {
   const { path, relevance, matchedPillars, matchedStrengths } = ranked;
+  const { gamification } = usePack();
+  const events = useParticipationLedger((state) => state.events);
+  const recordParticipation = useParticipationLedger((state) => state.record);
   const [open, setOpen] = useState(false);
-  const [doneIds, setDoneIds] = useState<Set<string>>(
-    () => new Set(path.modules.filter((module) => module.done).map((module) => module.id)),
+  const doneIds = new Set(
+    path.modules
+      .filter((module) =>
+        hasParticipationEvidence(events, "learning_module", `${path.id}:${module.id}`),
+      )
+      .map((module) => module.id),
   );
 
-  const progress = Math.round((doneIds.size / path.modules.length) * 100) || pathProgress(path);
-  const complete = doneIds.size === path.modules.length;
+  const progress =
+    path.modules.length > 0
+      ? Math.round((doneIds.size / path.modules.length) * 100)
+      : pathProgress(path);
+  const complete =
+    hasParticipationEvidence(events, "learning_path", path.id) ||
+    (path.modules.length > 0 && doneIds.size === path.modules.length);
+
+  function completeModule(moduleId: string): ParticipationRecordResult | null {
+    if (!gamification) return null;
+    const config = getParticipationLedgerConfig(gamification);
+    const antiGaming = getAntiGamingRules(gamification);
+    const result = recordParticipation(
+      {
+        id: `learning-module:${path.id}:${moduleId}`,
+        kind: "learning_module",
+        sourceId: `${path.id}:${moduleId}`,
+        occurredOn: GAMIFICATION_TODAY,
+      },
+      config.awards,
+      antiGaming,
+    );
+    const completedAfter = new Set([...doneIds, moduleId]);
+
+    if (completedAfter.size === path.modules.length) {
+      recordParticipation(
+        {
+          id: `learning-path:${path.id}`,
+          kind: "learning_path",
+          sourceId: path.id,
+          occurredOn: GAMIFICATION_TODAY,
+        },
+        config.awards,
+        antiGaming,
+      );
+    }
+    return result;
+  }
 
   return (
     <motion.article
@@ -395,7 +448,7 @@ function PathCard({ ranked, delay }: { ranked: RankedPath<LearningPath>; delay: 
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setDoneIds((previous) => new Set([...previous, module.id]))}
+                    onClick={() => completeModule(module.id)}
                     className="min-h-11 rounded-lg border border-input px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     Concluir

@@ -1,10 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
+import {
+  getAntiGamingRules,
+  getParticipationLedgerConfig,
+} from "@/engine/gamification/gamification-engine";
+import { hasParticipationEvidence } from "@/engine/gamification/participation-ledger";
+import { useParticipationLedger } from "@/engine/gamification/participation-store";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { getPulseConfig, getResponseLabels, selectPulseItems } from "@/engine/index/pulse-engine";
+import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 
 export const Route = createFileRoute("/pulse")({
@@ -15,7 +22,9 @@ export const Route = createFileRoute("/pulse")({
 type Stage = "intro" | "answering" | "done" | "declined";
 
 function PulsePage() {
-  const { index } = usePack();
+  const { index, gamification } = usePack();
+  const recordParticipation = useParticipationLedger((state) => state.record);
+  const participationEvents = useParticipationLedger((state) => state.events);
 
   const { items, config, labels } = useMemo(() => {
     if (!index) return { items: [], config: null, labels: [] as string[] };
@@ -34,16 +43,41 @@ function PulsePage() {
   const [stage, setStage] = useState<Stage>("intro");
   const [current, setCurrent] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(60);
+  const [awardedXp, setAwardedXp] = useState<number | null>(null);
+  const pulseSourceId = index ? `${index.id}:${ivoCurrentCycle.cycleId}` : "";
+  const alreadyCompleted =
+    pulseSourceId.length > 0 &&
+    hasParticipationEvidence(participationEvents, "pulse_completed", pulseSourceId);
+  const completePulse = useCallback(() => {
+    if (gamification && index) {
+      const result = recordParticipation(
+        {
+          id: `pulse:${index.id}:${ivoCurrentCycle.cycleId}`,
+          kind: "pulse_completed",
+          sourceId: pulseSourceId,
+          occurredOn: GAMIFICATION_TODAY,
+        },
+        getParticipationLedgerConfig(gamification).awards,
+        getAntiGamingRules(gamification),
+      );
+      setAwardedXp(result.event?.xpAwarded ?? 0);
+    }
+    setStage("done");
+  }, [gamification, index, pulseSourceId, recordParticipation]);
+
+  useEffect(() => {
+    if (alreadyCompleted && stage === "intro") setStage("done");
+  }, [alreadyCompleted, stage]);
 
   useEffect(() => {
     if (stage !== "answering") return;
     if (secondsLeft <= 0) {
-      setStage("done"); // tempo esgotado também conclui — respostas parciais valem
+      completePulse(); // tempo esgotado também conclui — respostas parciais valem
       return;
     }
     const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [stage, secondsLeft]);
+  }, [completePulse, stage, secondsLeft]);
 
   if (!index || !config) {
     return (
@@ -65,7 +99,7 @@ function PulsePage() {
     // Resposta NUNCA é armazenada no cliente — em produção segue direto
     // para a edge function de agregação. Aqui, simplesmente avançamos.
     if (current + 1 >= items.length) {
-      setStage("done");
+      completePulse();
     } else {
       setCurrent((c) => c + 1);
     }
@@ -193,8 +227,11 @@ function PulsePage() {
               </motion.p>
               <h1 className="font-serif text-3xl text-foreground">Obrigado por participar</h1>
               <p className="mx-auto max-w-md text-base leading-relaxed text-muted-foreground">
-                +25 XP pela participação. Suas respostas seguiram direto para a agregação anônima —
-                nem o RH, nem sua liderança, nem nós vemos o que você marcou.
+                {awardedXp !== null && awardedXp > 0
+                  ? `+${awardedXp} XP pela participação. `
+                  : "Participação registrada. "}
+                Suas respostas seguiram direto para a agregação anônima — nem o RH, nem sua
+                liderança, nem nós vemos o que você marcou.
               </p>
               <div className="flex justify-center gap-3">
                 <Link

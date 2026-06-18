@@ -8,6 +8,7 @@
 import { clampXpAward, type AntiGamingRules } from "./gamification-engine";
 
 export type MissionAxis = "mensurar" | "educar" | "transformar";
+export type LiveMissionStatus = "pending" | "in_progress" | "completed";
 
 export interface LiveMission {
   id: string;
@@ -17,14 +18,24 @@ export interface LiveMission {
   /** XP após o teto diário ético (clampXpAward). */
   xp: number;
   route: string;
+  status: LiveMissionStatus;
+  progressPct: number;
+  evidenceSourceId: string;
 }
 
 export interface LiveMissionContext {
   waveOpen: boolean;
+  waveId: string;
   waveInstrument: string;
   alreadyResponded: boolean;
+  topPriorityId: string | null;
   topPriorityLabel: string | null;
+  priorityEvidenceRecorded: boolean;
+  recommendedPathId: string | null;
   recommendedPathTitle: string | null;
+  recommendedPathCompletedModules: number;
+  recommendedPathTotalModules: number;
+  recommendedPathCompleted: boolean;
 }
 
 export const ETHICAL_XP_RULE =
@@ -40,8 +51,8 @@ export function deriveLiveMissions(
   const out: LiveMission[] = [];
   const clamp = (base: number) => clampXpAward(base, earnedToday, rules);
 
-  // Mensurar — só se a onda está aberta E a pessoa ainda não respondeu.
-  if (ctx.waveOpen && !ctx.alreadyResponded) {
+  // Mensurar — permanece visível depois da resposta como prova do ciclo fechado.
+  if (ctx.waveOpen || ctx.alreadyResponded) {
     out.push({
       id: "mission-responder",
       axis: "mensurar",
@@ -49,6 +60,9 @@ export function deriveLiveMissions(
       baseXp: BASE_XP.mensurar,
       xp: clamp(BASE_XP.mensurar),
       route: "/responder",
+      status: ctx.alreadyResponded ? "completed" : "pending",
+      progressPct: ctx.alreadyResponded ? 100 : 0,
+      evidenceSourceId: ctx.waveId,
     });
   }
 
@@ -60,7 +74,10 @@ export function deriveLiveMissions(
       title: `Apoiar a prioridade: ${ctx.topPriorityLabel}`,
       baseXp: BASE_XP.transformar,
       xp: clamp(BASE_XP.transformar),
-      route: "/prioridades",
+      route: "/missoes",
+      status: ctx.priorityEvidenceRecorded ? "completed" : "pending",
+      progressPct: ctx.priorityEvidenceRecorded ? 100 : 0,
+      evidenceSourceId: ctx.topPriorityId ?? "priority-unavailable",
     });
   }
 
@@ -73,6 +90,18 @@ export function deriveLiveMissions(
       baseXp: BASE_XP.educar,
       xp: clamp(BASE_XP.educar),
       route: "/academia",
+      status: ctx.recommendedPathCompleted
+        ? "completed"
+        : ctx.recommendedPathCompletedModules > 0
+          ? "in_progress"
+          : "pending",
+      progressPct:
+        ctx.recommendedPathTotalModules > 0
+          ? Math.round(
+              (ctx.recommendedPathCompletedModules / ctx.recommendedPathTotalModules) * 100,
+            )
+          : 0,
+      evidenceSourceId: ctx.recommendedPathId ?? "path-unavailable",
     });
   }
 

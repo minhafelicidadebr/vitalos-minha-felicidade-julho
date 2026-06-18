@@ -2,23 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { useLiveEconomy } from "@/app/gamification/use-live-economy";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/engine/rbac/rbac";
 import { computeWave } from "@/engine/campaign/campaign-engine";
-import { useWaveResponses } from "@/engine/survey/survey-store";
-import { calculateIVO } from "@/engine/index/ivo-engine";
-import { rankPriorities } from "@/engine/priority/priority-engine";
-import { recommendPaths } from "@/engine/academia/academia-engine";
-import { getAntiGamingRules } from "@/engine/gamification/gamification-engine";
-import {
-  deriveLiveMissions,
-  ETHICAL_XP_RULE,
-  type MissionAxis,
-} from "@/engine/gamification/live-economy";
+import { ETHICAL_XP_RULE, type MissionAxis } from "@/engine/gamification/live-economy";
 import { getActiveWave } from "@/mocks/campaign-mock";
-import { getSectorData } from "@/mocks/sector-data";
-import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
-import { getLearningPaths } from "@/mocks/academia-mock";
 import { AMBASSADORSHIPS } from "@/mocks/embaixadorias-mock";
 
 const AXIS_STYLE: Record<MissionAxis, { label: string; cls: string }> = {
@@ -42,42 +30,12 @@ export const Route = createFileRoute("/embaixador")({
 });
 
 function EmbaixadorPage() {
-  const { packId, index, gamification } = usePack();
-  const { roleId } = usePersona();
+  const { packId } = usePack();
+  const live = useLiveEconomy();
   const waveInput = getActiveWave(packId);
-  const responded = useWaveResponses((s) => s.hasResponded(waveInput.id));
   const wave = useMemo(() => computeWave(waveInput), [waveInput]);
   // A embaixadoria que a pessoa lidera (joined) — senão a primeira.
   const mine = AMBASSADORSHIPS.find((a) => a.joined) ?? AMBASSADORSHIPS[0]!;
-
-  // Missões VIVAS — derivam do laço inteiro (onda + prioridade + trilha), XP ético.
-  const missions = useMemo(() => {
-    if (!index || !gamification) return [];
-    const current = calculateIVO(getSectorData(packId).currentCycle, index);
-    const pillars = pillarsFromIvo(current);
-    const top = rankPriorities(pillars, FORECAST_LEVERS, { scenario: "medio" }).items[0] ?? null;
-    const priorityPillars = current.lenses
-      .flatMap((l) => l.pillars)
-      .filter((p) => p.visible)
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 4)
-      .map((p) => ({ id: p.pillarId, label: p.pillarName }));
-    const ranked = recommendPaths(getLearningPaths(packId), {
-      priorityPillars,
-      roleId,
-    });
-    const recommended = ranked.find((r) => r.relevance === "prioritaria") ?? ranked[0] ?? null;
-    return deriveLiveMissions(
-      {
-        waveOpen: wave.state === "aberta" || wave.state === "encerrando",
-        waveInstrument: wave.instrumentShort,
-        alreadyResponded: responded,
-        topPriorityLabel: top?.label ?? null,
-        recommendedPathTitle: recommended?.path.title ?? null,
-      },
-      getAntiGamingRules(gamification),
-    );
-  }, [index, gamification, packId, roleId, wave, responded]);
 
   return (
     <AppShell>
@@ -181,7 +139,7 @@ function EmbaixadorPage() {
         </section>
 
         {/* Missões do momento — derivadas do laço, XP ético */}
-        {missions.length > 0 && (
+        {live.missions.length > 0 && (
           <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
               Missões do momento
@@ -190,7 +148,7 @@ function EmbaixadorPage() {
               Não são lista fixa — nascem do que a cultura precisa agora.
             </p>
             <ul className="mt-3 space-y-2">
-              {missions.map((m) => {
+              {live.missions.map((m) => {
                 const ax = AXIS_STYLE[m.axis];
                 return (
                   <li key={m.id}>
@@ -205,7 +163,7 @@ function EmbaixadorPage() {
                       </span>
                       <span className="min-w-0 flex-1 text-sm text-card-foreground">{m.title}</span>
                       <span className="shrink-0 text-sm font-semibold text-primary">
-                        +{m.xp} XP
+                        {m.status === "completed" ? "Concluída" : `até +${m.xp} XP`}
                       </span>
                     </Link>
                   </li>

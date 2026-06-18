@@ -1,29 +1,40 @@
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useLiveEconomy } from "@/app/gamification/use-live-economy";
+import {
+  hasParticipationEvidence,
+  type ParticipationBadgeResult,
+  type ParticipationEventKind,
+  type ParticipationRecordResult,
+} from "@/engine/gamification/participation-ledger";
+import type { LiveMission } from "@/engine/gamification/live-economy";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { getNudgeLibrary, selectNudges } from "@/engine/nudges/nudge-engine";
 import { usePack } from "@/engine/pack";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 import {
   MOCK_USER,
-  MOCK_MISSIONS,
   MOCK_KUDOS_RECEIVED,
-  MOCK_BADGES,
   MOCK_SEASON,
   MOCK_COLLEAGUES,
   MOCK_KUDOS_PILLARS,
   FLORESCERIA_SUGGESTION,
-  type MockMission,
   type MockKudo,
-  type MockBadge,
 } from "@/mocks/colaborador-mock";
+import { GAMIFICATION_COPY } from "@/mocks/gamification-mock";
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 export function ColaboradorDashboard() {
   const { index } = usePack();
+  const live = useLiveEconomy();
   const ivoResult = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
+  const canRecord = Boolean(live.ledgerConfig && live.rules);
+  const kudoCountToday = live.events.filter(
+    (event) => event.kind === "kudo_sent" && event.occurredOn === live.today,
+  ).length;
+  const kudoRemaining = Math.max(0, (live.rules?.kudosWeeklyBudget ?? 5) - kudoCountToday);
 
   const now = new Date();
   const hour = now.getHours();
@@ -36,25 +47,42 @@ export function ColaboradorDashboard() {
         greeting={greeting}
         ivoScore={ivoResult?.ivoScore}
         maturityName={ivoResult?.maturityLevel.name}
+        xpToday={live.summary?.xpToday ?? 0}
+        totalXp={live.summary?.totalXp ?? 0}
+        dailyCap={live.rules?.xpDailyCap ?? 0}
+        evidenceCount={live.summary?.eventCount ?? 0}
+        kudoRemaining={kudoRemaining}
       />
 
       {/* Check-in */}
-      <CheckInCard />
+      <CheckInCard
+        completed={hasParticipationEvidence(live.events, "check_in", live.today)}
+        onComplete={() => recordEvent("check_in", live.today)}
+      />
 
       {/* Pulse invite */}
-      <PulseInviteCard />
+      <PulseInviteCard completed={(live.summary?.countsByKind.pulse_completed ?? 0) > 0} />
 
       {/* Nudges */}
-      <NudgesCard />
+      <NudgesCard
+        hasActed={(id) =>
+          hasParticipationEvidence(live.events, "nudge_action", `${live.today}:${id}`)
+        }
+        onAct={(id) => recordEvent("nudge_action", `${live.today}:${id}`)}
+      />
 
       {/* Missions */}
-      <MissionsCard missions={MOCK_MISSIONS} />
+      <MissionsCard missions={live.missions} />
 
       {/* Kudos */}
-      <KudosCard kudosReceived={MOCK_KUDOS_RECEIVED} />
+      <KudosCard
+        kudosReceived={MOCK_KUDOS_RECEIVED}
+        remaining={kudoRemaining}
+        onSend={() => recordEvent("kudo_sent", `kudo:${live.today}:${kudoCountToday + 1}`)}
+      />
 
       {/* Badges */}
-      <BadgesCard badges={MOCK_BADGES} />
+      <BadgesCard badges={live.summary?.badges ?? []} />
 
       {/* Season */}
       <SeasonCard />
@@ -66,6 +94,23 @@ export function ColaboradorDashboard() {
       <QuickLinksCard />
     </div>
   );
+
+  function recordEvent(
+    kind: ParticipationEventKind,
+    sourceId: string,
+  ): ParticipationRecordResult | null {
+    if (!canRecord || !live.ledgerConfig || !live.rules) return null;
+    return live.record(
+      {
+        id: `${kind}:${sourceId}`,
+        kind,
+        sourceId,
+        occurredOn: live.today,
+      },
+      live.ledgerConfig.awards,
+      live.rules,
+    );
+  }
 }
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
@@ -74,10 +119,20 @@ function HeroCard({
   greeting,
   ivoScore,
   maturityName,
+  xpToday,
+  totalXp,
+  dailyCap,
+  evidenceCount,
+  kudoRemaining,
 }: {
   greeting: string;
   ivoScore?: number;
   maturityName?: string;
+  xpToday: number;
+  totalXp: number;
+  dailyCap: number;
+  evidenceCount: number;
+  kudoRemaining: number;
 }) {
   return (
     <motion.div
@@ -122,9 +177,10 @@ function HeroCard({
 
       {/* XP + Kudos stats */}
       <div className="mt-4 flex flex-wrap gap-3">
-        <StatChip label="XP esta semana" value={`${MOCK_USER.xpWeek.toLocaleString("pt-BR")} XP`} />
-        <StatChip label="Kudos para dar" value={`${MOCK_USER.kudosBalanceWeek}/5`} />
-        <StatChip label="Kudos recebidos" value={`${MOCK_USER.kudosReceivedWeek} esta semana`} />
+        <StatChip label="XP hoje" value={`${xpToday}/${dailyCap} XP`} />
+        <StatChip label="XP verificado" value={`${totalXp.toLocaleString("pt-BR")} XP`} />
+        <StatChip label="Evidências registradas" value={`${evidenceCount}`} />
+        <StatChip label="Kudos para dar" value={`${kudoRemaining}/5`} />
       </div>
     </motion.div>
   );
@@ -150,14 +206,22 @@ const MOODS = [
 ] as const;
 
 const AFFIRMATIONS = [
-  "Obrigado por participar. Sua voz constrói uma organização mais viva.",
-  "Check-in registrado. Seus dados são invisíveis individualmente — só agregados chegam ao painel.",
-  "Feito! Cada check-in alimenta o IVO de forma anônima e segura.",
+  "Obrigado por participar. O ledger registrou a ação, não como você se sentiu.",
+  "Check-in registrado. O conteúdo permanece fora da economia de XP.",
+  "Feito. A participação conta; a resposta individual não fica no livro-razão.",
 ];
 
-function CheckInCard() {
+function CheckInCard({
+  completed,
+  onComplete,
+}: {
+  completed: boolean;
+  onComplete: () => ParticipationRecordResult | null;
+}) {
   const [selected, setSelected] = useState<number | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedNow, setSubmittedNow] = useState(false);
+  const [awardedXp, setAwardedXp] = useState<number | null>(null);
+  const submitted = completed || submittedNow;
 
   const affirmation =
     AFFIRMATIONS[Math.floor((selected ?? 0) % AFFIRMATIONS.length)] ?? AFFIRMATIONS[0]!;
@@ -169,7 +233,9 @@ function CheckInCard() {
 
   function handleSubmit() {
     if (selected === null) return;
-    setSubmitted(true);
+    const result = onComplete();
+    setAwardedXp(result?.event?.xpAwarded ?? 0);
+    setSubmittedNow(true);
   }
 
   return (
@@ -188,7 +254,7 @@ function CheckInCard() {
         </div>
         {submitted && (
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
-            +15 XP
+            {awardedXp !== null && awardedXp > 0 ? `+${awardedXp} XP` : "Registrado"}
           </span>
         )}
       </div>
@@ -233,7 +299,7 @@ function CheckInCard() {
 
 // ─── Pulse invite ─────────────────────────────────────────────────────────────
 
-function PulseInviteCard() {
+function PulseInviteCard({ completed }: { completed: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -248,7 +314,9 @@ function PulseInviteCard() {
         <div>
           <p className="text-sm font-medium text-card-foreground">Pulse da quinzena disponível</p>
           <p className="text-xs text-muted-foreground">
-            3 perguntas · 60 segundos · anônimo · +25 XP
+            {completed
+              ? "Participação registrada · respostas permanecem anônimas"
+              : "3 perguntas · 60 segundos · anônimo · XP pela participação"}
           </p>
         </div>
       </div>
@@ -256,7 +324,7 @@ function PulseInviteCard() {
         to="/pulse"
         className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
-        Responder
+        {completed ? "Ver registro" : "Responder"}
       </Link>
     </motion.div>
   );
@@ -264,10 +332,15 @@ function PulseInviteCard() {
 
 // ─── Nudges ───────────────────────────────────────────────────────────────────
 
-function NudgesCard() {
+function NudgesCard({
+  hasActed,
+  onAct,
+}: {
+  hasActed: (id: string) => boolean;
+  onAct: (id: string) => ParticipationRecordResult | null;
+}) {
   const { gamification } = usePack();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const [actedIds, setActedIds] = useState<Set<string>>(new Set());
 
   const deliveries = useMemo(() => {
     if (!gamification) return [];
@@ -302,13 +375,13 @@ function NudgesCard() {
           <div className="flex-1 min-w-0">
             <p className="text-base leading-relaxed text-card-foreground">{nudge.copy}</p>
             <div className="mt-2 flex items-center gap-3">
-              {actedIds.has(nudge.id) ? (
+              {hasActed(nudge.id) ? (
                 <span className="text-xs text-green-600 dark:text-green-400">
                   ✓ Registrado — boa!
                 </span>
               ) : (
                 <button
-                  onClick={() => setActedIds((prev) => new Set([...prev, nudge.id]))}
+                  onClick={() => onAct(nudge.id)}
                   className="text-xs font-medium text-primary underline underline-offset-2 hover:opacity-80"
                 >
                   Fiz isso
@@ -333,7 +406,7 @@ function NudgesCard() {
 
 // ─── Missions ─────────────────────────────────────────────────────────────────
 
-function MissionsCard({ missions }: { missions: MockMission[] }) {
+function MissionsCard({ missions }: { missions: LiveMission[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -342,48 +415,77 @@ function MissionsCard({ missions }: { missions: MockMission[] }) {
       className="rounded-2xl border border-border/70 bg-card shadow-sm"
     >
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
-        <p className="font-medium text-card-foreground">Missões Ativas</p>
-        <span className="text-xs text-muted-foreground">{missions.length} em andamento</span>
+        <div>
+          <p className="font-medium text-card-foreground">Missões vivas</p>
+          <p className="text-xs text-muted-foreground">
+            Derivadas da onda, da prioridade e da aprendizagem.
+          </p>
+        </div>
+        <Link
+          to="/missoes"
+          className="text-xs font-medium text-primary underline underline-offset-2"
+        >
+          abrir central
+        </Link>
       </div>
-      <div className="space-y-1 px-3 pb-4">
-        {missions.map((m) => (
-          <MissionRow key={m.id} mission={m} />
-        ))}
-      </div>
+      {missions.length === 0 ? (
+        <div className="mx-5 mb-5 rounded-xl border border-dashed border-border/60 p-4">
+          <p className="text-sm font-medium text-foreground">{GAMIFICATION_COPY.emptyTitle}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {GAMIFICATION_COPY.emptyBody}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-1 px-3 pb-4">
+          {missions.map((mission) => (
+            <MissionRow key={mission.id} mission={mission} />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
 
-const MISSION_TYPE_STYLES: Record<MockMission["type"], { bg: string; label: string }> = {
-  micro: { bg: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", label: "Micro" },
-  macro: {
-    bg: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-    label: "Macro",
+const MISSION_AXIS_STYLES: Record<LiveMission["axis"], { bg: string; label: string }> = {
+  mensurar: {
+    bg: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
+    label: "Mensurar",
   },
-  legendary: {
+  educar: {
     bg: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-    label: "Lendária",
+    label: "Educar",
+  },
+  transformar: {
+    bg: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+    label: "Transformar",
   },
 };
 
-function MissionRow({ mission }: { mission: MockMission }) {
-  const { bg, label } = MISSION_TYPE_STYLES[mission.type];
-  const reward = mission.xp ? `+${mission.xp} XP` : `+${mission.impact ?? 0} Impacto`;
+function MissionRow({ mission }: { mission: LiveMission }) {
+  const { bg, label } = MISSION_AXIS_STYLES[mission.axis];
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
+    <Link
+      to={mission.route}
+      className="flex flex-col gap-2 rounded-xl px-3 py-3 transition-colors hover:bg-muted/20"
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${bg}`}>{label}</span>
-            <span className="text-xs text-muted-foreground">{reward}</span>
+            <span className="text-xs text-muted-foreground">até +{mission.xp} XP</span>
           </div>
           <p className="text-sm text-card-foreground">{mission.title}</p>
-          <p className="text-xs text-muted-foreground">{mission.pillarName}</p>
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{mission.daysLeft}d</span>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {mission.status === "completed"
+            ? "Concluída"
+            : mission.status === "in_progress"
+              ? "Em andamento"
+              : "Aberta"}
+        </span>
       </div>
-      {mission.progressPct > 0 && (
+      {mission.progressPct > 0 && mission.progressPct < 100 && (
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary transition-all"
@@ -395,13 +497,21 @@ function MissionRow({ mission }: { mission: MockMission }) {
           />
         </div>
       )}
-    </div>
+    </Link>
   );
 }
 
 // ─── Kudos ────────────────────────────────────────────────────────────────────
 
-function KudosCard({ kudosReceived }: { kudosReceived: MockKudo[] }) {
+function KudosCard({
+  kudosReceived,
+  remaining,
+  onSend,
+}: {
+  kudosReceived: MockKudo[];
+  remaining: number;
+  onSend: () => ParticipationRecordResult | null;
+}) {
   const [showForm, setShowForm] = useState(false);
   const [toId, setToId] = useState("");
   const [pillarId, setPillarId] = useState("");
@@ -410,14 +520,13 @@ function KudosCard({ kudosReceived }: { kudosReceived: MockKudo[] }) {
 
   function handleSend() {
     if (!toId || !pillarId) return;
+    onSend();
     setSent(true);
     setShowForm(false);
     setToId("");
     setPillarId("");
     setMessage("");
   }
-
-  const remaining = MOCK_USER.kudosBalanceWeek - (sent ? 1 : 0);
 
   return (
     <motion.div
@@ -538,7 +647,7 @@ function KudoReceivedRow({ kudo }: { kudo: MockKudo }) {
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
-function BadgesCard({ badges }: { badges: MockBadge[] }) {
+function BadgesCard({ badges }: { badges: ParticipationBadgeResult[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -552,7 +661,9 @@ function BadgesCard({ badges }: { badges: MockBadge[] }) {
           <div
             key={b.id}
             title={
-              b.earned ? `Conquistado em ${b.earnedAt}` : "Em progresso — continue participando!"
+              b.earned
+                ? `Conquistado com ${b.progress} evidência(s) verificadas`
+                : `${b.progress}/${b.threshold} evidências verificadas`
             }
             className={`flex cursor-help flex-col items-center gap-1 rounded-xl border px-3 py-2.5 transition-opacity ${
               b.earned
@@ -566,9 +677,9 @@ function BadgesCard({ badges }: { badges: MockBadge[] }) {
             <span className="text-xs text-center text-muted-foreground max-w-[5rem] leading-tight">
               {b.name}
             </span>
-            {b.earned && b.earnedAt && (
-              <span className="text-[9px] text-muted-foreground">{b.earnedAt}</span>
-            )}
+            <span className="text-[9px] text-muted-foreground">
+              {b.earned ? "Conquistada" : `${b.progress}/${b.threshold}`}
+            </span>
           </div>
         ))}
       </div>
@@ -736,6 +847,19 @@ function QuickLinksCard() {
         </span>
         <p className="text-sm font-medium text-card-foreground">Academia</p>
         <p className="text-xs text-muted-foreground">Trilhas de 5–8 min</p>
+      </Link>
+
+      <Link
+        to="/missoes"
+        className="col-span-2 flex flex-col gap-1 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-span-3"
+      >
+        <span className="text-xl" aria-hidden>
+          ✦
+        </span>
+        <p className="text-sm font-medium text-card-foreground">Economia ética</p>
+        <p className="text-xs text-muted-foreground">
+          Missões, XP verificado, conquistas e livro-razão.
+        </p>
       </Link>
     </motion.div>
   );

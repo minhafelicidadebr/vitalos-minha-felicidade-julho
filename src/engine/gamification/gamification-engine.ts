@@ -1,6 +1,12 @@
 // Gamification engine — pure readers over the gamification pack.
 // Never imports from domain/; receives the economy as parameter.
 import type { GamificationEconomy } from "../pack/pack-types";
+import type {
+  ParticipationAwardRule,
+  ParticipationBadgeRule,
+  ParticipationCategory,
+  ParticipationEventKind,
+} from "./participation-ledger";
 
 export interface MissionDef {
   id: string;
@@ -38,6 +44,15 @@ interface EconomyShape {
     duplicateMissionCooldownHours?: number;
   };
   ethicalPrinciples?: string[];
+  participationLedger?: {
+    awards?: Array<Record<string, unknown>>;
+    badges?: Array<Record<string, unknown>>;
+  };
+}
+
+export interface ParticipationLedgerConfig {
+  awards: ParticipationAwardRule[];
+  badges: ParticipationBadgeRule[];
 }
 
 export function getMissions(economy: GamificationEconomy): MissionDef[] {
@@ -79,6 +94,28 @@ export function getAntiGamingRules(economy: GamificationEconomy): AntiGamingRule
 export function getEthicalPrinciples(economy: GamificationEconomy): string[] {
   const shape = economy as unknown as EconomyShape;
   return shape.ethicalPrinciples ?? [];
+}
+
+export function getParticipationLedgerConfig(
+  economy: GamificationEconomy,
+): ParticipationLedgerConfig {
+  const shape = economy as unknown as EconomyShape;
+  return {
+    awards: (shape.participationLedger?.awards ?? []).map((rule) => ({
+      kind: String(rule.kind) as ParticipationEventKind,
+      category: String(rule.category) as ParticipationCategory,
+      xp: typeof rule.xp === "number" ? rule.xp : 0,
+      maxPerDay: typeof rule.maxPerDay === "number" ? rule.maxPerDay : 1,
+    })),
+    badges: (shape.participationLedger?.badges ?? []).map((rule) => ({
+      id: String(rule.id),
+      name: String(rule.name),
+      emoji: String(rule.emoji ?? "✦"),
+      threshold: typeof rule.threshold === "number" ? rule.threshold : 1,
+      kind: rule.kind ? (String(rule.kind) as ParticipationEventKind) : undefined,
+      category: rule.category ? (String(rule.category) as ParticipationCategory) : undefined,
+    })),
+  };
 }
 
 /** Clamps an XP award to the daily cap given today's accumulated XP. */
