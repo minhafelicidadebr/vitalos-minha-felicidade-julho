@@ -12,6 +12,7 @@ export interface ConsentItem {
   label: string;
   description: string;
   granted: boolean;
+  policyVersion: string;
   required?: boolean; // required consents cannot be toggled off (e.g., aggregate IVO)
 }
 

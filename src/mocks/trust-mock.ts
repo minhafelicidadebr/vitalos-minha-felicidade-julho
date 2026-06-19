@@ -1,4 +1,11 @@
 import type { VisibilityRule, ConsentItem, DataRight } from "../engine/trust/trust-types";
+import type {
+  ConsentLedgerEvent,
+  ConsentPurposeDefinition,
+} from "@/engine/trust/consent-ledger-engine";
+
+export const CONSENT_DEMO_BASE_TIME = "2026-06-19T09:00:00.000Z";
+export const CONSENT_POLICY_VERSION = "2026.1";
 
 // What each audience can and cannot see about Marina (mock persona)
 export const VISIBILITY_RULES: VisibilityRule[] = [
@@ -55,18 +62,21 @@ export const CONSENT_ITEMS: ConsentItem[] = [
     label: "Pulses de 60 segundos",
     description: "Receber convites quinzenais de pulse. Suas respostas viram apenas agregados.",
     granted: true,
+    policyVersion: CONSENT_POLICY_VERSION,
   },
   {
     id: "nudges",
     label: "Nudges de bem-estar",
     description: "Receber até 3 lembretes leves por semana (pausas, reconhecimento, desconexão).",
     granted: true,
+    policyVersion: CONSENT_POLICY_VERSION,
   },
   {
     id: "gamification",
     label: "Gamificação (XP, missões, badges)",
     description: "Participar da economia de XP e missões. Nunca afeta avaliação de desempenho.",
     granted: true,
+    policyVersion: CONSENT_POLICY_VERSION,
   },
   {
     id: "signals",
@@ -74,8 +84,27 @@ export const CONSENT_ITEMS: ConsentItem[] = [
     description:
       "Permitir que eventos da plataforma (ex.: participação em rituais) entrem em agregados k≥5. Nunca conteúdo de mensagens.",
     granted: false,
+    policyVersion: CONSENT_POLICY_VERSION,
   },
 ];
+
+export const CONSENT_PURPOSES: ConsentPurposeDefinition[] = CONSENT_ITEMS.map((item) => ({
+  id: item.id,
+  policyVersion: item.policyVersion,
+  required: item.required,
+}));
+
+export const CONSENT_INITIAL_EVENTS: ConsentLedgerEvent[] = CONSENT_ITEMS.map((item, index) => ({
+  eventId: `demo-consent-initial:${item.id}`,
+  requestId: `demo-consent-initial:${item.id}`,
+  purposeId: item.id,
+  revision: 1,
+  decision: item.granted ? "granted" : "revoked",
+  policyVersion: item.policyVersion,
+  occurredAt: new Date(Date.parse(CONSENT_DEMO_BASE_TIME) + index * 1_000).toISOString(),
+  actor: "subject",
+  source: "self_service",
+}));
 
 export const DATA_RIGHTS: DataRight[] = [
   {

@@ -1,9 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { CheckCircle2, DatabaseZap, History, RefreshCw, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
-import { VISIBILITY_RULES, CONSENT_ITEMS, DATA_RIGHTS, TRUST_PROMISES } from "@/mocks/trust-mock";
-import type { ConsentItem } from "@/engine/trust/trust-types";
+import {
+  CONSENT_DEMO_BASE_TIME,
+  CONSENT_INITIAL_EVENTS,
+  CONSENT_ITEMS,
+  CONSENT_PURPOSES,
+  DATA_RIGHTS,
+  TRUST_PROMISES,
+  VISIBILITY_RULES,
+} from "@/mocks/trust-mock";
+import {
+  applyConsentDecision,
+  projectConsentLedger,
+  type ConsentDecisionReceipt,
+  type ConsentLedgerEvent,
+} from "@/engine/trust/consent-ledger-engine";
+import { getConsentLedgerContractProof } from "@/lib/api/consent.functions";
+import type { ConsentLedgerContractProof } from "@/lib/trust/consent-ledger-proof.server";
 
 export const Route = createFileRoute("/confianca")({
   head: () => ({
@@ -31,6 +47,7 @@ function TrustPage() {
 
         <PromisesCard />
         <VisibilityCard />
+        <ConsentContractCard />
         <ConsentsCard />
         <RightsCard />
       </div>
@@ -135,14 +152,142 @@ function VisibilityCard() {
 
 // ─── Consents ─────────────────────────────────────────────────────────────────
 
+type ConsentProofLoad =
+  | { state: "loading" }
+  | { state: "ready"; value: ConsentLedgerContractProof }
+  | { state: "error" };
+
+function ConsentContractCard() {
+  const [load, setLoad] = useState<ConsentProofLoad>({ state: "loading" });
+
+  function reload() {
+    setLoad({ state: "loading" });
+    void getConsentLedgerContractProof()
+      .then((value) => setLoad({ state: "ready", value }))
+      .catch(() => setLoad({ state: "error" }));
+  }
+
+  useEffect(reload, []);
+
+  if (load.state === "loading") {
+    return <div className="h-64 animate-pulse rounded-2xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error") {
+    return (
+      <section className="rounded-2xl border border-amber-300/40 bg-card p-6 text-center">
+        <RefreshCw className="mx-auto h-5 w-5 text-amber-600" aria-hidden />
+        <h2 className="mt-3 font-serif text-xl text-foreground">
+          O contrato do ledger não respondeu.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Nenhuma garantia de persistência foi presumida.
+        </p>
+        <button
+          type="button"
+          onClick={reload}
+          className="mt-4 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Verificar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="overflow-hidden rounded-2xl border border-primary/25 bg-card shadow-sm"
+    >
+      <div className="grid lg:grid-cols-[0.65fr_1.35fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.13] via-card to-amber-500/[0.06] p-5 lg:border-r lg:border-b-0">
+          <History className="h-6 w-6 text-primary" aria-hidden />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Contrato event-sourced
+          </p>
+          <p className="mt-3 font-mono text-4xl font-semibold text-foreground">
+            {proof.passedCheckCount}/{proof.checkCount}
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-foreground">invariantes verificadas</h2>
+          <div className="mt-5 rounded-xl border border-amber-300/35 bg-amber-500/[0.045] p-3">
+            <p className="font-mono text-xs font-semibold text-foreground">
+              runtime: {proof.runtime}
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              As decisões abaixo vivem somente nesta sessão. Recarregar apaga o histórico demo.
+            </p>
+          </div>
+        </div>
+        <div className="p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Revisão · revogação · concorrência
+              </p>
+              <h2 className="mt-1 font-serif text-xl text-foreground">
+                Consentimento é um histórico, não um toggle
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {proof.status}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {proof.checks.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {item.note}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 function ConsentsCard() {
-  const [consents, setConsents] = useState<ConsentItem[]>(CONSENT_ITEMS);
-  const [savedId, setSavedId] = useState<string | null>(null);
+  const [events, setEvents] = useState<ConsentLedgerEvent[]>(CONSENT_INITIAL_EVENTS);
+  const [receipt, setReceipt] = useState<ConsentDecisionReceipt | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const projection = useMemo(() => projectConsentLedger(CONSENT_PURPOSES, events), [events]);
 
   function toggle(id: string) {
-    setConsents((prev) => prev.map((c) => (c.id === id ? { ...c, granted: !c.granted } : c)));
-    setSavedId(id);
-    setTimeout(() => setSavedId(null), 2000);
+    if (!projection.valid) return;
+    const item = CONSENT_ITEMS.find((candidate) => candidate.id === id);
+    const state = projection.states.find((candidate) => candidate.purposeId === id);
+    if (!item || !state) return;
+
+    const decision = state.granted ? "revoked" : "granted";
+    const nextRevision = state.revision + 1;
+    const result = applyConsentDecision(CONSENT_PURPOSES, events, {
+      requestId: `demo-consent:${id}:${nextRevision}:${decision}`,
+      purposeId: id,
+      decision,
+      expectedRevision: state.revision,
+      policyVersion: item.policyVersion,
+      occurredAt: new Date(
+        Date.parse(CONSENT_DEMO_BASE_TIME) + (events.length + 1) * 1_000,
+      ).toISOString(),
+    });
+
+    if (!result.accepted) {
+      setMutationError(`A alteração foi recusada: ${result.reason}.`);
+      return;
+    }
+    setEvents(result.events);
+    setReceipt(result.receipt);
+    setMutationError(null);
   }
 
   return (
@@ -153,48 +298,94 @@ function ConsentsCard() {
       className="rounded-2xl border border-border/70 bg-card shadow-sm"
     >
       <div className="px-5 pt-5 pb-3">
-        <p className="font-medium text-card-foreground">Consentimentos ativos</p>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
+          <p className="font-medium text-card-foreground">Consentimentos ativos</p>
+        </div>
         <p className="text-xs text-muted-foreground">
-          Mude quando quiser. Nenhuma escolha gera punição ou perda de acesso.
+          Mude quando quiser. Cada alteração cria uma revisão nesta sessão; nenhuma escolha gera
+          punição.
         </p>
       </div>
       <div className="space-y-1 px-3 pb-4">
-        {consents.map((c) => (
-          <div
-            key={c.id}
-            className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-card-foreground">{c.label}</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                {c.description}
-              </p>
-              {savedId === c.id && (
-                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                  ✓ Preferência salva
-                </p>
-              )}
-            </div>
-            <button
-              role="switch"
-              aria-checked={c.granted}
-              aria-label={`${c.label}: ${c.granted ? "ativado" : "desativado"}`}
-              onClick={() => toggle(c.id)}
-              className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                c.granted ? "bg-primary" : "bg-muted-foreground/30"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${
-                  c.granted ? "left-[1.375rem]" : "left-0.5"
-                }`}
-                aria-hidden
-              />
-            </button>
+        {!projection.valid ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            O histórico está inconsistente e foi bloqueado: {projection.reason}.
           </div>
-        ))}
+        ) : (
+          CONSENT_ITEMS.map((item) => {
+            const state = projection.states.find((candidate) => candidate.purposeId === item.id)!;
+            return (
+              <div
+                key={item.id}
+                className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-muted/20"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-card-foreground">{item.label}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                  <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                    política {state.policyVersion} · revisão {state.revision} ·{" "}
+                    {state.granted ? "concedido" : "revogado"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={state.granted}
+                  aria-label={`${item.label}: ${state.granted ? "ativado" : "desativado"}`}
+                  disabled={item.required}
+                  onClick={() => toggle(item.id)}
+                  className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+                    state.granted ? "bg-primary" : "bg-muted-foreground/30"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${
+                      state.granted ? "left-[1.375rem]" : "left-0.5"
+                    }`}
+                    aria-hidden
+                  />
+                </button>
+              </div>
+            );
+          })
+        )}
+        {mutationError && (
+          <p className="rounded-xl border border-amber-300/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
+            {mutationError}
+          </p>
+        )}
+        {receipt && (
+          <div className="mx-3 mt-3 rounded-xl border border-primary/20 bg-primary/[0.045] p-4">
+            <div className="flex items-center gap-2">
+              <DatabaseZap className="h-4 w-4 text-primary" aria-hidden />
+              <p className="text-xs font-medium text-foreground">Recibo da última decisão</p>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-[10px] sm:grid-cols-4">
+              <LedgerField label="finalidade" value={receipt.purposeId} />
+              <LedgerField label="revisão" value={String(receipt.revision)} />
+              <LedgerField label="decisão" value={receipt.decision} />
+              <LedgerField label="persistência" value={receipt.persisted ? "Cloud" : "efêmera"} />
+            </dl>
+            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+              Revogação é efetiva nesta projeção imediatamente. Este recibo demo não possui peso
+              jurídico e desaparece ao recarregar.
+            </p>
+          </div>
+        )}
       </div>
     </motion.div>
+  );
+}
+
+function LedgerField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-background/45 p-2">
+      <dt className="uppercase tracking-[0.11em] text-muted-foreground">{label}</dt>
+      <dd className="mt-1 break-all font-mono font-semibold text-foreground">{value}</dd>
+    </div>
   );
 }
 
