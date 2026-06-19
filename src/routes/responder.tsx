@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { Slider } from "@/components/ui/slider";
@@ -12,6 +12,7 @@ import {
   type SurveyResponses,
   type SurveyValue,
 } from "@/engine/survey/survey-engine";
+import type { CaptureReceipt, CaptureResult } from "@/engine/survey/response-capture-engine";
 import { useWaveResponses } from "@/engine/survey/survey-store";
 import {
   getAntiGamingRules,
@@ -22,6 +23,7 @@ import type { MeasurementWaveInput } from "@/engine/campaign/campaign-engine";
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
+import { submitSurveyResponses } from "@/lib/api/survey.functions";
 
 export const Route = createFileRoute("/responder")({
   head: () => ({ meta: [{ title: "Responder · Onda Ativa — 4 Lentes VitalOS™" }] }),
@@ -64,13 +66,17 @@ function ResponderPage() {
 }
 
 function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: SurveyDefinition }) {
-  const { gamification } = usePack();
+  const { gamification, packId } = usePack();
   const { hasResponded, markResponded } = useWaveResponses();
   const recordParticipation = useParticipationLedger((state) => state.record);
   const already = hasResponded(wave.id);
   const [responses, setResponses] = useState<SurveyResponses>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [captureError, setCaptureError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<CaptureReceipt | null>(null);
   const [awardedXp, setAwardedXp] = useState<number | null>(null);
+  const submissionId = useRef<string | null>(null);
   const progress = surveyProgress(survey.items, responses);
 
   function answer(id: string, value: SurveyValue) {
@@ -78,8 +84,42 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
     setResponses((previous) => ({ ...previous, [id]: value }));
   }
 
-  function submit() {
-    if (!progress.isComplete) return;
+  async function submit() {
+    if (!progress.isComplete || submitting) return;
+    setSubmitting(true);
+    setCaptureError(null);
+    submissionId.current ??= crypto.randomUUID();
+
+    let result: CaptureResult;
+    try {
+      result = await submitSurveyResponses({
+        data: {
+          submissionId: submissionId.current,
+          packId,
+          waveId: wave.id,
+          surveyId: survey.id,
+          answers: survey.items.map((item) => ({
+            itemId: item.id,
+            value: responses[item.id]!,
+          })),
+        },
+      });
+    } catch {
+      setCaptureError(
+        "Não foi possível alcançar a fronteira segura. Suas respostas continuam somente nesta tela para você tentar novamente.",
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    if (!result.accepted) {
+      setCaptureError(CAPTURE_ERROR_COPY[result.reason]);
+      setSubmitting(false);
+      return;
+    }
+
+    setReceipt(result.receipt);
+    setResponses({});
     markResponded(wave.id);
     if (gamification) {
       const result = recordParticipation(
@@ -95,9 +135,11 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
       setAwardedXp(result.event?.xpAwarded ?? 0);
     }
     setSubmitted(true);
+    setSubmitting(false);
   }
 
   if (already || submitted) {
+    const isEphemeralReceipt = receipt?.persistence === "ephemeral_demo";
     return (
       <AppShell>
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
@@ -111,10 +153,42 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
             <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {wave.instrumentShort} · {wave.season}
             </p>
-            <h1 className="mt-2 font-serif text-3xl text-foreground">{survey.intro.thanksTitle}</h1>
+            <h1 className="mt-2 font-serif text-3xl text-foreground">
+              {isEphemeralReceipt
+                ? "Envio validado pela fronteira server-side"
+                : already && !submitted
+                  ? "Onda já respondida neste navegador"
+                  : survey.intro.thanksTitle}
+            </h1>
             <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
-              {survey.intro.thanksBody}
+              {isEphemeralReceipt
+                ? "No modo demonstração, o servidor validou o conjunto completo e descartou o conteúdo. Nenhum agregado real foi alterado; apenas o status local de participação foi marcado."
+                : already && !submitted
+                  ? "O demo conserva somente o identificador da onda respondida. Nenhum conteúdo individual está no armazenamento do navegador."
+                  : survey.intro.thanksBody}
             </p>
+            {receipt && (
+              <div className="mx-auto mt-5 max-w-md rounded-2xl border border-border/70 bg-card p-4 text-left shadow-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                  Recibo sem conteúdo
+                </p>
+                <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                  <ReceiptField label="Itens validados" value={String(receipt.itemCount)} />
+                  <ReceiptField
+                    label="Persistência"
+                    value={receipt.persisted ? "Cloud" : "Descartado após validação"}
+                  />
+                  <ReceiptField
+                    label="Conteúdo devolvido"
+                    value={receipt.contentReturned ? "Sim" : "Nenhum"}
+                  />
+                  <ReceiptField
+                    label="Recibo"
+                    value={receipt.receiptId.replace("capture:", "").slice(0, 8)}
+                  />
+                </dl>
+              </div>
+            )}
             {submitted && awardedXp !== null && (
               <p className="mx-auto mt-3 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
                 {awardedXp > 0
@@ -192,15 +266,29 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
         </ol>
 
         <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          {captureError && (
+            <div
+              className="mb-4 rounded-xl border border-amber-300/50 bg-amber-50/60 px-4 py-3 text-sm leading-relaxed text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-300"
+              role="alert"
+            >
+              {captureError}
+            </div>
+          )}
           <button
-            disabled={!progress.isComplete}
+            disabled={!progress.isComplete || submitting}
             onClick={submit}
             className="w-full rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {progress.isComplete
-              ? "Enviar respostas"
-              : `Responda todas (${progress.answered}/${progress.total})`}
+            {submitting
+              ? "Validando na fronteira segura…"
+              : progress.isComplete
+                ? "Enviar respostas"
+                : `Responda todas (${progress.answered}/${progress.total})`}
           </button>
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+            O servidor recebe o conjunto apenas no envio. O recibo nunca devolve itens ou valores, e
+            a memória do formulário é apagada após a aceitação.
+          </p>
           <div
             className="mt-4 rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-4 py-3 dark:bg-amber-950/20"
             role="note"
@@ -212,6 +300,26 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
         </div>
       </div>
     </AppShell>
+  );
+}
+
+const CAPTURE_ERROR_COPY: Record<Exclude<CaptureResult, { accepted: true }>["reason"], string> = {
+  invalid_submission: "O envio está incompleto ou malformado e foi recusado.",
+  duplicate_item: "O envio contém um item repetido e foi recusado.",
+  item_set_mismatch: "O conjunto de itens não corresponde ao instrumento desta onda.",
+  invalid_value: "Uma resposta está fora da escala declarada pelo instrumento.",
+  unknown_wave: "A onda informada não está ativa para este setor.",
+  unknown_survey: "O instrumento informado não corresponde à onda ativa.",
+  cloud_adapter_missing:
+    "O modo Cloud foi solicitado, mas a persistência segura ainda não está disponível. Nenhum fallback local foi usado.",
+};
+
+function ReceiptField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-muted/35 px-3 py-2">
+      <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 font-medium text-foreground">{value}</dd>
+    </div>
   );
 }
 
