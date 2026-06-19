@@ -24,6 +24,8 @@ import {
 import { usePack } from "@/engine/pack";
 import { getIdentityBoundaryStatus } from "@/lib/api/identity.functions";
 import { getIsolationAuditProof } from "@/lib/api/isolation.functions";
+import { getCloudReadinessProof } from "@/lib/api/cloud-readiness.functions";
+import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
 import { AUTHORIZATION_REASON_COPY, buildDemoAccessStory } from "@/mocks/access-control-mock";
 
@@ -44,27 +46,43 @@ type IsolationLoadState =
   | { state: "ready"; value: IsolationAuditProof }
   | { state: "error" };
 
+type CloudReadinessLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: CloudReadinessProof }
+  | { state: "empty" }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
   const [boundary, setBoundary] = useState<BoundaryLoadState>({ state: "loading" });
   const [isolation, setIsolation] = useState<IsolationLoadState>({ state: "loading" });
+  const [cloudReadiness, setCloudReadiness] = useState<CloudReadinessLoadState>({
+    state: "loading",
+  });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
     setIsolation({ state: "loading" });
-    void Promise.all([getIdentityBoundaryStatus(), getIsolationAuditProof()])
-      .then(([boundaryValue, isolationValue]) => {
+    setCloudReadiness({ state: "loading" });
+    void Promise.all([
+      getIdentityBoundaryStatus(),
+      getIsolationAuditProof(),
+      getCloudReadinessProof({ data: { packId } }),
+    ])
+      .then(([boundaryValue, isolationValue, cloudValue]) => {
         setBoundary({ state: "ready", value: boundaryValue });
         setIsolation({ state: "ready", value: isolationValue });
+        setCloudReadiness(cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" });
       })
       .catch(() => {
         setBoundary({ state: "error" });
         setIsolation({ state: "error" });
+        setCloudReadiness({ state: "error" });
       });
   }
 
-  useEffect(loadBoundary, []);
+  useEffect(loadBoundary, [packId]);
 
   const story = useMemo(
     () => (pack ? buildDemoAccessStory(pack, packId, roleId) : null),
@@ -274,6 +292,8 @@ function AccessBoundaryPage() {
 
         <IsolationAuditCard load={isolation} onRetry={loadBoundary} />
 
+        <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
+
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
           <div className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
@@ -356,6 +376,139 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function CloudReadinessCard({
+  load,
+  onRetry,
+}: {
+  load: CloudReadinessLoadState;
+  onRetry: () => void;
+}) {
+  if (load.state === "loading") {
+    return <section className="h-72 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error" || load.state === "empty") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <CloudCog className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          O gate de transição não pôde ser calculado.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Produção permanece bloqueada por padrão.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Recalcular gate
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <section className="overflow-hidden rounded-3xl border border-amber-300/40 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.62fr_1.38fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-amber-500/[0.1] via-card to-primary/[0.06] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <CloudCog className="h-7 w-7 text-amber-600 dark:text-amber-400" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+            Gate de transição Cloud
+          </p>
+          <h2 className="mt-2 font-serif text-3xl text-foreground">
+            Fundação pronta. Cutover não.
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Controles críticos não viram percentual. Um único blocker mantém a promoção fechada.
+          </p>
+          <dl className="mt-6 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border/55 bg-background/35 p-3">
+              <dt className="font-mono text-2xl font-semibold text-foreground">
+                {proof.foundation.passed}/{proof.foundation.total}
+              </dt>
+              <dd className="mt-1 text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
+                fundação
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/55 bg-background/35 p-3">
+              <dt className="font-mono text-2xl font-semibold text-foreground">
+                {proof.runtime.passed}/{proof.runtime.total}
+              </dt>
+              <dd className="mt-1 text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
+                runtime
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-4 rounded-2xl border border-amber-300/35 bg-amber-500/[0.045] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-300">
+              Promoção
+            </p>
+            <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+              productionClaimsAllowed: false
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Ordem segura de ativação
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Cada blocker vira critério de aceite
+              </h2>
+            </div>
+            <span className="rounded-full border border-amber-300/50 bg-amber-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+              {proof.status}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.controls
+              .filter((item) => item.layer === "foundation")
+              .map((item) => (
+                <article
+                  key={item.id}
+                  className="flex items-start gap-2 rounded-xl border border-emerald-300/25 bg-emerald-500/[0.035] p-3"
+                >
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                  <div>
+                    <p className="text-xs font-medium text-foreground">{item.label}</p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                      {item.evidence}
+                    </p>
+                  </div>
+                </article>
+              ))}
+          </div>
+
+          <ol className="mt-5 space-y-2">
+            {proof.blockers.map((item, index) => (
+              <li
+                key={item.id}
+                className="flex gap-3 rounded-xl border border-amber-300/25 bg-amber-500/[0.025] p-3"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-500/10 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {item.evidence}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
   );
 }
 
