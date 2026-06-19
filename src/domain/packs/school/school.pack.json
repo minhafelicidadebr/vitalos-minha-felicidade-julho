@@ -118,6 +118,12 @@
       "group": "confianca"
     },
     {
+      "id": "access",
+      "label": "Acesso & Escopos",
+      "roles": "all",
+      "group": "confianca"
+    },
+    {
       "id": "academy",
       "label": "Trilha do Florescer Escolar",
       "roles": "all",

@@ -15,7 +15,7 @@ import { hasAudienceCapability } from "@/engine/audience/audience-engine";
 import { buildIndividualView } from "@/engine/campaign/campaign-engine";
 import { calculateIVO, type LensResult } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/engine/rbac/rbac";
+import { usePersona } from "@/app/identity/persona-store";
 import { useWaveResponses } from "@/engine/survey/survey-store";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { getActiveWave, WAVE_STATE_STYLE } from "@/mocks/campaign-mock";

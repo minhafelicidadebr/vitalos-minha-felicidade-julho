@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/engine/rbac/rbac";
+import { usePersona } from "@/app/identity/persona-store";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { buildTrend, type Momentum } from "@/engine/trend/trend-engine";
 import { rankPriorities } from "@/engine/priority/priority-engine";

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Building2, GraduationCap, Check, ChevronDown, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { usePersona } from "@/app/identity/persona-store";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/engine/rbac/rbac";
 import { PACK_CHOICES } from "@/domain/packs/registry";
 
 // Seletor de SETOR (Domain Pack) no header. Prova viva do Engine ≠ Domínio: ao

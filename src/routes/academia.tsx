@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/engine/rbac/rbac";
+import { usePersona } from "@/app/identity/persona-store";
 import { usePack } from "@/engine/pack";
 import {
   getAntiGamingRules,

@@ -15,8 +15,10 @@ import { A11yMenu } from "./A11yMenu";
 import { PackSwitcher } from "./PackSwitcher";
 import { DemoGateScreen } from "./DemoGate";
 import { useDemoGate } from "./demo-gate";
+import { DemoRouteGuard } from "@/app/identity/DemoRouteGuard";
+import { usePersona } from "@/app/identity/persona-store";
 import { usePack } from "@/engine/pack";
-import { navForRole, usePersona } from "@/engine/rbac/rbac";
+import { navForRole } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
 import {
   DropdownMenu,
@@ -42,6 +44,7 @@ const NAV_ROUTES: Record<string, string> = {
   academy: "/academia",
   missions: "/missoes",
   recognition: "/reconhecimento",
+  access: "/acesso",
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
   esg_report: "/relatorio-global",
@@ -148,7 +151,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "confianca",
     label: "Confiança",
     hint: "Método, privacidade e governança",
-    items: ["methodology", "privacy"],
+    items: ["methodology", "privacy", "access"],
   },
 ];
 
@@ -156,6 +159,10 @@ const MOBILE_GROUP_ICONS: Record<string, LucideIcon> = {
   medir: Activity,
   agir: Sparkles,
   provar: ShieldCheck,
+};
+
+const DEMO_ROUTE_POLICIES: Record<string, string> = {
+  "/sst": "domain_b",
 };
 
 function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {
@@ -179,6 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [personaOpen, setPersonaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const guardedNavId = DEMO_ROUTE_POLICIES[pathname];
 
   // Portão de demonstração — fronteira única entre a landing pública e o app.
   // Enquanto o localStorage não rehidrata, mostramos o portão (estado seguro):
@@ -519,7 +527,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main id="main" tabIndex={-1} className="flex-1 pb-24 outline-none xl:pb-0">
-          {children}
+          {guardedNavId ? (
+            <DemoRouteGuard navId={guardedNavId}>{children}</DemoRouteGuard>
+          ) : (
+            children
+          )}
         </main>
 
         <nav

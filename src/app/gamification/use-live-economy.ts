@@ -14,7 +14,7 @@ import { deriveLiveMissions } from "@/engine/gamification/live-economy";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
 import { rankPriorities } from "@/engine/priority/priority-engine";
-import { usePersona } from "@/engine/rbac/rbac";
+import { usePersona } from "@/app/identity/persona-store";
 import { useWaveResponses } from "@/engine/survey/survey-store";
 import { getLearningPaths } from "@/mocks/academia-mock";
 import { getActiveWave } from "@/mocks/campaign-mock";

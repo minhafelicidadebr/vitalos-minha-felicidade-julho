@@ -11,7 +11,7 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/engine/rbac/rbac";
+import { usePersona } from "@/app/identity/persona-store";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import {
