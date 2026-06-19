@@ -45,6 +45,7 @@ const NAV_ROUTES: Record<string, string> = {
   missions: "/missoes",
   recognition: "/reconhecimento",
   access: "/acesso",
+  data_pipeline: "/pipeline-dados",
   ambassadorships: "/embaixadorias",
   reports: "/relatorios",
   esg_report: "/relatorio-global",
@@ -151,7 +152,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "confianca",
     label: "Confiança",
     hint: "Método, privacidade e governança",
-    items: ["methodology", "privacy", "access"],
+    items: ["methodology", "privacy", "access", "data_pipeline"],
   },
 ];
 
@@ -163,6 +164,7 @@ const MOBILE_GROUP_ICONS: Record<string, LucideIcon> = {
 
 const DEMO_ROUTE_POLICIES: Record<string, string> = {
   "/sst": "domain_b",
+  "/pipeline-dados": "data_pipeline",
 };
 
 function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {

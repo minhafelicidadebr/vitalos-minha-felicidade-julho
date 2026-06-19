@@ -279,6 +279,12 @@
       "roles": "all",
       "group": "confianca"
     },
+    {
+      "id": "data_pipeline",
+      "label": "Pipeline Protegido",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "SST_PROFISSIONAL"],
+      "group": "confianca"
+    },
     { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
 
     {

@@ -124,6 +124,12 @@
       "group": "confianca"
     },
     {
+      "id": "data_pipeline",
+      "label": "Pipeline Protegido",
+      "roles": ["DIRETOR", "COORDENADOR", "ORIENTADOR", "SECRETARIA_EDU"],
+      "group": "confianca"
+    },
+    {
       "id": "academy",
       "label": "Trilha do Florescer Escolar",
       "roles": "all",
