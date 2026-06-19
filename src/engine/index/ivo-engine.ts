@@ -1,7 +1,6 @@
 import type { ProprietaryIndex } from "../pack/pack-types";
 
 export const K_ANONYMITY_MIN = 5;
-const NEUTRAL_MEAN = 3.0;
 
 export interface PillarAggregate {
   pillarId: string;
@@ -81,6 +80,7 @@ interface IVOFrameworkShape {
   lenses: IVOLensDef[];
   maturityLevels: IVOMaturityDef[];
   mandatoryDisclaimer: string;
+  responseScale?: { min?: number; max?: number };
   privacy?: { kAnonymityMin?: number };
 }
 
@@ -91,6 +91,10 @@ function asFramework(idx: ProprietaryIndex): IVOFrameworkShape {
 export function calculateIVO(input: IVOInput, packIndex: ProprietaryIndex): IVOResult {
   const fw = asFramework(packIndex);
   const kMin = fw.privacy?.kAnonymityMin ?? K_ANONYMITY_MIN;
+  const scaleMin = fw.responseScale?.min ?? 1;
+  const scaleMax = fw.responseScale?.max ?? 5;
+  const scaleRange = scaleMax - scaleMin > 0 ? scaleMax - scaleMin : 4;
+  const neutralMean = scaleMin + scaleRange / 2;
   const aggMap = new Map(input.aggregates.map((a) => [a.pillarId, a]));
 
   let totalContrib = 0;
@@ -106,9 +110,9 @@ export function calculateIVO(input: IVOInput, packIndex: ProprietaryIndex): IVOR
       const agg = aggMap.get(pillarDef.id);
       const n = agg?.n ?? 0;
       const visible = n >= kMin;
-      const rawMean = agg?.mean ?? NEUTRAL_MEAN;
-      const effectiveMean = visible ? rawMean : NEUTRAL_MEAN;
-      const normalized = (effectiveMean - 1) / 4;
+      const rawMean = agg?.mean ?? neutralMean;
+      const effectiveMean = visible ? rawMean : neutralMean;
+      const normalized = (effectiveMean - scaleMin) / scaleRange;
       const contribution = pillarDef.weight * normalized;
       const relWeight = lensWeight > 0 ? pillarDef.weight / lensWeight : 0;
 

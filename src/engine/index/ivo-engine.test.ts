@@ -70,6 +70,18 @@ describe("calculateIVO — normalização", () => {
     expect(energia.normalized).toBe(0.5);
     expect(energia.score).toBe(500);
   });
+
+  test("respeita a escala declarada pelo framework", () => {
+    const scaleFramework = {
+      ...(FRAMEWORK as unknown as Record<string, unknown>),
+      responseScale: { min: 0, max: 10 },
+    } as unknown as ProprietaryIndex;
+    const r = calculateIVO(input([{ pillarId: "energia", mean: 7.5, n: 10 }]), scaleFramework);
+    const energia = r.lenses[0]!.pillars.find((p) => p.pillarId === "energia")!;
+
+    expect(energia.normalized).toBe(0.75);
+    expect(energia.score).toBe(750);
+  });
 });
 
 // ─── k-anonimato ─────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   DatabaseZap,
   EyeOff,
+  Gauge,
   Layers3,
   LockKeyhole,
   RefreshCw,
@@ -16,6 +17,8 @@ import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import type { AggregationProof } from "@/lib/aggregation/aggregation-proof.server";
 import { getAggregationProof } from "@/lib/api/aggregation.functions";
+import { getServerIndexProof } from "@/lib/api/index.functions";
+import type { ServerIndexProof } from "@/lib/index/server-index-proof.server";
 
 export const Route = createFileRoute("/pipeline-dados")({
   head: () => ({
@@ -26,7 +29,7 @@ export const Route = createFileRoute("/pipeline-dados")({
 
 type LoadState =
   | { state: "loading" }
-  | { state: "ready"; proof: AggregationProof }
+  | { state: "ready"; proof: AggregationProof; index: ServerIndexProof | null }
   | { state: "empty" }
   | { state: "error" };
 
@@ -36,8 +39,13 @@ function DataPipelinePage() {
 
   function reload() {
     setLoad({ state: "loading" });
-    void getAggregationProof({ data: { packId } })
-      .then((proof) => setLoad(proof ? { state: "ready", proof } : { state: "empty" }))
+    void Promise.all([
+      getAggregationProof({ data: { packId } }),
+      getServerIndexProof({ data: { packId } }),
+    ])
+      .then(([proof, index]) =>
+        setLoad(proof ? { state: "ready", proof, index } : { state: "empty" }),
+      )
       .catch(() => setLoad({ state: "error" }));
   }
 
@@ -108,7 +116,7 @@ function DataPipelinePage() {
           />
         )}
 
-        {load.state === "ready" && <AggregationView proof={load.proof} />}
+        {load.state === "ready" && <AggregationView proof={load.proof} index={load.index} />}
       </div>
     </AppShell>
   );
@@ -133,9 +141,9 @@ function PipelineStages() {
     {
       icon: DatabaseZap,
       title: "Calcular índice",
-      status: "Próximo sprint",
-      text: "Somente agregados publicáveis alimentarão o índice.",
-      tone: "next",
+      status: "Ativo",
+      text: "Somente agregados publicáveis alimentam IVO ou IEV.",
+      tone: "active",
     },
     {
       icon: ShieldCheck,
@@ -174,7 +182,13 @@ function PipelineStages() {
   );
 }
 
-function AggregationView({ proof }: { proof: AggregationProof }) {
+function AggregationView({
+  proof,
+  index,
+}: {
+  proof: AggregationProof;
+  index: ServerIndexProof | null;
+}) {
   return (
     <>
       <section className="grid gap-5 lg:grid-cols-2">
@@ -191,6 +205,16 @@ function AggregationView({ proof }: { proof: AggregationProof }) {
           aggregation={proof.protectedCohort}
         />
       </section>
+
+      {index ? (
+        <IndexProofCard proof={index} />
+      ) : (
+        <StateCard
+          icon={Gauge}
+          title="Índice recusado pela fronteira pública."
+          text="A agregação continua disponível, mas nenhum score foi presumido após uma falha de contrato."
+        />
+      )}
 
       <section className="rounded-3xl border border-primary/20 bg-primary/[0.055] p-5 sm:p-6">
         <div className="flex items-start gap-3">
@@ -219,6 +243,108 @@ function AggregationView({ proof }: { proof: AggregationProof }) {
         </div>
       </section>
     </>
+  );
+}
+
+function IndexProofCard({ proof }: { proof: ServerIndexProof }) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-emerald-300/40 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-emerald-500/[0.12] via-card to-primary/[0.07] p-6 lg:border-b-0 lg:border-r sm:p-7">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+            <Gauge className="h-5 w-5" aria-hidden />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+              Índice calculado no servidor
+            </p>
+          </div>
+          <p className="mt-7 font-mono text-6xl font-semibold tracking-tight text-foreground">
+            {proof.score}
+          </p>
+          <p className="mt-2 font-serif text-xl text-foreground">
+            {proof.indexLabel} · {proof.maturity.name}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{proof.indexName}</p>
+
+          <div className="mt-6 h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-emerald-500"
+              style={{ width: `${Math.max(0, Math.min(100, proof.score / 10))}%` }}
+            />
+          </div>
+
+          <dl className="mt-6 grid grid-cols-2 gap-3">
+            <Metric label="respondentes" value={proof.respondentCount} />
+            <Metric
+              label="pilares usados"
+              value={`${proof.visiblePillarCount}/${proof.totalFrameworkPillarCount}`}
+            />
+          </dl>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Lineage verificável
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Agregados públicos → {proof.indexLabel}
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              published_aggregates_only
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.lenses.map((lens) => (
+              <article
+                key={lens.lensId}
+                className="rounded-2xl border border-border/60 bg-background/35 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">{lens.lensName}</p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      {lens.visiblePillarCount}/{lens.totalPillarCount} pilares publicados
+                    </p>
+                  </div>
+                  <span className="font-mono text-lg font-semibold text-foreground">
+                    {lens.score}
+                  </span>
+                </div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, lens.score / 10))}%`,
+                      backgroundColor: lens.color,
+                    }}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-start gap-2 rounded-2xl border border-border/55 bg-muted/30 p-4">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              O contrato do índice não transporta médias por pilar, respostas ou itens. Pilares sem
+              agregado publicável permanecem neutros, conforme a fórmula declarada.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-border/55 bg-card/70 p-3">
+      <dt className="font-mono text-lg font-semibold text-foreground">{value}</dt>
+      <dd className="mt-1 text-[9px] uppercase tracking-[0.13em] text-muted-foreground">{label}</dd>
+    </div>
   );
 }
 
