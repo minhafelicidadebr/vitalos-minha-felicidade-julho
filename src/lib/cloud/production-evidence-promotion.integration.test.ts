@@ -32,6 +32,7 @@ function buildEvidenceSet(forgeControl: string | null = null): RuntimeEvidence[]
     audience: "vitalos-promotion",
     deploymentId,
     releaseCommit,
+    keyRegistryVersion: 7,
     maxEnvelopeAgeSeconds: 900,
     clockSkewSeconds: 30,
     trustedKeys: [
@@ -78,6 +79,7 @@ function buildEvidenceSet(forgeControl: string | null = null): RuntimeEvidence[]
       envelope,
       policy,
       evaluatedAt,
+      minimumKeyRegistryVersion: 7,
       trustedKeyRegistry: [{ keyId: "key-a", algorithm: "Ed25519", publicKeyPem }],
       nonceCommit: {
         confirmed: true,

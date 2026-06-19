@@ -37,6 +37,7 @@ function policyFor(publicKeyPem: string): ProductionEvidenceTrustPolicy {
     audience: "vitalos-promotion",
     deploymentId: "deploy-a",
     releaseCommit: "38d74de",
+    keyRegistryVersion: 7,
     maxEnvelopeAgeSeconds: 900,
     clockSkewSeconds: 30,
     trustedKeys: [
@@ -72,6 +73,7 @@ describe("production evidence signature verifier", () => {
         envelope,
         policy,
         evaluatedAt: "2026-06-19T20:05:00.000Z",
+        minimumKeyRegistryVersion: 7,
         trustedKeyRegistry: [{ keyId: "key-a", algorithm: "Ed25519", publicKeyPem }],
         nonceCommit: {
           confirmed: true,
@@ -109,6 +111,7 @@ describe("production evidence signature verifier", () => {
         envelope,
         policy,
         evaluatedAt: "2026-06-19T20:05:00.000Z",
+        minimumKeyRegistryVersion: 7,
         trustedKeyRegistry: [
           { keyId: "key-a", algorithm: "Ed25519", publicKeyPem: trustedPublicKeyPem },
         ],
@@ -130,6 +133,7 @@ describe("production evidence signature verifier", () => {
         envelope,
         policy,
         evaluatedAt: "2026-06-19T20:05:00.000Z",
+        minimumKeyRegistryVersion: 7,
         trustedKeyRegistry: [],
         nonceCommit: { confirmed: false, status: "adapter_error" },
       }).reason,
@@ -160,6 +164,7 @@ describe("production evidence signature verifier", () => {
         envelope,
         policy,
         evaluatedAt: "2026-06-19T20:05:00.000Z",
+        minimumKeyRegistryVersion: 7,
         trustedKeyRegistry: [
           { keyId: "key-a", algorithm: "Ed25519", publicKeyPem: attackerPublicKeyPem },
         ],

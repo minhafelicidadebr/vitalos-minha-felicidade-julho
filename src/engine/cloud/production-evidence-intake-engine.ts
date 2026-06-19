@@ -37,6 +37,7 @@ export interface ProductionEvidenceTrustPolicy {
   audience: string;
   deploymentId: string;
   releaseCommit: string;
+  keyRegistryVersion: number;
   maxEnvelopeAgeSeconds: number;
   clockSkewSeconds: number;
   trustedKeys: readonly TrustedEvidenceKey[];
@@ -66,6 +67,7 @@ export type EvidenceNonceCommit =
 export interface ProductionEvidenceIntakeInput {
   envelope: SignedProductionEvidenceEnvelope;
   policy: ProductionEvidenceTrustPolicy;
+  minimumKeyRegistryVersion: number;
   evaluatedAt: string;
   signatureVerification: EvidenceSignatureVerification;
   nonceCommit: EvidenceNonceCommit;
@@ -78,6 +80,7 @@ export type ProductionEvidenceIntakeReason =
   | "audience_mismatch"
   | "deployment_mismatch"
   | "release_mismatch"
+  | "registry_rollback"
   | "untrusted_key"
   | "revoked_key"
   | "key_not_active"
@@ -170,6 +173,14 @@ export function evaluateProductionEvidenceIntake(
   if (claims.audience !== input.policy.audience) return denied("audience_mismatch");
   if (claims.deploymentId !== input.policy.deploymentId) return denied("deployment_mismatch");
   if (claims.releaseCommit !== input.policy.releaseCommit) return denied("release_mismatch");
+  if (
+    !Number.isInteger(input.policy.keyRegistryVersion) ||
+    input.policy.keyRegistryVersion < input.minimumKeyRegistryVersion ||
+    !Number.isInteger(input.minimumKeyRegistryVersion) ||
+    input.minimumKeyRegistryVersion < 0
+  ) {
+    return denied("registry_rollback");
+  }
 
   const key = input.policy.trustedKeys.find((candidate) => candidate.keyId === claims.keyId);
   if (!key || key.algorithm !== claims.algorithm || !validDigest(key.publicKeySha256)) {

@@ -74,6 +74,7 @@ export function buildProductionEvidenceIntakeProof(
     audience: claims.audience,
     deploymentId: claims.deploymentId,
     releaseCommit: claims.releaseCommit,
+    keyRegistryVersion: 7,
     maxEnvelopeAgeSeconds: 900,
     clockSkewSeconds: 30,
     trustedKeys: [
@@ -105,6 +106,7 @@ export function buildProductionEvidenceIntakeProof(
       envelope: candidate,
       policy,
       evaluatedAt: "2026-06-19T20:05:00.000Z",
+      minimumKeyRegistryVersion: 7,
       trustedKeyRegistry: [
         { keyId: claims.keyId, algorithm: claims.algorithm, publicKeyPem: publicKey },
       ],
@@ -125,6 +127,9 @@ export function buildProductionEvidenceIntakeProof(
       ...policy,
       trustedKeys: [{ ...policy.trustedKeys[0]!, revoked: true }],
     },
+  });
+  const rollbackRegistry = verify(envelope, {
+    policy: { ...policy, keyRegistryVersion: 6 },
   });
   const rollback = verify(envelope, {
     nonceCommit: { confirmed: false, status: "rolled_back" },
@@ -176,6 +181,12 @@ export function buildProductionEvidenceIntakeProof(
       label: "Chave revogada perde confiança imediatamente",
       passed: !revoked.accepted && revoked.reason === "revoked_key",
       note: "Rotação e revogação fazem parte do contrato.",
+    },
+    {
+      id: "registry_rollback_rejected",
+      label: "Snapshot antigo do registry é recusado",
+      passed: !rollbackRegistry.accepted && rollbackRegistry.reason === "registry_rollback",
+      note: "Versão monotônica impede restaurar confiança removida.",
     },
     {
       id: "commit_required",

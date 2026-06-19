@@ -15,8 +15,8 @@ describe("production evidence intake proof", () => {
       },
       runtimeEvidenceAccepted: false,
       productionClaimsAllowed: false,
-      passedCheckCount: 10,
-      checkCount: 10,
+      passedCheckCount: 11,
+      checkCount: 11,
       sensitivePayloadReturned: false,
     });
   });

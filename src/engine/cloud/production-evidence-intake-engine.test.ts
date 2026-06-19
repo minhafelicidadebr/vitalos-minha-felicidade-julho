@@ -32,6 +32,7 @@ const base: ProductionEvidenceIntakeInput = {
     audience: "vitalos-promotion",
     deploymentId: "deploy-a",
     releaseCommit: "38d74de",
+    keyRegistryVersion: 7,
     maxEnvelopeAgeSeconds: 900,
     clockSkewSeconds: 30,
     trustedKeys: [
@@ -46,6 +47,7 @@ const base: ProductionEvidenceIntakeInput = {
     ],
   },
   evaluatedAt: "2026-06-19T20:05:00.000Z",
+  minimumKeyRegistryVersion: 7,
   signatureVerification: {
     verified: true,
     keyId: "evidence-key-2026-01",
@@ -110,6 +112,15 @@ describe("production evidence intake", () => {
         envelope: { ...envelope, claims: { ...envelope.claims, releaseCommit: "deadbee" } },
       }).reason,
     ).toBe("release_mismatch");
+  });
+
+  test("rejects a rolled-back key registry snapshot", () => {
+    expect(
+      evaluateProductionEvidenceIntake({
+        ...base,
+        policy: { ...base.policy, keyRegistryVersion: 6 },
+      }).reason,
+    ).toBe("registry_rollback");
   });
 
   test("rejects unknown, revoked and inactive keys", () => {

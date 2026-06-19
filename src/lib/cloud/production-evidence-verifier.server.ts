@@ -12,6 +12,7 @@ export interface VerifyProductionEvidenceInput {
   envelope: SignedProductionEvidenceEnvelope;
   policy: ProductionEvidenceTrustPolicy;
   evaluatedAt: string;
+  minimumKeyRegistryVersion: number;
   trustedKeyRegistry: readonly ProductionEvidencePublicKey[];
   nonceCommit: EvidenceNonceCommit;
 }
@@ -83,6 +84,7 @@ export function verifyProductionEvidenceEnvelope(
   return evaluateProductionEvidenceIntake({
     envelope: input.envelope,
     policy: input.policy,
+    minimumKeyRegistryVersion: input.minimumKeyRegistryVersion,
     evaluatedAt: input.evaluatedAt,
     signatureVerification: {
       verified: signatureVerified,
