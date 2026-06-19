@@ -43,6 +43,15 @@ export const MOCK_KUDOS_RECEIVED: MockKudo[] = [
     isPublic: true,
     date: "3 dias atrás",
   },
+  {
+    id: "k-03",
+    fromName: "Julia Mendes",
+    fromInitials: "JM",
+    pillarName: "Crescimento & Maestria",
+    message: "Sua escuta na revisão me ajudou a enxergar uma alternativa melhor. Obrigada.",
+    isPublic: false,
+    date: "5 dias atrás",
+  },
 ];
 
 export const MOCK_COLLEAGUES = [
@@ -60,6 +69,45 @@ export const MOCK_KUDOS_PILLARS = [
   { id: "comunicacao_pertencimento", name: "Comunicação & Pertencimento" },
   { id: "crescimento_maestria", name: "Crescimento & Maestria" },
 ];
+
+export const RECOGNITION_AGGREGATES = [
+  {
+    pillarId: "reconhecimento_pares",
+    pillarLabel: "Reconhecimento entre Pares",
+    recognitionCount: 38,
+    uniqueContributors: 19,
+  },
+  {
+    pillarId: "cooperacao_confianca",
+    pillarLabel: "Cooperação & Confiança",
+    recognitionCount: 27,
+    uniqueContributors: 14,
+  },
+  {
+    pillarId: "comunicacao_pertencimento",
+    pillarLabel: "Comunicação & Pertencimento",
+    recognitionCount: 18,
+    uniqueContributors: 11,
+  },
+  {
+    pillarId: "crescimento_maestria",
+    pillarLabel: "Crescimento & Maestria",
+    recognitionCount: 4,
+    uniqueContributors: 4,
+  },
+] as const;
+
+export const RECOGNITION_COPY = {
+  eyebrow: "Comunidade · Reconhecimento",
+  title: "Reconhecer o que alguém fez — sem transformar afeto em vigilância",
+  lead: "Um Kudo específico fortalece vínculos e torna contribuições visíveis para quem as recebeu. O VitalOS™ protege a mensagem: o ledger guarda apenas metadados mínimos para orçamento e antiabuso.",
+  privateNote:
+    "Privado: somente você e a pessoa reconhecida acessam a mensagem na experiência real.",
+  publicNote:
+    "Público: exige consentimento explícito de publicação. A liderança vê apenas Kudos públicos e métricas coletivas protegidas.",
+  noMessagePersistence:
+    "Nesta demonstração, o texto é usado apenas para simular a entrega e desaparece após o envio. Ele não entra no ledger, no XP ou em Sinais Vivos.",
+} as const;
 
 // Fonte ÚNICA: a temporada do colaborador deriva do season-engine sobre o
 // ANNUAL_PLAN — nada de estado paralelo hardcoded. O card e a rota /temporada

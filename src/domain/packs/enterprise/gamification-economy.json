@@ -260,6 +260,16 @@
       }
     ]
   },
+  "socialRecognition": {
+    "weeklyBudget": 5,
+    "duplicateCooldownDays": 7,
+    "allowedVisibilities": ["private", "public"],
+    "publicRequiresConsent": true,
+    "messageMaxChars": 240,
+    "kAnonymityMin": 5,
+    "persistedFields": ["senderId", "recipientId", "pillarId", "visibility", "occurredOn"],
+    "neverPersist": ["message", "draft", "sentiment", "performanceContext"]
+  },
   "nudgeLibrarySeed": [
     {
       "id": "n_pausa_timely",

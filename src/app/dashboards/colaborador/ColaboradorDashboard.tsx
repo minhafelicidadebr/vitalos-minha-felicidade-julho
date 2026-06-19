@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useLiveEconomy } from "@/app/gamification/use-live-economy";
+import { useRecognition } from "@/app/gamification/use-recognition";
 import {
   hasParticipationEvidence,
   type ParticipationBadgeResult,
@@ -17,8 +18,6 @@ import {
   MOCK_USER,
   MOCK_KUDOS_RECEIVED,
   MOCK_SEASON,
-  MOCK_COLLEAGUES,
-  MOCK_KUDOS_PILLARS,
   FLORESCERIA_SUGGESTION,
   type MockKudo,
 } from "@/mocks/colaborador-mock";
@@ -29,12 +28,11 @@ import { GAMIFICATION_COPY } from "@/mocks/gamification-mock";
 export function ColaboradorDashboard() {
   const { index } = usePack();
   const live = useLiveEconomy();
+  const recognition = useRecognition();
   const ivoResult = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
   const canRecord = Boolean(live.ledgerConfig && live.rules);
-  const kudoCountToday = live.events.filter(
-    (event) => event.kind === "kudo_sent" && event.occurredOn === live.today,
-  ).length;
-  const kudoRemaining = Math.max(0, (live.rules?.kudosWeeklyBudget ?? 5) - kudoCountToday);
+  const kudoBudget = recognition.policy?.weeklyBudget ?? live.rules?.kudosWeeklyBudget ?? 5;
+  const kudoRemaining = recognition.policy ? recognition.remainingBudget : kudoBudget;
 
   const now = new Date();
   const hour = now.getHours();
@@ -52,6 +50,7 @@ export function ColaboradorDashboard() {
         dailyCap={live.rules?.xpDailyCap ?? 0}
         evidenceCount={live.summary?.eventCount ?? 0}
         kudoRemaining={kudoRemaining}
+        kudoBudget={kudoBudget}
       />
 
       {/* Check-in */}
@@ -78,7 +77,8 @@ export function ColaboradorDashboard() {
       <KudosCard
         kudosReceived={MOCK_KUDOS_RECEIVED}
         remaining={kudoRemaining}
-        onSend={() => recordEvent("kudo_sent", `kudo:${live.today}:${kudoCountToday + 1}`)}
+        budget={kudoBudget}
+        sentCount={recognition.events.length}
       />
 
       {/* Badges */}
@@ -124,6 +124,7 @@ function HeroCard({
   dailyCap,
   evidenceCount,
   kudoRemaining,
+  kudoBudget,
 }: {
   greeting: string;
   ivoScore?: number;
@@ -133,6 +134,7 @@ function HeroCard({
   dailyCap: number;
   evidenceCount: number;
   kudoRemaining: number;
+  kudoBudget: number;
 }) {
   return (
     <motion.div
@@ -180,7 +182,7 @@ function HeroCard({
         <StatChip label="XP hoje" value={`${xpToday}/${dailyCap} XP`} />
         <StatChip label="XP verificado" value={`${totalXp.toLocaleString("pt-BR")} XP`} />
         <StatChip label="Evidências registradas" value={`${evidenceCount}`} />
-        <StatChip label="Kudos para dar" value={`${kudoRemaining}/5`} />
+        <StatChip label="Kudos para dar" value={`${kudoRemaining}/${kudoBudget}`} />
       </div>
     </motion.div>
   );
@@ -506,28 +508,14 @@ function MissionRow({ mission }: { mission: LiveMission }) {
 function KudosCard({
   kudosReceived,
   remaining,
-  onSend,
+  budget,
+  sentCount,
 }: {
   kudosReceived: MockKudo[];
   remaining: number;
-  onSend: () => ParticipationRecordResult | null;
+  budget: number;
+  sentCount: number;
 }) {
-  const [showForm, setShowForm] = useState(false);
-  const [toId, setToId] = useState("");
-  const [pillarId, setPillarId] = useState("");
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
-
-  function handleSend() {
-    if (!toId || !pillarId) return;
-    onSend();
-    setSent(true);
-    setShowForm(false);
-    setToId("");
-    setPillarId("");
-    setMessage("");
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -538,79 +526,36 @@ function KudosCard({
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div>
           <p className="font-medium text-card-foreground">Kudos</p>
-          <p className="text-xs text-muted-foreground">{remaining}/5 disponíveis esta semana</p>
+          <p className="text-xs text-muted-foreground">
+            {remaining}/{budget} disponíveis esta semana
+          </p>
         </div>
-        {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            disabled={remaining === 0}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            Dar um Kudo
-          </button>
-        )}
+        <Link
+          to="/reconhecimento"
+          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          {remaining > 0 ? "Dar um Kudo" : "Ver reconhecimentos"}
+        </Link>
       </div>
 
-      {/* Give Kudos form */}
-      {showForm && (
-        <div className="mx-3 mb-3 rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
-          <p className="text-sm font-medium text-card-foreground">Reconheça um colega</p>
-          <select
-            value={toId}
-            onChange={(e) => setToId(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            aria-label="Selecionar colega"
+      <div className="mx-3 mb-3 rounded-xl border border-border/60 bg-muted/20 p-4">
+        <p className="text-sm font-medium text-card-foreground">
+          Reconhecimento com privacidade por desenho
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Mensagens são transitórias; o ledger guarda apenas pessoa, categoria, visibilidade e data.
+          Publicação exige consentimento.
+        </p>
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>{sentCount} enviados nesta demonstração</span>
+          <Link
+            to="/reconhecimento"
+            className="font-medium text-foreground underline decoration-border underline-offset-4 hover:text-primary"
           >
-            <option value="">Selecionar colega…</option>
-            {MOCK_COLLEAGUES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.team})
-              </option>
-            ))}
-          </select>
-          <select
-            value={pillarId}
-            onChange={(e) => setPillarId(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            aria-label="Selecionar pilar relacionado"
-          >
-            <option value="">Pilar relacionado…</option>
-            {MOCK_KUDOS_PILLARS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Mensagem opcional (público ou privado)"
-            rows={2}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={handleSend}
-              disabled={!toId || !pillarId}
-              className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              Enviar Kudo
-            </button>
-            <button
-              onClick={() => setShowForm(false)}
-              className="rounded-lg border border-input px-3 py-2 text-sm text-muted-foreground hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              Cancelar
-            </button>
-          </div>
+            Abrir central
+          </Link>
         </div>
-      )}
-
-      {sent && (
-        <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-900/30 dark:text-green-300">
-          <span>✓</span> Kudo enviado! Obrigado por reconhecer um colega.
-        </div>
-      )}
+      </div>
 
       {/* Received kudos */}
       {kudosReceived.length > 0 && (

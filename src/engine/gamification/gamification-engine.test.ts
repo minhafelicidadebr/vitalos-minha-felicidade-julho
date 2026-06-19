@@ -5,6 +5,7 @@ import {
   getAntiGamingRules,
   getEthicalPrinciples,
   getParticipationLedgerConfig,
+  getRecognitionPolicy,
   clampXpAward,
 } from "./gamification-engine";
 import type { GamificationEconomy } from "../pack/pack-types";
@@ -57,6 +58,14 @@ const ECONOMY = {
         kind: "wave_response",
       },
     ],
+  },
+  socialRecognition: {
+    weeklyBudget: 4,
+    duplicateCooldownDays: 8,
+    allowedVisibilities: ["private", "public"],
+    publicRequiresConsent: true,
+    messageMaxChars: 180,
+    kAnonymityMin: 6,
   },
 } as unknown as GamificationEconomy;
 
@@ -165,6 +174,30 @@ describe("getParticipationLedgerConfig", () => {
     expect(getParticipationLedgerConfig({ version: "1" } as GamificationEconomy)).toEqual({
       awards: [],
       badges: [],
+    });
+  });
+});
+
+describe("getRecognitionPolicy", () => {
+  test("maps social recognition policy from the pack", () => {
+    expect(getRecognitionPolicy(ECONOMY)).toEqual({
+      weeklyBudget: 4,
+      duplicateCooldownDays: 8,
+      allowedVisibilities: ["private", "public"],
+      publicRequiresConsent: true,
+      messageMaxChars: 180,
+      kAnonymityMin: 6,
+    });
+  });
+
+  test("uses conservative defaults when policy is absent", () => {
+    expect(getRecognitionPolicy({ version: "1" } as GamificationEconomy)).toEqual({
+      weeklyBudget: 5,
+      duplicateCooldownDays: 7,
+      allowedVisibilities: ["private", "public"],
+      publicRequiresConsent: true,
+      messageMaxChars: 240,
+      kAnonymityMin: 5,
     });
   });
 });

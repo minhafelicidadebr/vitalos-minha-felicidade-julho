@@ -20,6 +20,7 @@ import { Route as RhRouteImport } from './routes/rh'
 import { Route as ResponderRouteImport } from './routes/responder'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
+import { Route as ReconhecimentoRouteImport } from './routes/reconhecimento'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as ProgramaRouteImport } from './routes/programa'
@@ -110,6 +111,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const RelatorioGlobalRoute = RelatorioGlobalRouteImport.update({
   id: '/relatorio-global',
   path: '/relatorio-global',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReconhecimentoRoute = ReconhecimentoRouteImport.update({
+  id: '/reconhecimento',
+  path: '/reconhecimento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuiosqueRoute = QuiosqueRouteImport.update({
@@ -330,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
+  '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
@@ -480,6 +489,7 @@ export interface FileRouteTypes {
     | '/programa'
     | '/pulse'
     | '/quiosque'
+    | '/reconhecimento'
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
@@ -529,6 +539,7 @@ export interface FileRouteTypes {
     | '/programa'
     | '/pulse'
     | '/quiosque'
+    | '/reconhecimento'
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
@@ -578,6 +589,7 @@ export interface FileRouteTypes {
     | '/programa'
     | '/pulse'
     | '/quiosque'
+    | '/reconhecimento'
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
@@ -628,6 +640,7 @@ export interface RootRouteChildren {
   ProgramaRoute: typeof ProgramaRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
+  ReconhecimentoRoute: typeof ReconhecimentoRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponderRoute: typeof ResponderRoute
@@ -718,6 +731,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorio-global'
       fullPath: '/relatorio-global'
       preLoaderRoute: typeof RelatorioGlobalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reconhecimento': {
+      id: '/reconhecimento'
+      path: '/reconhecimento'
+      fullPath: '/reconhecimento'
+      preLoaderRoute: typeof ReconhecimentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiosque': {
@@ -1012,6 +1032,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProgramaRoute: ProgramaRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
+  ReconhecimentoRoute: ReconhecimentoRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponderRoute: ResponderRoute,

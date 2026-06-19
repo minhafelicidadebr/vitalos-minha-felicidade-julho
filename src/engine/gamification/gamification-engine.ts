@@ -7,6 +7,7 @@ import type {
   ParticipationCategory,
   ParticipationEventKind,
 } from "./participation-ledger";
+import type { RecognitionPolicy, RecognitionVisibility } from "../recognition/recognition-engine";
 
 export interface MissionDef {
   id: string;
@@ -47,6 +48,14 @@ interface EconomyShape {
   participationLedger?: {
     awards?: Array<Record<string, unknown>>;
     badges?: Array<Record<string, unknown>>;
+  };
+  socialRecognition?: {
+    weeklyBudget?: number;
+    duplicateCooldownDays?: number;
+    allowedVisibilities?: string[];
+    publicRequiresConsent?: boolean;
+    messageMaxChars?: number;
+    kAnonymityMin?: number;
   };
 }
 
@@ -115,6 +124,22 @@ export function getParticipationLedgerConfig(
       kind: rule.kind ? (String(rule.kind) as ParticipationEventKind) : undefined,
       category: rule.category ? (String(rule.category) as ParticipationCategory) : undefined,
     })),
+  };
+}
+
+export function getRecognitionPolicy(economy: GamificationEconomy): RecognitionPolicy {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.socialRecognition;
+  return {
+    weeklyBudget: config?.weeklyBudget ?? getAntiGamingRules(economy).kudosWeeklyBudget,
+    duplicateCooldownDays: config?.duplicateCooldownDays ?? 7,
+    allowedVisibilities: (config?.allowedVisibilities ?? [
+      "private",
+      "public",
+    ]) as RecognitionVisibility[],
+    publicRequiresConsent: config?.publicRequiresConsent ?? true,
+    messageMaxChars: config?.messageMaxChars ?? 240,
+    kAnonymityMin: config?.kAnonymityMin ?? 5,
   };
 }
 
