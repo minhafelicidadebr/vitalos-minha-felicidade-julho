@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  ArchiveRestore,
   CheckCircle2,
   DatabaseZap,
   HardDrive,
@@ -27,8 +28,10 @@ import {
 } from "@/engine/trust/consent-ledger-engine";
 import { getConsentLedgerContractProof } from "@/lib/api/consent.functions";
 import { getConsentPersistenceContractProof } from "@/lib/api/consent-persistence.functions";
+import { getRetentionAuditProof } from "@/lib/api/retention-audit.functions";
 import type { ConsentLedgerContractProof } from "@/lib/trust/consent-ledger-proof.server";
 import type { ConsentPersistenceContractProof } from "@/lib/trust/consent-persistence-proof.server";
+import type { RetentionAuditProof } from "@/lib/trust/retention-audit-proof.server";
 
 export const Route = createFileRoute("/confianca")({
   head: () => ({
@@ -58,6 +61,7 @@ function TrustPage() {
         <VisibilityCard />
         <ConsentContractCard />
         <ConsentPersistenceCard />
+        <RetentionAuditCard />
         <ConsentsCard />
         <RightsCard />
       </div>
@@ -261,6 +265,108 @@ function ConsentContractCard() {
             ))}
           </div>
         </div>
+      </div>
+    </motion.section>
+  );
+}
+
+type RetentionAuditLoad =
+  | { state: "loading" }
+  | { state: "ready"; value: RetentionAuditProof }
+  | { state: "error" };
+
+function RetentionAuditCard() {
+  const [load, setLoad] = useState<RetentionAuditLoad>({ state: "loading" });
+
+  function reload() {
+    setLoad({ state: "loading" });
+    void getRetentionAuditProof()
+      .then((value) => setLoad({ state: "ready", value }))
+      .catch(() => setLoad({ state: "error" }));
+  }
+
+  useEffect(reload, []);
+
+  if (load.state === "loading") {
+    return <div className="h-64 animate-pulse rounded-2xl bg-muted/55" aria-busy="true" />;
+  }
+  if (load.state === "error") {
+    return (
+      <section className="rounded-2xl border border-amber-300/40 bg-card p-6 text-center">
+        <ArchiveRestore className="mx-auto h-5 w-5 text-amber-600" aria-hidden />
+        <h2 className="mt-3 font-serif text-xl text-foreground">
+          A governança de retenção não pôde ser verificada.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">Nenhum job ou audit log foi presumido.</p>
+        <button
+          type="button"
+          onClick={reload}
+          className="mt-4 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Verificar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.1] via-card to-amber-500/[0.045] p-5 shadow-sm"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-xl">
+          <ArchiveRestore className="h-6 w-6 text-primary" aria-hidden />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Retenção · legal hold · audit trail
+          </p>
+          <h2 className="mt-1 font-serif text-2xl text-foreground">
+            Guardar também precisa de prazo e prova
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            A política decide reter, anonimizar ou excluir. O log encadeia somente metadados
+            minimizados e denuncia quebra retroativa.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-emerald-300/30 bg-emerald-500/[0.045] p-3">
+            <p className="font-mono text-2xl font-semibold text-foreground">
+              {proof.passedCheckCount}/{proof.checkCount}
+            </p>
+            <p className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">contrato</p>
+          </div>
+          <div className="rounded-xl border border-amber-300/30 bg-amber-500/[0.045] p-3">
+            <p className="font-mono text-sm font-semibold text-foreground">jobs: false</p>
+            <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+              runtime
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        {proof.checks.map((item) => (
+          <article
+            key={item.id}
+            className="flex items-start gap-2 rounded-xl border border-border/55 bg-card/55 p-3"
+          >
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+            <div>
+              <p className="text-xs font-medium text-foreground">{item.label}</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{item.note}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="mt-4 rounded-xl border border-border/60 bg-background/30 p-3">
+        <p className="text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
+          SHA-256 · {proof.digestScope}
+        </p>
+        <p className="mt-1 break-all font-mono text-[9px] leading-relaxed text-foreground">
+          {proof.auditDigest}
+        </p>
       </div>
     </motion.section>
   );
