@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  BadgeCheck,
   Ban,
   Building2,
   CheckCircle2,
@@ -27,7 +28,9 @@ import { getIdentityBoundaryStatus } from "@/lib/api/identity.functions";
 import { getIsolationAuditProof } from "@/lib/api/isolation.functions";
 import { getCloudReadinessProof } from "@/lib/api/cloud-readiness.functions";
 import { getSignedSessionContractProof } from "@/lib/api/session-contract.functions";
+import { getGrantIssuanceContractProof } from "@/lib/api/grant-contract.functions";
 import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
+import type { GrantIssuanceContractProof } from "@/lib/identity/grant-issuance-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
 import type { SignedSessionContractProof } from "@/lib/identity/session-contract-proof.server";
 import { AUTHORIZATION_REASON_COPY, buildDemoAccessStory } from "@/mocks/access-control-mock";
@@ -60,6 +63,11 @@ type SessionContractLoadState =
   | { state: "ready"; value: SignedSessionContractProof }
   | { state: "error" };
 
+type GrantContractLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: GrantIssuanceContractProof }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
@@ -71,29 +79,36 @@ function AccessBoundaryPage() {
   const [sessionContract, setSessionContract] = useState<SessionContractLoadState>({
     state: "loading",
   });
+  const [grantContract, setGrantContract] = useState<GrantContractLoadState>({
+    state: "loading",
+  });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
     setIsolation({ state: "loading" });
     setCloudReadiness({ state: "loading" });
     setSessionContract({ state: "loading" });
+    setGrantContract({ state: "loading" });
     void Promise.all([
       getIdentityBoundaryStatus(),
       getIsolationAuditProof(),
       getCloudReadinessProof({ data: { packId } }),
       getSignedSessionContractProof(),
+      getGrantIssuanceContractProof(),
     ])
-      .then(([boundaryValue, isolationValue, cloudValue, sessionValue]) => {
+      .then(([boundaryValue, isolationValue, cloudValue, sessionValue, grantValue]) => {
         setBoundary({ state: "ready", value: boundaryValue });
         setIsolation({ state: "ready", value: isolationValue });
         setCloudReadiness(cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" });
         setSessionContract({ state: "ready", value: sessionValue });
+        setGrantContract({ state: "ready", value: grantValue });
       })
       .catch(() => {
         setBoundary({ state: "error" });
         setIsolation({ state: "error" });
         setCloudReadiness({ state: "error" });
         setSessionContract({ state: "error" });
+        setGrantContract({ state: "error" });
       });
   }
 
@@ -309,6 +324,8 @@ function AccessBoundaryPage() {
 
         <SignedSessionContractCard load={sessionContract} onRetry={loadBoundary} />
 
+        <GrantIssuanceContractCard load={grantContract} onRetry={loadBoundary} />
+
         <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
 
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
@@ -393,6 +410,138 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+const GRANT_CATEGORY_COPY: Record<string, string> = {
+  identity: "Identidade",
+  membership: "Membership",
+  permission: "Permissão",
+  scope: "Escopo",
+  domain: "Domínio A/B",
+  lifetime: "Validade",
+};
+
+function GrantIssuanceContractCard({
+  load,
+  onRetry,
+}: {
+  load: GrantContractLoadState;
+  onRetry: () => void;
+}) {
+  if (load.state === "loading") {
+    return <section className="h-72 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <BadgeCheck className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          A emissão de grants não pôde ser auditada.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Nenhuma permissão foi inferida do papel demonstrativo.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Executar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  const categories = [...new Set(proof.cases.map((item) => item.category))];
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-primary/25 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.62fr_1.38fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.12] via-card to-amber-500/[0.05] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <BadgeCheck className="h-7 w-7 text-primary" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Least privilege · grants server-side
+          </p>
+          <p className="mt-3 font-mono text-5xl font-semibold text-foreground">
+            {proof.passedCaseCount}/{proof.caseCount}
+          </p>
+          <h2 className="mt-2 font-serif text-2xl text-foreground">
+            cenários de privilégio coerentes
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Sessão identifica. Membership autoriza. Navegação e papel escolhidos no cliente nunca
+            emitem acesso.
+          </p>
+          <div className="mt-6 rounded-2xl border border-amber-300/35 bg-amber-500/[0.045] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-300">
+              Limite operacional
+            </p>
+            <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+              grantsServerIssued: false
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              O store de memberships e o adapter Cloud ainda não existem.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Política atômica e fail-closed
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Um entitlement inválido rejeita o lote
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {proof.status}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {categories.map((category) => {
+              const cases = proof.cases.filter((item) => item.category === category);
+              return (
+                <article
+                  key={category}
+                  className="rounded-xl border border-border/60 bg-background/35 p-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden />
+                  <p className="mt-2 text-[11px] font-medium text-foreground">
+                    {GRANT_CATEGORY_COPY[category] ?? category}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {cases.filter((item) => item.passed).length}/{cases.length}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.cases.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                    esperado={item.expectedReason} · observado={item.actualReason}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
