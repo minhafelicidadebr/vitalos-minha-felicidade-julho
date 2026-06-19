@@ -10,6 +10,7 @@ import {
   CloudCog,
   Crosshair,
   Database,
+  FileCheck2,
   Fingerprint,
   KeyRound,
   LockKeyhole,
@@ -31,11 +32,13 @@ import { getCloudReadinessProof } from "@/lib/api/cloud-readiness.functions";
 import { getSignedSessionContractProof } from "@/lib/api/session-contract.functions";
 import { getGrantIssuanceContractProof } from "@/lib/api/grant-contract.functions";
 import { getRlsParityProof } from "@/lib/api/rls-parity.functions";
+import { getIdentityTrustChainProof } from "@/lib/api/trust-chain.functions";
 import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
 import type { GrantIssuanceContractProof } from "@/lib/identity/grant-issuance-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
 import type { SignedSessionContractProof } from "@/lib/identity/session-contract-proof.server";
 import type { RlsParityProof } from "@/lib/security/rls-parity-proof.server";
+import type { IdentityTrustChainProof } from "@/lib/security/trust-chain-attestation.server";
 import { AUTHORIZATION_REASON_COPY, buildDemoAccessStory } from "@/mocks/access-control-mock";
 
 export const Route = createFileRoute("/acesso")({
@@ -76,6 +79,11 @@ type RlsParityLoadState =
   | { state: "ready"; value: RlsParityProof }
   | { state: "error" };
 
+type TrustChainLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: IdentityTrustChainProof }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
@@ -91,6 +99,7 @@ function AccessBoundaryPage() {
     state: "loading",
   });
   const [rlsParity, setRlsParity] = useState<RlsParityLoadState>({ state: "loading" });
+  const [trustChain, setTrustChain] = useState<TrustChainLoadState>({ state: "loading" });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
@@ -99,6 +108,7 @@ function AccessBoundaryPage() {
     setSessionContract({ state: "loading" });
     setGrantContract({ state: "loading" });
     setRlsParity({ state: "loading" });
+    setTrustChain({ state: "loading" });
     void Promise.all([
       getIdentityBoundaryStatus(),
       getIsolationAuditProof(),
@@ -106,15 +116,29 @@ function AccessBoundaryPage() {
       getSignedSessionContractProof(),
       getGrantIssuanceContractProof(),
       getRlsParityProof(),
+      getIdentityTrustChainProof(),
     ])
-      .then(([boundaryValue, isolationValue, cloudValue, sessionValue, grantValue, rlsValue]) => {
-        setBoundary({ state: "ready", value: boundaryValue });
-        setIsolation({ state: "ready", value: isolationValue });
-        setCloudReadiness(cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" });
-        setSessionContract({ state: "ready", value: sessionValue });
-        setGrantContract({ state: "ready", value: grantValue });
-        setRlsParity({ state: "ready", value: rlsValue });
-      })
+      .then(
+        ([
+          boundaryValue,
+          isolationValue,
+          cloudValue,
+          sessionValue,
+          grantValue,
+          rlsValue,
+          trustChainValue,
+        ]) => {
+          setBoundary({ state: "ready", value: boundaryValue });
+          setIsolation({ state: "ready", value: isolationValue });
+          setCloudReadiness(
+            cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" },
+          );
+          setSessionContract({ state: "ready", value: sessionValue });
+          setGrantContract({ state: "ready", value: grantValue });
+          setRlsParity({ state: "ready", value: rlsValue });
+          setTrustChain({ state: "ready", value: trustChainValue });
+        },
+      )
       .catch(() => {
         setBoundary({ state: "error" });
         setIsolation({ state: "error" });
@@ -122,6 +146,7 @@ function AccessBoundaryPage() {
         setSessionContract({ state: "error" });
         setGrantContract({ state: "error" });
         setRlsParity({ state: "error" });
+        setTrustChain({ state: "error" });
       });
   }
 
@@ -341,6 +366,8 @@ function AccessBoundaryPage() {
 
         <RlsParityCard load={rlsParity} onRetry={loadBoundary} />
 
+        <TrustChainAttestationCard load={trustChain} onRetry={loadBoundary} />
+
         <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
 
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
@@ -425,6 +452,101 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function TrustChainAttestationCard({
+  load,
+  onRetry,
+}: {
+  load: TrustChainLoadState;
+  onRetry: () => void;
+}) {
+  if (load.state === "loading") {
+    return <section className="h-64 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <FileCheck2 className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          A cadeia de confiança não pôde ser atestada.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Promoção continua bloqueada por padrão.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Recalcular atestação
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <section className="rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/[0.1] via-card to-amber-500/[0.045] p-6 shadow-sm sm:p-7">
+      <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+        <div>
+          <FileCheck2 className="h-7 w-7 text-primary" aria-hidden />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Atestação da cadeia de confiança
+          </p>
+          <h2 className="mt-2 font-serif text-3xl text-foreground">
+            Blueprint selado. Runtime ainda fechado.
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Sessão, grants, autorização, RLS e isolamento compõem uma única prova reproduzível sem
+            incluir claims, memberships ou dados individuais.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[0.65fr_0.65fr_1.7fr]">
+          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/[0.045] p-4">
+            <p className="font-mono text-3xl font-semibold text-foreground">
+              {proof.passedCheckCount}/{proof.checkCount}
+            </p>
+            <p className="mt-1 text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
+              blueprint
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-300/30 bg-amber-500/[0.045] p-4">
+            <p className="font-mono text-3xl font-semibold text-foreground">
+              {proof.runtime.passed}/{proof.runtime.total}
+            </p>
+            <p className="mt-1 text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
+              runtime
+            </p>
+          </div>
+          <div className="min-w-0 rounded-2xl border border-border/60 bg-background/35 p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
+              SHA-256 · {proof.digestScope}
+            </p>
+            <p className="mt-2 break-all font-mono text-[10px] leading-relaxed text-foreground">
+              {proof.digest}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        {proof.runtime.blockers.map((item, index) => (
+          <article
+            key={item.id}
+            className="flex items-center gap-3 rounded-xl border border-amber-300/25 bg-card/55 p-3"
+          >
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-500/10 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+              {index + 1}
+            </span>
+            <p className="text-xs font-medium text-foreground">{item.label}</p>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
