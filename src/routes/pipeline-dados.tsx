@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   DatabaseZap,
   EyeOff,
+  Fingerprint,
   Gauge,
   Layers3,
   LockKeyhole,
@@ -15,10 +16,11 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
+import { getDataPipelineSnapshot } from "@/lib/api/pipeline.functions";
 import type { AggregationProof } from "@/lib/aggregation/aggregation-proof.server";
-import { getAggregationProof } from "@/lib/api/aggregation.functions";
-import { getServerIndexProof } from "@/lib/api/index.functions";
 import type { ServerIndexProof } from "@/lib/index/server-index-proof.server";
+import type { DataPipelineSnapshot } from "@/lib/pipeline/data-pipeline-snapshot.server";
+import type { SealedPipelineAttestation } from "@/lib/proof/pipeline-attestation.server";
 
 export const Route = createFileRoute("/pipeline-dados")({
   head: () => ({
@@ -29,7 +31,7 @@ export const Route = createFileRoute("/pipeline-dados")({
 
 type LoadState =
   | { state: "loading" }
-  | { state: "ready"; proof: AggregationProof; index: ServerIndexProof | null }
+  | { state: "ready"; snapshot: DataPipelineSnapshot }
   | { state: "empty" }
   | { state: "error" };
 
@@ -39,13 +41,8 @@ function DataPipelinePage() {
 
   function reload() {
     setLoad({ state: "loading" });
-    void Promise.all([
-      getAggregationProof({ data: { packId } }),
-      getServerIndexProof({ data: { packId } }),
-    ])
-      .then(([proof, index]) =>
-        setLoad(proof ? { state: "ready", proof, index } : { state: "empty" }),
-      )
+    void getDataPipelineSnapshot({ data: { packId } })
+      .then((snapshot) => setLoad(snapshot ? { state: "ready", snapshot } : { state: "empty" }))
       .catch(() => setLoad({ state: "error" }));
   }
 
@@ -116,7 +113,13 @@ function DataPipelinePage() {
           />
         )}
 
-        {load.state === "ready" && <AggregationView proof={load.proof} index={load.index} />}
+        {load.state === "ready" && (
+          <AggregationView
+            proof={load.snapshot.aggregation}
+            index={load.snapshot.index}
+            attestation={load.snapshot.attestation}
+          />
+        )}
       </div>
     </AppShell>
   );
@@ -148,9 +151,9 @@ function PipelineStages() {
     {
       icon: ShieldCheck,
       title: "Provar",
-      status: "Planejado",
-      text: "Trilha sem payload sensível e verificações reproduzíveis.",
-      tone: "next",
+      status: "Ativo",
+      text: "Manifesto público sanitizado e digest reproduzível.",
+      tone: "active",
     },
   ] as const;
 
@@ -185,9 +188,11 @@ function PipelineStages() {
 function AggregationView({
   proof,
   index,
+  attestation,
 }: {
   proof: AggregationProof;
-  index: ServerIndexProof | null;
+  index: ServerIndexProof;
+  attestation: SealedPipelineAttestation;
 }) {
   return (
     <>
@@ -206,15 +211,9 @@ function AggregationView({
         />
       </section>
 
-      {index ? (
-        <IndexProofCard proof={index} />
-      ) : (
-        <StateCard
-          icon={Gauge}
-          title="Índice recusado pela fronteira pública."
-          text="A agregação continua disponível, mas nenhum score foi presumido após uma falha de contrato."
-        />
-      )}
+      <IndexProofCard proof={index} />
+
+      <AttestationCard attestation={attestation} />
 
       <section className="rounded-3xl border border-primary/20 bg-primary/[0.055] p-5 sm:p-6">
         <div className="flex items-start gap-3">
@@ -243,6 +242,124 @@ function AggregationView({
         </div>
       </section>
     </>
+  );
+}
+
+function AttestationCard({ attestation }: { attestation: SealedPipelineAttestation }) {
+  const verified = attestation.status === "verified";
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-primary/25 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.13] via-card to-amber-500/[0.06] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <Fingerprint className="h-7 w-7 text-primary" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Atestação de contrato
+          </p>
+          <h2 className="mt-2 font-serif text-3xl text-foreground">
+            {verified ? "Pipeline verificado" : "Pipeline bloqueado"}
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            O digest cobre somente metadados públicos sanitizados. Nenhuma resposta ou hash de
+            resposta participa da prova.
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-border/60 bg-background/35 p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+              Nível de garantia
+            </p>
+            <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+              {attestation.assuranceLevel}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Prova técnica da demonstração; não representa persistência Cloud ou RLS em produção.
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-border/60 bg-background/35 p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+              SHA-256 · manifesto canônico
+            </p>
+            <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-foreground">
+              {attestation.digest}
+            </code>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                11 verificações reproduzíveis
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Captura → agregação → índice
+              </h2>
+            </div>
+            <span
+              className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold ${
+                verified
+                  ? "border-emerald-300/50 bg-emerald-500/[0.08] text-emerald-700 dark:text-emerald-300"
+                  : "border-amber-300/50 bg-amber-500/[0.08] text-amber-700 dark:text-amber-300"
+              }`}
+            >
+              {attestation.status}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            {attestation.stages.map((stage) => (
+              <article
+                key={stage.id}
+                className="rounded-2xl border border-border/60 bg-background/35 p-4"
+              >
+                <CheckCircle2
+                  className={
+                    stage.status === "verified"
+                      ? "h-4 w-4 text-emerald-500"
+                      : "h-4 w-4 text-amber-500"
+                  }
+                  aria-hidden
+                />
+                <p className="mt-3 text-sm font-medium text-foreground">{stage.label}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  {stage.passedCheckCount}/{stage.checkCount} checks
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {attestation.checks.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2
+                  className={
+                    item.passed
+                      ? "mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                      : "mt-0.5 h-4 w-4 shrink-0 text-amber-500"
+                  }
+                  aria-hidden
+                />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {item.note}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-5 text-[10px] leading-relaxed text-muted-foreground">
+            ID: <span className="font-mono">{attestation.attestationId}</span> · escopo do digest:{" "}
+            <span className="font-mono">{attestation.digestScope}</span>
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
