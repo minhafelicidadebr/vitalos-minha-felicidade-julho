@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, DatabaseZap, History, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  DatabaseZap,
+  HardDrive,
+  History,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import {
   CONSENT_DEMO_BASE_TIME,
@@ -19,7 +26,9 @@ import {
   type ConsentLedgerEvent,
 } from "@/engine/trust/consent-ledger-engine";
 import { getConsentLedgerContractProof } from "@/lib/api/consent.functions";
+import { getConsentPersistenceContractProof } from "@/lib/api/consent-persistence.functions";
 import type { ConsentLedgerContractProof } from "@/lib/trust/consent-ledger-proof.server";
+import type { ConsentPersistenceContractProof } from "@/lib/trust/consent-persistence-proof.server";
 
 export const Route = createFileRoute("/confianca")({
   head: () => ({
@@ -48,6 +57,7 @@ function TrustPage() {
         <PromisesCard />
         <VisibilityCard />
         <ConsentContractCard />
+        <ConsentPersistenceCard />
         <ConsentsCard />
         <RightsCard />
       </div>
@@ -228,6 +238,107 @@ function ConsentContractCard() {
               </p>
               <h2 className="mt-1 font-serif text-xl text-foreground">
                 Consentimento é um histórico, não um toggle
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {proof.status}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {proof.checks.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {item.note}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+type ConsentPersistenceLoad =
+  | { state: "loading" }
+  | { state: "ready"; value: ConsentPersistenceContractProof }
+  | { state: "error" };
+
+function ConsentPersistenceCard() {
+  const [load, setLoad] = useState<ConsentPersistenceLoad>({ state: "loading" });
+
+  function reload() {
+    setLoad({ state: "loading" });
+    void getConsentPersistenceContractProof()
+      .then((value) => setLoad({ state: "ready", value }))
+      .catch(() => setLoad({ state: "error" }));
+  }
+
+  useEffect(reload, []);
+
+  if (load.state === "loading") {
+    return <div className="h-64 animate-pulse rounded-2xl bg-muted/55" aria-busy="true" />;
+  }
+  if (load.state === "error") {
+    return (
+      <section className="rounded-2xl border border-amber-300/40 bg-card p-6 text-center">
+        <HardDrive className="mx-auto h-5 w-5 text-amber-600" aria-hidden />
+        <h2 className="mt-3 font-serif text-xl text-foreground">
+          O protocolo de persistência não respondeu.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">Nenhuma durabilidade foi presumida.</p>
+        <button
+          type="button"
+          onClick={reload}
+          className="mt-4 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Verificar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="overflow-hidden rounded-2xl border border-primary/25 bg-card shadow-sm"
+    >
+      <div className="grid lg:grid-cols-[0.65fr_1.35fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.13] via-card to-amber-500/[0.06] p-5 lg:border-r lg:border-b-0">
+          <HardDrive className="h-6 w-6 text-primary" aria-hidden />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Persistência transacional
+          </p>
+          <p className="mt-3 font-mono text-4xl font-semibold text-foreground">
+            {proof.passedCheckCount}/{proof.checkCount}
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-foreground">garantias de append</h2>
+          <div className="mt-5 rounded-xl border border-amber-300/35 bg-amber-500/[0.045] p-3">
+            <p className="font-mono text-xs font-semibold text-foreground">
+              durableConsentLedger: false
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              O protocolo está pronto; o adapter Lovable Cloud ainda não existe.
+            </p>
+          </div>
+        </div>
+        <div className="p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Append · idempotência · commit
+              </p>
+              <h2 className="mt-1 font-serif text-xl text-foreground">
+                Recibo só nasce depois da gravação
               </h2>
             </div>
             <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
