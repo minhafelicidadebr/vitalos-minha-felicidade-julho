@@ -54,7 +54,7 @@ tentar adquirir peso de produção.
 
 ## Estado atual
 
-- contrato criptográfico: `10/10`;
+- contrato criptográfico: `11/11`;
 - trusted key registry real: não;
 - replay ledger durável: não;
 - fonte de evidência production: não;
