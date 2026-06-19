@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   CloudCog,
   Crosshair,
+  Database,
   Fingerprint,
   KeyRound,
   LockKeyhole,
@@ -29,10 +30,12 @@ import { getIsolationAuditProof } from "@/lib/api/isolation.functions";
 import { getCloudReadinessProof } from "@/lib/api/cloud-readiness.functions";
 import { getSignedSessionContractProof } from "@/lib/api/session-contract.functions";
 import { getGrantIssuanceContractProof } from "@/lib/api/grant-contract.functions";
+import { getRlsParityProof } from "@/lib/api/rls-parity.functions";
 import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
 import type { GrantIssuanceContractProof } from "@/lib/identity/grant-issuance-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
 import type { SignedSessionContractProof } from "@/lib/identity/session-contract-proof.server";
+import type { RlsParityProof } from "@/lib/security/rls-parity-proof.server";
 import { AUTHORIZATION_REASON_COPY, buildDemoAccessStory } from "@/mocks/access-control-mock";
 
 export const Route = createFileRoute("/acesso")({
@@ -68,6 +71,11 @@ type GrantContractLoadState =
   | { state: "ready"; value: GrantIssuanceContractProof }
   | { state: "error" };
 
+type RlsParityLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: RlsParityProof }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
@@ -82,6 +90,7 @@ function AccessBoundaryPage() {
   const [grantContract, setGrantContract] = useState<GrantContractLoadState>({
     state: "loading",
   });
+  const [rlsParity, setRlsParity] = useState<RlsParityLoadState>({ state: "loading" });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
@@ -89,19 +98,22 @@ function AccessBoundaryPage() {
     setCloudReadiness({ state: "loading" });
     setSessionContract({ state: "loading" });
     setGrantContract({ state: "loading" });
+    setRlsParity({ state: "loading" });
     void Promise.all([
       getIdentityBoundaryStatus(),
       getIsolationAuditProof(),
       getCloudReadinessProof({ data: { packId } }),
       getSignedSessionContractProof(),
       getGrantIssuanceContractProof(),
+      getRlsParityProof(),
     ])
-      .then(([boundaryValue, isolationValue, cloudValue, sessionValue, grantValue]) => {
+      .then(([boundaryValue, isolationValue, cloudValue, sessionValue, grantValue, rlsValue]) => {
         setBoundary({ state: "ready", value: boundaryValue });
         setIsolation({ state: "ready", value: isolationValue });
         setCloudReadiness(cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" });
         setSessionContract({ state: "ready", value: sessionValue });
         setGrantContract({ state: "ready", value: grantValue });
+        setRlsParity({ state: "ready", value: rlsValue });
       })
       .catch(() => {
         setBoundary({ state: "error" });
@@ -109,6 +121,7 @@ function AccessBoundaryPage() {
         setCloudReadiness({ state: "error" });
         setSessionContract({ state: "error" });
         setGrantContract({ state: "error" });
+        setRlsParity({ state: "error" });
       });
   }
 
@@ -326,6 +339,8 @@ function AccessBoundaryPage() {
 
         <GrantIssuanceContractCard load={grantContract} onRetry={loadBoundary} />
 
+        <RlsParityCard load={rlsParity} onRetry={loadBoundary} />
+
         <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
 
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
@@ -410,6 +425,151 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+const RLS_CLASS_COPY: Record<string, string> = {
+  allowed: "Permitido",
+  identity: "Identidade",
+  tenant: "Tenant",
+  privacy: "Privacidade",
+  policy: "Policy",
+  expiry: "Expiração",
+  domain: "Domínio",
+  scope: "Escopo",
+  write: "Escrita",
+};
+
+function RlsParityCard({ load, onRetry }: { load: RlsParityLoadState; onRetry: () => void }) {
+  if (load.state === "loading") {
+    return <section className="h-72 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <Database className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          A paridade com a política de banco não pôde ser verificada.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">RLS continua reprovada por padrão.</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Executar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  const classes = [...new Set(proof.cases.map((item) => item.expectedClass))];
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-primary/25 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.62fr_1.38fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.12] via-card to-amber-500/[0.05] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <Database className="h-7 w-7 text-primary" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Manifesto RLS · paridade semântica
+          </p>
+          <p className="mt-3 font-mono text-5xl font-semibold text-foreground">
+            {proof.passedCaseCount}/{proof.caseCount}
+          </p>
+          <h2 className="mt-2 font-serif text-2xl text-foreground">
+            decisões iguais nas duas camadas
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            O engine da aplicação e a especificação independente do banco concordam nos caminhos
+            permitidos e negados.
+          </p>
+          <dl className="mt-5 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-border/55 bg-background/35 p-3">
+              <dt className="font-mono text-xl font-semibold text-foreground">
+                {proof.manifest.ruleCount}
+              </dt>
+              <dd className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                regras
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/55 bg-background/35 p-3">
+              <dt className="font-mono text-xl font-semibold text-foreground">
+                {proof.manifest.tableCount}
+              </dt>
+              <dd className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                tabelas
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-4 rounded-2xl border border-amber-300/35 bg-amber-500/[0.045] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-300">
+              Limite de enforcement
+            </p>
+            <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+              rlsDeployed: false
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Manifesto executável não é policy Postgres aplicada.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Application oracle × database oracle
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Drift deixa de ser invisível
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {proof.status}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-4 lg:grid-cols-8">
+            {classes.map((decisionClass) => {
+              const cases = proof.cases.filter((item) => item.expectedClass === decisionClass);
+              return (
+                <article
+                  key={decisionClass}
+                  className="rounded-xl border border-border/60 bg-background/35 p-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden />
+                  <p className="mt-2 text-[11px] font-medium text-foreground">
+                    {RLS_CLASS_COPY[decisionClass] ?? decisionClass}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {cases.filter((item) => item.passed).length}/{cases.length}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.cases.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                    app={item.applicationClass} · banco={item.databaseClass}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
