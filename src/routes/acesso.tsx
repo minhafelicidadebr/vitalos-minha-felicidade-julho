@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Server,
   ShieldCheck,
+  Stamp,
   UserRound,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
@@ -33,7 +34,9 @@ import { getSignedSessionContractProof } from "@/lib/api/session-contract.functi
 import { getGrantIssuanceContractProof } from "@/lib/api/grant-contract.functions";
 import { getRlsParityProof } from "@/lib/api/rls-parity.functions";
 import { getIdentityTrustChainProof } from "@/lib/api/trust-chain.functions";
+import { getProductionPromotionProof } from "@/lib/api/production-promotion.functions";
 import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
+import type { ProductionPromotionProof } from "@/lib/cloud/production-promotion-proof.server";
 import type { GrantIssuanceContractProof } from "@/lib/identity/grant-issuance-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
 import type { SignedSessionContractProof } from "@/lib/identity/session-contract-proof.server";
@@ -84,6 +87,11 @@ type TrustChainLoadState =
   | { state: "ready"; value: IdentityTrustChainProof }
   | { state: "error" };
 
+type PromotionLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: ProductionPromotionProof }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
@@ -100,6 +108,7 @@ function AccessBoundaryPage() {
   });
   const [rlsParity, setRlsParity] = useState<RlsParityLoadState>({ state: "loading" });
   const [trustChain, setTrustChain] = useState<TrustChainLoadState>({ state: "loading" });
+  const [promotion, setPromotion] = useState<PromotionLoadState>({ state: "loading" });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
@@ -109,6 +118,7 @@ function AccessBoundaryPage() {
     setGrantContract({ state: "loading" });
     setRlsParity({ state: "loading" });
     setTrustChain({ state: "loading" });
+    setPromotion({ state: "loading" });
     void Promise.all([
       getIdentityBoundaryStatus(),
       getIsolationAuditProof(),
@@ -117,6 +127,7 @@ function AccessBoundaryPage() {
       getGrantIssuanceContractProof(),
       getRlsParityProof(),
       getIdentityTrustChainProof(),
+      getProductionPromotionProof(),
     ])
       .then(
         ([
@@ -127,6 +138,7 @@ function AccessBoundaryPage() {
           grantValue,
           rlsValue,
           trustChainValue,
+          promotionValue,
         ]) => {
           setBoundary({ state: "ready", value: boundaryValue });
           setIsolation({ state: "ready", value: isolationValue });
@@ -137,6 +149,7 @@ function AccessBoundaryPage() {
           setGrantContract({ state: "ready", value: grantValue });
           setRlsParity({ state: "ready", value: rlsValue });
           setTrustChain({ state: "ready", value: trustChainValue });
+          setPromotion({ state: "ready", value: promotionValue });
         },
       )
       .catch(() => {
@@ -147,6 +160,7 @@ function AccessBoundaryPage() {
         setGrantContract({ state: "error" });
         setRlsParity({ state: "error" });
         setTrustChain({ state: "error" });
+        setPromotion({ state: "error" });
       });
   }
 
@@ -368,6 +382,8 @@ function AccessBoundaryPage() {
 
         <TrustChainAttestationCard load={trustChain} onRetry={loadBoundary} />
 
+        <ProductionPromotionCard load={promotion} onRetry={loadBoundary} />
+
         <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
 
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
@@ -452,6 +468,105 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function ProductionPromotionCard({
+  load,
+  onRetry,
+}: {
+  load: PromotionLoadState;
+  onRetry: () => void;
+}) {
+  if (load.state === "loading") {
+    return <section className="h-64 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+  if (load.state === "error") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <Stamp className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          O certificado de promoção não pôde ser avaliado.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Produção permanece bloqueada por padrão.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Recalcular
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  return (
+    <section className="rounded-3xl border border-amber-300/35 bg-gradient-to-br from-amber-500/[0.08] via-card to-primary/[0.055] p-6 shadow-sm sm:p-7">
+      <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
+        <div>
+          <Stamp className="h-7 w-7 text-amber-600 dark:text-amber-400" aria-hidden />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+            Certificado condicional de produção
+          </p>
+          <h2 className="mt-2 font-serif text-3xl text-foreground">
+            O validador está pronto. O certificado não.
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Evidências precisam ser reais, frescas e pertencer ao mesmo deployment e release.
+            Contratos, mocks ou provas vencidas são recusados.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-emerald-300/30 bg-emerald-500/[0.04] p-3">
+              <p className="font-mono text-2xl font-semibold text-foreground">
+                {proof.passedCheckCount}/{proof.checkCount}
+              </p>
+              <p className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                validador
+              </p>
+            </div>
+            <div className="rounded-xl border border-amber-300/30 bg-amber-500/[0.04] p-3">
+              <p className="font-mono text-2xl font-semibold text-foreground">
+                {proof.passedControlCount}/{proof.controlCount}
+              </p>
+              <p className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                runtime
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="font-serif text-xl text-foreground">Evidências obrigatórias</h3>
+            <span className="rounded-full border border-amber-300/45 bg-amber-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+              certificateIssued: false
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {proof.controls.map((item, index) => (
+              <article
+                key={item.id}
+                className="flex items-center gap-3 rounded-xl border border-amber-300/25 bg-card/55 p-3"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-500/10 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-0.5 font-mono text-[9px] text-muted-foreground">{item.reason}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 font-mono text-[10px] text-muted-foreground">
+            promotionCertificateIssued: false · productionClaimsAllowed: false
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
