@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle2,
+  CloudOff,
   DatabaseZap,
   EyeOff,
   Fingerprint,
@@ -20,6 +21,7 @@ import { getDataPipelineSnapshot } from "@/lib/api/pipeline.functions";
 import type { AggregationProof } from "@/lib/aggregation/aggregation-proof.server";
 import type { ServerIndexProof } from "@/lib/index/server-index-proof.server";
 import type { DataPipelineSnapshot } from "@/lib/pipeline/data-pipeline-snapshot.server";
+import type { PersistenceContractProof } from "@/lib/persistence/persistence-contract-proof.server";
 import type { SealedPipelineAttestation } from "@/lib/proof/pipeline-attestation.server";
 
 export const Route = createFileRoute("/pipeline-dados")({
@@ -118,6 +120,7 @@ function DataPipelinePage() {
             proof={load.snapshot.aggregation}
             index={load.snapshot.index}
             attestation={load.snapshot.attestation}
+            persistence={load.snapshot.persistence}
           />
         )}
       </div>
@@ -133,6 +136,13 @@ function PipelineStages() {
       status: "Ativo",
       text: "Conjunto validado e conteúdo fora do recibo.",
       tone: "active",
+    },
+    {
+      icon: CloudOff,
+      title: "Persistir",
+      status: "Contrato pronto",
+      text: "Idempotência provada; adaptador Cloud ainda ausente.",
+      tone: "blocked",
     },
     {
       icon: Layers3,
@@ -158,19 +168,23 @@ function PipelineStages() {
   ] as const;
 
   return (
-    <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {stages.map(({ icon: Icon, title, status, text, tone }) => (
         <article
           key={title}
           className={`rounded-2xl border p-4 ${
             tone === "active"
               ? "border-emerald-300/45 bg-emerald-500/[0.045]"
-              : "border-border/65 bg-card"
+              : "border-amber-300/35 bg-amber-500/[0.035]"
           }`}
         >
           <div className="flex items-center justify-between gap-2">
             <Icon
-              className={tone === "active" ? "h-4 w-4 text-emerald-500" : "h-4 w-4 text-primary"}
+              className={
+                tone === "active"
+                  ? "h-4 w-4 text-emerald-500"
+                  : "h-4 w-4 text-amber-600 dark:text-amber-400"
+              }
               aria-hidden
             />
             <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -189,10 +203,12 @@ function AggregationView({
   proof,
   index,
   attestation,
+  persistence,
 }: {
   proof: AggregationProof;
   index: ServerIndexProof;
   attestation: SealedPipelineAttestation;
+  persistence: PersistenceContractProof;
 }) {
   return (
     <>
@@ -210,6 +226,8 @@ function AggregationView({
           aggregation={proof.protectedCohort}
         />
       </section>
+
+      <PersistenceContractCard proof={persistence} />
 
       <IndexProofCard proof={index} />
 
@@ -242,6 +260,91 @@ function AggregationView({
         </div>
       </section>
     </>
+  );
+}
+
+function PersistenceContractCard({ proof }: { proof: PersistenceContractProof }) {
+  const verified = proof.status === "contract_verified";
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-amber-300/35 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.62fr_1.38fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-amber-500/[0.1] via-card to-primary/[0.05] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <CloudOff className="h-6 w-6 text-amber-600 dark:text-amber-400" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+            Persistência Cloud
+          </p>
+          <h2 className="mt-2 font-serif text-3xl text-foreground">
+            Contrato pronto. Runtime não.
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            O protocolo transacional está testado, mas nenhum banco é simulado no runtime. A captura
+            real permanece bloqueada até existir um adaptador Lovable Cloud.
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <Metric label="checks" value={`${proof.passedCheckCount}/${proof.checkCount}`} />
+            <Metric label="runtime" value="bloqueado" />
+          </div>
+          <div className="mt-4 rounded-2xl border border-border/60 bg-background/35 p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+              Restrição única esperada
+            </p>
+            <code className="mt-2 block break-all font-mono text-[10px] leading-relaxed text-foreground">
+              {proof.uniqueConstraint}
+            </code>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Protocolo de commit
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Retry seguro, conflito explícito, recibo pós-commit
+              </h2>
+            </div>
+            <span
+              className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold ${
+                verified
+                  ? "border-emerald-300/50 bg-emerald-500/[0.08] text-emerald-700 dark:text-emerald-300"
+                  : "border-amber-300/50 bg-amber-500/[0.08] text-amber-700 dark:text-amber-300"
+              }`}
+            >
+              {proof.status}
+            </span>
+          </div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.checks.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2
+                  className={
+                    item.passed
+                      ? "mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                      : "mt-0.5 h-4 w-4 shrink-0 text-amber-500"
+                  }
+                  aria-hidden
+                />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {item.note}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+            `productionClaimsAllowed` permanece <strong>falso</strong>. Especificação executável não
+            substitui sessão assinada, transação real ou RLS.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -12,6 +12,11 @@ describe("data pipeline snapshot", () => {
       digestScope: "sanitized_public_metadata",
       rawResponsesReturned: false,
     });
+    expect(snapshot?.persistence).toMatchObject({
+      status: "contract_verified",
+      runtime: "adapter_missing",
+      productionClaimsAllowed: false,
+    });
     expect(snapshot?.generatedAt).toBe(snapshot?.aggregation.generatedAt);
     expect(snapshot?.generatedAt).toBe(snapshot?.index.generatedAt);
     expect(snapshot?.generatedAt).toBe(snapshot?.attestation.generatedAt);

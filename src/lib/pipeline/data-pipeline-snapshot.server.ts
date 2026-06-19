@@ -10,12 +10,17 @@ import {
   buildSealedPipelineAttestation,
   type SealedPipelineAttestation,
 } from "../proof/pipeline-attestation.server";
+import {
+  buildPersistenceContractProof,
+  type PersistenceContractProof,
+} from "../persistence/persistence-contract-proof.server";
 
 export interface DataPipelineSnapshot {
   generatedAt: string;
   aggregation: AggregationProof;
   index: ServerIndexProof;
   attestation: SealedPipelineAttestation;
+  persistence: PersistenceContractProof;
 }
 
 export function buildDataPipelineSnapshot(
@@ -32,5 +37,6 @@ export function buildDataPipelineSnapshot(
     aggregation,
     index,
     attestation: buildSealedPipelineAttestation(aggregation, index, generatedAt),
+    persistence: buildPersistenceContractProof(generatedAt),
   };
 }
