@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   CloudCog,
   Crosshair,
+  Fingerprint,
   KeyRound,
   LockKeyhole,
   RefreshCw,
@@ -25,8 +26,10 @@ import { usePack } from "@/engine/pack";
 import { getIdentityBoundaryStatus } from "@/lib/api/identity.functions";
 import { getIsolationAuditProof } from "@/lib/api/isolation.functions";
 import { getCloudReadinessProof } from "@/lib/api/cloud-readiness.functions";
+import { getSignedSessionContractProof } from "@/lib/api/session-contract.functions";
 import type { CloudReadinessProof } from "@/lib/cloud/cloud-readiness-proof.server";
 import type { IsolationAuditProof } from "@/lib/identity/isolation-audit-proof.server";
+import type { SignedSessionContractProof } from "@/lib/identity/session-contract-proof.server";
 import { AUTHORIZATION_REASON_COPY, buildDemoAccessStory } from "@/mocks/access-control-mock";
 
 export const Route = createFileRoute("/acesso")({
@@ -52,6 +55,11 @@ type CloudReadinessLoadState =
   | { state: "empty" }
   | { state: "error" };
 
+type SessionContractLoadState =
+  | { state: "loading" }
+  | { state: "ready"; value: SignedSessionContractProof }
+  | { state: "error" };
+
 function AccessBoundaryPage() {
   const { pack, packId, sectorLabel, status, reload } = usePack();
   const roleId = usePersona((state) => state.roleId);
@@ -60,25 +68,32 @@ function AccessBoundaryPage() {
   const [cloudReadiness, setCloudReadiness] = useState<CloudReadinessLoadState>({
     state: "loading",
   });
+  const [sessionContract, setSessionContract] = useState<SessionContractLoadState>({
+    state: "loading",
+  });
 
   function loadBoundary() {
     setBoundary({ state: "loading" });
     setIsolation({ state: "loading" });
     setCloudReadiness({ state: "loading" });
+    setSessionContract({ state: "loading" });
     void Promise.all([
       getIdentityBoundaryStatus(),
       getIsolationAuditProof(),
       getCloudReadinessProof({ data: { packId } }),
+      getSignedSessionContractProof(),
     ])
-      .then(([boundaryValue, isolationValue, cloudValue]) => {
+      .then(([boundaryValue, isolationValue, cloudValue, sessionValue]) => {
         setBoundary({ state: "ready", value: boundaryValue });
         setIsolation({ state: "ready", value: isolationValue });
         setCloudReadiness(cloudValue ? { state: "ready", value: cloudValue } : { state: "empty" });
+        setSessionContract({ state: "ready", value: sessionValue });
       })
       .catch(() => {
         setBoundary({ state: "error" });
         setIsolation({ state: "error" });
         setCloudReadiness({ state: "error" });
+        setSessionContract({ state: "error" });
       });
   }
 
@@ -292,6 +307,8 @@ function AccessBoundaryPage() {
 
         <IsolationAuditCard load={isolation} onRetry={loadBoundary} />
 
+        <SignedSessionContractCard load={sessionContract} onRetry={loadBoundary} />
+
         <CloudReadinessCard load={cloudReadiness} onRetry={loadBoundary} />
 
         <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
@@ -376,6 +393,137 @@ function AccessBoundaryPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+const SESSION_CATEGORY_COPY: Record<string, string> = {
+  adapter: "Adapter confiável",
+  claims: "Issuer e audience",
+  time: "Validade temporal",
+  membership: "Membership",
+  tenant: "Seleção de tenant",
+};
+
+function SignedSessionContractCard({
+  load,
+  onRetry,
+}: {
+  load: SessionContractLoadState;
+  onRetry: () => void;
+}) {
+  if (load.state === "loading") {
+    return <section className="h-72 animate-pulse rounded-3xl bg-muted/55" aria-busy="true" />;
+  }
+
+  if (load.state === "error") {
+    return (
+      <section className="rounded-3xl border border-amber-300/35 bg-card p-7 text-center">
+        <Fingerprint className="mx-auto h-6 w-6 text-amber-600" aria-hidden />
+        <h2 className="mt-4 font-serif text-2xl text-foreground">
+          O contrato de sessão não pôde ser verificado.
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Nenhuma identidade foi promovida por inferência.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          Executar novamente
+        </button>
+      </section>
+    );
+  }
+
+  const proof = load.value;
+  const categories = [...new Set(proof.cases.map((item) => item.category))];
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-primary/25 bg-card shadow-sm">
+      <div className="grid lg:grid-cols-[0.62fr_1.38fr]">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/[0.13] via-card to-amber-500/[0.05] p-6 lg:border-r lg:border-b-0 sm:p-7">
+          <Fingerprint className="h-7 w-7 text-primary" aria-hidden />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Próximo blocker · sessão assinada
+          </p>
+          <p className="mt-3 font-mono text-5xl font-semibold text-foreground">
+            {proof.passedCaseCount}/{proof.caseCount}
+          </p>
+          <h2 className="mt-2 font-serif text-2xl text-foreground">
+            cenários de contrato aprovados
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            O servidor só poderá confiar em claims verificados e em uma membership ativa. Tenant
+            escolhido no navegador nunca cria vínculo.
+          </p>
+          <div className="mt-6 rounded-2xl border border-amber-300/35 bg-amber-500/[0.045] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-300">
+              Estado de execução
+            </p>
+            <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+              signedSessionActive: false
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Contrato verificado não substitui assinatura criptográfica nem membership persistida.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                Aceitação adversarial do adapter
+              </p>
+              <h2 className="mt-2 font-serif text-2xl text-foreground">
+                Confiança nasce no servidor, não no cookie
+              </h2>
+            </div>
+            <span className="rounded-full border border-emerald-300/50 bg-emerald-500/[0.08] px-3 py-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {proof.status}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {categories.map((category) => {
+              const cases = proof.cases.filter((item) => item.category === category);
+              return (
+                <article
+                  key={category}
+                  className="rounded-xl border border-border/60 bg-background/35 p-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden />
+                  <p className="mt-2 text-[11px] font-medium text-foreground">
+                    {SESSION_CATEGORY_COPY[category] ?? category}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {cases.filter((item) => item.passed).length}/{cases.length}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {proof.cases.map((item) => (
+              <article
+                key={item.id}
+                className="flex items-start gap-2 rounded-xl border border-border/55 bg-muted/20 p-3"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                    esperado={item.expectedReason} · observado={item.actualReason}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
