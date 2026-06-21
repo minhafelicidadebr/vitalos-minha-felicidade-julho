@@ -4,12 +4,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
+  Download,
   HeartHandshake,
   Lightbulb,
   Palette,
   Ruler,
   Send,
   ShieldCheck,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
@@ -20,6 +22,8 @@ import { usePersona } from "@/app/identity/persona-store";
 import { canSeeCollective } from "@/mocks/sector-audience";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { answerCopilot, type CopilotPov, type CopilotTurn } from "@/engine/ai/copilot-engine";
+import { exportConversationText } from "@/engine/ai/copilot-conversation";
+import { useCopilotConversation } from "@/app/copilot/copilot-store";
 import {
   buildCopilotAvatar,
   buildCopilotKnowledge,
@@ -33,6 +37,10 @@ import { MOMENTUM_COPY } from "@/mocks/trend-mock";
 
 export const Route = createFileRoute("/copilota")({
   head: () => ({ meta: [{ title: "Copiloto setorial — VitalOS™" }] }),
+  // Permite deep-link com pergunta pré-preenchida: /copilota?q=...
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   component: CopilotaPage,
 });
 
@@ -42,13 +50,6 @@ const POV_ICONS: Record<PovSpec["icon"], LucideIcon> = {
   "heart-handshake": HeartHandshake,
   lightbulb: Lightbulb,
 };
-
-interface ChatMessage {
-  id: number;
-  author: "user" | "copilot";
-  text?: string;
-  turn?: CopilotTurn;
-}
 
 const CONFIDENCE_STYLE: Record<CopilotTurn["confidence"], { label: string; cls: string }> = {
   alta: {
@@ -170,22 +171,39 @@ function CopilotaChat() {
     };
   }, [index, packId, kb.indexLabel]);
 
+  const { q: seededQuestion } = Route.useSearch();
   const [pov, setPov] = useState<CopilotPov>("tecnico");
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [seq, setSeq] = useState(0);
+  const [input, setInput] = useState(seededQuestion ?? "");
+
+  // Conversa EFÊMERA por pack (sobrevive à navegação, some no reload).
+  const messages = useCopilotConversation((s) => s.threads[packId] ?? []);
+  const askStore = useCopilotConversation((s) => s.ask);
+  const clearStore = useCopilotConversation((s) => s.clear);
 
   const suggestions = suggestedQuestions(kb, canSee);
 
   function ask(question: string) {
     const q = question.trim();
     if (!q) return;
-    const userMsg: ChatMessage = { id: seq, author: "user", text: q };
     const turn = answerCopilot(kb, facts, { question: q, pov, canSeeCollective: canSee });
-    const botMsg: ChatMessage = { id: seq + 1, author: "copilot", turn };
-    setMessages((m) => [...m, userMsg, botMsg]);
-    setSeq((s) => s + 2);
+    askStore(packId, q, turn);
     setInput("");
+  }
+
+  function exportConversation() {
+    const text = exportConversationText(persona.suggestedName, messages);
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText(text);
+    }
+    if (typeof document !== "undefined") {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `conversa-${persona.suggestedName.toLowerCase()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
   return (
@@ -240,6 +258,28 @@ function CopilotaChat() {
           })}
         </div>
       </div>
+
+      {/* Ações da conversa */}
+      {messages.length > 0 && (
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={exportConversation}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Download className="h-3.5 w-3.5" aria-hidden />
+            Exportar
+          </button>
+          <button
+            type="button"
+            onClick={() => clearStore(packId)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            Limpar
+          </button>
+        </div>
+      )}
 
       {/* Conversa */}
       <div className="mt-5 flex-1 space-y-4" aria-live="polite">
