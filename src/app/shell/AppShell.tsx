@@ -39,7 +39,10 @@ const NAV_ROUTES: Record<string, string> = {
   overview: "/", // por papel, abaixo
   ivo: "/ivo",
   pulses: "/pulse",
-  ai: "/floresceria",
+  // O item "ai" abre o copiloto setorial aterrado (chat pack-aware). A tela legada
+  // de modos (/floresceria) segue como rota válida para rollback de uma linha.
+  ai: "/copilota",
+  copilota: "/copilota",
   copilot: "/copiloto",
   academy: "/academia",
   missions: "/missoes",

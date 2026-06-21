@@ -1,0 +1,218 @@
+// Base de conhecimento do copiloto setorial (a "RAG" determinística da Fase 1).
+//
+// Honestidade Fable 5: o KB é MONTADO da fonte de verdade real — o pack ativo e
+// seu framework (lentes, pilares, pergunta-guia, base científica, disclaimer) —
+// mais um pequeno mapa do ecossistema (módulos medir/agir/provar). Nada é
+// inventado: cada chunk carrega sua fonte (citação). O engine só pode responder
+// com o que está aqui + métricas computadas. (Fase 2: este KB vira o corpus do
+// vetor-store; o LLM o recebe como contexto — RAG-then-generate.)
+
+import type { CopilotKnowledgeBase, KnowledgeChunk } from "@/engine/ai/copilot-engine";
+
+// Tipos frouxos: o pack/index vêm de JSON (cast contido), espelhando os outros mocks.
+interface LensLike {
+  id: string;
+  name: string;
+  guidingQuestion?: string;
+  scientificBasis?: string[];
+  pillars?: { name: string }[];
+}
+interface IndexLike {
+  name?: string;
+  mandatoryDisclaimer?: string;
+  lenses?: LensLike[];
+  privacy?: { kAnonymityMin?: number };
+}
+interface PackLike {
+  packId?: string;
+  ai?: { name?: string; fullName?: string };
+  labels?: { index?: string; indexFull?: string; ai?: string };
+}
+
+export interface CopilotPersona {
+  /** Marca da IA (vem do pack): FlorescerIA, CidadanIA, etc. */
+  aiName: string;
+  /** Nome humano sugerido para a persona. */
+  suggestedName: string;
+  tagline: string;
+}
+
+export interface CopilotAvatarSpec {
+  gradientFrom: string;
+  gradientTo: string;
+  /** Glifo lucide usado no avatar. */
+  glyph: "sparkles" | "landmark" | "building" | "heart-pulse" | "graduation-cap";
+  initials: string;
+}
+
+export interface PovSpec {
+  id: "tecnico" | "criativo" | "empatico" | "inovador";
+  label: string;
+  description: string;
+  icon: "ruler" | "palette" | "heart-handshake" | "lightbulb";
+}
+
+export const COPILOT_POV_SPECS: readonly PovSpec[] = [
+  {
+    id: "tecnico",
+    label: "Técnico",
+    description: "Dados, método e leitura precisa do índice.",
+    icon: "ruler",
+  },
+  {
+    id: "criativo",
+    label: "Criativo",
+    description: "Possibilidades e novos ângulos para os mesmos dados.",
+    icon: "palette",
+  },
+  {
+    id: "empatico",
+    label: "Empático",
+    description: "As pessoas antes dos números; escuta e cuidado.",
+    icon: "heart-handshake",
+  },
+  {
+    id: "inovador",
+    label: "Inovador",
+    description: "Transforma o achado em experimento mensurável.",
+    icon: "lightbulb",
+  },
+];
+
+// Persona + avatar por pack. Nomes sugeridos ecoam cada marca, com sonoridade BR.
+const PERSONA_BY_PACK: Record<string, { suggestedName: string; tagline: string }> = {
+  enterprise: { suggestedName: "Flora", tagline: "Copilota da vitalidade organizacional" },
+  school: { suggestedName: "Aila", tagline: "Copilota do florescimento escolar" },
+  government: { suggestedName: "Cida", tagline: "Copilota da vitalidade no serviço público" },
+  condominium: { suggestedName: "Vivi", tagline: "Copilota da boa convivência" },
+  health: { suggestedName: "Cora", tagline: "Copilota de quem cuida" },
+};
+
+const GLYPH_BY_PACK: Record<string, CopilotAvatarSpec["glyph"]> = {
+  enterprise: "sparkles",
+  school: "graduation-cap",
+  government: "landmark",
+  condominium: "building",
+  health: "heart-pulse",
+};
+
+const FALLBACK_BRANDING = { primary: "#0B3D2E", accent: "#C9A227" };
+
+export function buildCopilotPersona(pack: PackLike): CopilotPersona {
+  const aiName = pack.ai?.name ?? pack.labels?.ai ?? "FlorescerIA";
+  const p = PERSONA_BY_PACK[pack.packId ?? "enterprise"] ?? PERSONA_BY_PACK.enterprise!;
+  return { aiName, suggestedName: p.suggestedName, tagline: p.tagline };
+}
+
+export function buildCopilotAvatar(
+  pack: PackLike,
+  branding?: {
+    primary?: string;
+    accent?: string;
+  },
+): CopilotAvatarSpec {
+  const persona = buildCopilotPersona(pack);
+  return {
+    gradientFrom: branding?.primary ?? FALLBACK_BRANDING.primary,
+    gradientTo: branding?.accent ?? FALLBACK_BRANDING.accent,
+    glyph: GLYPH_BY_PACK[pack.packId ?? "enterprise"] ?? "sparkles",
+    initials: persona.suggestedName.slice(0, 2).toUpperCase(),
+  };
+}
+
+/**
+ * Monta o KB do copiloto a partir do pack + framework (fonte de verdade) e do
+ * mapa do ecossistema. Cada chunk é citável. Engine ≠ Domínio: o engine recebe
+ * isto pronto, sem conhecer setores.
+ */
+export function buildCopilotKnowledge(
+  pack: PackLike,
+  index: IndexLike | null,
+): CopilotKnowledgeBase {
+  const indexLabel = pack.labels?.index ?? "IVO";
+  const indexFull = pack.labels?.indexFull ?? index?.name ?? "Índice de Vitalidade";
+  const kMin = index?.privacy?.kAnonymityMin ?? 5;
+  const chunks: KnowledgeChunk[] = [];
+
+  // 1) O que é o índice (do nome + disclaimer reais).
+  chunks.push({
+    id: "indice",
+    topics: ["indice", "score", "significa", "resultado", "vitalidade", indexLabel.toLowerCase()],
+    title: `O que é o ${indexLabel}`,
+    body: `O ${indexFull} (${indexLabel}) é um índice agregado de 0 a 1000 que lê a vitalidade em quatro lentes. ${
+      index?.mandatoryDisclaimer ?? "É experimental e orienta ação; não é instrumento clínico."
+    }`,
+    source: `Framework ${indexLabel}`,
+  });
+
+  // 2) Uma citação por lente (pergunta-guia + base científica reais).
+  for (const lens of index?.lenses ?? []) {
+    const shortName = lens.name.split(" — ")[0] ?? lens.name;
+    const pillarWords = (lens.pillars ?? []).flatMap((p) =>
+      p.name
+        .toLowerCase()
+        .split(/[^a-zà-ú]+/)
+        .filter((w) => w.length > 3),
+    );
+    chunks.push({
+      id: `lente_${lens.id}`,
+      topics: [lens.id, ...shortName.toLowerCase().split(/\s+/), ...pillarWords].slice(0, 12),
+      title: `Lente ${shortName}`,
+      body: `${shortName}: ${lens.guidingQuestion ?? "como esta dimensão sustenta a vitalidade."}${
+        lens.scientificBasis?.length ? ` Base científica: ${lens.scientificBasis.join(", ")}.` : ""
+      }`,
+      source: `Framework ${indexLabel} · lente ${shortName}`,
+    });
+  }
+
+  // 3) Privacidade e k-anonimato.
+  chunks.push({
+    id: "privacidade",
+    topics: ["privacidade", "anonimato", "dados", "individual", "protege", "seguro", "confianca"],
+    title: "Privacidade por desenho",
+    body: `Só são publicados agregados com pelo menos ${kMin} respostas (k≥${kMin}). Respostas individuais nunca ficam no cliente e a identidade de quem respondeu é invisível.`,
+    source: "Doutrina de privacidade do VitalOS",
+  });
+
+  // 4) Como agir (ciclo M.E.T.E.).
+  chunks.push({
+    id: "agir",
+    topics: ["agir", "acao", "melhorar", "proximo", "passo", "plano", "experimento", "mete"],
+    title: "Como transformar leitura em ação",
+    body: "Medir é só o começo: o ciclo M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) leva o resultado a um plano de ação e a experimentos no Culture Lab, com efeito medido ciclo a ciclo.",
+    source: "Cronograma M.E.T.E. · Culture Lab",
+  });
+
+  // 5) Método e honestidade (anti-overclaim).
+  chunks.push({
+    id: "metodo",
+    topics: ["metodo", "ciencia", "funciona", "confiavel", "estimativa", "honesto", "valido"],
+    title: "Método e honestidade",
+    body: "O valor está na tendência agregada e na comparação no tempo, não em previsão mágica. Estimativas mostram a fórmula e a fonte; o que é exploratório é rotulado como tal.",
+    source: "Metodologia VitalOS",
+  });
+
+  // 6) Limites (o que a IA não faz).
+  chunks.push({
+    id: "limites",
+    topics: ["limites", "nao", "faz", "evita", "guardrail", "etica", "escopo"],
+    title: "O que eu não faço",
+    body: "Não acesso dados individuais, não faço ranking de pessoas, não alimento avaliação de desempenho, promoção ou punição, e não substituo profissional habilitado.",
+    source: "Guardrails do pack",
+  });
+
+  return {
+    packId: pack.packId ?? "enterprise",
+    indexLabel,
+    indexFull,
+    coveredTopics: [
+      `o que é o ${indexLabel}`,
+      "as quatro lentes",
+      "privacidade e anonimato",
+      "como agir (M.E.T.E.)",
+      "método e honestidade",
+      "limites da IA",
+    ],
+    chunks,
+  };
+}

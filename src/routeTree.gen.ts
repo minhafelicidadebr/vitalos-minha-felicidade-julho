@@ -54,6 +54,7 @@ import { Route as EmbaixadorRouteImport } from './routes/embaixador'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
+import { Route as CopilotaRouteImport } from './routes/copilota'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
 import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
@@ -288,6 +289,11 @@ const CopilotoRoute = CopilotoRouteImport.update({
   path: '/copiloto',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CopilotaRoute = CopilotaRouteImport.update({
+  id: '/copilota',
+  path: '/copilota',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiancaRoute = ConfiancaRouteImport.update({
   id: '/confianca',
   path: '/confianca',
@@ -338,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/colaborador': typeof ColaboradorRoute
   '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
+  '/copilota': typeof CopilotaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
@@ -393,6 +400,7 @@ export interface FileRoutesByTo {
   '/colaborador': typeof ColaboradorRoute
   '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
+  '/copilota': typeof CopilotaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
@@ -449,6 +457,7 @@ export interface FileRoutesById {
   '/colaborador': typeof ColaboradorRoute
   '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
+  '/copilota': typeof CopilotaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/condominios'
     | '/confianca'
+    | '/copilota'
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
@@ -561,6 +571,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/condominios'
     | '/confianca'
+    | '/copilota'
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
@@ -616,6 +627,7 @@ export interface FileRouteTypes {
     | '/colaborador'
     | '/condominios'
     | '/confianca'
+    | '/copilota'
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
@@ -672,6 +684,7 @@ export interface RootRouteChildren {
   ColaboradorRoute: typeof ColaboradorRoute
   CondominiosRoute: typeof CondominiosRoute
   ConfiancaRoute: typeof ConfiancaRoute
+  CopilotaRoute: typeof CopilotaRoute
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DevolutivaRoute: typeof DevolutivaRoute
@@ -1036,6 +1049,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CopilotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/copilota': {
+      id: '/copilota'
+      path: '/copilota'
+      fullPath: '/copilota'
+      preLoaderRoute: typeof CopilotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/confianca': {
       id: '/confianca'
       path: '/confianca'
@@ -1104,6 +1124,7 @@ const rootRouteChildren: RootRouteChildren = {
   ColaboradorRoute: ColaboradorRoute,
   CondominiosRoute: CondominiosRoute,
   ConfiancaRoute: ConfiancaRoute,
+  CopilotaRoute: CopilotaRoute,
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   DevolutivaRoute: DevolutivaRoute,

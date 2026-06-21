@@ -20,7 +20,7 @@ export type CondominiumAudienceCapability =
   | "collective_trend"
   | "wave_aggregate";
 
-export type CondominiumHomeRoute = "/onda" | "/academia" | "/floresceria" | "/metodologia";
+export type CondominiumHomeRoute = "/onda" | "/academia" | "/copilota" | "/metodologia";
 
 export interface CondominiumHomeAction {
   id: "wave" | "academy" | "ai" | "method";
@@ -63,7 +63,7 @@ const PARTICIPANT_ACTIONS: readonly CondominiumHomeAction[] = [
     title: "Transformar uma dúvida em próximo passo",
     description:
       "Use a copilota com limites explícitos: orientação para convivência e bem-estar, nunca diagnóstico ou decisão sobre pessoas.",
-    to: "/floresceria",
+    to: "/copilota",
   },
   {
     id: "method",

@@ -11,7 +11,7 @@ export type SchoolAudienceCapability =
   | "collective_trend"
   | "wave_aggregate";
 
-export type SchoolHomeRoute = "/onda" | "/academia" | "/floresceria" | "/metodologia";
+export type SchoolHomeRoute = "/onda" | "/academia" | "/copilota" | "/metodologia";
 
 export interface SchoolHomeAction {
   id: "wave" | "academy" | "ai" | "method";
@@ -54,7 +54,7 @@ const PARTICIPANT_ACTIONS: readonly SchoolHomeAction[] = [
     title: "Transformar uma dúvida em próximo passo",
     description:
       "Use a copilota com limites explícitos: orientação educativa, nunca diagnóstico ou decisão sobre pessoas.",
-    to: "/floresceria",
+    to: "/copilota",
   },
   {
     id: "method",

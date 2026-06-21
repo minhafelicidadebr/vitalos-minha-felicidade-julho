@@ -19,7 +19,7 @@ export type GovernmentAudienceCapability =
   | "collective_trend"
   | "wave_aggregate";
 
-export type GovernmentHomeRoute = "/onda" | "/academia" | "/floresceria" | "/metodologia";
+export type GovernmentHomeRoute = "/onda" | "/academia" | "/copilota" | "/metodologia";
 
 export interface GovernmentHomeAction {
   id: "wave" | "academy" | "ai" | "method";
@@ -62,7 +62,7 @@ const PARTICIPANT_ACTIONS: readonly GovernmentHomeAction[] = [
     title: "Transformar uma dúvida em próximo passo",
     description:
       "Use a copilota com limites explícitos: orientação educativa dentro das regras da carreira, nunca diagnóstico ou decisão sobre pessoas.",
-    to: "/floresceria",
+    to: "/copilota",
   },
   {
     id: "method",
