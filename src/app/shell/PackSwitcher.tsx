@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Building2, GraduationCap, Check, ChevronDown, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  Building,
+  GraduationCap,
+  Landmark,
+  Check,
+  ChevronDown,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePersona } from "@/app/identity/persona-store";
@@ -16,6 +24,8 @@ import { PACK_CHOICES } from "@/domain/packs/registry";
 const ICONS: Record<string, LucideIcon> = {
   "building-2": Building2,
   "graduation-cap": GraduationCap,
+  landmark: Landmark,
+  building: Building,
 };
 
 export function PackSwitcher() {

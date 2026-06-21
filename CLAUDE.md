@@ -13,7 +13,7 @@
 
 ## 📌 Repositório oficial
 
-`https://github.com/minhafelicidadebr/app-vita-happiness-org-fable5.git`
+`https://github.com/minhafelicidadebr/vitalos-org-fable5.git`
 
 ---
 
@@ -168,7 +168,16 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 > ÚNICA fonte da sequência: `/temporada` (ANNUAL_PLAN), `/programa` (PROGRAMA_JOURNEY) e
 > `/relatorio-global` (JOURNEY_QUARTERS) todos derivam dela — não podem divergir.
 
-- **integração ponta-a-ponta (10)** + **multipack (6, prova setor-agnóstico)**. Typecheck limpo.
+- **integração ponta-a-ponta (10)** + **multipack (prova setor-agnóstico em 4 frameworks:
+  IVO/Empresa, IEV/Escola, IGV/Governo, IVC/Condomínio)**. Typecheck limpo.
+
+> **Estado atual: `bun test src` = 775 testes / 96 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **4 Domain Packs registrados** (`registry.ts`): Empresa · Escola · Governo (CidadanIA/IGV) ·
+> Condomínio (ConvivIA/IVC). O `PackSwitcher` no header troca o setor ao vivo (Engine ≠ Domínio).
+> Cada pack novo = framework JSON + pack.json + mock de ciclo + sector-data + home-mock de
+> audiência + rota overview. Governo e Condomínio espelham o cânone de `/escola`: home adaptativa
+> por audiência (gestão vê índice coletivo; servidor/morador veem só participação) via o
+> `audience-engine` genérico. Ondas próprias por setor em `campaign-mock.ts` (`getSectorWaves`).
 
 > Nav: agrupada por ciclo do produto (Medir·Agir·Provar·Estratégico·Comunidade·
 > Confiança) — `NAV_GROUPS` vive HARDCODED no `AppShell.tsx` (refactor visual do
@@ -194,7 +203,10 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 `/fibt` (FIB-T — lente de ecossistema, Furtado 2020) ·
 `/relatorio-global` (Relatório Global ESG anual — síntese E/S/G + ODS) ·
 `/programa` (Landing — hierarquia + 3 níveis de venda) ·
-`/setores` (Multissetorial — prova Engine≠Domínio, 2º pack Escola) ·
+`/setores` (Multissetorial — prova Engine≠Domínio entre 4 packs) ·
+`/escola` (Home setorial Escola — AlegrIA/IEV, home adaptativa por audiência) ·
+`/governo` (Home setorial Governo — CidadanIA/IGV, home adaptativa por audiência) ·
+`/condominios` (Home setorial Condomínio — ConvivIA/IVC, home adaptativa por audiência) ·
 `/evolucao` (Curva longitudinal — track record do IVO ciclo a ciclo) ·
 `/metodologia` (Credibilidade — compõe a jornada canônica + M.E.T.E. + ciência + compromissos éticos) ·
 `/quiosque` · `/design-system`

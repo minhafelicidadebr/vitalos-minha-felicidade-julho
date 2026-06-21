@@ -15,6 +15,18 @@ import {
   SCHOOL_TREND_CYCLES,
   SCHOOL_ORG,
 } from "./school-mock";
+import {
+  GOVERNMENT_CYCLE,
+  GOVERNMENT_CYCLE_PREVIOUS,
+  GOVERNMENT_TREND_CYCLES,
+  GOVERNMENT_ORG,
+} from "./government-mock";
+import {
+  CONDO_CYCLE,
+  CONDO_CYCLE_PREVIOUS,
+  CONDO_TREND_CYCLES,
+  CONDO_ORG,
+} from "./condominium-mock";
 
 export interface SectorData {
   org: { name: string; participationRate: number };
@@ -36,6 +48,18 @@ const SECTOR_DATA: Record<string, SectorData> = {
     currentCycle: SCHOOL_CYCLE,
     previousCycle: SCHOOL_CYCLE_PREVIOUS,
     trendCycles: SCHOOL_TREND_CYCLES,
+  },
+  government: {
+    org: { name: GOVERNMENT_ORG.name, participationRate: GOVERNMENT_ORG.participationRate },
+    currentCycle: GOVERNMENT_CYCLE,
+    previousCycle: GOVERNMENT_CYCLE_PREVIOUS,
+    trendCycles: GOVERNMENT_TREND_CYCLES,
+  },
+  condominium: {
+    org: { name: CONDO_ORG.name, participationRate: CONDO_ORG.participationRate },
+    currentCycle: CONDO_CYCLE,
+    previousCycle: CONDO_CYCLE_PREVIOUS,
+    trendCycles: CONDO_TREND_CYCLES,
   },
 };
 

@@ -40,6 +40,7 @@ import { Route as LabRouteImport } from './routes/lab'
 import { Route as IvoRouteImport } from './routes/ivo'
 import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as HoldingRouteImport } from './routes/holding'
+import { Route as GovernoRouteImport } from './routes/governo'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as FechamentoRouteImport } from './routes/fechamento'
@@ -53,6 +54,7 @@ import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
 import { Route as ConfiancaRouteImport } from './routes/confianca'
+import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as BenchmarkRouteImport } from './routes/benchmark'
@@ -215,6 +217,11 @@ const HoldingRoute = HoldingRouteImport.update({
   path: '/holding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GovernoRoute = GovernoRouteImport.update({
+  id: '/governo',
+  path: '/governo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FloresceriaRoute = FloresceriaRouteImport.update({
   id: '/floresceria',
   path: '/floresceria',
@@ -280,6 +287,11 @@ const ConfiancaRoute = ConfiancaRouteImport.update({
   path: '/confianca',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CondominiosRoute = CondominiosRouteImport.update({
+  id: '/condominios',
+  path: '/condominios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ColaboradorRoute = ColaboradorRouteImport.update({
   id: '/colaborador',
   path: '/colaborador',
@@ -318,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
@@ -331,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
+  '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -370,6 +384,7 @@ export interface FileRoutesByTo {
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
@@ -383,6 +398,7 @@ export interface FileRoutesByTo {
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
+  '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -423,6 +439,7 @@ export interface FileRoutesById {
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
+  '/condominios': typeof CondominiosRoute
   '/confianca': typeof ConfiancaRoute
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
@@ -436,6 +453,7 @@ export interface FileRoutesById {
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
   '/floresceria': typeof FloresceriaRoute
+  '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -477,6 +495,7 @@ export interface FileRouteTypes {
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
+    | '/condominios'
     | '/confianca'
     | '/copiloto'
     | '/design-system'
@@ -490,6 +509,7 @@ export interface FileRouteTypes {
     | '/fechamento'
     | '/fibt'
     | '/floresceria'
+    | '/governo'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -529,6 +549,7 @@ export interface FileRouteTypes {
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
+    | '/condominios'
     | '/confianca'
     | '/copiloto'
     | '/design-system'
@@ -542,6 +563,7 @@ export interface FileRouteTypes {
     | '/fechamento'
     | '/fibt'
     | '/floresceria'
+    | '/governo'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -581,6 +603,7 @@ export interface FileRouteTypes {
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
+    | '/condominios'
     | '/confianca'
     | '/copiloto'
     | '/design-system'
@@ -594,6 +617,7 @@ export interface FileRouteTypes {
     | '/fechamento'
     | '/fibt'
     | '/floresceria'
+    | '/governo'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -634,6 +658,7 @@ export interface RootRouteChildren {
   BenchmarkRoute: typeof BenchmarkRoute
   ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
+  CondominiosRoute: typeof CondominiosRoute
   ConfiancaRoute: typeof ConfiancaRoute
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
@@ -647,6 +672,7 @@ export interface RootRouteChildren {
   FechamentoRoute: typeof FechamentoRoute
   FibtRoute: typeof FibtRoute
   FloresceriaRoute: typeof FloresceriaRoute
+  GovernoRoute: typeof GovernoRoute
   HoldingRoute: typeof HoldingRoute
   ImpactoRoute: typeof ImpactoRoute
   IvoRoute: typeof IvoRoute
@@ -899,6 +925,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HoldingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/governo': {
+      id: '/governo'
+      path: '/governo'
+      fullPath: '/governo'
+      preLoaderRoute: typeof GovernoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/floresceria': {
       id: '/floresceria'
       path: '/floresceria'
@@ -990,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfiancaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/condominios': {
+      id: '/condominios'
+      path: '/condominios'
+      fullPath: '/condominios'
+      preLoaderRoute: typeof CondominiosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/colaborador': {
       id: '/colaborador'
       path: '/colaborador'
@@ -1042,6 +1082,7 @@ const rootRouteChildren: RootRouteChildren = {
   BenchmarkRoute: BenchmarkRoute,
   ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
+  CondominiosRoute: CondominiosRoute,
   ConfiancaRoute: ConfiancaRoute,
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
@@ -1055,6 +1096,7 @@ const rootRouteChildren: RootRouteChildren = {
   FechamentoRoute: FechamentoRoute,
   FibtRoute: FibtRoute,
   FloresceriaRoute: FloresceriaRoute,
+  GovernoRoute: GovernoRoute,
   HoldingRoute: HoldingRoute,
   ImpactoRoute: ImpactoRoute,
   IvoRoute: IvoRoute,
