@@ -171,7 +171,10 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 - **integração ponta-a-ponta (10)** + **multipack (prova setor-agnóstico em 5 frameworks:
   IVO/Empresa, IEV/Escola, IGV/Governo, IVC/Condomínio, IVS/Saúde)**. Typecheck limpo.
 
-> **Estado atual: `bun test src` = 855 testes / 103 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **Estado atual: `bun test src` = 860 testes / 104 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **Atlas Multissetorial** (`/atlas`): portfólio vivo de TODOS os packs registrados via
+> `engine/portfolio/cross-sector-engine.ts` (puro, compõe calculateIVO+buildTrend). Dirigido pelo
+> registry — um 6º pack aparece sozinho. Nav "sectors" repontado para cá (`/setores` legada).
 > **Copiloto Setorial Aterrado** (`/copilota`): chat de IA pack-aware (personas Flora/Aila/Cida/
 > Vivi/Cora), anti-alucinação por grounding+citações (`engine/ai/copilot-engine.ts` +
 > `mocks/copilot-knowledge.ts`), 4 POVs, gating por audiência, ponte Fase 2 (`lib/ai/copilot.functions.ts`).
@@ -212,6 +215,7 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 `/governo` (Home setorial Governo — CidadanIA/IGV, home adaptativa por audiência) ·
 `/condominios` (Home setorial Condomínio — ConvivIA/IVC, home adaptativa por audiência) ·
 `/saude` (Home setorial Saúde — CuidarIA/IVS, home adaptativa por audiência) ·
+`/atlas` (Atlas Multissetorial — portfólio vivo dos 5 packs, um motor) ·
 `/evolucao` (Curva longitudinal — track record do IVO ciclo a ciclo) ·
 `/metodologia` (Credibilidade — compõe a jornada canônica + M.E.T.E. + ciência + compromissos éticos) ·
 `/quiosque` · `/design-system`

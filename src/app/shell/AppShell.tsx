@@ -63,7 +63,10 @@ const NAV_ROUTES: Record<string, string> = {
   privacy: "/privacidade",
   methodology: "/metodologia",
   program: "/programa",
-  sectors: "/setores",
+  // "sectors" abre o Atlas Multissetorial dinâmico (todos os packs ao vivo).
+  // /setores (estático, 2 setores) segue como rota legada para rollback.
+  sectors: "/atlas",
+  atlas: "/atlas",
   panorama: "/panorama",
   benchmark: "/benchmark",
   fibt: "/fibt",

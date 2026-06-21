@@ -60,6 +60,7 @@ import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as BenchmarkRouteImport } from './routes/benchmark'
+import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
@@ -319,6 +320,11 @@ const BenchmarkRoute = BenchmarkRouteImport.update({
   path: '/benchmark',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtlasRoute = AtlasRouteImport.update({
+  id: '/atlas',
+  path: '/atlas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcessoRoute = AcessoRouteImport.update({
   id: '/acesso',
   path: '/acesso',
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
   '/colaborador': typeof ColaboradorRoute
@@ -510,6 +519,7 @@ export interface FileRouteTypes {
     | '/'
     | '/academia'
     | '/acesso'
+    | '/atlas'
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/'
     | '/academia'
     | '/acesso'
+    | '/atlas'
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
@@ -622,6 +633,7 @@ export interface FileRouteTypes {
     | '/'
     | '/academia'
     | '/acesso'
+    | '/atlas'
     | '/benchmark'
     | '/clevel'
     | '/colaborador'
@@ -679,6 +691,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademiaRoute: typeof AcademiaRoute
   AcessoRoute: typeof AcessoRoute
+  AtlasRoute: typeof AtlasRoute
   BenchmarkRoute: typeof BenchmarkRoute
   ClevelRoute: typeof ClevelRoute
   ColaboradorRoute: typeof ColaboradorRoute
@@ -1091,6 +1104,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BenchmarkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/atlas': {
+      id: '/atlas'
+      path: '/atlas'
+      fullPath: '/atlas'
+      preLoaderRoute: typeof AtlasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/acesso': {
       id: '/acesso'
       path: '/acesso'
@@ -1119,6 +1139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademiaRoute: AcademiaRoute,
   AcessoRoute: AcessoRoute,
+  AtlasRoute: AtlasRoute,
   BenchmarkRoute: BenchmarkRoute,
   ClevelRoute: ClevelRoute,
   ColaboradorRoute: ColaboradorRoute,
