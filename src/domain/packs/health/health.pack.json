@@ -1,0 +1,274 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json",
+  "packId": "health",
+  "packName": "CuidarIA — Sistema de Vitalidade em Saúde",
+  "version": "1.0.0",
+  "language": "pt-BR",
+  "overviewRoute": "/saude",
+  "promise": "Quando quem cuida é cuidado, o cuidado ao paciente floresce.",
+  "hierarchy": {
+    "levels": [
+      {
+        "id": "network",
+        "label": "Rede / Grupo Hospitalar",
+        "labelPlural": "Redes / Grupos Hospitalares"
+      },
+      {
+        "id": "organization",
+        "label": "Hospital / Unidade de Saúde",
+        "labelPlural": "Hospitais / Unidades de Saúde",
+        "parent": "network"
+      },
+      {
+        "id": "department",
+        "label": "Serviço / Departamento",
+        "labelPlural": "Serviços / Departamentos",
+        "parent": "organization"
+      },
+      {
+        "id": "unit",
+        "label": "Unidade / Setor Assistencial",
+        "labelPlural": "Unidades / Setores Assistenciais",
+        "parent": "department"
+      }
+    ]
+  },
+  "labels": {
+    "member": "Profissional de Saúde",
+    "members": "Profissionais de Saúde",
+    "leader": "Coordenador(a) de Equipe / Enfermeiro(a)-chefe",
+    "manager": "Gerência Clínica / Coordenação",
+    "hrAdmin": "Gestão de Pessoas / SESMT",
+    "executive": "Direção Clínica / Superintendência",
+    "ambassador": "Embaixador(a) do Cuidar de Quem Cuida",
+    "index": "IVS",
+    "indexFull": "Índice de Vitalidade em Saúde",
+    "ai": "CuidarIA",
+    "academy": "Trilha do Cuidar de Quem Cuida",
+    "season": "Ciclo de Vitalidade Assistencial",
+    "seal": "Selo Instituição que Cuida",
+    "livingMap": "Mapa Vivo da Unidade",
+    "pact": "Pacto pelo Bem-Estar de Quem Cuida",
+    "domainB": "Riscos Psicossociais em Saúde (NR-1 / NR-32 / ISO 45003)"
+  },
+  "roles": [
+    { "id": "PLATFORM_ADMIN", "label": "Admin da Plataforma", "scope": "platform" },
+    { "id": "SUPERINTENDENTE", "label": "Superintendência / Direção-Geral", "scope": "holding" },
+    { "id": "GESTOR_REDE", "label": "Gestor de Rede Hospitalar", "scope": "portfolio" },
+    { "id": "DIRETOR_CLINICO", "label": "Direção Clínica / Técnica", "scope": "organization" },
+    {
+      "id": "GERENTE_ENFERMAGEM",
+      "label": "Gerência de Enfermagem / Clínica",
+      "scope": "organization"
+    },
+    { "id": "SESMT_SAUDE", "label": "SESMT / Saúde Ocupacional", "scope": "organization" },
+    {
+      "id": "QUALIDADE_SEGURANCA",
+      "label": "Qualidade & Segurança do Paciente",
+      "scope": "organization",
+      "readOnly": true
+    },
+    {
+      "id": "COORDENADOR_EQUIPE",
+      "label": "Coordenador(a) de Equipe / Chefe de Setor",
+      "scope": "team"
+    },
+    { "id": "PROFISSIONAL_SAUDE", "label": "Profissional de Saúde", "scope": "self" },
+    { "id": "RESIDENTE", "label": "Residente / Estudante", "scope": "self" },
+    {
+      "id": "EMBAIXADOR_SAUDE",
+      "label": "Embaixador(a) do Cuidar de Quem Cuida",
+      "scope": "organization"
+    },
+    {
+      "id": "CONSULTOR_SAUDE",
+      "label": "Consultor Externo",
+      "scope": "scoped_reports",
+      "temporary": true
+    }
+  ],
+  "demoPersonas": [
+    "PROFISSIONAL_SAUDE",
+    "COORDENADOR_EQUIPE",
+    "GERENTE_ENFERMAGEM",
+    "DIRETOR_CLINICO",
+    "SESMT_SAUDE",
+    "RESIDENTE"
+  ],
+  "defaultRole": "DIRETOR_CLINICO",
+  "rbacInvariants": [
+    "individual_responses_never_visible_to_client_roles",
+    "ivs_never_feeds_performance_appraisal_or_credentialing",
+    "patient_safety_reports_separated_from_wellbeing_data",
+    "sesmt_sees_domain_b_only_aggregated",
+    "unit_data_isolated_from_other_units",
+    "network_respects_hospital_isolation"
+  ],
+  "navGroups": {
+    "inicio": "Início",
+    "medir": "Medir",
+    "agir": "Agir",
+    "provar": "Provar",
+    "estrategico": "Estratégico",
+    "confianca": "Confiança",
+    "gestao": "Gestão"
+  },
+  "navigation": [
+    { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
+    { "id": "wave", "label": "Onda Ativa", "roles": "all", "group": "medir" },
+    {
+      "id": "ivo",
+      "label": "IVS",
+      "roles": [
+        "DIRETOR_CLINICO",
+        "GERENTE_ENFERMAGEM",
+        "SESMT_SAUDE",
+        "QUALIDADE_SEGURANCA",
+        "SUPERINTENDENTE",
+        "GESTOR_REDE"
+      ],
+      "group": "medir"
+    },
+    {
+      "id": "trend",
+      "label": "Evolução",
+      "roles": ["DIRETOR_CLINICO", "GERENTE_ENFERMAGEM", "SUPERINTENDENTE", "GESTOR_REDE"],
+      "group": "medir"
+    },
+    {
+      "id": "sectors",
+      "label": "Multissetorial",
+      "roles": [
+        "DIRETOR_CLINICO",
+        "GERENTE_ENFERMAGEM",
+        "SUPERINTENDENTE",
+        "GESTOR_REDE",
+        "PLATFORM_ADMIN"
+      ],
+      "group": "estrategico"
+    },
+    { "id": "ai", "label": "CuidarIA", "roles": "all", "group": "confianca" },
+    { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
+    { "id": "access", "label": "Acesso & Escopos", "roles": "all", "group": "confianca" },
+    {
+      "id": "data_pipeline",
+      "label": "Pipeline Protegido",
+      "roles": ["DIRETOR_CLINICO", "GERENTE_ENFERMAGEM", "SESMT_SAUDE", "QUALIDADE_SEGURANCA"],
+      "group": "confianca"
+    },
+    {
+      "id": "academy",
+      "label": "Trilha do Cuidar de Quem Cuida",
+      "roles": "all",
+      "group": "gestao"
+    }
+  ],
+  "indexRef": "./ivs-framework.json",
+  "gamificationRef": "../enterprise/gamification-economy.json",
+  "ai": {
+    "name": "CuidarIA",
+    "fullName": "CuidarIA — Copilota de Vitalidade, Bem-Estar e Gestão de Pessoas na Saúde",
+    "modes": [
+      {
+        "id": "copiloto_profissional",
+        "label": "Copiloto do Profissional de Saúde",
+        "roles": ["PROFISSIONAL_SAUDE", "RESIDENTE"]
+      },
+      {
+        "id": "copiloto_coordenador",
+        "label": "Copiloto da Coordenação Assistencial",
+        "roles": ["COORDENADOR_EQUIPE", "GERENTE_ENFERMAGEM"]
+      },
+      {
+        "id": "copiloto_gestao_pessoas_saude",
+        "label": "Copiloto de Gestão de Pessoas e Saúde Ocupacional",
+        "roles": ["SESMT_SAUDE", "GERENTE_ENFERMAGEM"]
+      },
+      {
+        "id": "copiloto_direcao_clinica",
+        "label": "Copiloto da Alta Direção Clínica",
+        "roles": ["DIRETOR_CLINICO", "SUPERINTENDENTE", "GESTOR_REDE"]
+      },
+      {
+        "id": "analista_clima_assistencial",
+        "label": "Analista de Clima Assistencial",
+        "roles": ["GERENTE_ENFERMAGEM", "QUALIDADE_SEGURANCA"]
+      },
+      {
+        "id": "conselheira_bem_estar_plantao",
+        "label": "Conselheira de Bem-Estar no Plantão",
+        "roles": ["PROFISSIONAL_SAUDE", "RESIDENTE"]
+      }
+    ],
+    "guardrailsNever": [
+      "clinical_diagnosis",
+      "individual_happiness_measurement",
+      "expose_employee",
+      "expose_individual_professional",
+      "suggest_disciplinary_action_based_on_ivs",
+      "replace_licensed_professional",
+      "rank_professionals_individually",
+      "mix_domain_a_b",
+      "feed_performance_appraisal_or_credentialing",
+      "claim_legal_validity",
+      "blame_individual_for_patient_safety_events"
+    ],
+    "guardrailsAlways": [
+      "clinical_setting_clear_language",
+      "acknowledge_limits",
+      "refer_to_occupational_or_mental_health_when_needed",
+      "aggregate_data_only",
+      "practical_next_steps_within_clinical_constraints",
+      "explain_ivs_experimental",
+      "protect_just_culture"
+    ]
+  },
+  "branding": {
+    "primary": "#0F5257",
+    "accent": "#E0A458",
+    "surface": "#F4F7F7",
+    "darkMode": true,
+    "tone": "clinico_acolhedor_premium",
+    "forbidden": [
+      "linguagem que culpa o indivíduo por eventos",
+      "rankings individuais",
+      "uso em credenciamento ou punição",
+      "cores neon"
+    ]
+  },
+  "microcopy": {
+    "welcome": "Bem-vindo(a) ao VitalOS para a Saúde.",
+    "privacy": "Os dados são agregados e protegem quem cuida. Respostas individuais nunca são acessadas.",
+    "indicator": "Este indicador orienta ações de cuidado com a equipe — não avalia desempenho individual.",
+    "voluntary": "Sua voz fortalece o cuidado de quem cuida — e é sempre voluntária.",
+    "emptyMissions": "Nenhuma ação disponível agora. Que tal propor uma iniciativa de bem-estar?",
+    "emptySeason": "Primeiro ciclo de vitalidade assistencial ainda não iniciado.",
+    "kAnonymity": "Este recorte tem menos de 5 respostas e fica oculto para proteger a privacidade de quem cuida."
+  },
+  "ambassadorships": [
+    "bem_estar_assistencial",
+    "escuta_de_quem_cuida",
+    "saude_mental_no_plantao",
+    "seguranca_do_paciente_cultura_justa",
+    "inclusao_diversidade_saude",
+    "acolhimento_segunda_vitima",
+    "qualidade_de_vida_no_trabalho",
+    "humanizacao_do_cuidado",
+    "acolhimento_de_residentes_e_novos",
+    "prevencao_do_burnout",
+    "comunicacao_assistencial",
+    "desenvolvimento_lideranca_clinica"
+  ],
+  "certification": {
+    "name": "Selo Instituição que Cuida",
+    "levels": ["tensao", "desperta", "cuidado", "saudavel", "sustentavel", "referencia", "vital"],
+    "criteria": [
+      "maturity_level",
+      "ivs_score",
+      "participation_rate",
+      "wellbeing_projects_completed",
+      "just_culture_evidence"
+    ],
+    "validityMonths": 12
+  }
+}

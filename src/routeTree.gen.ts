@@ -16,6 +16,7 @@ import { Route as SstRouteImport } from './routes/sst'
 import { Route as SinaisRouteImport } from './routes/sinais'
 import { Route as SetoresRouteImport } from './routes/setores'
 import { Route as SeloRouteImport } from './routes/selo'
+import { Route as SaudeRouteImport } from './routes/saude'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as ResponderRouteImport } from './routes/responder'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
@@ -95,6 +96,11 @@ const SetoresRoute = SetoresRouteImport.update({
 const SeloRoute = SeloRouteImport.update({
   id: '/selo',
   path: '/selo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaudeRoute = SaudeRouteImport.update({
+  id: '/saude',
+  path: '/saude',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -369,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
+  '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
   '/sinais': typeof SinaisRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
+  '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
   '/sinais': typeof SinaisRoute
@@ -478,6 +486,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
   '/rh': typeof RhRoute
+  '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
   '/setores': typeof SetoresRoute
   '/sinais': typeof SinaisRoute
@@ -534,6 +543,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responder'
     | '/rh'
+    | '/saude'
     | '/selo'
     | '/setores'
     | '/sinais'
@@ -588,6 +598,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responder'
     | '/rh'
+    | '/saude'
     | '/selo'
     | '/setores'
     | '/sinais'
@@ -642,6 +653,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responder'
     | '/rh'
+    | '/saude'
     | '/selo'
     | '/setores'
     | '/sinais'
@@ -697,6 +709,7 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponderRoute: typeof ResponderRoute
   RhRoute: typeof RhRoute
+  SaudeRoute: typeof SaudeRoute
   SeloRoute: typeof SeloRoute
   SetoresRoute: typeof SetoresRoute
   SinaisRoute: typeof SinaisRoute
@@ -755,6 +768,13 @@ declare module '@tanstack/react-router' {
       path: '/selo'
       fullPath: '/selo'
       preLoaderRoute: typeof SeloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saude': {
+      id: '/saude'
+      path: '/saude'
+      fullPath: '/saude'
+      preLoaderRoute: typeof SaudeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -1121,6 +1141,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponderRoute: ResponderRoute,
   RhRoute: RhRoute,
+  SaudeRoute: SaudeRoute,
   SeloRoute: SeloRoute,
   SetoresRoute: SetoresRoute,
   SinaisRoute: SinaisRoute,

@@ -4,6 +4,7 @@ import {
   Building,
   GraduationCap,
   Landmark,
+  HeartPulse,
   Check,
   ChevronDown,
   type LucideIcon,
@@ -26,6 +27,7 @@ const ICONS: Record<string, LucideIcon> = {
   "graduation-cap": GraduationCap,
   landmark: Landmark,
   building: Building,
+  "heart-pulse": HeartPulse,
 };
 
 export function PackSwitcher() {

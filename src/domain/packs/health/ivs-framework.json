@@ -1,0 +1,274 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json#/definitions/proprietaryIndex",
+  "id": "ivs",
+  "name": "IVS — Índice de Vitalidade em Saúde",
+  "version": "1.0.0",
+  "status": "experimental",
+  "scale": { "min": 0, "max": 1000 },
+  "responseScale": {
+    "type": "likert",
+    "min": 1,
+    "max": 5,
+    "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"]
+  },
+  "formula": {
+    "pillarScore": "mean(items)",
+    "normalized": "(pillarScore - 1) / 4",
+    "lensScore": "sum(relativeWeight * normalized) * 1000",
+    "index": "sum(pillarWeight * normalized) * 1000"
+  },
+  "privacy": {
+    "kAnonymityMin": 5,
+    "individualScoresVisible": false,
+    "rawResponsesReadableBy": ["edge_function:ivs-calc"],
+    "neverFeedPerformanceReview": true
+  },
+  "mandatoryDisclaimer": "O IVS é um índice proprietário experimental para a vitalidade de quem trabalha na saúde. Não é instrumento clínico, não mede felicidade individual, não diagnostica burnout ou transtornos e não substitui avaliação profissional, saúde ocupacional, PGR/NR-1, NR-32 ou processos de segurança do paciente. Seu valor está na tendência agregada e na orientação de ações institucionais que cuidam de quem cuida.",
+  "lenses": [
+    {
+      "id": "profissional",
+      "name": "PROFISSIONAL DE SAÚDE — Quem cuida",
+      "color": "#0F766E",
+      "guidingQuestion": "Como o profissional de saúde floresce — ou se esgota — no cuidar?",
+      "scientificBasis": [
+        "PERMA+V",
+        "Maslach Burnout Inventory (exaustão emocional)",
+        "Self-Determination Theory",
+        "WHO-5",
+        "Areas of Worklife (Maslach & Leiter)"
+      ],
+      "pillars": [
+        {
+          "id": "vigor_clinico",
+          "name": "Vigor & Energia (vs. Exaustão)",
+          "weight": 0.07,
+          "sampleItems": [
+            "Termino a maioria dos plantões com energia para minha vida pessoal.",
+            "Não me sinto emocionalmente esgotado(a) de forma recorrente pelo trabalho.",
+            "Consigo fazer pausas reais durante o turno."
+          ]
+        },
+        {
+          "id": "proposito_cuidar",
+          "name": "Propósito & Vocação de Cuidar",
+          "weight": 0.06,
+          "sampleItems": [
+            "Vejo sentido genuíno no cuidado que presto.",
+            "Lembro com frequência por que escolhi trabalhar na saúde.",
+            "Sinto que o meu trabalho faz diferença real na vida das pessoas."
+          ]
+        },
+        {
+          "id": "crescimento_competencia",
+          "name": "Crescimento & Competência Clínica",
+          "weight": 0.06,
+          "sampleItems": [
+            "Tenho oportunidades reais de aprender e me atualizar tecnicamente.",
+            "Uso minhas competências no nível em que sou capaz.",
+            "Recebo treinamento adequado para as demandas que enfrento."
+          ]
+        },
+        {
+          "id": "recuperacao_descanso",
+          "name": "Recuperação & Descanso entre Plantões",
+          "weight": 0.06,
+          "sampleItems": [
+            "Consigo me recuperar entre as escalas de trabalho.",
+            "Meu sono não é prejudicado de forma recorrente pela jornada.",
+            "Consigo me desconectar do trabalho nas folgas."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "equipe_assistencial",
+      "name": "EQUIPE ASSISTENCIAL — Time multiprofissional",
+      "color": "#0E7490",
+      "guidingQuestion": "Como o time assistencial colabora, se comunica e se sente seguro?",
+      "scientificBasis": [
+        "Psychological Safety (Edmondson — origem em UTIs e cirurgia)",
+        "TeamSTEPPS (AHRQ)",
+        "High-Quality Connections",
+        "Capital social organizacional"
+      ],
+      "pillars": [
+        {
+          "id": "colaboracao_assistencial",
+          "name": "Colaboração Multiprofissional",
+          "weight": 0.07,
+          "sampleItems": [
+            "Os profissionais da minha equipe se ajudam de verdade.",
+            "Médicos, enfermagem e técnicos trabalham como um time.",
+            "Conflitos são tratados com respeito, sem prejudicar o cuidado."
+          ]
+        },
+        {
+          "id": "seguranca_psicologica_clinica",
+          "name": "Segurança para Reportar e Pedir Ajuda",
+          "weight": 0.06,
+          "sampleItems": [
+            "Posso relatar um erro ou quase-erro sem medo de punição.",
+            "Posso pedir ajuda ou uma segunda opinião sem ser julgado(a).",
+            "Posso discordar de uma conduta sem represálias."
+          ]
+        },
+        {
+          "id": "reconhecimento_equipe_saude",
+          "name": "Reconhecimento entre Pares",
+          "weight": 0.06,
+          "sampleItems": [
+            "Recebi reconhecimento sincero pelo meu cuidado nos últimos 30 dias.",
+            "Reconhecer colegas faz parte da cultura da nossa equipe."
+          ]
+        },
+        {
+          "id": "comunicacao_passagem",
+          "name": "Comunicação & Passagem de Plantão",
+          "weight": 0.06,
+          "sampleItems": [
+            "As informações que preciso para cuidar com segurança chegam a tempo.",
+            "A passagem de plantão é clara e estruturada.",
+            "Me sinto parte desta equipe."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gestao_clinica",
+      "name": "GESTÃO CLÍNICA — Coordenação & Chefia",
+      "color": "#B45309",
+      "guidingQuestion": "Como a coordenação cria condições justas e cuida de quem cuida?",
+      "scientificBasis": [
+        "Positive Leadership (Cameron)",
+        "Justiça organizacional (Greenberg)",
+        "JD-R Model",
+        "Second Victim Support (Scott)"
+      ],
+      "pillars": [
+        {
+          "id": "clareza_protocolos",
+          "name": "Clareza de Protocolos & Expectativas",
+          "weight": 0.07,
+          "sampleItems": [
+            "Sei o que se espera de mim na minha função.",
+            "Os protocolos assistenciais são claros e acessíveis.",
+            "Mudanças de rotina são comunicadas com antecedência."
+          ]
+        },
+        {
+          "id": "justica_escala",
+          "name": "Justiça na Escala & Distribuição de Carga",
+          "weight": 0.06,
+          "sampleItems": [
+            "A distribuição de plantões e tarefas é justa.",
+            "As decisões da coordenação são coerentes e imparciais.",
+            "A carga de trabalho que recebo é sustentável."
+          ]
+        },
+        {
+          "id": "suporte_lideranca_clinica",
+          "name": "Suporte da Liderança Clínica",
+          "weight": 0.06,
+          "sampleItems": [
+            "Minha chefia se interessa pelo meu desenvolvimento.",
+            "Recebo retorno construtivo sobre meu trabalho.",
+            "Posso falar com minha chefia sobre dificuldades no trabalho."
+          ]
+        },
+        {
+          "id": "cuidado_com_cuidador",
+          "name": "Cuidado com Quem Cuida",
+          "weight": 0.06,
+          "sampleItems": [
+            "Quando a equipe está sobrecarregada, a coordenação percebe e age.",
+            "Após um evento difícil, recebo apoio em vez de culpa.",
+            "Minha chefia promove um ambiente saudável pelo exemplo."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "instituicao_saude",
+      "name": "INSTITUIÇÃO DE SAÚDE — Hospital & Sistema",
+      "color": "#6D28D9",
+      "guidingQuestion": "Como a instituição protege, desenvolve e reconhece quem cuida?",
+      "scientificBasis": [
+        "NR-1 / GRO",
+        "NR-32 (segurança em serviços de saúde)",
+        "ISO 45003",
+        "Just Culture (Reason, Dekker)",
+        "Patient Safety Culture (AHRQ HSOPS)",
+        "ESG — dimensão S (saúde)"
+      ],
+      "pillars": [
+        {
+          "id": "condicoes_biosseguranca",
+          "name": "Condições, Dimensionamento & Biossegurança",
+          "weight": 0.07,
+          "sampleItems": [
+            "Tenho insumos, EPIs e equipamentos adequados para cuidar com segurança.",
+            "O dimensionamento da equipe é compatível com a demanda assistencial.",
+            "O ambiente de trabalho é seguro para mim e para os pacientes."
+          ]
+        },
+        {
+          "id": "cultura_seguranca_paciente",
+          "name": "Cultura Justa & Segurança do Paciente",
+          "weight": 0.06,
+          "sampleItems": [
+            "Erros são tratados como oportunidade de aprendizado, não de punição.",
+            "Existem canais seguros para reportar riscos sem medo.",
+            "A instituição trata o bem-estar de quem cuida como prioridade real."
+          ]
+        },
+        {
+          "id": "inclusao_equidade_saude",
+          "name": "Inclusão, Equidade & Diversidade",
+          "weight": 0.06,
+          "sampleItems": [
+            "Profissionais de diferentes origens têm as mesmas oportunidades.",
+            "Comportamentos discriminatórios e assédio não são tolerados.",
+            "Me sinto respeitado(a) em minha identidade nesta instituição."
+          ]
+        },
+        {
+          "id": "proposito_institucional_saude",
+          "name": "Propósito Institucional & Cuidado Centrado",
+          "weight": 0.06,
+          "sampleItems": [
+            "Esta instituição age de forma coerente com sua missão de cuidar.",
+            "Descansar, tirar férias e cuidar da própria saúde é respeitado aqui.",
+            "Tenho orgulho de trabalhar nesta instituição."
+          ]
+        }
+      ]
+    }
+  ],
+  "maturityLevels": [
+    { "min": 0, "max": 199, "name": "Instituição em Tensão", "badge": "tensao" },
+    { "min": 200, "max": 349, "name": "Instituição Desperta", "badge": "desperta" },
+    { "min": 350, "max": 499, "name": "Instituição em Cuidado", "badge": "cuidado" },
+    { "min": 500, "max": 649, "name": "Instituição Saudável", "badge": "saudavel" },
+    { "min": 650, "max": 799, "name": "Instituição Sustentável", "badge": "sustentavel" },
+    { "min": 800, "max": 924, "name": "Instituição Referência", "badge": "referencia" },
+    { "min": 925, "max": 1000, "name": "Instituição que Cuida de Quem Cuida", "badge": "vital" }
+  ],
+  "pulse": {
+    "durationSeconds": 60,
+    "itemsPerPulse": 3,
+    "cadence": "biweekly",
+    "rotationStrategy": "lowest-scoring-pillars-first",
+    "optOut": true
+  },
+  "cuts": {
+    "allowed": [
+      "organization",
+      "hospital",
+      "departamento",
+      "unidade",
+      "categoria_profissional",
+      "turno"
+    ],
+    "rule": "hide cut when respondents < kAnonymityMin"
+  }
+}

@@ -21,11 +21,14 @@ import governmentIndex from "./government/igv-framework.json";
 import condominiumPack from "./condominium/condominium.pack.json";
 import condominiumIndex from "./condominium/ivc-framework.json";
 
+import healthPack from "./health/health.pack.json";
+import healthIndex from "./health/ivs-framework.json";
+
 export interface PackBundle {
   /** Vocabulário institucional usado no switcher (não vem do JSON do pack). */
   sectorLabel: string;
   /** Ícone semântico (lucide id) para o switcher. */
-  sectorIcon: "building-2" | "graduation-cap" | "landmark" | "building";
+  sectorIcon: "building-2" | "graduation-cap" | "landmark" | "building" | "heart-pulse";
   pack: DomainPack;
   index: ProprietaryIndex | null;
   gamification: GamificationEconomy | null;
@@ -59,6 +62,13 @@ export const PACK_REGISTRY: Record<string, PackBundle> = {
     sectorIcon: "building",
     pack: condominiumPack as unknown as DomainPack,
     index: condominiumIndex as unknown as ProprietaryIndex,
+    gamification: null,
+  },
+  health: {
+    sectorLabel: "Saúde",
+    sectorIcon: "heart-pulse",
+    pack: healthPack as unknown as DomainPack,
+    index: healthIndex as unknown as ProprietaryIndex,
     gamification: null,
   },
 };

@@ -1,7 +1,7 @@
 // Prova de que o Engine é setor-agnóstico (Engine ≠ Domínio): os MESMOS motores
 // (calculateIVO, selectPulseItems) consomem frameworks distintos — Escolar (IEV),
-// Governamental (IGV) e Comunitário (IVC) — sem nenhuma alteração de código.
-// Se estes testes passam, a opcionalidade multissetorial com 4 segmentos está provada.
+// Governamental (IGV), Comunitário (IVC) e Saúde (IVS) — sem nenhuma alteração de
+// código. Se estes testes passam, a opcionalidade multissetorial está provada.
 
 import { describe, expect, test } from "bun:test";
 import { calculateIVO } from "./engine/index/ivo-engine";
@@ -10,13 +10,16 @@ import type { ProprietaryIndex } from "./engine/pack/pack-types";
 import ievFramework from "./domain/packs/school/iev-framework.json";
 import igvFramework from "./domain/packs/government/igv-framework.json";
 import ivcFramework from "./domain/packs/condominium/ivc-framework.json";
+import ivsFramework from "./domain/packs/health/ivs-framework.json";
 import { SCHOOL_CYCLE } from "./mocks/school-mock";
 import { GOVERNMENT_CYCLE } from "./mocks/government-mock";
 import { CONDO_CYCLE } from "./mocks/condominium-mock";
+import { HEALTH_CYCLE } from "./mocks/health-mock";
 
 const iev = ievFramework as unknown as ProprietaryIndex;
 const igv = igvFramework as unknown as ProprietaryIndex;
 const ivc = ivcFramework as unknown as ProprietaryIndex;
+const ivs = ivsFramework as unknown as ProprietaryIndex;
 
 // ─── Escola (IEV) ─────────────────────────────────────────────────────────────
 
@@ -157,6 +160,57 @@ describe("multissetorial — pulse no framework condominial (IVC)", () => {
       result.lenses.flatMap((l) => l.pillars.map((p) => [p.pillarId, p.score] as const)),
     );
     const items = selectPulseItems(ivc, scores, 3);
+    expect(items).toHaveLength(3);
+    expect(items.every((i) => i.text.length > 0)).toBe(true);
+  });
+});
+
+// ─── Saúde (IVS) ──────────────────────────────────────────────────────────────
+
+describe("multissetorial — calculateIVO no framework de saúde (IVS)", () => {
+  const result = calculateIVO(HEALTH_CYCLE, ivs);
+
+  test("produz índice válido (0–1000) com o framework de saúde", () => {
+    expect(result.ivoScore).toBeGreaterThanOrEqual(0);
+    expect(result.ivoScore).toBeLessThanOrEqual(1000);
+  });
+
+  test("lê a maturidade do framework (vocabulário de saúde, não hardcoded)", () => {
+    expect(result.maturityLevel.name).toContain("Instituição");
+  });
+
+  test("4 lentes de saúde com 16 pilares no total", () => {
+    expect(result.lenses).toHaveLength(4);
+    expect(result.lenses.flatMap((l) => l.pillars)).toHaveLength(16);
+    expect(result.lenses.map((l) => l.lensId)).toEqual([
+      "profissional",
+      "equipe_assistencial",
+      "gestao_clinica",
+      "instituicao_saude",
+    ]);
+  });
+
+  test("k-anonimato: todos os pilares têm n≥5 → visíveis", () => {
+    expect(result.lenses.flatMap((l) => l.pillars).every((p) => p.visible)).toBe(true);
+  });
+
+  test("o disclaimer vem do framework de saúde", () => {
+    expect(result.disclaimer).toContain("saúde");
+  });
+
+  test("score IVS reflete perfil realista de quem cuida (entre 400 e 650)", () => {
+    expect(result.ivoScore).toBeGreaterThan(400);
+    expect(result.ivoScore).toBeLessThan(650);
+  });
+});
+
+describe("multissetorial — pulse no framework de saúde (IVS)", () => {
+  test("seleciona itens dos pilares de menor score do framework de saúde", () => {
+    const result = calculateIVO(HEALTH_CYCLE, ivs);
+    const scores = new Map(
+      result.lenses.flatMap((l) => l.pillars.map((p) => [p.pillarId, p.score] as const)),
+    );
+    const items = selectPulseItems(ivs, scores, 3);
     expect(items).toHaveLength(3);
     expect(items.every((i) => i.text.length > 0)).toBe(true);
   });

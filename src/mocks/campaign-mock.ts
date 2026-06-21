@@ -170,6 +170,29 @@ const WAVE_CONDOMINIO: MeasurementWaveInput = {
 
 export const CONDO_WAVES: MeasurementWaveInput[] = [WAVE_CONDOMINIO];
 
+// ─── Onda da Saúde (IVS) — Mensurar quem cuida ────────────────────────────────
+
+const WAVE_SAUDE: MeasurementWaveInput = {
+  id: "onda-2026-saude-ivs",
+  instrumentLabel: "PERMA+V de quem cuida → IVS",
+  instrumentShort: "IVS",
+  season: "Florescimento de Quem Cuida",
+  opensOn: "2026-06-09",
+  closesOn: "2026-06-23",
+  today: TODAY,
+  invitedTotal: 640,
+  respondedTotal: 454,
+  segments: [
+    { segmentId: "enfermagem", label: "Enfermagem", invited: 280, responded: 201 },
+    { segmentId: "medicina", label: "Corpo Clínico", invited: 150, responded: 104 },
+    { segmentId: "tecnicos", label: "Técnicos & Apoio", invited: 160, responded: 118 },
+    { segmentId: "residentes", label: "Residentes", invited: 42, responded: 28 },
+    { segmentId: "direcao", label: "Direção Clínica", invited: 8, responded: 3 }, // n<5 → oculto
+  ],
+};
+
+export const HEALTH_WAVES: MeasurementWaveInput[] = [WAVE_SAUDE];
+
 // ─── Seletores por setor ──────────────────────────────────────────────────────
 
 const MS_PER_DAY = 86_400_000;
@@ -186,6 +209,7 @@ const SECTOR_WAVES: Record<string, MeasurementWaveInput[]> = {
   school: SCHOOL_WAVES,
   government: GOVERNMENT_WAVES,
   condominium: CONDO_WAVES,
+  health: HEALTH_WAVES,
 };
 
 export function getSectorWaves(packId: string): MeasurementWaveInput[] {
