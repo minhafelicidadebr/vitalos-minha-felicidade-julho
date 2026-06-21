@@ -201,6 +201,42 @@ export function buildCopilotKnowledge(
     source: "Guardrails do pack",
   });
 
+  // 7) Pulses (escuta contínua).
+  chunks.push({
+    id: "pulse",
+    topics: ["pulse", "pulso", "escuta", "frequente", "rapida", "continua", "microsurvey"],
+    title: "Pulses de 60 segundos",
+    body: "Entre os ciclos completos, pulses curtos (60s) escutam os pilares de menor score primeiro, sem fadiga de pesquisa. Participação é voluntária.",
+    source: "Módulo Medir · Pulses",
+  });
+
+  // 8) Domínio B (risco psicossocial) — separação sagrada.
+  chunks.push({
+    id: "dominio_b",
+    topics: ["risco", "psicossocial", "nr1", "nr-1", "seguranca", "copsoq", "saude", "ocupacional"],
+    title: "Riscos psicossociais (Domínio B)",
+    body: "A camada de risco psicossocial (NR-1 educativo / COPSOQ) é tratada SEPARADA da vitalidade (Domínio A) — telas, dados e fluxos não se misturam. É educativa e não substitui PGR nem profissional habilitado.",
+    source: "Domínio B · separação A/B",
+  });
+
+  // 9) Provar (evidência, evolução, selo).
+  chunks.push({
+    id: "provar",
+    topics: [
+      "provar",
+      "evidencia",
+      "selo",
+      "evolucao",
+      "impacto",
+      "certificacao",
+      "resultado",
+      "esg",
+    ],
+    title: "Da leitura à prova",
+    body: "O ciclo se fecha provando efeito: curva de evolução ciclo a ciclo, experimentos com efeito medido e o Selo de Vitalidade — computado do que foi feito, nunca comprado.",
+    source: "Módulo Provar · Evolução, Experimentos e Selo",
+  });
+
   return {
     packId: pack.packId ?? "enterprise",
     indexLabel,
@@ -209,10 +245,28 @@ export function buildCopilotKnowledge(
       `o que é o ${indexLabel}`,
       "as quatro lentes",
       "privacidade e anonimato",
-      "como agir (M.E.T.E.)",
-      "método e honestidade",
-      "limites da IA",
+      "como agir (M.E.T.E.) e pulses",
+      "riscos psicossociais (Domínio B)",
+      "evidência, evolução e selo",
+      "método, honestidade e limites da IA",
     ],
     chunks,
   };
+}
+
+/**
+ * Perguntas iniciais sugeridas. Para participantes (sem leitura coletiva),
+ * evita-se sugerir perguntas sobre o número do índice — coerente com o gating.
+ */
+export function suggestedQuestions(kb: CopilotKnowledgeBase, canSeeCollective: boolean): string[] {
+  const base = [
+    `O que é o ${kb.indexLabel} e o que ele mede?`,
+    "Como vocês protegem o anonimato dos dados?",
+    "Como transformar a leitura em ação?",
+    "O que você não faz?",
+  ];
+  if (canSeeCollective) {
+    base.splice(1, 0, `Como está o resultado do ${kb.indexLabel} e para onde aponta?`);
+  }
+  return base;
 }

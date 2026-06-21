@@ -50,8 +50,8 @@ describe("copilot — recuperação (a base do grounding)", () => {
   });
 
   test("o KB de saúde tem uma citação por lente + chunks de ecossistema", () => {
-    // 4 lentes + indice + privacidade + agir + metodo + limites
-    expect(kb.chunks.length).toBe(9);
+    // indice + 4 lentes + privacidade + agir + metodo + limites + pulse + dominio_b + provar
+    expect(kb.chunks.length).toBe(12);
     expect(kb.chunks.some((c) => c.id === "lente_profissional")).toBe(true);
   });
 });
@@ -120,6 +120,39 @@ describe("copilot — pontos de vista (POV)", () => {
   test("POV inovador propõe um experimento mensurável", () => {
     const turn = answerCopilot(kb, facts, { question: "como melhorar?", pov: "inovador" });
     expect(turn.nextStep).toContain("experimento");
+  });
+});
+
+describe("copilot — gating por audiência", () => {
+  test("participante (sem leitura coletiva) não recebe o número do índice", () => {
+    const turn = answerCopilot(kb, facts, {
+      question: "qual o resultado do índice?",
+      pov: "tecnico",
+      canSeeCollective: false,
+    });
+    expect(turn.refusal).toBeNull();
+    expect(turn.groundedLine).toBeNull();
+    expect(turn.body).not.toContain("531");
+    expect(turn.body.toLowerCase()).toContain("gestão");
+  });
+
+  test("gestão (leitura coletiva) recebe o número ancorado", () => {
+    const turn = answerCopilot(kb, facts, {
+      question: "qual o resultado do índice?",
+      pov: "tecnico",
+      canSeeCollective: true,
+    });
+    expect(turn.groundedLine).toContain("531");
+  });
+
+  test("participante ainda responde temas gerais (o que o índice mede)", () => {
+    const turn = answerCopilot(kb, facts, {
+      question: "o que o índice mede?",
+      pov: "empatico",
+      canSeeCollective: false,
+    });
+    expect(turn.refusal).toBeNull();
+    expect(turn.sources.length).toBeGreaterThan(0);
   });
 });
 

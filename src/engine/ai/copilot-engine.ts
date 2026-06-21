@@ -51,6 +51,12 @@ export interface GroundingFacts {
 export interface CopilotQuery {
   question: string;
   pov: CopilotPov;
+  /**
+   * Se o interlocutor pode ver a leitura COLETIVA (números do índice). Falso para
+   * participantes (servidor/morador/profissional) — coerente com a home por audiência:
+   * a IA não revela o score coletivo a quem não tem essa capacidade. Default: true.
+   */
+  canSeeCollective?: boolean;
 }
 
 export interface CopilotSource {
@@ -305,7 +311,32 @@ export function answerCopilot(
     };
   }
 
-  // 2) Recuperação. Sem chunk → recusa honesta (não inventa).
+  const canSeeCollective = query.canSeeCollective !== false;
+  const wantsNumbers =
+    /\b(score|índice|indice|nota|quanto|resultado|n[íi]vel|momentum|tend[êe]ncia|evolu)\b/i.test(
+      query.question,
+    );
+
+  // 2) Gating por audiência: participante não vê a leitura coletiva (coerente com
+  // a home por audiência). Não é recusa — é proteção honesta, com oferta do que pode.
+  if (!canSeeCollective && wantsNumbers) {
+    const privacy = kb.chunks.find((c) => c.id === "privacidade");
+    return {
+      pov: query.pov,
+      headline: "A leitura coletiva fica com a gestão",
+      groundedLine: null,
+      body:
+        `Os números do ${kb.indexLabel} são publicados de forma agregada para a gestão. Com você, falo do que o índice mede, como participar e como sua voz é protegida.` +
+        (privacy ? ` ${privacy.body}` : ""),
+      sources: privacy ? [{ label: privacy.source, chunkId: privacy.id }] : [],
+      nextStep: "Pergunte, por exemplo, o que o índice mede ou como sua privacidade é garantida.",
+      confidence: "alta",
+      refusal: null,
+      guardrailNotice: GUARDRAIL_NOTICE,
+    };
+  }
+
+  // 3) Recuperação. Sem chunk → recusa honesta (não inventa).
   const hits = retrieveChunks(kb, query.question, 3);
   if (hits.length === 0) {
     return {
@@ -321,12 +352,8 @@ export function answerCopilot(
     };
   }
 
-  // 3) Montagem aterrada a partir dos chunks recuperados.
+  // 4) Montagem aterrada a partir dos chunks recuperados.
   const top = hits[0]!.chunk;
-  const wantsNumbers =
-    /\b(score|índice|indice|nota|quanto|resultado|n[íi]vel|momentum|tend[êe]ncia|evolu)\b/i.test(
-      query.question,
-    );
   const body = `${voice.lead} ` + hits.map((h) => h.chunk.body).join(" ");
   const sources = hits.map((h) => ({ label: h.chunk.source, chunkId: h.chunk.id }));
   const confidence: CopilotConfidence = hits[0]!.score >= 2 ? "alta" : "media";
@@ -335,7 +362,9 @@ export function answerCopilot(
     pov: query.pov,
     headline: voice.headline(kb),
     groundedLine:
-      wantsNumbers || query.pov === "tecnico" ? groundedLineFor(query.pov, facts) : null,
+      canSeeCollective && (wantsNumbers || query.pov === "tecnico")
+        ? groundedLineFor(query.pov, facts)
+        : null,
     body,
     sources,
     nextStep: nextStepFor(query.pov, facts, top),

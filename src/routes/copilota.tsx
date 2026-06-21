@@ -16,12 +16,15 @@ import { AppShell } from "@/app/shell/AppShell";
 import { CopilotAvatar } from "@/components/copilot/CopilotAvatar";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
+import { usePersona } from "@/app/identity/persona-store";
+import { canSeeCollective } from "@/mocks/sector-audience";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { answerCopilot, type CopilotPov, type CopilotTurn } from "@/engine/ai/copilot-engine";
 import {
   buildCopilotAvatar,
   buildCopilotKnowledge,
   buildCopilotPersona,
+  suggestedQuestions,
   COPILOT_POV_SPECS,
   type PovSpec,
 } from "@/mocks/copilot-knowledge";
@@ -113,6 +116,8 @@ function CopilotaError({ onRetry }: { onRetry: () => void }) {
 
 function CopilotaChat() {
   const { pack, index, packId } = usePack();
+  const { roleId } = usePersona();
+  const canSee = canSeeCollective(packId, roleId);
 
   const persona = useMemo(() => buildCopilotPersona(pack as never), [pack]);
   const avatar = useMemo(
@@ -170,18 +175,13 @@ function CopilotaChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [seq, setSeq] = useState(0);
 
-  const suggestions = [
-    `O que é o ${kb.indexLabel} e o que significa o resultado?`,
-    "Como vocês protegem o anonimato dos dados?",
-    "Como agir para melhorar a partir daqui?",
-    "O que você não faz?",
-  ];
+  const suggestions = suggestedQuestions(kb, canSee);
 
   function ask(question: string) {
     const q = question.trim();
     if (!q) return;
     const userMsg: ChatMessage = { id: seq, author: "user", text: q };
-    const turn = answerCopilot(kb, facts, { question: q, pov });
+    const turn = answerCopilot(kb, facts, { question: q, pov, canSeeCollective: canSee });
     const botMsg: ChatMessage = { id: seq + 1, author: "copilot", turn };
     setMessages((m) => [...m, userMsg, botMsg]);
     setSeq((s) => s + 2);
