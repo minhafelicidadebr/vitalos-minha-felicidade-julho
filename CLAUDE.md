@@ -171,7 +171,10 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 - **integração ponta-a-ponta (10)** + **multipack (prova setor-agnóstico em 5 frameworks:
   IVO/Empresa, IEV/Escola, IGV/Governo, IVC/Condomínio, IVS/Saúde)**. Typecheck limpo.
 
-> **Estado atual: `bun test src` = 800 testes / 97 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **Estado atual: `bun test src` = 855 testes / 103 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **Copiloto Setorial Aterrado** (`/copilota`): chat de IA pack-aware (personas Flora/Aila/Cida/
+> Vivi/Cora), anti-alucinação por grounding+citações (`engine/ai/copilot-engine.ts` +
+> `mocks/copilot-knowledge.ts`), 4 POVs, gating por audiência, ponte Fase 2 (`lib/ai/copilot.functions.ts`).
 > **5 Domain Packs registrados** (`registry.ts`): Empresa · Escola · Governo (CidadanIA/IGV) ·
 > Condomínio (ConvivIA/IVC) · Saúde (CuidarIA/IVS). O `PackSwitcher` no header troca o setor ao
 > vivo (Engine ≠ Domínio).
@@ -189,7 +192,7 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 
 `/` (home + grid de painéis) · `/ivo` · `/colaborador` · `/lider` · `/rh` ·
 `/clevel` · `/sst` · `/holding` · `/confianca` (Trust Ledger) · `/pulse` ·
-`/lab` (Culture Lab) · `/floresceria` · `/pnl` · `/academia` ·
+`/lab` (Culture Lab) · `/floresceria` (modos legados) · `/copilota` (Copiloto Setorial Aterrado — chat pack-aware, anti-alucinação, POVs) · `/pnl` · `/academia` ·
 `/embaixadorias` · `/relatorios` (evidências + Selo) · `/esg` (ESG/ODS/GRI/FIB) ·
 `/viat` (Mapa de Forças) · `/temporada` (Cronograma M.E.T.E.) ·
 `/trajetoria` (Simulador de Trajetória — IVO×P&L×ESG) ·

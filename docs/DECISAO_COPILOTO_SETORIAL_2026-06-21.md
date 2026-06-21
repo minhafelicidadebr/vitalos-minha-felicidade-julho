@@ -1,6 +1,6 @@
 # Decisão — Copiloto Setorial Aterrado (CuidarIA · CidadanIA · ConvivIA · AlegrIA · FlorescerIA)
 
-> Data: 2026-06-21 · Autor: execução autônoma (Protocolo Fable-5) · Status: Sprint 1 entregue
+> Data: 2026-06-21 · Autor: execução autônoma (Protocolo Fable-5) · Status: Sprints 1–5 entregues
 
 ## Contexto e pedido
 
@@ -52,17 +52,35 @@ são **Fase 2** (ver `CLAUDE.md` §Regras 10 e `HANDOVER_OPUS48.md`). Três rest
   citações visíveis e rodapé de guardrail.
 - Wiring aditivo: `NAV_ROUTES.copilota`, item de nav em todos os packs, ação "ai" das homes → `/copilota`.
 
-### Sprint 2 — Estratégico: cobertura e profundidade (próximo)
+### Sprint 2 — Estratégico: cobertura e gating por audiência ✅
 
-- KB ampliado por setor (jornada M.E.T.E., Domínio B, ESG/Selo) e por papel (audiência gateia chunks).
-- Histórico de conversa (Zustand efêmero), perguntas sugeridas por papel, exportar resumo.
-- Telemetria de "lacunas de conhecimento" (perguntas sem chunk) → backlog de KB.
+- KB ampliado: pulses, Domínio B (risco psicossocial, separação A/B), trilha Provar (12 chunks).
+- Gating por audiência: participante não recebe o número coletivo (resposta protegida, não recusa);
+  `sector-audience.ts` reusa os resolvers de cada setor. Sugestões por audiência.
 
-### Sprint 3 — Inovativo: ponte para Fase 2 (futuro)
+### Sprint 3 — Inovativo: ponte para Fase 2 ✅
 
-- Contrato `copilot.functions.ts` (edge) espelhando o turno; este KB como corpus de embeddings.
-- RAG-then-generate: LLM recebe chunks recuperados como contexto; mesma UI/contrato de turno.
-- Avatar definitivo (asset rotulado IA), voz opcional (TTS), modo quiosque.
+- `engine/ai/copilot-prompt.ts`: `buildPromptEnvelope` (RAG-then-generate determinístico) — `context`
+  só com chunks recuperados + métricas quando permitido.
+- `lib/ai/copilot.functions.ts`: contrato de edge `{CopilotRequest, CopilotResponse}` com handler
+  determinístico (registry → KB → métricas → turno + envelope). Fase 2 troca só o passo de geração.
+
+### Sprint 4 — Premium: persistência, exportar, deep-link ✅
+
+- Conversa efêmera por pack (Zustand em memória, não persistida — privacidade).
+- Exportar transcrição (.txt + copiar) com fontes citadas; limpar; deep-link `/copilota?q=`.
+
+### Sprint 5 — Prontidão: eval anti-alucinação + guardrails + docs ✅
+
+- `lib/ai/copilot-eval.test.ts`: golden-set nos 5 packs — no escopo sempre cita fonte; fora do
+  escopo recusa sem fonte; guardrail recusado; rodapé sempre presente (110 asserções).
+- Cobertura de guardrails ampliada (dados pessoais: nome/telefone/endereço/quem faltou).
+- Docs e handoff atualizados.
+
+### Próximas frentes (Fase 2, fora deste arco)
+
+- LLM real via proxy seguro (sem chaves no cliente) consumindo o `PromptEnvelope`; embeddings do KB.
+- Avatar definitivo rotulado como IA; voz (TTS); modo quiosque; histórico persistente opt-in.
 
 ## Invariantes respeitados
 

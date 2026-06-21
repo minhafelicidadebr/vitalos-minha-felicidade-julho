@@ -195,7 +195,7 @@ interface GuardrailRule {
 const GUARDRAIL_RULES: readonly GuardrailRule[] = [
   {
     match:
-      /(quem respond|fulano|individual|individuais|pessoa espec[ií]f|cada pessoa|identidade de quem)/i,
+      /(quem respond|fulano|individual|individuais|pessoa espec[ií]f|cada pessoa|identidade de quem|dados pessoais|endere[çc]o de|telefone de|quem faltou|lista de quem)/i,
     reason:
       "não acesso nem revelo respostas individuais — só agregados protegidos (k≥5). A identidade de quem respondeu é invisível por desenho.",
   },
