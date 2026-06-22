@@ -39,7 +39,10 @@ const NAV_ROUTES: Record<string, string> = {
   overview: "/", // por papel, abaixo
   ivo: "/ivo",
   pulses: "/pulse",
-  ai: "/floresceria",
+  // O item "ai" abre o copiloto setorial aterrado (chat pack-aware). A tela legada
+  // de modos (/floresceria) segue como rota válida para rollback de uma linha.
+  ai: "/copilota",
+  copilota: "/copilota",
   copilot: "/copiloto",
   academy: "/academia",
   missions: "/missoes",
@@ -60,7 +63,10 @@ const NAV_ROUTES: Record<string, string> = {
   privacy: "/privacidade",
   methodology: "/metodologia",
   program: "/programa",
-  sectors: "/setores",
+  // "sectors" abre o Atlas Multissetorial dinâmico (todos os packs ao vivo).
+  // /setores (estático, 2 setores) segue como rota legada para rollback.
+  sectors: "/atlas",
+  atlas: "/atlas",
   panorama: "/panorama",
   benchmark: "/benchmark",
   fibt: "/fibt",

@@ -19,7 +19,7 @@ export type HealthAudienceCapability =
   | "collective_trend"
   | "wave_aggregate";
 
-export type HealthHomeRoute = "/onda" | "/academia" | "/floresceria" | "/metodologia";
+export type HealthHomeRoute = "/onda" | "/academia" | "/copilota" | "/metodologia";
 
 export interface HealthHomeAction {
   id: "wave" | "academy" | "ai" | "method";
@@ -62,7 +62,7 @@ const PARTICIPANT_ACTIONS: readonly HealthHomeAction[] = [
     title: "Transformar uma dúvida em próximo passo",
     description:
       "Use a copilota com limites explícitos: orientação educativa para bem-estar, nunca diagnóstico, decisão sobre pessoas ou culpa por eventos.",
-    to: "/floresceria",
+    to: "/copilota",
   },
   {
     id: "method",
