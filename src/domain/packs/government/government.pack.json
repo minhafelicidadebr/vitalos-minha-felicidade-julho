@@ -1,0 +1,267 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json",
+  "packId": "government",
+  "packName": "CidadanIA — Sistema de Vitalidade do Serviço Público",
+  "version": "1.0.0",
+  "language": "pt-BR",
+  "overviewRoute": "/governo",
+  "promise": "Quando o servidor público floresce, o serviço prestado à sociedade se transforma.",
+  "hierarchy": {
+    "levels": [
+      {
+        "id": "federal",
+        "label": "Ministério / Secretaria Federal",
+        "labelPlural": "Ministérios / Secretarias"
+      },
+      {
+        "id": "organization",
+        "label": "Órgão / Autarquia",
+        "labelPlural": "Órgãos / Autarquias",
+        "parent": "federal"
+      },
+      {
+        "id": "department",
+        "label": "Departamento / Diretoria",
+        "labelPlural": "Departamentos / Diretorias",
+        "parent": "organization"
+      },
+      {
+        "id": "section",
+        "label": "Seção / Coordenação",
+        "labelPlural": "Seções / Coordenações",
+        "parent": "department"
+      }
+    ]
+  },
+  "labels": {
+    "member": "Servidor(a)",
+    "members": "Servidores(as)",
+    "leader": "Gestor(a) de Equipe",
+    "manager": "Diretor(a) / Coordenador(a)",
+    "hrAdmin": "DGP / RH Público",
+    "executive": "Dirigente / Secretário(a)",
+    "ambassador": "Embaixador(a) do Florescimento Público",
+    "index": "IGV",
+    "indexFull": "Índice de Vitalidade Governamental",
+    "ai": "CidadanIA",
+    "academy": "Trilha do Servidor em Florescimento",
+    "season": "Ciclo de Vitalidade do Serviço Público",
+    "seal": "Selo Órgão Vital",
+    "livingMap": "Mapa Vivo do Órgão",
+    "pact": "Pacto pelo Florescimento no Serviço Público",
+    "domainB": "Riscos Psicossociais no Serviço Público (NR-1 / ISO 45003)"
+  },
+  "roles": [
+    { "id": "PLATFORM_ADMIN", "label": "Admin da Plataforma", "scope": "platform" },
+    { "id": "SECRETARIO", "label": "Secretário(a) / Dirigente Máximo", "scope": "holding" },
+    { "id": "GESTOR_ORGAO", "label": "Gestor de Órgão / Superintendente", "scope": "portfolio" },
+    { "id": "DIRIGENTE", "label": "Dirigente / Diretor(a)", "scope": "organization" },
+    { "id": "DGP_RH", "label": "DGP / RH Público", "scope": "organization" },
+    { "id": "CIPA_SST_GOV", "label": "CIPA / SST Público", "scope": "organization" },
+    {
+      "id": "CONTROLE_INTERNO",
+      "label": "Controle Interno / CGU",
+      "scope": "organization",
+      "readOnly": true
+    },
+    { "id": "GESTOR_EQUIPE", "label": "Gestor(a) de Equipe / Chefe de Seção", "scope": "team" },
+    {
+      "id": "EMBAIXADOR_GOV",
+      "label": "Embaixador(a) do Florescimento Público",
+      "scope": "organization"
+    },
+    { "id": "SERVIDOR", "label": "Servidor(a) Público(a)", "scope": "self" },
+    {
+      "id": "CONSULTOR_GOV",
+      "label": "Consultor de Gestão de Pessoas",
+      "scope": "scoped_reports",
+      "temporary": true
+    }
+  ],
+  "demoPersonas": [
+    "SERVIDOR",
+    "GESTOR_EQUIPE",
+    "DGP_RH",
+    "DIRIGENTE",
+    "CIPA_SST_GOV",
+    "SECRETARIO"
+  ],
+  "defaultRole": "DIRIGENTE",
+  "rbacInvariants": [
+    "individual_responses_never_visible_to_client_roles",
+    "igv_never_feeds_performance_appraisal_or_promotion",
+    "cipa_sst_sees_domain_b_only_aggregated",
+    "controle_interno_read_only_no_individual_data",
+    "section_data_isolated_from_other_sections",
+    "holding_respects_organization_isolation"
+  ],
+  "navGroups": {
+    "inicio": "Início",
+    "medir": "Medir",
+    "agir": "Agir",
+    "provar": "Provar",
+    "estrategico": "Estratégico",
+    "confianca": "Confiança",
+    "gestao": "Gestão"
+  },
+  "navigation": [
+    { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
+    { "id": "wave", "label": "Onda Ativa", "roles": "all", "group": "medir" },
+    {
+      "id": "ivo",
+      "label": "IGV",
+      "roles": [
+        "DIRIGENTE",
+        "DGP_RH",
+        "CIPA_SST_GOV",
+        "CONTROLE_INTERNO",
+        "SECRETARIO",
+        "GESTOR_ORGAO"
+      ],
+      "group": "medir"
+    },
+    {
+      "id": "trend",
+      "label": "Evolução",
+      "roles": ["DIRIGENTE", "DGP_RH", "CONTROLE_INTERNO", "SECRETARIO", "GESTOR_ORGAO"],
+      "group": "medir"
+    },
+    {
+      "id": "sectors",
+      "label": "Multissetorial",
+      "roles": ["DIRIGENTE", "DGP_RH", "SECRETARIO", "GESTOR_ORGAO", "PLATFORM_ADMIN"],
+      "group": "estrategico"
+    },
+    { "id": "ai", "label": "CidadanIA", "roles": "all", "group": "confianca" },
+    { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
+    { "id": "access", "label": "Acesso & Escopos", "roles": "all", "group": "confianca" },
+    {
+      "id": "data_pipeline",
+      "label": "Pipeline Protegido",
+      "roles": ["DIRIGENTE", "DGP_RH", "CIPA_SST_GOV", "CONTROLE_INTERNO", "SECRETARIO"],
+      "group": "confianca"
+    },
+    {
+      "id": "academy",
+      "label": "Trilha do Servidor em Florescimento",
+      "roles": "all",
+      "group": "gestao"
+    }
+  ],
+  "indexRef": "./igv-framework.json",
+  "gamificationRef": "../enterprise/gamification-economy.json",
+  "ai": {
+    "name": "CidadanIA",
+    "fullName": "CidadanIA — Copilota de Vitalidade, Gestão de Pessoas e Bem-Estar no Serviço Público",
+    "modes": [
+      {
+        "id": "copiloto_servidor",
+        "label": "Copiloto do Servidor",
+        "roles": ["SERVIDOR"]
+      },
+      {
+        "id": "copiloto_gestor_gov",
+        "label": "Copiloto do Gestor Público",
+        "roles": ["GESTOR_EQUIPE"]
+      },
+      {
+        "id": "copiloto_dgp",
+        "label": "Copiloto de Gestão de Pessoas Pública",
+        "roles": ["DGP_RH", "CIPA_SST_GOV"]
+      },
+      {
+        "id": "copiloto_dirigente",
+        "label": "Copiloto de Alta Direção",
+        "roles": ["DIRIGENTE", "SECRETARIO", "GESTOR_ORGAO"]
+      },
+      {
+        "id": "analista_clima_gov",
+        "label": "Analista de Clima Institucional",
+        "roles": ["DGP_RH", "CONTROLE_INTERNO"]
+      },
+      {
+        "id": "conselheira_carreira_publica",
+        "label": "Conselheira de Carreira no Serviço Público",
+        "roles": ["SERVIDOR", "GESTOR_EQUIPE"]
+      }
+    ],
+    "guardrailsNever": [
+      "clinical_diagnosis",
+      "individual_happiness_measurement",
+      "expose_employee",
+      "expose_individual_server",
+      "suggest_disciplinary_action_based_on_igv",
+      "replace_licensed_professional",
+      "rank_servers_individually",
+      "mix_domain_a_b",
+      "feed_performance_appraisal_or_promotion",
+      "claim_legal_validity",
+      "suggest_outsourcing_or_reduction_of_public_workforce"
+    ],
+    "guardrailsAlways": [
+      "institutional_clear_language",
+      "acknowledge_limits",
+      "refer_to_professional_when_needed",
+      "aggregate_data_only",
+      "practical_next_steps_within_public_service_constraints",
+      "explain_igv_experimental",
+      "respect_career_rules_and_legislation"
+    ]
+  },
+  "branding": {
+    "primary": "#1E3A5F",
+    "accent": "#D4A31C",
+    "surface": "#F5F7FA",
+    "darkMode": true,
+    "tone": "institucional_civico_premium",
+    "forbidden": [
+      "linguagem partidária",
+      "rankings individuais",
+      "promessas de promoção",
+      "cores neon"
+    ]
+  },
+  "microcopy": {
+    "welcome": "Bem-vindo(a) ao VitalOS para o Serviço Público.",
+    "privacy": "Os dados são agregados e protegem os servidores. Respostas individuais nunca são acessadas.",
+    "indicator": "Este indicador orienta ações de gestão de pessoas — não avalia desempenho individual.",
+    "voluntary": "Sua participação fortalece o serviço público — e é sempre voluntária.",
+    "emptyMissions": "Nenhuma ação disponível agora. Que tal propor uma iniciativa?",
+    "emptySeason": "Primeiro ciclo de vitalidade ainda não iniciado.",
+    "kAnonymity": "Este recorte tem menos de 5 respostas e fica oculto para proteger a privacidade dos servidores."
+  },
+  "ambassadorships": [
+    "bem_estar_funcional",
+    "escuta_do_servidor",
+    "saude_mental_trabalho",
+    "inclusao_diversidade_gov",
+    "gestao_do_conhecimento",
+    "etica_integridade",
+    "inovacao_servico_publico",
+    "sustentabilidade_ambiental_gov",
+    "acolhimento_novos_servidores",
+    "qualidade_de_vida_funcional",
+    "transparencia_participacao",
+    "desenvolvimento_lideranca_publica"
+  ],
+  "certification": {
+    "name": "Selo Órgão Vital",
+    "levels": [
+      "desperto",
+      "mobilizacao",
+      "colaborativo",
+      "saudavel",
+      "sustentavel",
+      "referencia",
+      "vital"
+    ],
+    "criteria": [
+      "maturity_level",
+      "igv_score",
+      "participation_rate",
+      "improvement_projects_completed",
+      "transparency_evidence"
+    ],
+    "validityMonths": 12
+  }
+}

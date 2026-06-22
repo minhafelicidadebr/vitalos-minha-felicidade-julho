@@ -1,0 +1,257 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json#/definitions/proprietaryIndex",
+  "id": "ivc",
+  "name": "IVC — Índice de Vitalidade Comunitária",
+  "version": "1.0.0",
+  "status": "experimental",
+  "scale": { "min": 0, "max": 1000 },
+  "responseScale": {
+    "type": "likert",
+    "min": 1,
+    "max": 5,
+    "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"]
+  },
+  "formula": {
+    "pillarScore": "mean(items)",
+    "normalized": "(pillarScore - 1) / 4",
+    "lensScore": "sum(relativeWeight * normalized) * 1000",
+    "index": "sum(pillarWeight * normalized) * 1000"
+  },
+  "privacy": {
+    "kAnonymityMin": 5,
+    "individualScoresVisible": false,
+    "rawResponsesReadableBy": ["edge_function:ivc-calc"],
+    "neverFeedPerformanceReview": true
+  },
+  "mandatoryDisclaimer": "O IVC é um índice proprietário experimental para vitalidade comunitária condominial. Não é instrumento clínico, não mede felicidade individual, não serve de base para processos disciplinares ou jurídicos e não substitui avaliação profissional. Seu valor está na tendência agregada e na orientação de ações de convivência e gestão condominial.",
+  "lenses": [
+    {
+      "id": "morador",
+      "name": "MORADOR — Bem-Estar Residencial",
+      "color": "#0E7490",
+      "guidingQuestion": "Como o morador floresce no espaço onde vive?",
+      "scientificBasis": [
+        "PERMA+V",
+        "Psicologia ambiental (Kaplan & Kaplan)",
+        "Sentido de comunidade (McMillan & Chavis)",
+        "Self-Determination Theory",
+        "Qualidade de vida urbana (OMS)"
+      ],
+      "pillars": [
+        {
+          "id": "bem_estar_habitacional",
+          "name": "Bem-Estar no Espaço de Vida",
+          "weight": 0.08,
+          "sampleItems": [
+            "Me sinto bem e confortável no espaço onde moro.",
+            "O condomínio contribui positivamente para minha qualidade de vida.",
+            "Consigo descansar e recarregar energias em casa."
+          ]
+        },
+        {
+          "id": "pertencimento_residencial",
+          "name": "Pertencimento & Identidade Comunitária",
+          "weight": 0.07,
+          "sampleItems": [
+            "Me sinto parte desta comunidade condominial.",
+            "Tenho ao menos um vizinho de confiança neste condomínio.",
+            "Sinto orgulho de morar aqui."
+          ]
+        },
+        {
+          "id": "voz_participacao_cond",
+          "name": "Voz & Participação nas Decisões",
+          "weight": 0.05,
+          "sampleItems": [
+            "Minhas opiniões são consideradas nas decisões do condomínio.",
+            "Tenho oportunidades reais de participar das assembleias e decisões coletivas."
+          ]
+        },
+        {
+          "id": "qualidade_seguranca",
+          "name": "Qualidade & Segurança no Cotidiano",
+          "weight": 0.05,
+          "sampleItems": [
+            "Me sinto seguro(a) no condomínio e nas áreas comuns.",
+            "A rotina do condomínio não interfere negativamente na minha tranquilidade."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "comunidade",
+      "name": "COMUNIDADE — Convivência & Vínculos",
+      "color": "#15803D",
+      "guidingQuestion": "Como a convivência sustenta ou drena o bem-estar coletivo?",
+      "scientificBasis": [
+        "Capital social (Putnam)",
+        "Ciência da convivência respeitosa",
+        "Mediação de conflitos (Fisher & Ury)",
+        "Aprendizagem socioemocional comunitária"
+      ],
+      "pillars": [
+        {
+          "id": "convivencia_respeito_cond",
+          "name": "Convivência & Respeito Mútuo",
+          "weight": 0.08,
+          "sampleItems": [
+            "Os moradores deste condomínio se tratam com respeito.",
+            "As regras de convivência são seguidas pela maioria.",
+            "Conflitos entre moradores são raros e bem administrados."
+          ]
+        },
+        {
+          "id": "resolucao_conflitos",
+          "name": "Gestão & Resolução de Conflitos",
+          "weight": 0.06,
+          "sampleItems": [
+            "Quando surgem conflitos, existe um caminho claro para resolvê-los.",
+            "A mediação de conflitos no condomínio é justa para todos."
+          ]
+        },
+        {
+          "id": "cooperacao_comunitaria",
+          "name": "Cooperação & Cuidado Coletivo",
+          "weight": 0.06,
+          "sampleItems": [
+            "Os moradores cooperam para manter e melhorar os espaços comuns.",
+            "Há iniciativas de ajuda mútua entre vizinhos quando necessário."
+          ]
+        },
+        {
+          "id": "comunicacao_condominial",
+          "name": "Comunicação Comunitária",
+          "weight": 0.05,
+          "sampleItems": [
+            "As comunicações do condomínio são claras, tempestivas e respeitosas.",
+            "Me sinto informado(a) sobre decisões e mudanças que me afetam."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lideranca_cond",
+      "name": "SÍNDICO | CONSELHO — Gestão Condominial",
+      "color": "#B45309",
+      "guidingQuestion": "Como a liderança condominial cria condições de harmonia e confiança?",
+      "scientificBasis": [
+        "Governança colaborativa",
+        "Positive Leadership (Cameron)",
+        "Transparência organizacional",
+        "Democracia deliberativa (Habermas)"
+      ],
+      "pillars": [
+        {
+          "id": "clareza_normas",
+          "name": "Clareza das Normas & Regras",
+          "weight": 0.07,
+          "sampleItems": [
+            "As regras do condomínio são claras e de fácil acesso a todos.",
+            "Sei o que é permitido e o que não é nos espaços comuns.",
+            "Mudanças no regimento são comunicadas com antecedência."
+          ]
+        },
+        {
+          "id": "transparencia_gestao",
+          "name": "Transparência na Gestão Financeira e Decisória",
+          "weight": 0.07,
+          "sampleItems": [
+            "As finanças do condomínio são apresentadas de forma clara e acessível.",
+            "As decisões da administração são transparentes e justificadas.",
+            "Tenho confiança na integridade da gestão condominial."
+          ]
+        },
+        {
+          "id": "responsividade_lideranca",
+          "name": "Responsividade & Acolhimento",
+          "weight": 0.06,
+          "sampleItems": [
+            "Minhas solicitações e reclamações são atendidas em tempo razoável.",
+            "Me sinto ouvido(a) pela administração quando preciso."
+          ]
+        },
+        {
+          "id": "justica_coerencia_cond",
+          "name": "Justiça & Coerência nas Decisões",
+          "weight": 0.05,
+          "sampleItems": [
+            "As regras valem igualmente para todos os moradores.",
+            "Não percebo tratamento diferenciado ou favoritismo na gestão."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "condominio",
+      "name": "CONDOMÍNIO — Sistema & Infraestrutura",
+      "color": "#7C3AED",
+      "guidingQuestion": "Como o sistema condominial protege a qualidade de vida de todos?",
+      "scientificBasis": [
+        "Urbanismo sustentável (ONU-Habitat)",
+        "Bem-estar ambiental (PERMA+V)",
+        "Inclusão e acessibilidade (ABNT NBR 9050)",
+        "ESG condominial — dimensão S e E",
+        "Economia do bem-comum (Felber)"
+      ],
+      "pillars": [
+        {
+          "id": "condicoes_espacos",
+          "name": "Manutenção & Qualidade dos Espaços Comuns",
+          "weight": 0.08,
+          "sampleItems": [
+            "Os espaços comuns são bem mantidos e agradáveis.",
+            "A infraestrutura do condomínio está em boas condições.",
+            "Problemas de manutenção são resolvidos com rapidez."
+          ]
+        },
+        {
+          "id": "sustentabilidade_ambiental",
+          "name": "Sustentabilidade & Bem-Comum",
+          "weight": 0.06,
+          "sampleItems": [
+            "O condomínio adota práticas sustentáveis (coleta seletiva, energia, água).",
+            "Há iniciativas que beneficiam a comunidade e o entorno."
+          ]
+        },
+        {
+          "id": "inclusao_diversidade_cond",
+          "name": "Inclusão, Acessibilidade & Diversidade",
+          "weight": 0.05,
+          "sampleItems": [
+            "Moradores com diferentes perfis são respeitados e bem-vindos.",
+            "O condomínio é acessível para pessoas com mobilidade reduzida."
+          ]
+        },
+        {
+          "id": "servicos_bem_viver",
+          "name": "Serviços & Infraestrutura de Bem-Viver",
+          "weight": 0.06,
+          "sampleItems": [
+            "Os serviços do condomínio (portaria, limpeza, segurança) são de qualidade.",
+            "Os funcionários do condomínio são tratados com respeito e dignidade."
+          ]
+        }
+      ]
+    }
+  ],
+  "maturityLevels": [
+    { "min": 0, "max": 199, "name": "Condomínio Desperto", "badge": "desperto" },
+    { "min": 200, "max": 349, "name": "Condomínio em Conexão", "badge": "conexao" },
+    { "min": 350, "max": 499, "name": "Condomínio Colaborativo", "badge": "colaborativo" },
+    { "min": 500, "max": 649, "name": "Condomínio Saudável", "badge": "saudavel" },
+    { "min": 650, "max": 799, "name": "Condomínio Sustentável", "badge": "sustentavel" },
+    { "min": 800, "max": 924, "name": "Condomínio Referência", "badge": "referencia" },
+    { "min": 925, "max": 1000, "name": "Condomínio Vivo", "badge": "vivo" }
+  ],
+  "pulse": {
+    "durationSeconds": 60,
+    "itemsPerPulse": 3,
+    "cadence": "biweekly",
+    "rotationStrategy": "lowest-scoring-pillars-first",
+    "optOut": true
+  },
+  "cuts": {
+    "allowed": ["building", "floor_band", "unit_type", "tenure_band"],
+    "rule": "hide cut when respondents < kAnonymityMin"
+  }
+}

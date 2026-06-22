@@ -124,6 +124,75 @@ const WAVE_ESCOLA: MeasurementWaveInput = {
 
 export const SCHOOL_WAVES: MeasurementWaveInput[] = [WAVE_ESCOLA];
 
+// ─── Onda do Governo (IGV) — Mensurar no serviço público ──────────────────────
+
+const WAVE_GOVERNO: MeasurementWaveInput = {
+  id: "onda-2026-governo-igv",
+  instrumentLabel: "PERMA+V do servidor → IGV",
+  instrumentShort: "IGV",
+  season: "Florescimento no Serviço Público",
+  opensOn: "2026-06-09",
+  closesOn: "2026-06-23",
+  today: TODAY,
+  invitedTotal: 520,
+  respondedTotal: 384,
+  segments: [
+    { segmentId: "atendimento", label: "Atendimento ao Cidadão", invited: 160, responded: 121 },
+    { segmentId: "administrativo", label: "Administrativo", invited: 140, responded: 108 },
+    { segmentId: "tecnico", label: "Carreira Técnica", invited: 120, responded: 92 },
+    { segmentId: "fiscalizacao", label: "Fiscalização", invited: 92, responded: 60 },
+    { segmentId: "gabinete", label: "Gabinete / Dirigentes", invited: 8, responded: 3 }, // n<5 → oculto
+  ],
+};
+
+export const GOVERNMENT_WAVES: MeasurementWaveInput[] = [WAVE_GOVERNO];
+
+// ─── Onda do Condomínio (IVC) — Mensurar na comunidade ────────────────────────
+
+const WAVE_CONDOMINIO: MeasurementWaveInput = {
+  id: "onda-2026-condominio-ivc",
+  instrumentLabel: "PERMA+V comunitário → IVC",
+  instrumentShort: "IVC",
+  season: "Florescimento Comunitário",
+  opensOn: "2026-06-09",
+  closesOn: "2026-06-23",
+  today: TODAY,
+  invitedTotal: 186,
+  respondedTotal: 124,
+  segments: [
+    { segmentId: "torre-a", label: "Torre A", invited: 64, responded: 44 },
+    { segmentId: "torre-b", label: "Torre B", invited: 60, responded: 41 },
+    { segmentId: "torre-c", label: "Torre C", invited: 48, responded: 32 },
+    { segmentId: "equipe", label: "Equipe / Funcionários", invited: 10, responded: 6 },
+    { segmentId: "conselho", label: "Conselho / Síndico", invited: 4, responded: 3 }, // n<5 → oculto
+  ],
+};
+
+export const CONDO_WAVES: MeasurementWaveInput[] = [WAVE_CONDOMINIO];
+
+// ─── Onda da Saúde (IVS) — Mensurar quem cuida ────────────────────────────────
+
+const WAVE_SAUDE: MeasurementWaveInput = {
+  id: "onda-2026-saude-ivs",
+  instrumentLabel: "PERMA+V de quem cuida → IVS",
+  instrumentShort: "IVS",
+  season: "Florescimento de Quem Cuida",
+  opensOn: "2026-06-09",
+  closesOn: "2026-06-23",
+  today: TODAY,
+  invitedTotal: 640,
+  respondedTotal: 454,
+  segments: [
+    { segmentId: "enfermagem", label: "Enfermagem", invited: 280, responded: 201 },
+    { segmentId: "medicina", label: "Corpo Clínico", invited: 150, responded: 104 },
+    { segmentId: "tecnicos", label: "Técnicos & Apoio", invited: 160, responded: 118 },
+    { segmentId: "residentes", label: "Residentes", invited: 42, responded: 28 },
+    { segmentId: "direcao", label: "Direção Clínica", invited: 8, responded: 3 }, // n<5 → oculto
+  ],
+};
+
+export const HEALTH_WAVES: MeasurementWaveInput[] = [WAVE_SAUDE];
+
 // ─── Seletores por setor ──────────────────────────────────────────────────────
 
 const MS_PER_DAY = 86_400_000;
@@ -136,8 +205,15 @@ function isOpen(w: MeasurementWaveInput): boolean {
   return t >= day(w.opensOn) && t <= day(w.closesOn);
 }
 
+const SECTOR_WAVES: Record<string, MeasurementWaveInput[]> = {
+  school: SCHOOL_WAVES,
+  government: GOVERNMENT_WAVES,
+  condominium: CONDO_WAVES,
+  health: HEALTH_WAVES,
+};
+
 export function getSectorWaves(packId: string): MeasurementWaveInput[] {
-  return packId === "school" ? SCHOOL_WAVES : ENTERPRISE_WAVES;
+  return SECTOR_WAVES[packId] ?? ENTERPRISE_WAVES;
 }
 
 /** A onda em andamento do setor; se nenhuma estiver aberta, a mais recente. */

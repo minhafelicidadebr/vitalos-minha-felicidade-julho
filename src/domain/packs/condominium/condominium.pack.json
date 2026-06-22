@@ -1,0 +1,254 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json",
+  "packId": "condominium",
+  "packName": "ConvivIA — Sistema de Vitalidade Comunitária para Condomínios",
+  "version": "1.0.0",
+  "language": "pt-BR",
+  "overviewRoute": "/condominios",
+  "promise": "Quando a comunidade condominial floresce, o lar deixa de ser apenas endereço e vira pertencimento.",
+  "hierarchy": {
+    "levels": [
+      { "id": "administradora", "label": "Administradora", "labelPlural": "Administradoras" },
+      {
+        "id": "condominium",
+        "label": "Condomínio",
+        "labelPlural": "Condomínios",
+        "parent": "administradora"
+      },
+      {
+        "id": "building",
+        "label": "Torre / Bloco",
+        "labelPlural": "Torres / Blocos",
+        "parent": "condominium"
+      },
+      {
+        "id": "floor_band",
+        "label": "Faixa de Andar",
+        "labelPlural": "Faixas de Andar",
+        "parent": "building",
+        "optional": true
+      }
+    ]
+  },
+  "labels": {
+    "member": "Morador(a)",
+    "members": "Moradores(as)",
+    "leader": "Síndico(a)",
+    "manager": "Conselho Administrativo",
+    "hrAdmin": "Administradora",
+    "executive": "Gestão Condominial",
+    "ambassador": "Embaixador(a) da Convivência",
+    "index": "IVC",
+    "indexFull": "Índice de Vitalidade Comunitária",
+    "ai": "ConvivIA",
+    "academy": "Trilha da Convivência Saudável",
+    "season": "Ciclo de Vitalidade Comunitária",
+    "seal": "Selo Condomínio Vivo",
+    "livingMap": "Mapa Vivo do Condomínio",
+    "pact": "Pacto de Convivência Comunitária",
+    "domainB": "Conflitos & Riscos de Convivência"
+  },
+  "roles": [
+    { "id": "PLATFORM_ADMIN", "label": "Admin da Plataforma", "scope": "platform" },
+    { "id": "ADMINISTRADORA", "label": "Administradora do Condomínio", "scope": "holding" },
+    { "id": "GESTOR_CARTEIRA", "label": "Gestor de Carteira de Condomínios", "scope": "portfolio" },
+    { "id": "SINDICO", "label": "Síndico(a)", "scope": "organization" },
+    { "id": "CONSELHO", "label": "Conselho Administrativo / Fiscal", "scope": "organization" },
+    { "id": "SUBSINDICO", "label": "Subsíndico(a)", "scope": "organization" },
+    {
+      "id": "CONSELHO_FISCAL",
+      "label": "Conselho Fiscal",
+      "scope": "organization",
+      "readOnly": true
+    },
+    { "id": "ZELADOR", "label": "Zelador(a) / Gerente Predial", "scope": "team" },
+    { "id": "EMBAIXADOR_COND", "label": "Embaixador(a) da Convivência", "scope": "organization" },
+    { "id": "MORADOR", "label": "Morador(a) / Condômino(a)", "scope": "self" },
+    { "id": "FUNCIONARIO_COND", "label": "Funcionário(a) do Condomínio", "scope": "self" },
+    {
+      "id": "CONSULTOR_COND",
+      "label": "Consultor de Gestão Condominial",
+      "scope": "scoped_reports",
+      "temporary": true
+    }
+  ],
+  "demoPersonas": [
+    "MORADOR",
+    "ZELADOR",
+    "CONSELHO",
+    "SINDICO",
+    "FUNCIONARIO_COND",
+    "ADMINISTRADORA"
+  ],
+  "defaultRole": "SINDICO",
+  "rbacInvariants": [
+    "individual_responses_never_visible_to_client_roles",
+    "ivc_never_feeds_disciplinary_or_legal_proceedings",
+    "funcionario_data_isolated_from_morador_data",
+    "building_data_isolated_from_other_buildings",
+    "conselho_fiscal_read_only_no_individual_data",
+    "holding_respects_condominium_isolation"
+  ],
+  "navGroups": {
+    "inicio": "Início",
+    "medir": "Medir",
+    "agir": "Agir",
+    "provar": "Provar",
+    "estrategico": "Estratégico",
+    "confianca": "Confiança",
+    "gestao": "Gestão"
+  },
+  "navigation": [
+    { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
+    { "id": "wave", "label": "Onda Ativa", "roles": "all", "group": "medir" },
+    {
+      "id": "ivo",
+      "label": "IVC",
+      "roles": ["SINDICO", "CONSELHO", "CONSELHO_FISCAL", "ADMINISTRADORA", "GESTOR_CARTEIRA"],
+      "group": "medir"
+    },
+    {
+      "id": "trend",
+      "label": "Evolução",
+      "roles": ["SINDICO", "CONSELHO", "ADMINISTRADORA", "GESTOR_CARTEIRA"],
+      "group": "medir"
+    },
+    {
+      "id": "sectors",
+      "label": "Multissetorial",
+      "roles": ["SINDICO", "ADMINISTRADORA", "GESTOR_CARTEIRA", "PLATFORM_ADMIN"],
+      "group": "estrategico"
+    },
+    { "id": "ai", "label": "ConvivIA", "roles": "all", "group": "confianca" },
+    { "id": "methodology", "label": "Metodologia", "roles": "all", "group": "confianca" },
+    { "id": "access", "label": "Acesso & Escopos", "roles": "all", "group": "confianca" },
+    {
+      "id": "data_pipeline",
+      "label": "Pipeline Protegido",
+      "roles": ["SINDICO", "CONSELHO", "ADMINISTRADORA"],
+      "group": "confianca"
+    },
+    {
+      "id": "academy",
+      "label": "Trilha da Convivência Saudável",
+      "roles": "all",
+      "group": "gestao"
+    }
+  ],
+  "indexRef": "./ivc-framework.json",
+  "gamificationRef": "../enterprise/gamification-economy.json",
+  "ai": {
+    "name": "ConvivIA",
+    "fullName": "ConvivIA — Copilota de Convivência, Bem-Estar e Gestão Comunitária",
+    "modes": [
+      {
+        "id": "conselheira_morador",
+        "label": "Conselheira do Morador",
+        "roles": ["MORADOR", "FUNCIONARIO_COND"]
+      },
+      {
+        "id": "copiloto_sindico",
+        "label": "Copiloto do Síndico",
+        "roles": ["SINDICO", "SUBSINDICO"]
+      },
+      {
+        "id": "copiloto_conselho",
+        "label": "Copiloto do Conselho",
+        "roles": ["CONSELHO", "CONSELHO_FISCAL"]
+      },
+      {
+        "id": "copiloto_administradora",
+        "label": "Copiloto da Administradora",
+        "roles": ["ADMINISTRADORA", "GESTOR_CARTEIRA"]
+      },
+      {
+        "id": "mediadora_conflitos",
+        "label": "Mediadora de Conflitos de Convivência",
+        "roles": ["SINDICO", "ZELADOR", "CONSELHO"]
+      },
+      {
+        "id": "analista_comunidade",
+        "label": "Analista de Vitalidade Comunitária",
+        "roles": ["SINDICO", "ADMINISTRADORA"]
+      }
+    ],
+    "guardrailsNever": [
+      "clinical_diagnosis",
+      "individual_happiness_measurement",
+      "expose_employee",
+      "expose_individual_resident",
+      "suggest_eviction_or_punitive_action_based_on_ivc",
+      "replace_licensed_professional",
+      "rank_residents_individually",
+      "mix_domain_a_b",
+      "feed_legal_or_disciplinary_proceedings",
+      "claim_legal_validity",
+      "reveal_unit_identity_in_any_context"
+    ],
+    "guardrailsAlways": [
+      "community_clear_language",
+      "acknowledge_limits",
+      "refer_to_professional_when_needed",
+      "aggregate_data_only",
+      "practical_next_steps_for_community",
+      "explain_ivc_experimental",
+      "protect_resident_privacy_by_default"
+    ]
+  },
+  "branding": {
+    "primary": "#2D5A6B",
+    "accent": "#D4733D",
+    "surface": "#F6F5F1",
+    "darkMode": true,
+    "tone": "comunitario_acolhedor_premium",
+    "forbidden": [
+      "linguagem punitiva",
+      "ranking de moradores",
+      "exposição de conflitos individuais",
+      "cores neon"
+    ]
+  },
+  "microcopy": {
+    "welcome": "Bem-vindo(a) ao VitalOS para o seu Condomínio.",
+    "privacy": "Os dados são agregados e protegem moradores e funcionários. Respostas individuais nunca são acessadas.",
+    "indicator": "Este indicador orienta ações de gestão comunitária — nunca identifica ou expõe moradores.",
+    "voluntary": "Sua participação fortalece a convivência — e é sempre voluntária.",
+    "emptyMissions": "Nenhuma ação disponível agora. Que tal propor uma iniciativa de convivência?",
+    "emptySeason": "Primeiro ciclo de vitalidade comunitária ainda não iniciado.",
+    "kAnonymity": "Este recorte tem menos de 5 respostas e fica oculto para proteger a privacidade."
+  },
+  "ambassadorships": [
+    "convivencia_respeitosa",
+    "mediacao_conflitos",
+    "sustentabilidade_ambiental_cond",
+    "acolhimento_novos_moradores",
+    "inclusao_acessibilidade_cond",
+    "saude_bem_estar_cond",
+    "cultura_celebracao_cond",
+    "seguranca_comunitaria",
+    "participacao_assembleias",
+    "bem_estar_funcionarios_cond",
+    "comunicacao_comunitaria",
+    "diversidade_respeito"
+  ],
+  "certification": {
+    "name": "Selo Condomínio Vivo",
+    "levels": [
+      "desperto",
+      "conexao",
+      "colaborativo",
+      "saudavel",
+      "sustentavel",
+      "referencia",
+      "vivo"
+    ],
+    "criteria": [
+      "maturity_level",
+      "ivc_score",
+      "participation_rate",
+      "convivencia_evidences",
+      "improvement_projects_completed"
+    ],
+    "validityMonths": 12
+  }
+}

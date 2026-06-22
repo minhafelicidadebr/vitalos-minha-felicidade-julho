@@ -9,10 +9,16 @@ import { calculateIVO } from "@/engine/index/ivo-engine";
 import type { ProprietaryIndex } from "@/engine/pack/pack-types";
 import ivoFramework from "@/domain/packs/enterprise/ivo-framework.json";
 import ievFramework from "@/domain/packs/school/iev-framework.json";
+import igvFramework from "@/domain/packs/government/igv-framework.json";
+import ivcFramework from "@/domain/packs/condominium/ivc-framework.json";
+import ivsFramework from "@/domain/packs/health/ivs-framework.json";
 
 const FRAMEWORKS: Record<string, ProprietaryIndex> = {
   enterprise: ivoFramework as unknown as ProprietaryIndex,
   school: ievFramework as unknown as ProprietaryIndex,
+  government: igvFramework as unknown as ProprietaryIndex,
+  condominium: ivcFramework as unknown as ProprietaryIndex,
+  health: ivsFramework as unknown as ProprietaryIndex,
 };
 
 function frameworkPillarIds(fw: ProprietaryIndex): Set<string> {

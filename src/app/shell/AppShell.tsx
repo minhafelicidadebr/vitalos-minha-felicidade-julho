@@ -94,6 +94,42 @@ const ROLE_HOME: Record<string, string> = {
   EDUCADOR: "/escola",
   ESTUDANTE: "/escola",
   FAMILIA: "/escola",
+  // Governo (CidadanIA) — home adaptativa por audiência.
+  DIRIGENTE: "/governo",
+  SECRETARIO: "/governo",
+  GESTOR_ORGAO: "/governo",
+  DGP_RH: "/governo",
+  CONTROLE_INTERNO: "/governo",
+  CIPA_SST_GOV: "/governo",
+  GESTOR_EQUIPE: "/governo",
+  SERVIDOR: "/governo",
+  EMBAIXADOR_GOV: "/governo",
+  CONSULTOR_GOV: "/governo",
+  // Condomínio (ConvivIA) — home adaptativa por audiência.
+  SINDICO: "/condominios",
+  SUBSINDICO: "/condominios",
+  CONSELHO: "/condominios",
+  CONSELHO_FISCAL: "/condominios",
+  ADMINISTRADORA: "/condominios",
+  GESTOR_CARTEIRA: "/condominios",
+  ZELADOR: "/condominios",
+  FUNCIONARIO_COND: "/condominios",
+  MORADOR: "/condominios",
+  EMBAIXADOR_COND: "/condominios",
+  CONSULTOR_COND: "/condominios",
+  // Saúde (CuidarIA) — home adaptativa por audiência.
+  // (GESTOR_REDE é compartilhado com o pack Escola; o overviewRoute do pack ativo
+  // resolve o destino correto, então não se redefine a chave aqui.)
+  DIRETOR_CLINICO: "/saude",
+  SUPERINTENDENTE: "/saude",
+  GERENTE_ENFERMAGEM: "/saude",
+  SESMT_SAUDE: "/saude",
+  QUALIDADE_SEGURANCA: "/saude",
+  COORDENADOR_EQUIPE: "/saude",
+  PROFISSIONAL_SAUDE: "/saude",
+  RESIDENTE: "/saude",
+  EMBAIXADOR_SAUDE: "/saude",
+  CONSULTOR_SAUDE: "/saude",
 };
 
 // Fallback caso o pack ativo não declare demoPersonas (mantém compat retroativa).

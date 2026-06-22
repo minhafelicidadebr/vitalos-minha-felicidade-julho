@@ -1,0 +1,264 @@
+{
+  "$schema": "../enterprise/domain-pack.schema.json#/definitions/proprietaryIndex",
+  "id": "igv",
+  "name": "IGV — Índice de Vitalidade Governamental",
+  "version": "1.0.0",
+  "status": "experimental",
+  "scale": { "min": 0, "max": 1000 },
+  "responseScale": {
+    "type": "likert",
+    "min": 1,
+    "max": 5,
+    "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"]
+  },
+  "formula": {
+    "pillarScore": "mean(items)",
+    "normalized": "(pillarScore - 1) / 4",
+    "lensScore": "sum(relativeWeight * normalized) * 1000",
+    "index": "sum(pillarWeight * normalized) * 1000"
+  },
+  "privacy": {
+    "kAnonymityMin": 5,
+    "individualScoresVisible": false,
+    "rawResponsesReadableBy": ["edge_function:igv-calc"],
+    "neverFeedPerformanceReview": true
+  },
+  "mandatoryDisclaimer": "O IGV é um índice proprietário experimental para vitalidade no serviço público. Não é instrumento clínico, não mede felicidade individual, não diagnostica transtornos e não substitui avaliação profissional, PGR ou instrumentos obrigatórios de saúde do trabalhador. Seu valor está na tendência agregada e na orientação de ações institucionais.",
+  "lenses": [
+    {
+      "id": "servidor",
+      "name": "SERVIDOR — Indivíduo no Serviço Público",
+      "color": "#1E3A8A",
+      "guidingQuestion": "Como o servidor público floresce no trabalho?",
+      "scientificBasis": [
+        "PERMA+V",
+        "Self-Determination Theory",
+        "Public Service Motivation (Perry & Wise)",
+        "WHO-5",
+        "PsyCap"
+      ],
+      "pillars": [
+        {
+          "id": "vigor_funcional",
+          "name": "Vigor & Energia no Serviço",
+          "weight": 0.07,
+          "sampleItems": [
+            "Termino a maioria dos dias de serviço com energia para minha vida pessoal.",
+            "Consigo fazer pausas reais durante o expediente.",
+            "Meu sono não é prejudicado de forma recorrente pelo trabalho."
+          ]
+        },
+        {
+          "id": "proposito_publico",
+          "name": "Propósito & Missão Pública",
+          "weight": 0.07,
+          "sampleItems": [
+            "Vejo sentido genuíno no que faço a serviço da sociedade.",
+            "Entendo como meu trabalho contribui para o bem comum.",
+            "Sinto orgulho de ser servidor(a) público(a)."
+          ]
+        },
+        {
+          "id": "crescimento_carreira",
+          "name": "Crescimento & Desenvolvimento na Carreira",
+          "weight": 0.06,
+          "sampleItems": [
+            "Tenho oportunidades reais de aprendizado e desenvolvimento na minha carreira.",
+            "Uso meus conhecimentos e habilidades com frequência no trabalho.",
+            "Aprendi algo novo e aplicável no último mês."
+          ]
+        },
+        {
+          "id": "equilibrio_srv",
+          "name": "Equilíbrio & Autonomia Funcional",
+          "weight": 0.05,
+          "sampleItems": [
+            "Tenho margem para organizar meu trabalho dentro das normas vigentes.",
+            "Consigo me desconectar fora do horário de serviço.",
+            "Minha carga de trabalho é sustentável a longo prazo."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "secao",
+      "name": "SEÇÃO — Equipe & Setor",
+      "color": "#15803D",
+      "guidingQuestion": "Como as equipes do serviço público colaboram e se sustentam?",
+      "scientificBasis": [
+        "Psychological Safety (Edmondson)",
+        "Capital social organizacional",
+        "Ciência das emoções coletivas",
+        "High-Quality Connections"
+      ],
+      "pillars": [
+        {
+          "id": "cooperacao_secao",
+          "name": "Cooperação & Confiança na Equipe",
+          "weight": 0.07,
+          "sampleItems": [
+            "As pessoas da minha equipe se ajudam de verdade.",
+            "Confio que meus colegas cumprem o que combinam.",
+            "Conflitos são tratados com respeito e buscando soluções."
+          ]
+        },
+        {
+          "id": "seguranca_psicologica_gov",
+          "name": "Segurança para Expressar-se",
+          "weight": 0.06,
+          "sampleItems": [
+            "Posso admitir um erro sem medo de represálias.",
+            "Posso discordar de uma decisão sem consequências negativas.",
+            "Pedir ajuda aqui é visto como algo positivo."
+          ]
+        },
+        {
+          "id": "reconhecimento_pares_gov",
+          "name": "Reconhecimento entre Pares",
+          "weight": 0.06,
+          "sampleItems": [
+            "Recebi reconhecimento sincero pelos meus resultados nos últimos 30 dias.",
+            "Reconhecer colegas faz parte da nossa cultura de equipe."
+          ]
+        },
+        {
+          "id": "comunicacao_transparencia",
+          "name": "Comunicação & Coesão Interna",
+          "weight": 0.06,
+          "sampleItems": [
+            "Me sinto parte desta equipe e deste órgão.",
+            "As informações que preciso para trabalhar chegam a tempo.",
+            "Posso ser quem eu sou sem precisar me esconder no serviço."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gestao_publica",
+      "name": "GESTÃO PÚBLICA — Chefia Imediata",
+      "color": "#B45309",
+      "guidingQuestion": "Como a chefia cria condições de dignidade e mérito?",
+      "scientificBasis": [
+        "Positive Leadership (Cameron)",
+        "Justiça organizacional (Greenberg)",
+        "JD-R Model",
+        "Public Sector Leadership"
+      ],
+      "pillars": [
+        {
+          "id": "clareza_criterios",
+          "name": "Clareza de Critérios & Meritocracia",
+          "weight": 0.07,
+          "sampleItems": [
+            "Sei o que se espera de mim no meu cargo.",
+            "Progressões e oportunidades seguem critérios claros e objetivos.",
+            "Mudanças nas diretrizes são comunicadas com antecedência."
+          ]
+        },
+        {
+          "id": "justica_imparcialidade",
+          "name": "Justiça & Imparcialidade da Gestão",
+          "weight": 0.07,
+          "sampleItems": [
+            "As decisões da chefia são justas e coerentes.",
+            "Regras valem para todos, inclusive para a gestão.",
+            "Não percebo favoritismo ou clientelismo nas decisões da chefia."
+          ]
+        },
+        {
+          "id": "suporte_desenvolvimento",
+          "name": "Suporte ao Crescimento do Servidor",
+          "weight": 0.06,
+          "sampleItems": [
+            "Minha chefia se interessa pelo meu desenvolvimento profissional.",
+            "Recebo retorno sobre meu trabalho de forma construtiva."
+          ]
+        },
+        {
+          "id": "cuidado_servidor",
+          "name": "Cuidado Ativo com o Servidor",
+          "weight": 0.05,
+          "sampleItems": [
+            "Minha chefia percebe quando a equipe está sobrecarregada e age.",
+            "Sinto que posso falar com minha chefia sobre dificuldades no trabalho.",
+            "Minha chefia promove um ambiente saudável pelo exemplo."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "instituicao",
+      "name": "INSTITUIÇÃO — Órgão & Sistema",
+      "color": "#6D28D9",
+      "guidingQuestion": "Como o órgão protege, desenvolve e reconhece seus servidores?",
+      "scientificBasis": [
+        "NR-1/GRO",
+        "ISO 45003",
+        "PNDP (Política Nacional de Desenvolvimento de Pessoal)",
+        "ESG — dimensão S (serviço público)",
+        "Economia do bem-comum (Felber)"
+      ],
+      "pillars": [
+        {
+          "id": "condicoes_infraestrutura",
+          "name": "Condições & Infraestrutura Funcional",
+          "weight": 0.07,
+          "sampleItems": [
+            "Tenho recursos, ferramentas e espaço adequados para exercer bem meu cargo.",
+            "Prazos e demandas institucionais são, em geral, realistas.",
+            "O ambiente físico ou remoto de trabalho é adequado e seguro."
+          ]
+        },
+        {
+          "id": "cultura_servico_publico",
+          "name": "Cultura do Serviço Público",
+          "weight": 0.06,
+          "sampleItems": [
+            "Este órgão trata o bem-estar dos servidores como prioridade real.",
+            "Existem canais seguros para reportar problemas sem medo.",
+            "Descansar, tirar férias e cuidar da saúde é respeitado aqui."
+          ]
+        },
+        {
+          "id": "inclusao_equidade_gov",
+          "name": "Inclusão, Equidade & Diversidade",
+          "weight": 0.06,
+          "sampleItems": [
+            "Servidores de diferentes origens têm as mesmas oportunidades de desenvolvimento.",
+            "Comportamentos discriminatórios não são tolerados.",
+            "Me sinto respeitado(a) em minha identidade dentro do órgão."
+          ]
+        },
+        {
+          "id": "transparencia_bem_comum",
+          "name": "Transparência & Compromisso com o Bem-Comum",
+          "weight": 0.05,
+          "sampleItems": [
+            "Este órgão age com transparência e responsabilidade perante a sociedade.",
+            "Tenho oportunidades de contribuir para iniciativas de impacto social."
+          ]
+        }
+      ]
+    }
+  ],
+  "maturityLevels": [
+    { "min": 0, "max": 199, "name": "Órgão Desperto", "badge": "desperto" },
+    { "min": 200, "max": 349, "name": "Órgão em Mobilização", "badge": "mobilizacao" },
+    { "min": 350, "max": 499, "name": "Órgão Colaborativo", "badge": "colaborativo" },
+    { "min": 500, "max": 649, "name": "Órgão Saudável", "badge": "saudavel" },
+    { "min": 650, "max": 799, "name": "Órgão Sustentável", "badge": "sustentavel" },
+    { "min": 800, "max": 924, "name": "Órgão Referência", "badge": "referencia" },
+    { "min": 925, "max": 1000, "name": "Órgão Vital", "badge": "vital" }
+  ],
+  "pulse": {
+    "durationSeconds": 60,
+    "itemsPerPulse": 3,
+    "cadence": "biweekly",
+    "rotationStrategy": "lowest-scoring-pillars-first",
+    "optOut": true
+  },
+  "cuts": {
+    "allowed": ["organization", "secretaria", "departamento", "setor", "cargo_band", "tenure_band"],
+    "rule": "hide cut when respondents < kAnonymityMin"
+  }
+}
