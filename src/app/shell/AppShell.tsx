@@ -5,6 +5,7 @@ import {
   Activity,
   ChevronDown,
   Home,
+  LogOut,
   Menu,
   ShieldCheck,
   Sparkles,
@@ -237,6 +238,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // servidor e 1ª renderização do cliente coincidem (sem mismatch de hidratação).
   const gateUnlocked = useDemoGate((s) => s.unlocked);
   const gateHydrated = useDemoGate((s) => s.hasHydrated);
+  const lockDemo = useDemoGate((s) => s.lock);
   if (!gateHydrated || !gateUnlocked) {
     return <DemoGateScreen />;
   }
@@ -559,6 +561,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                         </li>
                       );
                     })}
+                    <li role="separator" className="my-1 border-t border-border/60" />
+                    <li>
+                      <button
+                        onClick={() => {
+                          setPersonaOpen(false);
+                          lockDemo();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <LogOut className="h-3.5 w-3.5" aria-hidden />
+                        Sair da demo
+                      </button>
+                    </li>
                   </ul>
                 )}
               </div>

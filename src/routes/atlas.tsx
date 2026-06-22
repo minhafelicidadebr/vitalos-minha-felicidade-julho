@@ -59,8 +59,7 @@ function AtlasPage() {
             Atlas da Vitalidade
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Todos os setores ativos, medidos agora pelo mesmo motor — só o framework (JSON) muda. É
-            a opcionalidade de unicórnio em uma página.
+            Todos os setores ativos, medidos agora pelo mesmo motor.
           </p>
         </motion.header>
 
