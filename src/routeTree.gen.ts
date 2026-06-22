@@ -18,6 +18,7 @@ import { Route as SetoresRouteImport } from './routes/setores'
 import { Route as SeloRouteImport } from './routes/selo'
 import { Route as SaudeRouteImport } from './routes/saude'
 import { Route as RhRouteImport } from './routes/rh'
+import { Route as RevisarRouteImport } from './routes/revisar'
 import { Route as ResponderRouteImport } from './routes/responder'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
@@ -108,6 +109,11 @@ const SaudeRoute = SaudeRouteImport.update({
 const RhRoute = RhRouteImport.update({
   id: '/rh',
   path: '/rh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RevisarRoute = RevisarRouteImport.update({
+  id: '/revisar',
+  path: '/revisar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResponderRoute = ResponderRouteImport.update({
@@ -388,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
+  '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
@@ -445,6 +452,7 @@ export interface FileRoutesByTo {
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
+  '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
@@ -503,6 +511,7 @@ export interface FileRoutesById {
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
   '/responder': typeof ResponderRoute
+  '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
   '/selo': typeof SeloRoute
@@ -562,6 +571,7 @@ export interface FileRouteTypes {
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
+    | '/revisar'
     | '/rh'
     | '/saude'
     | '/selo'
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
+    | '/revisar'
     | '/rh'
     | '/saude'
     | '/selo'
@@ -676,6 +687,7 @@ export interface FileRouteTypes {
     | '/relatorio-global'
     | '/relatorios'
     | '/responder'
+    | '/revisar'
     | '/rh'
     | '/saude'
     | '/selo'
@@ -734,6 +746,7 @@ export interface RootRouteChildren {
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponderRoute: typeof ResponderRoute
+  RevisarRoute: typeof RevisarRoute
   RhRoute: typeof RhRoute
   SaudeRoute: typeof SaudeRoute
   SeloRoute: typeof SeloRoute
@@ -808,6 +821,13 @@ declare module '@tanstack/react-router' {
       path: '/rh'
       fullPath: '/rh'
       preLoaderRoute: typeof RhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/revisar': {
+      id: '/revisar'
+      path: '/revisar'
+      fullPath: '/revisar'
+      preLoaderRoute: typeof RevisarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/responder': {
@@ -1182,6 +1202,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponderRoute: ResponderRoute,
+  RevisarRoute: RevisarRoute,
   RhRoute: RhRoute,
   SaudeRoute: SaudeRoute,
   SeloRoute: SeloRoute,
