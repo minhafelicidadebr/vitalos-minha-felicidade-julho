@@ -36,6 +36,7 @@ import { Route as PainelRouteImport } from './routes/painel'
 import { Route as OndaRouteImport } from './routes/onda'
 import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
+import { Route as MatrizRouteImport } from './routes/matriz'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LabRouteImport } from './routes/lab'
@@ -52,6 +53,7 @@ import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as EmbaixadorRouteImport } from './routes/embaixador'
+import { Route as DriversRouteImport } from './routes/drivers'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
@@ -65,6 +67,7 @@ import { Route as AtlasRouteImport } from './routes/atlas'
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 
 const ViatRoute = ViatRouteImport.update({
   id: '/viat',
@@ -201,6 +204,11 @@ const MetodologiaRoute = MetodologiaRouteImport.update({
   path: '/metodologia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MatrizRoute = MatrizRouteImport.update({
+  id: '/matriz',
+  path: '/matriz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LiderRoute = LiderRouteImport.update({
   id: '/lider',
   path: '/lider',
@@ -281,6 +289,11 @@ const EmbaixadorRoute = EmbaixadorRouteImport.update({
   path: '/embaixador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriversRoute = DriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
   id: '/devolutiva',
   path: '/devolutiva',
@@ -346,6 +359,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
+  id: '/driver/$driverId',
+  path: '/driver/$driverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -361,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
@@ -377,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
@@ -404,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/driver/$driverId': typeof DriverDriverIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -419,6 +440,7 @@ export interface FileRoutesByTo {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
@@ -435,6 +457,7 @@ export interface FileRoutesByTo {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
@@ -462,6 +485,7 @@ export interface FileRoutesByTo {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/driver/$driverId': typeof DriverDriverIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -478,6 +502,7 @@ export interface FileRoutesById {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
   '/escola': typeof EscolaRoute
@@ -494,6 +519,7 @@ export interface FileRoutesById {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
   '/onda': typeof OndaRoute
@@ -521,6 +547,7 @@ export interface FileRoutesById {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/driver/$driverId': typeof DriverDriverIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -538,6 +565,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
     | '/escola'
@@ -554,6 +582,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/matriz'
     | '/metodologia'
     | '/missoes'
     | '/onda'
@@ -581,6 +610,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/driver/$driverId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -596,6 +626,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
     | '/escola'
@@ -612,6 +643,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/matriz'
     | '/metodologia'
     | '/missoes'
     | '/onda'
@@ -639,6 +671,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/driver/$driverId'
   id:
     | '__root__'
     | '/'
@@ -654,6 +687,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
     | '/escola'
@@ -670,6 +704,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/matriz'
     | '/metodologia'
     | '/missoes'
     | '/onda'
@@ -697,6 +732,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/driver/$driverId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -713,6 +749,7 @@ export interface RootRouteChildren {
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  DriversRoute: typeof DriversRoute
   EmbaixadorRoute: typeof EmbaixadorRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
   EscolaRoute: typeof EscolaRoute
@@ -729,6 +766,7 @@ export interface RootRouteChildren {
   LabRoute: typeof LabRoute
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
+  MatrizRoute: typeof MatrizRoute
   MetodologiaRoute: typeof MetodologiaRoute
   MissoesRoute: typeof MissoesRoute
   OndaRoute: typeof OndaRoute
@@ -756,6 +794,7 @@ export interface RootRouteChildren {
   TemporadaRoute: typeof TemporadaRoute
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
+  DriverDriverIdRoute: typeof DriverDriverIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -949,6 +988,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MetodologiaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/matriz': {
+      id: '/matriz'
+      path: '/matriz'
+      fullPath: '/matriz'
+      preLoaderRoute: typeof MatrizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lider': {
       id: '/lider'
       path: '/lider'
@@ -1061,6 +1107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbaixadorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/drivers': {
+      id: '/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devolutiva': {
       id: '/devolutiva'
       path: '/devolutiva'
@@ -1152,6 +1205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver/$driverId': {
+      id: '/driver/$driverId'
+      path: '/driver/$driverId'
+      fullPath: '/driver/$driverId'
+      preLoaderRoute: typeof DriverDriverIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1169,6 +1229,7 @@ const rootRouteChildren: RootRouteChildren = {
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   DevolutivaRoute: DevolutivaRoute,
+  DriversRoute: DriversRoute,
   EmbaixadorRoute: EmbaixadorRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
   EscolaRoute: EscolaRoute,
@@ -1185,6 +1246,7 @@ const rootRouteChildren: RootRouteChildren = {
   LabRoute: LabRoute,
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
+  MatrizRoute: MatrizRoute,
   MetodologiaRoute: MetodologiaRoute,
   MissoesRoute: MissoesRoute,
   OndaRoute: OndaRoute,
@@ -1212,6 +1274,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemporadaRoute: TemporadaRoute,
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
+  DriverDriverIdRoute: DriverDriverIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
