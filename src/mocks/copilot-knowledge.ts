@@ -120,7 +120,7 @@ export function buildCopilotAvatar(
   };
 }
 
-// Ciência dos 7 drivers do Work-Wellbeing Playbook 2.0 — universal a todos os setores
+// Ciência dos 12 drivers do Work-Wellbeing Playbook 2.0 — universal a todos os setores
 // (a evidência não muda com o pack; só o vocabulário do índice muda). Permite ao copiloto
 // responder "como melhorar X?" com ciência aterrada e CITADA (gate G1: sem fonte, sem
 // alegação). Reescrito na voz VitalOS, sem marca de terceiros. Tópicos em palavra única e
@@ -226,6 +226,90 @@ const WWP_DRIVER_CHUNKS: readonly KnowledgeChunk[] = [
     title: "Driver: Crescimento & Maestria",
     body: "A mentalidade de crescimento — a crença de que habilidades se desenvolvem com esforço e estratégia — favorece buscar feedback, persistir após falhas e ver o erro como informação, não veredito sobre a pessoa. Culturas que tratam o erro como aprendizado, com feedback frequente e desafios calibrados, aceleram o desenvolvimento.",
     source: "Dweck (2006), Mindset",
+  },
+  {
+    id: "driver_clareza",
+    topics: [
+      "clareza",
+      "previsibilidade",
+      "papel",
+      "ambiguidade",
+      "expectativa",
+      "mudanca",
+      "comunicacao",
+      "responsabilidade",
+    ],
+    title: "Driver: Clareza & Previsibilidade",
+    body: "Ambiguidade de papel é fator de risco independente: quando responsabilidades são difusas, surge retrabalho, tensão e conflito de demandas. Clareza — saber o que se espera e o que não se espera — é preditor de bem-estar tão forte quanto a carga. Comunicar mudanças antes que aconteçam e definir prioridades explícitas reduz a insegurança cotidiana.",
+    source: "Kahn et al. (1964), Organizational Stress; ISO 45003:2021",
+  },
+  {
+    id: "driver_lideranca",
+    topics: [
+      "lideranca",
+      "lider",
+      "gestor",
+      "gestao",
+      "chefia",
+      "chefe",
+      "supervisao",
+      "suporte",
+      "preventiva",
+    ],
+    title: "Driver: Liderança Preventiva",
+    body: "A chefia organiza, apoia e protege — não só cobra. Baixa qualidade de liderança amplifica todos os demais riscos psicossociais: é o multiplicador mais potente. Treinar gestores em escuta ativa, clareza de expectativas e apoio cotidiano é a alavanca com maior retorno sobre o risco coletivo. Liderança preventiva age ANTES do adoecimento.",
+    source: "Hammer et al. (2011), JOOP; ISO 45003:2021",
+  },
+  {
+    id: "driver_inclusao",
+    topics: [
+      "inclusao",
+      "protecao",
+      "dignidade",
+      "violencia",
+      "assedio",
+      "discriminacao",
+      "diversidade",
+      "respeito",
+      "ofensivo",
+    ],
+    title: "Driver: Inclusão & Proteção",
+    body: "Sem dignidade e ambiente livre de violência, qualquer programa de bem-estar é incoerente. Comportamentos ofensivos e exclusão exigem resposta organizacional imediata e canal seguro — nunca 'workshop de resiliência' como substituto de mudança estrutural. A proteção vem antes da promoção: primeiro a organização garante a segurança, depois cultiva o florescimento.",
+    source: "OIT (2019), Convenção 190 sobre Violência e Assédio; CID-11 QD85",
+  },
+  {
+    id: "driver_realizacao",
+    topics: [
+      "realizacao",
+      "coletiva",
+      "meta",
+      "objetivo",
+      "celebracao",
+      "conquista",
+      "factivel",
+      "equipe",
+      "resultado",
+    ],
+    title: "Driver: Realização Coletiva",
+    body: "Realização coletiva combina clareza do que é factível, contribuição visível de cada um e celebração compartilhada. Metas percebidas como inalcançáveis ou injustas corroem o engajamento; metas factíveis e reconhecidas coletivamente o sustentam. O efeito é maior quando as pessoas veem o impacto concreto do esforço conjunto.",
+    source: "Locke & Latham (2002), American Psychologist; Grant (2008), AMJ",
+  },
+  {
+    id: "driver_futuro",
+    topics: [
+      "futuro",
+      "seguranca",
+      "emprego",
+      "estabilidade",
+      "inseguranca",
+      "reestruturacao",
+      "precarizacao",
+      "continuidade",
+      "carreira",
+    ],
+    title: "Driver: Segurança de Futuro",
+    body: "Insegurança laboral é fator de risco independente: cresce em reestruturações e precariza a saúde mesmo quando o emprego não é perdido de fato. A incerteza crônica consome recursos psicológicos que fariam falta para o trabalho em si. Comunicação antecipada, transições planejadas e apoio ativo à recolocação reduzem o dano.",
+    source: "Sverke et al. (2002), JOHP; De Witte (2005), European Journal of Work",
   },
 ];
 
@@ -346,7 +430,7 @@ export function buildCopilotKnowledge(
     source: "Módulo Provar · Evolução, Experimentos e Selo",
   });
 
-  // 10) Ciência dos 7 drivers de bem-estar (universal — Educar com fonte citada).
+  // 10) Ciência dos 12 drivers de bem-estar (universal — Educar com fonte citada).
   chunks.push(...WWP_DRIVER_CHUNKS);
 
   return {
@@ -361,7 +445,7 @@ export function buildCopilotKnowledge(
       "riscos psicossociais (Domínio B)",
       "evidência, evolução e selo",
       "método, honestidade e limites da IA",
-      "os 7 drivers de bem-estar (segurança psicológica, reconhecimento, energia, propósito, autonomia, pertencimento e crescimento)",
+      "os 12 drivers de bem-estar (segurança psicológica, reconhecimento, energia, propósito, autonomia, pertencimento, crescimento, clareza, liderança preventiva, inclusão, realização coletiva e segurança de futuro)",
     ],
     chunks,
   };

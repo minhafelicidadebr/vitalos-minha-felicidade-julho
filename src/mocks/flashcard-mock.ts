@@ -95,6 +95,46 @@ export const FLASHCARDS: Flashcard[] = [
     back: "A crença de que habilidades se desenvolvem com esforço e estratégia. Favorece buscar feedback, persistir após falhas e ver o erro como informação — não como veredito sobre a pessoa.",
     citation: "Dweck (2006), Mindset",
   },
+  {
+    id: "fc-clareza-1",
+    driverId: "clareza",
+    driverLabel: "Clareza & Previsibilidade",
+    front: "Por que ambiguidade de papel é um fator de risco independente?",
+    back: "Quando responsabilidades são difusas, surge retrabalho, tensão interpessoal e conflito de demandas. Clareza de papel — saber o que se espera e o que não se espera — é preditor de bem-estar tão forte quanto a carga. Comunicar mudanças antes que aconteçam reduz a insegurança.",
+    citation: "Kahn et al. (1964), Organizational Stress; ISO 45003:2021",
+  },
+  {
+    id: "fc-lideranca-1",
+    driverId: "lideranca",
+    driverLabel: "Liderança Preventiva",
+    front: "O que significa 'liderança preventiva' no trabalho saudável?",
+    back: "A chefia organiza, apoia e protege — não só cobra. Baixa qualidade de liderança amplifica todos os demais riscos psicossociais. Treinar gestores em escuta, clareza e apoio ativo é a alavanca com maior retorno sobre o risco coletivo.",
+    citation: "Hammer et al. (2011), JOOP; ISO 45003:2021",
+  },
+  {
+    id: "fc-inclusao-1",
+    driverId: "inclusao",
+    driverLabel: "Inclusão & Proteção",
+    front: "Por que inclusão e proteção contra violência são tratadas juntas?",
+    back: "Sem dignidade e ambiente livre de violência, qualquer programa de bem-estar é incoerente. Comportamentos ofensivos e exclusão exigem resposta organizacional imediata e canal seguro — antes de intervenções educativas ou de resiliência.",
+    citation: "OIT (2019), Convenção 190; CID-11 QD85 (burnout ocupacional)",
+  },
+  {
+    id: "fc-realizacao-1",
+    driverId: "realizacao",
+    driverLabel: "Realização Coletiva",
+    front: "Qual a diferença entre meta individual e realização coletiva?",
+    back: "Realização coletiva combina clareza do que é factível, contribuição visível de cada um e celebração compartilhada. Metas percebidas como inalcançáveis ou injustas corroem o engajamento; metas factíveis e reconhecidas coletivamente o sustentam.",
+    citation: "Locke & Latham (2002), American Psychologist; Grant (2008), AMJ",
+  },
+  {
+    id: "fc-futuro-1",
+    driverId: "futuro",
+    driverLabel: "Segurança de Futuro",
+    front: "Como a insegurança sobre o futuro do trabalho afeta a saúde?",
+    back: "Insegurança laboral é fator de risco independente: aumenta em reestruturações e precariza a saúde mesmo quando o emprego não é perdido. Comunicação antecipada, transições planejadas e apoio ativo à recolocação reduzem o dano.",
+    citation: "Sverke et al. (2002), JOHP; De Witte (2005), European Journal of Work",
+  },
 ];
 
 // Maturidades de demonstração — uma prática EM ANDAMENTO, não um baralho zerado. Cada cartão
@@ -115,6 +155,11 @@ const DEMO_SCHEDULES: Record<string, CardSchedule> = {
   "fc-autonomia-1": sched(2, 6), // → 15 dias
   "fc-pertencimento-1": initialSchedule(), // novo → amanhã
   "fc-crescimento-1": sched(3, 15, 2.6, 1), // → 38 dias (1 recaída no histórico)
+  "fc-clareza-1": sched(1, 1), // → 6 dias
+  "fc-lideranca-1": initialSchedule(), // novo → amanhã
+  "fc-inclusao-1": sched(2, 6), // → 15 dias
+  "fc-realizacao-1": initialSchedule(), // novo → amanhã
+  "fc-futuro-1": sched(1, 1), // → 6 dias
 };
 
 /** Cartões vencidos hoje, em maturidades variadas (prática em andamento). */

@@ -13,9 +13,9 @@ import healthIndex from "@/domain/packs/health/ivs-framework.json";
 const kb = buildCopilotKnowledge(healthPack as never, healthIndex as never);
 
 describe("copilot knowledge — cobertura do ecossistema", () => {
-  test("inclui 4 lentes + 8 ecossistema + 7 drivers WWP (19 no total)", () => {
-    // indice + 4 lentes + privacidade + agir + metodo + limites + pulse + dominio_b + provar + 7 drivers
-    expect(kb.chunks.length).toBe(19);
+  test("inclui 4 lentes + 8 ecossistema + 12 drivers WWP (24 no total)", () => {
+    // indice + 4 lentes + privacidade + agir + metodo + limites + pulse + dominio_b + provar + 12 drivers
+    expect(kb.chunks.length).toBe(24);
   });
 
   test("recupera o chunk de risco psicossocial (Domínio B)", () => {
@@ -29,7 +29,7 @@ describe("copilot knowledge — cobertura do ecossistema", () => {
   });
 });
 
-describe("copilot knowledge — ciência dos 7 drivers (Educar com citação)", () => {
+describe("copilot knowledge — ciência dos 12 drivers (Educar com citação)", () => {
   const driverProbes: { q: string; id: string }[] = [
     { q: "como melhorar a segurança psicológica do time?", id: "driver_seguranca_psicologica" },
     { q: "qual a melhor forma de reconhecimento e feedback?", id: "driver_reconhecimento" },
@@ -38,6 +38,11 @@ describe("copilot knowledge — ciência dos 7 drivers (Educar com citação)", 
     { q: "como dar mais autonomia e controle às pessoas?", id: "driver_autonomia" },
     { q: "como fortalecer o pertencimento e a inclusão?", id: "driver_pertencimento" },
     { q: "como estimular crescimento e mentalidade de aprendizado?", id: "driver_crescimento" },
+    { q: "como reduzir a ambiguidade de papel e dar clareza?", id: "driver_clareza" },
+    { q: "como a liderança preventiva protege a equipe?", id: "driver_lideranca" },
+    { q: "como garantir inclusão e proteção contra violência?", id: "driver_inclusao" },
+    { q: "como construir realização coletiva com metas factíveis?", id: "driver_realizacao" },
+    { q: "como a insegurança sobre o futuro afeta a saúde?", id: "driver_futuro" },
   ];
 
   for (const { q, id } of driverProbes) {
@@ -51,7 +56,7 @@ describe("copilot knowledge — ciência dos 7 drivers (Educar com citação)", 
 
   test("todo chunk de driver tem fonte (anti-alucinação, gate G1)", () => {
     const drivers = kb.chunks.filter((c) => c.id.startsWith("driver_"));
-    expect(drivers.length).toBe(7);
+    expect(drivers.length).toBe(12);
     expect(drivers.every((c) => c.source.trim().length > 0)).toBe(true);
   });
 });
