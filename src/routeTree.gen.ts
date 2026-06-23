@@ -29,6 +29,7 @@ import { Route as ProgramaRouteImport } from './routes/programa'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as PlanoNr1RouteImport } from './routes/plano-nr1'
 import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as PipelineDadosRouteImport } from './routes/pipeline-dados'
 import { Route as PanoramaRouteImport } from './routes/panorama'
@@ -167,6 +168,11 @@ const PrioridadesRoute = PrioridadesRouteImport.update({
 const PnlRoute = PnlRouteImport.update({
   id: '/pnl',
   path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoNr1Route = PlanoNr1RouteImport.update({
+  id: '/plano-nr1',
+  path: '/plano-nr1',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanoAcaoRoute = PlanoAcaoRouteImport.update({
@@ -404,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/panorama': typeof PanoramaRoute
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
+  '/plano-nr1': typeof PlanoNr1Route
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -465,6 +472,7 @@ export interface FileRoutesByTo {
   '/panorama': typeof PanoramaRoute
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
+  '/plano-nr1': typeof PlanoNr1Route
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -527,6 +535,7 @@ export interface FileRoutesById {
   '/panorama': typeof PanoramaRoute
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
+  '/plano-nr1': typeof PlanoNr1Route
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -590,6 +599,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pipeline-dados'
     | '/plano-acao'
+    | '/plano-nr1'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -651,6 +661,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pipeline-dados'
     | '/plano-acao'
+    | '/plano-nr1'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -712,6 +723,7 @@ export interface FileRouteTypes {
     | '/panorama'
     | '/pipeline-dados'
     | '/plano-acao'
+    | '/plano-nr1'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -774,6 +786,7 @@ export interface RootRouteChildren {
   PanoramaRoute: typeof PanoramaRoute
   PipelineDadosRoute: typeof PipelineDadosRoute
   PlanoAcaoRoute: typeof PlanoAcaoRoute
+  PlanoNr1Route: typeof PlanoNr1Route
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -937,6 +950,13 @@ declare module '@tanstack/react-router' {
       path: '/pnl'
       fullPath: '/pnl'
       preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano-nr1': {
+      id: '/plano-nr1'
+      path: '/plano-nr1'
+      fullPath: '/plano-nr1'
+      preLoaderRoute: typeof PlanoNr1RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plano-acao': {
@@ -1254,6 +1274,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanoramaRoute: PanoramaRoute,
   PipelineDadosRoute: PipelineDadosRoute,
   PlanoAcaoRoute: PlanoAcaoRoute,
+  PlanoNr1Route: PlanoNr1Route,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PrivacidadeRoute: PrivacidadeRoute,

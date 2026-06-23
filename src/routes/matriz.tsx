@@ -124,6 +124,13 @@ function MatrizPage() {
               ))}
               . É orientação de ação a partir de agregados — nunca avaliação de pessoas.
             </p>
+            <Link
+              to="/plano-nr1"
+              className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground transition hover:opacity-90"
+            >
+              Gerar PGR psicossocial deste ciclo
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
           </motion.div>
         )}
 
