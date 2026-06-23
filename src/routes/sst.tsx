@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { ArrowRight, Grid3x3, Network } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { summarizeNR1Readiness } from "@/engine/domainb/nr1-readiness-engine";
@@ -246,6 +247,58 @@ function SSTPage() {
         </motion.div>
 
         <CopsoqCard />
+
+        {/* Ponte para o crosswalk — da exposição agregada aos 12 drivers de trabalho saudável.
+            Dá entrada ao cluster cartográfico (catálogo + matriz), reforçando a ponte A↔B. */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.18 }}
+          className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-5 shadow-sm print:hidden"
+        >
+          <p className="font-medium text-card-foreground">
+            Da exposição aos 12 drivers de trabalho saudável
+          </p>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Cada dimensão COPSOQ acima cruza com os drivers canônicos e o ecossistema FIB-T. A
+            cartografia mostra onde agir primeiro — sempre na organização do trabalho, nunca
+            culpando pessoas.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/drivers"
+              className="group flex flex-col gap-1 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Grid3x3 className="h-4 w-4 text-primary" aria-hidden />
+                Catálogo dos 12 drivers
+                <ArrowRight
+                  className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </span>
+              <span className="text-xs leading-relaxed text-muted-foreground">
+                Cada driver com seus pilares, sinais e próximas ações.
+              </span>
+            </Link>
+            <Link
+              to="/matriz"
+              className="group flex flex-col gap-1 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Network className="h-4 w-4 text-primary" aria-hidden />
+                Matriz de intersecções
+                <ArrowRight
+                  className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </span>
+              <span className="text-xs leading-relaxed text-muted-foreground">
+                Drivers × COPSOQ (risco) × FIB-T (ecossistema), com prioridade.
+              </span>
+            </Link>
+          </div>
+        </motion.section>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Listening channel — aggregate volumes only */}
