@@ -22,7 +22,7 @@ import { usePersona } from "@/app/identity/persona-store";
 import { canSeeCollective } from "@/mocks/sector-audience";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { answerCopilot, type CopilotPov, type CopilotTurn } from "@/engine/ai/copilot-engine";
-import { exportConversationText } from "@/engine/ai/copilot-conversation";
+import { exportConversationText, type CopilotMessage } from "@/engine/ai/copilot-conversation";
 import { useCopilotConversation } from "@/app/copilot/copilot-store";
 import {
   buildCopilotAvatar,
@@ -43,6 +43,12 @@ export const Route = createFileRoute("/copilota")({
   }),
   component: CopilotaPage,
 });
+
+// Referência estável para thread ausente. Sem isto, `s.threads[packId] ?? []` devolveria um
+// NOVO array a cada chamada do seletor; o useSyncExternalStore do Zustand compara o snapshot
+// por Object.is, veria referência nova todo render e entraria em loop infinito ("getSnapshot
+// should be cached" → Maximum update depth). O array congelado nunca muda de identidade.
+const EMPTY_THREAD: readonly CopilotMessage[] = Object.freeze([]);
 
 const POV_ICONS: Record<PovSpec["icon"], LucideIcon> = {
   ruler: Ruler,
@@ -176,7 +182,7 @@ function CopilotaChat() {
   const [input, setInput] = useState(seededQuestion ?? "");
 
   // Conversa EFÊMERA por pack (sobrevive à navegação, some no reload).
-  const messages = useCopilotConversation((s) => s.threads[packId] ?? []);
+  const messages = useCopilotConversation((s) => s.threads[packId] ?? EMPTY_THREAD);
   const askStore = useCopilotConversation((s) => s.ask);
   const clearStore = useCopilotConversation((s) => s.clear);
 

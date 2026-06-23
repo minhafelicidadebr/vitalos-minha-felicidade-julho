@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { motion } from "framer-motion";
-import { RotateCcw, Sparkles, Target } from "lucide-react";
+import { CalendarClock, RotateCcw, Sparkles, Target } from "lucide-react";
 import { useA11y } from "@/app/shell/A11yProvider";
 import {
   currentCard,
@@ -15,7 +15,9 @@ import {
   type SessionState,
 } from "@/engine/learning/flashcard-session";
 import {
+  reviewCard,
   summarizeDeck,
+  type CardSchedule,
   type RecallQuality,
   type ScheduledCard,
 } from "@/engine/learning/sm2-engine";
@@ -24,37 +26,51 @@ import type { Flashcard } from "@/mocks/flashcard-mock";
 // As 4 avaliações (estilo Anki) mapeadas para a qualidade SM-2. "Errei" recoloca o
 // cartão na fila desta sessão; as demais graduam, com intervalos progressivamente
 // maiores. Tons via tokens/escala semântica — nunca julgam a pessoa, só a recordação.
-const GRADES: { quality: RecallQuality; label: string; hint: string; key: string; cls: string }[] =
+// As 4 avaliações (estilo Anki) mapeadas para a qualidade SM-2. O sublabel descreve a
+// AUTOAVALIAÇÃO da recordação (não a pessoa). "Errei" recoloca o cartão na fila desta
+// sessão; as demais graduam. Tons via escala semântica — nunca julgam desempenho.
+const GRADES: { quality: RecallQuality; label: string; feel: string; key: string; cls: string }[] =
   [
     {
       quality: 1,
       label: "Errei",
-      hint: "revejo já",
+      feel: "não lembrei",
       key: "1",
       cls: "border-red-300/60 text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30",
     },
     {
       quality: 3,
       label: "Difícil",
-      hint: "+1 dia",
+      feel: "com esforço",
       key: "2",
       cls: "border-amber-300/60 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950/30",
     },
     {
       quality: 4,
       label: "Bom",
-      hint: "espaça",
+      feel: "lembrei",
       key: "3",
       cls: "border-primary/40 text-primary hover:bg-primary/5",
     },
     {
       quality: 5,
       label: "Fácil",
-      hint: "espaça mais",
+      feel: "foi fácil",
       key: "4",
       cls: "border-emerald-300/60 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30",
     },
   ];
+
+// Preview HONESTO do agendador, computado pelo próprio motor SM-2 (sem duplicar a regra).
+// Verdade do SM-2: o PRÓXIMO intervalo de um acerto depende só de ter acertado (e da
+// maturidade do cartão), não de quão bem — a nota ajusta o fator de facilidade, que molda as
+// revisões SEGUINTES. Por isso o intervalo é mostrado UMA vez (representado por "Bom"=4), não
+// por botão. Torna a repetição espaçada visível sem mentir sobre o algoritmo.
+function passInterval(schedule: CardSchedule): string {
+  const days = reviewCard(schedule, 4).intervalDays;
+  if (days <= 1) return "amanhã";
+  return `${days} dias`;
+}
 
 type Action =
   | { type: "grade"; quality: RecallQuality }
@@ -83,6 +99,7 @@ export function FlashcardDeck({
 
   const card = currentCard(state);
   const progress = sessionProgress(state);
+  const remaining = progress.total - progress.done;
 
   const grade = useCallback(
     (quality: RecallQuality) => {
@@ -155,66 +172,85 @@ export function FlashcardDeck({
         </div>
       </div>
 
-      {/* Carta com flip 3D acessível (fallback instantâneo em redução de movimento) */}
-      <div style={{ perspective: 1200 }}>
-        <motion.button
-          type="button"
-          onClick={() => setFlipped((f) => !f)}
-          aria-label={flipped ? "Cartão virado — mostrando a resposta" : "Mostrar a resposta"}
-          className="relative w-full cursor-pointer rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          style={{ transformStyle: "preserve-3d", minHeight: 320 }}
-          animate={{ rotateY: flipped ? 180 : 0 }}
-          transition={{ duration: flipDuration, ease: [0.22, 1, 0.36, 1] }}
+      {/* Carta com flip 3D acessível (fallback instantâneo em redução de movimento).
+          Atrás dela, camadas-fantasma dão profundidade tátil ao baralho (quantas faltam). */}
+      <div className="relative" style={{ perspective: 1200 }}>
+        {remaining > 2 && <DeckLayer offset={2} />}
+        {remaining > 1 && <DeckLayer offset={1} />}
+        <motion.div
+          key={card.id}
+          className="relative z-[1]"
+          initial={reduceMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: reduceMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Frente — a pergunta */}
-          <CardFace hidden={flipped} className="border-border/70 bg-card">
-            <ChipRow label={card.card.driverLabel} priority={isPriority} />
-            <p className="mt-5 font-serif text-2xl leading-snug text-foreground sm:text-3xl">
-              {card.card.front}
-            </p>
-            <p className="mt-auto pt-6 text-xs text-muted-foreground">
-              Pense na resposta, depois toque para virar{" "}
-              <kbd className="rounded bg-muted px-1.5 py-0.5 font-sans text-[10px]">espaço</kbd>
-            </p>
-          </CardFace>
-
-          {/* Verso — a resposta + fonte */}
-          <CardFace
-            hidden={!flipped}
-            flipped
-            className="border-primary/30 bg-primary/[0.03] dark:bg-primary/[0.06]"
+          <motion.button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            aria-label={flipped ? "Cartão virado — mostrando a resposta" : "Mostrar a resposta"}
+            className="relative w-full cursor-pointer rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            style={{ transformStyle: "preserve-3d", minHeight: 320 }}
+            animate={{ rotateY: flipped ? 180 : 0 }}
+            transition={{ duration: flipDuration, ease: [0.22, 1, 0.36, 1] }}
           >
-            <ChipRow label={card.card.driverLabel} priority={isPriority} />
-            <p className="mt-4 text-base leading-relaxed text-foreground sm:text-lg">
-              {card.card.back}
-            </p>
-            <p className="mt-auto pt-5 text-xs italic text-muted-foreground">
-              Fonte: {card.card.citation}
-            </p>
-          </CardFace>
-        </motion.button>
+            {/* Frente — a pergunta */}
+            <CardFace hidden={flipped} className="border-border/70 bg-gradient-to-br from-card to-muted/30">
+              <ChipRow label={card.card.driverLabel} priority={isPriority} />
+              <p className="mt-5 font-serif text-2xl leading-snug text-foreground sm:text-3xl">
+                {card.card.front}
+              </p>
+              <p className="mt-auto pt-6 text-xs text-muted-foreground">
+                Pense na resposta, depois toque para virar{" "}
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-sans text-[10px]">espaço</kbd>
+              </p>
+            </CardFace>
+
+            {/* Verso — a resposta + fonte */}
+            <CardFace
+              hidden={!flipped}
+              flipped
+              className="border-primary/30 bg-gradient-to-br from-primary/[0.06] to-accent/[0.04] dark:from-primary/[0.1]"
+            >
+              <ChipRow label={card.card.driverLabel} priority={isPriority} />
+              <p className="mt-4 text-base leading-relaxed text-foreground sm:text-lg">
+                {card.card.back}
+              </p>
+              <p className="mt-auto pt-5 text-xs italic text-muted-foreground">
+                Fonte: {card.card.citation}
+              </p>
+            </CardFace>
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* Avaliação — só ativa com a carta virada (honestidade: você avalia a própria recordação) */}
       <div aria-live="polite">
         {flipped ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {GRADES.map((g) => (
-              <button
-                key={g.quality}
-                type="button"
-                onClick={() => grade(g.quality)}
-                className={`flex min-h-14 flex-col items-center justify-center rounded-2xl border bg-card px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${g.cls}`}
-              >
-                <span className="flex items-center gap-1.5">
-                  <kbd className="rounded bg-muted px-1 text-[10px] text-muted-foreground">
-                    {g.key}
-                  </kbd>
-                  {g.label}
-                </span>
-                <span className="text-[11px] font-normal text-muted-foreground">{g.hint}</span>
-              </button>
-            ))}
+          <div className="space-y-2.5">
+            <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+              <CalendarClock className="h-3.5 w-3.5 text-primary" aria-hidden />
+              Se você recordou, volta{" "}
+              <span className="font-medium text-foreground">{passInterval(card.schedule)}</span>. Quão
+              bem lembrou ajusta o ritmo das próximas.
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {GRADES.map((g) => (
+                <button
+                  key={g.quality}
+                  type="button"
+                  onClick={() => grade(g.quality)}
+                  className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border bg-card px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${g.cls}`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <kbd className="rounded bg-muted px-1 text-[10px] text-muted-foreground">
+                      {g.key}
+                    </kbd>
+                    {g.label}
+                  </span>
+                  <span className="text-[11px] font-normal text-muted-foreground">{g.feel}</span>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <button
@@ -232,6 +268,23 @@ export function FlashcardDeck({
         desempenho. Nesta demonstração, o progresso fica só nesta sessão.
       </p>
     </div>
+  );
+}
+
+// Camada-fantasma atrás da carta atual: comunica "ainda há cartões" com profundidade.
+// Puramente decorativa (aria-hidden); recua e encolhe conforme a posição na pilha.
+function DeckLayer({ offset }: { offset: number }) {
+  return (
+    <div
+      aria-hidden
+      className="absolute inset-x-0 top-0 rounded-3xl border border-border/50 bg-card/60 shadow-sm"
+      style={{
+        height: 320,
+        zIndex: 0,
+        transform: `translateY(${offset * 9}px) scale(${1 - offset * 0.035})`,
+        transformOrigin: "center top",
+      }}
+    />
   );
 }
 
@@ -328,6 +381,8 @@ function SessionSummary({
         <SummaryStat label="Facilidade média" value={summary.averageEasiness.toFixed(2)} />
       </dl>
 
+      <ForgettingCurve />
+
       <button
         type="button"
         onClick={onRestart}
@@ -337,6 +392,57 @@ function SessionSummary({
         Revisar de novo
       </button>
     </motion.div>
+  );
+}
+
+// Por que espaçar funciona — a curva do esquecimento (Ebbinghaus) com e sem revisão.
+// Narrativa da ciência do aprendizado: cada revisão no momento certo "reergue" a memória e
+// achata o esquecimento. SVG leve, theme-aware (tokens), com descrição acessível.
+function ForgettingCurve() {
+  return (
+    <figure className="mx-auto mt-8 max-w-md">
+      <svg
+        viewBox="0 0 240 96"
+        className="w-full"
+        role="img"
+        aria-label="Gráfico comparando a retenção da memória: sem revisão ela despenca; com repetição espaçada, cada revisão reergue a memória e o esquecimento fica mais lento."
+      >
+        <line x1="14" y1="6" x2="14" y2="78" className="stroke-border" strokeWidth="1" />
+        <line x1="14" y1="78" x2="232" y2="78" className="stroke-border" strokeWidth="1" />
+        {/* Sem revisão: decaimento acentuado */}
+        <path
+          d="M14,14 C40,52 70,68 232,74"
+          className="stroke-muted-foreground/50"
+          strokeWidth="2"
+          fill="none"
+          strokeDasharray="4 4"
+        />
+        {/* Com repetição espaçada: dente-de-serra que se mantém alto */}
+        <path
+          d="M14,14 C28,28 36,34 52,36 L52,15 C74,24 92,27 116,29 L116,14 C150,19 188,20 232,21"
+          className="stroke-primary"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinejoin="round"
+        />
+        {[52, 116].map((x) => (
+          <circle key={x} cx={x} cy={x === 52 ? 15 : 14} r="3" className="fill-primary" />
+        ))}
+      </svg>
+      <figcaption className="mt-2 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-0.5 w-4 bg-primary" aria-hidden /> com repetição espaçada
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="h-0.5 w-4 bg-muted-foreground/50"
+            style={{ borderTop: "2px dashed" }}
+            aria-hidden
+          />{" "}
+          sem revisão
+        </span>
+      </figcaption>
+    </figure>
   );
 }
 

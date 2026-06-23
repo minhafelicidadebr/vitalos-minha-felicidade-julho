@@ -5,7 +5,7 @@
 // Playbook 2.0, reescrito na voz VitalOS e SEM marcas de terceiros. O flashcard-session
 // engine recebe estes cartões como parâmetro e nunca os conhece de antemão.
 
-import { initialSchedule } from "@/engine/learning/sm2-engine";
+import { initialSchedule, type CardSchedule } from "@/engine/learning/sm2-engine";
 import type { SessionCard } from "@/engine/learning/flashcard-session";
 
 export interface Flashcard {
@@ -97,11 +97,31 @@ export const FLASHCARDS: Flashcard[] = [
   },
 ];
 
-/** Cartões de revisão prontos para a sessão (todos começam vencidos/novos). */
+// Maturidades de demonstração — uma prática EM ANDAMENTO, não um baralho zerado. Cada cartão
+// vencido hoje está num estágio do SM-2, então o preview "volta em X" varia de forma realista
+// (amanhã → 6 → 15 → 38 dias) e o resumo mostra young/mature de verdade. Determinístico: estado
+// fixo por id, sem aleatório. Estes são agendamentos VÁLIDOS do motor (o preview os usa puro).
+function sched(repetition: number, intervalDays: number, easiness = 2.5, lapses = 0): CardSchedule {
+  return { repetition, easiness, intervalDays, lapses };
+}
+
+const DEMO_SCHEDULES: Record<string, CardSchedule> = {
+  "fc-seguranca-1": sched(2, 6), // → 15 dias
+  "fc-seguranca-2": initialSchedule(), // novo → amanhã
+  "fc-reconhecimento-1": sched(1, 1), // → 6 dias
+  "fc-energia-1": sched(3, 15, 2.6), // → 38 dias
+  "fc-energia-2": initialSchedule(), // novo → amanhã
+  "fc-proposito-1": sched(1, 1), // → 6 dias
+  "fc-autonomia-1": sched(2, 6), // → 15 dias
+  "fc-pertencimento-1": initialSchedule(), // novo → amanhã
+  "fc-crescimento-1": sched(3, 15, 2.6, 1), // → 38 dias (1 recaída no histórico)
+};
+
+/** Cartões vencidos hoje, em maturidades variadas (prática em andamento). */
 export function getFlashcardSession(): SessionCard<Flashcard>[] {
   return FLASHCARDS.map((card) => ({
     id: card.id,
     card,
-    schedule: initialSchedule(),
+    schedule: DEMO_SCHEDULES[card.id] ?? initialSchedule(),
   }));
 }

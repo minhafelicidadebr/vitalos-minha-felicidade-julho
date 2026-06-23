@@ -49,10 +49,11 @@ describe("copilot — recuperação (a base do grounding)", () => {
     expect(retrieveChunks(kb, "e o de a")).toHaveLength(0);
   });
 
-  test("o KB de saúde tem uma citação por lente + chunks de ecossistema", () => {
-    // indice + 4 lentes + privacidade + agir + metodo + limites + pulse + dominio_b + provar
-    expect(kb.chunks.length).toBe(12);
+  test("o KB de saúde tem uma citação por lente + ecossistema + 7 drivers WWP", () => {
+    // indice + 4 lentes + privacidade + agir + metodo + limites + pulse + dominio_b + provar + 7 drivers
+    expect(kb.chunks.length).toBe(19);
     expect(kb.chunks.some((c) => c.id === "lente_profissional")).toBe(true);
+    expect(kb.chunks.filter((c) => c.id.startsWith("driver_")).length).toBe(7);
   });
 });
 

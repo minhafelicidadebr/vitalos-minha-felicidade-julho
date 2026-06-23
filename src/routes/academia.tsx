@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  HelpCircle,
+  Layers,
+  PenLine,
+  PlayCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePersona } from "@/app/identity/persona-store";
 import { usePack } from "@/engine/pack";
@@ -25,6 +34,8 @@ import { getSectorData } from "@/mocks/sector-data";
 import { getLearningPaths, pathProgress, type LearningPath } from "@/mocks/academia-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { MARINA_VIAT_RESULT, VIAT_INTRO } from "@/mocks/viat-mock";
+import { dynamicsForRoute, type LearningDynamic } from "@/engine/learning/learning-dynamics";
+import { getLearningDynamics } from "@/mocks/learning-dynamics-mock";
 
 export const Route = createFileRoute("/academia")({
   head: () => ({ meta: [{ title: "Academia adaptativa — 4 Lentes VitalOS™" }] }),
@@ -195,6 +206,8 @@ function AcademiaPage() {
             ))}
           </div>
         )}
+
+        <LearningDynamicsSection priorityPillars={recommendation.priorityPillars} />
 
         <div className="rounded-2xl border border-border/70 bg-muted/30 px-5 py-4">
           <p className="text-xs leading-relaxed text-muted-foreground">
@@ -460,6 +473,121 @@ function PathCard({ ranked, delay }: { ranked: RankedPath<LearningPath>; delay: 
         </div>
       )}
     </motion.article>
+  );
+}
+
+// Ícone semântico por dinâmica. "live" marca a que tem rota dedicada construída hoje
+// (D2 → /revisar). As demais enriquecem a Academia no roadmap (Educar) — honestamente
+// rotuladas "Em breve", sem fingir que já existem.
+const DYNAMIC_UI: Record<string, { icon: LucideIcon; live?: boolean; to?: "/revisar" }> = {
+  D1: { icon: HelpCircle },
+  D2: { icon: Layers, live: true, to: "/revisar" },
+  D3: { icon: PlayCircle },
+  D4: { icon: BookOpenCheck },
+  D6: { icon: PenLine },
+};
+
+function LearningDynamicsSection({ priorityPillars }: { priorityPillars: LearningSignal[] }) {
+  const dynamics = dynamicsForRoute(getLearningDynamics(), "/academia");
+  const live = dynamics.find((d) => DYNAMIC_UI[d.id]?.live);
+  const upcoming = dynamics.filter((d) => !DYNAMIC_UI[d.id]?.live);
+  if (!live) return null;
+
+  return (
+    <section className="space-y-4" aria-labelledby="dinamicas-titulo">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+          Eixo Educar · Como aprender aqui
+        </p>
+        <h2 id="dinamicas-titulo" className="mt-1 font-serif text-2xl text-foreground">
+          Dinâmicas de aprendizagem
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          A Academia não é só trilhas: cada conteúdo pode ser aprendido por dinâmicas com base em
+          ciência da aprendizagem. A primeira já está disponível.
+        </p>
+      </div>
+
+      <LiveDynamicCard dynamic={live} to={DYNAMIC_UI[live.id]!.to!} priorityPillars={priorityPillars} />
+
+      {upcoming.length > 0 && (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {upcoming.map((dynamic) => (
+            <UpcomingDynamicTile key={dynamic.id} dynamic={dynamic} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function LiveDynamicCard({
+  dynamic,
+  to,
+  priorityPillars,
+}: {
+  dynamic: LearningDynamic;
+  to: "/revisar";
+  priorityPillars: LearningSignal[];
+}) {
+  const Icon = DYNAMIC_UI[dynamic.id]!.icon;
+  const topPriority = priorityPillars[0];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Link
+        to={to}
+        className="group flex flex-col gap-4 rounded-3xl border border-primary/25 bg-primary/[0.04] p-5 transition-colors hover:bg-primary/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-center sm:p-6"
+      >
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <Icon className="h-6 w-6" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-foreground">{dynamic.title}</p>
+            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+              Disponível
+            </span>
+          </div>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{dynamic.tagline}</p>
+          {topPriority && (
+            <p className="mt-2 text-xs text-primary">
+              Começa pelos pilares de maior necessidade — como {topPriority.label}.
+            </p>
+          )}
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-transform group-hover:translate-x-0.5 sm:self-auto">
+          Revisar agora
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </span>
+      </Link>
+    </motion.div>
+  );
+}
+
+function UpcomingDynamicTile({ dynamic }: { dynamic: LearningDynamic }) {
+  const Icon = DYNAMIC_UI[dynamic.id]?.icon ?? HelpCircle;
+  return (
+    <li className="flex items-start gap-3 rounded-2xl border border-dashed border-border/60 bg-card/40 px-4 py-3.5">
+      <span
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground"
+        aria-hidden
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-medium text-card-foreground">{dynamic.title}</p>
+          <span className="rounded-full border border-border/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Em breve
+          </span>
+        </div>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{dynamic.tagline}</p>
+      </div>
+    </li>
   );
 }
 

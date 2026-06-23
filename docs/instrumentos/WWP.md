@@ -72,14 +72,19 @@ As regras de earning por dinâmica (EARN-QUIZ, EARN-VIDEO…) entram como extens
 
 ---
 
-## 5 · RAG + gates de QA (Fase 2)
+## 5 · RAG + gates de QA
 
-- `evidence_catalog` (108 itens, 9/driver, DOIs) → enriquece a base do Copiloto Setorial
-  (`mocks/copilot-knowledge.ts`), preservando grounding + citações.
+- `evidence_catalog` → enriquece a base do Copiloto (`mocks/copilot-knowledge.ts`): **7 chunks
+  de driver citáveis** (um por driver WWP), universais aos 5 packs, preservando grounding +
+  citações. O Copiloto agora responde "como melhorar X?" com ciência aterrada e fonte (Edu-4b ✅).
 - Pipeline RAG (chunking 1200, top_k=8, verificação diária de links) → spec para a edge
   function da Fase 2, **não** para o cliente.
-- Gates G1–G5: G1 (sem referência alucinada) e G4 (k-anon/LGPD) **já** implementados no
-  grounding-engine; G2/G3/G5 a formalizar.
+- Gates G1–G5: G1 (sem referência alucinada) e G4 (k-anon/LGPD) **já** no grounding-engine.
+  **G2/G3/G5 formalizados** em `engine/ai/qa-gates.ts` (Edu-4c ✅) — validador puro de um
+  `CopilotTurn`: G2 integridade de citação, G3 conformidade k-anon (sem vazamento sub-k),
+  G5 honestidade de método (sem overclaim, negação-aware). O teste de fechamento prova que o
+  próprio `copilot-engine` passa os gates em toda combinação POV × bateria. Na Fase 2, é o
+  contrato que a saída do LLM real terá de passar antes de chegar ao usuário.
 
 ---
 
@@ -98,8 +103,12 @@ As regras de earning por dinâmica (EARN-QUIZ, EARN-VIDEO…) entram como extens
 - **Edu-2 ✅** — `driver-pillar-bridge.ts` + testes; `wwp-drivers-mock.ts` (7 drivers →
   pilares IVO enterprise). Fecha o loop **Medir → Educar**: o IVO agregado reordena os
   cartões pelos pilares de menor leitura (com k-anon respeitado: pilar n<5 não prioriza).
-- **Edu-3 ✅ (parcial)** — `FlashcardDeck.tsx` (flip 3D acessível, teclado, 4 estados) +
-  rota focada `/revisar` (sessão efêmera, adaptativa, pack-aware). Falta wiring de nav e
-  `QuizInline` / `Evidence Explorer` na `/academia` (lane Lovable).
-- **Edu-4** — estender 7 → 12 drivers; mapear demais packs (escola/governo/etc.);
-  chunks de evidência no Copiloto; formalizar gates G2/G3/G5 em `qa-gates.ts` (Fase 2).
+- **Edu-3 ✅** — `FlashcardDeck.tsx` (flip 3D acessível, teclado, 4 estados) + rota focada
+  `/revisar` (sessão efêmera, adaptativa, pack-aware) + seção **"Dinâmicas de aprendizagem"**
+  na `/academia` (D2 ao vivo → `/revisar`; D1/D3/D4/D6 "em breve", honestas). Falta só o wiring
+  de nav no AppShell (lane Lovable). Bônus: corrigido loop infinito de render do `/copilota`
+  (seletor Zustand devolvia array novo — `EMPTY_THREAD` estável).
+- **Edu-4 ✅ (parcial)** — **4a** mapa driver→pilar nos 5 packs (`wwp-drivers-mock`) + guard de
+  integridade referencial; **4b** 7 chunks de driver no Copiloto; **4c** gates G2/G3/G5
+  (`qa-gates.ts`). **Falta:** estender 7 → 12 drivers (+5 flashcards e chunks) — expansão de
+  conteúdo, não de arquitetura.

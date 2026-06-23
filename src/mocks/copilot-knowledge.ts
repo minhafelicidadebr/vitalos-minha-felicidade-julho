@@ -120,6 +120,115 @@ export function buildCopilotAvatar(
   };
 }
 
+// Ciência dos 7 drivers do Work-Wellbeing Playbook 2.0 — universal a todos os setores
+// (a evidência não muda com o pack; só o vocabulário do índice muda). Permite ao copiloto
+// responder "como melhorar X?" com ciência aterrada e CITADA (gate G1: sem fonte, sem
+// alegação). Reescrito na voz VitalOS, sem marca de terceiros. Tópicos em palavra única e
+// sem acento para casar com a tokenização do engine (retrieveChunks normaliza ambos).
+const WWP_DRIVER_CHUNKS: readonly KnowledgeChunk[] = [
+  {
+    id: "driver_seguranca_psicologica",
+    topics: [
+      "seguranca",
+      "psicologica",
+      "psicologico",
+      "errar",
+      "erro",
+      "discordar",
+      "medo",
+      "voz",
+      "vulnerabilidade",
+    ],
+    title: "Driver: Segurança Psicológica",
+    body: "Segurança psicológica é a crença compartilhada de que é seguro assumir riscos interpessoais — perguntar, discordar, admitir erro — sem medo de humilhação. É propriedade do time, não traço individual, e combina alto cuidado com alto padrão. Para fortalecê-la: liderança admite os próprios erros, convida o dissenso e responde com curiosidade, não punição.",
+    source: "Edmondson (1999), Administrative Science Quarterly; Edmondson (2018), The Fearless Organization",
+  },
+  {
+    id: "driver_reconhecimento",
+    topics: ["reconhecimento", "reconhecer", "elogio", "feedback", "valorizar", "gratidao", "apreco"],
+    title: "Driver: Reconhecimento",
+    body: "Reconhecimento específico — nomear o comportamento concreto — supera o elogio genérico: torna o feedback acionável e crível, reforçando a repetição. Frequente e sincero, é um dos preditores mais fortes de engajamento. Comece pelo que já é bom, com exemplos reais, e distribua o reconhecimento para além dos de sempre.",
+    source: "Gallup (2022), State of the Global Workplace",
+  },
+  {
+    id: "driver_energia",
+    topics: [
+      "energia",
+      "recuperacao",
+      "descanso",
+      "pausa",
+      "pausas",
+      "fadiga",
+      "exaustao",
+      "burnout",
+      "desligar",
+      "vigor",
+      "cansaco",
+    ],
+    title: "Driver: Energia & Recuperação",
+    body: "Recuperação é parte da performance, não o oposto dela. Microppausas reais (sem tela de trabalho) interrompem a fadiga atencional antes do esgotamento; o 'desligar psicológico' fora do expediente é o preditor mais forte de recuperação — mais do que o tempo de folga em si. Proteja pausas e o direito a desconectar.",
+    source: "Sonnentag (2003), JAP; Sonnentag & Fritz (2015), Journal of Organizational Behavior",
+  },
+  {
+    id: "driver_proposito",
+    topics: ["proposito", "significado", "sentido", "missao", "motivacao", "importa", "vocacao"],
+    title: "Driver: Propósito & Significado",
+    body: "Significado é a percepção de que o trabalho importa e conecta a algo maior — coexiste com tarefas difíceis e sustenta o engajamento quando a motivação oscila. Conectar tarefas ao impacto concreto em pessoas reais (linha de visão para quem é servido) aumenta o significado percebido.",
+    source: "Steger et al. (2012), Journal of Career Assessment",
+  },
+  {
+    id: "driver_autonomia",
+    topics: [
+      "autonomia",
+      "controle",
+      "latitude",
+      "demanda",
+      "decisao",
+      "decidir",
+      "flexibilidade",
+      "microgestao",
+      "liberdade",
+    ],
+    title: "Driver: Autonomia & Controle",
+    body: "No modelo demanda-controle, o que torna a alta demanda menos nociva é a latitude de decisão — autonomia sobre como e quando fazer. Alta demanda com baixo controle gera tensão (strain); com alto controle pode ser ativadora e saudável. Ampliar autonomia sobre o método, e não só sobre a meta, reduz o desgaste.",
+    source: "Karasek (1979), Administrative Science Quarterly",
+  },
+  {
+    id: "driver_pertencimento",
+    topics: [
+      "pertencimento",
+      "pertencer",
+      "inclusao",
+      "incluir",
+      "conexao",
+      "vinculo",
+      "isolamento",
+      "acolhimento",
+      "aceitacao",
+    ],
+    title: "Driver: Pertencimento",
+    body: "A necessidade de pertencer é fundamental; quando ameaçada, consome recursos atencionais e prejudica foco e cooperação. Sinais consistentes de inclusão liberam essa carga e melhoram criatividade e desempenho cognitivo. Rituais de acolhimento e convites explícitos à participação ajudam a quem está à margem.",
+    source: "Baumeister & Leary (1995), Psychological Bulletin",
+  },
+  {
+    id: "driver_crescimento",
+    topics: [
+      "crescimento",
+      "maestria",
+      "aprender",
+      "aprendizado",
+      "mentalidade",
+      "mindset",
+      "desenvolvimento",
+      "habilidade",
+      "evoluir",
+    ],
+    title: "Driver: Crescimento & Maestria",
+    body: "A mentalidade de crescimento — a crença de que habilidades se desenvolvem com esforço e estratégia — favorece buscar feedback, persistir após falhas e ver o erro como informação, não veredito sobre a pessoa. Culturas que tratam o erro como aprendizado, com feedback frequente e desafios calibrados, aceleram o desenvolvimento.",
+    source: "Dweck (2006), Mindset",
+  },
+];
+
 /**
  * Monta o KB do copiloto a partir do pack + framework (fonte de verdade) e do
  * mapa do ecossistema. Cada chunk é citável. Engine ≠ Domínio: o engine recebe
@@ -237,6 +346,9 @@ export function buildCopilotKnowledge(
     source: "Módulo Provar · Evolução, Experimentos e Selo",
   });
 
+  // 10) Ciência dos 7 drivers de bem-estar (universal — Educar com fonte citada).
+  chunks.push(...WWP_DRIVER_CHUNKS);
+
   return {
     packId: pack.packId ?? "enterprise",
     indexLabel,
@@ -249,6 +361,7 @@ export function buildCopilotKnowledge(
       "riscos psicossociais (Domínio B)",
       "evidência, evolução e selo",
       "método, honestidade e limites da IA",
+      "os 7 drivers de bem-estar (segurança psicológica, reconhecimento, energia, propósito, autonomia, pertencimento e crescimento)",
     ],
     chunks,
   };
