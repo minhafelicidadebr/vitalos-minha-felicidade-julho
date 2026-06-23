@@ -17,6 +17,7 @@ import {
   Printer,
   ShieldCheck,
   Target,
+  TrendingDown,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import {
@@ -320,6 +321,22 @@ function PgrPage() {
             )}
           </div>
         )}
+
+        {/* Ponte para Evoluir */}
+        <Link
+          to="/evolucao-nr1"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/[0.03] px-5 py-4 transition hover:bg-primary/[0.06] print:hidden"
+        >
+          <div>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-card-foreground">
+              <TrendingDown className="h-4 w-4 text-primary" aria-hidden /> Acompanhar a evolução
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Reavaliação NR-1: a exposição caiu depois das medidas? Veja o antes/depois por ciclo.
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+        </Link>
 
         {/* Disclaimer */}
         <div className="rounded-2xl border border-border/50 bg-muted/30 p-4">

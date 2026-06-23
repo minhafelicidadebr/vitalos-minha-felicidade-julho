@@ -212,8 +212,11 @@ export function probabilityFromLoad(load: number): Band<ProbabilityBand> {
   return { band: "baixa", score: 1 };
 }
 
-/** Severidade a partir da célula prioritária mais forte do driver (P0/crítico = mais severo). */
-function severityFromRegistry(
+/**
+ * Severidade a partir da célula prioritária mais forte do driver (P0/crítico = mais severo).
+ * Exportado para composição: o reavaliacao-engine lê a mesma severidade canônica, sem duplicar.
+ */
+export function driverSeverity(
   registry: CrosswalkRegistry,
   driverId: string,
 ): { band: SeverityBand; score: number; hypothesis: string | null; evidence: string | null } {
@@ -302,7 +305,7 @@ export function buildPgrPlan(input: PgrInput): PgrPlan {
     const driver = driverById.get(need.driverId)!;
     const load = need.topDimension?.load ?? 0;
     const prob = probabilityFromLoad(load);
-    const sev = severityFromRegistry(registry, need.driverId);
+    const sev = driverSeverity(registry, need.driverId);
     const { level, score } = classifyRisk(prob.score, sev.score);
 
     // Medidas na hierarquia NR-01 (fonte primeiro). Riscos mais altos começam mais cedo.

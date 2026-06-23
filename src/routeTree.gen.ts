@@ -49,6 +49,7 @@ import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as FechamentoRouteImport } from './routes/fechamento'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
+import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
 import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
@@ -270,6 +271,11 @@ const ExperimentosRoute = ExperimentosRouteImport.update({
   path: '/experimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvolucaoNr1Route = EvolucaoNr1RouteImport.update({
+  id: '/evolucao-nr1',
+  path: '/evolucao-nr1',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EvolucaoRoute = EvolucaoRouteImport.update({
   id: '/evolucao',
   path: '/evolucao',
@@ -391,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
+  '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -453,6 +460,7 @@ export interface FileRoutesByTo {
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
+  '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -516,6 +524,7 @@ export interface FileRoutesById {
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
+  '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -580,6 +589,7 @@ export interface FileRouteTypes {
     | '/escola'
     | '/esg'
     | '/evolucao'
+    | '/evolucao-nr1'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -642,6 +652,7 @@ export interface FileRouteTypes {
     | '/escola'
     | '/esg'
     | '/evolucao'
+    | '/evolucao-nr1'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/escola'
     | '/esg'
     | '/evolucao'
+    | '/evolucao-nr1'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -767,6 +779,7 @@ export interface RootRouteChildren {
   EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
   EvolucaoRoute: typeof EvolucaoRoute
+  EvolucaoNr1Route: typeof EvolucaoNr1Route
   ExperimentosRoute: typeof ExperimentosRoute
   FechamentoRoute: typeof FechamentoRoute
   FibtRoute: typeof FibtRoute
@@ -1092,6 +1105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evolucao-nr1': {
+      id: '/evolucao-nr1'
+      path: '/evolucao-nr1'
+      fullPath: '/evolucao-nr1'
+      preLoaderRoute: typeof EvolucaoNr1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/evolucao': {
       id: '/evolucao'
       path: '/evolucao'
@@ -1255,6 +1275,7 @@ const rootRouteChildren: RootRouteChildren = {
   EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,
   EvolucaoRoute: EvolucaoRoute,
+  EvolucaoNr1Route: EvolucaoNr1Route,
   ExperimentosRoute: ExperimentosRoute,
   FechamentoRoute: FechamentoRoute,
   FibtRoute: FibtRoute,
