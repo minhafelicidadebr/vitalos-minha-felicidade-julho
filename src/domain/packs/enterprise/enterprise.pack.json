@@ -303,6 +303,21 @@
       "group": "gestao"
     },
     {
+      "id": "review",
+      "label": "Revisão Espaçada",
+      "roles": [
+        "COLABORADOR",
+        "EMBAIXADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "HOLDING_ADMIN",
+        "GESTOR_CARTEIRA"
+      ],
+      "group": "gestao"
+    },
+    {
       "id": "living_map",
       "label": "Mapa Vivo",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"],
@@ -311,6 +326,20 @@
     {
       "id": "domain_b",
       "label": "SST & NR-1",
+      "roles": ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO"],
+      "domain": "B",
+      "group": "gestao"
+    },
+    {
+      "id": "matrix",
+      "label": "Matriz NR-1",
+      "roles": ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO"],
+      "domain": "B",
+      "group": "gestao"
+    },
+    {
+      "id": "drivers",
+      "label": "Drivers de Trabalho",
       "roles": ["SST_PROFISSIONAL", "CIPA_MEMBRO", "RH_ADMIN", "CHRO"],
       "domain": "B",
       "group": "gestao"
