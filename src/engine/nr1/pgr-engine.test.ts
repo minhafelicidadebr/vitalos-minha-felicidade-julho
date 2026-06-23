@@ -102,6 +102,38 @@ describe("pgr-engine — montagem do programa", () => {
     expect(plan.disclaimer).toMatch(/não substitui/i);
   });
 
+  test("prioridade e prazo seguem o nível de risco (Guia MTE 2026, Quadro 5)", () => {
+    const expectByLevel: Record<string, { priority: string; months: number | null }> = {
+      critico: { priority: "altissima", months: null },
+      alto: { priority: "alta", months: 3 },
+      moderado: { priority: "moderada", months: 9 },
+      baixo: { priority: "baixa", months: null },
+    };
+    for (const r of plan.risks) {
+      const e = expectByLevel[r.riskLevel]!;
+      expect(r.priority).toBe(e.priority as never);
+      expect(r.deadlineMonths).toBe(e.months);
+      expect(r.deadlineLabel.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("decisão de classificação é coerente (crítico→imediato; residual baixo→tolerável)", () => {
+    for (const r of plan.risks) {
+      if (r.riskLevel === "critico") {
+        expect(r.decision).toBe("acao_imediata");
+      } else if (r.tolerable) {
+        expect(r.decision).toBe("tolerável");
+        expect(r.residual).toBe("baixo");
+      } else {
+        expect(r.decision).toBe("adotar_acoes");
+      }
+    }
+  });
+
+  test("resumo conta toleráveis + que exigem ação = total", () => {
+    expect(plan.summary.tolerableCount + plan.summary.requiresActionCount).toBe(plan.summary.total);
+  });
+
   test("determinístico: mesma entrada → mesma saída", () => {
     const a = buildPgrPlan(base);
     const b = buildPgrPlan(base);

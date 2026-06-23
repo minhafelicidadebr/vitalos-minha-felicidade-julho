@@ -67,6 +67,18 @@ export const NR1_CYCLES: CycleExposure[] = [
   },
 ];
 
+// Manutenção das medidas de fonte no tempo (Guia MTE 2026, 11.4.4 ponto 2). Honesto: a maioria
+// segue em funcionamento, mas a medida de "carga" caiu em desuso (alerta crítico do Guia: "de
+// nada adiantaria adotar uma medida que logo é colocada de lado") — então a queda de exposição de
+// carga NÃO pode ser creditada como eficácia plena. driverId → mantida (true) / em desuso (false).
+export const NR1_MEASURE_MAINTENANCE: Record<string, boolean> = {
+  carga: false, // redesenho de carga relaxou após o pico; voltou a sobrepor demandas
+  autonomia: true,
+  justica: true,
+  lideranca: true,
+  futuro: true,
+};
+
 // ─── Cópia introdutória da rota (domínio, não engine) ──────────────────────────
 
 export const REAVALIACAO_INTRO = {

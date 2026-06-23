@@ -6,12 +6,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { buildReavaliacao, type RiskTrend } from "@/engine/nr1/reavaliacao-engine";
 import { buildPgrPlan, RISK_LABEL, type RiskLevel } from "@/engine/nr1/pgr-engine";
 import { NR1_CROSSWALK, DEMO_COPSOQ_EXPOSURE } from "@/mocks/nr1-crosswalk-mock";
-import { NR1_CYCLES, REAVALIACAO_INTRO } from "@/mocks/nr1-reavaliacao-mock";
+import {
+  NR1_CYCLES,
+  NR1_MEASURE_MAINTENANCE,
+  REAVALIACAO_INTRO,
+} from "@/mocks/nr1-reavaliacao-mock";
 import { PGR_MEASURES } from "@/mocks/pgr-nr1-mock";
 
 export const Route = createFileRoute("/evolucao-nr1")({
@@ -66,7 +70,12 @@ function ReavaliacaoPage() {
       horizonWeeks: 13,
       topRisks: 5,
     });
-    return buildReavaliacao({ registry: NR1_CROSSWALK, cycles: NR1_CYCLES, pgrPlan });
+    return buildReavaliacao({
+      registry: NR1_CROSSWALK,
+      cycles: NR1_CYCLES,
+      pgrPlan,
+      maintenanceByDriver: NR1_MEASURE_MAINTENANCE,
+    });
   }, []);
 
   const overall = TREND_META[result.overallTrend];
@@ -140,13 +149,26 @@ function ReavaliacaoPage() {
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               Dos{" "}
               <span className="font-semibold text-foreground">{result.efficacy.withSourceMeasure}</span>{" "}
-              drivers que receberam medida de fonte implementada no PGR,{" "}
+              drivers com medida de fonte implementada,{" "}
+              <span className="font-semibold text-foreground">{result.efficacy.maintained}</span>{" "}
+              seguem com a medida mantida no tempo — e desses,{" "}
               <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                 {result.efficacy.ofWhichImproved}
               </span>{" "}
-              baixaram de nível de risco no período. É associação orientativa — sem grupo de controle,
-              não é prova de causalidade.
+              baixaram de nível de risco. Eficácia exige hierarquia <em>e</em> manutenção (Guia MTE
+              2026, 11.4.4): é associação orientativa, não prova de causalidade.
             </p>
+            {result.efficacy.lapsed > 0 && (
+              <p className="mt-2 flex items-start gap-1.5 rounded-xl border border-amber-400/40 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>
+                  {result.efficacy.lapsed}{" "}
+                  {result.efficacy.lapsed === 1 ? "medida caiu" : "medidas caíram"} em desuso e não
+                  pode ser creditada como eficaz, ainda que a exposição tenha caído — a queda não é
+                  atribuível a uma medida abandonada.
+                </span>
+              </p>
+            )}
           </motion.section>
         )}
 

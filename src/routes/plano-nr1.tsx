@@ -25,11 +25,14 @@ import {
   HORIZON_LABEL,
   PROBABILITY_LABEL,
   RISK_LABEL,
+  DECISION_LABEL,
+  PRIORITY_LABEL,
   SEVERITY_LABEL,
   STATUS_LABEL,
   TIER_LABEL,
   type ControlTier,
   type MeasureStatus,
+  type RiskDecision,
   type RiskLevel,
 } from "@/engine/nr1/pgr-engine";
 import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
@@ -59,6 +62,12 @@ const TIER_TINT: Record<ControlTier, string> = {
   organizacao: "border-primary/20 bg-primary/[0.04] text-primary",
   administrativa: "border-border/60 bg-muted/50 text-muted-foreground",
   monitoramento: "border-border/50 bg-muted/40 text-muted-foreground",
+};
+
+const DECISION_TINT: Record<RiskDecision, string> = {
+  acao_imediata: "border-red-400/50 bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  adotar_acoes: "border-amber-400/50 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300",
+  tolerável: "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300",
 };
 
 const STATUS_ICON: Record<MeasureStatus, typeof CheckCircle2> = {
@@ -210,6 +219,21 @@ function PgrPage() {
                         Prob. {PROBABILITY_LABEL[risk.probability]} × Sev. {SEVERITY_LABEL[risk.severity]}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Classificação NR-1: prioridade · prazo · decisão (Guia MTE 2026, Quadro 5 / 11.6) */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                    <span className="rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-muted-foreground">
+                      Prioridade {PRIORITY_LABEL[risk.priority]}
+                    </span>
+                    <span className="rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-muted-foreground">
+                      Prazo: {risk.deadlineLabel}
+                    </span>
+                    <span
+                      className={`rounded-md border px-2 py-0.5 font-medium ${DECISION_TINT[risk.decision]}`}
+                    >
+                      {DECISION_LABEL[risk.decision]}
+                    </span>
                   </div>
 
                   {/* Exposição medida */}

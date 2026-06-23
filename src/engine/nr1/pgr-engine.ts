@@ -30,6 +30,11 @@ export type RiskLevel = "baixo" | "moderado" | "alto" | "critico";
 export type ProbabilityBand = "baixa" | "media" | "alta" | "muito_alta";
 export type SeverityBand = "leve" | "moderada" | "alta" | "severa";
 
+/** Prioridade de ação NR-01 (Guia MTE 2026, Quadro 5) — derivada do nível de risco. */
+export type RiskPriority = "altissima" | "alta" | "moderada" | "baixa";
+/** Decisão de classificação do risco (NR-1 subitem 1.5.4.4.3 / Guia 11.6). */
+export type RiskDecision = "acao_imediata" | "adotar_acoes" | "tolerável";
+
 /** Hierarquia de controle NR-01 (ordem = precedência: fonte primeiro, indivíduo nunca isolado). */
 export type ControlTier = "eliminacao" | "organizacao" | "administrativa" | "monitoramento";
 export type MeasureHorizon = "curto" | "medio" | "estrutural";
@@ -85,6 +90,16 @@ export interface PgrRisk {
   riskScore: number;
   probability: ProbabilityBand;
   severity: SeverityBand;
+  /** Prioridade de ação derivada do nível de risco (Guia MTE 2026, Quadro 5). */
+  priority: RiskPriority;
+  /** Prazo legal de tratamento amarrado ao nível de risco (Quadro 5). */
+  deadlineLabel: string;
+  /** Teto do prazo em meses (null = imediato/contínuo). */
+  deadlineMonths: number | null;
+  /** Decisão de classificação (1.5.4.4.3 / Guia 11.6): agir ou tolerar. */
+  decision: RiskDecision;
+  /** True quando o risco residual é aceitável/tolerável (todas as medidas exigíveis em curso). */
+  tolerable: boolean;
   /** Exposição medida da dimensão COPSOQ mais forte do driver (0..100). */
   load: number;
   topDimension: { id: string; label: string; load: number } | null;
@@ -108,6 +123,10 @@ export interface PgrSummary {
   coverage: number;
   /** Maior risco residual remanescente no programa. */
   topResidual: RiskLevel;
+  /** Riscos classificados como toleráveis (residual baixo). */
+  tolerableCount: number;
+  /** Riscos que ainda exigem ação (não toleráveis). */
+  requiresActionCount: number;
 }
 
 export interface PgrPlan {
@@ -161,6 +180,36 @@ export const STATUS_LABEL: Record<MeasureStatus, string> = {
   planejada: "Planejada",
   em_andamento: "Em andamento",
   implementada: "Implementada",
+};
+
+export const PRIORITY_LABEL: Record<RiskPriority, string> = {
+  altissima: "Altíssima",
+  alta: "Alta",
+  moderada: "Moderada",
+  baixa: "Baixa",
+};
+
+export const DECISION_LABEL: Record<RiskDecision, string> = {
+  acao_imediata: "Ação corretiva imediata",
+  adotar_acoes: "Adotar medidas de controle",
+  tolerável: "Tolerável — manter e monitorar",
+};
+
+// ─── Classificação de risco → prioridade/prazo (Guia MTE 2026, Quadro 5) ─────────
+// Crítico→imediato · Alto→<3 meses · Moderado→<9 meses · Baixo→monitoramento contínuo.
+
+const PRIORITY_BY_LEVEL: Record<RiskLevel, RiskPriority> = {
+  critico: "altissima",
+  alto: "alta",
+  moderado: "moderada",
+  baixo: "baixa",
+};
+
+const DEADLINE_BY_LEVEL: Record<RiskLevel, { label: string; months: number | null }> = {
+  critico: { label: "Imediato", months: null },
+  alto: { label: "Menor que 3 meses", months: 3 },
+  moderado: { label: "Menor que 9 meses", months: 9 },
+  baixo: { label: "Monitoramento contínuo", months: null },
 };
 
 // ─── Constantes da matriz e do scheduling ───────────────────────────────────────
@@ -330,6 +379,14 @@ export function buildPgrPlan(input: PgrInput): PgrPlan {
       };
     });
 
+    // Classificação NR-1 (1.5.4.4.3 / Guia 11.6): prioridade e prazo pelo nível; tolerabilidade
+    // pelo residual — risco é tolerável quando as medidas exigíveis o trazem a nível baixo.
+    const residual = residualRisk(level, planMeasures);
+    const deadline = DEADLINE_BY_LEVEL[level];
+    const tolerable = residual === "baixo";
+    const decision: RiskDecision =
+      level === "critico" ? "acao_imediata" : tolerable ? "tolerável" : "adotar_acoes";
+
     return {
       driverId: driver.id,
       label: driver.label,
@@ -338,12 +395,17 @@ export function buildPgrPlan(input: PgrInput): PgrPlan {
       riskScore: score,
       probability: prob.band,
       severity: sev.band,
+      priority: PRIORITY_BY_LEVEL[level],
+      deadlineLabel: deadline.label,
+      deadlineMonths: deadline.months,
+      decision,
+      tolerable,
       load,
       topDimension: need.topDimension,
       hypothesis: sev.hypothesis,
       evidence: sev.evidence,
       measures: planMeasures,
-      residual: residualRisk(level, planMeasures),
+      residual,
     };
   });
 
@@ -365,6 +427,8 @@ export function buildPgrPlan(input: PgrInput): PgrPlan {
       (acc, r) => (RISK_RANK[r.residual] > RISK_RANK[acc] ? r.residual : acc),
       "baixo",
     ),
+    tolerableCount: risks.filter((r) => r.tolerable).length,
+    requiresActionCount: risks.filter((r) => !r.tolerable).length,
   };
 
   return {

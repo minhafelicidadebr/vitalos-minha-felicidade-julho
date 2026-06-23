@@ -81,7 +81,32 @@ describe("reavaliacao-engine — eficácia honesta (composição com o PGR)", ()
     expect(result.efficacy).not.toBeNull();
     expect(result.efficacy!.withSourceMeasure).toBeGreaterThan(0);
     expect(result.efficacy!.ofWhichImproved).toBeGreaterThan(0);
-    expect(result.efficacy!.ofWhichImproved).toBeLessThanOrEqual(result.efficacy!.withSourceMeasure);
+    expect(result.efficacy!.ofWhichImproved).toBeLessThanOrEqual(result.efficacy!.maintained);
+  });
+
+  test("manutenção (11.4.4): medida em desuso não é creditada como eficaz", () => {
+    const pgrPlan = buildPgrPlan({
+      registry: NR1_CROSSWALK,
+      exposures: DEMO_COPSOQ_EXPOSURE,
+      measures: PGR_MEASURES,
+      generatedAt: "2026-03-31",
+      currentWeek: 13,
+      horizonWeeks: 13,
+      topRisks: 5,
+    });
+    // carga melhora a exposição, MAS a medida caiu em desuso → não pode ser creditada.
+    const withLapse = buildReavaliacao({
+      ...base,
+      pgrPlan,
+      maintenanceByDriver: { carga: false },
+    });
+    const allMaintained = buildReavaliacao({ ...base, pgrPlan });
+
+    expect(withLapse.efficacy!.lapsed).toBeGreaterThan(0);
+    expect(withLapse.efficacy!.lapsedDriverIds).toContain("carga");
+    expect(withLapse.efficacy!.maintained).toBe(withLapse.efficacy!.withSourceMeasure - withLapse.efficacy!.lapsed);
+    // creditar menos quando uma medida que melhorou caiu em desuso
+    expect(withLapse.efficacy!.ofWhichImproved).toBeLessThan(allMaintained.efficacy!.ofWhichImproved);
   });
 
   test("sem PGR, eficácia é null (não inventa atribuição)", () => {

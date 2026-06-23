@@ -37,6 +37,12 @@ export interface ReavaliacaoInput {
   cycles: CycleExposure[];
   /** PGR do período — para a leitura honesta de eficácia (medidas de fonte implementadas). */
   pgrPlan?: PgrPlan;
+  /**
+   * Manutenção das medidas no tempo (Guia MTE 2026, 11.4.4 ponto 2): driverId → a medida de fonte
+   * implementada segue em funcionamento/manutenção (true) ou caiu em desuso/burla (false). Ausente
+   * = assume mantida. Uma medida não-mantida NÃO é creditada como eficaz.
+   */
+  maintenanceByDriver?: Record<string, boolean>;
 }
 
 export interface EvolutionPoint {
@@ -80,9 +86,15 @@ export interface CycleAggregate {
 export interface ReavaliacaoEfficacy {
   /** Drivers que receberam ≥1 medida de FONTE implementada no PGR. */
   withSourceMeasure: number;
-  /** Desses, quantos melhoraram de nível de risco. */
+  /** Desses, quantos seguem com a medida mantida no tempo (não caíram em desuso). */
+  maintained: number;
+  /** Implementadas mas em desuso/burla — NÃO creditadas como eficazes (11.4.4 ponto 2). */
+  lapsed: number;
+  /** Dos mantidos, quantos melhoraram de nível de risco (eficácia plena: hierarquia + manutenção). */
   ofWhichImproved: number;
   driverIds: string[];
+  /** Drivers cuja medida caiu em desuso (alerta de eficácia comprometida). */
+  lapsedDriverIds: string[];
 }
 
 export interface ReavaliacaoResult {
@@ -163,7 +175,7 @@ function meanVisibleLoad(
 }
 
 export function buildReavaliacao(input: ReavaliacaoInput): ReavaliacaoResult {
-  const { registry, cycles, pgrPlan } = input;
+  const { registry, cycles, pgrPlan, maintenanceByDriver } = input;
 
   const disclaimer =
     "Leitura longitudinal da exposição psicossocial medida (COPSOQ agregado, k-anonimato ≥ 5). A " +
@@ -238,7 +250,9 @@ export function buildReavaliacao(input: ReavaliacaoInput): ReavaliacaoResult {
   const meanLast = cycleAggs[cycleAggs.length - 1]!.meanLoad;
   const meanDelta = meanLast - meanFirst;
 
-  // Eficácia honesta: drivers com medida de FONTE implementada no PGR que também melhoraram.
+  // Eficácia honesta (Guia 11.4.4): exige DUAS condições — (1) atendimento à hierarquia (medida de
+  // FONTE implementada) E (2) manutenção no tempo. Uma medida em desuso/burla NÃO é creditada,
+  // mesmo que o risco tenha caído (a queda não pode ser atribuída a ela).
   let efficacy: ReavaliacaoEfficacy | null = null;
   if (pgrPlan) {
     const sourceTiers = new Set(["eliminacao", "organizacao"]);
@@ -248,10 +262,17 @@ export function buildReavaliacao(input: ReavaliacaoInput): ReavaliacaoResult {
         r.measures.some((m) => sourceTiers.has(m.tier) && m.status === "implementada"),
       )
       .map((r) => r.driverId);
+    const isMaintained = (id: string) => maintenanceByDriver?.[id] ?? true;
+    const maintained = withSource.filter(isMaintained);
+    const lapsedDriverIds = withSource.filter((id) => !isMaintained(id));
     efficacy = {
       withSourceMeasure: withSource.length,
-      ofWhichImproved: withSource.filter((id) => improvedSet.has(id)).length,
+      maintained: maintained.length,
+      lapsed: lapsedDriverIds.length,
+      // Só medidas MANTIDAS podem ser creditadas pela melhora.
+      ofWhichImproved: maintained.filter((id) => improvedSet.has(id)).length,
       driverIds: withSource,
+      lapsedDriverIds,
     };
   }
 
