@@ -7,7 +7,7 @@ import enterprisePack from "@/domain/packs/enterprise/enterprise.pack.json";
 import ivoFramework from "@/domain/packs/enterprise/ivo-framework.json";
 import ievFramework from "@/domain/packs/school/iev-framework.json";
 import { FIBT_INSTRUMENT, FIBT_INTRO } from "@/mocks/fibt-mock";
-import { VIAT_DEMO_ITEMS, VIAT_INTRO, VIAT_ITEM_TEXT } from "@/mocks/viat-mock";
+import { VIAT_INSTRUMENT, VIAT_INTRO, VIAT_ITEM_TEXT } from "@/mocks/viat-mock";
 
 const AGREEMENT_SCALE: SurveyScale = {
   presentation: "buttons",
@@ -58,78 +58,105 @@ const VIAT_SCALE: SurveyScale = {
   maxLabel: "10 — Descreve muito",
 };
 
+// PERMA+V — 15 itens validados (P/E/R/M/A). Fonte: Seligman (2011) + validação brasileira 2026.
+// A bateria nativa do PERMA-Profiler é 0–10; aqui o IVO administra na escala unificada 1–5 do
+// framework (responseScale do ivo-framework.json) — adaptação declarada. pillarId mapeia ao pilar
+// IVO primário (ver PERMA_TRABALHO.md), cobrindo as 4 lentes EU/NÓS/LIDERANÇA/ORGANIZAÇÃO.
 export const PERMA_ITEMS: SurveyItem[] = [
+  // P — Emoções Positivas
   {
-    id: "p-eng-1",
-    pillarId: "proposito_significado",
-    section: "EU",
-    text: "Sinto que o meu trabalho tem propósito e significado.",
-  },
-  {
-    id: "p-eng-2",
-    pillarId: "crescimento_maestria",
-    section: "EU",
-    text: "Tenho oportunidades de aprender e crescer aqui.",
-  },
-  {
-    id: "p-eng-3",
+    id: "perma-p1",
     pillarId: "energia_vitalidade",
-    section: "EU",
-    text: "Na maior parte dos dias, chego ao fim com energia razoável.",
+    section: "Emoções Positivas",
+    text: "No trabalho, com que frequência você se sente bem?",
   },
   {
-    id: "p-eng-4",
+    id: "perma-p2",
+    pillarId: "energia_vitalidade",
+    section: "Emoções Positivas",
+    text: "No trabalho, com que frequência você se sente positivo/a?",
+  },
+  {
+    id: "perma-p3",
+    pillarId: "energia_vitalidade",
+    section: "Emoções Positivas",
+    text: "No trabalho, em que medida você se sente satisfeito/a?",
+  },
+  // E — Engajamento
+  {
+    id: "perma-e1",
+    pillarId: "crescimento_maestria",
+    section: "Engajamento",
+    text: "No trabalho, com que frequência você se envolve no que está fazendo?",
+  },
+  {
+    id: "perma-e2",
+    pillarId: "crescimento_maestria",
+    section: "Engajamento",
+    text: "Até que ponto você se sente animado e interessado no seu trabalho?",
+  },
+  {
+    id: "perma-e3",
     pillarId: "equilibrio_autonomia",
-    section: "EU",
-    text: "Consigo equilibrar as demandas do trabalho com a minha vida.",
+    section: "Engajamento",
+    text: "No trabalho, com que frequência o tempo passa rápido quando você faz algo de que gosta?",
   },
+  // R — Relacionamentos
   {
-    id: "p-nos-1",
-    pillarId: "seguranca_psicologica",
-    section: "NÓS",
-    text: "Sinto-me seguro(a) para expor ideias e admitir erros.",
-  },
-  {
-    id: "p-nos-2",
+    id: "perma-r1",
     pillarId: "cooperacao_confianca",
-    section: "NÓS",
-    text: "Há cooperação e confiança entre as pessoas da minha equipe.",
+    section: "Relacionamentos",
+    text: "Até que ponto você recebe ajuda e apoio dos colegas de trabalho quando precisa?",
   },
   {
-    id: "p-nos-3",
+    id: "perma-r2",
     pillarId: "reconhecimento_pares",
-    section: "NÓS",
-    text: "O bom trabalho costuma ser reconhecido entre os pares.",
+    section: "Relacionamentos",
+    text: "Até que ponto você se sente apreciado pelos seus colegas de trabalho?",
   },
   {
-    id: "p-nos-4",
+    id: "perma-r3",
     pillarId: "comunicacao_pertencimento",
-    section: "NÓS",
-    text: "Sinto que pertenço e que a comunicação é clara.",
+    section: "Relacionamentos",
+    text: "Quão satisfeito você está com suas relações profissionais?",
+  },
+  // M — Significado
+  {
+    id: "perma-m1",
+    pillarId: "proposito_significado",
+    section: "Significado",
+    text: "Até que ponto o seu trabalho tem propósito e significado?",
   },
   {
-    id: "p-lid-1",
-    pillarId: "clareza_direcao",
-    section: "LIDERANÇA",
-    text: "Tenho clareza sobre a direção e o que se espera de mim.",
+    id: "perma-m2",
+    pillarId: "proposito_significado",
+    section: "Significado",
+    text: "Em geral, até que ponto você acha que o que faz no trabalho vale a pena?",
   },
   {
-    id: "p-lid-2",
-    pillarId: "justica_coerencia",
-    section: "LIDERANÇA",
-    text: "As decisões da liderança são justas e coerentes.",
-  },
-  {
-    id: "p-org-1",
-    pillarId: "condicoes_carga",
-    section: "ORGANIZAÇÃO",
-    text: "Minha carga de trabalho é sustentável na maioria das semanas.",
-  },
-  {
-    id: "p-org-2",
+    id: "perma-m3",
     pillarId: "cultura_bem_estar",
-    section: "ORGANIZAÇÃO",
-    text: "A cultura daqui leva o bem-estar a sério, na prática.",
+    section: "Significado",
+    text: "De maneira geral, até que ponto você sente que tem um senso de direção no trabalho?",
+  },
+  // A — Realização
+  {
+    id: "perma-a1",
+    pillarId: "crescimento_maestria",
+    section: "Realização",
+    text: "Com que frequência você sente que está progredindo rumo aos seus objetivos no trabalho?",
+  },
+  {
+    id: "perma-a2",
+    pillarId: "crescimento_maestria",
+    section: "Realização",
+    text: "Com que frequência você alcança as metas de trabalho importantes que definiu para si?",
+  },
+  {
+    id: "perma-a3",
+    pillarId: "desenvolvimento_pessoas",
+    section: "Realização",
+    text: "No trabalho, com que frequência você se sente capaz?",
   },
 ];
 
@@ -220,12 +247,19 @@ const FIBT_ITEMS: SurveyItem[] = FIBT_INSTRUMENT.items.map((item) => ({
   text: item.text,
 }));
 
-const VIAT_ITEMS: SurveyItem[] = VIAT_DEMO_ITEMS.map((item) => ({
-  id: item.itemId,
-  pillarId: item.itemId.startsWith("icuft_") ? "icuft" : item.section,
-  section: item.section,
-  text: VIAT_ITEM_TEXT[item.itemId] ?? item.itemId,
-}));
+// VIA-T integral: 24 forças × 2 itens (48), derivado da definição canônica VIAT_INSTRUMENT.
+// O ICUFT (10 itens de contexto organizacional) acompanha a bateria como módulo separado.
+const VIAT_VIRTUE_NAME: Record<string, string> = Object.fromEntries(
+  VIAT_INSTRUMENT.virtues.map((virtue) => [virtue.id, virtue.name]),
+);
+const VIAT_ITEMS: SurveyItem[] = VIAT_INSTRUMENT.strengths.flatMap((strength) =>
+  strength.itemIds.map((itemId) => ({
+    id: itemId,
+    pillarId: strength.id,
+    section: VIAT_VIRTUE_NAME[strength.virtueId] ?? strength.virtueId,
+    text: VIAT_ITEM_TEXT[itemId] ?? itemId,
+  })),
+);
 
 const DOMAIN_B_DISCLAIMER = (
   enterprisePack.domainB as {
@@ -285,8 +319,8 @@ const DEFINITIONS: Record<string, SurveyDefinition> = {
     intro: {
       eyebrow: "Onda Ativa · Florescimento · Responder",
       lead:
-        "Doze perguntas demonstrativas, poucos minutos. Não há resposta certa — só a sua " +
-        "percepção honesta. Tudo entra no agregado (n≥5).",
+        "Quinze perguntas do PERMA+V (validação BR 2026), poucos minutos. Não há resposta certa — " +
+        "só a sua percepção honesta. Tudo entra no agregado (n≥5).",
       disclaimer: IVO_DISCLAIMER,
       thanksTitle: "Obrigado — sua voz foi registrada",
       thanksBody:
@@ -304,8 +338,8 @@ const DEFINITIONS: Record<string, SurveyDefinition> = {
     intro: {
       eyebrow: "Onda Ativa · Forças · Responder",
       lead:
-        "Este recorte demonstrativo percorre forças percebidas e condições de uso das forças. A " +
-        "bateria recomendada completa possui 48 itens mais ICUFT.",
+        "A bateria completa percorre as 24 forças de caráter no trabalho (48 itens). Responda pela " +
+        "sua percepção — nada vira diagnóstico, ranking ou comparação individual.",
       disclaimer: VIAT_INTRO.disclaimer,
       thanksTitle: "Obrigado — seu mapa demonstrativo foi registrado",
       thanksBody:
