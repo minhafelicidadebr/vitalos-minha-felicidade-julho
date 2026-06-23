@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
+  Brain,
   Grid3x3,
   Layers,
   MessageCircle,
@@ -17,6 +18,7 @@ import {
   Sprout,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
+import { DriverMindMapSvg } from "@/app/nr1/DriverMindMapSvg";
 import { driverProfile, type DimensionLink, type Priority } from "@/engine/nr1/crosswalk-engine";
 import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK as R } from "@/mocks/nr1-crosswalk-mock";
 
@@ -119,6 +121,35 @@ function DriverWorldPage() {
             </p>
           )}
         </motion.header>
+
+        {/* Mapa Mental — cartografia cognitiva das intersecções */}
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
+        >
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Brain className="h-4 w-4" aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-sm font-semibold text-card-foreground">Mapa mental</h2>
+              <p className="text-[11px] text-muted-foreground">
+                Cartografia cognitiva — COPSOQ II (risco) à esquerda, FIB-T (ecossistema) à
+                direita, pilares IVO abaixo. Toque numa dimensão para ver detalhes.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <DriverMindMapSvg
+              registry={R}
+              driverId={driverId}
+              exposures={DEMO_COPSOQ_EXPOSURE}
+              pillarLabels={PILLAR_LABEL}
+            />
+          </div>
+        </motion.section>
 
         {/* Snapshot — pilares IVO reconciliados */}
         <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
