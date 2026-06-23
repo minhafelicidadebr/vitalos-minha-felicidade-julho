@@ -224,8 +224,11 @@ function DriverWorldPage() {
               to="/copilota"
               icon={MessageCircle}
               title="Falar com o mentor"
-              desc="Copiloto aterrado, com citação e sem alucinar."
-              search={{ q: `Como agir sobre ${driver.label} no trabalho real, em camadas (organização, liderança, equipe), e medir a eficácia?` }}
+              desc="Mentor escopado a este driver — com citação e sem alucinar."
+              search={{
+                driver: driver.id,
+                q: `Como agir sobre ${driver.label} no trabalho real, em camadas (organização, liderança, equipe), e medir a eficácia?`,
+              }}
             />
           </div>
         </section>
@@ -295,7 +298,7 @@ function ActionLink({
   icon: typeof Microscope;
   title: string;
   desc: string;
-  search?: { q: string };
+  search?: { q?: string; driver?: string };
 }) {
   return (
     <Link

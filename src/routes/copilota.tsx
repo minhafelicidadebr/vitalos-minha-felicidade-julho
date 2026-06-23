@@ -4,6 +4,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
+  Compass,
   Download,
   HeartHandshake,
   Lightbulb,
@@ -34,12 +35,14 @@ import {
 } from "@/mocks/copilot-knowledge";
 import { getSectorData } from "@/mocks/sector-data";
 import { MOMENTUM_COPY } from "@/mocks/trend-mock";
+import { driverLabel, scopeKnowledgeToDriver } from "@/mocks/driver-mentor-knowledge";
 
 export const Route = createFileRoute("/copilota")({
   head: () => ({ meta: [{ title: "Copiloto setorial — VitalOS™" }] }),
-  // Permite deep-link com pergunta pré-preenchida: /copilota?q=...
-  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+  // Deep-link: /copilota?q=pergunta&driver=carga (mentor escopado a um driver).
+  validateSearch: (search: Record<string, unknown>): { q?: string; driver?: string } => ({
     q: typeof search.q === "string" ? search.q : undefined,
+    driver: typeof search.driver === "string" ? search.driver : undefined,
   }),
   component: CopilotaPage,
 });
@@ -135,7 +138,12 @@ function CopilotaChat() {
       ),
     [pack],
   );
-  const kb = useMemo(() => buildCopilotKnowledge(pack as never, index as never), [pack, index]);
+  const { q: seededQuestion, driver: driverParam } = Route.useSearch();
+  const mentorLabel = driverParam ? driverLabel(driverParam) : null;
+  const kb = useMemo(() => {
+    const built = buildCopilotKnowledge(pack as never, index as never);
+    return driverParam ? scopeKnowledgeToDriver(built, driverParam) : built;
+  }, [pack, index, driverParam]);
 
   const facts = useMemo(() => {
     const sector = getSectorData(packId);
@@ -177,7 +185,6 @@ function CopilotaChat() {
     };
   }, [index, packId, kb.indexLabel]);
 
-  const { q: seededQuestion } = Route.useSearch();
   const [pov, setPov] = useState<CopilotPov>("tecnico");
   const [input, setInput] = useState(seededQuestion ?? "");
 
@@ -225,9 +232,16 @@ function CopilotaChat() {
             </span>
           </div>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{persona.tagline}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Leio {kb.indexFull} de {facts.orgName} — só agregados, com fontes citadas.
-          </p>
+          {mentorLabel ? (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              <Compass className="h-3 w-3" aria-hidden />
+              Mentor do driver · {mentorLabel}
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Leio {kb.indexFull} de {facts.orgName} — só agregados, com fontes citadas.
+            </p>
+          )}
         </div>
       </header>
 
