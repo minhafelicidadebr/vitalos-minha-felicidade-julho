@@ -75,25 +75,32 @@ export const INSTRUMENT_REGISTRY: InstrumentRegistryEntry[] = [
   {
     id: "copsoq",
     instrumentShort: "COPSOQ",
-    label: "COPSOQ — Riscos psicossociais (demonstrativo)",
-    version: "br-curto.demo.1",
+    label: "COPSOQ — Riscos psicossociais (cobertura integral, demonstrativo)",
+    version: "br-medio.estrutural.1",
     validationStatus: "demonstrativo",
     domain: "B",
     sources: [
       {
         citation:
-          "COPSOQ II / NCOPSII — subconjunto curado da versão curta (BR). Não validado nesta forma.",
+          "COPSOQ II — Kristensen et al. (NRCWE, 2005); Manual PT (Silva et al., 2013). Estrutura de 12 dimensões + 2 desfechos.",
+      },
+      {
+        citation:
+          "Guia MTE/SIT — Fatores de Risco Psicossocial (2026); NR-1 e NR-17. Categorias de risco psicossocial obrigatórias.",
       },
     ],
-    servedItemCount: 9,
+    servedItemCount: 41,
     integralItemCount: 41,
     scoreRange: { min: 1, max: 5 },
-    isIntegralServed: false,
+    isIntegralServed: true,
     isValidatedNCOPSII: false,
     notes:
-      "9 itens demonstrativos de dimensões da versão curta. NÃO é a NCOPSII validada (41 itens). " +
-      "Alvo de expansão integral com fonte licenciada e rótulo de versão correto. Domínio B — nunca " +
-      "diagnóstico individual; conclusão de GRO/PGR exige profissional habilitado.",
+      "41 itens cobrindo as 12 dimensões de exposição psicossocial da NR-1 + 2 desfechos (burnout e " +
+      "comportamentos ofensivos). 'Integral' é cobertura ESTRUTURAL (todas as dimensões), não alegação " +
+      "de validação: a REDAÇÃO é demonstrativa/adaptada — isValidatedNCOPSII permanece false. Não é a " +
+      "NCOPSII licenciada e validada. Domínio B — nunca diagnóstico individual; cada item mapeia ao id de " +
+      "dimensão do NR1_CROSSWALK (alimenta rankDriversByExposure). Conclusão de GRO/PGR exige a versão " +
+      "licenciada e profissional habilitado.",
   },
 ];
 

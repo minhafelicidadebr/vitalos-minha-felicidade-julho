@@ -38,7 +38,7 @@ describe("instrument-registry — reconciliação documentado === ativo", () => 
     { short: "PERMA+V / IVO", expected: 15 },
     { short: "FIB-T", expected: 32 },
     { short: "VIA-T", expected: 48 },
-    { short: "COPSOQ", expected: 9 },
+    { short: "COPSOQ", expected: 41 },
   ];
 
   for (const { short, expected } of cases) {
@@ -52,9 +52,9 @@ describe("instrument-registry — reconciliação documentado === ativo", () => 
   }
 });
 
-describe("instrument-registry — instrumentos integrais vs subconjunto", () => {
-  test("PERMA+V, FIB-T e VIA-T são servidos integralmente", () => {
-    for (const short of ["PERMA+V / IVO", "FIB-T", "VIA-T"]) {
+describe("instrument-registry — instrumentos integrais", () => {
+  test("PERMA+V, FIB-T, VIA-T e COPSOQ são servidos integralmente (cobertura estrutural)", () => {
+    for (const short of ["PERMA+V / IVO", "FIB-T", "VIA-T", "COPSOQ"]) {
       const entry = getInstrumentEntry(INSTRUMENT_REGISTRY, short)!;
       expect(entry.isIntegralServed).toBe(true);
       const recon = reconcileInstrument(entry, getWaveSurvey("enterprise", short)!.items.length);
@@ -62,12 +62,16 @@ describe("instrument-registry — instrumentos integrais vs subconjunto", () => 
     }
   });
 
-  test("COPSOQ é um subconjunto honesto (9 de 41), com lacuna rastreável", () => {
+  test("COPSOQ tem cobertura integral (41/41) mas NUNCA alega validação NCOPSII", () => {
+    // A honestidade dos dois eixos: cobertura estrutural completa (isIntegralServed)
+    // é ortogonal à validação (isValidatedNCOPSII). 'Integral' ≠ 'validado'.
     const entry = getInstrumentEntry(INSTRUMENT_REGISTRY, "COPSOQ")!;
-    expect(entry.isIntegralServed).toBe(false);
-    expect(entry.isValidatedNCOPSII).toBe(false);
+    expect(entry.isIntegralServed).toBe(true); // cobre todas as dimensões
+    expect(entry.isValidatedNCOPSII).toBe(false); // redação demonstrativa, não licenciada
+    expect(entry.validationStatus).toBe("demonstrativo");
+    expect(assertValidatedClaim(entry)).toBe(false); // não pode alegar validação
     const recon = reconcileInstrument(entry, getWaveSurvey("enterprise", "COPSOQ")!.items.length);
-    expect(recon.gapToIntegral).toBe(32); // 41 integral − 9 servidos
+    expect(recon.gapToIntegral).toBe(0);
   });
 });
 

@@ -183,61 +183,77 @@ function itemsFromIndex(framework: IndexFrameworkLike): SurveyItem[] {
 
 const IEV_ITEMS = itemsFromIndex(ievFramework as IndexFrameworkLike);
 
+// COPSOQ — bateria dimensional integral (versão média estruturada, redação demonstrativa).
+// Cobre as 12 dimensões de exposição psicossocial da NR-1 + 2 desfechos (burnout e
+// comportamentos ofensivos), num total de 41 itens. Cada `pillarId` é o id canônico da
+// dimensão no NR1_CROSSWALK (nr1-crosswalk-mock) — fonte única que liga resposta → exposição
+// → priorização de drivers (rankDriversByExposure). Isto COMPÕE o crosswalk, não duplica.
+//
+// HONESTIDADE (Fable 5 §3/§8): a REDAÇÃO destes itens é demonstrativa/adaptada — NÃO é a
+// NCOPSII licenciada e validada. O registry mantém validationStatus "demonstrativo" e
+// isValidatedNCOPSII:false. "Integral" aqui é cobertura ESTRUTURAL (todas as dimensões),
+// nunca alegação de validade. GRO/PGR exige a versão licenciada e profissional habilitado.
+//
+// `reverse: true` marca itens cuja frequência ALTA indica PIOR estado psicossocial (exigências,
+// insegurança, desfechos) — pontuação reversa na agregação (Fase 2). Itens de recurso
+// (influência, sentido, apoio, reconhecimento…) são diretos: frequência alta = melhor.
+//
+// Desfechos (burnout, comportamentos ofensivos) são EFEITO, medidos no Domínio B; nunca viram
+// célula de driver no crosswalk (guard outcomeViolations). A seção de comportamentos ofensivos
+// recebe enquadramento respeitoso — nunca se gamifica sofrimento (§9).
 const COPSOQ_ITEMS: SurveyItem[] = [
-  {
-    id: "cop-demanda",
-    pillarId: "demandas_quantitativas",
-    section: "Organização do trabalho",
-    text: "Com que frequência o volume de trabalho exige um ritmo difícil de sustentar?",
-  },
-  {
-    id: "cop-influencia",
-    pillarId: "influencia_desenvolvimento",
-    section: "Autonomia",
-    text: "Com que frequência você consegue influenciar decisões relacionadas ao seu trabalho?",
-  },
-  {
-    id: "cop-sentido",
-    pillarId: "sentido_trabalho",
-    section: "Sentido",
-    text: "Com que frequência você percebe sentido e utilidade no trabalho que realiza?",
-  },
-  {
-    id: "cop-comprometimento",
-    pillarId: "comprometimento",
-    section: "Vínculo",
-    text: "Com que frequência você se sente comprometido(a) com o seu local de trabalho?",
-  },
-  {
-    id: "cop-previsibilidade",
-    pillarId: "previsibilidade",
-    section: "Organização do trabalho",
-    text: "Com que frequência mudanças importantes são comunicadas com antecedência suficiente?",
-  },
-  {
-    id: "cop-lideranca",
-    pillarId: "transparencia_lideranca",
-    section: "Liderança",
-    text: "Com que frequência a liderança explica decisões e prioridades de forma transparente?",
-  },
-  {
-    id: "cop-suporte",
-    pillarId: "suporte_social",
-    section: "Relações",
-    text: "Com que frequência você recebe apoio de colegas ou liderança quando precisa?",
-  },
-  {
-    id: "cop-feedback",
-    pillarId: "feedback",
-    section: "Desenvolvimento",
-    text: "Com que frequência você recebe feedback útil sobre o seu trabalho?",
-  },
-  {
-    id: "cop-interface",
-    pillarId: "interface_trabalho_familia",
-    section: "Trabalho e vida",
-    text: "Com que frequência as exigências do trabalho prejudicam sua vida fora dele?",
-  },
+  // ── Exigências do trabalho ──────────────────────────────────────────────────
+  { id: "cop-dq-1", pillarId: "demands_quant", section: "Exigências do trabalho", reverse: true, text: "Com que frequência o volume de trabalho se acumula a ponto de ficar difícil dar conta?" },
+  { id: "cop-dq-2", pillarId: "demands_quant", section: "Exigências do trabalho", reverse: true, text: "Com que frequência você fica para trás com suas tarefas?" },
+  { id: "cop-dq-3", pillarId: "demands_quant", section: "Exigências do trabalho", reverse: true, text: "Com que frequência falta tempo para concluir todas as suas tarefas?" },
+  { id: "cop-wp-1", pillarId: "work_pace", section: "Exigências do trabalho", reverse: true, text: "Com que frequência você precisa trabalhar em ritmo acelerado?" },
+  { id: "cop-wp-2", pillarId: "work_pace", section: "Exigências do trabalho", reverse: true, text: "Com que frequência o ritmo de trabalho se mantém intenso ao longo de todo o dia?" },
+  { id: "cop-de-1", pillarId: "demands_emotional", section: "Exigências do trabalho", reverse: true, text: "Com que frequência seu trabalho exige lidar com situações emocionalmente difíceis?" },
+  { id: "cop-de-2", pillarId: "demands_emotional", section: "Exigências do trabalho", reverse: true, text: "Com que frequência seu trabalho exige administrar os sentimentos de outras pessoas?" },
+
+  // ── Organização e conteúdo ──────────────────────────────────────────────────
+  { id: "cop-inf-1", pillarId: "influence", section: "Organização e conteúdo", text: "Com que frequência você pode influenciar o que faz no seu trabalho?" },
+  { id: "cop-inf-2", pillarId: "influence", section: "Organização e conteúdo", text: "Com que frequência você tem voz sobre como organiza suas próprias tarefas?" },
+  { id: "cop-inf-3", pillarId: "influence", section: "Organização e conteúdo", text: "Com que frequência você participa de decisões importantes para o seu trabalho?" },
+  { id: "cop-mng-1", pillarId: "meaning", section: "Organização e conteúdo", text: "Com que frequência você percebe sentido e propósito no trabalho que realiza?" },
+  { id: "cop-mng-2", pillarId: "meaning", section: "Organização e conteúdo", text: "Com que frequência você sente que o seu trabalho é importante?" },
+  { id: "cop-mng-3", pillarId: "meaning", section: "Organização e conteúdo", text: "Com que frequência você se sente envolvido(a) e motivado(a) com o que faz?" },
+  { id: "cop-prev-1", pillarId: "predictability", section: "Organização e conteúdo", text: "Com que frequência você recebe com antecedência as informações necessárias para o seu trabalho?" },
+  { id: "cop-prev-2", pillarId: "predictability", section: "Organização e conteúdo", text: "Com que frequência mudanças importantes são comunicadas a tempo de você se preparar?" },
+  { id: "cop-role-1", pillarId: "role_clarity", section: "Organização e conteúdo", text: "Com que frequência suas responsabilidades no trabalho são claras para você?" },
+  { id: "cop-role-2", pillarId: "role_clarity", section: "Organização e conteúdo", text: "Com que frequência você sabe exatamente o que se espera de você?" },
+  { id: "cop-role-3", pillarId: "role_clarity", section: "Organização e conteúdo", text: "Com que frequência as metas do seu trabalho são claras?" },
+
+  // ── Relações e liderança ────────────────────────────────────────────────────
+  { id: "cop-lead-1", pillarId: "leadership_quality", section: "Relações e liderança", text: "Com que frequência sua liderança oferece oportunidades de desenvolvimento?" },
+  { id: "cop-lead-2", pillarId: "leadership_quality", section: "Relações e liderança", text: "Com que frequência sua liderança prioriza o bem-estar da equipe?" },
+  { id: "cop-lead-3", pillarId: "leadership_quality", section: "Relações e liderança", text: "Com que frequência sua liderança planeja bem o trabalho da equipe?" },
+  { id: "cop-lead-4", pillarId: "leadership_quality", section: "Relações e liderança", text: "Com que frequência sua liderança resolve conflitos de forma justa?" },
+  { id: "cop-supp-1", pillarId: "social_support", section: "Relações e liderança", text: "Com que frequência você recebe ajuda e apoio dos colegas quando precisa?" },
+  { id: "cop-supp-2", pillarId: "social_support", section: "Relações e liderança", text: "Com que frequência você recebe ajuda e apoio da sua liderança quando precisa?" },
+  { id: "cop-supp-3", pillarId: "social_support", section: "Relações e liderança", text: "Com que frequência seus colegas estão dispostos a ouvir seus problemas de trabalho?" },
+  { id: "cop-recog-1", pillarId: "recognition", section: "Relações e liderança", text: "Com que frequência seu trabalho é reconhecido e valorizado pela liderança?" },
+  { id: "cop-recog-2", pillarId: "recognition", section: "Relações e liderança", text: "Com que frequência você é tratado(a) de forma justa no seu trabalho?" },
+  { id: "cop-recog-3", pillarId: "recognition", section: "Relações e liderança", text: "Com que frequência o seu esforço é respeitado por quem coordena o trabalho?" },
+  { id: "cop-comm-1", pillarId: "community", section: "Relações e liderança", text: "Com que frequência existe um bom clima entre você e seus colegas?" },
+  { id: "cop-comm-2", pillarId: "community", section: "Relações e liderança", text: "Com que frequência você sente que faz parte de uma comunidade no trabalho?" },
+  { id: "cop-comm-3", pillarId: "community", section: "Relações e liderança", text: "Com que frequência há cooperação entre os colegas no seu setor?" },
+
+  // ── Interface trabalho-indivíduo ─────────────────────────────────────────────
+  { id: "cop-insec-1", pillarId: "insecurity", section: "Interface trabalho-indivíduo", reverse: true, text: "Com que frequência você se preocupa em ficar desempregado(a)?" },
+  { id: "cop-insec-2", pillarId: "insecurity", section: "Interface trabalho-indivíduo", reverse: true, text: "Com que frequência você se preocupa com mudanças indesejadas no seu trabalho?" },
+
+  // ── Saúde e bem-estar (desfecho — efeito, nunca alvo de intervenção direta) ──
+  { id: "cop-burn-1", pillarId: "burnout", section: "Saúde e bem-estar", reverse: true, text: "Com que frequência você se sente esgotado(a)?" },
+  { id: "cop-burn-2", pillarId: "burnout", section: "Saúde e bem-estar", reverse: true, text: "Com que frequência você se sente fisicamente exausto(a)?" },
+  { id: "cop-burn-3", pillarId: "burnout", section: "Saúde e bem-estar", reverse: true, text: "Com que frequência você se sente emocionalmente exausto(a)?" },
+  { id: "cop-burn-4", pillarId: "burnout", section: "Saúde e bem-estar", reverse: true, text: "Com que frequência você se sente cansado(a) já no início do dia de trabalho?" },
+
+  // ── Comportamentos ofensivos no trabalho (desfecho — enquadramento respeitoso) ──
+  { id: "cop-off-1", pillarId: "offensive_behaviors", section: "Comportamentos ofensivos no trabalho", reverse: true, text: "Nos últimos 12 meses, com que frequência você foi exposto(a) a provocações ou humilhações no trabalho?" },
+  { id: "cop-off-2", pillarId: "offensive_behaviors", section: "Comportamentos ofensivos no trabalho", reverse: true, text: "Nos últimos 12 meses, com que frequência você sofreu assédio moral no trabalho?" },
+  { id: "cop-off-3", pillarId: "offensive_behaviors", section: "Comportamentos ofensivos no trabalho", reverse: true, text: "Nos últimos 12 meses, com que frequência você foi alvo de ameaças de violência no trabalho?" },
+  { id: "cop-off-4", pillarId: "offensive_behaviors", section: "Comportamentos ofensivos no trabalho", reverse: true, text: "Nos últimos 12 meses, com que frequência você foi exposto(a) a assédio sexual no trabalho?" },
 ];
 
 const FIBT_ITEMS: SurveyItem[] = FIBT_INSTRUMENT.items.map((item) => ({
@@ -279,15 +295,19 @@ const DEFINITIONS: Record<string, SurveyDefinition> = {
     intro: {
       eyebrow: "Onda Ativa · Domínio B · Responder",
       lead:
-        "Nove perguntas demonstrativas sobre organização do trabalho. O conteúdo individual não " +
-        "é mostrado à gestão e somente agregados com n≥5 podem ser publicados.",
+        "Bateria sobre organização e relações no trabalho, cobrindo as dimensões de risco " +
+        "psicossocial da NR-1. Há uma seção final sobre situações difíceis — responda apenas " +
+        "se estiver à vontade. O conteúdo individual nunca é mostrado à gestão; somente agregados " +
+        "com n≥5 podem ser publicados.",
       disclaimer:
-        `${DOMAIN_B_DISCLAIMER} Os itens desta demonstração representam as dimensões da versão ` +
-        "curta; não substituem a aplicação profissional da NCOPSII validada.",
+        `${DOMAIN_B_DISCLAIMER} A redação destes itens é demonstrativa e cobre as dimensões da ` +
+        "NR-1; NÃO é a NCOPSII licenciada e validada. Para fins de GRO/PGR, a aplicação exige a " +
+        "versão validada e profissional legalmente habilitado.",
       thanksTitle: "Obrigado — sua participação foi registrada",
       thanksBody:
         "Sua resposta seguirá somente para o agregado protegido da onda. A interpretação para " +
-        "fins de GRO/PGR permanece responsabilidade de profissional legalmente habilitado.",
+        "fins de GRO/PGR permanece responsabilidade de profissional legalmente habilitado. Se " +
+        "alguma pergunta tocou em algo difícil, procure o canal de escuta ou apoio da sua organização.",
     },
     completionRoute: "/devolutiva",
     completionLabel: "Ver a devolutiva educativa",
