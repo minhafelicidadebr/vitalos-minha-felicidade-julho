@@ -171,7 +171,7 @@ season-consistency (3), **journey-consistency (5, fonte única da jornada)**
 - **integração ponta-a-ponta (10)** + **multipack (prova setor-agnóstico em 5 frameworks:
   IVO/Empresa, IEV/Escola, IGV/Governo, IVC/Condomínio, IVS/Saúde)**. Typecheck limpo.
 
-> **Estado atual: `bun test src` = 860 testes / 104 arquivos, 0 falhas. Build verde, tsc limpo.**
+> **Estado atual: `bun test src` = 1137 testes / 121 arquivos, 0 falhas. Build verde, tsc limpo.**
 > **Atlas Multissetorial** (`/atlas`): portfólio vivo de TODOS os packs registrados via
 > `engine/portfolio/cross-sector-engine.ts` (puro, compõe calculateIVO+buildTrend). Dirigido pelo
 > registry — um 6º pack aparece sozinho. Nav "sectors" repontado para cá (`/setores` legada).
