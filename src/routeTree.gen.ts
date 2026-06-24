@@ -70,6 +70,7 @@ import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
+import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
 const ViatRoute = ViatRouteImport.update({
   id: '/viat',
@@ -376,6 +377,11 @@ const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   path: '/driver/$driverId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RespondSTokenRoute = RespondSTokenRouteImport.update({
+  id: '/respond/s/$token',
+  path: '/respond/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -439,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -502,6 +509,7 @@ export interface FileRoutesByTo {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -566,6 +574,7 @@ export interface FileRoutesById {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -631,6 +640,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -694,6 +704,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/respond/s/$token'
   id:
     | '__root__'
     | '/'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/respond/s/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -821,6 +833,7 @@ export interface RootRouteChildren {
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
+  RespondSTokenRoute: typeof RespondSTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1252,6 +1265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriverDriverIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/respond/s/$token': {
+      id: '/respond/s/$token'
+      path: '/respond/s/$token'
+      fullPath: '/respond/s/$token'
+      preLoaderRoute: typeof RespondSTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1317,6 +1337,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
+  RespondSTokenRoute: RespondSTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
