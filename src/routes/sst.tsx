@@ -5,6 +5,9 @@ import { ArrowRight, Grid3x3, Network } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { summarizeNR1Readiness } from "@/engine/domainb/nr1-readiness-engine";
+import { rankDriversByExposure } from "@/engine/nr1/crosswalk-engine";
+import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { useSectorNR1 } from "@/hooks/use-sector-nr1";
 import { useOrg } from "@/mocks/hooks";
 import { formatReportDate } from "@/mocks/esg-report-mock";
 import {
@@ -89,8 +92,15 @@ const EXPOSURE_STYLE: Record<RiskCategory["exposure"], { cls: string; label: str
 
 function SSTPage() {
   const maxCount = Math.max(...SST_LISTENING.byCategory.map((c) => c.count));
-  const { pack } = usePack();
+  const { pack, sectorLabel } = usePack();
   const org = useOrg();
+
+  // Exposição psicossocial do SETOR ATIVO → prioridades de driver (reativo ao PackSwitcher).
+  const { exposure } = useSectorNR1();
+  const sectorPriorities = useMemo(
+    () => rankDriversByExposure(NR1_CROSSWALK, exposure).filter((d) => d.priority).slice(0, 3),
+    [exposure],
+  );
 
   // Síntese EDUCATIVA de prontidão — compõe COPSOQ + inventário + checklist GRO.
   const readiness = useMemo(
@@ -264,6 +274,45 @@ function SSTPage() {
             cartografia mostra onde agir primeiro — sempre na organização do trabalho, nunca
             culpando pessoas.
           </p>
+
+          {/* Prioridades de risco do setor ativo — derivadas da exposição (reativo). */}
+          {sectorPriorities.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border/60 bg-card/60 p-4">
+              <p className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                Onde agir primeiro · {sectorLabel}
+              </p>
+              <ol className="mt-2.5 space-y-2">
+                {sectorPriorities.map((d, i) => (
+                  <li key={d.driverId} className="flex items-center gap-3">
+                    <span
+                      className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+                      aria-hidden
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm text-card-foreground">
+                      {d.label}
+                      {d.topDimension && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          · {d.topDimension.label}
+                        </span>
+                      )}
+                    </span>
+                    {d.topDimension && (
+                      <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium tabular-nums text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                        carga {d.topDimension.load}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-2.5 text-[11px] leading-relaxed text-muted-foreground/80">
+                Priorização orientativa a partir de agregados (k≥5) do setor ativo — nunca
+                avaliação de pessoas. A carga reflete a exposição COPSOQ medida da dimensão.
+              </p>
+            </div>
+          )}
+
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Link
               to="/drivers"
@@ -350,11 +399,10 @@ function SSTPage() {
               {SST_CHECKLIST.map((item) => (
                 <li key={item.id} className="flex items-start gap-2.5">
                   <span
-                    className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-xs ${
-                      item.done
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-muted-foreground/40"
-                    }`}
+                    className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-xs ${item.done
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-muted-foreground/40"
+                      }`}
                     aria-hidden
                   >
                     {item.done ? "✓" : ""}
