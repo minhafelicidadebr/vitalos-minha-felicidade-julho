@@ -10,13 +10,9 @@ import { AlertTriangle, ArrowLeft, ArrowRight, Minus, TrendingDown, TrendingUp }
 import { AppShell } from "@/app/shell/AppShell";
 import { buildReavaliacao, type RiskTrend } from "@/engine/nr1/reavaliacao-engine";
 import { buildPgrPlan, RISK_LABEL, type RiskLevel } from "@/engine/nr1/pgr-engine";
-import { NR1_CROSSWALK, DEMO_COPSOQ_EXPOSURE } from "@/mocks/nr1-crosswalk-mock";
-import {
-  NR1_CYCLES,
-  NR1_MEASURE_MAINTENANCE,
-  REAVALIACAO_INTRO,
-} from "@/mocks/nr1-reavaliacao-mock";
-import { PGR_MEASURES } from "@/mocks/pgr-nr1-mock";
+import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { REAVALIACAO_INTRO } from "@/mocks/nr1-reavaliacao-mock";
+import { useSectorNR1 } from "@/hooks/use-sector-nr1";
 
 export const Route = createFileRoute("/evolucao-nr1")({
   head: () => ({ meta: [{ title: "Reavaliação NR-1 — 4 Lentes VitalOS™" }] }),
@@ -59,12 +55,14 @@ function Sparkline({ values, trend }: { values: number[]; trend: RiskTrend }) {
 }
 
 function ReavaliacaoPage() {
+  const { exposure, cycles, measures, maintenance } = useSectorNR1();
+
   const result = useMemo(() => {
     // PGR ao fim do ciclo (semana 13) → medidas de fonte implementadas, base da eficácia.
     const pgrPlan = buildPgrPlan({
       registry: NR1_CROSSWALK,
-      exposures: DEMO_COPSOQ_EXPOSURE,
-      measures: PGR_MEASURES,
+      exposures: exposure,
+      measures,
       generatedAt: NR1_CROSSWALK.updatedAt,
       currentWeek: 13,
       horizonWeeks: 13,
@@ -72,11 +70,11 @@ function ReavaliacaoPage() {
     });
     return buildReavaliacao({
       registry: NR1_CROSSWALK,
-      cycles: NR1_CYCLES,
+      cycles,
       pgrPlan,
-      maintenanceByDriver: NR1_MEASURE_MAINTENANCE,
+      maintenanceByDriver: maintenance,
     });
-  }, []);
+  }, [exposure, cycles, measures, maintenance]);
 
   const overall = TREND_META[result.overallTrend];
   const OverallIcon = overall.icon;

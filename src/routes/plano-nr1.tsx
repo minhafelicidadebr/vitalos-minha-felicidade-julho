@@ -35,8 +35,9 @@ import {
   type RiskDecision,
   type RiskLevel,
 } from "@/engine/nr1/pgr-engine";
-import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
-import { PGR_INTRO, PGR_MEASURES } from "@/mocks/pgr-nr1-mock";
+import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { PGR_INTRO } from "@/mocks/pgr-nr1-mock";
+import { useSectorNR1 } from "@/hooks/use-sector-nr1";
 
 export const Route = createFileRoute("/plano-nr1")({
   head: () => ({ meta: [{ title: "PGR Psicossocial — 4 Lentes VitalOS™" }] }),
@@ -83,18 +84,20 @@ const STATUS_TINT: Record<MeasureStatus, string> = {
 };
 
 function PgrPage() {
+  const { exposure, measures } = useSectorNR1();
+
   const plan = useMemo(
     () =>
       buildPgrPlan({
         registry: NR1_CROSSWALK,
-        exposures: DEMO_COPSOQ_EXPOSURE,
-        measures: PGR_MEASURES,
+        exposures: exposure,
+        measures,
         generatedAt: NR1_CROSSWALK.updatedAt,
         currentWeek: 6,
         horizonWeeks: 13,
         topRisks: 5,
       }),
-    [],
+    [exposure, measures],
   );
 
   const generated = new Date(plan.generatedAt + "T00:00:00").toLocaleDateString("pt-BR", {

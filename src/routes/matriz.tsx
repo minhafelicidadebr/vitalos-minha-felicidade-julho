@@ -15,7 +15,8 @@ import {
   type Instrument,
   type Priority,
 } from "@/engine/nr1/crosswalk-engine";
-import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK as R } from "@/mocks/nr1-crosswalk-mock";
+import { NR1_CROSSWALK as R } from "@/mocks/nr1-crosswalk-mock";
+import { useSectorNR1 } from "@/hooks/use-sector-nr1";
 
 export const Route = createFileRoute("/matriz")({
   head: () => ({ meta: [{ title: "Matriz de Intersecção — 4 Lentes VitalOS™" }] }),
@@ -42,6 +43,7 @@ function strengthClass(s: number): string {
 }
 
 function MatrizPage() {
+  const { exposure } = useSectorNR1();
   const [lens, setLens] = useState<Instrument>("copsoq");
   const [filter, setFilter] = useState<"ALL" | Priority>("ALL");
   const [sel, setSel] = useState<{ d: string; dim: string } | null>(null);
@@ -51,10 +53,10 @@ function MatrizPage() {
     [lens],
   );
 
-  // Medir → Transformar: a exposição COPSOQ agregada (demo) aponta onde focar agora.
+  // Medir → Transformar: a exposição COPSOQ do SETOR ATIVO prioriza os drivers.
   const focus = useMemo(
-    () => rankDriversByExposure(R, DEMO_COPSOQ_EXPOSURE).filter((x) => x.priority).slice(0, 3),
-    [],
+    () => rankDriversByExposure(R, exposure).filter((x) => x.priority).slice(0, 3),
+    [exposure],
   );
 
   const selDriver = sel ? R.drivers.find((d) => d.id === sel.d) : null;
@@ -323,9 +325,8 @@ function LensTab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-        active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50"
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50"
+        }`}
     >
       <Icon className="h-3.5 w-3.5" aria-hidden />
       {label}
