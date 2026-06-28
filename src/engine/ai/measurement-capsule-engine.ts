@@ -271,9 +271,11 @@ export function validateCapsule(capsule: MeasurementContextCapsule): CapsuleVali
       violations.push("risk_level_on_domain_a");
   }
 
-  if (capsule.permissions.canClaimTrend && (capsule.priorCycles as unknown) === undefined) {
-    // Verificação conservadora: se o capsule alega trend mas foi construído via input
-    // sem ciclos anteriores, é uma violação. Verificamos via flags.
+  // Coerência de trend: se o capsule alega poder afirmar tendência, ao menos uma
+  // dimensão visível precisa carregar um trend computado (≥2 ciclos houve de fato).
+  if (capsule.permissions.canClaimTrend) {
+    const hasAnyTrend = capsule.dimensions.some((d) => d.visible && d.trend !== null);
+    if (!hasAnyTrend) violations.push("trend_claimed_without_cycles");
   }
 
   if (capsule.requiredDisclaimers.length === 0) violations.push("missing_disclaimers");

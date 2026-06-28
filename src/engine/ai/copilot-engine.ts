@@ -10,7 +10,18 @@
  *
  * Lei de ferro: este arquivo nunca importa de domain/. O KB, as métricas e os
  * guardrails chegam como parâmetro. (Fase 2: o mesmo KB vira contexto do LLM.)
+ *
+ * GROUNDING DE MENSURAÇÃO (Bloco 2B-2): para perguntas de risco psicossocial /
+ * NR-1, o copiloto pode receber um MeasurementContextCapsule selado — o ÚNICO
+ * contrato válido entre dados de survey e a IA. O capsule NUNCA bypassa os
+ * guardrails (a recusa por desenho roda primeiro) e impõe seus próprios
+ * disclaimers obrigatórios. Sem capsule, o comportamento é idêntico ao da Fase 1.
  */
+
+import {
+  groundFromCapsule,
+  type MeasurementContextCapsule,
+} from "./measurement-capsule-engine";
 
 export type CopilotPov = "tecnico" | "criativo" | "empatico" | "inovador";
 
@@ -79,6 +90,14 @@ export interface CopilotTurn {
   refusal: string | null;
   /** Rodapé de honestidade — sempre presente. */
   guardrailNotice: string;
+  /**
+   * Linha aterrada na MEDIÇÃO real (capsule), quando a pergunta é sobre risco
+   * psicossocial/NR-1 e um MeasurementContextCapsule foi fornecido. Null quando
+   * não há capsule ou a pergunta não pede leitura de exposição. Distinta de
+   * `groundedLine` (que ancora no índice de florescimento — IVO). Opcional: o
+   * engine sempre o preenche (string ou null); literais de teste podem omiti-lo.
+   */
+  capsuleLine?: string | null;
 }
 
 const STOPWORDS = new Set([
@@ -283,15 +302,45 @@ function nextStepFor(
 const GUARDRAIL_NOTICE =
   "Respostas ancoradas nos dados e no método do app, com fontes citadas. Só falo de agregados (k≥5), nunca de pessoas, e não substituo profissional habilitado.";
 
+/** A pergunta pede leitura de exposição/risco psicossocial (Domínio B / NR-1)? */
+function wantsExposureRead(question: string): boolean {
+  return /\b(risco|riscos|psicossoci|exposi[çc][aã]o|copsoq|nr-?1|nr ?1|psicol[oó]gic|ergon[oô]mic|carga|exig[êe]nc|press[aã]o|ass[eé]dio|burnout|esgotament|sobrecarga)\b/i.test(
+    question,
+  );
+}
+
+/**
+ * Monta a linha aterrada na MEDIÇÃO real, a partir de um capsule selado.
+ * Respeita as permissões do capsule: se não pode alegar exposição (n<k, etc.),
+ * retorna a headline honesta de dados insuficientes. Nunca nomeia desfecho nem
+ * dimensão suprimida — isso já está garantido por construção no capsule.
+ */
+function buildCapsuleLine(capsule: MeasurementContextCapsule): string {
+  const g = groundFromCapsule(capsule);
+  if (!capsule.permissions.canClaimExposure) return g.headline;
+  const top = g.claims
+    .slice(0, 3)
+    .map((c) => c.label)
+    .join(", ");
+  const driversText = top ? ` Dimensões em foco: ${top}.` : "";
+  return `${g.headline}${driversText}`;
+}
+
 /**
  * Monta um turno do copiloto. Sem geração livre: cabeçalho por POV, frase
  * ancorada na métrica real, corpo montado dos chunks recuperados (com citações),
  * próximo passo e — quando aplicável — recusa honesta.
+ *
+ * `capsule` (opcional): MeasurementContextCapsule selado. Quando presente e a
+ * pergunta é sobre risco psicossocial/NR-1, enriquece a resposta com a leitura
+ * de exposição REAL e impõe o disclaimer obrigatório do capsule. O capsule nunca
+ * bypassa guardrails nem o gating de audiência — a proteção roda sempre antes.
  */
 export function answerCopilot(
   kb: CopilotKnowledgeBase,
   facts: GroundingFacts,
   query: CopilotQuery,
+  capsule?: MeasurementContextCapsule,
 ): CopilotTurn {
   const voice = POV_VOICE[query.pov];
 
@@ -308,6 +357,7 @@ export function answerCopilot(
       confidence: "alta",
       refusal: violation,
       guardrailNotice: GUARDRAIL_NOTICE,
+      capsuleLine: null, // recusa por guardrail nunca expõe medição
     };
   }
 
@@ -333,6 +383,7 @@ export function answerCopilot(
       confidence: "alta",
       refusal: null,
       guardrailNotice: GUARDRAIL_NOTICE,
+      capsuleLine: null, // participante não vê leitura coletiva — nem a de medição
     };
   }
 
@@ -349,6 +400,7 @@ export function answerCopilot(
       confidence: "baixa",
       refusal: "fora_do_escopo",
       guardrailNotice: GUARDRAIL_NOTICE,
+      capsuleLine: null,
     };
   }
 
@@ -357,6 +409,14 @@ export function answerCopilot(
   const body = `${voice.lead} ` + hits.map((h) => h.chunk.body).join(" ");
   const sources = hits.map((h) => ({ label: h.chunk.source, chunkId: h.chunk.id }));
   const confidence: CopilotConfidence = hits[0]!.score >= 2 ? "alta" : "media";
+
+  // 4b) Grounding de MEDIÇÃO: só quando há capsule, a audiência vê o coletivo e a
+  // pergunta é sobre risco psicossocial/NR-1. O capsule impõe seu disclaimer.
+  const useCapsule = !!capsule && canSeeCollective && wantsExposureRead(query.question);
+  const capsuleLine = useCapsule ? buildCapsuleLine(capsule!) : null;
+  const guardrailNotice = useCapsule
+    ? `${GUARDRAIL_NOTICE} ${groundFromCapsule(capsule!).requiredDisclaimer}`
+    : GUARDRAIL_NOTICE;
 
   return {
     pov: query.pov,
@@ -370,6 +430,7 @@ export function answerCopilot(
     nextStep: nextStepFor(query.pov, facts, top),
     confidence,
     refusal: null,
-    guardrailNotice: GUARDRAIL_NOTICE,
+    guardrailNotice,
+    capsuleLine,
   };
 }
