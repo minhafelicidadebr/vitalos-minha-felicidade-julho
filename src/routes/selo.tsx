@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
 import { certify, type CriterionResult } from "@/engine/certification/certification-engine";
 import { evaluateEvidence } from "@/engine/lab/evidence-engine";
@@ -9,6 +10,8 @@ import { EXPERIMENT_CASES } from "@/mocks/experiment-mock";
 import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
 import { DOMAIN_B_READY, TIER_STYLE, STATUS_STYLE, SEAL_INTRO } from "@/mocks/certification-mock";
 import { formatReportDate } from "@/mocks/esg-report-mock";
+import { getEarnedSeal } from "@/lib/api/earned-seal.functions";
+import type { EarnedSeal } from "@/lib/proof/earned-seal.server";
 
 export const Route = createFileRoute("/selo")({
   head: () => ({ meta: [{ title: "Selo Empresa Viva — 4 Lentes VitalOS™" }] }),
@@ -16,10 +19,25 @@ export const Route = createFileRoute("/selo")({
 });
 
 function SeloPage() {
+  const { packId } = usePack();
   const { current, previous } = useIvo();
   const org = useOrg();
 
-  const result = useMemo(() => {
+  // Selo GANHO: o Domínio B flui da Prova de Ciclo real (server). Sobrepõe o
+  // resultado local assim que carrega — sem flash de loading (o local renderiza já).
+  const [earned, setEarned] = useState<EarnedSeal | null>(null);
+  useEffect(() => {
+    let active = true;
+    void getEarnedSeal({ data: { packId } })
+      .then((e) => active && setEarned(e))
+      .catch(() => active && setEarned(null));
+    return () => {
+      active = false;
+    };
+  }, [packId]);
+
+  // Fallback local (render imediato, funciona offline): usa o DOMAIN_B_READY legado.
+  const localResult = useMemo(() => {
     if (!current) return null;
 
     const experimentsConfirmed = EXPERIMENT_CASES.filter(
@@ -41,6 +59,9 @@ function SeloPage() {
       kAnonRespected: true, // invariante de arquitetura
     });
   }, [current, previous, org.participationPct]);
+
+  // A verdade preferida é o selo GANHO do servidor; o local é só o fallback inicial.
+  const result = earned?.seal ?? localResult;
 
   if (!result) {
     return (
@@ -186,6 +207,9 @@ function SeloPage() {
           </div>
         </section>
 
+        {/* Proveniência do Domínio B — como o selo foi GANHO (da Prova de Ciclo real) */}
+        {earned && <ProvenanceCard earned={earned} />}
+
         {/* O que falta */}
         {result.gaps.length > 0 && (
           <section className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
@@ -238,6 +262,85 @@ function SeloPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+const VERDICT_LABEL: Record<string, string> = {
+  comprovado: "Comprovado",
+  parcial: "Parcial",
+  sem_evidencia: "Sem evidência",
+  sem_dados: "Sem dados",
+};
+
+/** Proveniência do Domínio B: o selo reconhece evidência, não declaração. */
+function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
+  const ready = earned.domainBReady;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={`rounded-2xl border p-5 shadow-sm ${
+        ready
+          ? "border-emerald-300/60 bg-emerald-50/40 dark:border-emerald-800/40 dark:bg-emerald-950/20"
+          : "border-border/60 bg-muted/30"
+      }`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-serif text-lg text-foreground">Como o Domínio B foi conquistado</h2>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+            ready
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+              : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`h-1.5 w-1.5 rounded-full ${ready ? "bg-emerald-500" : "bg-muted-foreground/60"}`}
+          />
+          Prova de Ciclo: {VERDICT_LABEL[earned.cycleVerdict] ?? earned.cycleVerdict}
+        </span>
+      </div>
+
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{earned.provenanceNote}</p>
+
+      {ready && (
+        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Metric
+            label="Intervenções com efeito"
+            value={String(earned.interventionsWithEffect)}
+          />
+          <Metric
+            label="Redução atribuível"
+            value={`${earned.attributableReductionPts} pts`}
+          />
+          <Metric
+            label="Custo evitado (ano)"
+            value={
+              earned.avoidedCostYear != null
+                ? `R$ ${earned.avoidedCostYear.toLocaleString("pt-BR")}`
+                : "—"
+            }
+          />
+        </dl>
+      )}
+
+      <p className="mt-4 border-t border-border/40 pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        O selo reconhece <strong>evidência medida</strong>, não atividade declarada. A eficácia é
+        associação orientativa (indicativa, drift-adjusted), nunca prova causal; custos são
+        estimativas com fórmula visível.
+      </p>
+    </motion.section>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border/50 bg-card/60 px-3 py-2.5">
+      <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 font-serif text-lg tabular-nums text-foreground">{value}</dd>
+    </div>
   );
 }
 
