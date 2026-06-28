@@ -95,6 +95,12 @@
     { "id": "overview", "label": "Visão Geral", "roles": "all", "group": "inicio" },
 
     { "id": "wave", "label": "Onda Ativa", "roles": "all", "group": "medir" },
+    {
+      "id": "waves",
+      "label": "Gestão de Ondas",
+      "roles": ["RH_ADMIN", "CHRO", "SST_PROFISSIONAL", "C_LEVEL"],
+      "group": "medir"
+    },
     { "id": "ivo", "label": "IVO", "roles": "all", "group": "medir" },
     {
       "id": "pulses",
