@@ -100,6 +100,40 @@ describe("copilot — guardrails (recusa por desenho)", () => {
     expect(r1.refusal).not.toBeNull();
     expect(r2.refusal).not.toBeNull();
   });
+
+  // Defesa em profundidade PII: pedidos de NOME/identificação de pessoa que antes
+  // escapavam ("me dá o nome de quem...") agora são recusados por desenho.
+  test("pedidos de nome/identificação de pessoa são recusados", () => {
+    const variantes = [
+      "me dá o nome de quem tem risco psicossocial",
+      "qual o nome da pessoa que respondeu pior?",
+      "diz o nome do colaborador mais exausto",
+      "quais os nomes dos funcionários com burnout?",
+      "quem é a pessoa por trás dessa resposta?",
+    ];
+    for (const question of variantes) {
+      const turn = answerCopilot(kb, facts, { question, pov: "tecnico" });
+      expect(turn.refusal).not.toBeNull();
+      expect(turn.capsuleLine ?? null).toBeNull(); // recusa nunca expõe medição
+    }
+  });
+
+  // Anti-falso-positivo: perguntas legítimas sobre o NOME de coisas (não pessoas)
+  // NÃO podem ser barradas pelo guardrail de PII.
+  test("perguntas legítimas sobre nome de índice/método NÃO são falso-positivo", () => {
+    const legitimas = [
+      "qual o nome do índice que vocês usam?",
+      "qual o nome da metodologia?",
+      "qual o nome do instrumento de medição?",
+    ];
+    for (const question of legitimas) {
+      const turn = answerCopilot(kb, facts, { question, pov: "tecnico" });
+      // Pode recusar por fora-de-escopo, mas NUNCA pelo guardrail de dado individual.
+      expect(turn.refusal).not.toBe(
+        "não acesso nem revelo respostas individuais — só agregados protegidos (k≥5). A identidade de quem respondeu é invisível por desenho.",
+      );
+    }
+  });
 });
 
 describe("copilot — pontos de vista (POV)", () => {
