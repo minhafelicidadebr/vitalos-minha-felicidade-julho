@@ -1,0 +1,21 @@
+{
+  "cleanupPeriodDays": 30,
+  "permissions": {
+    "allow": [
+      "Bash(bun run build)",
+      "Bash(bun run test)",
+      "Bash(bun run lint)",
+      "Bash(bun run format)",
+      "Bash(bun test src*)",
+      "Bash(bun test src/**/*)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git pull*)",
+      "Bash(git branch*)"
+    ]
+  }
+}

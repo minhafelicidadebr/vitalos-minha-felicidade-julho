@@ -1,0 +1,39 @@
+# .claudeignore — VitalOS token budget
+# Claude Code não indexa estes caminhos no contexto automático.
+# Leitura pontual ainda funciona quando explicitamente solicitada.
+
+# ── Dependências (maior economia: ~200k tokens) ──────────────────────────────
+node_modules/
+
+# ── Build outputs (regenerados a cada build) ──────────────────────────────────
+dist/
+.output/
+.vinxi/
+.nitro/
+.tanstack/
+
+# ── Auto-gerado pelo TanStack Router (nunca editar manualmente) ───────────────
+# Este arquivo muda a cada restart do dev server e é derivado das rotas em src/routes/.
+# Claude deve ler src/routes/*.tsx diretamente — não este artefato gerado.
+src/routeTree.gen.ts
+
+# ── Assets estáticos ──────────────────────────────────────────────────────────
+public/
+
+# ── Binários e lockfiles ──────────────────────────────────────────────────────
+bun.lockb
+*.lock
+*.lock.json
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Arquivos de ambiente local ────────────────────────────────────────────────
+*.local
+.env*
+!.env.example
+
+# ── Documentação de referência (lida sob demanda, não na abertura de sessão) ──
+# Descomente se sessões de puro desenvolvimento ficarem lentas por carregar docs.
+# docs/
