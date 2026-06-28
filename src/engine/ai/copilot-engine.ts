@@ -22,6 +22,10 @@ import {
   groundFromCapsule,
   type MeasurementContextCapsule,
 } from "./measurement-capsule-engine";
+import {
+  groundLongitudinalReading,
+  type LongitudinalReading,
+} from "./capsule-longitudinal-engine";
 
 export type CopilotPov = "tecnico" | "criativo" | "empatico" | "inovador";
 
@@ -98,6 +102,13 @@ export interface CopilotTurn {
    * engine sempre o preenche (string ou null); literais de teste podem omiti-lo.
    */
   capsuleLine?: string | null;
+  /**
+   * Linha aterrada na EVOLUÇÃO real (leitura longitudinal cross-ciclo), quando a
+   * pergunta é sobre progresso/comparação temporal e uma LongitudinalReading foi
+   * fornecida. Null quando ausente ou a pergunta não pede evolução. Distinta de
+   * `capsuleLine` (estado de um ciclo) — esta fala do antes/depois entre ciclos.
+   */
+  longitudinalLine?: string | null;
 }
 
 const STOPWORDS = new Set([
@@ -310,6 +321,49 @@ function wantsExposureRead(question: string): boolean {
 }
 
 /**
+ * A pergunta pede leitura de EVOLUÇÃO/comparação temporal entre ciclos?
+ * Stems com fronteira só à ESQUERDA (\b…) para casar flexões: "evolu" → "evoluiu",
+ * "evoluímos"; "melhor" → "melhorou". Fronteira dupla quebraria o match de prefixo.
+ */
+function wantsEvolutionRead(question: string): boolean {
+  return /\b(evolu|melhor|pior|progress|avan[çc]|compar|antes|depois|hist[oó]ric|longitudin|ao longo|ciclo passad|trimestre passad|desde|tend[êe]nci|funcion|deu certo|adiantou|mudou)/i.test(
+    question,
+  );
+}
+
+/**
+ * Monta a linha aterrada na EVOLUÇÃO real, a partir de uma leitura longitudinal.
+ * Honesta por construção: a leitura já exclui dimensões suprimidas (k-anon), separa
+ * desfechos de drivers e carrega o disclaimer de não-causalidade. Aqui só compomos
+ * a headline + a maior melhora/piora citável.
+ */
+function buildLongitudinalLine(reading: LongitudinalReading): string {
+  const g = groundLongitudinalReading(reading);
+  if (reading.comparableDimensions === 0) return g.headline;
+  const highlights = g.claims.map((c) => c.text).join(" ");
+  return highlights ? `${g.headline} ${highlights}` : g.headline;
+}
+
+/**
+ * Compõe as linhas de medição (capsule/longitudinal) e os disclaimers de cada
+ * fonte ativa. Único ponto que conhece a forma do grounding de medição — usado
+ * tanto na montagem normal quanto quando a medição é a ÚNICA fonte disponível.
+ */
+function composeMeasurementGrounding(
+  capsule: MeasurementContextCapsule | undefined,
+  useCapsule: boolean,
+  longitudinal: LongitudinalReading | undefined,
+  useLongitudinal: boolean,
+): { capsuleLine: string | null; longitudinalLine: string | null; guardrailNotice: string } {
+  const capsuleLine = useCapsule ? buildCapsuleLine(capsule!) : null;
+  const longitudinalLine = useLongitudinal ? buildLongitudinalLine(longitudinal!) : null;
+  const notices: string[] = [GUARDRAIL_NOTICE];
+  if (useCapsule) notices.push(groundFromCapsule(capsule!).requiredDisclaimer);
+  if (useLongitudinal) notices.push(longitudinal!.disclaimer);
+  return { capsuleLine, longitudinalLine, guardrailNotice: notices.join(" ") };
+}
+
+/**
  * Monta a linha aterrada na MEDIÇÃO real, a partir de um capsule selado.
  * Respeita as permissões do capsule: se não pode alegar exposição (n<k, etc.),
  * retorna a headline honesta de dados insuficientes. Nunca nomeia desfecho nem
@@ -333,14 +387,21 @@ function buildCapsuleLine(capsule: MeasurementContextCapsule): string {
  *
  * `capsule` (opcional): MeasurementContextCapsule selado. Quando presente e a
  * pergunta é sobre risco psicossocial/NR-1, enriquece a resposta com a leitura
- * de exposição REAL e impõe o disclaimer obrigatório do capsule. O capsule nunca
- * bypassa guardrails nem o gating de audiência — a proteção roda sempre antes.
+ * de exposição REAL e impõe o disclaimer obrigatório do capsule.
+ *
+ * `longitudinal` (opcional): LongitudinalReading cross-ciclo. Quando presente e a
+ * pergunta é sobre evolução/progresso, enriquece com a prova de antes/depois e o
+ * disclaimer de não-causalidade.
+ *
+ * Nenhum dos dois bypassa guardrails nem o gating de audiência — a proteção roda
+ * sempre antes; numa recusa, ambos saem null.
  */
 export function answerCopilot(
   kb: CopilotKnowledgeBase,
   facts: GroundingFacts,
   query: CopilotQuery,
   capsule?: MeasurementContextCapsule,
+  longitudinal?: LongitudinalReading,
 ): CopilotTurn {
   const voice = POV_VOICE[query.pov];
 
@@ -358,6 +419,7 @@ export function answerCopilot(
       refusal: violation,
       guardrailNotice: GUARDRAIL_NOTICE,
       capsuleLine: null, // recusa por guardrail nunca expõe medição
+      longitudinalLine: null,
     };
   }
 
@@ -384,12 +446,38 @@ export function answerCopilot(
       refusal: null,
       guardrailNotice: GUARDRAIL_NOTICE,
       capsuleLine: null, // participante não vê leitura coletiva — nem a de medição
+      longitudinalLine: null,
     };
   }
 
-  // 3) Recuperação. Sem chunk → recusa honesta (não inventa).
+  // Elegibilidade do grounding de MEDIÇÃO (capsule/longitudinal). A medição é fonte
+  // de primeira classe: pode responder mesmo quando o KB não cobre a pergunta.
+  const useCapsule = !!capsule && canSeeCollective && wantsExposureRead(query.question);
+  const useLongitudinal =
+    !!longitudinal && canSeeCollective && wantsEvolutionRead(query.question);
+
+  // 3) Recuperação no KB.
   const hits = retrieveChunks(kb, query.question, 3);
+
+  // 3b) Sem chunk: se há medição elegível, responde DELA (o dado é a fonte). Só
+  // recusa de fato quando não há KB nem medição — aí não inventa.
   if (hits.length === 0) {
+    if (useCapsule || useLongitudinal) {
+      const m = composeMeasurementGrounding(capsule, useCapsule, longitudinal, useLongitudinal);
+      return {
+        pov: query.pov,
+        headline: "Leitura a partir da medição",
+        groundedLine: null,
+        body: `${voice.lead} a resposta vem direto da medição agregada e protegida do período — sem opinião, só o que os dados mostram.`,
+        sources: [],
+        nextStep: nextStepFor(query.pov, facts, null),
+        confidence: "media",
+        refusal: null,
+        guardrailNotice: m.guardrailNotice,
+        capsuleLine: m.capsuleLine,
+        longitudinalLine: m.longitudinalLine,
+      };
+    }
     return {
       pov: query.pov,
       headline: "Não encontrei isso na minha base",
@@ -401,22 +489,18 @@ export function answerCopilot(
       refusal: "fora_do_escopo",
       guardrailNotice: GUARDRAIL_NOTICE,
       capsuleLine: null,
+      longitudinalLine: null,
     };
   }
 
-  // 4) Montagem aterrada a partir dos chunks recuperados.
+  // 4) Montagem aterrada a partir dos chunks recuperados + grounding de medição.
   const top = hits[0]!.chunk;
   const body = `${voice.lead} ` + hits.map((h) => h.chunk.body).join(" ");
   const sources = hits.map((h) => ({ label: h.chunk.source, chunkId: h.chunk.id }));
   const confidence: CopilotConfidence = hits[0]!.score >= 2 ? "alta" : "media";
 
-  // 4b) Grounding de MEDIÇÃO: só quando há capsule, a audiência vê o coletivo e a
-  // pergunta é sobre risco psicossocial/NR-1. O capsule impõe seu disclaimer.
-  const useCapsule = !!capsule && canSeeCollective && wantsExposureRead(query.question);
-  const capsuleLine = useCapsule ? buildCapsuleLine(capsule!) : null;
-  const guardrailNotice = useCapsule
-    ? `${GUARDRAIL_NOTICE} ${groundFromCapsule(capsule!).requiredDisclaimer}`
-    : GUARDRAIL_NOTICE;
+  const m = composeMeasurementGrounding(capsule, useCapsule, longitudinal, useLongitudinal);
+  const { capsuleLine, longitudinalLine, guardrailNotice } = m;
 
   return {
     pov: query.pov,
@@ -432,5 +516,6 @@ export function answerCopilot(
     refusal: null,
     guardrailNotice,
     capsuleLine,
+    longitudinalLine,
   };
 }
