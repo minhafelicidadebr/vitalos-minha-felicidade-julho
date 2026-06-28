@@ -17,10 +17,45 @@ import {
   type GroundingFacts,
 } from "@/engine/ai/copilot-engine";
 import { buildPromptEnvelope, type PromptEnvelope } from "@/engine/ai/copilot-prompt";
+import {
+  buildLongitudinalReading,
+  type LongitudinalReading,
+} from "@/engine/ai/capsule-longitudinal-engine";
+import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 import { buildCopilotKnowledge } from "@/mocks/copilot-knowledge";
 import { canSeeCollective } from "@/mocks/sector-audience";
 import { getSectorData } from "@/mocks/sector-data";
 import { MOMENTUM_COPY } from "@/mocks/trend-mock";
+import {
+  getCapsuleHistory,
+  getLatestCapsule,
+  getInstrumentsWithHistory,
+} from "@/mocks/capsule-history-mock";
+
+/**
+ * Compõe o contexto de MEDIÇÃO de um pack para o copiloto: o capsule mais recente
+ * (estado corrente) e a leitura longitudinal (evolução), do instrumento de risco
+ * (Domínio B) quando há histórico. Server-side: o capsule bruto NUNCA vai ao
+ * cliente — só as linhas já redigidas no CopilotTurn. Em produção, lê do Cloud.
+ */
+function resolvePackMeasurement(packId: string): {
+  capsule: MeasurementContextCapsule | undefined;
+  longitudinal: LongitudinalReading | undefined;
+} {
+  // Prioriza o instrumento de risco (COPSOQ) se houver; senão, o primeiro disponível.
+  const instruments = getInstrumentsWithHistory(packId);
+  const instrument = instruments.includes("COPSOQ") ? "COPSOQ" : instruments[0];
+  if (!instrument) return { capsule: undefined, longitudinal: undefined };
+
+  const capsule = getLatestCapsule(packId, instrument) ?? undefined;
+  const history = getCapsuleHistory(packId, instrument);
+  let longitudinal: LongitudinalReading | undefined;
+  if (history.length >= 2) {
+    const result = buildLongitudinalReading({ capsules: history });
+    if (result.ok) longitudinal = result.reading;
+  }
+  return { capsule, longitudinal };
+}
 
 export interface CopilotRequest {
   packId: string;
@@ -94,12 +129,18 @@ export function handleCopilotTurn(req: CopilotRequest): CopilotResponse {
   const canSee = canSeeCollective(req.packId, req.roleId);
 
   const query = { question: req.question, pov: req.pov, canSeeCollective: canSee };
-  const turn = answerCopilot(kb, facts, query);
+  const { capsule, longitudinal } = resolvePackMeasurement(req.packId);
+  const turn = answerCopilot(kb, facts, query, capsule, longitudinal);
   const envelope = buildPromptEnvelope(kb, facts, query, retrieveChunks(kb, req.question));
 
   return {
     turn,
     envelope,
-    grounded: turn.sources.length > 0 || turn.refusal !== null,
+    // Aterrada se cita fonte do KB, recusa honestamente, OU ancora na medição real.
+    grounded:
+      turn.sources.length > 0 ||
+      turn.refusal !== null ||
+      !!turn.capsuleLine ||
+      !!turn.longitudinalLine,
   };
 }

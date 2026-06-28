@@ -49,3 +49,63 @@ describe("copilot edge contract — handleCopilotTurn", () => {
     expect(res.turn.refusal).not.toBeNull();
   });
 });
+
+describe("copilot edge contract — grounding de medição (enterprise COPSOQ)", () => {
+  test("pergunta de risco aterra na medição real (capsuleLine) para o gestor", () => {
+    const res = handleCopilotTurn({
+      packId: "enterprise",
+      roleId: "RH_ADMIN",
+      question: "qual a exposição a risco psicossocial da equipe?",
+      pov: "tecnico",
+    });
+    expect(res.turn.capsuleLine).not.toBeNull();
+    expect(res.grounded).toBe(true);
+    expect(res.turn.guardrailNotice).toContain("GRO/PGR");
+  });
+
+  test("pergunta de evolução aterra na prova longitudinal (longitudinalLine)", () => {
+    const res = handleCopilotTurn({
+      packId: "enterprise",
+      roleId: "RH_ADMIN",
+      question: "a exposição psicossocial evoluiu de um ano para o outro?",
+      pov: "tecnico",
+    });
+    expect(res.turn.longitudinalLine).not.toBeNull();
+    expect(res.turn.guardrailNotice).toContain("causalidade");
+  });
+
+  test("desfecho (burnout) nunca aparece como driver na linha de medição", () => {
+    const res = handleCopilotTurn({
+      packId: "enterprise",
+      roleId: "RH_ADMIN",
+      question: "onde está o maior risco psicossocial e como evoluiu?",
+      pov: "tecnico",
+    });
+    const lines = `${res.turn.capsuleLine ?? ""} ${res.turn.longitudinalLine ?? ""}`;
+    // demands_quant (driver) aparece; burnout (desfecho) não como "em foco/maior melhora".
+    expect(lines).toContain("Demandas quantitativas");
+    expect(lines).not.toContain("Burnout (desfecho)");
+  });
+
+  test("pack sem histórico (health) não muda de comportamento — sem linha de medição", () => {
+    const res = handleCopilotTurn({
+      packId: "health",
+      roleId: "DIRETOR_CLINICO",
+      question: "qual o risco psicossocial?",
+      pov: "tecnico",
+    });
+    expect(res.turn.capsuleLine ?? null).toBeNull();
+    expect(res.turn.longitudinalLine ?? null).toBeNull();
+  });
+
+  test("participante (não vê coletivo) não recebe linha de medição mesmo com histórico", () => {
+    const res = handleCopilotTurn({
+      packId: "enterprise",
+      roleId: "COLABORADOR",
+      question: "qual o risco psicossocial e como evoluiu?",
+      pov: "tecnico",
+    });
+    expect(res.turn.capsuleLine ?? null).toBeNull();
+    expect(res.turn.longitudinalLine ?? null).toBeNull();
+  });
+});
