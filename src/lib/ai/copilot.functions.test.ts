@@ -87,10 +87,10 @@ describe("copilot edge contract — grounding de medição (enterprise COPSOQ)",
     expect(lines).not.toContain("Burnout (desfecho)");
   });
 
-  test("pack sem histórico (health) não muda de comportamento — sem linha de medição", () => {
+  test("pack sem histórico (government) não muda de comportamento — sem linha de medição", () => {
     const res = handleCopilotTurn({
-      packId: "health",
-      roleId: "DIRETOR_CLINICO",
+      packId: "government",
+      roleId: "DIRIGENTE",
       question: "qual o risco psicossocial?",
       pov: "tecnico",
     });

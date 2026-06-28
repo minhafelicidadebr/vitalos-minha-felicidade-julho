@@ -41,8 +41,28 @@ const ENTERPRISE_LINKS: InterventionLink[] = [
   },
 ];
 
+// Saúde (hospital): apoio emocional mirou as exigências emocionais (que caíram);
+// escala humanizada mirou o ritmo (que persistiu) — eficácia emerge do confronto.
+const HEALTH_LINKS: InterventionLink[] = [
+  {
+    interventionId: "exp-apoio-emocional",
+    label: "Rede de apoio emocional (enfermagem)",
+    targetDimensionId: "demands_emotional",
+    participantCount: 280,
+    expectedReductionBand: { low: 10, high: 20 },
+  },
+  {
+    interventionId: "exp-escala-humanizada",
+    label: "Escala humanizada",
+    targetDimensionId: "work_pace",
+    participantCount: 280,
+    expectedReductionBand: { low: 6, high: 14 },
+  },
+];
+
 const LINKS: Record<string, InterventionLink[]> = {
   enterprise: ENTERPRISE_LINKS,
+  health: HEALTH_LINKS,
 };
 
 /** Intervenções do Culture Lab ligadas a dimensões COPSOQ, por pack. */
