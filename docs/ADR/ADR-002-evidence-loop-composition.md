@@ -77,6 +77,8 @@ Nenhum capsule bruto chega ao cliente. As server fns retornam só leituras, vere
 | `wave-lifecycle.functions.listPackWaveLifecycles` | Painel de ondas (resumo seguro) | wave-lifecycle.server |
 | `pgr-document.functions.getSectorPgrDocument` | Dossiê GRO/PGR + Markdown | pgr-document.server |
 | `cycle-proof.functions.getCycleProof` | Prova de Ciclo (capstone) | cycle-proof.server |
+| `earned-seal.functions.getEarnedSeal` | Selo Empresa Viva GANHO (Domínio B da Prova de Ciclo) | earned-seal.server |
+| `board-brief.functions.getBoardBrief` | Arco lido pelos 5 céticos (capstone narrativo) | board-brief.server |
 
 E o copiloto server (`lib/ai/copilot.functions.handleCopilotTurn`) já compõe o capsule
 mais recente + a leitura longitudinal do pack (`resolvePackMeasurement`).
@@ -111,7 +113,8 @@ Os contratos estão prontos e testados. As telas a seguir consomem as server fns
 | `/ondas` (já existe, Claude) | `listPackWaveLifecycles`, `transitionWave` | painel de gestão; botões por estado |
 | `/copilota` (Lovable) | `handleCopilotTurn` (via server fn) | exibir `turn.capsuleLine` e `turn.longitudinalLine` quando presentes |
 | `/sst` ou `/relatorios` (Lovable) | `getSectorPgrDocument` | botão "exportar dossiê"; render do Markdown |
-| `/panorama` (Lovable) | `getCycleProof` | card "Prova de Ciclo": veredicto + headline + ROI |
+| `/panorama` (Lovable) | `getCycleProof`, `getBoardBrief` | card "Prova de Ciclo" (ROI) + síntese por cético (5 linhas) |
+| `/selo` (Lovable) | `getEarnedSeal` | substituir o `DOMAIN_B_READY` hardcoded pela proveniência real |
 
 **Regra de coordenação:** Claude Code não edita as telas do Lovable; apenas registrou a rota
 nova `/ondas` (isolada). As demais telas o Lovable conecta às server fns quando for renderizar.
