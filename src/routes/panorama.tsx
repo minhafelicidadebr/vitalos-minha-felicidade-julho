@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
+import { getBoardBrief } from "@/lib/api/board-brief.functions";
+import type { BoardBrief } from "@/lib/proof/board-brief.server";
 import { projectForecast } from "@/engine/forecast/forecast-engine";
 import { calculatePnL, DEFAULT_INPUTS } from "@/engine/pnl/pnl-engine";
 import { deriveEsgReadiness, type PillarScore } from "@/engine/esg/esg-engine";
@@ -53,8 +56,21 @@ const TONE_STYLE: Record<string, { dot: string; text: string; bg: string }> = {
 };
 
 function PanoramaPage() {
+  const { packId } = usePack();
   const { current, previous, delta } = useIvo();
   const org = useOrg();
+
+  // Board Brief: o arco medir→provar→custo→selo lido pelos 5 céticos (server, real).
+  const [brief, setBrief] = useState<BoardBrief | null>(null);
+  useEffect(() => {
+    let active = true;
+    void getBoardBrief({ data: { packId } })
+      .then((b) => active && setBrief(b))
+      .catch(() => active && setBrief(null));
+    return () => {
+      active = false;
+    };
+  }, [packId]);
 
   const panorama = useMemo(() => {
     if (!current) return null;
@@ -242,6 +258,9 @@ function PanoramaPage() {
           <p className="text-base leading-relaxed text-muted-foreground">{panorama.narrative}</p>
         </section>
 
+        {/* Prova de Ciclo — o arco lido pelos cinco céticos (medir→provar→custo→selo) */}
+        {brief && <BoardBriefCard brief={brief} />}
+
         {/* Próxima ação + prova */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
@@ -327,5 +346,61 @@ function HeroMetric({ metric, delay }: { metric: PanoramaMetric; delay: number }
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{metric.sub}</p>
       )}
     </motion.div>
+  );
+}
+
+// Prova de Ciclo lida pelos cinco céticos — cada dúvida, um número real (Board Brief).
+function BoardBriefCard({ brief }: { brief: BoardBrief }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm print:break-inside-avoid"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="font-serif text-base text-foreground">Prova de Ciclo · os cinco céticos</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Cada dúvida do board, respondida por um número real do arco — não por marketing.
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+          {brief.satisfiedCount}/5 com evidência · Selo {brief.sealTierLabel}
+        </span>
+      </div>
+
+      <ul className="mt-4 space-y-2.5">
+        {brief.skeptics.map((s) => (
+          <li
+            key={s.id}
+            className="flex items-start gap-3 rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5"
+          >
+            <span
+              aria-hidden
+              className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] ${
+                s.satisfied
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {s.satisfied ? "✓" : "·"}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-baseline gap-x-2">
+                <span className="text-sm font-medium text-card-foreground">{s.persona}</span>
+                <span className="text-xs italic text-muted-foreground">“{s.doubt}”</span>
+              </div>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{s.answer}</p>
+              <p className="mt-1 text-xs font-medium tabular-nums text-foreground">{s.metric}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-4 border-t border-border/40 pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        {brief.disclaimer}
+      </p>
+    </motion.section>
   );
 }
