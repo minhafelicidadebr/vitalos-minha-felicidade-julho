@@ -20,6 +20,7 @@ import {
   PlayCircle,
   Radio,
   RefreshCw,
+  Users,
   Send,
   ShieldCheck,
   XCircle,
@@ -185,13 +186,25 @@ function OndasPage() {
             {INTRO.eyebrow}
           </p>
           <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="font-serif text-3xl text-foreground">{INTRO.title}</h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="font-serif text-3xl text-foreground">{INTRO.title}</h1>
+              {load.state === "ready" && load.waves.length > 0 && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium tabular-nums text-primary">
+                  {load.waves.length} onda{load.waves.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={refresh}
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-secondary"
+              disabled={load.state === "loading"}
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-secondary disabled:opacity-50"
             >
-              <RefreshCw className="h-4 w-4" aria-hidden /> Atualizar
+              <RefreshCw
+                className={`h-4 w-4 ${load.state === "loading" ? "animate-spin" : ""}`}
+                aria-hidden
+              />{" "}
+              Atualizar
             </button>
           </div>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
@@ -200,9 +213,24 @@ function OndasPage() {
         </motion.header>
 
         {load.state === "loading" && (
-          <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/40 px-5 py-8 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-            Carregando o ciclo de vida das ondas…
+          <div className="grid gap-5 lg:grid-cols-2" aria-busy="true" aria-label="Carregando ondas">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse rounded-2xl border border-border/50 bg-card/40 p-5 sm:p-6"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-40 rounded bg-secondary/70" />
+                  <div className="h-5 w-20 rounded-full bg-secondary/50" />
+                </div>
+                <div className="mt-2 h-3 w-28 rounded bg-secondary/40" />
+                <div className="mt-5 h-2 w-full rounded-full bg-secondary/50" />
+                <div className="mt-5 flex gap-2">
+                  <div className="h-9 w-28 rounded-lg bg-secondary/60" />
+                  <div className="h-9 w-24 rounded-lg bg-secondary/40" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -235,18 +263,24 @@ function OndasPage() {
           </div>
         )}
 
-        {load.state === "ready" &&
-          load.waves.map((wave, i) => (
-            <WaveCard
-              key={wave.waveId}
-              wave={wave}
-              index={i}
-              indexLabel={indexLabel}
-              pending={pendingWave === wave.waveId}
-              feedback={feedback?.waveId === wave.waveId ? feedback : null}
-              onAction={handleAction}
-            />
-          ))}
+        {load.state === "ready" && load.waves.length > 0 && (
+          <>
+            <WaveSummaryStrip waves={load.waves} />
+            <div className="grid items-start gap-5 lg:grid-cols-2">
+              {load.waves.map((wave, i) => (
+                <WaveCard
+                  key={wave.waveId}
+                  wave={wave}
+                  index={i}
+                  indexLabel={indexLabel}
+                  pending={pendingWave === wave.waveId}
+                  feedback={feedback?.waveId === wave.waveId ? feedback : null}
+                  onAction={handleAction}
+                />
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="border-t border-border/40 pt-4 text-xs leading-relaxed text-muted-foreground">
           <ShieldCheck className="mr-1 inline h-3.5 w-3.5 align-text-bottom" aria-hidden />
@@ -256,6 +290,45 @@ function OndasPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+// ─── Faixa-resumo: leitura instantânea do ciclo (board-grade) ───────────────────
+
+function WaveSummaryStrip({ waves }: { waves: WaveLifecycleSummary[] }) {
+  const collecting = waves.filter((w) => w.status === "collecting").length;
+  const sealed = waves.filter((w) => w.status === "sealed").length;
+  const publishable = waves.filter((w) => w.publishable).length;
+  const responded = waves.reduce((s, w) => s + w.respondedTotal, 0);
+
+  const stats: { icon: typeof Radio; label: string; value: string; tint: string }[] = [
+    { icon: Radio, label: "Coletando", value: String(collecting), tint: "text-amber-600 dark:text-amber-400" },
+    { icon: Lock, label: "Seladas", value: String(sealed), tint: "text-emerald-600 dark:text-emerald-400" },
+    { icon: CheckCircle2, label: "Alimentam a IA", value: String(publishable), tint: "text-primary" },
+    { icon: Users, label: "Respostas (k≥5)", value: responded.toLocaleString("pt-BR"), tint: "text-foreground" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/40 sm:grid-cols-4"
+    >
+      {stats.map((s) => {
+        const Icon = s.icon;
+        return (
+          <div key={s.label} className="flex flex-col gap-1 bg-card px-4 py-3.5">
+            <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+              <Icon className={`h-3.5 w-3.5 ${s.tint}`} aria-hidden /> {s.label}
+            </span>
+            <span className={`font-serif text-2xl leading-none tabular-nums ${s.tint}`}>
+              {s.value}
+            </span>
+          </div>
+        );
+      })}
+    </motion.div>
   );
 }
 
@@ -285,7 +358,7 @@ function WaveCard({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.05 * index }}
-      className="rounded-2xl border border-border/50 bg-card/60 p-5 shadow-sm sm:p-6"
+      className="rounded-2xl border border-border/50 bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/25 hover:shadow-md sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
