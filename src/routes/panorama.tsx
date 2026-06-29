@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import {
+  Check,
+  Heart,
+  Landmark,
+  ShieldCheck,
+  TrendingUp,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
@@ -349,6 +358,15 @@ function HeroMetric({ metric, delay }: { metric: PanoramaMetric; delay: number }
   );
 }
 
+// Ícone por cético — reforça a leitura de board (quem está perguntando).
+const SKEPTIC_ICON: Record<string, LucideIcon> = {
+  chro: Users,
+  cfo: Landmark,
+  auditor: ShieldCheck,
+  colaborador: Heart,
+  investidor: TrendingUp,
+};
+
 // Prova de Ciclo lida pelos cinco céticos — cada dúvida, um número real (Board Brief).
 function BoardBriefCard({ brief }: { brief: BoardBrief }) {
   return (
@@ -371,31 +389,39 @@ function BoardBriefCard({ brief }: { brief: BoardBrief }) {
       </div>
 
       <ul className="mt-4 space-y-2.5">
-        {brief.skeptics.map((s) => (
-          <li
-            key={s.id}
-            className="flex items-start gap-3 rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5"
-          >
-            <span
-              aria-hidden
-              className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] ${
+        {brief.skeptics.map((s) => {
+          const Icon = SKEPTIC_ICON[s.id] ?? Users;
+          return (
+            <li
+              key={s.id}
+              className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 transition-colors ${
                 s.satisfied
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                  : "bg-muted text-muted-foreground"
+                  ? "border-emerald-300/50 bg-emerald-50/30 dark:border-emerald-800/40 dark:bg-emerald-950/15"
+                  : "border-border/50 bg-muted/20"
               }`}
             >
-              {s.satisfied ? "✓" : "·"}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-baseline gap-x-2">
-                <span className="text-sm font-medium text-card-foreground">{s.persona}</span>
-                <span className="text-xs italic text-muted-foreground">“{s.doubt}”</span>
+              <span
+                aria-hidden
+                className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-border/60"
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="text-sm font-semibold text-card-foreground">{s.persona}</span>
+                  {s.satisfied && (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      <Check className="h-2.5 w-2.5" aria-hidden /> evidência
+                    </span>
+                  )}
+                  <span className="text-xs italic text-muted-foreground">“{s.doubt}”</span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.answer}</p>
+                <p className="mt-1.5 font-serif text-sm tabular-nums text-foreground">{s.metric}</p>
               </div>
-              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{s.answer}</p>
-              <p className="mt-1 text-xs font-medium tabular-nums text-foreground">{s.metric}</p>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
 
       <p className="mt-4 border-t border-border/40 pt-3 text-[11px] leading-relaxed text-muted-foreground">

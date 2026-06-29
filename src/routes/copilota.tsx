@@ -4,6 +4,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
+  Activity,
   Compass,
   Download,
   HeartHandshake,
@@ -13,6 +14,7 @@ import {
   Send,
   ShieldCheck,
   Trash2,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
@@ -441,17 +443,21 @@ function CopilotBubble({
           </p>
         )}
 
-        {/* Aterragem na MEDIÇÃO real (Domínio B): estado e evolução, distintos do IVO */}
+        {/* Aterragem na MEDIÇÃO real (Domínio B): evidência citada, com filete lateral */}
         {turn.capsuleLine && (
-          <p className="mt-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-xs leading-relaxed text-card-foreground">
-            <span className="font-semibold text-primary">Medição real · </span>
-            {turn.capsuleLine}
+          <p className="mt-2 rounded-r-lg border-l-[3px] border-primary/60 bg-primary/5 py-2 pl-3 pr-3 text-xs leading-relaxed text-card-foreground">
+            <span className="flex items-center gap-1 font-semibold uppercase tracking-[0.1em] text-primary">
+              <Activity className="h-3 w-3" aria-hidden /> Medição real
+            </span>
+            <span className="mt-1 block">{turn.capsuleLine}</span>
           </p>
         )}
         {turn.longitudinalLine && (
-          <p className="mt-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2 text-xs leading-relaxed text-card-foreground">
-            <span className="font-semibold text-accent">Evolução medida · </span>
-            {turn.longitudinalLine}
+          <p className="mt-2 rounded-r-lg border-l-[3px] border-accent/70 bg-accent/5 py-2 pl-3 pr-3 text-xs leading-relaxed text-card-foreground">
+            <span className="flex items-center gap-1 font-semibold uppercase tracking-[0.1em] text-accent">
+              <TrendingUp className="h-3 w-3" aria-hidden /> Evolução medida
+            </span>
+            <span className="mt-1 block">{turn.longitudinalLine}</span>
           </p>
         )}
 

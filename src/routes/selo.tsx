@@ -307,14 +307,8 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
 
       {ready && (
         <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Metric
-            label="Intervenções com efeito"
-            value={String(earned.interventionsWithEffect)}
-          />
-          <Metric
-            label="Redução atribuível"
-            value={`${earned.attributableReductionPts} pts`}
-          />
+          <Metric label="Intervenções com efeito" value={String(earned.interventionsWithEffect)} />
+          <Metric label="Redução atribuível" value={`${earned.attributableReductionPts} pts`} />
           <Metric
             label="Custo evitado (ano)"
             value={
@@ -322,6 +316,7 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
                 ? `R$ ${earned.avoidedCostYear.toLocaleString("pt-BR")}`
                 : "—"
             }
+            highlight
           />
         </dl>
       )}
@@ -335,11 +330,23 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/60 px-3 py-2.5">
+    <div
+      className={`rounded-xl border px-3.5 py-3 transition-colors ${
+        highlight
+          ? "border-accent/40 bg-accent/[0.06]"
+          : "border-border/50 bg-card/60"
+      }`}
+    >
       <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 font-serif text-lg tabular-nums text-foreground">{value}</dd>
+      <dd
+        className={`mt-1 font-serif text-2xl leading-none tabular-nums sm:text-[1.75rem] ${
+          highlight ? "text-accent" : "text-foreground"
+        }`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
