@@ -42,8 +42,10 @@ export function CopilotAvatar({ spec, name, size = 56, live = false }: CopilotAv
       aria-label={`Avatar da copilota ${name}`}
     >
       {live && (
+        // Presença EMPÁTICA: respiração suave (calma), não "ping" de alerta. Um halo
+        // que pulsa devagar transmite escuta presente — não notificação. Motion-safe.
         <span
-          className="absolute inset-0 rounded-full opacity-30 motion-safe:animate-ping"
+          className="absolute -inset-1 rounded-full opacity-25 blur-md motion-safe:animate-pulse"
           style={{ background: spec.gradientTo }}
           aria-hidden
         />

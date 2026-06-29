@@ -23,6 +23,11 @@ import { usePersona } from "@/app/identity/persona-store";
 import { canSeeCollective } from "@/mocks/sector-audience";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { answerCopilot, type CopilotPov, type CopilotTurn } from "@/engine/ai/copilot-engine";
+import {
+  buildLongitudinalReading,
+  type LongitudinalReading,
+} from "@/engine/ai/capsule-longitudinal-engine";
+import { getCapsuleHistory, getLatestCapsule } from "@/mocks/capsule-history-mock";
 import { exportConversationText, type CopilotMessage } from "@/engine/ai/copilot-conversation";
 import { useCopilotConversation } from "@/app/copilot/copilot-store";
 import {
@@ -185,6 +190,20 @@ function CopilotaChat() {
     };
   }, [index, packId, kb.indexLabel]);
 
+  // Contexto de MEDIÇÃO: capsule (estado do ciclo) + longitudinal (evolução). Compõe
+  // os MESMOS engines puros do contrato server, client-side no modo demo. A FlorescerIA
+  // aterra perguntas de risco/evolução no dado real — RAG-aterrado, nunca geração livre.
+  const measurement = useMemo(() => {
+    const capsule = getLatestCapsule(packId, "COPSOQ") ?? undefined;
+    const history = getCapsuleHistory(packId, "COPSOQ");
+    let longitudinal: LongitudinalReading | undefined;
+    if (history.length >= 2) {
+      const r = buildLongitudinalReading({ capsules: history });
+      if (r.ok) longitudinal = r.reading;
+    }
+    return { capsule, longitudinal };
+  }, [packId]);
+
   const [pov, setPov] = useState<CopilotPov>("tecnico");
   const [input, setInput] = useState(seededQuestion ?? "");
 
@@ -198,7 +217,13 @@ function CopilotaChat() {
   function ask(question: string) {
     const q = question.trim();
     if (!q) return;
-    const turn = answerCopilot(kb, facts, { question: q, pov, canSeeCollective: canSee });
+    const turn = answerCopilot(
+      kb,
+      facts,
+      { question: q, pov, canSeeCollective: canSee },
+      measurement.capsule,
+      measurement.longitudinal,
+    );
     askStore(packId, q, turn);
     setInput("");
   }
@@ -413,6 +438,20 @@ function CopilotBubble({
         {turn.groundedLine && (
           <p className="mt-2 rounded-xl bg-muted/40 px-3 py-2 text-xs text-card-foreground">
             📊 {turn.groundedLine}
+          </p>
+        )}
+
+        {/* Aterragem na MEDIÇÃO real (Domínio B): estado e evolução, distintos do IVO */}
+        {turn.capsuleLine && (
+          <p className="mt-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-xs leading-relaxed text-card-foreground">
+            <span className="font-semibold text-primary">Medição real · </span>
+            {turn.capsuleLine}
+          </p>
+        )}
+        {turn.longitudinalLine && (
+          <p className="mt-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2 text-xs leading-relaxed text-card-foreground">
+            <span className="font-semibold text-accent">Evolução medida · </span>
+            {turn.longitudinalLine}
           </p>
         )}
 
