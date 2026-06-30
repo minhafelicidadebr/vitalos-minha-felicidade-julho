@@ -144,18 +144,18 @@ CREATE POLICY "waves_admin_write" ON waves
     )
   );
 
--- Invites: qualquer um com o token pode marcar como usado (INSERT anon)
-CREATE POLICY "invite_use" ON wave_invites
-  FOR UPDATE USING (token = current_setting('app.invite_token', true));
+-- wave_invites NÃO tem policy de SELECT (ninguém lista tokens por scan direto).
+-- Toda leitura/escrita de wave_invites pelo app anônimo passa por funções
+-- SECURITY DEFINER abaixo — nunca por UPDATE/SELECT direto via PostgREST.
+-- (Uma policy de UPDATE direta aqui não funcionaria: dependeria de
+-- current_setting('app.invite_token'), que o cliente PostgREST nunca define.)
 
--- Responses: INSERT anônimo com token válido; ZERO SELECT (ninguém lê linhas individuais)
+-- Responses: INSERT anônimo com token válido PARA AQUELA wave específica.
+-- Usa função SECURITY DEFINER porque wave_invites não tem SELECT policy —
+-- uma subquery direta aqui sempre veria zero linhas e bloquearia todo INSERT.
 CREATE POLICY "response_submit" ON wave_responses
   FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM wave_invites
-      WHERE token = wave_responses.invite_token
-        AND used_at IS NULL
-    )
+    is_invite_valid_for_wave(wave_id, invite_token)
   );
 
 -- Capsules: membros da org leem (nunca linha individual)
@@ -175,7 +175,7 @@ LANGUAGE sql SECURITY DEFINER AS $$
   SELECT COUNT(*)::INTEGER FROM wave_responses WHERE wave_id = p_wave_id;
 $$;
 
--- Verifica se token é válido e não foi usado
+-- Verifica se token é válido e não foi usado (checagem solta, uso geral)
 CREATE OR REPLACE FUNCTION is_invite_valid(p_token TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql SECURITY DEFINER AS $$
@@ -183,6 +183,30 @@ LANGUAGE sql SECURITY DEFINER AS $$
     SELECT 1 FROM wave_invites
     WHERE token = p_token AND used_at IS NULL
   );
+$$;
+
+-- Verifica token válido E vinculado à wave informada (usado pela RLS de INSERT
+-- em wave_responses — impede que um token de uma wave seja usado para inflar
+-- a contagem de outra wave).
+CREATE OR REPLACE FUNCTION is_invite_valid_for_wave(p_wave_id UUID, p_token TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql SECURITY DEFINER AS $$
+  SELECT EXISTS(
+    SELECT 1 FROM wave_invites
+    WHERE token = p_token AND wave_id = p_wave_id AND used_at IS NULL
+  );
+$$;
+
+-- Marca um invite como usado (chamado via RPC pelo cliente anônimo logo após
+-- o INSERT em wave_responses ser aceito). SECURITY DEFINER porque wave_invites
+-- não tem policy de UPDATE para o cliente anônimo.
+CREATE OR REPLACE FUNCTION mark_invite_used(p_token TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql SECURITY DEFINER AS $$
+  UPDATE wave_invites
+  SET used_at = NOW()
+  WHERE token = p_token AND used_at IS NULL
+  RETURNING TRUE;
 $$;
 ```
 
@@ -223,20 +247,18 @@ Adicione autenticação Supabase Auth a este projeto:
 - Após clicar: "Verifique seu e-mail — enviamos um link de acesso"
 - Após confirmar o link: redireciona para /rh (se role=RH_ADMIN|DIRETOR|SST)
   ou /colaborador (se role=COLABORADOR|LIDER)
-- Rotas protegidas: TUDO exceto /entrar, /responder/* e /quiosque
+- Rotas protegidas: TUDO exceto /entrar, /responder, /convite/* e /quiosque
 - Estética: mesma da tela /acesso (serif, tokens oklch, sem neon)
 NÃO altere nenhum engine, server function ou lógica de dados.
 ```
 
-### Prompt 3 — Wire coleta real
-```
-Na rota /responder (ou /responder/:token), conecte o formulário à server function
-submitSurveyResponse que está em src/lib/api/survey-submit.functions.ts.
-O token de convite vem do parâmetro de URL :token.
-Após envio bem-sucedido: mostrar tela de confirmação "Obrigado — sua contribuição
-está protegida. Os resultados só aparecem quando 5+ pessoas responderem."
-NÃO altere a lógica do formulário nem os engines — apenas o submit handler.
-```
+### Prompt 3 — Wire coleta real (✅ concluído via Claude Code, sessão 2026-06-30)
+A rota pública do link de convite é `/convite/:token` (não `/responder/:token` —
+`/responder` já é uma rota de demo interna pack-aware sem `<Outlet/>`, então um
+filho aninhado ali nunca renderiza; `/convite` evita a colisão). O fluxo completo:
+`checkInviteToken` resolve o token → wave_id real + instrumento no servidor
+(nunca confiar em wave_id inventado no cliente) → `submitSurveyResponses` persiste
+com `inviteToken` → `checkAndAggregateByToken` dispara a agregação k-anon.
 
 ---
 

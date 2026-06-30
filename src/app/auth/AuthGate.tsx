@@ -9,6 +9,7 @@ const PUBLIC_PREFIXES = [
   "/onboarding",
   "/responder",
   "/respond",
+  "/convite",
   "/quiosque",
 ];
 

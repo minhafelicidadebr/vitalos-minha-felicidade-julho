@@ -9,6 +9,7 @@ import {
   type AggregationSubmission,
 } from "@/engine/aggregation/response-aggregation-engine";
 import { getWaveSurvey } from "@/mocks/survey-mock";
+import { dbInstrumentToSurveyKey } from "@/lib/survey/instrument-mapping";
 
 const K_ANONYMITY_MIN = 5;
 // Desfechos Domínio B: não são dimensões de exposição; ficam em coluna separada.
@@ -66,7 +67,9 @@ export async function triggerCapsuleAggregation(
   }
 
   // 4. Obtém definição do instrumento (items + escala)
-  const survey = getWaveSurvey(packId, instrument);
+  // instrument chega como código de banco ("COPSOQ"|"PERMA"|"VIA_T") — mapeia
+  // para a chave de registro do survey-mock antes de buscar.
+  const survey = getWaveSurvey(packId, dbInstrumentToSurveyKey(instrument));
   if (!survey) {
     return { triggered: false, count: n, reason: "unknown_instrument" };
   }

@@ -10,6 +10,9 @@ const captureInput = z.object({
     .max(80),
   waveId: z.string().min(1).max(120),
   surveyId: z.string().min(1).max(120),
+  // Presente em modo cloud — vem da URL /responder/:token. Sem ele, o boundary
+  // cloud recusa a submissão explicitamente (ver response-capture.server.ts).
+  inviteToken: z.string().min(1).max(200).optional(),
   answers: z
     .array(
       z.object({

@@ -1,11 +1,17 @@
-// Rota pública: /responder/:token — link anônimo enviado ao colaborador.
+// Rota pública: /convite/:token — link anônimo enviado ao colaborador.
 // NÃO requer login. O token é o único elo de autenticação do respondente.
+// O wave_id real NUNCA é derivado no cliente — vem sempre da resolução
+// server-side do token (checkInviteToken), que é a única fonte confiável.
 // Após submit: tela de confirmação (sem dados pessoais, sem score individual).
+//
+// Nota de arquitetura: este caminho é deliberadamente "/convite" e não
+// "/responder" — "/responder" já é uma rota de demo interna pack-aware
+// (routes/responder.tsx) sem <Outlet/>, e aninhar um filho ali nunca renderiza.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, ShieldCheck, Users } from "lucide-react";
+import { CheckCircle, ShieldCheck, Users, Loader2 } from "lucide-react";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import {
   surveyProgress,
@@ -18,30 +24,68 @@ import {
 } from "@/engine/survey/survey-engine";
 import { submitSurveyResponses } from "@/lib/api/survey.functions";
 import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions";
+import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
+import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 
-export const Route = createFileRoute("/responder/$token")({
+export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
   component: ResponderTokenPage,
 });
 
-// COPSOQ é o instrumento do piloto NR-1
 const PILOT_PACK_ID = "enterprise";
-const PILOT_INSTRUMENT = "COPSOQ";
+
+const INVALID_TOKEN_MESSAGE: Record<string, string> = {
+  invalid_token: "Este link não foi reconhecido. Verifique se copiou o endereço completo.",
+  already_used: "Este link já foi utilizado. Cada convite só pode ser respondido uma vez.",
+  wave_closed: "Esta pesquisa já foi encerrada e não aceita mais respostas.",
+  cloud_adapter_missing: "A coleta de respostas está temporariamente indisponível. Tente novamente em instantes.",
+};
 
 function ResponderTokenPage() {
   const { token } = Route.useParams();
-  const survey = getWaveSurvey(PILOT_PACK_ID, PILOT_INSTRUMENT);
+  const [resolution, setResolution] = useState<InviteResolution | "loading">("loading");
 
+  useEffect(() => {
+    let active = true;
+    checkInviteToken({ data: { token, packId: PILOT_PACK_ID } })
+      .then((r) => active && setResolution(r))
+      .catch(() => active && setResolution({ valid: false, reason: "invalid_token" }));
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  if (resolution === "loading") {
+    return <ResolvingScreen />;
+  }
+
+  if (!resolution.valid) {
+    return (
+      <TokenErrorScreen
+        message={INVALID_TOKEN_MESSAGE[resolution.reason] ?? "Esta pesquisa não está disponível no momento."}
+      />
+    );
+  }
+
+  const survey = getWaveSurvey(PILOT_PACK_ID, resolution.instrument);
   if (!survey) {
     return <TokenErrorScreen message="Esta pesquisa não está disponível no momento." />;
   }
 
-  return <SurveyFlow survey={survey} token={token} />;
+  return <SurveyFlow survey={survey} token={token} waveId={resolution.waveId} />;
 }
 
 // ─── Fluxo do formulário ──────────────────────────────────────────────────────
 
-function SurveyFlow({ survey, token }: { survey: SurveyDefinition; token: string }) {
+function SurveyFlow({
+  survey,
+  token,
+  waveId,
+}: {
+  survey: SurveyDefinition;
+  token: string;
+  waveId: string;
+}) {
   const [responses, setResponses] = useState<SurveyResponses>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -65,8 +109,9 @@ function SurveyFlow({ survey, token }: { survey: SurveyDefinition; token: string
         data: {
           submissionId: crypto.randomUUID(),
           packId: PILOT_PACK_ID,
-          waveId: `wave-token-${token.slice(0, 8)}`,
+          waveId,
           surveyId: survey.id,
+          inviteToken: token,
           answers,
         },
       });
@@ -300,6 +345,19 @@ function ConfirmationScreen() {
           </p>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+// ─── Tela de resolução do link (loading) ──────────────────────────────────────
+
+function ResolvingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Verificando seu link…</p>
+      </div>
     </div>
   );
 }

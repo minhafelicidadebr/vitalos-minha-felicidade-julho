@@ -73,8 +73,8 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ResponderTokenRouteImport } from './routes/responder.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
@@ -398,14 +398,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResponderTokenRoute = ResponderTokenRouteImport.update({
-  id: '/$token',
-  path: '/$token',
-  getParentRoute: () => ResponderRoute,
-} as any)
 const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   id: '/driver/$driverId',
   path: '/driver/$driverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -473,7 +473,7 @@ export interface FileRoutesByFullPath {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRouteWithChildren
+  '/responder': typeof ResponderRoute
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -485,8 +485,8 @@ export interface FileRoutesByFullPath {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
-  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesByTo {
@@ -543,7 +543,7 @@ export interface FileRoutesByTo {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRouteWithChildren
+  '/responder': typeof ResponderRoute
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -555,8 +555,8 @@ export interface FileRoutesByTo {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
-  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesById {
@@ -614,7 +614,7 @@ export interface FileRoutesById {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRouteWithChildren
+  '/responder': typeof ResponderRoute
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -626,8 +626,8 @@ export interface FileRoutesById {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
-  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRouteTypes {
@@ -698,8 +698,8 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/auth/callback'
+    | '/convite/$token'
     | '/driver/$driverId'
-    | '/responder/$token'
     | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -768,8 +768,8 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/auth/callback'
+    | '/convite/$token'
     | '/driver/$driverId'
-    | '/responder/$token'
     | '/respond/s/$token'
   id:
     | '__root__'
@@ -838,8 +838,8 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/auth/callback'
+    | '/convite/$token'
     | '/driver/$driverId'
-    | '/responder/$token'
     | '/respond/s/$token'
   fileRoutesById: FileRoutesById
 }
@@ -897,7 +897,7 @@ export interface RootRouteChildren {
   ReconhecimentoRoute: typeof ReconhecimentoRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
-  ResponderRoute: typeof ResponderRouteWithChildren
+  ResponderRoute: typeof ResponderRoute
   RevisarRoute: typeof RevisarRoute
   RhRoute: typeof RhRoute
   SaudeRoute: typeof SaudeRoute
@@ -909,6 +909,7 @@ export interface RootRouteChildren {
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
   RespondSTokenRoute: typeof RespondSTokenRoute
 }
@@ -1363,18 +1364,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/responder/$token': {
-      id: '/responder/$token'
-      path: '/$token'
-      fullPath: '/responder/$token'
-      preLoaderRoute: typeof ResponderTokenRouteImport
-      parentRoute: typeof ResponderRoute
-    }
     '/driver/$driverId': {
       id: '/driver/$driverId'
       path: '/driver/$driverId'
       fullPath: '/driver/$driverId'
       preLoaderRoute: typeof DriverDriverIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -1393,18 +1394,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface ResponderRouteChildren {
-  ResponderTokenRoute: typeof ResponderTokenRoute
-}
-
-const ResponderRouteChildren: ResponderRouteChildren = {
-  ResponderTokenRoute: ResponderTokenRoute,
-}
-
-const ResponderRouteWithChildren = ResponderRoute._addFileChildren(
-  ResponderRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -1460,7 +1449,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReconhecimentoRoute: ReconhecimentoRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
-  ResponderRoute: ResponderRouteWithChildren,
+  ResponderRoute: ResponderRoute,
   RevisarRoute: RevisarRoute,
   RhRoute: RhRoute,
   SaudeRoute: SaudeRoute,
@@ -1472,6 +1461,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
   RespondSTokenRoute: RespondSTokenRoute,
 }

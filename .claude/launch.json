@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "vita-dev",
+      "name": "vitalos-dev",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev", "--port", "5174"],
       "port": 5174

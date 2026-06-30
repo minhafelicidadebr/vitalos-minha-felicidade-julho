@@ -63,7 +63,10 @@ const BASE_URL = import.meta.env.VITE_APP_URL?.trim() || "https://app.vitalos.co
 // ─── Respostas (write-only) ────────────────────────────────────────────────────
 
 export async function saveWaveResponse(input: SubmitResponseInput): Promise<SubmitResponseResult> {
-  const { data: valid } = await db.rpc("is_invite_valid", { p_token: input.inviteToken });
+  const { data: valid } = await db.rpc("is_invite_valid_for_wave", {
+    p_wave_id: input.waveId,
+    p_token: input.inviteToken,
+  });
   if (!valid) return { accepted: false, reason: "already_used" };
 
   const { error: insertErr } = await db.from("wave_responses").insert({
@@ -73,10 +76,8 @@ export async function saveWaveResponse(input: SubmitResponseInput): Promise<Subm
   });
   if (insertErr) return { accepted: false, reason: "db_error" };
 
-  await db
-    .from("wave_invites")
-    .update({ used_at: new Date().toISOString() })
-    .eq("token", input.inviteToken);
+  // RPC SECURITY DEFINER — wave_invites não tem policy de UPDATE para o cliente anônimo.
+  await db.rpc("mark_invite_used", { p_token: input.inviteToken });
 
   const { data: count } = await db.rpc("count_wave_responses", { p_wave_id: input.waveId });
   return { accepted: true, responseCount: count ?? undefined };
@@ -112,7 +113,7 @@ export async function createWaveWithAdmin(
   if (inviteErr || !invites) return null;
 
   const tokens = (invites as Array<{ token: string }>).map((i) => i.token);
-  const links = tokens.map((t) => `${BASE_URL}/responder/${t}`);
+  const links = tokens.map((t) => `${BASE_URL}/convite/${t}`);
   return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links };
 }
 
