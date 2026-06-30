@@ -388,36 +388,48 @@ function BoardBriefCard({ brief }: { brief: BoardBrief }) {
         </span>
       </div>
 
-      <ul className="mt-4 space-y-2.5">
+      <ul className="mt-5 space-y-2.5">
         {brief.skeptics.map((s) => {
           const Icon = SKEPTIC_ICON[s.id] ?? Users;
           return (
             <li
               key={s.id}
-              className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 transition-colors ${
+              className={`relative flex items-start gap-3.5 overflow-hidden rounded-xl border px-4 py-3.5 transition-colors ${
                 s.satisfied
-                  ? "border-emerald-300/50 bg-emerald-50/30 dark:border-emerald-800/40 dark:bg-emerald-950/15"
+                  ? "border-emerald-300/50 bg-emerald-50/40 dark:border-emerald-800/40 dark:bg-emerald-950/20"
                   : "border-border/50 bg-muted/20"
               }`}
             >
               <span
                 aria-hidden
-                className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-border/60"
+                className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${
+                  s.satisfied ? "bg-emerald-500/70" : "bg-border"
+                }`}
+              />
+              <span
+                aria-hidden
+                className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full ring-1 ${
+                  s.satisfied
+                    ? "bg-emerald-100 text-emerald-700 ring-emerald-300/60 dark:bg-emerald-900/40 dark:text-emerald-200 dark:ring-emerald-700/50"
+                    : "bg-card text-muted-foreground ring-border/60"
+                }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-[18px] w-[18px]" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="text-sm font-semibold text-card-foreground">{s.persona}</span>
                   {s.satisfied && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                      <Check className="h-2.5 w-2.5" aria-hidden /> evidência
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm dark:bg-emerald-600">
+                      <Check className="h-3 w-3" strokeWidth={3} aria-hidden /> evidência
                     </span>
                   )}
                   <span className="text-xs italic text-muted-foreground">“{s.doubt}”</span>
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.answer}</p>
-                <p className="mt-1.5 font-serif text-sm tabular-nums text-foreground">{s.metric}</p>
+                <p className="mt-2 font-serif text-base tabular-nums tracking-tight text-foreground">
+                  {s.metric}
+                </p>
               </div>
             </li>
           );

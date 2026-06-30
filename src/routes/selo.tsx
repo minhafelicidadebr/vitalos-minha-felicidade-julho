@@ -306,16 +306,18 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{earned.provenanceNote}</p>
 
       {ready && (
-        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Metric label="Intervenções com efeito" value={String(earned.interventionsWithEffect)} />
-          <Metric label="Redução atribuível" value={`${earned.attributableReductionPts} pts`} />
+          <Metric label="Redução atribuível" value={`${earned.attributableReductionPts}`} suffix="pts" />
           <Metric
             label="Custo evitado (ano)"
             value={
               earned.avoidedCostYear != null
-                ? `R$ ${earned.avoidedCostYear.toLocaleString("pt-BR")}`
+                ? earned.avoidedCostYear.toLocaleString("pt-BR")
                 : "—"
             }
+            prefix={earned.avoidedCostYear != null ? "R$" : undefined}
+            suffix={earned.avoidedCostYear != null ? "/ano" : undefined}
             highlight
           />
         </dl>
@@ -330,22 +332,46 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
   );
 }
 
-function Metric({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function Metric({
+  label,
+  value,
+  prefix,
+  suffix,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  prefix?: string;
+  suffix?: string;
+  highlight?: boolean;
+}) {
   return (
     <div
-      className={`rounded-xl border px-3.5 py-3 transition-colors ${
+      className={`relative overflow-hidden rounded-2xl border px-4 py-4 transition-colors ${
         highlight
-          ? "border-accent/40 bg-accent/[0.06]"
-          : "border-border/50 bg-card/60"
+          ? "border-accent/50 bg-gradient-to-br from-accent/10 via-accent/[0.04] to-transparent shadow-[0_1px_0_0_color-mix(in_oklab,var(--accent)_25%,transparent)]"
+          : "border-border/60 bg-card/70"
       }`}
     >
-      <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      {highlight && (
+        <span
+          aria-hidden
+          className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-accent/70"
+        />
+      )}
+      <dt className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
       <dd
-        className={`mt-1 font-serif text-2xl leading-none tabular-nums sm:text-[1.75rem] ${
+        className={`mt-1.5 flex items-baseline gap-1 font-serif leading-none tabular-nums ${
           highlight ? "text-accent" : "text-foreground"
         }`}
       >
-        {value}
+        {prefix && (
+          <span className="text-base font-medium opacity-80">{prefix}</span>
+        )}
+        <span className="text-3xl sm:text-4xl">{value}</span>
+        {suffix && (
+          <span className="text-sm font-medium opacity-70">{suffix}</span>
+        )}
       </dd>
     </div>
   );
