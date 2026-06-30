@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Target, TrendingUp } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { calculateIVO } from "@/engine/index/ivo-engine";
@@ -52,6 +53,10 @@ function PrioridadesPage() {
   const hero = result.items[0]!;
   const listItems = mode === "impacto" ? result.items.slice(1) : ordered;
 
+  const quickWins = result.items.filter((i) => i.isQuickWin).length;
+  const totalLift = result.items.reduce((s, i) => s + i.expectedIvoLift, 0);
+  const pillarsMoved = new Set(result.items.flatMap((i) => i.addressedPillars.map((p) => p.pillarId))).size;
+
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-6">
@@ -70,8 +75,32 @@ function PrioridadesPage() {
           </p>
         </motion.div>
 
+        {/* Faixa de destaques numéricos */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.08 }}
+          className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/40"
+        >
+          {[
+            { icon: Target, label: "Intervenções rankeadas", value: result.items.length, tint: "text-primary" },
+            { icon: Zap, label: "Vitórias rápidas", value: quickWins, tint: "text-amber-600 dark:text-amber-400" },
+            { icon: TrendingUp, label: "Alavancagem total (pts IVO)", value: `+${totalLift}`, tint: "text-emerald-600 dark:text-emerald-400" },
+          ].map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.label} className="flex flex-col gap-1 bg-card px-4 py-3.5">
+                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <Icon className={`h-3.5 w-3.5 ${s.tint}`} aria-hidden /> {s.label}
+                </span>
+                <span className={`font-serif text-2xl leading-none tabular-nums ${s.tint}`}>{s.value}</span>
+              </div>
+            );
+          })}
+        </motion.div>
+
         {/* Hero — prioridade #1 */}
-        <HeroPriority item={hero} />
+        <HeroPriority item={hero} pillarsMoved={pillarsMoved} />
 
         {/* Toggle de modo */}
         <div className="flex items-center justify-between gap-3">
@@ -153,7 +182,7 @@ function useComposition(item: PriorityItem) {
 
 // ─── Hero (prioridade #1) ─────────────────────────────────────────────────────
 
-function HeroPriority({ item }: { item: PriorityItem }) {
+function HeroPriority({ item, pillarsMoved }: { item: PriorityItem; pillarsMoved: number }) {
   const { amb, lens, esg } = useComposition(item);
   const effort = EFFORT_COPY[item.effort]!;
 
@@ -204,21 +233,30 @@ function HeroPriority({ item }: { item: PriorityItem }) {
         <p className="mb-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
           Pilares que esta intervenção move
         </p>
-        <div className="space-y-2">
-          {item.addressedPillars.map((p) => (
-            <div key={p.pillarId} className="flex items-center gap-3">
-              <span className="w-48 shrink-0 truncate text-sm text-card-foreground">{p.name}</span>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-foreground/25"
-                  style={{ width: `${(p.score / 1000) * 100}%` }}
-                />
+        <div className="space-y-2.5">
+          {item.addressedPillars.map((p) => {
+            const pillarLens = lensForPillar(p.pillarId);
+            const barColor = pillarLens?.color ?? "#0B3D2E";
+            return (
+              <div key={p.pillarId} className="flex items-center gap-3">
+                <span className="w-44 shrink-0 truncate text-sm text-card-foreground">{p.name}</span>
+                <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${(p.score / 1000) * 100}%`, background: barColor, opacity: 0.55 }}
+                  />
+                  {/* Gap visual — o que falta para 1000 */}
+                  <div
+                    className="absolute right-0 top-0 h-full rounded-r-full"
+                    style={{ width: `${(p.gap / 1000) * 100}%`, background: barColor, opacity: 0.18 }}
+                  />
+                </div>
+                <span className="w-28 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                  {p.score} <span className="opacity-50">·</span> <span className="text-red-500/70">−{p.gap}</span>
+                </span>
               </div>
-              <span className="w-28 shrink-0 text-right text-xs text-muted-foreground">
-                {p.score} · lacuna {p.gap}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

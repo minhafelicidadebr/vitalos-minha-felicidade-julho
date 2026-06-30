@@ -61,32 +61,36 @@ function SealCard() {
           <p className="font-medium text-card-foreground">Selo Empresa Viva™</p>
           <p className="mt-1 text-xs text-muted-foreground">Certificação anual auditável</p>
         </div>
-        <div
-          className="flex items-center gap-3 rounded-2xl border-2 px-5 py-3"
-          style={{ borderColor: "#C9A227" }}
-        >
-          <span className="text-3xl" aria-hidden>
-            🌿
-          </span>
+        {/* Anel de progresso + nível atual — board-grade */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
+            <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90" aria-hidden>
+              <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted/40" />
+              <circle
+                cx="32" cy="32" r="28" fill="none"
+                stroke="#C9A227" strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 28}`}
+                strokeDashoffset={`${2 * Math.PI * 28 * (1 - progressToNext / 100)}`}
+                className="transition-all duration-700"
+              />
+            </svg>
+            <span className="relative text-2xl" aria-hidden>🌿</span>
+          </div>
           <div>
             <p className="font-serif text-lg font-semibold text-foreground">{s.currentLevelName}</p>
             <p className="text-xs text-muted-foreground">IVO {s.ivoScore} · T1/2026</p>
+            <p className="mt-0.5 text-xs font-medium" style={{ color: "#C9A227" }}>{progressToNext}% rumo ao próximo nível</p>
           </div>
         </div>
       </div>
 
-      {/* Progress to next level */}
-      <div className="mt-5">
-        <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">
-            Rumo a: {s.nextLevelName} (≥{s.nextLevelMin})
-          </span>
-          <span className="font-medium tabular-nums text-foreground">{progressToNext}%</span>
-        </div>
-        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${progressToNext}%` }} />
-        </div>
-      </div>
+      {/* Destino do próximo nível */}
+      <p className="mt-4 text-xs text-muted-foreground">
+        Próximo nível:{" "}
+        <span className="font-medium text-foreground">{s.nextLevelName}</span>
+        {" "}(IVO ≥ {s.nextLevelMin})
+      </p>
 
       {/* Requirements */}
       <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { TrendingUp, DollarSign, Leaf } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   ComposedChart,
@@ -150,6 +151,56 @@ function TrajetoriaPage() {
             onChange={(v) => setSeasons(Number(v))}
           />
         </div>
+
+        {/* KPI strip — leitura instantânea do cenário ativo */}
+        <motion.div
+          key={`${scenario}-${seasons}-${activeLeverIds.join()}`}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/40"
+        >
+          {[
+            {
+              icon: TrendingUp,
+              label: `IVO projetado (+${seasons} temporadas)`,
+              value: forecast.ivoDelta > 0 ? `+${Math.round(forecast.ivoDelta)}` : `${Math.round(forecast.ivoDelta)}`,
+              sub: `de ${Math.round(forecast.baselineIvo)} → ${Math.round(forecast.baselineIvo + forecast.ivoDelta)}`,
+              tint: forecast.ivoDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500",
+            },
+            {
+              icon: DollarSign,
+              label: "Custo evitável estimado",
+              value: composed.pnl.avoidedCost >= 1000
+                ? `R$ ${Math.round(composed.pnl.avoidedCost / 1000)} mil`
+                : `R$ ${Math.round(composed.pnl.avoidedCost)}`,
+              sub: "rotatividade + afastamento",
+              tint: "text-primary",
+            },
+            {
+              icon: Leaf,
+              label: "Prontidão ESG (salto)",
+              value: composed.esgNext.overallScore !== null
+                ? `${Math.round(composed.esgNext.overallScore)}%`
+                : "—",
+              sub: composed.esgNow.overallScore !== null
+                ? `de ${Math.round(composed.esgNow.overallScore)}% hoje`
+                : "dados insuficientes",
+              tint: "text-accent",
+            },
+          ].map((kpi) => {
+            const Icon = kpi.icon;
+            return (
+              <div key={kpi.label} className="flex flex-col gap-0.5 bg-card px-4 py-3.5">
+                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <Icon className={`h-3.5 w-3.5 ${kpi.tint}`} aria-hidden /> {kpi.label}
+                </span>
+                <span className={`font-serif text-2xl leading-none tabular-nums ${kpi.tint}`}>{kpi.value}</span>
+                <span className="text-[11px] text-muted-foreground">{kpi.sub}</span>
+              </div>
+            );
+          })}
+        </motion.div>
 
         {/* Gráfico de trajetória */}
         <TrajectoryChart forecast={forecast} />
