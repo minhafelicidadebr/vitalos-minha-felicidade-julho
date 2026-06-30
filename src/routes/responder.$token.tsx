@@ -281,12 +281,13 @@ function ConfirmationScreen() {
         <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-primary/10">
           <CheckCircle className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="font-serif text-2xl text-foreground">Obrigado pela contribuição</h1>
+        <h1 className="font-serif text-2xl text-foreground">
+          Obrigado — sua contribuição está protegida.
+        </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Sua resposta foi registrada com segurança.
           Os resultados só aparecem quando{" "}
-          <span className="font-medium text-foreground">5 ou mais pessoas</span>{" "}
-          responderem — protegendo a identidade de todos.
+          <span className="font-medium text-foreground">5+ pessoas</span>{" "}
+          responderem.
         </p>
         <div className="mt-6 flex justify-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
