@@ -33,7 +33,8 @@ export const adminCreateWave = createServerFn({ method: "POST" })
 
 type WaveItem = {
   id: string; instrument: string; label: string | null; status: string;
-  invitedCount: number; closesAt: string | null; createdAt: string; sealedAt: string | null;
+  invitedCount: number; responseCount: number; closesAt: string | null;
+  createdAt: string; sealedAt: string | null;
 };
 
 export const adminListWaves = createServerFn({ method: "GET" })
@@ -41,7 +42,16 @@ export const adminListWaves = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<{ waves: WaveItem[]; cloudReady: boolean }> => {
     if (!isCloudReady()) return { waves: [], cloudReady: false };
     const waves = await listOrgWaves(data.orgId);
-    return { waves, cloudReady: true };
+    // Busca contagem de respostas para cada onda via RPC SECURITY DEFINER
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const withCounts = await Promise.all(
+      waves.map(async (w) => {
+        const { data: cnt } = await admin.rpc("count_wave_responses", { p_wave_id: w.id });
+        return { ...w, responseCount: (cnt as number | null) ?? 0 };
+      }),
+    );
+    return { waves: withCounts, cloudReady: true };
   });
 
 type CapsuleItem = { id: string; waveId: string; instrument: string; participantCount: number; aggregatedAt: string };

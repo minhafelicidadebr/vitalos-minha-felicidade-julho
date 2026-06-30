@@ -20,6 +20,7 @@ import {
   SIGNALS_K_MIN,
 } from "@/engine/signals/signals-engine";
 import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
+import { CapsuleInsightsCard } from "./CapsuleInsightsCard";
 
 export function RHDashboard() {
   const { index } = usePack();
@@ -48,6 +49,8 @@ export function RHDashboard() {
         maturityName={current.maturityLevel.name}
         delta={delta}
       />
+      {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
+      <CapsuleInsightsCard />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <HeatmapCard lensMeta={lensMeta} />

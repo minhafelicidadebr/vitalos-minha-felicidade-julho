@@ -17,6 +17,7 @@ import {
   type SurveyScale,
 } from "@/engine/survey/survey-engine";
 import { submitSurveyResponses } from "@/lib/api/survey.functions";
+import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions";
 
 export const Route = createFileRoute("/responder/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -72,6 +73,9 @@ function SurveyFlow({ survey, token }: { survey: SurveyDefinition; token: string
 
       if (result?.accepted) {
         setSubmitted(true);
+        // Dispara agregação server-side sem bloquear a confirmação da UI.
+        // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda.
+        checkAndAggregateByToken({ data: { token } }).catch(() => {});
       } else {
         setError("Não foi possível registrar sua resposta. Tente novamente.");
       }
