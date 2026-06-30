@@ -27,9 +27,9 @@ function validInput(packId = "enterprise") {
 }
 
 describe("server response capture boundary", () => {
-  test("demo validates on the server and returns a content-free ephemeral receipt", () => {
+  test("demo validates on the server and returns a content-free ephemeral receipt", async () => {
     delete process.env.VITALOS_IDENTITY_MODE;
-    const result = captureSurveySubmission(validInput(), "2026-06-19T12:00:00.000Z");
+    const result = await captureSurveySubmission(validInput(), "2026-06-19T12:00:00.000Z");
 
     expect(result.accepted).toBe(true);
     if (!result.accepted) return;
@@ -39,12 +39,12 @@ describe("server response capture boundary", () => {
     expect(JSON.stringify(result)).not.toContain('"answers"');
   });
 
-  test("wrong wave or survey fails without a receipt", () => {
-    const wrongWave = captureSurveySubmission({
+  test("wrong wave or survey fails without a receipt", async () => {
+    const wrongWave = await captureSurveySubmission({
       ...validInput(),
       waveId: "other",
     });
-    const wrongSurvey = captureSurveySubmission({
+    const wrongSurvey = await captureSurveySubmission({
       ...validInput(),
       surveyId: "other",
     });
@@ -56,12 +56,14 @@ describe("server response capture boundary", () => {
     expect(wrongSurvey.reason).toBe("unknown_survey");
   });
 
-  test("cloud request cannot silently fall back to ephemeral capture", () => {
+  test("cloud request without adapter falls back to cloud_adapter_missing", async () => {
     process.env.VITALOS_IDENTITY_MODE = "cloud";
 
-    expect(captureSurveySubmission(validInput())).toEqual({
-      accepted: false,
-      reason: "cloud_adapter_missing",
-    });
+    const result = await captureSurveySubmission(validInput());
+    // Sem inviteToken E sem Supabase configurado → cloud_adapter_missing
+    expect(result.accepted).toBe(false);
+    if (!result.accepted) {
+      expect(result.reason).toBe("cloud_adapter_missing");
+    }
   });
 });

@@ -67,9 +67,11 @@ import { Route as ColaboradorRouteImport } from './routes/colaborador'
 import { Route as ClevelRouteImport } from './routes/clevel'
 import { Route as BenchmarkRouteImport } from './routes/benchmark'
 import { Route as AtlasRouteImport } from './routes/atlas'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResponderTokenRouteImport } from './routes/responder.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
@@ -363,6 +365,11 @@ const AtlasRoute = AtlasRouteImport.update({
   path: '/atlas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcessoRoute = AcessoRouteImport.update({
   id: '/acesso',
   path: '/acesso',
@@ -377,6 +384,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ResponderTokenRoute = ResponderTokenRouteImport.update({
+  id: '/$token',
+  path: '/$token',
+  getParentRoute: () => ResponderRoute,
 } as any)
 const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   id: '/driver/$driverId',
@@ -393,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/admin': typeof AdminRoute
   '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
@@ -440,7 +453,7 @@ export interface FileRoutesByFullPath {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRoute
+  '/responder': typeof ResponderRouteWithChildren
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -452,12 +465,14 @@ export interface FileRoutesByFullPath {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/admin': typeof AdminRoute
   '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
@@ -505,7 +520,7 @@ export interface FileRoutesByTo {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRoute
+  '/responder': typeof ResponderRouteWithChildren
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -517,6 +532,7 @@ export interface FileRoutesByTo {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesById {
@@ -524,6 +540,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/academia': typeof AcademiaRoute
   '/acesso': typeof AcessoRoute
+  '/admin': typeof AdminRoute
   '/atlas': typeof AtlasRoute
   '/benchmark': typeof BenchmarkRoute
   '/clevel': typeof ClevelRoute
@@ -571,7 +588,7 @@ export interface FileRoutesById {
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
   '/relatorios': typeof RelatoriosRoute
-  '/responder': typeof ResponderRoute
+  '/responder': typeof ResponderRouteWithChildren
   '/revisar': typeof RevisarRoute
   '/rh': typeof RhRoute
   '/saude': typeof SaudeRoute
@@ -583,6 +600,7 @@ export interface FileRoutesById {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRouteTypes {
@@ -591,6 +609,7 @@ export interface FileRouteTypes {
     | '/'
     | '/academia'
     | '/acesso'
+    | '/admin'
     | '/atlas'
     | '/benchmark'
     | '/clevel'
@@ -650,12 +669,14 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/responder/$token'
     | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/academia'
     | '/acesso'
+    | '/admin'
     | '/atlas'
     | '/benchmark'
     | '/clevel'
@@ -715,12 +736,14 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/responder/$token'
     | '/respond/s/$token'
   id:
     | '__root__'
     | '/'
     | '/academia'
     | '/acesso'
+    | '/admin'
     | '/atlas'
     | '/benchmark'
     | '/clevel'
@@ -780,6 +803,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/driver/$driverId'
+    | '/responder/$token'
     | '/respond/s/$token'
   fileRoutesById: FileRoutesById
 }
@@ -787,6 +811,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademiaRoute: typeof AcademiaRoute
   AcessoRoute: typeof AcessoRoute
+  AdminRoute: typeof AdminRoute
   AtlasRoute: typeof AtlasRoute
   BenchmarkRoute: typeof BenchmarkRoute
   ClevelRoute: typeof ClevelRoute
@@ -834,7 +859,7 @@ export interface RootRouteChildren {
   ReconhecimentoRoute: typeof ReconhecimentoRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
   RelatoriosRoute: typeof RelatoriosRoute
-  ResponderRoute: typeof ResponderRoute
+  ResponderRoute: typeof ResponderRouteWithChildren
   RevisarRoute: typeof RevisarRoute
   RhRoute: typeof RhRoute
   SaudeRoute: typeof SaudeRoute
@@ -1257,6 +1282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtlasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/acesso': {
       id: '/acesso'
       path: '/acesso'
@@ -1278,6 +1310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/responder/$token': {
+      id: '/responder/$token'
+      path: '/$token'
+      fullPath: '/responder/$token'
+      preLoaderRoute: typeof ResponderTokenRouteImport
+      parentRoute: typeof ResponderRoute
+    }
     '/driver/$driverId': {
       id: '/driver/$driverId'
       path: '/driver/$driverId'
@@ -1295,10 +1334,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ResponderRouteChildren {
+  ResponderTokenRoute: typeof ResponderTokenRoute
+}
+
+const ResponderRouteChildren: ResponderRouteChildren = {
+  ResponderTokenRoute: ResponderTokenRoute,
+}
+
+const ResponderRouteWithChildren = ResponderRoute._addFileChildren(
+  ResponderRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademiaRoute: AcademiaRoute,
   AcessoRoute: AcessoRoute,
+  AdminRoute: AdminRoute,
   AtlasRoute: AtlasRoute,
   BenchmarkRoute: BenchmarkRoute,
   ClevelRoute: ClevelRoute,
@@ -1346,7 +1398,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReconhecimentoRoute: ReconhecimentoRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,
   RelatoriosRoute: RelatoriosRoute,
-  ResponderRoute: ResponderRoute,
+  ResponderRoute: ResponderRouteWithChildren,
   RevisarRoute: RevisarRoute,
   RhRoute: RhRoute,
   SaudeRoute: SaudeRoute,
@@ -1363,3 +1415,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
