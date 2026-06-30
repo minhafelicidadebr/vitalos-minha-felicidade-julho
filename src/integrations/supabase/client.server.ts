@@ -10,7 +10,7 @@ function isNewSupabaseApiKey(value: string): boolean {
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
-  return (input, init) => {
+  const fn = (input: RequestInfo | URL, init?: RequestInit) => {
     const headers = new Headers(
       typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
     );
@@ -27,6 +27,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     headers.set('apikey', supabaseKey);
     return fetch(input, { ...init, headers });
   };
+  return fn as unknown as typeof fetch;
 }
 
 function createSupabaseAdminClient() {

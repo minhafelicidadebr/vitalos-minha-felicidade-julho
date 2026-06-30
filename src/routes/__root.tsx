@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { A11yProvider } from "../app/shell/A11yProvider";
 import { MockDataProvider } from "../app/shell/MockDataProvider";
 import { PackProvider } from "../engine/pack";
+import { AuthGate } from "../app/auth/AuthGate";
 
 function NotFoundComponent() {
   return (
@@ -153,7 +154,9 @@ function RootComponent() {
       <A11yProvider>
         <PackProvider packId="enterprise">
           <MockDataProvider>
-            <Outlet />
+            <AuthGate>
+              <Outlet />
+            </AuthGate>
           </MockDataProvider>
         </PackProvider>
       </A11yProvider>

@@ -54,6 +54,7 @@ import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
 import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as EmbaixadorRouteImport } from './routes/embaixador'
 import { Route as DriversRouteImport } from './routes/drivers'
@@ -73,6 +74,7 @@ import { Route as AcademiaRouteImport } from './routes/academia'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResponderTokenRouteImport } from './routes/responder.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
 const ViatRoute = ViatRouteImport.update({
@@ -300,6 +302,11 @@ const EscolaRoute = EscolaRouteImport.update({
   path: '/escola',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
   id: '/embaixadorias',
   path: '/embaixadorias',
@@ -395,6 +402,11 @@ const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   path: '/driver/$driverId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RespondSTokenRoute = RespondSTokenRouteImport.update({
   id: '/respond/s/$token',
   path: '/respond/s/$token',
@@ -419,6 +431,7 @@ export interface FileRoutesByFullPath {
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
@@ -464,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
@@ -486,6 +500,7 @@ export interface FileRoutesByTo {
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
@@ -531,6 +546,7 @@ export interface FileRoutesByTo {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
@@ -554,6 +570,7 @@ export interface FileRoutesById {
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
+  '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
   '/evolucao': typeof EvolucaoRoute
@@ -599,6 +616,7 @@ export interface FileRoutesById {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/responder/$token': typeof ResponderTokenRoute
   '/respond/s/$token': typeof RespondSTokenRoute
@@ -623,6 +641,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
+    | '/entrar'
     | '/escola'
     | '/esg'
     | '/evolucao'
@@ -668,6 +687,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/auth/callback'
     | '/driver/$driverId'
     | '/responder/$token'
     | '/respond/s/$token'
@@ -690,6 +710,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
+    | '/entrar'
     | '/escola'
     | '/esg'
     | '/evolucao'
@@ -735,6 +756,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/auth/callback'
     | '/driver/$driverId'
     | '/responder/$token'
     | '/respond/s/$token'
@@ -757,6 +779,7 @@ export interface FileRouteTypes {
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
+    | '/entrar'
     | '/escola'
     | '/esg'
     | '/evolucao'
@@ -802,6 +825,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/auth/callback'
     | '/driver/$driverId'
     | '/responder/$token'
     | '/respond/s/$token'
@@ -825,6 +849,7 @@ export interface RootRouteChildren {
   DriversRoute: typeof DriversRoute
   EmbaixadorRoute: typeof EmbaixadorRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
+  EntrarRoute: typeof EntrarRoute
   EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
   EvolucaoRoute: typeof EvolucaoRoute
@@ -870,6 +895,7 @@ export interface RootRouteChildren {
   TemporadaRoute: typeof TemporadaRoute
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
   RespondSTokenRoute: typeof RespondSTokenRoute
 }
@@ -1191,6 +1217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EscolaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embaixadorias': {
       id: '/embaixadorias'
       path: '/embaixadorias'
@@ -1324,6 +1357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriverDriverIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/respond/s/$token': {
       id: '/respond/s/$token'
       path: '/respond/s/$token'
@@ -1364,6 +1404,7 @@ const rootRouteChildren: RootRouteChildren = {
   DriversRoute: DriversRoute,
   EmbaixadorRoute: EmbaixadorRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,
+  EntrarRoute: EntrarRoute,
   EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,
   EvolucaoRoute: EvolucaoRoute,
@@ -1409,6 +1450,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemporadaRoute: TemporadaRoute,
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
   RespondSTokenRoute: RespondSTokenRoute,
 }
