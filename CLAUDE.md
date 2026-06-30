@@ -13,7 +13,7 @@
 
 ## 📌 Repositório oficial
 
-`https://github.com/minhafelicidadebr/vitalos-org-fable5.git`
+`https://github.com/minhafelicidadebr/vitalos.git`
 
 ---
 
