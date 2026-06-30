@@ -445,20 +445,34 @@ function CopilotBubble({
 
         {/* Aterragem na MEDIÇÃO real (Domínio B): evidência citada, com filete lateral */}
         {turn.capsuleLine && (
-          <p className="mt-2 rounded-r-lg border-l-[3px] border-primary/60 bg-primary/5 py-2 pl-3 pr-3 text-xs leading-relaxed text-card-foreground">
-            <span className="flex items-center gap-1 font-semibold uppercase tracking-[0.1em] text-primary">
-              <Activity className="h-3 w-3" aria-hidden /> Medição real
-            </span>
-            <span className="mt-1 block">{turn.capsuleLine}</span>
-          </p>
+          <figure className="mt-3 overflow-hidden rounded-lg border border-primary/20 bg-primary/[0.04]">
+            <div className="flex items-stretch">
+              <span aria-hidden className="w-[3px] shrink-0 bg-primary/70" />
+              <div className="flex-1 px-3 py-2">
+                <figcaption className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">
+                  <Activity className="h-3 w-3" aria-hidden /> Medição real
+                </figcaption>
+                <p className="mt-1 text-xs leading-relaxed text-card-foreground">
+                  {turn.capsuleLine}
+                </p>
+              </div>
+            </div>
+          </figure>
         )}
         {turn.longitudinalLine && (
-          <p className="mt-2 rounded-r-lg border-l-[3px] border-accent/70 bg-accent/5 py-2 pl-3 pr-3 text-xs leading-relaxed text-card-foreground">
-            <span className="flex items-center gap-1 font-semibold uppercase tracking-[0.1em] text-accent">
-              <TrendingUp className="h-3 w-3" aria-hidden /> Evolução medida
-            </span>
-            <span className="mt-1 block">{turn.longitudinalLine}</span>
-          </p>
+          <figure className="mt-2 overflow-hidden rounded-lg border border-accent/30 bg-accent/[0.05]">
+            <div className="flex items-stretch">
+              <span aria-hidden className="w-[3px] shrink-0 bg-accent/80" />
+              <div className="flex-1 px-3 py-2">
+                <figcaption className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">
+                  <TrendingUp className="h-3 w-3" aria-hidden /> Evolução medida
+                </figcaption>
+                <p className="mt-1 text-xs leading-relaxed text-card-foreground">
+                  {turn.longitudinalLine}
+                </p>
+              </div>
+            </div>
+          </figure>
         )}
 
         <p className="mt-2 text-sm leading-relaxed text-card-foreground">{turn.body}</p>
