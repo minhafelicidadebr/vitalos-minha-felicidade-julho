@@ -14,13 +14,244 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      organizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          pack_id: string
+          plan: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          pack_id?: string
+          plan?: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          pack_id?: string
+          plan?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          id: string
+          org_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          org_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          org_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wave_capsules: {
+        Row: {
+          aggregated_at: string | null
+          closed_on: string | null
+          cohort_id: string | null
+          dimensions: Json
+          id: string
+          instrument: string
+          org_id: string
+          outcomes: Json | null
+          participant_count: number
+          suppressed_dims: string[] | null
+          wave_id: string
+        }
+        Insert: {
+          aggregated_at?: string | null
+          closed_on?: string | null
+          cohort_id?: string | null
+          dimensions: Json
+          id?: string
+          instrument: string
+          org_id: string
+          outcomes?: Json | null
+          participant_count: number
+          suppressed_dims?: string[] | null
+          wave_id: string
+        }
+        Update: {
+          aggregated_at?: string | null
+          closed_on?: string | null
+          cohort_id?: string | null
+          dimensions?: Json
+          id?: string
+          instrument?: string
+          org_id?: string
+          outcomes?: Json | null
+          participant_count?: number
+          suppressed_dims?: string[] | null
+          wave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wave_capsules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wave_capsules_wave_id_fkey"
+            columns: ["wave_id"]
+            isOneToOne: false
+            referencedRelation: "waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wave_invites: {
+        Row: {
+          created_at: string | null
+          token: string
+          used_at: string | null
+          wave_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          token?: string
+          used_at?: string | null
+          wave_id: string
+        }
+        Update: {
+          created_at?: string | null
+          token?: string
+          used_at?: string | null
+          wave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wave_invites_wave_id_fkey"
+            columns: ["wave_id"]
+            isOneToOne: false
+            referencedRelation: "waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wave_responses: {
+        Row: {
+          answers: Json
+          id: string
+          invite_token: string | null
+          submitted_at: string | null
+          wave_id: string
+        }
+        Insert: {
+          answers: Json
+          id?: string
+          invite_token?: string | null
+          submitted_at?: string | null
+          wave_id: string
+        }
+        Update: {
+          answers?: Json
+          id?: string
+          invite_token?: string | null
+          submitted_at?: string | null
+          wave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wave_responses_invite_token_fkey"
+            columns: ["invite_token"]
+            isOneToOne: false
+            referencedRelation: "wave_invites"
+            referencedColumns: ["token"]
+          },
+          {
+            foreignKeyName: "wave_responses_wave_id_fkey"
+            columns: ["wave_id"]
+            isOneToOne: false
+            referencedRelation: "waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waves: {
+        Row: {
+          closes_at: string | null
+          created_at: string | null
+          id: string
+          instrument: string
+          invited_count: number | null
+          label: string | null
+          org_id: string
+          seal_outcome: string | null
+          sealed_at: string | null
+          status: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string | null
+          id?: string
+          instrument: string
+          invited_count?: number | null
+          label?: string | null
+          org_id: string
+          seal_outcome?: string | null
+          sealed_at?: string | null
+          status?: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string | null
+          id?: string
+          instrument?: string
+          invited_count?: number | null
+          label?: string | null
+          org_id?: string
+          seal_outcome?: string | null
+          sealed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waves_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_wave_responses: { Args: { p_wave_id: string }; Returns: number }
+      is_invite_valid: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
