@@ -1,17 +1,16 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, mock, test } from "bun:test";
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
-import { captureSurveySubmission } from "./response-capture.server";
 
-const previousMode = process.env.VITALOS_IDENTITY_MODE;
+// Mocks para simular modos de boundary sem depender das env vars do ambiente.
+const mockBoundary = mock(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
 
-afterEach(() => {
-  if (previousMode === undefined) {
-    delete process.env.VITALOS_IDENTITY_MODE;
-  } else {
-    process.env.VITALOS_IDENTITY_MODE = previousMode;
-  }
-});
+mock.module("@/lib/identity/identity-boundary.server", () => ({
+  readIdentityBoundaryStatus: mockBoundary,
+}));
+
+// Import AFTER mock setup so the module uses the mock.
+const { captureSurveySubmission } = await import("./response-capture.server");
 
 function validInput(packId = "enterprise") {
   const wave = getActiveWave(packId);
@@ -26,9 +25,13 @@ function validInput(packId = "enterprise") {
   };
 }
 
+afterEach(() => {
+  mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
+});
+
 describe("server response capture boundary", () => {
   test("demo validates on the server and returns a content-free ephemeral receipt", async () => {
-    delete process.env.VITALOS_IDENTITY_MODE;
+    mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
     const result = await captureSurveySubmission(validInput(), "2026-06-19T12:00:00.000Z");
 
     expect(result.accepted).toBe(true);
@@ -40,6 +43,7 @@ describe("server response capture boundary", () => {
   });
 
   test("wrong wave or survey fails without a receipt", async () => {
+    mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
     const wrongWave = await captureSurveySubmission({
       ...validInput(),
       waveId: "other",
@@ -56,11 +60,10 @@ describe("server response capture boundary", () => {
     expect(wrongSurvey.reason).toBe("unknown_survey");
   });
 
-  test("cloud request without adapter falls back to cloud_adapter_missing", async () => {
-    process.env.VITALOS_IDENTITY_MODE = "cloud";
+  test("cloud request without inviteToken returns cloud_adapter_missing", async () => {
+    mockBoundary.mockImplementation(() => ({ state: "cloud" as const, mode: "cloud" as const }));
 
-    const result = await captureSurveySubmission(validInput());
-    // Sem inviteToken E sem Supabase configurado → cloud_adapter_missing
+    const result = await captureSurveySubmission(validInput()); // sem inviteToken
     expect(result.accepted).toBe(false);
     if (!result.accepted) {
       expect(result.reason).toBe("cloud_adapter_missing");

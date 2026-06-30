@@ -1,8 +1,8 @@
-// Server functions de administração de ondas — sem créditos Lovable.
+// Server functions de administração de ondas.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createWave, listOrgWaves, listOrgCapsules } from "../cloud/db-adapter";
+import { listOrgWaves, listOrgCapsules } from "../cloud/db-adapter";
 import { isCloudReady } from "../cloud/supabase-client";
 
 const orgIdSchema = z.string().uuid("org_id deve ser UUID válido");
@@ -15,39 +15,27 @@ const createWaveSchema = z.object({
   closesAt: z.string().datetime().optional(),
 });
 
-// Tipos de retorno simplificados para satisfazer ValidateSerializableMapped do TanStack
-type AdminCreateWaveOk = {
-  ok: true;
-  waveId: string;
-  inviteTokens: string[];
-  inviteLinks: string[];
-};
+type AdminCreateWaveOk = { ok: true; waveId: string; inviteTokens: string[]; inviteLinks: string[] };
 type AdminCreateWaveErr = { ok: false; error: string };
 
-/** Cria uma onda + N tokens de convite. Retorna os links para envio via WhatsApp/email. */
+/** Cria uma onda + N tokens (usa service role via .server.ts). */
 export const adminCreateWave = createServerFn({ method: "POST" })
   .inputValidator(createWaveSchema)
   .handler(async ({ data }): Promise<AdminCreateWaveOk | AdminCreateWaveErr> => {
     if (!isCloudReady()) {
-      return { ok: false, error: "Cloud não ativado — execute o Prompt 1 do ADR-003 no Lovable." };
+      return { ok: false, error: "Cloud não ativado — execute o Prompt 1 do ADR-003." };
     }
-    const result = await createWave(data);
-    if (!result) return { ok: false, error: "Falha ao criar onda no banco." };
+    const { createWaveAsAdmin } = await import("./wave-admin.server");
+    const result = await createWaveAsAdmin(data);
+    if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, ...result };
   });
 
 type WaveItem = {
-  id: string;
-  instrument: string;
-  label: string | null;
-  status: string;
-  invitedCount: number;
-  closesAt: string | null;
-  createdAt: string;
-  sealedAt: string | null;
+  id: string; instrument: string; label: string | null; status: string;
+  invitedCount: number; closesAt: string | null; createdAt: string; sealedAt: string | null;
 };
 
-/** Lista ondas da organização (painel de gestão). */
 export const adminListWaves = createServerFn({ method: "GET" })
   .inputValidator(z.object({ orgId: orgIdSchema }))
   .handler(async ({ data }): Promise<{ waves: WaveItem[]; cloudReady: boolean }> => {
@@ -56,15 +44,8 @@ export const adminListWaves = createServerFn({ method: "GET" })
     return { waves, cloudReady: true };
   });
 
-type CapsuleItem = {
-  id: string;
-  waveId: string;
-  instrument: string;
-  participantCount: number;
-  aggregatedAt: string;
-};
+type CapsuleItem = { id: string; waveId: string; instrument: string; participantCount: number; aggregatedAt: string };
 
-/** Lista capsules publicados (relatórios reais). Dimensões omitidas — pesadas para serializar aqui. */
 export const adminListCapsules = createServerFn({ method: "GET" })
   .inputValidator(z.object({ orgId: orgIdSchema }))
   .handler(async ({ data }): Promise<{ capsules: CapsuleItem[]; cloudReady: boolean }> => {
@@ -73,20 +54,16 @@ export const adminListCapsules = createServerFn({ method: "GET" })
     return {
       cloudReady: true,
       capsules: capsules.map((c) => ({
-        id: c.id,
-        waveId: c.waveId,
-        instrument: c.instrument,
-        participantCount: c.participantCount,
-        aggregatedAt: c.aggregatedAt,
+        id: c.id, waveId: c.waveId, instrument: c.instrument,
+        participantCount: c.participantCount, aggregatedAt: c.aggregatedAt,
       })),
     };
   });
 
-/** Verifica se o Cloud está pronto (usado na tela de onboarding). */
 export const checkCloudStatus = createServerFn({ method: "GET" })
   .handler((): { cloudReady: boolean; message: string } => ({
     cloudReady: isCloudReady(),
     message: isCloudReady()
       ? "Lovable Cloud ativo — dados reais disponíveis."
-      : "Modo demo — dados mocados. Ative o Cloud com o Prompt 1 do ADR-003.",
+      : "Modo demo. Ative o Cloud com o Prompt 1 do ADR-003.",
   }));

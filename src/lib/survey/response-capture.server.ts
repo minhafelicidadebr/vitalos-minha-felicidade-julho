@@ -26,6 +26,11 @@ export async function captureSurveySubmission(
 ): Promise<CaptureResult> {
   const boundary = readIdentityBoundaryStatus();
 
+  // Cloud mode sem token → recusa explícita (não silencia para demo).
+  if (boundary.state === "cloud" && !input.inviteToken) {
+    return { accepted: false, reason: "cloud_adapter_missing" };
+  }
+
   if (boundary.state === "cloud" && input.inviteToken) {
     // ── Modo real: persiste no Supabase ──────────────────────────────────────
     const answersMap: Record<string, number> = {};

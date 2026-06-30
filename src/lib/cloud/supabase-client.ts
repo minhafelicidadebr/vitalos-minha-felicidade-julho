@@ -1,34 +1,12 @@
-// Supabase client — lazy, env-aware, safe.
-// Returns null when VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are unset
-// (demo mode: app falls back to mocks without throwing).
-// After Lovable Cloud activation, env vars are injected automatically.
+// Re-exports the Lovable-generated Supabase client as the canonical source.
+// Lovable Cloud usa VITE_SUPABASE_PUBLISHABLE_KEY (não VITE_SUPABASE_ANON_KEY).
+// Não criar outro cliente — usar sempre @/integrations/supabase/client.
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "./database.types";
+export { supabase as getSupabaseClient } from "@/integrations/supabase/client";
 
-let _client: SupabaseClient<Database> | null = null;
-
-export function getSupabaseClient(): SupabaseClient<Database> | null {
-  if (_client) return _client;
-
-  const url = import.meta.env.VITE_SUPABASE_URL?.trim();
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
-
-  if (!url || !key) return null;
-
-  _client = createClient<Database>(url, key, {
-    auth: { persistSession: true, autoRefreshToken: true },
-    global: {
-      headers: { "x-vitalos-version": "2.0.0-fase2" },
-    },
-  });
-
-  return _client;
-}
-
-/** True when Lovable Cloud is active and env vars are configured. */
+/** True when Lovable Cloud está ativo (env vars presentes). */
 export function isCloudReady(): boolean {
   const url = import.meta.env.VITE_SUPABASE_URL?.trim();
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
   return Boolean(url && key);
 }

@@ -6,8 +6,8 @@ import { buildConsentLedgerContractProof } from "../trust/consent-ledger-proof.s
 
 export interface CloudReadinessProof extends ReturnType<typeof evaluateCloudReadiness> {
   generatedAt: string;
-  environment: "demo";
-  lovableCloudConfigured: false;
+  environment: "demo" | "cloud";
+  lovableCloudConfigured: boolean;
   sensitivePayloadReturned: false;
 }
 
@@ -21,13 +21,16 @@ export function buildCloudReadinessProof(
   const isolation = buildIsolationAuditProof(generatedAt);
   const consent = buildConsentLedgerContractProof(generatedAt);
 
+  const cloudConfigured = identity.state === "cloud";
+
   return {
     generatedAt,
-    environment: "demo",
-    lovableCloudConfigured: false,
+    environment: cloudConfigured ? "cloud" : "demo",
+    lovableCloudConfigured: cloudConfigured,
     sensitivePayloadReturned: false,
     ...evaluateCloudReadiness({
-      identityContractKnown: identity.reason === "demo_isolated",
+      // Identity contract is known when boundary is in a valid state (demo or cloud, not blocked).
+      identityContractKnown: identity.state !== "blocked",
       persistenceContractVerified: pipeline.persistence.status === "contract_verified",
       isolationOracleVerified: isolation.status === "verified",
       consentContractVerified: consent.status === "contract_verified",

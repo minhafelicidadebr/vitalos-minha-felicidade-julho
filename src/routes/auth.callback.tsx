@@ -58,6 +58,11 @@ function AuthCallbackPage() {
 
       if (cancelled) return;
 
+      if (!profile) {
+        navigate({ to: "/onboarding" });
+        return;
+      }
+
       const role = (profile as { role?: string } | null)?.role;
       const destination = role && ADMIN_ROLES.has(role) ? "/rh" : "/colaborador";
       navigate({ to: destination });

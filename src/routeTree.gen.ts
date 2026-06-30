@@ -36,6 +36,7 @@ import { Route as PanoramaRouteImport } from './routes/panorama'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as OndasRouteImport } from './routes/ondas'
 import { Route as OndaRouteImport } from './routes/onda'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as MatrizRouteImport } from './routes/matriz'
@@ -210,6 +211,11 @@ const OndasRoute = OndasRouteImport.update({
 const OndaRoute = OndaRouteImport.update({
   id: '/onda',
   path: '/onda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MissoesRoute = MissoesRouteImport.update({
@@ -450,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
+  '/onboarding': typeof OnboardingRoute
   '/onda': typeof OndaRoute
   '/ondas': typeof OndasRoute
   '/painel': typeof PainelRoute
@@ -519,6 +526,7 @@ export interface FileRoutesByTo {
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
+  '/onboarding': typeof OnboardingRoute
   '/onda': typeof OndaRoute
   '/ondas': typeof OndasRoute
   '/painel': typeof PainelRoute
@@ -589,6 +597,7 @@ export interface FileRoutesById {
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
+  '/onboarding': typeof OnboardingRoute
   '/onda': typeof OndaRoute
   '/ondas': typeof OndasRoute
   '/painel': typeof PainelRoute
@@ -660,6 +669,7 @@ export interface FileRouteTypes {
     | '/matriz'
     | '/metodologia'
     | '/missoes'
+    | '/onboarding'
     | '/onda'
     | '/ondas'
     | '/painel'
@@ -729,6 +739,7 @@ export interface FileRouteTypes {
     | '/matriz'
     | '/metodologia'
     | '/missoes'
+    | '/onboarding'
     | '/onda'
     | '/ondas'
     | '/painel'
@@ -798,6 +809,7 @@ export interface FileRouteTypes {
     | '/matriz'
     | '/metodologia'
     | '/missoes'
+    | '/onboarding'
     | '/onda'
     | '/ondas'
     | '/painel'
@@ -868,6 +880,7 @@ export interface RootRouteChildren {
   MatrizRoute: typeof MatrizRoute
   MetodologiaRoute: typeof MetodologiaRoute
   MissoesRoute: typeof MissoesRoute
+  OnboardingRoute: typeof OnboardingRoute
   OndaRoute: typeof OndaRoute
   OndasRoute: typeof OndasRoute
   PainelRoute: typeof PainelRoute
@@ -1089,6 +1102,13 @@ declare module '@tanstack/react-router' {
       path: '/onda'
       fullPath: '/onda'
       preLoaderRoute: typeof OndaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/missoes': {
@@ -1423,6 +1443,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatrizRoute: MatrizRoute,
   MetodologiaRoute: MetodologiaRoute,
   MissoesRoute: MissoesRoute,
+  OnboardingRoute: OnboardingRoute,
   OndaRoute: OndaRoute,
   OndasRoute: OndasRoute,
   PainelRoute: PainelRoute,
@@ -1457,3 +1478,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

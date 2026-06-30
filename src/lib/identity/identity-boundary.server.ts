@@ -9,7 +9,7 @@ function requestedIdentityMode(): IdentityMode {
   // Lovable Cloud injeta VITE_SUPABASE_URL automaticamente ao ativar Cloud.
   // Quando presente, o modo é cloud sem precisar de flag manual.
   const hasSupabaseEnv = Boolean(
-    process.env.VITE_SUPABASE_URL?.trim() && process.env.VITE_SUPABASE_ANON_KEY?.trim(),
+    process.env.VITE_SUPABASE_URL?.trim() && process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim(),
   );
   if (hasSupabaseEnv) return "cloud";
   return process.env.VITALOS_IDENTITY_MODE?.trim().toLowerCase() === "cloud" ? "cloud" : "demo";
@@ -18,7 +18,7 @@ function requestedIdentityMode(): IdentityMode {
 function hasCloudAdapter(): boolean {
   // Adapter disponível quando SDK Supabase está configurado (env vars presentes).
   return Boolean(
-    process.env.VITE_SUPABASE_URL?.trim() && process.env.VITE_SUPABASE_ANON_KEY?.trim(),
+    process.env.VITE_SUPABASE_URL?.trim() && process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim(),
   );
 }
 

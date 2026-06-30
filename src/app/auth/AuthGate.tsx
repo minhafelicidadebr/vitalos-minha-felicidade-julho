@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 const PUBLIC_PREFIXES = [
   "/entrar",
   "/auth/callback",
+  "/onboarding",
   "/responder",
   "/respond",
   "/quiosque",
