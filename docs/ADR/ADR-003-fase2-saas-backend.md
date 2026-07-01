@@ -71,8 +71,11 @@ CREATE TABLE IF NOT EXISTS waves (
 );
 
 -- 4. TOKENS DE CONVITE (anônimos — não ligados a identidade)
+-- 'hex' e não 'base64url': base64url não é reconhecido pela versão de
+-- Postgres deste projeto ("unrecognized encoding"). hex é suportado em
+-- qualquer versão e já é URL-safe por construção (só 0-9a-f).
 CREATE TABLE IF NOT EXISTS wave_invites (
-  token       TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'base64url'),
+  token       TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'hex'),
   wave_id     UUID NOT NULL REFERENCES waves(id),
   email       TEXT,        -- opcional: só presente quando o convite foi enviado por e-mail
   emailed_at  TIMESTAMPTZ, -- quando o envio foi confirmado pelo provedor (Resend)
@@ -119,7 +122,7 @@ CREATE INDEX IF NOT EXISTS wave_capsules_wave_id ON wave_capsules(wave_id);
 -- Fecha o self-serve: sem token válido, /onboarding não cria organização.
 -- Mesmo padrão de wave_invites — sem SELECT policy, acesso só via service role.
 CREATE TABLE IF NOT EXISTS org_invites (
-  token          TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'base64url'),
+  token          TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'hex'),
   created_by     UUID REFERENCES auth.users(id),
   email          TEXT,        -- opcional: vincula o convite a um e-mail específico
   used_at        TIMESTAMPTZ,
