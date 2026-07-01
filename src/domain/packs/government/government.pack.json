@@ -87,6 +87,7 @@
     "SECRETARIO"
   ],
   "defaultRole": "DIRIGENTE",
+  "orgAdminRole": "DGP_RH",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "igv_never_feeds_performance_appraisal_or_promotion",

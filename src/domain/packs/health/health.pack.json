@@ -96,6 +96,7 @@
     "RESIDENTE"
   ],
   "defaultRole": "DIRETOR_CLINICO",
+  "orgAdminRole": "SESMT_SAUDE",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "ivs_never_feeds_performance_appraisal_or_credentialing",

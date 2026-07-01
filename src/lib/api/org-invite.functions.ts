@@ -11,6 +11,9 @@ export const createOrgInviteLink = createServerFn({ method: "POST" })
   .inputValidator(
     accessTokenSchema.extend({
       email: z.string().email().optional(),
+      // Plano contratado — decisão comercial do admin da plataforma, nunca do
+      // cliente. Ausente = organização nasce em 'pilot' (default seguro).
+      plan: z.enum(["pilot", "growth", "enterprise"]).optional(),
     }),
   )
   .handler(async ({ data }): Promise<PlatformResult<{ invite: OrgInviteSummary }>> => {
@@ -22,7 +25,7 @@ export const createOrgInviteLink = createServerFn({ method: "POST" })
     const admin = supabaseAdmin as any;
     const { data: userData } = await admin.auth.getUser(data.accessToken);
 
-    const result = await createOrgInvite(userData.user.id, data.email);
+    const result = await createOrgInvite(userData.user.id, data.email, data.plan);
     if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, invite: result };
   });

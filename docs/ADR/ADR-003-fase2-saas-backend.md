@@ -136,6 +136,24 @@ ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS used_by_org_id UUID REFERENCES 
 ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days');
 
 -- ═══════════════════════════════════════════════════════════════
+-- MIGRATION v1.1.0 — Setor autodeclarado + cadastro completo da empresa
+-- Contexto: o setor (pack_id) passou a ser uma escolha do PRÓPRIO cliente na
+-- tela /ativar (não mais fixo em 'enterprise'). O plano comercial (plan)
+-- continua sendo decisão do admin da PLATAFORMA — nunca do cliente — para
+-- não abrir brecha de auto-upgrade sem cobrança: quando presente no convite,
+-- vence sobre o default 'pilot' da organização.
+-- ═══════════════════════════════════════════════════════════════
+
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS cnpj TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS team_size_band TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS segment TEXT;
+
+ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS plan TEXT;
+-- 'pilot' | 'growth' | 'enterprise' | NULL (NULL = organização nasce em 'pilot')
+
+-- ═══════════════════════════════════════════════════════════════
 -- ROW LEVEL SECURITY
 -- ═══════════════════════════════════════════════════════════════
 

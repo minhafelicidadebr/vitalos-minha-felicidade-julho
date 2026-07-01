@@ -42,6 +42,7 @@ export async function verifyPlatformAdmin(accessToken: string): Promise<Platform
 export interface OrgInviteSummary {
   token: string;
   email: string | null;
+  plan: string | null;
   usedAt: string | null;
   usedByOrgId: string | null;
   expiresAt: string | null;
@@ -52,6 +53,7 @@ export interface OrgInviteSummary {
 interface OrgInviteRow {
   token: string;
   email: string | null;
+  plan: string | null;
   used_at: string | null;
   used_by_org_id: string | null;
   expires_at: string | null;
@@ -63,6 +65,7 @@ function toInviteSummary(row: OrgInviteRow): OrgInviteSummary {
   return {
     token: row.token,
     email: row.email,
+    plan: row.plan,
     usedAt: row.used_at,
     usedByOrgId: row.used_by_org_id,
     expiresAt: row.expires_at,
@@ -75,14 +78,15 @@ function toInviteSummary(row: OrgInviteRow): OrgInviteSummary {
 export async function createOrgInvite(
   createdByUserId: string,
   boundEmail?: string,
+  plan?: string,
 ): Promise<OrgInviteSummary | { error: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
   const { data, error } = await admin
     .from("org_invites")
-    .insert({ created_by: createdByUserId, email: boundEmail?.trim() || null })
-    .select("token, email, used_at, used_by_org_id, expires_at, created_at")
+    .insert({ created_by: createdByUserId, email: boundEmail?.trim() || null, plan: plan ?? null })
+    .select("token, email, plan, used_at, used_by_org_id, expires_at, created_at")
     .single();
 
   if (error || !data) {
@@ -102,7 +106,7 @@ export async function listOrgInvites(): Promise<OrgInviteSummary[]> {
 
   const { data } = await admin
     .from("org_invites")
-    .select("token, email, used_at, used_by_org_id, expires_at, created_at")
+    .select("token, email, plan, used_at, used_by_org_id, expires_at, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -110,7 +114,7 @@ export async function listOrgInvites(): Promise<OrgInviteSummary[]> {
 }
 
 export type OrgInviteResolution =
-  | { valid: true; email: string | null }
+  | { valid: true; email: string | null; plan: string | null }
   | { valid: false; reason: "invalid_token" | "already_used" | "expired" };
 
 /** Valida um token de convite ANTES de mostrar o formulário de cadastro da empresa. */
@@ -120,7 +124,7 @@ export async function resolveOrgInvite(token: string): Promise<OrgInviteResoluti
 
   const { data } = await admin
     .from("org_invites")
-    .select("email, used_at, expires_at")
+    .select("email, plan, used_at, expires_at")
     .eq("token", token)
     .maybeSingle();
 
@@ -130,7 +134,7 @@ export async function resolveOrgInvite(token: string): Promise<OrgInviteResoluti
     return { valid: false, reason: "expired" };
   }
 
-  return { valid: true, email: data.email };
+  return { valid: true, email: data.email, plan: data.plan };
 }
 
 /** Marca o convite como usado. Chamado só depois que a organização foi criada com sucesso. */

@@ -81,6 +81,7 @@
     "ADMINISTRADORA"
   ],
   "defaultRole": "SINDICO",
+  "orgAdminRole": "SINDICO",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "ivc_never_feeds_disciplinary_or_legal_proceedings",

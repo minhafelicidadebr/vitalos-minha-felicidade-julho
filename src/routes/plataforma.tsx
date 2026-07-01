@@ -18,11 +18,20 @@ export const Route = createFileRoute("/plataforma")({
 
 type Status = "checking" | "denied" | "ready";
 
+type PlanId = "pilot" | "growth" | "enterprise";
+
+const PLAN_OPTIONS: { id: PlanId; label: string; hint: string }[] = [
+  { id: "pilot", label: "Pilot", hint: "1 onda/mês · até 50 convites" },
+  { id: "growth", label: "Growth", hint: "mais ondas e convites" },
+  { id: "enterprise", label: "Enterprise", hint: "sem limites de piloto" },
+];
+
 function PlataformaPage() {
   const [status, setStatus] = useState<Status>("checking");
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [invites, setInvites] = useState<OrgInviteSummary[]>([]);
   const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState<PlanId>("pilot");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
@@ -62,12 +71,13 @@ function PlataformaPage() {
     setError(null);
     try {
       const result = await createOrgInviteLink({
-        data: { accessToken, email: email.trim() || undefined },
+        data: { accessToken, email: email.trim() || undefined, plan },
       });
       if (!result.ok) {
         setError(result.error);
       } else {
         setEmail("");
+        setPlan("pilot");
         await loadInvites(accessToken);
       }
     } catch {
@@ -138,26 +148,54 @@ function PlataformaPage() {
         <label className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
           E-mail do cliente (opcional — trava o convite a este e-mail)
         </label>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="contato@empresacliente.com"
-            className="flex-1 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
-          />
-          <button
-            onClick={handleCreate}
-            disabled={creating}
-            className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {creating ? "Gerando…" : "Gerar link de convite"}
-          </button>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="contato@empresacliente.com"
+          className="w-full rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+        />
+
+        <label className="mb-2 mt-4 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          Plano contratado
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PLAN_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => setPlan(opt.id)}
+              className={`rounded-xl border px-4 py-2 text-left text-sm font-medium transition-all ${
+                plan === opt.id
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-background text-foreground hover:border-primary/40"
+              }`}
+            >
+              {opt.label}
+              <span
+                className={`ml-1.5 text-[10px] font-normal ${
+                  plan === opt.id ? "text-primary-foreground/80" : "text-muted-foreground"
+                }`}
+              >
+                {opt.hint}
+              </span>
+            </button>
+          ))}
         </div>
+
+        <button
+          onClick={handleCreate}
+          disabled={creating}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+        >
+          {creating ? "Gerando…" : "Gerar link de convite"}
+        </button>
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
         <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
           Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com
           e-mail, só quem logar com aquele endereço específico consegue completar o cadastro.
+          O setor (empresa/escola/governo/condomínio/saúde) é escolhido pelo próprio
+          cliente ao ativar o link.
         </p>
       </motion.div>
 
@@ -197,6 +235,9 @@ function PlataformaPage() {
                       }`}
                     >
                       {invite.usedAt ? "Usado" : "Pendente"}
+                    </span>
+                    <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {invite.plan ?? "pilot"}
                     </span>
                   </div>
                   <p className="mt-1 text-[11px] text-muted-foreground">

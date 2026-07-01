@@ -9,7 +9,14 @@ const onboardingSchema = z.object({
     .min(2)
     .max(60)
     .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e hífens"),
-  packId: z.enum(["enterprise", "health", "government", "condo", "school"]).optional(),
+  // Validado contra REGISTERED_PACK_IDS dentro de createOrgAndAdmin — única
+  // fonte de verdade, evita duplicar (e desalinhar) a lista de setores aqui.
+  packId: z.string().min(1, "Selecione o setor da organização"),
+  cnpj: z.string().min(11, "CNPJ inválido").max(32),
+  teamSizeBand: z.string().min(1, "Selecione o tamanho da equipe"),
+  phone: z.string().min(8, "Telefone inválido").max(32),
+  address: z.string().max(200).optional(),
+  segment: z.string().max(120).optional(),
   inviteToken: z.string().min(1, "Convite obrigatório"),
 });
 

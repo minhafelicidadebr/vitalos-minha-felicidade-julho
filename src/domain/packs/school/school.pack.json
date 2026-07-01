@@ -65,6 +65,7 @@
   ],
   "demoPersonas": ["ESTUDANTE", "EDUCADOR", "COORDENADOR", "DIRETOR", "FAMILIA", "SECRETARIA_EDU"],
   "defaultRole": "DIRETOR",
+  "orgAdminRole": "DIRETOR",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "student_minor_data_requires_guardian_legal_basis",

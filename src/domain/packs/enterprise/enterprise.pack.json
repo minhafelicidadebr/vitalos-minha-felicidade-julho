@@ -74,6 +74,7 @@
     "HOLDING_ADMIN"
   ],
   "defaultRole": "COLABORADOR",
+  "orgAdminRole": "RH_ADMIN",
   "rbacInvariants": [
     "individual_responses_never_visible_to_client_roles",
     "leader_sees_own_team_aggregate_only_if_n>=5",
