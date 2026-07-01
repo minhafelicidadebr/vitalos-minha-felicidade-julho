@@ -20,6 +20,7 @@ export type Database = {
           created_by: string | null
           email: string | null
           expires_at: string | null
+          plan: string | null
           token: string
           used_at: string | null
           used_by_org_id: string | null
@@ -29,6 +30,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           expires_at?: string | null
+          plan?: string | null
           token?: string
           used_at?: string | null
           used_by_org_id?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           expires_at?: string | null
+          plan?: string | null
           token?: string
           used_at?: string | null
           used_by_org_id?: string | null
@@ -54,28 +57,43 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          cnpj: string | null
           created_at: string | null
           id: string
           name: string
           pack_id: string
+          phone: string | null
           plan: string
+          segment: string | null
           slug: string
+          team_size_band: string | null
         }
         Insert: {
+          address?: string | null
+          cnpj?: string | null
           created_at?: string | null
           id?: string
           name: string
           pack_id?: string
+          phone?: string | null
           plan?: string
+          segment?: string | null
           slug: string
+          team_size_band?: string | null
         }
         Update: {
+          address?: string | null
+          cnpj?: string | null
           created_at?: string | null
           id?: string
           name?: string
           pack_id?: string
+          phone?: string | null
           plan?: string
+          segment?: string | null
           slug?: string
+          team_size_band?: string | null
         }
         Relationships: []
       }
