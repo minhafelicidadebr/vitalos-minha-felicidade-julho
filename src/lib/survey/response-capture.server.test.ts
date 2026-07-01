@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
+import type { IdentityBoundaryStatus } from "@/engine/identity/authorization-engine";
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 
 // Mocks para simular modos de boundary sem depender das env vars do ambiente.
-const mockBoundary = mock(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
+const mockBoundary = mock<() => IdentityBoundaryStatus>(() => ({
+  requestedMode: "demo",
+  state: "demo",
+  realAuthentication: false,
+  serverEnforced: false,
+  reason: "demo_isolated",
+}));
 
 mock.module("@/lib/identity/identity-boundary.server", () => ({
   readIdentityBoundaryStatus: mockBoundary,
@@ -26,7 +33,13 @@ function validInput(packId = "enterprise") {
 }
 
 afterEach(() => {
-  mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
+  mockBoundary.mockImplementation(() => ({
+    requestedMode: "demo",
+    state: "demo",
+    realAuthentication: false,
+    serverEnforced: false,
+    reason: "demo_isolated",
+  }));
 });
 
 describe("server response capture boundary", () => {
