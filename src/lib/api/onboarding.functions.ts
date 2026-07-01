@@ -10,6 +10,7 @@ const onboardingSchema = z.object({
     .max(60)
     .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e hífens"),
   packId: z.enum(["enterprise", "health", "government", "condo", "school"]).optional(),
+  inviteToken: z.string().min(1, "Convite obrigatório"),
 });
 
 type OnboardingOk = { ok: true; orgId: string };

@@ -115,6 +115,23 @@ CREATE TABLE IF NOT EXISTS wave_capsules (
 CREATE INDEX IF NOT EXISTS wave_capsules_org_id ON wave_capsules(org_id);
 CREATE INDEX IF NOT EXISTS wave_capsules_wave_id ON wave_capsules(wave_id);
 
+-- 7. CONVITES DE ORGANIZAÇÃO (provisionamento — só admin da PLATAFORMA gera)
+-- Fecha o self-serve: sem token válido, /onboarding não cria organização.
+-- Mesmo padrão de wave_invites — sem SELECT policy, acesso só via service role.
+CREATE TABLE IF NOT EXISTS org_invites (
+  token          TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'base64url'),
+  created_by     UUID REFERENCES auth.users(id),
+  email          TEXT,        -- opcional: vincula o convite a um e-mail específico
+  used_at        TIMESTAMPTZ,
+  used_by_org_id UUID REFERENCES organizations(id),
+  expires_at     TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
+  created_at     TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS org_invites_created_by ON org_invites(created_by);
+ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS used_by_org_id UUID REFERENCES organizations(id);
+ALTER TABLE org_invites ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days');
+
 -- ═══════════════════════════════════════════════════════════════
 -- ROW LEVEL SECURITY
 -- ═══════════════════════════════════════════════════════════════
@@ -125,6 +142,10 @@ ALTER TABLE waves          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wave_invites   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wave_responses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wave_capsules  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE org_invites    ENABLE ROW LEVEL SECURITY;
+-- org_invites: nenhuma policy de SELECT/INSERT/UPDATE para anon/authenticated —
+-- toda leitura e escrita passa por supabaseAdmin (service role) em .server.ts,
+-- nunca pelo cliente direto (mesma doutrina de wave_invites).
 
 -- Organizations: membro vê só a sua org
 CREATE POLICY "org_own" ON organizations

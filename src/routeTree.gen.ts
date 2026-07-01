@@ -29,6 +29,7 @@ import { Route as ProgramaRouteImport } from './routes/programa'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as PlataformaRouteImport } from './routes/plataforma'
 import { Route as PlanoNr1RouteImport } from './routes/plano-nr1'
 import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as PipelineDadosRouteImport } from './routes/pipeline-dados'
@@ -77,6 +78,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
 const ViatRoute = ViatRouteImport.update({
@@ -177,6 +179,11 @@ const PrioridadesRoute = PrioridadesRouteImport.update({
 const PnlRoute = PnlRouteImport.update({
   id: '/pnl',
   path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlataformaRoute = PlataformaRouteImport.update({
+  id: '/plataforma',
+  path: '/plataforma',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanoNr1Route = PlanoNr1RouteImport.update({
@@ -419,6 +426,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtivarTokenRoute = AtivarTokenRouteImport.update({
+  id: '/ativar/$token',
+  path: '/ativar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RespondSTokenRoute = RespondSTokenRouteImport.update({
   id: '/respond/s/$token',
   path: '/respond/s/$token',
@@ -471,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
   '/plano-nr1': typeof PlanoNr1Route
+  '/plataforma': typeof PlataformaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -491,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
@@ -542,6 +556,7 @@ export interface FileRoutesByTo {
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
   '/plano-nr1': typeof PlanoNr1Route
+  '/plataforma': typeof PlataformaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -562,6 +577,7 @@ export interface FileRoutesByTo {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
@@ -614,6 +630,7 @@ export interface FileRoutesById {
   '/pipeline-dados': typeof PipelineDadosRoute
   '/plano-acao': typeof PlanoAcaoRoute
   '/plano-nr1': typeof PlanoNr1Route
+  '/plataforma': typeof PlataformaRoute
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -634,6 +651,7 @@ export interface FileRoutesById {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
@@ -687,6 +705,7 @@ export interface FileRouteTypes {
     | '/pipeline-dados'
     | '/plano-acao'
     | '/plano-nr1'
+    | '/plataforma'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -707,6 +726,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
@@ -758,6 +778,7 @@ export interface FileRouteTypes {
     | '/pipeline-dados'
     | '/plano-acao'
     | '/plano-nr1'
+    | '/plataforma'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -778,6 +799,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
@@ -829,6 +851,7 @@ export interface FileRouteTypes {
     | '/pipeline-dados'
     | '/plano-acao'
     | '/plano-nr1'
+    | '/plataforma'
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
@@ -849,6 +872,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
@@ -901,6 +925,7 @@ export interface RootRouteChildren {
   PipelineDadosRoute: typeof PipelineDadosRoute
   PlanoAcaoRoute: typeof PlanoAcaoRoute
   PlanoNr1Route: typeof PlanoNr1Route
+  PlataformaRoute: typeof PlataformaRoute
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -921,6 +946,7 @@ export interface RootRouteChildren {
   TemporadaRoute: typeof TemporadaRoute
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
+  AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
@@ -1067,6 +1093,13 @@ declare module '@tanstack/react-router' {
       path: '/pnl'
       fullPath: '/pnl'
       preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plataforma': {
+      id: '/plataforma'
+      path: '/plataforma'
+      fullPath: '/plataforma'
+      preLoaderRoute: typeof PlataformaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plano-nr1': {
@@ -1405,6 +1438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ativar/$token': {
+      id: '/ativar/$token'
+      path: '/ativar/$token'
+      fullPath: '/ativar/$token'
+      preLoaderRoute: typeof AtivarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/respond/s/$token': {
       id: '/respond/s/$token'
       path: '/respond/s/$token'
@@ -1461,6 +1501,7 @@ const rootRouteChildren: RootRouteChildren = {
   PipelineDadosRoute: PipelineDadosRoute,
   PlanoAcaoRoute: PlanoAcaoRoute,
   PlanoNr1Route: PlanoNr1Route,
+  PlataformaRoute: PlataformaRoute,
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PrivacidadeRoute: PrivacidadeRoute,
@@ -1481,6 +1522,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemporadaRoute: TemporadaRoute,
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
+  AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,

@@ -49,12 +49,28 @@ function AuthCallbackPage() {
         return;
       }
 
-      // Look up profile role.
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", session.user.id)
-        .maybeSingle();
+      // Look up profile role. Timeout guard: nunca deixa a tela travada em
+      // "Validando…" para sempre se a consulta não responder.
+      let profile: { role?: string } | null = null;
+      try {
+        const lookup = supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("profile_lookup_timeout")), 8000),
+        );
+        const result = await Promise.race([lookup, timeout]);
+        profile = (result as { data: { role?: string } | null }).data;
+      } catch {
+        if (cancelled) return;
+        setMessage("Não foi possível carregar seu perfil. Tente novamente.");
+        setTimeout(() => {
+          if (!cancelled) navigate({ to: "/entrar" });
+        }, 1500);
+        return;
+      }
 
       if (cancelled) return;
 
@@ -63,7 +79,7 @@ function AuthCallbackPage() {
         return;
       }
 
-      const role = (profile as { role?: string } | null)?.role;
+      const role = profile.role;
       const destination = role && ADMIN_ROLES.has(role) ? "/rh" : "/colaborador";
       navigate({ to: destination });
     }
