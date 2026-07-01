@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { Waves, ArrowRight } from "lucide-react";
 import { calculateIVO, K_ANONYMITY_MIN } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
 import { ivoCurrentCycle, ivoPreviousCycle } from "@/mocks/ivo-mock";
@@ -20,9 +21,75 @@ import {
   SIGNALS_K_MIN,
 } from "@/engine/signals/signals-engine";
 import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { CapsuleInsightsCard } from "./CapsuleInsightsCard";
 
 export function RHDashboard() {
+  const { org: realOrg } = useRealOrgSession();
+
+  // Cliente real (organização provisionada) — nunca mistura com dados de
+  // demonstração. Vê só o que é dele: dados reais quando existirem, e um
+  // caminho claro para a primeira ação enquanto não existirem.
+  if (realOrg) {
+    return <RealRHDashboard org={realOrg} />;
+  }
+
+  return <DemoRHDashboard />;
+}
+
+// ─── Visão real (organização provisionada) ────────────────────────────────────
+
+function RealRHDashboard({ org }: { org: { orgName: string; role: string } }) {
+  return (
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Visão Executiva
+        </p>
+        <h1 className="mt-1 font-serif text-2xl text-foreground">{org.orgName}</h1>
+      </motion.div>
+
+      {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
+      <CapsuleInsightsCard />
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.08 }}
+        className="rounded-2xl border border-dashed border-primary/30 bg-primary/[0.04] p-6"
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Waves className="h-5 w-5" aria-hidden />
+          </span>
+          <div className="flex-1">
+            <p className="font-medium text-card-foreground">Comece medindo sua organização</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              Crie sua primeira onda de medição e gere os links para seus colaboradores.
+              Os resultados aparecem aqui automaticamente quando 5 ou mais pessoas responderem.
+            </p>
+            <Link
+              to="/admin"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+            >
+              Criar onda de medição
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Visão de demonstração (dados-exemplo) ────────────────────────────────────
+
+function DemoRHDashboard() {
   const { index } = usePack();
   const current = useMemo(() => (index ? calculateIVO(ivoCurrentCycle, index) : null), [index]);
   const previous = useMemo(() => (index ? calculateIVO(ivoPreviousCycle, index) : null), [index]);
@@ -49,8 +116,6 @@ export function RHDashboard() {
         maturityName={current.maturityLevel.name}
         delta={delta}
       />
-      {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
-      <CapsuleInsightsCard />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <HeatmapCard lensMeta={lensMeta} />

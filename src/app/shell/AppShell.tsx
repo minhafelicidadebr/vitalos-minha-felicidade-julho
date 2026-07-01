@@ -18,6 +18,8 @@ import { DemoGateScreen } from "./DemoGate";
 import { useDemoGate } from "./demo-gate";
 import { DemoRouteGuard } from "@/app/identity/DemoRouteGuard";
 import { usePersona } from "@/app/identity/persona-store";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
 import { usePack } from "@/engine/pack";
 import { navForRole } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
@@ -226,6 +228,65 @@ const DEMO_ROUTE_POLICIES: Record<string, string> = {
   "/pipeline-dados": "data_pipeline",
 };
 
+const REAL_ROLE_LABEL: Record<string, string> = {
+  RH_ADMIN: "Administrador",
+  DIRETOR: "Diretor",
+  SST: "SST",
+  COLABORADOR: "Colaborador",
+  LIDER: "Líder",
+};
+
+/** Indicador de sessão real — substitui os seletores de demonstração (persona
+ * e setor) quando o usuário é um cliente pago, não um explorador da demo. */
+function RealOrgBadge({ org }: { org: import("@/app/identity/useRealOrgSession").RealOrgSession }) {
+  const [open, setOpen] = useState(false);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    window.location.assign("/");
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="flex h-10 items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 text-xs font-medium text-foreground transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
+        <span className="hidden max-w-[10rem] truncate xl:inline">{org.orgName}</span>
+        <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="Conta"
+          className="absolute right-0 z-50 mt-1 w-56 rounded-xl border border-border bg-popover p-1 shadow-lg"
+        >
+          <li className="px-3 py-2">
+            <p className="truncate text-sm font-medium text-popover-foreground">{org.orgName}</p>
+            <p className="text-xs text-muted-foreground">
+              {REAL_ROLE_LABEL[org.role] ?? org.role}
+            </p>
+          </li>
+          <li role="separator" className="my-1 border-t border-border/60" />
+          <li>
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden />
+              Sair
+            </button>
+          </li>
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
@@ -249,13 +310,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const guardedNavId = DEMO_ROUTE_POLICIES[pathname];
 
-  // Portão de demonstração — fronteira única entre a landing pública e o app.
-  // Enquanto o localStorage não rehidrata, mostramos o portão (estado seguro):
-  // servidor e 1ª renderização do cliente coincidem (sem mismatch de hidratação).
+  // Portão de demonstração — fronteira única entre a landing pública e o app
+  // DE DEMONSTRAÇÃO. Enquanto o localStorage não rehidrata, mostramos o
+  // portão (estado seguro): servidor e 1ª renderização do cliente coincidem
+  // (sem mismatch de hidratação).
   const gateUnlocked = useDemoGate((s) => s.unlocked);
   const gateHydrated = useDemoGate((s) => s.hasHydrated);
   const lockDemo = useDemoGate((s) => s.lock);
-  if (!gateHydrated || !gateUnlocked) {
+
+  // Cliente REAL (organização provisionada via /ativar/:token) nunca precisa
+  // da senha de demonstração — a fronteira de acesso dele é a autenticação
+  // Supabase + RLS, não uma senha compartilhada de marketing.
+  const { loading: realOrgLoading, org: realOrg } = useRealOrgSession();
+  if (realOrgLoading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background">
+        <p className="animate-pulse text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          Carregando…
+        </p>
+      </div>
+    );
+  }
+  if (!realOrg && (!gateHydrated || !gateUnlocked)) {
     return <DemoGateScreen />;
   }
 
@@ -535,66 +611,72 @@ export function AppShell({ children }: { children: ReactNode }) {
             </nav>
 
             <div className="ml-auto flex items-center gap-2">
-              {/* Persona switcher (mock auth — demo) */}
-              <div className="relative">
-                <button
-                  onClick={() => setPersonaOpen((o) => !o)}
-                  aria-expanded={personaOpen}
-                  aria-haspopup="listbox"
-                  className="flex h-10 items-center gap-2 rounded-md border border-border/60 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
-                  <span className="hidden max-w-[8rem] truncate xl:inline">{roleLabel}</span>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
-                </button>
+              {realOrg ? (
+                <RealOrgBadge org={realOrg} />
+              ) : (
+                <>
+                  {/* Persona switcher (mock auth — demo) */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setPersonaOpen((o) => !o)}
+                      aria-expanded={personaOpen}
+                      aria-haspopup="listbox"
+                      className="flex h-10 items-center gap-2 rounded-md border border-border/60 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
+                      <span className="hidden max-w-[8rem] truncate xl:inline">{roleLabel}</span>
+                      <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+                    </button>
 
-                {personaOpen && (
-                  <ul
-                    role="listbox"
-                    aria-label="Trocar papel de demonstração"
-                    className="absolute right-0 z-50 mt-1 w-56 rounded-xl border border-border bg-popover p-1 shadow-lg"
-                  >
-                    <li className="px-3 py-1.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                      Demo — trocar papel
-                    </li>
-                    {demoPersonas.map((id) => {
-                      const label = pack?.roles?.find((r) => r.id === id)?.label ?? id;
-                      return (
-                        <li key={id} role="option" aria-selected={roleId === id}>
+                    {personaOpen && (
+                      <ul
+                        role="listbox"
+                        aria-label="Trocar papel de demonstração"
+                        className="absolute right-0 z-50 mt-1 w-56 rounded-xl border border-border bg-popover p-1 shadow-lg"
+                      >
+                        <li className="px-3 py-1.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                          Demo — trocar papel
+                        </li>
+                        {demoPersonas.map((id) => {
+                          const label = pack?.roles?.find((r) => r.id === id)?.label ?? id;
+                          return (
+                            <li key={id} role="option" aria-selected={roleId === id}>
+                              <button
+                                onClick={() => {
+                                  setRole(id);
+                                  setPersonaOpen(false);
+                                }}
+                                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                  roleId === id
+                                    ? "bg-secondary text-secondary-foreground"
+                                    : "text-popover-foreground hover:bg-muted/50"
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            </li>
+                          );
+                        })}
+                        <li role="separator" className="my-1 border-t border-border/60" />
+                        <li>
                           <button
                             onClick={() => {
-                              setRole(id);
                               setPersonaOpen(false);
+                              lockDemo();
                             }}
-                            className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                              roleId === id
-                                ? "bg-secondary text-secondary-foreground"
-                                : "text-popover-foreground hover:bg-muted/50"
-                            }`}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                           >
-                            {label}
+                            <LogOut className="h-3.5 w-3.5" aria-hidden />
+                            Sair da demo
                           </button>
                         </li>
-                      );
-                    })}
-                    <li role="separator" className="my-1 border-t border-border/60" />
-                    <li>
-                      <button
-                        onClick={() => {
-                          setPersonaOpen(false);
-                          lockDemo();
-                        }}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <LogOut className="h-3.5 w-3.5" aria-hidden />
-                        Sair da demo
-                      </button>
-                    </li>
-                  </ul>
-                )}
-              </div>
+                      </ul>
+                    )}
+                  </div>
 
-              <PackSwitcher />
+                  <PackSwitcher />
+                </>
+              )}
               <A11yMenu />
               <ThemeToggle />
             </div>
