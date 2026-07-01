@@ -44,7 +44,7 @@ afterEach(() => {
 
 describe("server response capture boundary", () => {
   test("demo validates on the server and returns a content-free ephemeral receipt", async () => {
-    mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
+    mockBoundary.mockImplementation(() => ({ requestedMode: "demo", state: "demo", realAuthentication: false, serverEnforced: false, reason: "demo_isolated" }));
     const result = await captureSurveySubmission(validInput(), "2026-06-19T12:00:00.000Z");
 
     expect(result.accepted).toBe(true);
@@ -56,7 +56,7 @@ describe("server response capture boundary", () => {
   });
 
   test("wrong wave or survey fails without a receipt", async () => {
-    mockBoundary.mockImplementation(() => ({ state: "ephemeral_demo" as const, mode: "demo" as const }));
+    mockBoundary.mockImplementation(() => ({ requestedMode: "demo", state: "demo", realAuthentication: false, serverEnforced: false, reason: "demo_isolated" }));
     const wrongWave = await captureSurveySubmission({
       ...validInput(),
       waveId: "other",
@@ -74,7 +74,7 @@ describe("server response capture boundary", () => {
   });
 
   test("cloud request without inviteToken returns cloud_adapter_missing", async () => {
-    mockBoundary.mockImplementation(() => ({ state: "cloud" as const, mode: "cloud" as const }));
+    mockBoundary.mockImplementation(() => ({ requestedMode: "cloud", state: "cloud", realAuthentication: true, serverEnforced: true, reason: "cloud_ready" }));
 
     const result = await captureSurveySubmission(validInput()); // sem inviteToken
     expect(result.accepted).toBe(false);
