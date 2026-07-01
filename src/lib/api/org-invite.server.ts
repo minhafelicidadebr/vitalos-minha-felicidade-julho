@@ -85,7 +85,13 @@ export async function createOrgInvite(
     .select("token, email, used_at, used_by_org_id, expires_at, created_at")
     .single();
 
-  if (error || !data) return { error: "Falha ao criar convite." };
+  if (error || !data) {
+    // Mostra o erro real do Postgres — esta tela é restrita ao admin da
+    // plataforma, então expor a causa (ex.: tabela ainda não migrada) ajuda
+    // a diagnosticar em vez de esconder atrás de uma mensagem genérica.
+    const detail = error?.message ? ` (${error.message})` : "";
+    return { error: `Falha ao criar convite${detail}.` };
+  }
   return toInviteSummary(data as OrgInviteRow);
 }
 
