@@ -10,7 +10,7 @@ describe("cloud readiness proof", () => {
     // Foundation: all five mathematical contracts must always pass.
     expect(proof?.foundation).toEqual({ passed: 5, total: 5 });
     // status and lovableCloudConfigured reflect the actual environment.
-    expect(["demo", "cloud"]).toContain(proof?.environment);
+    expect(["demo", "cloud"]).toContain(proof?.environment ?? "");
     // Production claims are only allowed when all controls pass.
     if (proof?.status === "ready") {
       expect(proof.productionClaimsAllowed).toBe(true);
