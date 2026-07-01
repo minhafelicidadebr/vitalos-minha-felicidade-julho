@@ -57,7 +57,7 @@ export const HERO = {
   eyebrow: "Programa Felicidade e Crescimento para Todos - VITALOS™",
   headline: "O Sistema Operacional da Vitalidade Organizacional",
   subheadline:
-    "Transforme bem-estar, riscos psicossociais, cultura e performance humana em dados, ações, relatórios e evidências — com uma infraestrutura operacional integrada com ciência da felicidade, IA e práticas ESG em conformidade com NR-1.",
+    "A NR-1 tornou obrigatória a gestão de riscos psicossociais. O VitalOS™ começa por aí — COPSOQ II com evidência anônima agregada — e transforma a obrigação numa jornada anual de vitalidade: risco, ecossistema, florescimento e forças, até o Relatório Global ESG.",
   support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Comprove evolução.",
   ctas: [
     {
@@ -66,13 +66,13 @@ export const HERO = {
       variant: "primary",
     },
     {
-      label: "Ver 4 Dimensões e 4 Lentes",
-      action: { kind: "anchor", id: "nova-categoria" },
+      label: "Conformidade NR-1",
+      action: { kind: "route", to: "/nr1" },
       variant: "outline",
     },
     {
-      label: "Explorar dashboard demo",
-      action: { kind: "modal", modal: "dashboard" },
+      label: "Ver 4 Dimensões e 4 Lentes",
+      action: { kind: "anchor", id: "nova-categoria" },
       variant: "ghost",
     },
   ] as Cta[],
@@ -1566,12 +1566,180 @@ export const NR1 = {
     { icon: "sparkles", text: "Plano de ação com apoio do chatbot de IA" },
   ],
   cta: {
-    label: "Conhecer a Rede NR-1",
-    action: { kind: "modal", modal: "nr1-playbook" },
+    label: "Ver conformidade NR-1",
+    action: { kind: "route", to: "/nr1" },
     variant: "outline",
   } as Cta,
   disclaimer:
     "Material educativo e preparatório. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 exigem profissional legalmente habilitado.",
+};
+
+// ─── Página de conversão dedicada · /nr1 ──────────────────────────────────────
+// Entrada de campanha (tráfego pago). Foca a janela regulatória da NR-1 como
+// PORTA — o T1 (COPSOQ II) — e conduz à jornada anual das 4 Lentes + ESG.
+// Doutrina de honestidade (Fable 5 §8, invariante #8): a NR-1 é contexto real;
+// o VitalOS entrega MEDIÇÃO e EVIDÊNCIA agregada — nunca "blindagem jurídica".
+// A responsabilidade técnica do PGR/laudo é sempre do profissional habilitado.
+// ⚠️ VALORES/DATAS: ilustrativos — CONFIRMAR na fonte oficial antes de publicar.
+export const NR1_LANDING = {
+  meta: {
+    title: "Conformidade NR-1 sem dor — Riscos Psicossociais | VitalOS™",
+    description:
+      "A NR-1 passou a exigir a gestão de riscos psicossociais. O VitalOS™ aplica o COPSOQ II com anonimato garantido e entrega a evidência agregada que fundamenta o seu PGR — início de uma jornada anual de vitalidade.",
+  },
+  hero: {
+    eyebrow: "Conformidade NR-1 · Riscos Psicossociais",
+    headline: "A NR-1 agora exige gerenciar riscos psicossociais.",
+    headlineAccent: "Comece pela medição que dá base ao seu PGR.",
+    sub: "O VitalOS™ aplica o COPSOQ II — referência internacional em fatores psicossociais — com anonimato garantido por construção (n≥5) e devolve a evidência agregada que fundamenta o seu Programa de Gerenciamento de Riscos. É o primeiro trimestre de uma jornada anual de vitalidade.",
+    disclaimer:
+      "Instrumento educativo de mensuração e apoio à gestão. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade de profissional legalmente habilitado.",
+    ctas: [
+      { label: "Agendar demonstração", action: { kind: "modal", modal: "executive" }, variant: "primary" },
+      { label: "Ver como funciona", action: { kind: "anchor", id: "nr1-como-funciona" }, variant: "outline" },
+    ] as Cta[],
+    signals: [
+      "COPSOQ II validado",
+      "Anonimato n≥5 no banco",
+      "Evidência agregada auditável",
+      "Responsável técnico habilitado",
+    ],
+  },
+  momento: {
+    eyebrow: "O momento",
+    title: "A exigência entrou em vigor — e toda empresa com CLT passou a precisar",
+    lead: "Não é mais uma pauta de RH inspirado. Virou requisito de gestão de risco, com fiscalização e prazo. Quem estrutura o método primeiro, com ciência e evidência, atende melhor e mais rápido.",
+    cards: [
+      {
+        icon: "gavel",
+        title: "A obrigação é real",
+        text: "A NR-1 passou a exigir o gerenciamento dos riscos psicossociais dentro do PGR. Deixou de ser boa prática opcional.",
+      },
+      {
+        icon: "clock",
+        title: "O prazo já corre",
+        text: "A fiscalização passou a considerar os fatores psicossociais. Adiar acumula exposição — para o cliente e para quem o atende.",
+      },
+      {
+        icon: "door-open",
+        title: "O mercado abriu de uma vez",
+        text: "Milhões de organizações precisam da mesma coisa ao mesmo tempo. Método com rigor científico é o que separa quem entrega de quem improvisa.",
+      },
+    ],
+  },
+  mudou: {
+    eyebrow: "O que mudou na NR-1",
+    title: "Do risco físico ao risco psicossocial — dentro do mesmo PGR",
+    text: "A NR-1 incorporou a gestão dos fatores psicossociais ao Gerenciamento de Riscos Ocupacionais. Os números abaixo são contexto de mercado, definidos pela legislação — não uma promessa nossa. Mostram por que a demanda virou universal.",
+    // ⚠️ VERIFICAR na fonte oficial (NR-01/NR-28 e Portaria MTE vigente) antes de publicar.
+    stats: [
+      { value: "Vigente", label: "Gestão de riscos psicossociais exigida na NR-1", flag: "confirmar cronograma" },
+      { value: "R$ 1.610", label: "Multa mínima por trabalhador exposto (referência ilustrativa)" },
+      { value: "R$ 6.708", label: "Multa máxima por trabalhador exposto (referência ilustrativa)" },
+      { value: "R$ 322 mil+", label: "Exposição potencial numa empresa de 200 pessoas (ilustrativo)" },
+    ],
+    source:
+      "Referências: NR-01 e NR-28 (tabela de gradação de multas), Portaria MTE. Valores ilustrativos — confirme prazos e valores vigentes na fonte oficial. O VitalOS não presta consultoria jurídica.",
+  },
+  comoFunciona: {
+    eyebrow: "Como funciona",
+    title: "Da onda de escuta ao relatório educativo — em quatro passos",
+    lead: "Você não monta o diagnóstico no Word. A plataforma coleta com anonimato garantido, agrega com rigor e devolve a evidência pronta para o profissional habilitado interpretar.",
+    steps: [
+      {
+        k: "01",
+        title: "Crie a onda",
+        text: "Configure a medição COPSOQ II para a organização ou por unidade. Gera links de convite anônimos, um por participante.",
+      },
+      {
+        k: "02",
+        title: "Colaboradores respondem",
+        text: "Resposta anônima por token, no celular, em minutos. O conteúdo individual nunca é lido pela empresa nem pela plataforma.",
+      },
+      {
+        k: "03",
+        title: "Agregação k-anônima (n≥5)",
+        text: "Ao atingir cinco respostas num recorte, o motor agrega e sela a cápsula. Recortes menores ficam ocultos — privacidade por construção.",
+      },
+      {
+        k: "04",
+        title: "Evidência para o PGR",
+        text: "Matriz educativa de fatores psicossociais por dimensão, com faixas de risco e prioridades — base auditável para o responsável técnico estruturar o plano.",
+      },
+    ],
+    note: "K-anonimato imposto no banco de dados, não apenas na tela. Respostas individuais não trafegam para a interface — é o que torna a escuta segura e a evidência confiável.",
+  },
+  jornada: {
+    eyebrow: "E não para no primeiro trimestre",
+    title: "A obrigação vira jornada. A jornada vira vantagem.",
+    lead: "A NR-1 abre a porta. As 4 Lentes VitalOS™ transformam um relatório de compliance num sistema operacional de vitalidade — uma leitura científica por trimestre, culminando num Relatório Global ESG board-ready.",
+    quarters: [
+      { q: "T1", instrument: "COPSOQ II", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
+      { q: "T2", instrument: "FIB-T", theme: "Ecossistema & Governança", text: "Qualidade de vida no trabalho e ponte direta com ESG social.", tone: "emerald" },
+      { q: "T3", instrument: "PERMA+V", theme: "Florescimento & Flow", text: "Energia, engajamento, sentido e realização que sustentam performance.", tone: "rose" },
+      { q: "T4", instrument: "VIA-T", theme: "Cultura & Forças", text: "Forças e virtudes das equipes — leitura exploratória de desenvolvimento.", tone: "violet" },
+    ],
+    finale: {
+      badge: "Relatório Global ESG",
+      title: "O ano inteiro, sintetizado em evidência",
+      text: "Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. É o que faz a NR-1 pagar por si mesma.",
+    },
+  },
+  porQue: {
+    eyebrow: "Por que VitalOS",
+    title: "Guias ensinam a montar. O VitalOS entrega a evidência.",
+    lead: "A diferença entre uma apostila e uma infraestrutura de mensuração.",
+    rows: [
+      { sem: "Você monta o questionário e o relatório no Word", com: "A plataforma aplica o COPSOQ II e agrega automaticamente" },
+      { sem: "Respostas em planilha — risco de reidentificar pessoas", com: "K-anonimato imposto no banco: individual nunca é lido" },
+      { sem: "Um PDF entregue uma vez", com: "Jornada anual de 4 lentes + Relatório Global ESG" },
+      { sem: "Fica na obrigação de compliance", com: "Vira ativo de governança e cultura" },
+    ],
+  },
+  paraQuem: {
+    eyebrow: "Para quem é",
+    title: "Feito para quem responde pela saúde psicossocial da organização",
+    items: [
+      { icon: "brain", label: "Psicólogos organizacionais", text: "Responsável técnico do PGR psicossocial." },
+      { icon: "hard-hat", label: "Engenheiros e técnicos de SST", text: "Que conduzem o GRO/PGR na prática." },
+      { icon: "users", label: "Consultores de SST e RH", text: "Que atendem carteiras de empresas." },
+      { icon: "briefcase", label: "Gestores de pessoas", text: "Responsáveis pela conformidade NR-1." },
+      { icon: "building", label: "RH e SST internos", text: "De organizações de todos os portes." },
+      { icon: "shield-check", label: "Comitês e CIPA", text: "Que precisam de evidência auditável." },
+    ],
+  },
+  faq: {
+    eyebrow: "Perguntas frequentes",
+    title: "O que você quer saber antes de começar",
+    items: [
+      {
+        q: "O VitalOS emite o PGR ou o laudo NR-1?",
+        a: "Não. O VitalOS é a ferramenta de mensuração e a fonte da evidência agregada. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade do profissional legalmente habilitado — que usa a nossa evidência como base.",
+      },
+      {
+        q: "As respostas dos colaboradores ficam expostas?",
+        a: "Nunca. O anonimato é imposto no banco de dados: respostas individuais não são lidas pela empresa nem pela plataforma. Só aparecem agregados com no mínimo cinco respondentes (n≥5).",
+      },
+      {
+        q: "Isso é consultoria jurídica?",
+        a: "Não. É um instrumento profissional de apoio à gestão de riscos psicossociais. Os valores e prazos citados são contexto de mercado da legislação — confirme sempre na fonte oficial.",
+      },
+      {
+        q: "Precisa de quantas pessoas para gerar resultado?",
+        a: "O recorte precisa de pelo menos cinco respondentes para virar resultado visível (k-anonimato). Em organizações menores, o VitalOS agrega no nível da empresa para preservar a privacidade e ainda entregar evidência.",
+      },
+      {
+        q: "Por que quatro instrumentos e não só o COPSOQ?",
+        a: "Você começa só pelo COPSOQ II (a exigência NR-1). As outras três lentes entram ao longo do ano, opcionalmente, transformando a obrigação numa jornada de desenvolvimento e num Relatório ESG anual.",
+      },
+    ],
+  },
+  fechamento: {
+    title: "A NR-1 já está valendo. A pergunta é se vai ser você a atender com método.",
+    text: "De um lado, montar cada diagnóstico do zero e ver os contratos passarem. Do outro, aplicar o COPSOQ II com anonimato garantido, entregar evidência auditável e começar a jornada anual de vitalidade.",
+    cta: { label: "Agendar demonstração", action: { kind: "modal", modal: "executive" }, variant: "primary" } as Cta,
+    reassurance: "Sem compromisso. Uma conversa para ver a plataforma aplicada ao seu contexto.",
+  },
 };
 
 export const NR1_PLAYBOOK_MODAL = {

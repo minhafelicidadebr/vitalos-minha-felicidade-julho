@@ -24,6 +24,12 @@ import {
   Scroll,
   Split,
   Ban,
+  Gavel,
+  Clock,
+  DoorOpen,
+  Brain,
+  HardHat,
+  Building,
   type LucideIcon,
 } from "lucide-react";
 
@@ -51,6 +57,12 @@ export const LANDING_ICONS: Record<string, LucideIcon> = {
   scroll: Scroll,
   split: Split,
   ban: Ban,
+  gavel: Gavel,
+  clock: Clock,
+  "door-open": DoorOpen,
+  brain: Brain,
+  "hard-hat": HardHat,
+  building: Building,
 };
 
 export function landingIcon(name: string): LucideIcon {

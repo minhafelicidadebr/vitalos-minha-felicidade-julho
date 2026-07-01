@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 const PUBLIC_PREFIXES = [
+  "/",
   "/entrar",
   "/auth/callback",
   "/onboarding",
@@ -11,6 +12,7 @@ const PUBLIC_PREFIXES = [
   "/respond",
   "/convite",
   "/quiosque",
+  "/nr1",
 ];
 
 function isPublicPath(pathname: string): boolean {
