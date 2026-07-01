@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      org_invites: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          expires_at: string | null
+          token: string
+          used_at: string | null
+          used_by_org_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          expires_at?: string | null
+          token?: string
+          used_at?: string | null
+          used_by_org_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          expires_at?: string | null
+          token?: string
+          used_at?: string | null
+          used_by_org_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invites_used_by_org_id_fkey"
+            columns: ["used_by_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string | null

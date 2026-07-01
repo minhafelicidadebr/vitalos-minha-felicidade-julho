@@ -14,7 +14,7 @@ describe("data pipeline snapshot", () => {
     });
     expect(snapshot?.persistence.status).toBe("contract_verified");
     expect(snapshot?.persistence.passedCheckCount).toBe(snapshot?.persistence.checkCount);
-    expect(["adapter_missing", "cloud_available"]).toContain(snapshot?.persistence.runtime);
+    expect(["adapter_missing", "cloud_available"]).toContain(snapshot?.persistence.runtime ?? "");
     expect(snapshot?.generatedAt).toBe(snapshot?.aggregation.generatedAt);
     expect(snapshot?.generatedAt).toBe(snapshot?.index.generatedAt);
     expect(snapshot?.generatedAt).toBe(snapshot?.attestation.generatedAt);
