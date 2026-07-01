@@ -74,10 +74,15 @@ CREATE TABLE IF NOT EXISTS waves (
 CREATE TABLE IF NOT EXISTS wave_invites (
   token       TEXT PRIMARY KEY DEFAULT encode(gen_random_bytes(24), 'base64url'),
   wave_id     UUID NOT NULL REFERENCES waves(id),
+  email       TEXT,        -- opcional: só presente quando o convite foi enviado por e-mail
+  emailed_at  TIMESTAMPTZ, -- quando o envio foi confirmado pelo provedor (Resend)
   used_at     TIMESTAMPTZ,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS wave_invites_wave_id ON wave_invites(wave_id);
+-- Idempotente: se a tabela já existia de uma migration anterior, adiciona as colunas novas.
+ALTER TABLE wave_invites ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE wave_invites ADD COLUMN IF NOT EXISTS emailed_at TIMESTAMPTZ;
 
 -- 5. RESPOSTAS INDIVIDUAIS (NUNCA expostas — k-anon no banco)
 -- Sem SELECT policy = nenhuma query de app lê linhas individuais

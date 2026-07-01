@@ -25,12 +25,19 @@ export interface CreateWaveInput {
   label?: string;
   inviteCount: number;
   closesAt?: string;
+  // Quando presente, deve ter exatamente inviteCount itens — um e-mail por convite,
+  // na mesma ordem em que os tokens serão gerados (alinhamento garantido pelo
+  // caller via emails.length === inviteCount, validado em wave-admin.server.ts).
+  emails?: string[];
 }
 
 export interface CreateWaveResult {
   waveId: string;
   inviteTokens: string[];
   inviteLinks: string[];
+  // Alinhado por índice com inviteTokens/inviteLinks; null quando o convite
+  // não tem e-mail associado (fluxo de link genérico para WhatsApp).
+  inviteEmails: (string | null)[];
 }
 
 export interface WaveSummary {
@@ -104,17 +111,24 @@ export async function createWaveWithAdmin(
 
   if (waveErr || !wave) return null;
 
-  const inviteRows = Array.from({ length: input.inviteCount }, () => ({ wave_id: wave.id }));
+  const inviteRows = Array.from({ length: input.inviteCount }, (_, i) => ({
+    wave_id: wave.id,
+    email: input.emails?.[i] ?? null,
+  }));
   const { data: invites, error: inviteErr } = await adminClient
     .from("wave_invites")
     .insert(inviteRows)
-    .select("token");
+    .select("token, email");
 
   if (inviteErr || !invites) return null;
 
-  const tokens = (invites as Array<{ token: string }>).map((i) => i.token);
-  const links = tokens.map((t) => `${BASE_URL}/convite/${t}`);
-  return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links };
+  // Zipado da MESMA resposta — garante alinhamento de índice entre os três arrays.
+  const rows = invites as Array<{ token: string; email: string | null }>;
+  const tokens = rows.map((i) => i.token);
+  const links = rows.map((i) => `${BASE_URL}/convite/${i.token}`);
+  const emails = rows.map((i) => i.email);
+
+  return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links, inviteEmails: emails };
 }
 
 export async function listOrgWaves(orgId: string): Promise<WaveSummary[]> {
