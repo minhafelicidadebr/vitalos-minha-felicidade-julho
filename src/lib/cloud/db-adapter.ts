@@ -95,7 +95,7 @@ export async function saveWaveResponse(input: SubmitResponseInput): Promise<Subm
 export async function createWaveWithAdmin(
   input: CreateWaveInput,
   adminClient: any,
-): Promise<CreateWaveResult | null> {
+): Promise<CreateWaveResult | { error: string }> {
   const { data: wave, error: waveErr } = await adminClient
     .from("waves")
     .insert({
@@ -109,7 +109,9 @@ export async function createWaveWithAdmin(
     .select("id")
     .single();
 
-  if (waveErr || !wave) return null;
+  if (waveErr || !wave) {
+    return { error: waveErr?.message ?? "Falha ao inserir onda — resposta vazia do banco." };
+  }
 
   const inviteRows = Array.from({ length: input.inviteCount }, (_, i) => ({
     wave_id: wave.id,
@@ -120,7 +122,9 @@ export async function createWaveWithAdmin(
     .insert(inviteRows)
     .select("token, email");
 
-  if (inviteErr || !invites) return null;
+  if (inviteErr || !invites) {
+    return { error: inviteErr?.message ?? "Falha ao gerar convites — resposta vazia do banco." };
+  }
 
   // Zipado da MESMA resposta — garante alinhamento de índice entre os três arrays.
   const rows = invites as Array<{ token: string; email: string | null }>;

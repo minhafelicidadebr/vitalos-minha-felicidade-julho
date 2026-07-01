@@ -6,9 +6,6 @@ import { motion } from "framer-motion";
 import { Lock, Users, TrendingDown, TrendingUp, AlertTriangle, Minus } from "lucide-react";
 import { loadLatestOrgCapsule, type LatestCapsuleResult } from "@/lib/api/capsule-report.functions";
 
-// UUID fixo de demo — em produção vem do perfil autenticado
-const DEMO_ORG_ID = "00000000-0000-0000-0000-000000000001";
-
 const SCALE_MAX = 5;
 
 // Rótulos COPSOQ em português
@@ -61,20 +58,20 @@ function riskColor(highRiskPct: number): {
   };
 }
 
-export function CapsuleInsightsCard() {
+export function CapsuleInsightsCard({ orgId }: { orgId: string }) {
   const [capsule, setCapsule] = useState<LatestCapsuleResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    loadLatestOrgCapsule({ data: { orgId: DEMO_ORG_ID } })
+    loadLatestOrgCapsule({ data: { orgId } })
       .then((r) => active && setCapsule(r))
       .catch(() => active && setCapsule({ found: false, reason: "error" }))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [orgId]);
 
   if (loading) {
     return (

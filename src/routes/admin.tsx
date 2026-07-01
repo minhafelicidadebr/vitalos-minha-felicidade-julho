@@ -13,14 +13,12 @@ import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { adminCreateWave, adminListWaves } from "@/lib/api/wave-admin.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Gestão de Ondas — 4 Lentes VitalOS™" }] }),
   component: AdminPage,
 });
-
-// UUID fixo de demo — em produção vem do perfil autenticado (Supabase Auth)
-const DEMO_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 type Instrument = "COPSOQ" | "PERMA" | "VIA_T";
 
@@ -67,6 +65,8 @@ function buildWhatsAppMessage(links: string[], instrument: string): string {
 
 function AdminPage() {
   const cloudActive = isCloudReady();
+  const { loading: orgLoading, org: realOrg } = useRealOrgSession();
+  const orgId = realOrg?.orgId;
   const [instrument, setInstrument] = useState<Instrument>("COPSOQ");
   const [inviteCount, setInviteCount] = useState(30);
   const [label, setLabel] = useState("");
@@ -78,31 +78,31 @@ function AdminPage() {
   const [loadingWaves, setLoadingWaves] = useState(false);
 
   const fetchWaves = useCallback(async () => {
-    if (!cloudActive) return;
+    if (!cloudActive || !orgId) return;
     setLoadingWaves(true);
     try {
-      const result = await adminListWaves({ data: { orgId: DEMO_ORG_ID } });
+      const result = await adminListWaves({ data: { orgId } });
       setWaves(result.waves as WaveItem[]);
     } catch {
       // silently fail — cloud may not be wired yet
     } finally {
       setLoadingWaves(false);
     }
-  }, [cloudActive]);
+  }, [cloudActive, orgId]);
 
   useEffect(() => {
     fetchWaves();
   }, [fetchWaves]);
 
   async function handleCreate() {
-    if (!cloudActive || creating) return;
+    if (!cloudActive || creating || !orgId) return;
     setCreating(true);
     setError(null);
     setCreated(null);
 
     try {
       const result = await adminCreateWave({
-        data: { orgId: DEMO_ORG_ID, instrument, label: label.trim() || undefined, inviteCount },
+        data: { orgId, instrument, label: label.trim() || undefined, inviteCount },
       });
 
       if ("error" in result && result.error) {
@@ -157,11 +157,18 @@ function AdminPage() {
           <h1 className="mt-1 font-serif text-3xl text-foreground">Gestão de Ondas</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Crie ondas de medição, gere os links de convite e acompanhe a coleta.
+            {realOrg && (
+              <>
+                {" "}Organização: <span className="font-medium text-foreground">{realOrg.orgName}</span>.
+              </>
+            )}
           </p>
         </motion.div>
 
         {/* Status do Cloud */}
         <CloudStatusBanner active={cloudActive} />
+
+        {cloudActive && !orgLoading && !orgId && <NoOrgBanner />}
 
         {/* Formulário de criação */}
         <motion.div
@@ -251,7 +258,7 @@ function AdminPage() {
             {/* Botão */}
             <button
               onClick={handleCreate}
-              disabled={!cloudActive || creating}
+              disabled={!cloudActive || !orgId || creating}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 font-serif text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Plus className="h-4 w-4" />
@@ -338,7 +345,7 @@ function AdminPage() {
         )}
 
         {/* Lista de ondas ativas */}
-        {cloudActive && (
+        {cloudActive && orgId && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -495,6 +502,27 @@ function WaveCard({
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Banner de organização ausente ─────────────────────────────────────────────
+
+function NoOrgBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex items-start gap-3 rounded-2xl border border-destructive/25 bg-destructive/5 px-5 py-4"
+    >
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+      <div>
+        <p className="text-sm font-semibold text-foreground">Nenhuma organização vinculada</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          Esta conta não está associada a uma organização. Complete o cadastro através de
+          um link de convite (/ativar) antes de criar ondas de medição.
+        </p>
+      </div>
+    </motion.div>
   );
 }
 

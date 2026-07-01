@@ -39,7 +39,7 @@ export function RHDashboard() {
 
 // ─── Visão real (organização provisionada) ────────────────────────────────────
 
-function RealRHDashboard({ org }: { org: { orgName: string; role: string } }) {
+function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role: string } }) {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
       <motion.div
@@ -55,7 +55,7 @@ function RealRHDashboard({ org }: { org: { orgName: string; role: string } }) {
       </motion.div>
 
       {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
-      <CapsuleInsightsCard />
+      <CapsuleInsightsCard orgId={org.orgId} />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}

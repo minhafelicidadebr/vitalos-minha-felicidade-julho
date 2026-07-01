@@ -57,7 +57,7 @@ export async function createWaveAsAdmin(
   }
 
   const result = await createWaveWithAdmin(input, admin);
-  if (!result) return { error: "Falha ao criar onda no banco." };
+  if ("error" in result) return { error: result.error };
 
   // Dispara e-mails para os convites que têm endereço associado. Awaited (não
   // fire-and-forget) — em runtimes tipo Workers, promises soltas após o
