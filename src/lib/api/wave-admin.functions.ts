@@ -1,16 +1,21 @@
 // Server functions de administração de ondas.
+//
+// Modelo de confiança (P0-04, Sprint S1): nenhuma função aqui aceita mais
+// `orgId` do cliente. O chamador manda o access_token da própria sessão; o
+// servidor resolve a organização e o papel REAIS via requireOrgAdmin — a
+// mesma organização sempre, nunca uma escolhida pelo payload.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { listOrgWaves, listOrgCapsules } from "../cloud/db-adapter";
 import { isCloudReady } from "../cloud/supabase-client";
 import { getPlanLimits, type PlanId } from "@/engine/billing/plan-engine";
+import { requireOrgAdmin, describeAuthFailure } from "@/lib/auth/authorize.server";
 
-const orgIdSchema = z.string().uuid("org_id deve ser UUID válido");
+const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
-const createWaveSchema = z
-  .object({
-    orgId: orgIdSchema,
+const createWaveSchema = accessTokenSchema
+  .extend({
     instrument: z.enum(["COPSOQ", "PERMA", "VIA_T"]),
     label: z.string().max(200).optional(),
     inviteCount: z.number().int().min(5).max(500),
@@ -42,8 +47,12 @@ export const adminCreateWave = createServerFn({ method: "POST" })
     if (!isCloudReady()) {
       return { ok: false, error: "Cloud não ativado — execute o Prompt 1 do ADR-003." };
     }
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { ok: false, error: describeAuthFailure(auth.reason) };
+
     const { createWaveAsAdmin } = await import("./wave-admin.server");
-    const result = await createWaveAsAdmin(data);
+    const { accessToken: _accessToken, ...rest } = data;
+    const result = await createWaveAsAdmin({ ...rest, orgId: auth.membership.orgId });
     if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, ...result };
   });
@@ -55,10 +64,14 @@ type WaveItem = {
 };
 
 export const adminListWaves = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ orgId: orgIdSchema }))
-  .handler(async ({ data }): Promise<{ waves: WaveItem[]; cloudReady: boolean }> => {
+  .inputValidator(accessTokenSchema)
+  .handler(async ({ data }): Promise<{ waves: WaveItem[]; cloudReady: boolean; error?: string }> => {
     if (!isCloudReady()) return { waves: [], cloudReady: false };
-    const waves = await listOrgWaves(data.orgId);
+
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { waves: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
+
+    const waves = await listOrgWaves(auth.membership.orgId);
     // Busca contagem de respostas para cada onda via RPC SECURITY DEFINER
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
@@ -74,10 +87,14 @@ export const adminListWaves = createServerFn({ method: "GET" })
 type CapsuleItem = { id: string; waveId: string; instrument: string; participantCount: number; aggregatedAt: string };
 
 export const adminListCapsules = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ orgId: orgIdSchema }))
-  .handler(async ({ data }): Promise<{ capsules: CapsuleItem[]; cloudReady: boolean }> => {
+  .inputValidator(accessTokenSchema)
+  .handler(async ({ data }): Promise<{ capsules: CapsuleItem[]; cloudReady: boolean; error?: string }> => {
     if (!isCloudReady()) return { capsules: [], cloudReady: false };
-    const capsules = await listOrgCapsules(data.orgId);
+
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { capsules: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
+
+    const capsules = await listOrgCapsules(auth.membership.orgId);
     return {
       cloudReady: true,
       capsules: capsules.map((c) => ({
@@ -99,9 +116,12 @@ type PlanStatus = {
 
 /** Lê o plano da org + uso corrente do mês — base para o painel de billing (Sprint 3). */
 export const getOrgPlanStatus = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ orgId: orgIdSchema }))
-  .handler(async ({ data }): Promise<{ status: PlanStatus | null; cloudReady: boolean }> => {
+  .inputValidator(accessTokenSchema)
+  .handler(async ({ data }): Promise<{ status: PlanStatus | null; cloudReady: boolean; error?: string }> => {
     if (!isCloudReady()) return { status: null, cloudReady: false };
+
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { status: null, cloudReady: true, error: describeAuthFailure(auth.reason) };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
@@ -109,7 +129,7 @@ export const getOrgPlanStatus = createServerFn({ method: "GET" })
     const { data: org } = await admin
       .from("organizations")
       .select("plan")
-      .eq("id", data.orgId)
+      .eq("id", auth.membership.orgId)
       .single();
     const planId = (org?.plan as string | undefined) ?? "pilot";
     const limits = getPlanLimits(planId);
@@ -120,7 +140,7 @@ export const getOrgPlanStatus = createServerFn({ method: "GET" })
     const { count } = await admin
       .from("waves")
       .select("id", { count: "exact", head: true })
-      .eq("org_id", data.orgId)
+      .eq("org_id", auth.membership.orgId)
       .gte("created_at", startOfMonth.toISOString());
 
     return {
@@ -135,6 +155,19 @@ export const getOrgPlanStatus = createServerFn({ method: "GET" })
         allowedInstruments: limits.allowedInstruments,
       },
     };
+  });
+
+const closeWaveSchema = accessTokenSchema.extend({ waveId: z.string().uuid() });
+
+/** Fecha uma onda — decisão humana autorizada (P0-08), sempre a organização real do chamador. */
+export const adminCloseWave = createServerFn({ method: "POST" })
+  .inputValidator(closeWaveSchema)
+  .handler(async ({ data }) => {
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { closed: false as const, error: describeAuthFailure(auth.reason) };
+
+    const { closeWaveAsAdmin } = await import("./wave-admin.server");
+    return closeWaveAsAdmin(auth.membership.orgId, data.waveId);
   });
 
 export const checkCloudStatus = createServerFn({ method: "GET" })

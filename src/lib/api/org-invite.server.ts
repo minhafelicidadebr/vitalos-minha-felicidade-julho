@@ -136,19 +136,3 @@ export async function resolveOrgInvite(token: string): Promise<OrgInviteResoluti
 
   return { valid: true, email: data.email, plan: data.plan };
 }
-
-/** Marca o convite como usado. Chamado só depois que a organização foi criada com sucesso. */
-export async function consumeOrgInvite(token: string, orgId: string): Promise<boolean> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const admin = supabaseAdmin as any;
-
-  const { data } = await admin
-    .from("org_invites")
-    .update({ used_at: new Date().toISOString(), used_by_org_id: orgId })
-    .eq("token", token)
-    .is("used_at", null)
-    .select("token")
-    .maybeSingle();
-
-  return !!data;
-}

@@ -89,3 +89,56 @@ export async function createWaveAsAdmin(
 
   return { ...result, emailsSent, emailsAttempted: emailable.length };
 }
+
+export type CloseWaveOutcome =
+  | { closed: true; capsulePublished: true; participantCount: number }
+  | { closed: true; capsulePublished: false; reason: string }
+  | { closed: false; error: string };
+
+/**
+ * Fechamento é a ÚNICA ação que sela uma onda (P0-08) — sempre uma decisão
+ * humana autorizada, nunca um efeito colateral automático de atingir n≥5.
+ * Roda uma agregação final (a última cápsula reflete todas as respostas até
+ * este momento) e só então marca a onda como selada. Se n<5 no fechamento,
+ * a onda ainda sela — sem cápsula, como reconhecimento honesto de
+ * participação insuficiente — nunca inventa um agregado abaixo do limiar.
+ */
+export async function closeWaveAsAdmin(
+  orgId: string,
+  waveId: string,
+): Promise<CloseWaveOutcome> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as any;
+
+  const { data: wave } = await admin
+    .from("waves")
+    .select("org_id, instrument, status")
+    .eq("id", waveId)
+    .maybeSingle();
+
+  if (!wave || wave.org_id !== orgId) {
+    return { closed: false, error: "Onda não encontrada nesta organização." };
+  }
+  if (wave.status === "sealed") {
+    return { closed: false, error: "Esta onda já está selada." };
+  }
+
+  const { triggerCapsuleAggregation } = await import("./capsule-aggregator.server");
+  const aggregation = await triggerCapsuleAggregation(
+    waveId,
+    wave.instrument as string,
+    "enterprise",
+    orgId,
+  );
+
+  const seal_outcome = aggregation.triggered ? "published" : "insufficient_data";
+  await admin
+    .from("waves")
+    .update({ status: "sealed", sealed_at: new Date().toISOString(), seal_outcome })
+    .eq("id", waveId);
+
+  if (aggregation.triggered) {
+    return { closed: true, capsulePublished: true, participantCount: aggregation.participantCount };
+  }
+  return { closed: true, capsulePublished: false, reason: aggregation.reason };
+}

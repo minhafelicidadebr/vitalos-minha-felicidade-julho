@@ -1,9 +1,12 @@
 // Server-only: cria org + profile para o primeiro admin de um cliente.
-// Usa supabaseAdmin (service role) para INSERT sem restrição de RLS.
 //
-// Self-serve fechado: nenhuma organização nasce sem um inviteToken válido
-// gerado por um admin da PLATAFORMA (ver org-invite.server.ts). O token é
-// revalidado aqui — nunca confiar apenas na validação já feita na tela.
+// Atomicidade (P0-05, Sprint S2): toda a criação acontece dentro de UMA
+// transação no banco via RPC `provision_organization_from_invite` — validar
+// convite, checar e-mail vinculado, criar organização, criar perfil e
+// consumir o convite não são mais passos HTTP separados. Duas requisições
+// simultâneas com o mesmo token nunca produzem duas organizações: a segunda
+// espera a primeira terminar (trava de linha dentro da RPC) e recebe
+// 'already_used' sem escrever nada. Ver a migration para o mecanismo exato.
 //
 // Setor × plano: o SETOR (packId) é uma escolha do cliente — ele sabe se é
 // empresa/escola/governo/condomínio/saúde melhor do que quem gerou o link.
@@ -37,79 +40,51 @@ export interface OnboardingResult {
   profileId: string;
 }
 
+/** Motivos que a RPC devolve na coluna `error` — traduzidos para o usuário. */
+const RPC_ERROR_MESSAGES: Record<string, string> = {
+  invalid_token: "Link de convite inválido.",
+  already_used: "Este convite já foi utilizado.",
+  expired: "Este convite expirou. Peça um novo link ao administrador.",
+  email_mismatch: "Este convite foi enviado para outro e-mail.",
+  slug_taken: "Já existe uma organização com este slug.",
+};
+
 export async function createOrgAndAdmin(
   input: OnboardingInput,
 ): Promise<OnboardingResult | { error: string }> {
-  const { resolveOrgInvite, consumeOrgInvite } = await import("./org-invite.server");
-
-  // 0. Revalida o convite — a checagem da tela é só UX, não segurança.
-  const invite = await resolveOrgInvite(input.inviteToken);
-  if (!invite.valid) {
-    const messages: Record<string, string> = {
-      invalid_token: "Link de convite inválido.",
-      already_used: "Este convite já foi utilizado.",
-      expired: "Este convite expirou. Peça um novo link ao administrador.",
-    };
-    return { error: messages[invite.reason] ?? "Convite inválido." };
-  }
-
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
-  // 1. Se o convite foi vinculado a um e-mail específico, confere que é
-  // quem está logando — impede que um token vazado seja usado por outra pessoa.
-  if (invite.email) {
-    const { data: authUser } = await admin.auth.admin.getUserById(input.userId);
-    const actualEmail = (authUser?.user?.email as string | undefined)?.toLowerCase();
-    if (actualEmail !== invite.email.toLowerCase()) {
-      return { error: "Este convite foi enviado para outro e-mail." };
-    }
-  }
-
-  // 2. Revalida o setor — nunca confiar apenas na validação já feita na tela
-  // (mesma doutrina do token: o cliente controla o payload, o servidor decide).
+  // Setor e papel são configuração de domínio (registry de packs) — resolvidos
+  // em JS, nunca em SQL. Revalida o setor: nunca confiar apenas na tela.
   const packId = REGISTERED_PACK_IDS.includes(input.packId) ? input.packId : DEFAULT_PACK_ID;
+  const role = resolveOrgAdminRole(packId);
 
-  // 3. Cria a organização — plano vem do convite (nunca do formulário do cliente).
-  const { data: org, error: orgErr } = await admin
-    .from("organizations")
-    .insert({
-      slug: input.orgSlug,
-      name: input.orgName,
-      pack_id: packId,
-      plan: invite.plan ?? "pilot",
-      cnpj: input.cnpj.trim(),
-      team_size_band: input.teamSizeBand,
-      phone: input.phone.trim(),
-      address: input.address?.trim() || null,
-      segment: input.segment?.trim() || null,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await admin.rpc("provision_organization_from_invite", {
+    p_invite_token: input.inviteToken,
+    p_user_id: input.userId,
+    p_org_name: input.orgName,
+    p_org_slug: input.orgSlug,
+    p_pack_id: packId,
+    p_role: role,
+    p_cnpj: input.cnpj.trim(),
+    p_team_size_band: input.teamSizeBand,
+    p_phone: input.phone.trim(),
+    p_address: input.address?.trim() || null,
+    p_segment: input.segment?.trim() || null,
+  });
 
-  if (orgErr || !org) {
-    if (orgErr?.code === "23505") return { error: "Já existe uma organização com este slug." };
-    return { error: orgErr?.message ? `Falha ao criar organização (${orgErr.message}).` : "Falha ao criar organização." };
+  // Erro de transporte/transação (ex.: perfil já existia para este usuário —
+  // ver comentário na migration sobre por que esse caso propaga em vez de
+  // ser capturado graciosamente: garante rollback completo, incluindo a
+  // organização recém-criada).
+  if (error) {
+    return { error: `Falha ao provisionar organização (${error.message}).` };
   }
 
-  // 4. Cria o perfil do admin — papel varia por setor (líder/diretor/síndico/...).
-  const { data: profile, error: profileErr } = await admin
-    .from("profiles")
-    .insert({
-      id: input.userId,
-      org_id: org.id,
-      role: resolveOrgAdminRole(packId),
-      display_name: input.orgName,
-    })
-    .select("id")
-    .single();
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { error: "Falha ao provisionar organização." };
+  if (row.error) return { error: RPC_ERROR_MESSAGES[row.error as string] ?? "Convite inválido." };
 
-  if (profileErr || !profile) {
-    return { error: "Falha ao criar perfil do administrador." };
-  }
-
-  // 5. Consome o convite — nunca mais pode ser reusado.
-  await consumeOrgInvite(input.inviteToken, org.id);
-
-  return { orgId: org.id, profileId: profile.id };
+  return { orgId: row.org_id as string, profileId: row.profile_id as string };
 }

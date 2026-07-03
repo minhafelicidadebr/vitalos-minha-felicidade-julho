@@ -28,6 +28,7 @@ import { submitOnboarding } from "@/lib/api/onboarding.functions";
 import { checkOrgInviteToken } from "@/lib/api/org-invite.functions";
 import type { OrgInviteResolution } from "@/lib/api/org-invite.server";
 import { PACK_CHOICES } from "@/domain/packs/registry";
+import { resolveOrgOverviewRoute } from "@/domain/packs/pack-routes";
 
 const SECTOR_ICONS: Record<string, LucideIcon> = {
   "building-2": Building2,
@@ -144,7 +145,7 @@ function OnboardingForm({ token, boundEmail }: { token: string; boundEmail: stri
     try {
       const result = await submitOnboarding({
         data: {
-          userId: session.user.id,
+          accessToken: session.access_token,
           orgName: orgName.trim(),
           orgSlug: slug.trim(),
           packId,
@@ -160,7 +161,8 @@ function OnboardingForm({ token, boundEmail }: { token: string; boundEmail: stri
       if (!result.ok) {
         setError(result.error);
       } else {
-        navigate({ to: "/rh" });
+        // Cada setor tem sua própria home (P1-06) — /rh só é correto p/ empresa.
+        navigate({ to: resolveOrgOverviewRoute(packId) });
       }
     } catch {
       setError("Erro de conexão. Tente novamente.");

@@ -34,29 +34,34 @@ export async function triggerCapsuleAggregation(
   waveId: string,
   instrument: string,
   packId = "enterprise",
+  authorizedOrgId?: string,
 ): Promise<AggregationTriggerResult> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
+
+  // 0. Vínculo tenant (P0-04): quando o chamador é um admin autenticado
+  // (checkAndAggregateCapsule), a onda TEM que pertencer à organização dele.
+  // Verificado ANTES de qualquer leitura de resposta individual — nega cedo,
+  // sem tocar dado sensível. checkAndAggregateByToken (fluxo anônimo pós-
+  // submissão) não passa authorizedOrgId: o token já é a autorização.
+  if (authorizedOrgId) {
+    const { data: waveOwner } = await admin.from("waves").select("org_id").eq("id", waveId).maybeSingle();
+    if (!waveOwner || waveOwner.org_id !== authorizedOrgId) {
+      return { triggered: false, count: 0, reason: "cross_tenant_denied" };
+    }
+  }
 
   // 1. Conta respostas via RPC SECURITY DEFINER (não SELECT direto)
   const { data: count } = await admin.rpc("count_wave_responses", { p_wave_id: waveId });
   const n = (count as number | null) ?? 0;
 
+  // k-anonymity é o único limiar de PUBLICAÇÃO (P0-08) — nunca de fechamento.
+  // Abaixo de 5, nenhum agregado é gerado; a onda continua coletando.
   if (n < K_ANONYMITY_MIN) {
     return { triggered: false, count: n, reason: "below_k_anonymity" };
   }
 
-  // 2. Evita dupla agregação
-  const { data: existing } = await admin
-    .from("wave_capsules")
-    .select("id")
-    .eq("wave_id", waveId)
-    .maybeSingle();
-  if (existing) {
-    return { triggered: false, count: n, reason: "already_aggregated" };
-  }
-
-  // 3. Lê respostas brutas via service role (único lugar no app que faz SELECT em wave_responses)
+  // 2. Lê respostas brutas via service role (único lugar no app que faz SELECT em wave_responses)
   const { data: rawRows, error: readErr } = await admin
     .from("wave_responses")
     .select("id, answers")
@@ -66,7 +71,7 @@ export async function triggerCapsuleAggregation(
     return { triggered: false, count: n, reason: "read_error" };
   }
 
-  // 4. Obtém definição do instrumento (items + escala)
+  // 3. Obtém definição do instrumento (items + escala)
   // instrument chega como código de banco ("COPSOQ"|"PERMA"|"VIA_T") — mapeia
   // para a chave de registro do survey-mock antes de buscar.
   const survey = getWaveSurvey(packId, dbInstrumentToSurveyKey(instrument));
@@ -84,7 +89,7 @@ export async function triggerCapsuleAggregation(
     reverse: item.reverse,
   }));
 
-  // 5. Mapeia rows → AggregationSubmission[]
+  // 4. Mapeia rows → AggregationSubmission[]
   const submissions: AggregationSubmission[] = (rawRows as RawResponse[]).map((row) => ({
     submissionId: row.id,
     answers: Object.entries(row.answers).map(([itemId, value]) => ({
@@ -93,13 +98,13 @@ export async function triggerCapsuleAggregation(
     })),
   }));
 
-  // 6. Agrega com engine puro (inclui reversão de itens marcados reverse:true)
+  // 5. Agrega com engine puro (inclui reversão de itens marcados reverse:true)
   const result = aggregateValidatedResponses(submissions, items, scale);
   if (!result.valid) {
     return { triggered: false, count: n, reason: `aggregation_invalid:${result.reason}` };
   }
 
-  // 7. high_risk_pct por pilar — scores por respondente (após reversão)
+  // 6. high_risk_pct por pilar — scores por respondente (após reversão)
   const pillarItemMap = new Map<string, AggregationItemDefinition[]>();
   for (const item of items) {
     const group = pillarItemMap.get(item.pillarId) ?? [];
@@ -128,7 +133,7 @@ export async function triggerCapsuleAggregation(
     }
   }
 
-  // 8. Separa dimensões de exposição vs. desfechos Domínio B
+  // 7. Separa dimensões de exposição vs. desfechos Domínio B
   const dimensions: Record<string, CapsuleDim> = {};
   const outcomes: Record<string, CapsuleDim> = {};
 
@@ -155,7 +160,7 @@ export async function triggerCapsuleAggregation(
     }
   }
 
-  // 9. Obtém org_id da onda
+  // 8. Obtém org_id da onda
   const { data: wave } = await admin
     .from("waves")
     .select("org_id, instrument")
@@ -164,19 +169,27 @@ export async function triggerCapsuleAggregation(
 
   if (!wave) return { triggered: false, count: n, reason: "wave_not_found" };
 
-  // 10. INSERT wave_capsules (único dado de volta — sempre agregado, n≥5)
+  // 9. UPSERT wave_capsules — uma cápsula por onda, ATUALIZADA a cada vez que
+  // a agregação roda (P0-08: nunca mais "insere uma vez e recusa depois").
+  // Reflete sempre o total de respostas até este momento; é uma LEITURA
+  // PARCIAL PROTEGIDA enquanto a onda segue em coleta, e vira definitiva só
+  // quando closeWaveAsAdmin roda a agregação final antes de selar.
   const { data: capsule, error: capsuleErr } = await admin
     .from("wave_capsules")
-    .insert({
-      wave_id: waveId,
-      org_id: wave.org_id,
-      instrument: wave.instrument ?? instrument,
-      participant_count: result.participantCount,
-      dimensions,
-      outcomes: Object.keys(outcomes).length > 0 ? outcomes : null,
-      cohort_id: `${waveId.slice(0, 8)}-n${result.participantCount}`,
-      closed_on: new Date().toISOString().split("T")[0],
-    })
+    .upsert(
+      {
+        wave_id: waveId,
+        org_id: wave.org_id,
+        instrument: wave.instrument ?? instrument,
+        participant_count: result.participantCount,
+        dimensions,
+        outcomes: Object.keys(outcomes).length > 0 ? outcomes : null,
+        cohort_id: `${waveId.slice(0, 8)}-n${result.participantCount}`,
+        closed_on: new Date().toISOString().split("T")[0],
+        aggregated_at: new Date().toISOString(),
+      },
+      { onConflict: "wave_id" },
+    )
     .select("id")
     .single();
 
@@ -184,16 +197,9 @@ export async function triggerCapsuleAggregation(
     return { triggered: false, count: n, reason: "capsule_insert_error" };
   }
 
-  // 11. Sela a onda (irreversível — dados individuais nunca mais acessíveis via app)
-  await admin
-    .from("waves")
-    .update({
-      status: "sealed",
-      sealed_at: new Date().toISOString(),
-      seal_outcome: "published",
-    })
-    .eq("id", waveId);
-
+  // A onda NUNCA é tocada aqui — fechar é decisão humana separada (ver
+  // closeWaveAsAdmin em wave-admin.server.ts), nunca um efeito colateral
+  // automático de atingir o limiar de k-anonimato.
   return {
     triggered: true,
     capsuleId: (capsule as { id: string }).id,

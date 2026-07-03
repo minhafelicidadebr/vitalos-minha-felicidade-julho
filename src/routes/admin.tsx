@@ -11,9 +11,17 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
-import { adminCreateWave, adminListWaves } from "@/lib/api/wave-admin.functions";
+import { adminCreateWave, adminListWaves, adminCloseWave } from "@/lib/api/wave-admin.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+
+// A organização não vem mais do cliente (P0-04) — o servidor resolve quem é
+// o admin de verdade a partir do access_token da própria sessão.
+async function getAccessToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Gestão de Ondas — 4 Lentes VitalOS™" }] }),
@@ -81,7 +89,13 @@ function AdminPage() {
     if (!cloudActive || !orgId) return;
     setLoadingWaves(true);
     try {
-      const result = await adminListWaves({ data: { orgId } });
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const result = await adminListWaves({ data: { accessToken } });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       setWaves(result.waves as WaveItem[]);
     } catch {
       // silently fail — cloud may not be wired yet
@@ -101,8 +115,13 @@ function AdminPage() {
     setCreated(null);
 
     try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
       const result = await adminCreateWave({
-        data: { orgId, instrument, label: label.trim() || undefined, inviteCount },
+        data: { accessToken, instrument, label: label.trim() || undefined, inviteCount },
       });
 
       if ("error" in result && result.error) {
@@ -402,12 +421,17 @@ function WaveCard({
 }) {
   const [aggregating, setAggregating] = useState(false);
   const [aggMsg, setAggMsg] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  const [closeMsg, setCloseMsg] = useState<string | null>(null);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const pct = wave.invitedCount > 0
     ? Math.min(100, Math.round((wave.responseCount / wave.invitedCount) * 100))
     : 0;
   const isSealed = wave.status === "sealed";
   const hasEnough = wave.responseCount >= 5;
+  // A leitura protegida pode ser regerada quantas vezes for preciso enquanto
+  // a onda segue coletando (P0-08) — nunca mais "gera uma vez e recusa depois".
   const canAggregate = hasEnough && !isSealed;
 
   async function handleAggregate() {
@@ -415,19 +439,57 @@ function WaveCard({
     setAggregating(true);
     setAggMsg(null);
     try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setAggMsg("Sessão expirada. Faça login novamente.");
+        return;
+      }
       const result = await checkAndAggregateCapsule({
-        data: { waveId: wave.id, instrument: wave.instrument, packId: "enterprise" },
+        data: { accessToken, waveId: wave.id, instrument: wave.instrument, packId: "enterprise" },
       });
       if (result.triggered) {
-        setAggMsg(`Capsule gerada — ${result.participantCount} participantes`);
+        setAggMsg(`Leitura protegida atualizada — ${result.participantCount} participantes`);
         onAggregated();
       } else {
-        setAggMsg(result.reason === "already_aggregated" ? "Capsule já existe" : `Não agregado: ${result.reason}`);
+        setAggMsg(`Ainda não disponível: ${result.reason}`);
       }
     } catch {
       setAggMsg("Erro ao agregar — verifique o Cloud.");
     } finally {
       setAggregating(false);
+    }
+  }
+
+  async function handleClose() {
+    if (closing || isSealed) return;
+    if (!confirmClose) {
+      setConfirmClose(true);
+      return;
+    }
+    setClosing(true);
+    setCloseMsg(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setCloseMsg("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await adminCloseWave({ data: { accessToken, waveId: wave.id } });
+      if (result.closed) {
+        setCloseMsg(
+          result.capsulePublished
+            ? `Onda fechada — relatório final com ${result.participantCount} participantes.`
+            : `Onda fechada sem relatório (${result.reason}) — participação abaixo do k-anonimato mínimo.`,
+        );
+        onAggregated();
+      } else {
+        setCloseMsg(result.error);
+      }
+    } catch {
+      setCloseMsg("Erro ao fechar a onda — verifique o Cloud.");
+    } finally {
+      setClosing(false);
+      setConfirmClose(false);
     }
   }
 
@@ -480,25 +542,49 @@ function WaveCard({
             </div>
             {!isSealed && wave.responseCount < 5 && (
               <p className="mt-1 text-[10px] text-muted-foreground">
-                Faltam {5 - wave.responseCount} para o k-anonimato mínimo (n≥5)
+                Faltam {5 - wave.responseCount} para o k-anonimato mínimo (n≥5) — a onda
+                continua coletando até você decidir fechá-la.
               </p>
             )}
           </div>
 
-          {/* Botão de agregação manual */}
-          {canAggregate && (
-            <button
-              onClick={handleAggregate}
-              disabled={aggregating}
-              className="mt-3 flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
-            >
-              <Zap className={`h-3 w-3 ${aggregating ? "animate-pulse" : ""}`} />
-              {aggregating ? "Gerando relatório…" : "Gerar Relatório (n≥5)"}
-            </button>
+          {/* Ações — nenhuma delas fecha a onda sozinha (P0-08) */}
+          {!isSealed && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {canAggregate && (
+                <button
+                  onClick={handleAggregate}
+                  disabled={aggregating}
+                  className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                >
+                  <Zap className={`h-3 w-3 ${aggregating ? "animate-pulse" : ""}`} />
+                  {aggregating ? "Gerando…" : "Ver leitura protegida (n≥5)"}
+                </button>
+              )}
+              <button
+                onClick={handleClose}
+                disabled={closing}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+                  confirmClose
+                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                    : "border-border/60 text-muted-foreground hover:bg-muted/40"
+                }`}
+              >
+                <Lock className={`h-3 w-3 ${closing ? "animate-pulse" : ""}`} />
+                {closing ? "Fechando…" : confirmClose ? "Confirmar fechamento definitivo" : "Fechar onda"}
+              </button>
+              {confirmClose && !closing && (
+                <button
+                  onClick={() => setConfirmClose(false)}
+                  className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           )}
-          {aggMsg && (
-            <p className="mt-2 text-[11px] font-medium text-primary">{aggMsg}</p>
-          )}
+          {aggMsg && <p className="mt-2 text-[11px] font-medium text-primary">{aggMsg}</p>}
+          {closeMsg && <p className="mt-2 text-[11px] font-medium text-foreground">{closeMsg}</p>}
         </div>
       </div>
     </div>

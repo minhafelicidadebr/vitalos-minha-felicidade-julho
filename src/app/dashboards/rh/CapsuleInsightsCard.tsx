@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Users, TrendingDown, TrendingUp, AlertTriangle, Minus } from "lucide-react";
 import { loadLatestOrgCapsule, type LatestCapsuleResult } from "@/lib/api/capsule-report.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const SCALE_MAX = 5;
 
@@ -58,20 +59,30 @@ function riskColor(highRiskPct: number): {
   };
 }
 
-export function CapsuleInsightsCard({ orgId }: { orgId: string }) {
+// Não recebe mais orgId por prop (P0-04) — o servidor resolve a organização
+// a partir da sessão de quem está logado, nunca de um valor passado pelo pai.
+export function CapsuleInsightsCard() {
   const [capsule, setCapsule] = useState<LatestCapsuleResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    loadLatestOrgCapsule({ data: { orgId } })
-      .then((r) => active && setCapsule(r))
-      .catch(() => active && setCapsule({ found: false, reason: "error" }))
-      .finally(() => active && setLoading(false));
+    supabase.auth.getSession().then(({ data }) => {
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        if (active) setCapsule({ found: false, reason: "no_session" });
+        if (active) setLoading(false);
+        return;
+      }
+      loadLatestOrgCapsule({ data: { accessToken } })
+        .then((r) => active && setCapsule(r))
+        .catch(() => active && setCapsule({ found: false, reason: "error" }))
+        .finally(() => active && setLoading(false));
+    });
     return () => {
       active = false;
     };
-  }, [orgId]);
+  }, []);
 
   if (loading) {
     return (

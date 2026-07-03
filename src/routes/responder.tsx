@@ -24,6 +24,7 @@ import { getActiveWave } from "@/mocks/campaign-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import { submitSurveyResponses } from "@/lib/api/survey.functions";
+import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 
 export const Route = createFileRoute("/responder")({
   head: () => ({ meta: [{ title: "Responder · Onda Ativa — 4 Lentes VitalOS™" }] }),
@@ -302,17 +303,6 @@ function SurveyRuntime({ wave, survey }: { wave: MeasurementWaveInput; survey: S
     </AppShell>
   );
 }
-
-const CAPTURE_ERROR_COPY: Record<Exclude<CaptureResult, { accepted: true }>["reason"], string> = {
-  invalid_submission: "O envio está incompleto ou malformado e foi recusado.",
-  duplicate_item: "O envio contém um item repetido e foi recusado.",
-  item_set_mismatch: "O conjunto de itens não corresponde ao instrumento desta onda.",
-  invalid_value: "Uma resposta está fora da escala declarada pelo instrumento.",
-  unknown_wave: "A onda informada não está ativa para este setor.",
-  unknown_survey: "O instrumento informado não corresponde à onda ativa.",
-  cloud_adapter_missing:
-    "O modo Cloud foi solicitado, mas a persistência segura ainda não está disponível. Nenhum fallback local foi usado.",
-};
 
 function ReceiptField({ label, value }: { label: string; value: string }) {
   return (

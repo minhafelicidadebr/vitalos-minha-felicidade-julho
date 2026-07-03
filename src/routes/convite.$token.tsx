@@ -26,6 +26,7 @@ import { submitSurveyResponses } from "@/lib/api/survey.functions";
 import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions";
 import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
+import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -122,7 +123,10 @@ function SurveyFlow({
         // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda.
         checkAndAggregateByToken({ data: { token } }).catch(() => {});
       } else {
-        setError("Não foi possível registrar sua resposta. Tente novamente.");
+        setError(
+          (result && CAPTURE_ERROR_COPY[result.reason]) ??
+            "Não foi possível registrar sua resposta. Tente novamente.",
+        );
       }
     } catch {
       setError("Erro de conexão. Verifique sua internet e tente novamente.");

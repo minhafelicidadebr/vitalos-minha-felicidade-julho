@@ -16,6 +16,12 @@ dist-ssr
 .nitro
 *.local
 
+# Segredos / variáveis de ambiente (P1-01) — nunca versionar.
+# .env.example é a exceção: documenta as chaves SEM valores.
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

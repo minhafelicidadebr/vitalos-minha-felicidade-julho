@@ -15,7 +15,7 @@ export interface SubmitResponseInput {
 
 export interface SubmitResponseResult {
   accepted: boolean;
-  reason?: "invalid_token" | "already_used" | "db_error" | "no_cloud";
+  reason?: "invalid_token" | "already_used" | "wave_not_open" | "db_error" | "no_cloud";
   responseCount?: number;
 }
 
@@ -69,25 +69,28 @@ const BASE_URL = import.meta.env.VITE_APP_URL?.trim() || "https://app.vitalos.co
 
 // ─── Respostas (write-only) ────────────────────────────────────────────────────
 
+// Atomicidade (P0-06, Sprint S3): validar convite, checar vínculo com a
+// onda, checar status, inserir e consumir o token viviam em 3 chamadas HTTP
+// separadas — duas submissões simultâneas com o mesmo token podiam ambas
+// passar pela checagem antes de qualquer uma consumi-lo. Agora é uma única
+// RPC (submit_wave_response) que trava a linha do convite e faz tudo na
+// mesma transação: a segunda chamada concorrente sempre vê "already_used".
 export async function saveWaveResponse(input: SubmitResponseInput): Promise<SubmitResponseResult> {
-  const { data: valid } = await db.rpc("is_invite_valid_for_wave", {
+  const { data, error } = await db.rpc("submit_wave_response", {
     p_wave_id: input.waveId,
-    p_token: input.inviteToken,
+    p_invite_token: input.inviteToken,
+    p_answers: input.answers,
   });
-  if (!valid) return { accepted: false, reason: "already_used" };
 
-  const { error: insertErr } = await db.from("wave_responses").insert({
-    wave_id: input.waveId,
-    invite_token: input.inviteToken,
-    answers: input.answers,
-  });
-  if (insertErr) return { accepted: false, reason: "db_error" };
+  if (error) return { accepted: false, reason: "db_error" };
 
-  // RPC SECURITY DEFINER — wave_invites não tem policy de UPDATE para o cliente anônimo.
-  await db.rpc("mark_invite_used", { p_token: input.inviteToken });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.accepted) {
+    const reason = row?.reason as SubmitResponseResult["reason"] | undefined;
+    return { accepted: false, reason: reason ?? "db_error" };
+  }
 
-  const { data: count } = await db.rpc("count_wave_responses", { p_wave_id: input.waveId });
-  return { accepted: true, responseCount: count ?? undefined };
+  return { accepted: true, responseCount: (row.response_count as number | null) ?? undefined };
 }
 
 // ─── Ondas (admin — usa service role via server function) ──────────────────────

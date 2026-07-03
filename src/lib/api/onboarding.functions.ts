@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveAuthenticatedUserId, describeAuthFailure } from "@/lib/auth/authorize.server";
 
 const onboardingSchema = z.object({
-  userId: z.string().uuid(),
+  // Identidade (P0-05): nunca um userId solto do cliente — o servidor resolve
+  // quem é de verdade a partir do access_token da própria sessão.
+  accessToken: z.string().min(10),
   orgName: z.string().min(2).max(120),
   orgSlug: z
     .string()
@@ -23,12 +26,16 @@ const onboardingSchema = z.object({
 type OnboardingOk = { ok: true; orgId: string };
 type OnboardingErr = { ok: false; error: string };
 
-/** Cria organização + perfil RH_ADMIN para o primeiro login de um cliente. */
+/** Cria organização + perfil admin (papel varia por setor) para o primeiro login de um cliente. */
 export const submitOnboarding = createServerFn({ method: "POST" })
   .inputValidator(onboardingSchema)
   .handler(async ({ data }): Promise<OnboardingOk | OnboardingErr> => {
+    const identity = await resolveAuthenticatedUserId(data.accessToken);
+    if (!identity.ok) return { ok: false, error: describeAuthFailure(identity.reason) };
+
     const { createOrgAndAdmin } = await import("./onboarding.server");
-    const result = await createOrgAndAdmin(data);
+    const { accessToken: _accessToken, ...rest } = data;
+    const result = await createOrgAndAdmin({ ...rest, userId: identity.userId });
     if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, orgId: result.orgId };
   });

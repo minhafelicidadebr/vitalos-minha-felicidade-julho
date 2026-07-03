@@ -56,6 +56,8 @@ export type CaptureResult =
         | Exclude<CaptureValidationReason, "valid">
         | "unknown_wave"
         | "unknown_survey"
+        | "already_used"
+        | "wave_not_open"
         | "cloud_adapter_missing";
     };
 

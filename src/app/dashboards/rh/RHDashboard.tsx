@@ -55,7 +55,7 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
       </motion.div>
 
       {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
-      <CapsuleInsightsCard orgId={org.orgId} />
+      <CapsuleInsightsCard />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}

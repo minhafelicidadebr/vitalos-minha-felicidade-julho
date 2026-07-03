@@ -1,0 +1,35 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- REVOGA AUTOELEVAÇÃO EM PROFILES (P0-03, Sprint S1)
+-- ═══════════════════════════════════════════════════════════════════════════
+--
+-- PROBLEMA: a policy "profile_own" é FOR ALL USING (id = auth.uid()) WITH
+-- CHECK (id = auth.uid()) — controla APENAS a linha (é minha própria linha?),
+-- nunca a COLUNA. Um usuário autenticado pode, hoje, fazer
+--   UPDATE profiles SET role = 'RH_ADMIN', org_id = '<outra-org>' WHERE id = auth.uid()
+-- e a policy permite, porque a condição de linha continua satisfeita.
+--
+-- SOLUÇÃO: privilégio de coluna é uma camada SEPARADA da RLS no Postgres —
+-- GRANT/REVOKE column-level é checado ANTES da policy, na trava mais simples
+-- possível: a role `authenticated` perde a permissão de UPDATE justamente nas
+-- duas colunas que definem identidade organizacional (role, org_id). Nenhuma
+-- outra coluna é afetada — display_name continua editável pelo dono, como
+-- hoje via "profile_own".
+--
+-- ESCOPO DELIBERADAMENTE MÍNIMO: esta migration NÃO introduz um esquema de
+-- organization_memberships/role_grants (N:M pessoa↔organização). O produto
+-- hoje é 1 pessoa = 1 perfil = 1 organização = 1 papel — introduzir um modelo
+-- N:M sem um caso de uso real (holding com múltiplos vínculos, consultor
+-- externo) seria construir capacidade especulativa. Quando essa necessidade
+-- for real, o registro em docs/PLANO_MESTRE_EVOLUCAO_VITALOS_2026_2027.md
+-- (P2, "múltiplos membros por org") já a documenta como trabalho futuro.
+--
+-- QUEM AINDA PODE ESCREVER role/org_id: apenas service_role — o que
+-- onboarding.server.ts já usa (createOrgAndAdmin faz o INSERT inicial via
+-- supabaseAdmin, nunca via UPDATE do cliente autenticado). Nenhum fluxo
+-- legítimo hoje depende do cliente autenticado alterar essas duas colunas.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+REVOKE UPDATE (role, org_id) ON public.profiles FROM authenticated;
+
+-- service_role continua com ALL (grant pré-existente da migration base) —
+-- nenhuma mudança necessária para as escritas administrativas via server functions.

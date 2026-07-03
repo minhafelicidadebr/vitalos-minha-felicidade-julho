@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "bun test src"
+    "test": "bun test src",
+    "parity": "bun run scripts/schema-parity-check.ts",
+    "gate": "bun test src && bun run parity && bunx tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
