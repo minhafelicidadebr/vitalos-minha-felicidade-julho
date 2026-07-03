@@ -15,6 +15,14 @@
 // humano do runbook (docs/RUNBOOK_MIGRACOES_LOVABLE.md). Cobertura de coluna é
 // dirigida por manifesto declarado (schema-manifest.ts), não por adivinhação de
 // AST: honesto sobre o que verifica, em vez de falsa confiança abrangente.
+//
+// LIMITE CONHECIDO: este motor não verifica a INTERAÇÃO entre privilégios
+// GRANT/REVOKE — só existência de RPC/tabela/coluna. Um REVOKE column-level
+// pode ser neutralizado por um GRANT table-level pré-existente (achado real
+// em 20260703170000_fix_profile_revoke_table_level_grant.sql) sem que esta
+// checagem acuse nada, porque ambas as instruções SQL "existem" normalmente.
+// Verificação de efeito de privilégio exige consulta ao banco vivo
+// (has_column_privilege), não análise estática do texto da migration.
 
 export interface SqlSource {
   /** Nome do arquivo (para mensagens de erro). */

@@ -43,6 +43,32 @@ tê-lo aplicado (ou confirmado como já aplicado) na produção.
 6. Aguardar o sync do Lovable ↔ GitHub antes de editar qualquer coisa no Lovable
    (ver CLAUDE.md · Sincronização).
 
+7. **Sempre rodar a query de verificação** (não só confiar em "executou sem
+   erro") — ver o achado real abaixo de por que isso importa.
+
+---
+
+## Achado real: REVOKE column-level pode ser um no-op silencioso
+
+Ao aplicar a migration de S1 (`20260703130000_revoke_profile_self_elevation.sql`),
+`REVOKE UPDATE (role, org_id) ON public.profiles FROM authenticated` rodou sem
+erro nenhum — mas não teve efeito. `profiles` já tinha `GRANT UPDATE` na
+TABELA INTEIRA para `authenticated` desde a migration base. No Postgres,
+privilégio de coluna e de tabela são entradas de ACL separadas; revogar a de
+coluna nunca subtrai da de tabela que já cobre tudo. Só foi descoberto porque
+a query de verificação (`has_column_privilege(...)`) checou o EFEITO real no
+banco, não se o SQL "rodou". Corrigido em
+`20260703170000_fix_profile_revoke_table_level_grant.sql`
+(`REVOKE UPDATE ON public.profiles FROM authenticated` seguido de
+`GRANT UPDATE (display_name) ON public.profiles TO authenticated`).
+
+**Lição travada no processo:** `bun run parity` prova que o repo é coerente
+consigo mesmo (todo RPC/tabela/coluna usado tem definição). Não prova — e não
+tem como provar sem consultar o banco vivo — que um GRANT/REVOKE produziu o
+efeito de privilégio pretendido. Daqui pra frente, toda migration que mexe em
+GRANT/REVOKE vem acompanhada de uma query `has_column_privilege`/
+`has_table_privilege` de verificação, não só do SQL de mudança.
+
 ---
 
 ## A migration de reconciliação (S0)
@@ -119,6 +145,10 @@ correção ali foi só no código (para de fingir sucesso em modo Cloud).
 3. `20260703140000_provision_organization_from_invite.sql`
 4. `20260703150000_submit_wave_response_atomic.sql`
 5. `20260703160000_wave_lifecycle_and_capsule_upsert.sql`
+6. `20260703170000_fix_profile_revoke_table_level_grant.sql` — **já aplicada em
+   produção** (achado ao verificar o item 2 com `has_column_privilege`; ver
+   "Achado real" acima). Incluída aqui só para o repositório continuar
+   descrevendo fielmente o que existe no banco — colar de novo é no-op seguro.
 
 Depois de colar as cinco, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
