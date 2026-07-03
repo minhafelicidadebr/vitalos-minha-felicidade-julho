@@ -180,7 +180,7 @@ export type Database = {
           {
             foreignKeyName: "wave_capsules_wave_id_fkey"
             columns: ["wave_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "waves"
             referencedColumns: ["id"]
           },
@@ -189,18 +189,21 @@ export type Database = {
       wave_invites: {
         Row: {
           created_at: string | null
+          emailed_at: string | null
           token: string
           used_at: string | null
           wave_id: string
         }
         Insert: {
           created_at?: string | null
+          emailed_at?: string | null
           token?: string
           used_at?: string | null
           wave_id: string
         }
         Update: {
           created_at?: string | null
+          emailed_at?: string | null
           token?: string
           used_at?: string | null
           wave_id?: string
@@ -308,6 +311,40 @@ export type Database = {
     Functions: {
       count_wave_responses: { Args: { p_wave_id: string }; Returns: number }
       is_invite_valid: { Args: { p_token: string }; Returns: boolean }
+      is_invite_valid_for_wave: {
+        Args: { p_token: string; p_wave_id: string }
+        Returns: boolean
+      }
+      mark_invite_used: { Args: { p_token: string }; Returns: undefined }
+      provision_organization_from_invite: {
+        Args: {
+          p_address?: string
+          p_cnpj: string
+          p_invite_token: string
+          p_org_name: string
+          p_org_slug: string
+          p_pack_id: string
+          p_phone: string
+          p_role: string
+          p_segment?: string
+          p_team_size_band: string
+          p_user_id: string
+        }
+        Returns: {
+          error: string
+          org_id: string
+          plan: string
+          profile_id: string
+        }[]
+      }
+      submit_wave_response: {
+        Args: { p_answers: Json; p_invite_token: string; p_wave_id: string }
+        Returns: {
+          accepted: boolean
+          reason: string
+          response_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
