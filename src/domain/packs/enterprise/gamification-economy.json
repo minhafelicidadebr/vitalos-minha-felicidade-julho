@@ -270,6 +270,64 @@
     "persistedFields": ["senderId", "recipientId", "pillarId", "visibility", "occurredOn"],
     "neverPersist": ["message", "draft", "sentiment", "performanceContext"]
   },
+  "prosocialEconomy": {
+    "currency": { "id": "sementes", "name": "Sementes", "verb": "plantar" },
+    "earning": {
+      "wave_response": 2,
+      "pulse_completed": 2,
+      "check_in": 1,
+      "learning_module": 1,
+      "learning_path": 2,
+      "kudo_sent": 1,
+      "nudge_action": 1,
+      "mission_evidence": 2
+    },
+    "weeklyEarnCap": 12,
+    "weeklyDonationBudget": 3,
+    "kAnonymityMin": 5,
+    "catalog": [
+      {
+        "id": "semente_girassol",
+        "name": "Semente de Girassol",
+        "emoji": "🌻",
+        "cost": 3,
+        "meaning": "por trazer energia e ânimo à equipe"
+      },
+      {
+        "id": "semente_ipe",
+        "name": "Semente de Ipê",
+        "emoji": "🌸",
+        "cost": 4,
+        "meaning": "por florescer onde ninguém esperava"
+      },
+      {
+        "id": "semente_carvalho",
+        "name": "Semente de Carvalho",
+        "emoji": "🌳",
+        "cost": 5,
+        "meaning": "por sustentar a equipe num momento difícil"
+      },
+      {
+        "id": "semente_araucaria",
+        "name": "Semente de Araucária",
+        "emoji": "🌲",
+        "cost": 6,
+        "meaning": "por gerar frutos que alimentam muita gente"
+      }
+    ],
+    "pools": [
+      { "id": "pomar_equipe", "name": "Pomar da Equipe", "channel": "team" },
+      { "id": "bosque_bem_comum", "name": "Bosque do Bem-Comum", "channel": "cause", "target": 500 }
+    ],
+    "rules": [
+      "donation_never_yields_xp_or_seeds",
+      "no_donor_leaderboard",
+      "no_individual_totals_public",
+      "never_show_non_donors",
+      "never_convertible_to_money_or_benefit",
+      "donor_name_optin_per_gift"
+    ]
+  },
   "nudgeLibrarySeed": [
     {
       "id": "n_pausa_timely",

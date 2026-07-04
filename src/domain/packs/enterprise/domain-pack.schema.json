@@ -283,7 +283,65 @@
         },
         "antiGaming": { "type": "object" },
         "nudgeLibrarySeed": { "type": "array" },
-        "nudgeRules": { "type": "object" }
+        "nudgeRules": { "type": "object" },
+        "prosocialEconomy": {
+          "type": "object",
+          "required": ["currency", "earning", "weeklyDonationBudget", "rules"],
+          "properties": {
+            "currency": {
+              "type": "object",
+              "required": ["id", "name", "verb"],
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "verb": { "type": "string" }
+              }
+            },
+            "earning": {
+              "type": "object",
+              "additionalProperties": { "type": "number", "minimum": 0 }
+            },
+            "weeklyEarnCap": { "type": "number", "minimum": 1 },
+            "weeklyDonationBudget": { "type": "number", "minimum": 1 },
+            "kAnonymityMin": { "type": "number", "minimum": 5 },
+            "catalog": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name", "cost", "meaning"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "emoji": { "type": "string" },
+                  "cost": { "type": "number", "minimum": 1 },
+                  "meaning": { "type": "string" }
+                }
+              }
+            },
+            "pools": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name", "channel"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "channel": { "enum": ["team", "cause"] },
+                  "target": { "type": "number", "minimum": 1 }
+                }
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": { "type": "string" },
+              "allOf": [
+                { "contains": { "const": "donation_never_yields_xp_or_seeds" } },
+                { "contains": { "const": "no_donor_leaderboard" } },
+                { "contains": { "const": "never_convertible_to_money_or_benefit" } }
+              ]
+            }
+          }
+        }
       }
     }
   }
