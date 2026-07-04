@@ -164,6 +164,26 @@ nenhuma destas tabelas.
 2-3 cartões, recarregar a página — os cartões avaliados devem ter saído da
 fila (ou reagendado para o intervalo certo), não voltado ao início.
 
+## Achado real #2: GRANT default da conta Supabase mascara o GRANT explícito da migration
+
+Ao verificar a migration de S5 com `has_table_privilege`, a query mostrou
+`authenticated` com UPDATE/DELETE em `participation_events` e DELETE em
+`sm2_card_state` — privilégios que a migration NUNCA concedeu de propósito
+(ela só concede SELECT+INSERT em `participation_events` e SELECT+INSERT+
+UPDATE em `sm2_card_state`). Causa: este projeto Supabase tem
+`ALTER DEFAULT PRIVILEGES` configurado na conta para conceder ALL a
+`authenticated`/`anon`/`service_role` em toda tabela NOVA do schema
+`public` — o GRANT explícito da migration rodou sem erro, mas o default já
+cobria tudo antes dele, então não restringiu nada. Mesma classe do achado de
+S1 (GRANT/REVOKE só se prova consultando o banco vivo, nunca só "rodou sem
+erro"), causa raiz diferente (lá era column vs table level; aqui é GRANT
+default da conta vs GRANT explícito da migration). Corrigido em
+`20260703230000_revoke_learning_default_privileges.sql` — fechar essa
+segunda camada importa porque `participation_events` existe justamente para
+impedir apagar o próprio histórico de XP (o jeito mais óbvio de burlar o
+teto diário anti-gaming); depender só da RLS deixaria isso a um bug de
+policy de distância.
+
 ## Ordem de aplicação recomendada (S0 → S5, nesta sessão)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -176,6 +196,9 @@ fila (ou reagendado para o intervalo certo), não voltado ao início.
    "Achado real" acima). Incluída aqui só para o repositório continuar
    descrevendo fielmente o que existe no banco — colar de novo é no-op seguro.
 7. `20260703220000_learning_persistence.sql` (S5 · Academia viva)
+8. `20260703230000_revoke_learning_default_privileges.sql` — **já aplicada em
+   produção** (achado ao verificar o item 7 com `has_table_privilege`; ver
+   "Achado real #2" acima). Incluída aqui pelo mesmo motivo do item 6.
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

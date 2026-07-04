@@ -1,0 +1,31 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- FECHA O GRANT DEFAULT DE authenticated/anon EM sm2_card_state E
+-- participation_events (achado S5 · mesma classe do achado de S1)
+-- ═══════════════════════════════════════════════════════════════════════════
+--
+-- ACHADO (via query de verificação colada no Lovable após aplicar a migration
+-- 20260703220000): este projeto Supabase concede ALL por default a
+-- authenticated/anon/service_role em toda tabela NOVA do schema public
+-- (ALTER DEFAULT PRIVILEGES configurado na conta) — o GRANT explícito da
+-- migration anterior (SELECT+INSERT+UPDATE em sm2_card_state; SELECT+INSERT
+-- em participation_events) nunca teve efeito de RESTRINGIR nada, porque o
+-- default já cobria tudo antes do GRANT explícito rodar. Quem impedia
+-- UPDATE/DELETE indevido até aqui era só a RLS (linha própria) — funciona,
+-- mas é uma única camada, não duas.
+--
+-- Mesma lição do achado de S1 (ver RUNBOOK_MIGRACOES_LOVABLE.md, "REVOKE
+-- column-level pode ser um no-op silencioso"): privilégio de SQL e RLS são
+-- camadas INDEPENDENTES. Lá o conflito era column-level vs table-level GRANT;
+-- aqui é GRANT default da conta Supabase vs GRANT explícito da migration —
+-- causa raiz diferente, mesmo efeito (SQL "rodou sem erro" mas não restringiu
+-- nada). Fechar as duas camadas é defesa em profundidade: um bug futuro na
+-- policy RLS de participation_events não bastaria sozinho pra permitir
+-- apagar histórico de XP (hoje o único jeito conhecido de burlar o teto
+-- diário anti-gaming, que ainda é calculado no cliente).
+--
+-- REVOKE é idempotente por natureza — remover um privilégio que já não
+-- estava concedido não é erro, então colar de novo é sempre seguro.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+REVOKE UPDATE, DELETE ON public.participation_events FROM authenticated, anon;
+REVOKE DELETE ON public.sm2_card_state FROM authenticated, anon;
