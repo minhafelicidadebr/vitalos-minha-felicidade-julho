@@ -97,6 +97,45 @@ export type Database = {
         }
         Relationships: []
       }
+      participation_events: {
+        Row: {
+          capped: boolean
+          category: string
+          created_at: string
+          event_id: string
+          id: string
+          kind: string
+          occurred_on: string
+          source_id: string
+          user_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          capped?: boolean
+          category: string
+          created_at?: string
+          event_id: string
+          id?: string
+          kind: string
+          occurred_on: string
+          source_id: string
+          user_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          capped?: boolean
+          category?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          kind?: string
+          occurred_on?: string
+          source_id?: string
+          user_id?: string
+          xp_awarded?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -128,6 +167,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sm2_card_state: {
+        Row: {
+          card_id: string
+          easiness: number
+          id: string
+          interval_days: number
+          lapses: number
+          repetition: number
+          reviewed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          easiness?: number
+          id?: string
+          interval_days?: number
+          lapses?: number
+          repetition?: number
+          reviewed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          easiness?: number
+          id?: string
+          interval_days?: number
+          lapses?: number
+          repetition?: number
+          reviewed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       wave_capsules: {
         Row: {
