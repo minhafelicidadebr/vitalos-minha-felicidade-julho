@@ -55,6 +55,7 @@ import { Route as FechamentoRouteImport } from './routes/fechamento'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
 import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
 import { Route as EvolucaoRouteImport } from './routes/evolucao'
+import { Route as EspelhoRouteImport } from './routes/espelho'
 import { Route as EsgRouteImport } from './routes/esg'
 import { Route as EscolaRouteImport } from './routes/escola'
 import { Route as EntrarRouteImport } from './routes/entrar'
@@ -311,6 +312,11 @@ const EvolucaoRoute = EvolucaoRouteImport.update({
   path: '/evolucao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EspelhoRoute = EspelhoRouteImport.update({
+  id: '/espelho',
+  path: '/espelho',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsgRoute = EsgRouteImport.update({
   id: '/esg',
   path: '/esg',
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
+  '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
@@ -531,6 +538,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
+  '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
@@ -605,6 +613,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/escola': typeof EscolaRoute
   '/esg': typeof EsgRoute
+  '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
   '/experimentos': typeof ExperimentosRoute
@@ -680,6 +689,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/escola'
     | '/esg'
+    | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
     | '/experimentos'
@@ -753,6 +763,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/escola'
     | '/esg'
+    | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
     | '/experimentos'
@@ -826,6 +837,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/escola'
     | '/esg'
+    | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
     | '/experimentos'
@@ -900,6 +912,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   EscolaRoute: typeof EscolaRoute
   EsgRoute: typeof EsgRoute
+  EspelhoRoute: typeof EspelhoRoute
   EvolucaoRoute: typeof EvolucaoRoute
   EvolucaoNr1Route: typeof EvolucaoNr1Route
   ExperimentosRoute: typeof ExperimentosRoute
@@ -1277,6 +1290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EvolucaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/espelho': {
+      id: '/espelho'
+      path: '/espelho'
+      fullPath: '/espelho'
+      preLoaderRoute: typeof EspelhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/esg': {
       id: '/esg'
       path: '/esg'
@@ -1476,6 +1496,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   EscolaRoute: EscolaRoute,
   EsgRoute: EsgRoute,
+  EspelhoRoute: EspelhoRoute,
   EvolucaoRoute: EvolucaoRoute,
   EvolucaoNr1Route: EvolucaoNr1Route,
   ExperimentosRoute: ExperimentosRoute,
@@ -1531,3 +1552,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

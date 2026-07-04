@@ -110,6 +110,12 @@
       "group": "medir"
     },
     {
+      "id": "espelho",
+      "label": "Espelho Vivo",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+      "group": "medir"
+    },
+    {
       "id": "signals",
       "label": "Sinais Vivos",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL"],

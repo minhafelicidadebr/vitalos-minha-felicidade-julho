@@ -42,6 +42,7 @@ const NAV_ROUTES: Record<string, string> = {
   overview: "/", // por papel, abaixo
   ivo: "/ivo",
   pulses: "/pulse",
+  espelho: "/espelho",
   // O item "ai" abre o copiloto setorial aterrado (chat pack-aware). A tela legada
   // de modos (/floresceria) segue como rota válida para rollback de uma linha.
   ai: "/copilota",
@@ -164,7 +165,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "medir",
     label: "Medir",
     hint: "Onde a vitalidade está hoje",
-    items: ["wave", "waves", "ivo", "pulses", "signals", "trend", "season"],
+    items: ["wave", "waves", "ivo", "pulses", "espelho", "signals", "trend", "season"],
   },
   {
     id: "agir",
