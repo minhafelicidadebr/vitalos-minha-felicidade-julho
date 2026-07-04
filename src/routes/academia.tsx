@@ -22,6 +22,7 @@ import {
   type ParticipationRecordResult,
 } from "@/engine/gamification/participation-ledger";
 import { useParticipationLedger } from "@/engine/gamification/participation-store";
+import { useParticipationSync } from "@/app/identity/useParticipationSync";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import {
   getRoleLearningTargets,
@@ -52,6 +53,7 @@ const FORMAT_ICON: Record<string, string> = {
 const PERSONAL_STRENGTH_ROLES = new Set(["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE"]);
 
 function AcademiaPage() {
+  useParticipationSync();
   const { roleId } = usePersona();
   const { index, packId, status, t, reload } = usePack();
   const academyName = t("academy", "Academia do Florescimento");

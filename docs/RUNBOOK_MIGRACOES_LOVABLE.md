@@ -138,7 +138,33 @@ mas quem decide PARAR de coletar é você, não o banco.
 no-op). Nenhuma migration nova precisa para P0-01 (o link setorial): a
 correção ali foi só no código (para de fingir sucesso em modo Cloud).
 
-## Ordem de aplicação recomendada (S0 → S4, nesta sessão)
+## Persistência da Academia (S5)
+
+`supabase/migrations/20260703220000_learning_persistence.sql` — cria
+`sm2_card_state` (agendamento SM-2 por cartão) e `participation_events`
+(ledger de XP/participação), as duas com RLS por `auth.uid()`. Diferente de
+toda migration anterior desta sessão, este dado é PESSOAL (não organizacional)
+— não há k-anonimato a proteger, então não existe server function nem service
+role no caminho de escrita: o cliente autenticado lê/escreve direto via RLS
+(`src/lib/cloud/learning-adapter.ts`). Privilégio deliberadamente assimétrico:
+`sm2_card_state` aceita UPDATE do próprio dono (reagendar o próprio cartão só
+prejudica a própria aprendizagem); `participation_events` aceita só
+SELECT+INSERT — nunca UPDATE/DELETE — porque apagar o próprio histórico seria
+o caminho mais óbvio de burlar o teto diário de XP (calculado no cliente,
+mesmo modelo de sempre, motivacional e sem consequência real). Antes desta
+migration, todo o progresso da Academia (repetição espaçada em `/revisar`,
+ledger de participação em `/academia`) vivia só em Zustand+localStorage —
+resetava a cada troca de navegador ou limpeza de cache. A demonstração
+(visitante sem sessão real) continua 100% efêmera por design, sem tocar
+nenhuma destas tabelas.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente
+(`CREATE TABLE IF NOT EXISTS`). Depois de aplicar, teste com uma sessão real
+(login por magic link, não a senha de demo): abrir `/revisar`, avaliar
+2-3 cartões, recarregar a página — os cartões avaliados devem ter saído da
+fila (ou reagendado para o intervalo certo), não voltado ao início.
+
+## Ordem de aplicação recomendada (S0 → S5, nesta sessão)
 
 1. `20260703120000_reconcile_prod_drift.sql`
 2. `20260703130000_revoke_profile_self_elevation.sql`
@@ -149,8 +175,9 @@ correção ali foi só no código (para de fingir sucesso em modo Cloud).
    produção** (achado ao verificar o item 2 com `has_column_privilege`; ver
    "Achado real" acima). Incluída aqui só para o repositório continuar
    descrevendo fielmente o que existe no banco — colar de novo é no-op seguro.
+7. `20260703220000_learning_persistence.sql` (S5 · Academia viva)
 
-Depois de colar as cinco, teste no app real: (a) criar uma onda em `/admin` —
+Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
 produção; (b) confirmar que `/rh` continua mostrando a capsule normalmente;
 (c) gerar um convite novo em `/plataforma` e ativar em `/ativar/:token`

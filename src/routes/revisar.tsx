@@ -5,7 +5,7 @@
 // contextual da Academia.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Layers, Target } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
@@ -17,10 +17,14 @@ import {
   rankDriversByNeed,
   type PillarSignal,
 } from "@/engine/learning/driver-pillar-bridge";
+import type { CardSchedule } from "@/engine/learning/sm2-engine";
+import type { SessionCard } from "@/engine/learning/flashcard-session";
+import { hydrateDueSession } from "@/engine/learning/card-state-hydration";
 import { FlashcardDeck } from "@/app/academia/FlashcardDeck";
-import { getFlashcardSession } from "@/mocks/flashcard-mock";
+import { FLASHCARDS, getFlashcardSession, type Flashcard } from "@/mocks/flashcard-mock";
 import { getDriverPillarLinks } from "@/mocks/wwp-drivers-mock";
 import { getSectorData } from "@/mocks/sector-data";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 
 export const Route = createFileRoute("/revisar")({
   head: () => ({ meta: [{ title: "Revisão Espaçada — 4 Lentes VitalOS™" }] }),
@@ -32,9 +36,46 @@ function RevisarPage() {
   const academyName = t("academy", "Academia do Florescimento");
   const indexLabel = t("index", packId === "school" ? "IEV" : "IVO");
 
+  const { org, loading: orgLoading } = useRealOrgSession();
+  const [realCards, setRealCards] = useState<SessionCard<Flashcard>[] | null>(null);
+  const [loadingReal, setLoadingReal] = useState(false);
+
+  useEffect(() => {
+    if (!org) {
+      setRealCards(null);
+      return;
+    }
+    let active = true;
+    setLoadingReal(true);
+    import("@/lib/cloud/learning-adapter").then(({ loadCardStates }) => {
+      loadCardStates(org.userId)
+        .then((states) => {
+          if (active) setRealCards(hydrateDueSession(FLASHCARDS, states, new Date()));
+        })
+        .catch(() => {
+          if (active) setRealCards(hydrateDueSession(FLASHCARDS, [], new Date())); // sem backend: começa do zero, honesto
+        })
+        .finally(() => {
+          if (active) setLoadingReal(false);
+        });
+    });
+    return () => {
+      active = false;
+    };
+  }, [org?.userId]);
+
+  function handleGrade(cardId: string, schedule: CardSchedule) {
+    if (!org) return; // demo: efêmero por design, nada a persistir
+    import("@/lib/cloud/learning-adapter").then(({ saveCardState }) => {
+      saveCardState(org.userId, cardId, schedule, new Date().toISOString()).catch(() => {
+        // best-effort: falha de rede não deve travar a sessão de estudo.
+      });
+    });
+  }
+
   // Educar dirigido pelo Medir: ordena os cartões pelos pilares de menor leitura agregada.
   const { cards, priorityIds, topPillarName } = useMemo(() => {
-    const base = getFlashcardSession();
+    const base = org ? (realCards ?? []) : getFlashcardSession();
     const links = getDriverPillarLinks(packId);
     if (!index || links.length === 0) {
       return { cards: base, priorityIds: new Set<string>(), topPillarName: null as string | null };
@@ -55,7 +96,7 @@ function RevisarPage() {
       priorityIds: priorityDriverIds(needs),
       topPillarName: top?.matchedPillars[0]?.name ?? null,
     };
-  }, [index, packId]);
+  }, [index, packId, org, realCards]);
 
   return (
     <AppShell>
@@ -107,7 +148,11 @@ function RevisarPage() {
           </motion.div>
         )}
 
-        {cards.length === 0 ? (
+        {org && (orgLoading || loadingReal) ? (
+          <div className="rounded-3xl border border-dashed border-border/60 bg-card/40 p-10 text-center" aria-busy="true">
+            <p className="text-sm text-muted-foreground animate-pulse">Carregando seu progresso…</p>
+          </div>
+        ) : cards.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border/60 bg-card/40 p-10 text-center">
             <p className="font-serif text-xl text-foreground">Nada a revisar agora</p>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
@@ -116,7 +161,7 @@ function RevisarPage() {
             </p>
           </div>
         ) : (
-          <FlashcardDeck cards={cards} priorityDriverIds={priorityIds} />
+          <FlashcardDeck cards={cards} priorityDriverIds={priorityIds} onGrade={org ? handleGrade : undefined} />
         )}
       </div>
     </AppShell>

@@ -88,10 +88,18 @@ function reducer(state: SessionState<Flashcard>, action: Action): SessionState<F
 export function FlashcardDeck({
   cards,
   priorityDriverIds,
+  onGrade,
 }: {
   cards: SessionCard<Flashcard>[];
   /** Drivers marcados como prioritários pelo IVO — sinaliza o cartão com honestidade. */
   priorityDriverIds?: Set<string>;
+  /**
+   * Chamado após cada avaliação com o NOVO agendamento (Sprint S5) — quem usa
+   * esta peça decide se persiste (sessão real) ou não (demonstração efêmera).
+   * Recomputa via o mesmo reviewCard() do motor (não duplica regra, só lê o
+   * resultado que o reducer já vai aplicar).
+   */
+  onGrade?: (cardId: string, schedule: CardSchedule) => void;
 }) {
   const { reduceMotion } = useA11y();
   const [state, dispatch] = useReducer(reducer, cards, startSession);
@@ -103,10 +111,11 @@ export function FlashcardDeck({
 
   const grade = useCallback(
     (quality: RecallQuality) => {
+      if (card && onGrade) onGrade(card.id, reviewCard(card.schedule, quality));
       dispatch({ type: "grade", quality });
       setFlipped(false);
     },
-    [dispatch],
+    [dispatch, card, onGrade],
   );
 
   const restart = useCallback(() => {
@@ -265,7 +274,10 @@ export function FlashcardDeck({
 
       <p className="text-center text-xs leading-relaxed text-muted-foreground">
         Sua autoavaliação agenda quando o cartão volta — nunca vira nota, ranking ou avaliação de
-        desempenho. Nesta demonstração, o progresso fica só nesta sessão.
+        desempenho.{" "}
+        {onGrade
+          ? "Seu agendamento é salvo e continua de onde parou na próxima visita."
+          : "Nesta demonstração, o progresso fica só nesta sessão."}
       </p>
     </div>
   );

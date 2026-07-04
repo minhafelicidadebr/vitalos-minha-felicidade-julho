@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 
 export interface RealOrgSession {
+  userId: string;
   orgId: string;
   orgName: string;
   orgPlan: string;
@@ -69,6 +70,7 @@ export function useRealOrgSession(): RealOrgSessionState {
       setState({
         loading: false,
         org: {
+          userId: session.user.id,
           orgId: (profile as { org_id: string }).org_id,
           orgName: (org as { name: string }).name,
           orgPlan: (org as { plan: string }).plan,
