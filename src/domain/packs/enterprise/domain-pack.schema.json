@@ -170,6 +170,32 @@
         "criteria": { "type": "array", "items": { "type": "string" } },
         "validityMonths": { "type": "integer", "minimum": 1 }
       }
+    },
+    "actionPlanGovernance": {
+      "type": "object",
+      "required": ["statusLabels", "evidenceKinds", "ownerDisclaimer"],
+      "properties": {
+        "statusLabels": {
+          "type": "object",
+          "required": ["planejada", "em_execucao", "concluida", "em_vigilancia", "interrompida"],
+          "additionalProperties": { "type": "string" }
+        },
+        "evidenceKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" }
+            }
+          }
+        },
+        "ownerEligibleRoles": { "type": "array", "items": { "type": "string" } },
+        "ownerDisclaimer": { "type": "string", "minLength": 10 },
+        "section13Note": { "type": "string" }
+      }
     }
   },
   "definitions": {

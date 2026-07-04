@@ -481,5 +481,23 @@
       "projects_completed"
     ],
     "validityMonths": 12
+  },
+  "actionPlanGovernance": {
+    "statusLabels": {
+      "planejada": "Planejada",
+      "em_execucao": "Em execução",
+      "concluida": "Concluída",
+      "em_vigilancia": "Em vigilância",
+      "interrompida": "Interrompida"
+    },
+    "evidenceKinds": [
+      { "id": "texto", "label": "Relato" },
+      { "id": "foto", "label": "Foto" },
+      { "id": "checklist", "label": "Checklist" },
+      { "id": "metrica", "label": "Métrica" }
+    ],
+    "ownerEligibleRoles": ["RH_ADMIN", "SST_PROFISSIONAL", "LIDER_EQUIPE", "CHRO"],
+    "ownerDisclaimer": "O responsável responde pela medida, nunca pelo risco de ninguém.",
+    "section13Note": "Guia MTE 2026 §13: toda ação com responsável, prazo e métrica de acompanhamento."
   }
 }
