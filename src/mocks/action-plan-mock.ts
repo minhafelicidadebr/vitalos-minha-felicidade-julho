@@ -50,7 +50,9 @@ const week = clampProgramWeek(ANNUAL_PLAN, CURRENT_PROGRAM_WEEK);
 const overview = computeSeasonOverview(ANNUAL_PLAN, week);
 const cs = overview.currentSeason;
 
-const SEASON_NOW = {
+// Exportado: a rota real usa a MESMA temporada viva (fonte única), sem
+// depender de nada do plano mock — só a passagem do tempo, sempre atual.
+export const SEASON_NOW = {
   name: cs.name,
   color: cs.color,
   totalWeeks: ANNUAL_PLAN.weeksPerSeason,

@@ -184,7 +184,67 @@ impedir apagar o próprio histórico de XP (o jeito mais óbvio de burlar o
 teto diário anti-gaming); depender só da RLS deixaria isso a um bug de
 policy de distância.
 
-## Ordem de aplicação recomendada (S0 → S5, nesta sessão)
+## O Ledger de Transformação — Plano Vivo real (S6.1–S6.3)
+
+`supabase/migrations/20260705100000_action_plan_ledger.sql` — persistência real
+do Plano de Ação (`/plano-acao`), até aqui 100% mock. Cria 4 tabelas
+(`action_plans`, `action_items`, `action_log`, `evidence_records`) e 5 RPCs
+`SECURITY DEFINER`: `create_action_plan` (grava o plano como SNAPSHOT congelado
+— agendamento/esforço/embaixadoria não recalculam depois, para nunca invalidar
+silenciosamente um dono/prazo já combinado), `set_action_item_accountability`
+(só funciona com o plano em `draft`), `activate_action_plan` (o **Guia MTE
+2026 §13 virou constraint de banco**: só ativa se TODA ação tem
+dono+prazo+métrica — não é mais só afirmado pela UI), `record_action_event`
+(replica em SQL a mesma máquina de estados de `action-log-engine.ts` — defesa
+em profundidade) e `record_evidence` (evidência + evento espelho na mesma
+transação). `action_items.status` é sempre PROJEÇÃO do ledger — só escrita
+dentro da mesma transação do evento, nunca por outro caminho.
+
+**Achado de segurança desta migration (novo, não é reincidência dos achados
+#1/#2 acima):** auditado `supabase/migrations/*.sql` inteiro, NENHUMA migration
+anterior deste repositório revoga `EXECUTE` das funções `SECURITY DEFINER` que
+cria — por padrão do Postgres, toda função nova é executável por `PUBLIC`. Para
+`submit_wave_response` (S3) isso é seguro, porque a segurança está no próprio
+token de convite, não em quem chama. Para as 5 RPCs desta migration — que
+seriam escrita privilegiada em nome de QUALQUER org se um cliente as chamasse
+direto (mesma classe do P0-04 original) — o rodapé do arquivo faz
+`REVOKE EXECUTE ... FROM PUBLIC, authenticated, anon` + `GRANT ... TO
+service_role` nas 5, só alcançáveis via `action-plan.server.ts` depois de
+`requireOrgAdmin(accessToken)` resolver a org real do chamador.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente
+(`CREATE TABLE IF NOT EXISTS`). Depois de aplicar, com uma sessão de
+administrador real: abrir `/plano-acao` — deve aparecer "Nenhum plano ativo
+ainda", clicar "Gerar plano desta temporada", preencher responsável/prazo/
+métrica de cada ação no painel "Gerenciar esta ação", clicar "Ativar plano"
+(deve recusar se algo faltar, mostrando quantas ações estão incompletas), e
+então mover status/registrar evidência — o Registro da ação deve refletir
+cada evento.
+
+## A Cerimônia da Devolutiva (S6.4)
+
+`supabase/migrations/20260705120000_devolutiva_sessions.sql` — persistência do
+rito participativo em `/devolutiva` (I-T2 do blueprint Arco da Prova): cria
+`devolutiva_sessions` e 4 RPCs (`open_devolutiva_session`,
+`cast_priority_vote`, `set_devolutiva_attendance`, `close_devolutiva_session`).
+**Privacidade por schema:** a tabela não tem NENHUMA coluna de identidade de
+votante — `priority_votes` é só uma contagem por driver (JSONB), incrementada
+pela RPC; a cerimônia é um rito ao vivo (facilitador registra votos de mão
+levantada na sala), então um voto individual rastreável não é uma política de
+acesso, é uma impossibilidade estrutural do schema. A pauta final
+(`pauta_driver_ids`) só é preenchida no fechamento **se `attendance_count >= 5`
+(quórum k-anônimo)** — abaixo disso a UI mostra "quórum não atingido", nunca
+expõe o ranking de uma amostra pequena. Mesma trava de EXECUTE da migration
+anterior nas 4 RPCs.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois de
+aplicar, em `/devolutiva` com sessão de administrador real deve aparecer a
+seção "Cerimônia da Devolutiva": iniciar a cerimônia, registrar presença ≥5,
+votar em pelo menos uma intervenção candidata, encerrar — a pauta ranqueada
+deve aparecer; repetir com presença <5 e confirmar que a mensagem é "quórum
+não atingido" em vez de expor a pauta.
+
+## Ordem de aplicação recomendada (S0 → S6.4, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
 2. `20260703130000_revoke_profile_self_elevation.sql`
@@ -199,6 +259,8 @@ policy de distância.
 8. `20260703230000_revoke_learning_default_privileges.sql` — **já aplicada em
    produção** (achado ao verificar o item 7 com `has_table_privilege`; ver
    "Achado real #2" acima). Incluída aqui pelo mesmo motivo do item 6.
+9. `20260705100000_action_plan_ledger.sql` (S6.1–S6.3 · Plano Vivo real)
+10. `20260705120000_devolutiva_sessions.sql` (S6.4 · Cerimônia da Devolutiva)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
