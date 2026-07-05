@@ -4,15 +4,34 @@
 // associação orientativa, nunca causalidade; k-anon respeitado; severidade estrutural.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowLeft, ArrowRight, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Archive,
+  Loader2,
+  Minus,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { buildReavaliacao, type RiskTrend } from "@/engine/nr1/reavaliacao-engine";
 import { buildPgrPlan, RISK_LABEL, type RiskLevel } from "@/engine/nr1/pgr-engine";
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 import { REAVALIACAO_INTRO } from "@/mocks/nr1-reavaliacao-mock";
 import { useSectorNR1 } from "@/hooks/use-sector-nr1";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+import { isCloudReady } from "@/lib/cloud/supabase-client";
+import {
+  listRegisterableCapsules,
+  loadCycleHistory,
+  registerOrgCycle,
+  type LoadCycleHistoryResult,
+} from "@/lib/api/cycle-history.functions";
+import type { RegisterableCapsule } from "@/lib/evolucao/cycle-history.server";
 
 export const Route = createFileRoute("/evolucao-nr1")({
   head: () => ({ meta: [{ title: "Reavaliação NR-1 — 4 Lentes VitalOS™" }] }),
@@ -31,6 +50,29 @@ const TREND_META: Record<RiskTrend, { icon: typeof TrendingDown; tint: string; l
   estavel: { icon: Minus, tint: "text-muted-foreground", label: "Estável" },
   piorando: { icon: TrendingUp, tint: "text-orange-600 dark:text-orange-400", label: "Piorando" },
 };
+
+// A organização não vem mais do cliente (P0-04) — o servidor resolve quem é
+// o admin de verdade a partir do access_token da própria sessão.
+async function getAccessToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
+
+const COFRE_REASON_LABEL: Record<string, string> = {
+  capsule_not_found: "Cápsula não encontrada — atualize a página.",
+  cross_tenant_denied: "Essa cápsula não pertence à sua organização.",
+  instrument_mismatch: "O instrumento da cápsula não corresponde ao ciclo.",
+  wave_not_sealed: "Só cápsulas de ondas SELADAS podem virar ciclo.",
+  cycle_already_registered: "Já existe um ciclo com essa chave.",
+  capsule_already_registered: "Essa cápsula já foi registrada como outro ciclo.",
+  cloud_not_ready: "Lovable Cloud não está ativo.",
+  db_error: "Erro ao salvar. Tente novamente.",
+};
+
+function describeCofreReason(reason: string | null | undefined): string {
+  if (!reason) return "Erro desconhecido.";
+  return COFRE_REASON_LABEL[reason] ?? reason;
+}
 
 /** Sparkline de exposição (alto = pior); cor pela tendência. */
 function Sparkline({ values, trend }: { values: number[]; trend: RiskTrend }) {
@@ -51,6 +93,243 @@ function Sparkline({ values, trend }: { values: number[]; trend: RiskTrend }) {
       <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={last[0]} cy={last[1]} r={2.4} fill={stroke} />
     </svg>
+  );
+}
+
+// Cofre de Ciclos (I-P1, S6.75) — o registro humano de que UMA cápsula selada
+// (S4) representa o ciclo X da série longitudinal REAL da organização. Só
+// existe com sessão de org real; a Reavaliação acima continua 100% mock,
+// honestamente (mapear a cápsula real para o modelo de driver/crosswalk é
+// escopo do Cofre em si — este é o substrato, não a reavaliação completa).
+function CofreDeCiclosSection() {
+  const cloudActive = isCloudReady();
+  const { org: realOrg } = useRealOrgSession();
+  const isRealMode = cloudActive && !!realOrg;
+  const instrument = "COPSOQ";
+
+  const [loading, setLoading] = useState(false);
+  const [historyResult, setHistoryResult] = useState<LoadCycleHistoryResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [managing, setManaging] = useState(false);
+  const [capsules, setCapsules] = useState<RegisterableCapsule[]>([]);
+  const [capsulesLoading, setCapsulesLoading] = useState(false);
+  const [cycleKeyByCapsule, setCycleKeyByCapsule] = useState<Record<string, string>>({});
+  const [registeringCapsuleId, setRegisteringCapsuleId] = useState<string | null>(null);
+
+  const fetchHistory = useCallback(async () => {
+    if (!isRealMode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await loadCycleHistory({ data: { accessToken, instrument } });
+      setHistoryResult(result);
+    } catch {
+      setError("Erro ao carregar o Cofre de Ciclos.");
+    } finally {
+      setLoading(false);
+    }
+  }, [isRealMode]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  async function openManagement() {
+    setManaging(true);
+    setCapsulesLoading(true);
+    setError(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await listRegisterableCapsules({ data: { accessToken, instrument } });
+      if (!result.cloudReady) {
+        setError("Lovable Cloud não está ativo.");
+        return;
+      }
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setCapsules(result.capsules);
+    } catch {
+      setError("Erro ao carregar cápsulas seladas.");
+    } finally {
+      setCapsulesLoading(false);
+    }
+  }
+
+  async function handleRegister(capsuleId: string) {
+    const cycleKey = (cycleKeyByCapsule[capsuleId] ?? "").trim();
+    if (!cycleKey) return;
+    setRegisteringCapsuleId(capsuleId);
+    setError(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await registerOrgCycle({ data: { accessToken, instrument, cycleKey, capsuleId } });
+      if (!result.accepted) {
+        setError(describeCofreReason(result.reason));
+        return;
+      }
+      await openManagement();
+      await fetchHistory();
+    } catch {
+      setError("Erro ao registrar o ciclo.");
+    } finally {
+      setRegisteringCapsuleId(null);
+    }
+  }
+
+  if (!isRealMode) return null;
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="space-y-3 border-t border-border/50 pt-6"
+    >
+      <div className="flex items-center gap-2">
+        <Archive className="h-4 w-4 text-primary" aria-hidden />
+        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          Evoluir · Cofre de Ciclos (dados reais desta organização)
+        </p>
+      </div>
+
+      {loading && !historyResult && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Carregando o cofre…
+        </p>
+      )}
+
+      {error && (
+        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs text-destructive">
+          {error}
+        </p>
+      )}
+
+      {historyResult && historyResult.cloudReady && "registeredCycles" in historyResult && (
+        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          {historyResult.registeredCycles.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum ciclo registrado ainda para {instrument}. Registrar uma cápsula selada como
+              ciclo é uma decisão humana — uma leitura ainda em coleta nunca vira ciclo sozinha.
+            </p>
+          ) : (
+            <>
+              <p className="font-serif text-lg text-card-foreground">
+                {historyResult.registeredCycles.length} ciclo(s) registrado(s)
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                {historyResult.registeredCycles.map((c) => (
+                  <li
+                    key={c.cycleKey}
+                    className="rounded-full border border-border/60 bg-background px-2.5 py-1"
+                  >
+                    {c.cycleKey} · {c.closedOn} · n={c.participantCount}
+                  </li>
+                ))}
+              </ul>
+              {historyResult.proof ? (
+                <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-sm font-medium text-foreground">Prova de Ciclo real</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {historyResult.proof.headline}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {historyResult.proof.improvedDimensions} dimensão(ões) melhorou(aram),{" "}
+                    {historyResult.proof.worsenedDimensions} piorou(aram) · veredicto:{" "}
+                    {historyResult.proof.verdict}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
+                  Registre pelo menos 2 ciclos para uma prova longitudinal real.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {!managing ? (
+        <button
+          type="button"
+          onClick={openManagement}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary/40"
+        >
+          Gerenciar registro de ciclos
+        </button>
+      ) : (
+        <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Cápsulas seladas de {instrument} — registrar como ciclo
+          </p>
+          {capsulesLoading && (
+            <p className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Carregando…
+            </p>
+          )}
+          {!capsulesLoading && capsules.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              Nenhuma onda de {instrument} selada ainda nesta organização.
+            </p>
+          )}
+          <ul className="space-y-2">
+            {capsules.map((c) => (
+              <li
+                key={c.capsuleId}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/50 bg-background px-3 py-2"
+              >
+                <span className="text-xs text-muted-foreground">
+                  {c.closedOn} · n={c.participantCount}
+                </span>
+                {c.alreadyRegisteredAs ? (
+                  <span className="rounded-full border border-primary/25 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary">
+                    Ciclo: {c.alreadyRegisteredAs}
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={cycleKeyByCapsule[c.capsuleId] ?? ""}
+                      onChange={(e) =>
+                        setCycleKeyByCapsule((prev) => ({ ...prev, [c.capsuleId]: e.target.value }))
+                      }
+                      placeholder="ex.: 2026-t3"
+                      className="w-28 rounded-lg border border-border/60 bg-background px-2 py-1 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      disabled={registeringCapsuleId === c.capsuleId || !(cycleKeyByCapsule[c.capsuleId] ?? "").trim()}
+                      onClick={() => handleRegister(c.capsuleId)}
+                      className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground disabled:opacity-40"
+                    >
+                      {registeringCapsuleId === c.capsuleId ? "Registrando…" : "Registrar"}
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Só cápsulas de ondas SELADAS podem virar ciclo — uma leitura ainda em coleta é protegida,
+        não definitiva. Uma cápsula só pode ser um ciclo, e cada chave de ciclo só existe uma vez.
+      </p>
+    </motion.section>
   );
 }
 
@@ -225,6 +504,8 @@ function ReavaliacaoPage() {
             );
           })}
         </div>
+
+        <CofreDeCiclosSection />
 
         {/* Atalhos + disclaimer */}
         <div className="flex flex-wrap items-center gap-4 print:hidden">

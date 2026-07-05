@@ -244,7 +244,38 @@ votar em pelo menos uma intervenção candidata, encerrar — a pauta ranqueada
 deve aparecer; repetir com presença <5 e confirmar que a mensagem é "quórum
 não atingido" em vez de expor a pauta.
 
-## Ordem de aplicação recomendada (S0 → S6.4, cumulativa)
+## O Cofre de Ciclos — o registro humano de ciclo real (S6.75)
+
+`supabase/migrations/20260705130000_org_cycle_registry.sql` — a peça mais
+fundacional do blueprint Arco da Prova (I-P1): promove uma cápsula SELADA
+(`wave_capsules`, já existente desde S4) a "ciclo N da série longitudinal" da
+organização. Cria 1 tabela (`org_cycle_registry`) e 1 RPC
+(`register_org_cycle`). **Publicar um agregado é automático** (k-anon ≥5, já
+existia); **registrar um agregado como ciclo é uma decisão humana** — mesmo
+princípio de "fechar a onda é ação separada" do S4. A RPC recusa registrar
+uma cápsula cuja onda ainda não está `sealed` (leitura parcial protegida
+nunca vira ciclo definitivo), recusa cross-tenant e recusa cápsula/chave de
+ciclo já registrada (`UNIQUE(org_id,instrument,cycle_key)` e
+`UNIQUE(capsule_id)`). Mesma trava de EXECUTE das duas migrations anteriores.
+
+Uma vez registrados ≥2 ciclos, `cycle-proof.server.ts` (agora com
+`buildCycleProofFromHistory`, extraída sem mudar o comportamento do caminho
+mock existente) monta a mesma Prova de Ciclo real — cycle count, direção,
+dimensões que melhoraram/pioraram — exposta em `/evolucao-nr1` na seção
+"Cofre de Ciclos". **Escopo v1, declarado por honestidade:** só o substrato
+(registro + leitura + Prova de Ciclo básica) foi ligado a dado real; Board
+Brief/Selo (`/panorama`, `/selo`) continuam 100% mock porque também dependem
+de IVO/participação/consentimento reais, fora do escopo deste sprint —
+tocá-los exigiria inventar dados que ainda não existem.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois de
+aplicar, em `/evolucao-nr1` com sessão de administrador real: abrir "Gerenciar
+registro de ciclos", registrar uma cápsula selada com uma chave (ex.:
+`2026-t1`) — deve recusar se a onda não estiver selada; registrar uma segunda
+cápsula com outra chave — a seção deve então mostrar uma "Prova de Ciclo
+real" com direção e contagem de dimensões.
+
+## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
 2. `20260703130000_revoke_profile_self_elevation.sql`
@@ -261,6 +292,7 @@ não atingido" em vez de expor a pauta.
    "Achado real #2" acima). Incluída aqui pelo mesmo motivo do item 6.
 9. `20260705100000_action_plan_ledger.sql` (S6.1–S6.3 · Plano Vivo real)
 10. `20260705120000_devolutiva_sessions.sql` (S6.4 · Cerimônia da Devolutiva)
+11. `20260705130000_org_cycle_registry.sql` (S6.75 · Cofre de Ciclos)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

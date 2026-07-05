@@ -26,6 +26,7 @@ import {
   type PreventionRoiResult,
 } from "@/engine/pnl/prevention-roi-engine";
 import { DEFAULT_INPUTS } from "@/engine/pnl/pnl-engine";
+import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 import { getCapsuleHistory } from "@/mocks/capsule-history-mock";
 import { getInterventionLinks } from "@/mocks/intervention-link-mock";
 
@@ -66,16 +67,29 @@ const DISCLAIMER =
 /**
  * Monta a Prova de Ciclo de um pack a partir do instrumento de risco (COPSOQ).
  * `instrumentShort` default "COPSOQ" (Domínio B — onde a prevenção tem custo medível).
+ * Fonte: histórico de DEMONSTRAÇÃO (capsule-history-mock.ts), compartilhado por setor.
  */
 export function buildCycleProof(packId: string, instrumentShort = "COPSOQ"): CycleProof {
-  const history = getCapsuleHistory(packId, instrumentShort);
+  return buildCycleProofFromHistory(getCapsuleHistory(packId, instrumentShort), packId, instrumentShort);
+}
 
+/**
+ * Mesma composição, mas o histórico é fornecido pelo CHAMADOR — nunca lido daqui.
+ * É o que permite o Cofre de Ciclos (S6.75) alimentar a mesma prova com dados
+ * REAIS de uma organização (cycle-history.server.ts), sem duplicar uma linha
+ * de lógica de medir→provar→custo.
+ */
+export function buildCycleProofFromHistory(
+  history: readonly MeasurementContextCapsule[],
+  packId: string,
+  instrumentShort = "COPSOQ",
+): CycleProof {
   // Sem ≥2 ciclos não há prova longitudinal — honesto, sem inventar.
   if (history.length < 2) {
     return emptyProof(packId, instrumentShort);
   }
 
-  const built = buildLongitudinalReading({ capsules: history });
+  const built = buildLongitudinalReading({ capsules: [...history] });
   if (!built.ok) return emptyProof(packId, instrumentShort);
   const reading: LongitudinalReading = built.reading;
 
