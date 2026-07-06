@@ -181,3 +181,46 @@ describe("pgr-engine — integridade de domínio", () => {
     }
   });
 });
+
+describe("pgr-engine — knownStatus (status real vence a derivação por semana)", () => {
+  test("sem knownStatus, comportamento demo permanece intacto (deriva por semana/duração)", () => {
+    const plan = buildPgrPlan(base);
+    const derived = buildPgrPlan({ ...base, currentWeek: 1 });
+    // Nenhuma seed do catálogo demo tem knownStatus — early week nunca implementa nada.
+    expect(derived.summary.measuresImplemented).toBe(0);
+    expect(plan.summary.total).toBeGreaterThan(0);
+  });
+
+  test("knownStatus substitui a derivação por semana mesmo em semana muito cedo", () => {
+    const seedsWithKnownStatus: PgrMeasureSeed[] = (PGR_MEASURES as PgrMeasureSeed[]).map((m) => ({
+      ...m,
+      knownStatus: "implementada",
+    }));
+    const plan = buildPgrPlan({ ...base, measures: seedsWithKnownStatus, currentWeek: 1 });
+    for (const r of plan.risks) {
+      for (const m of r.measures) {
+        expect(m.status).toBe("implementada");
+      }
+    }
+    expect(plan.summary.coverage).toBe(1);
+  });
+
+  test("knownStatus 'planejada' nunca é creditado, mesmo em semana avançada", () => {
+    const seedsWithKnownStatus: PgrMeasureSeed[] = (PGR_MEASURES as PgrMeasureSeed[]).map((m) => ({
+      ...m,
+      knownStatus: "planejada",
+    }));
+    const plan = buildPgrPlan({ ...base, measures: seedsWithKnownStatus, currentWeek: 13 });
+    expect(plan.summary.measuresImplemented).toBe(0);
+  });
+
+  test("mistura de seeds com e sem knownStatus: só as com knownStatus são fixas", () => {
+    const seeds: PgrMeasureSeed[] = (PGR_MEASURES as PgrMeasureSeed[]).map((m, i) =>
+      i % 2 === 0 ? { ...m, knownStatus: "implementada" as const } : m,
+    );
+    const early = buildPgrPlan({ ...base, measures: seeds, currentWeek: 1 });
+    const flatEarly = early.risks.flatMap((r) => r.measures);
+    // Ao menos uma medida (a com knownStatus) está implementada mesmo na semana 1.
+    expect(flatEarly.some((m) => m.status === "implementada")).toBe(true);
+  });
+});

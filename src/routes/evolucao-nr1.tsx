@@ -19,7 +19,11 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
-import { buildReavaliacao, type RiskTrend } from "@/engine/nr1/reavaliacao-engine";
+import {
+  buildReavaliacao,
+  type ReavaliacaoEfficacy,
+  type RiskTrend,
+} from "@/engine/nr1/reavaliacao-engine";
 import { buildPgrPlan, RISK_LABEL, type RiskLevel } from "@/engine/nr1/pgr-engine";
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 import { REAVALIACAO_INTRO } from "@/mocks/nr1-reavaliacao-mock";
@@ -343,6 +347,46 @@ function CofreDeCiclosSection() {
   );
 }
 
+// Leitura de eficácia (Guia MTE 2026, 11.4.4) — compartilhada entre a Reavaliação demo
+// (ReavaliacaoPage) e a Sala de Vitórias real (VitoriasSection): mesma leitura honesta,
+// duas fontes de pgrPlan (mock por setor vs. real do Plano Vivo via pgr-from-plan.server.ts).
+function EfficacySection({ efficacy }: { efficacy: ReavaliacaoEfficacy }) {
+  if (efficacy.withSourceMeasure === 0) return null;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.12 }}
+      className="rounded-2xl border border-border/60 bg-card p-5"
+    >
+      <p className="font-medium text-card-foreground">Leitura de eficácia</p>
+      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+        Dos{" "}
+        <span className="font-semibold text-foreground">{efficacy.withSourceMeasure}</span>{" "}
+        drivers com medida de fonte implementada,{" "}
+        <span className="font-semibold text-foreground">{efficacy.maintained}</span>{" "}
+        seguem com a medida mantida no tempo — e desses,{" "}
+        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+          {efficacy.ofWhichImproved}
+        </span>{" "}
+        baixaram de nível de risco. Eficácia exige hierarquia <em>e</em> manutenção (Guia MTE
+        2026, 11.4.4): é associação orientativa, não prova de causalidade.
+      </p>
+      {efficacy.lapsed > 0 && (
+        <p className="mt-2 flex items-start gap-1.5 rounded-xl border border-amber-400/40 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            {efficacy.lapsed}{" "}
+            {efficacy.lapsed === 1 ? "medida caiu" : "medidas caíram"} em desuso e não pode ser
+            creditada como eficaz, ainda que a exposição tenha caído — a queda não é atribuível a
+            uma medida abandonada.
+          </span>
+        </p>
+      )}
+    </motion.section>
+  );
+}
+
 // Sala de Vitórias (I-E2 Ata de Vitória + I-E4 Vigia de Manutenção) — só existe
 // com sessão de org real. A Reavaliação NR-1 REAL sai do Cofre de Ciclos
 // (S6.75); a manutenção real vem do Plano Vivo via a Ponte lever→driver — dois
@@ -455,14 +499,17 @@ function VitoriasSection() {
               Registre pelo menos 2 ciclos no Cofre de Ciclos acima para a Reavaliação NR-1 real
               começar a comparar exposição — e para uma Ata de Vitória poder nascer.
             </p>
-          ) : bundle.reavaliacao.drivers.length === 0 ? (
-            <p className="rounded-2xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
-              Nenhuma dimensão COPSOQ visível nos ciclos registrados ainda tem driver
-              correspondente no crosswalk.
-            </p>
           ) : (
-            <div className="space-y-3">
-              {bundle.reavaliacao.drivers.map((driver) => {
+            <>
+              {bundle.reavaliacao.efficacy && <EfficacySection efficacy={bundle.reavaliacao.efficacy} />}
+              {bundle.reavaliacao.drivers.length === 0 ? (
+                <p className="rounded-2xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
+                  Nenhuma dimensão COPSOQ visível nos ciclos registrados ainda tem driver
+                  correspondente no crosswalk.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {bundle.reavaliacao.drivers.map((driver) => {
                 const meta = TREND_META[driver.trend];
                 const TrendIcon = meta.icon;
                 const ata = bundle.victories.find((v) => v.driverId === driver.driverId) ?? null;
@@ -517,9 +564,11 @@ function VitoriasSection() {
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
 
           {sealedRecords.length > 0 && (
@@ -632,39 +681,7 @@ function ReavaliacaoPage() {
         </motion.section>
 
         {/* Eficácia honesta */}
-        {result.efficacy && result.efficacy.withSourceMeasure > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.12 }}
-            className="rounded-2xl border border-border/60 bg-card p-5"
-          >
-            <p className="font-medium text-card-foreground">Leitura de eficácia</p>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              Dos{" "}
-              <span className="font-semibold text-foreground">{result.efficacy.withSourceMeasure}</span>{" "}
-              drivers com medida de fonte implementada,{" "}
-              <span className="font-semibold text-foreground">{result.efficacy.maintained}</span>{" "}
-              seguem com a medida mantida no tempo — e desses,{" "}
-              <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                {result.efficacy.ofWhichImproved}
-              </span>{" "}
-              baixaram de nível de risco. Eficácia exige hierarquia <em>e</em> manutenção (Guia MTE
-              2026, 11.4.4): é associação orientativa, não prova de causalidade.
-            </p>
-            {result.efficacy.lapsed > 0 && (
-              <p className="mt-2 flex items-start gap-1.5 rounded-xl border border-amber-400/40 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span>
-                  {result.efficacy.lapsed}{" "}
-                  {result.efficacy.lapsed === 1 ? "medida caiu" : "medidas caíram"} em desuso e não
-                  pode ser creditada como eficaz, ainda que a exposição tenha caído — a queda não é
-                  atribuível a uma medida abandonada.
-                </span>
-              </p>
-            )}
-          </motion.section>
-        )}
+        {result.efficacy && <EfficacySection efficacy={result.efficacy} />}
 
         {/* Evolução por driver */}
         <div className="space-y-3">

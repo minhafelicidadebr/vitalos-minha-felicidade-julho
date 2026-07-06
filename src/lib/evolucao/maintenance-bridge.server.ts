@@ -10,12 +10,10 @@
 //
 // Seguro apenas em .server.ts — não importar em código de cliente.
 
-import { buildLeverToDriverMap } from "@/engine/evolucao/lever-driver-bridge";
 import { summarizeActionLog } from "@/engine/action-plan/action-log-engine";
 import { loadLatestActionPlanForOrg } from "@/lib/api/action-plan.server";
 import { toActionLogEvents } from "@/lib/api/action-plan-shapes";
-import { FORECAST_LEVERS } from "@/mocks/forecast-mock";
-import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { resolveLeverToDriverMap } from "./lever-driver-resolver";
 
 /**
  * Manutenção real por driver — driverId → medida mantida (true/false).
@@ -36,9 +34,7 @@ export async function loadRealMaintenanceByDriver(
   const leverIds = plan.items.map((item) => item.leverId);
   const summary = summarizeActionLog(events, leverIds);
 
-  const leverPillars = FORECAST_LEVERS.map((l) => ({ leverId: l.id, pillarIds: l.targetPillarIds }));
-  const driverPillars = NR1_CROSSWALK.drivers.map((d) => ({ driverId: d.id, pillarIds: d.pillarIds }));
-  const leverToDriver = buildLeverToDriverMap(leverPillars, driverPillars);
+  const leverToDriver = resolveLeverToDriverMap();
 
   const maintenanceByDriver: Record<string, boolean> = {};
   for (const leverId of leverIds) {

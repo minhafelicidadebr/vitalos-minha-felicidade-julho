@@ -1,17 +1,18 @@
-// Fronteira server-only da Reavaliação NR-1 REAL (destrava I-E4 Vigia e I-E2
-// Ata de Vitória). Compõe o Cofre de Ciclos (S6.75, histórico real de
-// capsules registradas) com a Vigia de Manutenção real (maintenance-bridge)
-// para alimentar reavaliacao-engine.ts e victory-engine.ts com dado 100%
-// real — SEM MUDAR UMA LINHA de nenhum dos dois engines (mesma assinatura de
-// sempre: ReavaliacaoInput/VictoryConditionInput).
+// Fronteira server-only da Reavaliação NR-1 REAL (destrava I-E4 Vigia, I-E2
+// Ata de Vitória e a `efficacy` da Reavaliação). Compõe o Cofre de Ciclos
+// (S6.75, histórico real de capsules registradas) com a Vigia de Manutenção
+// real (maintenance-bridge) E o PGR real derivado do Plano Vivo
+// (pgr-from-plan.server.ts) para alimentar reavaliacao-engine.ts e
+// victory-engine.ts com dado 100% real — SEM MUDAR UMA LINHA de nenhum dos
+// engines consumidos (mesma assinatura de sempre: ReavaliacaoInput/
+// VictoryConditionInput).
 //
-// ESCOPO v1, declarado por honestidade: `pgrPlan` é omitido de propósito —
-// ligar um PGR real ao Plano Vivo (para computar `efficacy`) é trabalho
-// adicional fora deste incremento. Sem pgrPlan, `efficacy` fica `null`
-// (honesto: "ainda não computado"), mas `drivers` (a evolução real de
-// exposição por driver) e as Atas de Vitória funcionam plenamente — elas não
-// dependem de `efficacy`, só de `maintenanceByDriver` (calculado aqui,
-// direto do Plano Vivo real).
+// `efficacy` (destravada nesta composição): o PGR real usa o `controlTier`
+// e o status REAL de cada ação do Plano Vivo (nunca uma derivação por
+// semana/cronograma — ver pgr-engine.knownStatus) e resolve o driverId pela
+// mesma Ponte lever→driver da Vigia. Sem plano ativo ou sem nenhuma medida
+// classificável, `pgrPlan` é `null` e `efficacy` permanece honestamente
+// `null` — nunca um PGR fabricado para preencher a tela.
 //
 // Seguro apenas em .server.ts — não importar em código de cliente.
 
@@ -24,6 +25,7 @@ import { buildAtaDeVitoria, type AtaDeVitoria } from "@/engine/evolucao/victory-
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 import { loadOrgCycleHistory, K_ANONYMITY_MIN } from "./cycle-history.server";
 import { loadRealMaintenanceByDriver } from "./maintenance-bridge.server";
+import { loadRealPgrPlan } from "./pgr-from-plan.server";
 
 export interface RealReavaliacaoBundle {
   reavaliacao: ReavaliacaoResult;
@@ -56,7 +58,14 @@ export async function buildRealReavaliacaoBundle(
   }));
 
   const maintenanceByDriver = await loadRealMaintenanceByDriver(orgId);
-  const reavaliacao = buildReavaliacao({ registry: NR1_CROSSWALK, cycles });
+  const latestExposures = cycles[cycles.length - 1]?.exposures ?? [];
+  const pgrPlan = await loadRealPgrPlan(orgId, latestExposures);
+  const reavaliacao = buildReavaliacao({
+    registry: NR1_CROSSWALK,
+    cycles,
+    pgrPlan: pgrPlan ?? undefined,
+    maintenanceByDriver,
+  });
 
   const victories: AtaDeVitoria[] = [];
   if (history.length >= 2) {

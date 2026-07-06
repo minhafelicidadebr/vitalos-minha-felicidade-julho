@@ -52,6 +52,13 @@ export interface PgrMeasureSeed {
   responsible: string;
   /** Fonte/embasamento opcional (anti-alucinação; ecoa o gate G1 do copiloto). */
   evidence?: string;
+  /**
+   * Status JÁ conhecido de uma fonte real (ex.: o Action Log do Plano Vivo) — quando presente,
+   * substitui a derivação por semana/duração abaixo, que existe só para o plano DEMO (onde não
+   * há log de eventos real para consultar). Nunca inventa: um status real sempre vence uma
+   * estimativa de cronograma.
+   */
+  knownStatus?: MeasureStatus;
 }
 
 export interface PgrInput {
@@ -375,7 +382,7 @@ export function buildPgrPlan(input: PgrInput): PgrPlan {
         responsible: seed.responsible,
         evidence: seed.evidence ?? null,
         dueWeek,
-        status: deriveStatus(dueWeek, duration, currentWeek),
+        status: seed.knownStatus ?? deriveStatus(dueWeek, duration, currentWeek),
       };
     });
 
