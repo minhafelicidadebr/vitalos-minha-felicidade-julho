@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Check,
   Heart,
   Landmark,
+  Loader2,
   ShieldCheck,
   TrendingUp,
   Users,
@@ -15,6 +16,10 @@ import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
 import { getBoardBrief } from "@/lib/api/board-brief.functions";
 import type { BoardBrief } from "@/lib/proof/board-brief.server";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { loadCycleHistory, type LoadCycleHistoryResult } from "@/lib/api/cycle-history.functions";
 import { projectForecast } from "@/engine/forecast/forecast-engine";
 import { calculatePnL, DEFAULT_INPUTS } from "@/engine/pnl/pnl-engine";
 import { deriveEsgReadiness, type PillarScore } from "@/engine/esg/esg-engine";
@@ -39,6 +44,13 @@ function compactBRL(v: number): string {
   if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1).replace(".", ",")} mi`;
   if (v >= 1_000) return `R$ ${Math.round(v / 1_000)} mil`;
   return `R$ ${Math.round(v)}`;
+}
+
+// A organização não vem mais do cliente (P0-04) — o servidor resolve quem é
+// o admin de verdade a partir do access_token da própria sessão.
+async function getAccessToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
 const TONE_STYLE: Record<string, { dot: string; text: string; bg: string }> = {
@@ -69,7 +81,8 @@ function PanoramaPage() {
   const { current, previous, delta } = useIvo();
   const org = useOrg();
 
-  // Board Brief: o arco medir→provar→custo→selo lido pelos 5 céticos (server, real).
+  // Board Brief: o arco medir→provar→custo→selo lido pelos 5 céticos — hoje
+  // sempre a leitura de DEMONSTRAÇÃO (histórico compartilhado por setor).
   const [brief, setBrief] = useState<BoardBrief | null>(null);
   useEffect(() => {
     let active = true;
@@ -80,6 +93,33 @@ function PanoramaPage() {
       active = false;
     };
   }, [packId]);
+
+  // Prova de Ciclo REAL desta organização (Cofre de Ciclos, S6.75) — só existe
+  // com sessão de org real e ≥2 ciclos registrados em /evolucao-nr1.
+  const cloudActive = isCloudReady();
+  const { org: realOrg } = useRealOrgSession();
+  const isRealMode = cloudActive && !!realOrg;
+  const [realCycleResult, setRealCycleResult] = useState<LoadCycleHistoryResult | null>(null);
+  const [realCycleLoading, setRealCycleLoading] = useState(false);
+
+  const fetchRealCycleProof = useCallback(async () => {
+    if (!isRealMode) return;
+    setRealCycleLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const result = await loadCycleHistory({ data: { accessToken, instrument: "COPSOQ" } });
+      setRealCycleResult(result);
+    } catch {
+      setRealCycleResult(null);
+    } finally {
+      setRealCycleLoading(false);
+    }
+  }, [isRealMode]);
+
+  useEffect(() => {
+    fetchRealCycleProof();
+  }, [fetchRealCycleProof]);
 
   const panorama = useMemo(() => {
     if (!current) return null;
@@ -267,8 +307,13 @@ function PanoramaPage() {
           <p className="text-base leading-relaxed text-muted-foreground">{panorama.narrative}</p>
         </section>
 
+        {/* Prova de Ciclo REAL desta organização (Cofre de Ciclos, S6.75) */}
+        {isRealMode && (
+          <RealCycleProofCard result={realCycleResult} loading={realCycleLoading} />
+        )}
+
         {/* Prova de Ciclo — o arco lido pelos cinco céticos (medir→provar→custo→selo) */}
-        {brief && <BoardBriefCard brief={brief} />}
+        {brief && <BoardBriefCard brief={brief} isRealMode={isRealMode} />}
 
         {/* Próxima ação + prova */}
         <div className="grid gap-4 sm:grid-cols-2">
@@ -368,7 +413,112 @@ const SKEPTIC_ICON: Record<string, LucideIcon> = {
 };
 
 // Prova de Ciclo lida pelos cinco céticos — cada dúvida, um número real (Board Brief).
-function BoardBriefCard({ brief }: { brief: BoardBrief }) {
+// Prova de Ciclo REAL desta organização (Cofre de Ciclos, S6.75) — composição
+// direta de loadCycleHistory, sem inventar dado novo. Só CHRO/CFO/Auditor são
+// respondidos aqui: Colaborador é invariante de arquitetura (k-anon sempre) e
+// Investidor/Selo exigem IVO/participação/consentimento reais, ainda fora do
+// escopo real (ver /evolucao-nr1 § Cofre de Ciclos e a memória do sprint).
+function RealCycleProofCard({
+  result,
+  loading,
+}: {
+  result: LoadCycleHistoryResult | null;
+  loading: boolean;
+}) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="rounded-2xl border border-primary/25 bg-primary/5 p-5 shadow-sm print:break-inside-avoid"
+    >
+      <h2 className="font-serif text-base text-foreground">
+        Prova de Ciclo real desta organização
+      </h2>
+      <p className="mt-0.5 text-xs text-muted-foreground">
+        Composta do Cofre de Ciclos — cápsulas seladas que sua equipe registrou como ciclo.
+      </p>
+
+      {loading && !result && (
+        <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Carregando…
+        </p>
+      )}
+
+      {result && result.cloudReady && "registeredCycles" in result && (
+        <>
+          {result.registeredCycles.length < 2 || !result.proof ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {result.registeredCycles.length === 0
+                ? "Nenhum ciclo registrado ainda. "
+                : `${result.registeredCycles.length} ciclo registrado — falta ao menos mais 1. `}
+              Registre cápsulas seladas de COPSOQ em{" "}
+              <Link to="/evolucao-nr1" className="underline underline-offset-2">
+                Reavaliação NR-1 · Cofre de Ciclos
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-3 text-sm leading-relaxed text-foreground">{result.proof.headline}</p>
+          )}
+
+          <ul className="mt-4 space-y-2">
+            <li className="flex items-start gap-3 rounded-xl border border-border/50 bg-card px-3.5 py-2.5">
+              <Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-card-foreground">CHRO</p>
+                <p className="text-xs text-muted-foreground">
+                  {result.proof
+                    ? `Medição viva em ${result.proof.cycleCount} ciclos: ${result.proof.improvedDimensions} melhoraram, ${result.proof.worsenedDimensions} pioraram.`
+                    : "Ainda sem ciclos suficientes para leitura longitudinal."}
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 rounded-xl border border-border/50 bg-card px-3.5 py-2.5">
+              <Landmark className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-card-foreground">CFO</p>
+                <p className="text-xs text-muted-foreground">
+                  {result.proof && result.proof.preventionRoi
+                    ? `Custo de prevenção evitado estimado: R$ ${result.proof.preventionRoi.avoidedCostYear.toLocaleString("pt-BR")}/ano.`
+                    : "Sem redução atribuível medida ainda — sem custo evitado a declarar."}
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 rounded-xl border border-border/50 bg-card px-3.5 py-2.5">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-card-foreground">Auditor NR-1</p>
+                <p className="text-xs text-muted-foreground">
+                  {result.proof
+                    ? `${result.proof.interventionsWithEffect} intervenção(ões) com efeito atribuível medido.`
+                    : "Domínio B ainda sem eficácia comprovada."}
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 rounded-xl border border-dashed border-border/50 bg-muted/20 px-3.5 py-2.5">
+              <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-muted-foreground">Investidor · Selo</p>
+                <p className="text-xs text-muted-foreground">
+                  Pendente — exige IVO, participação e consentimento reais desta organização,
+                  ainda não computados. Não afirmado até existir.
+                </p>
+              </div>
+            </li>
+          </ul>
+        </>
+      )}
+
+      <p className="mt-4 border-t border-primary/20 pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        Associação orientativa (indicativa), nunca causalidade; custos são estimativas com fórmula
+        visível; agregados protegidos por k-anonimato.
+      </p>
+    </motion.section>
+  );
+}
+
+function BoardBriefCard({ brief, isRealMode }: { brief: BoardBrief; isRealMode: boolean }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -378,9 +528,13 @@ function BoardBriefCard({ brief }: { brief: BoardBrief }) {
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="font-serif text-base text-foreground">Prova de Ciclo · os cinco céticos</h2>
+          <h2 className="font-serif text-base text-foreground">
+            Prova de Ciclo · os cinco céticos{isRealMode ? " (leitura de referência do setor)" : ""}
+          </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Cada dúvida do board, respondida por um número real do arco — não por marketing.
+            {isRealMode
+              ? "Histórico compartilhado de demonstração — a Prova de Ciclo REAL desta organização está no card acima."
+              : "Cada dúvida do board, respondida por um número real do arco — não por marketing."}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
