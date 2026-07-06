@@ -294,6 +294,27 @@ Incluída aqui para o repositório continuar descrevendo fielmente o que existe
 no banco — colar de novo é no-op seguro (todo REVOKE/GRANT é idempotente por
 natureza; `DROP POLICY IF EXISTS` também).
 
+## O Dossiê ESG Auditável — snapshot imutável (I-E1)
+
+`supabase/migrations/20260706100000_esg_report_snapshots.sql` — 1 tabela +
+1 RPC (`create_esg_snapshot`). Guarda o Anexo de Asseguração (linhagem +
+materialidade declarada + as 5 checagens F3, ver `assurance-annex-engine.ts`)
+como artefato **imutável**: regerar é sempre uma NOVA linha, nunca um UPDATE
+— o `content_hash` (SHA-256, calculado no servidor, nunca confiado do
+cliente) é o que permitirá um dia a um terceiro verificar a integridade do
+PDF recebido. **Escopo v1, declarado por honestidade:** só o KPI de COPSOQ
+(via Cofre de Ciclos) tem linhagem real hoje — os outros 7 KPIs do relatório
+completo em `/relatorio-global` continuam leitura de referência do setor;
+o snapshot só sela o que é auditável de verdade, nunca o relatório inteiro
+como se fosse todo real. Mesma trava de EXECUTE das migrations anteriores.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois de
+aplicar, em `/relatorio-global` com sessão de administrador real (e ao menos
+1 cápsula selada): a seção "Anexo de Asseguração" deve mostrar a linhagem do
+KPI real (onda, cápsula, n, fórmula), permitir declarar materialidade por
+tema, mostrar as 5 regras F3 com status ao vivo, e "Gerar snapshot imutável"
+deve gravar uma linha nova a cada clique (nunca substituir a anterior).
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -316,6 +337,7 @@ natureza; `DROP POLICY IF EXISTS` também).
     produção pelo próprio Lovable** (achado #3 acima, gerado pelo scanner de
     segurança do Lovable, não por mim). Incluída aqui pelo mesmo motivo dos
     itens 6 e 8.
+13. `20260706100000_esg_report_snapshots.sql` (Dossiê ESG Auditável, I-E1)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

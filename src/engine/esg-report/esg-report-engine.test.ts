@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { buildAnnualEsgReport, type AnnualEsgReportInput, type EsgKpi } from "./esg-report-engine";
+import {
+  buildAnnualEsgReport,
+  type AnnualEsgReportInput,
+  type EsgKpi,
+  type MaterialityDeclaration,
+} from "./esg-report-engine";
 
 function kpi(over: Partial<EsgKpi> & Pick<EsgKpi, "id" | "dim" | "valueNorm">): EsgKpi {
   return {
@@ -122,5 +127,54 @@ describe("buildAnnualEsgReport — headline", () => {
     const r = buildAnnualEsgReport(input());
     expect(r.journey).toHaveLength(1);
     expect(r.methodology[0]!.instrument).toBe("FIB-T");
+  });
+});
+
+// ─── Extensão retrocompatível: linhagem e materialidade (I-E1, §F1/§F2) ───────
+
+describe("buildAnnualEsgReport — linhagem e materialidade (opcionais)", () => {
+  test("KPI sem lineage continua funcionando exatamente como antes", () => {
+    const r = buildAnnualEsgReport(input());
+    expect(r.dimensions.every((d) => d.kpis.every((k) => k.lineage === undefined))).toBe(true);
+  });
+
+  test("propaga lineage de um KPI sem alterar o restante do cálculo", () => {
+    const withLineage = kpi({
+      id: "copsoq",
+      dim: "G",
+      valueNorm: 580,
+      source: "COPSOQ",
+      lineage: {
+        instrument: "COPSOQ",
+        waveId: "wave-1",
+        capsuleId: "cap-1",
+        n: 40,
+        kAnonStatus: "ok",
+        formula: "high_risk_pct médio das dimensões visíveis",
+      },
+    });
+    const r = buildAnnualEsgReport(input({ kpis: [withLineage] }));
+    const found = r.dimensions.find((d) => d.dim === "G")!.kpis[0]!;
+    expect(found.lineage?.capsuleId).toBe("cap-1");
+    expect(found.lineage?.kAnonStatus).toBe("ok");
+  });
+
+  test("materiality ausente vira array vazio, nunca undefined", () => {
+    const r = buildAnnualEsgReport(input());
+    expect(r.materiality).toEqual([]);
+  });
+
+  test("propaga declarações de materialidade sem alterá-las", () => {
+    const declarations: MaterialityDeclaration[] = [
+      {
+        theme: "Saúde psicossocial",
+        impactRelevance: 5,
+        financialRelevance: 4,
+        declaredByRole: "Diretora de RH",
+        declaredAt: "2026-07-06",
+      },
+    ];
+    const r = buildAnnualEsgReport(input({ materiality: declarations }));
+    expect(r.materiality).toEqual(declarations);
   });
 });

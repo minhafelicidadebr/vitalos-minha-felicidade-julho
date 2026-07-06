@@ -6,6 +6,24 @@
 
 export type EsgDimension = "E" | "S" | "G";
 
+// ─── Linhagem (Dossiê ESG Auditável, I-E1, §F1) ────────────────────────────────
+// Extensão RETROCOMPATÍVEL: `lineage` é opcional — KPIs sem linhagem continuam
+// funcionando exatamente como antes (buildAnnualEsgReport nunca a exige). A
+// checagem "KPI sem linhagem não publica" (§F3.1) vive em assurance-annex-engine,
+// não aqui — este engine continua sem saber o que é "publicável".
+
+export interface EsgLineage {
+  instrument: string;
+  waveId: string;
+  capsuleId: string;
+  n: number;
+  kAnonStatus: "ok" | "partially_suppressed";
+  /** Dimensões omitidas por k-anon — declaradas, nunca escondidas (§F3.4). */
+  suppressedDimensions?: string[];
+  /** A conta, visível — idioma do Vitality P&L (nunca "caixa preta"). */
+  formula: string;
+}
+
 export interface EsgKpi {
   id: string;
   label: string;
@@ -15,6 +33,21 @@ export interface EsgKpi {
   dim: EsgDimension;
   ods?: string; // ex.: "ODS 3"
   trend?: "up" | "down" | "flat";
+  /** Cadeia onda→cápsula→fórmula que gerou o número — clique e veja a origem. */
+  lineage?: EsgLineage;
+}
+
+// ─── Dupla materialidade declarada (§F2) ───────────────────────────────────────
+// O engine só passa a declaração adiante e nunca a infere — quem declara é a
+// organização (autor + data), sempre.
+
+export interface MaterialityDeclaration {
+  theme: string;
+  /** 1..5 — declarado pela organização, nunca inferido pelo engine. */
+  impactRelevance: number;
+  financialRelevance: number;
+  declaredByRole: string;
+  declaredAt: string; // ISO "YYYY-MM-DD"
 }
 
 export interface QuarterSummary {
@@ -43,6 +76,8 @@ export interface AnnualEsgReportInput {
   };
   methodology: MethodologyEntry[];
   overallReadiness?: number | null; // do esg-engine; se ausente, média das dimensões
+  /** Declarações de materialidade dupla (§F2) — opcional, propagada sem alteração. */
+  materiality?: MaterialityDeclaration[];
 }
 
 export interface EsgDimensionReport {
@@ -65,6 +100,7 @@ export interface AnnualEsgReport {
   proof: AnnualEsgReportInput["proof"];
   odsCovered: string[];
   methodology: MethodologyEntry[];
+  materiality: MaterialityDeclaration[];
 }
 
 const DIM_LABEL: Record<EsgDimension, string> = {
@@ -141,6 +177,7 @@ export function buildAnnualEsgReport(input: AnnualEsgReportInput): AnnualEsgRepo
     proof: input.proof,
     odsCovered,
     methodology: input.methodology,
+    materiality: input.materiality ?? [],
   };
 }
 
