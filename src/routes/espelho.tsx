@@ -5,7 +5,7 @@
 // a persistência real (personal_assessments, padrão S5) chega no S6.5.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -33,6 +33,7 @@ import {
   buildAssessmentTrend,
   canRetake,
   scorePersonalAssessment,
+  PERSONAL_ASSESSMENT_ENGINE_VERSION,
   type PersonalAssessmentRecord,
   type PersonalAssessmentResult,
 } from "@/engine/espelho/personal-assessment-engine";
@@ -52,6 +53,16 @@ import {
   ESPELHO_SCALE_OPTIONS,
   ESPELHO_TODAY,
 } from "@/mocks/espelho-mock";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { isCloudReady } from "@/lib/cloud/supabase-client";
+import {
+  eraseMyAssessments,
+  loadAssessmentHistory,
+  saveAssessmentRecord,
+} from "@/lib/cloud/espelho-adapter";
+
+const INSTRUMENT = "perma_personal";
+const INSTRUMENT_VERSION = "br-2026-15itens";
 
 export const Route = createFileRoute("/espelho")({
   head: () => ({ meta: [{ title: "Espelho Vivo — 4 Lentes VitalOS™" }] }),
@@ -76,13 +87,35 @@ type Stage = "loading" | "intro" | "assessment" | "mirror";
 
 function EspelhoPage() {
   const { gamification } = usePack();
+  const cloudActive = isCloudReady();
+  const { loading: orgLoading, org: realOrg } = useRealOrgSession();
+  const isRealMode = cloudActive && !!realOrg;
+
   const [stage, setStage] = useState<Stage>("loading");
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [itemIndex, setItemIndex] = useState(0);
-  const [stored, setStored] = useState<StoredMirror | null>(null);
+  const [stored, setStored] = useState<StoredMirror | null>(null); // caminho demo (localStorage)
+  const [realHistory, setRealHistory] = useState<PersonalAssessmentRecord[]>([]); // caminho real
+  const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  // Hidratação client-only (SSR não tem localStorage) — dá o estado "carregando".
+  const fetchRealHistory = useCallback(async (): Promise<PersonalAssessmentRecord[]> => {
+    if (!realOrg) return [];
+    return loadAssessmentHistory(realOrg.userId, INSTRUMENT);
+  }, [realOrg]);
+
+  // Hidratação — real (Supabase) ou demo (localStorage), mutuamente exclusivas.
+  // Aguarda orgLoading resolver antes de decidir o caminho — evita um flash de
+  // conteúdo demo para quem tem sessão real.
   useEffect(() => {
+    if (orgLoading) return;
+    if (isRealMode) {
+      fetchRealHistory().then((history) => {
+        setRealHistory(history);
+        setStage(history.length > 0 ? "mirror" : "intro");
+      });
+      return;
+    }
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -95,9 +128,9 @@ function EspelhoPage() {
       // storage indisponível/corrompido → começa do zero, honesto
     }
     setStage("intro");
-  }, []);
+  }, [orgLoading, isRealMode, fetchRealHistory]);
 
-  const result: PersonalAssessmentResult | null = useMemo(() => {
+  const demoResult: PersonalAssessmentResult | null = useMemo(() => {
     if (!stored) return null;
     return scorePersonalAssessment(
       stored.responses,
@@ -108,22 +141,30 @@ function EspelhoPage() {
     );
   }, [stored]);
 
+  const realResult: PersonalAssessmentResult | null = useMemo(() => {
+    if (realHistory.length === 0) return null;
+    return realHistory[realHistory.length - 1]!.result;
+  }, [realHistory]);
+
+  const result = isRealMode ? realResult : demoResult;
+
   const history: PersonalAssessmentRecord[] = useMemo(() => {
+    if (isRealMode) return realHistory;
     const base = [...ESPELHO_HISTORY_SEED];
-    if (result) {
+    if (demoResult) {
       base.push({
-        assessmentId: `espelho-local-${result.takenAt}`,
-        instrument: "perma_personal",
-        instrumentVersion: "br-2026-15itens",
-        engineVersion: "1.0.0",
-        takenAt: result.takenAt,
-        result,
+        assessmentId: `espelho-local-${demoResult.takenAt}`,
+        instrument: INSTRUMENT,
+        instrumentVersion: INSTRUMENT_VERSION,
+        engineVersion: PERSONAL_ASSESSMENT_ENGINE_VERSION,
+        takenAt: demoResult.takenAt,
+        result: demoResult,
       });
     }
     return base;
-  }, [result]);
+  }, [isRealMode, realHistory, demoResult]);
 
-  const trend = useMemo(() => buildAssessmentTrend(history, "perma_personal"), [history]);
+  const trend = useMemo(() => buildAssessmentTrend(history, INSTRUMENT), [history]);
 
   const compass = useMemo(() => {
     const missions = gamification ? getMissions(gamification) : [];
@@ -138,10 +179,43 @@ function EspelhoPage() {
     });
   }, [result, gamification]);
 
-  const retakeGate = canRetake(stored?.takenAt ?? null, ESPELHO_TODAY, ESPELHO_MIN_RETAKE_DAYS);
+  const today = isRealMode ? new Date().toISOString().slice(0, 10) : ESPELHO_TODAY;
+  const lastTakenAt = isRealMode
+    ? (realHistory.length > 0 ? realHistory[realHistory.length - 1]!.takenAt : null)
+    : (stored?.takenAt ?? null);
+  const retakeGate = canRetake(lastTakenAt, today, ESPELHO_MIN_RETAKE_DAYS);
 
-  function finishAssessment(finalResponses: Record<string, number>) {
-    const record: StoredMirror = { responses: finalResponses, takenAt: ESPELHO_TODAY };
+  async function finishAssessment(finalResponses: Record<string, number>) {
+    const computedResult = scorePersonalAssessment(
+      finalResponses,
+      ESPELHO_FACTORS,
+      ESPELHO_BANDS,
+      ESPELHO_SCALE,
+      today,
+    );
+
+    if (isRealMode && realOrg) {
+      setSaving(true);
+      setActionError(null);
+      try {
+        await saveAssessmentRecord(realOrg.userId, {
+          instrument: INSTRUMENT,
+          instrumentVersion: INSTRUMENT_VERSION,
+          engineVersion: PERSONAL_ASSESSMENT_ENGINE_VERSION,
+          takenAt: today,
+          result: computedResult,
+        });
+        setRealHistory(await fetchRealHistory());
+        setStage("mirror");
+      } catch {
+        setActionError("Erro ao salvar sua autoavaliação. Tente novamente.");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    const record: StoredMirror = { responses: finalResponses, takenAt: today };
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
     } catch {
@@ -151,7 +225,20 @@ function EspelhoPage() {
     setStage("mirror");
   }
 
-  function eraseMirror() {
+  async function eraseMirror() {
+    if (isRealMode) {
+      setActionError(null);
+      const outcome = await eraseMyAssessments();
+      if (!outcome.success) {
+        setActionError("Erro ao apagar seus dados. Tente novamente.");
+        return;
+      }
+      setRealHistory([]);
+      setResponses({});
+      setItemIndex(0);
+      setStage("intro");
+      return;
+    }
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -167,12 +254,12 @@ function EspelhoPage() {
     if (!result) return;
     const payload = {
       exportedAt: new Date().toISOString(),
-      instrument: "perma_personal",
-      instrumentVersion: "br-2026-15itens",
-      engineVersion: "1.0.0",
+      instrument: INSTRUMENT,
+      instrumentVersion: INSTRUMENT_VERSION,
+      engineVersion: PERSONAL_ASSESSMENT_ENGINE_VERSION,
       note: "Snapshot computado (minimização LGPD): faixas e escores; respostas item a item não são retidas.",
       result,
-      historySeedIncluded: false,
+      historySeedIncluded: !isRealMode,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -224,7 +311,7 @@ function EspelhoPage() {
           />
         )}
 
-        {stage === "assessment" && (
+        {stage === "assessment" && !saving && (
           <Assessment
             responses={responses}
             itemIndex={itemIndex}
@@ -241,12 +328,19 @@ function EspelhoPage() {
           />
         )}
 
+        {stage === "assessment" && saving && (
+          <p className="animate-pulse text-sm text-muted-foreground">Salvando sua autoavaliação…</p>
+        )}
+
         {stage === "mirror" && result && (
           <Mirror
             result={result}
             trend={trend}
             compass={compass}
             retakeGate={retakeGate}
+            isRealMode={isRealMode}
+            saving={saving}
+            actionError={actionError}
             onRetake={() => {
               setResponses({});
               setItemIndex(0);
@@ -377,6 +471,9 @@ function Mirror({
   trend,
   compass,
   retakeGate,
+  isRealMode,
+  saving,
+  actionError,
   onRetake,
   onExport,
   onErase,
@@ -385,6 +482,9 @@ function Mirror({
   trend: ReturnType<typeof buildAssessmentTrend>;
   compass: ReturnType<typeof buildMirrorCompass<(typeof LEARNING_PATHS)[number]>>;
   retakeGate: ReturnType<typeof canRetake>;
+  isRealMode: boolean;
+  saving: boolean;
+  actionError: string | null;
   onRetake: () => void;
   onExport: () => void;
   onErase: () => void;
@@ -548,7 +648,13 @@ function Mirror({
             <h2 className="font-serif text-xl text-foreground">Seu dado é seu</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {ESPELHO_COPY.yourData}
+              {isRealMode && " Salvo com segurança na sua conta — disponível em qualquer aparelho."}
             </p>
+            {actionError && (
+              <p className="mt-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                {actionError}
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
@@ -561,7 +667,8 @@ function Mirror({
               <button
                 type="button"
                 onClick={onErase}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-destructive/30 bg-background px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+                disabled={saving}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-destructive/30 bg-background px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <Trash2 className="h-4 w-4" aria-hidden />
                 Apagar meu espelho
@@ -569,7 +676,7 @@ function Mirror({
               <button
                 type="button"
                 onClick={onRetake}
-                disabled={!retakeGate.allowed}
+                disabled={!retakeGate.allowed || saving}
                 title={
                   retakeGate.allowed
                     ? undefined
@@ -577,7 +684,7 @@ function Mirror({
                 }
                 className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                Refazer autoavaliação
+                {saving ? "Salvando…" : "Refazer autoavaliação"}
               </button>
             </div>
             {!retakeGate.allowed && (
@@ -592,7 +699,7 @@ function Mirror({
 
       <Disclaimers />
       <p className="text-center text-xs leading-relaxed text-muted-foreground">
-        {ESPELHO_COPY.twoTracks} {ESPELHO_COPY.demoNote}
+        {ESPELHO_COPY.twoTracks} {!isRealMode && ESPELHO_COPY.demoNote}
       </p>
     </div>
   );

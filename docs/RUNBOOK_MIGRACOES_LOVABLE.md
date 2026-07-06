@@ -294,6 +294,30 @@ Incluída aqui para o repositório continuar descrevendo fielmente o que existe
 no banco — colar de novo é no-op seguro (todo REVOKE/GRANT é idempotente por
 natureza; `DROP POLICY IF EXISTS` também).
 
+## O Espelho Vivo real — autoavaliação pessoal persistida (I-M3/I-M5)
+
+`supabase/migrations/20260706110000_personal_assessments.sql` — 1 tabela
+(`personal_assessments`) + 1 RPC (`erase_my_assessments`). Mesmo padrão do
+S5 (`sm2_card_state`/`participation_events`): dado PESSOAL, sem k-anonimato a
+proteger, RLS por `auth.uid()` — **sem service role no caminho de escrita**;
+o cliente autenticado insere/lê direto (`src/lib/cloud/espelho-adapter.ts`).
+**Minimização LGPD** (decisão do próprio blueprint Mensurar Vivo): só o
+snapshot computado (faixas, escores, completude) é gravado — as respostas
+item a item nunca saem da sessão do navegador. **INSERT-only** — cada
+autoavaliação tomada é uma linha nova (histórico = tendência); não há
+UPDATE/DELETE ao cliente. Apagar tudo (Cofre Pessoal, LGPD art. 18) só existe
+pela RPC `erase_my_assessments()`, que deleta apenas as linhas do próprio
+`auth.uid()` — o mesmo motivo de `participation_events` não ter DELETE
+direto: impedir reescrever a própria história por fora do rito auditável.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois de
+aplicar, teste com uma sessão real (não a senha de demo): abrir `/espelho`,
+completar a autoavaliação de 15 itens, recarregar a página — o resultado deve
+persistir (ao contrário da demonstração, que só guarda no navegador); em
+outro aparelho/navegador logado com a mesma conta, o resultado deve aparecer
+igual. Clicar "Apagar meu espelho" deve remover tudo e voltar à tela de
+convite.
+
 ## O Dossiê ESG Auditável — snapshot imutável (I-E1)
 
 `supabase/migrations/20260706100000_esg_report_snapshots.sql` — 1 tabela +
@@ -338,6 +362,7 @@ deve gravar uma linha nova a cada clique (nunca substituir a anterior).
     segurança do Lovable, não por mim). Incluída aqui pelo mesmo motivo dos
     itens 6 e 8.
 13. `20260706100000_esg_report_snapshots.sql` (Dossiê ESG Auditável, I-E1)
+14. `20260706110000_personal_assessments.sql` (Espelho Vivo real, I-M3/I-M5)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
