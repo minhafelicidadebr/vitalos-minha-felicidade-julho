@@ -275,6 +275,25 @@ registro de ciclos", registrar uma cápsula selada com uma chave (ex.:
 cápsula com outra chave — a seção deve então mostrar uma "Prova de Ciclo
 real" com direção e contagem de dimensões.
 
+## Achado real #3: Lovable fechou sozinho o gap de EXECUTE das RPCs S0–S3
+
+`supabase/migrations/20260705160043_9800f3be-4083-4ea3-80d4-833731eeed31.sql`
+— **já aplicada em produção**, gerada e commitada automaticamente pelo
+Lovable (não por mim), no mesmo espírito do achado documentado em
+`20260705100000_action_plan_ledger.sql`: nenhuma migration de S0–S3 revogava
+`EXECUTE` de PUBLIC nas RPCs `is_invite_valid`, `is_invite_valid_for_wave`,
+`mark_invite_used`, `count_wave_responses`, `submit_wave_response`,
+`provision_organization_from_invite`. O scanner de segurança do Lovable
+encontrou e fechou essa mesma classe de risco de forma independente, com o
+padrão certo (grant granular por papel: `anon+authenticated` só nas RPCs do
+fluxo de convite anônimo; `service_role` em `mark_invite_used`). Também
+adicionou policies de leitura admin-scoped em `org_invites`/`wave_invites`
+(antes sem NENHUMA policy — deny-all mesmo para admin) e revogou INSERT/
+UPDATE/DELETE direto em `wave_responses`/`wave_invites` (escrita só via RPC).
+Incluída aqui para o repositório continuar descrevendo fielmente o que existe
+no banco — colar de novo é no-op seguro (todo REVOKE/GRANT é idempotente por
+natureza; `DROP POLICY IF EXISTS` também).
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -293,6 +312,10 @@ real" com direção e contagem de dimensões.
 9. `20260705100000_action_plan_ledger.sql` (S6.1–S6.3 · Plano Vivo real)
 10. `20260705120000_devolutiva_sessions.sql` (S6.4 · Cerimônia da Devolutiva)
 11. `20260705130000_org_cycle_registry.sql` (S6.75 · Cofre de Ciclos)
+12. `20260705160043_9800f3be-4083-4ea3-80d4-833731eeed31.sql` — **já aplicada em
+    produção pelo próprio Lovable** (achado #3 acima, gerado pelo scanner de
+    segurança do Lovable, não por mim). Incluída aqui pelo mesmo motivo dos
+    itens 6 e 8.
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
