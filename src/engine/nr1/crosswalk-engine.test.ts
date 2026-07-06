@@ -4,6 +4,7 @@ import {
   dimensionsForDriver,
   driverProfile,
   driversForDimension,
+  exposuresFromLoadScores,
   outcomeViolations,
   priorityCells,
   rankDriversByExposure,
@@ -145,5 +146,22 @@ describe("crosswalk-engine · driverProfile (Mundo do Driver)", () => {
   it("o sinal crítico de Inclusão & Proteção aparece no perfil", () => {
     const p = driverProfile(R, "inclusao")!;
     expect(p.signals.some((c) => c.critical && c.dimensionId === "community")).toBe(true);
+  });
+});
+
+describe("crosswalk-engine · exposuresFromLoadScores (ponte capsule → DimensionExposure)", () => {
+  it("mapeia loadScore→load preservando dimensionId e visible", () => {
+    const out = exposuresFromLoadScores([
+      { dimensionId: "demands_quant", loadScore: 72, visible: true },
+      { dimensionId: "work_pace", loadScore: 40, visible: false },
+    ]);
+    expect(out).toEqual([
+      { dimensionId: "demands_quant", load: 72, visible: true },
+      { dimensionId: "work_pace", load: 40, visible: false },
+    ]);
+  });
+
+  it("lista vazia → lista vazia (nunca fabrica exposição)", () => {
+    expect(exposuresFromLoadScores([])).toEqual([]);
   });
 });

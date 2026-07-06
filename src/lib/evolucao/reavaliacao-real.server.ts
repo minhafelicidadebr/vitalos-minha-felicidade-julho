@@ -21,6 +21,7 @@ import {
   type CycleExposure,
   type ReavaliacaoResult,
 } from "@/engine/nr1/reavaliacao-engine";
+import { exposuresFromLoadScores } from "@/engine/nr1/crosswalk-engine";
 import { buildAtaDeVitoria, type AtaDeVitoria } from "@/engine/evolucao/victory-engine";
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 import { loadOrgCycleHistory, K_ANONYMITY_MIN } from "./cycle-history.server";
@@ -50,11 +51,7 @@ export async function buildRealReavaliacaoBundle(
   const cycles: CycleExposure[] = history.map((capsule) => ({
     cycleId: capsule.cohortId,
     label: capsule.cohortId,
-    exposures: capsule.dimensions.map((d) => ({
-      dimensionId: d.dimensionId,
-      load: d.loadScore,
-      visible: d.visible,
-    })),
+    exposures: exposuresFromLoadScores(capsule.dimensions),
   }));
 
   const maintenanceByDriver = await loadRealMaintenanceByDriver(orgId);
