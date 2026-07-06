@@ -294,6 +294,45 @@ Incluída aqui para o repositório continuar descrevendo fielmente o que existe
 no banco — colar de novo é no-op seguro (todo REVOKE/GRANT é idempotente por
 natureza; `DROP POLICY IF EXISTS` também).
 
+## A Ata de Vitória — a Reavaliação NR-1 real destrava (I-E2/I-E4)
+
+`supabase/migrations/20260706120000_victory_records.sql` — 1 tabela
+(`victory_records`) + 1 RPC (`seal_victory_record`), INSERT-only com
+`UNIQUE(org_id, cycle_key, driver_id)` — uma Ata por driver por ciclo, nunca
+duplicada. Destrava dois itens que dependiam de um problema arquitetural até
+aqui não resolvido: **Vigia I-E4** (o `maintenance_check` real do Plano Vivo,
+já existente desde S6.1, é chaveado por `lever_id` — vocabulário do
+Playbook — enquanto a Reavaliação NR-1 é chaveada por `driverId` do
+crosswalk; os dois nunca foram unificados) e **Ata de Vitória I-E2** (que
+depende da Vigia + de uma Reavaliação real, agora possível graças ao Cofre
+de Ciclos do S6.75).
+
+**A ponte, sem inventar correspondência:** `engine/evolucao/lever-driver-bridge.ts`
+usa o vocabulário que os dois lados JÁ compartilham de fato — cada lever do
+Playbook declara `targetPillarIds` (IVO) e cada driver do crosswalk declara
+`pillarIds` (IVO) — e computa, por sobreposição de pilares, qual driver um
+lever mais provavelmente mantém. Um lever sem nenhum pilar em comum não tem
+correspondência forçada (retorna `null`, honesto). `lib/evolucao/
+maintenance-bridge.server.ts` usa essa ponte para transformar os eventos
+reais de manutenção do Plano Vivo num `maintenanceByDriver` real.
+
+**Decisão registrada:** o blueprint original (Academia Viva 2.0, I4) previa
+um "antagonista" nomeado por Ata — auditado o repositório, a camada de
+Expedições/bestiário que daria sentido a isso nunca foi implementada. A Ata
+declara o driver pelo seu próprio rótulo real do crosswalk (ex.: "Carga &
+Recuperação recuou"), nunca um nome fictício. **Escopo v1:** `efficacy` da
+Reavaliação fica `null` de propósito (ligar um PGR real ao Plano Vivo é
+trabalho futuro) — a evolução real de exposição por driver e as Atas
+funcionam plenamente sem isso, pois dependem só de `maintenanceByDriver`.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois de
+aplicar, com sessão de administrador real e ≥2 ciclos registrados no Cofre
+de Ciclos: a seção "Sala de Vitórias" em `/evolucao-nr1` deve mostrar a
+evolução real por driver; se algum driver melhorou (≥5 pts) com uma medida
+do Plano Vivo atestada como mantida, um botão "Selar Ata de Vitória" deve
+aparecer — clicar deve gravar uma linha nova e nunca permitir selar a mesma
+Ata duas vezes para o mesmo ciclo.
+
 ## O Espelho Vivo real — autoavaliação pessoal persistida (I-M3/I-M5)
 
 `supabase/migrations/20260706110000_personal_assessments.sql` — 1 tabela
@@ -363,6 +402,7 @@ deve gravar uma linha nova a cada clique (nunca substituir a anterior).
     itens 6 e 8.
 13. `20260706100000_esg_report_snapshots.sql` (Dossiê ESG Auditável, I-E1)
 14. `20260706110000_personal_assessments.sql` (Espelho Vivo real, I-M3/I-M5)
+15. `20260706120000_victory_records.sql` (Ata de Vitória, I-E2/I-E4)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

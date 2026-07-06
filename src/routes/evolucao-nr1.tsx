@@ -11,8 +11,10 @@ import {
   ArrowLeft,
   ArrowRight,
   Archive,
+  Award,
   Loader2,
   Minus,
+  ScrollText,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -32,6 +34,14 @@ import {
   type LoadCycleHistoryResult,
 } from "@/lib/api/cycle-history.functions";
 import type { RegisterableCapsule } from "@/lib/evolucao/cycle-history.server";
+import {
+  loadRealReavaliacao,
+  loadVictoryRecords,
+  sealVictoryRecord,
+  type LoadRealReavaliacaoResult,
+} from "@/lib/api/victory.functions";
+import type { VictoryRecordSummary } from "@/lib/evolucao/victory.server";
+import type { AtaDeVitoria } from "@/engine/evolucao/victory-engine";
 
 export const Route = createFileRoute("/evolucao-nr1")({
   head: () => ({ meta: [{ title: "Reavaliação NR-1 — 4 Lentes VitalOS™" }] }),
@@ -333,6 +343,213 @@ function CofreDeCiclosSection() {
   );
 }
 
+// Sala de Vitórias (I-E2 Ata de Vitória + I-E4 Vigia de Manutenção) — só existe
+// com sessão de org real. A Reavaliação NR-1 REAL sai do Cofre de Ciclos
+// (S6.75); a manutenção real vem do Plano Vivo via a Ponte lever→driver — dois
+// substratos já reais, compostos aqui sem inventar dado novo. Sem ≥2 ciclos ou
+// sem melhora mantida, nenhuma Ata aparece — "atividade não é evidência".
+function VitoriasSection() {
+  const cloudActive = isCloudReady();
+  const { org: realOrg } = useRealOrgSession();
+  const isRealMode = cloudActive && !!realOrg;
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<LoadRealReavaliacaoResult | null>(null);
+  const [sealedRecords, setSealedRecords] = useState<VictoryRecordSummary[]>([]);
+  const [sealingDriverId, setSealingDriverId] = useState<string | null>(null);
+
+  const fetchAll = useCallback(async () => {
+    if (!isRealMode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const [reavaliacaoResult, recordsResult] = await Promise.all([
+        loadRealReavaliacao({ data: { accessToken, instrument: "COPSOQ" } }),
+        loadVictoryRecords({ data: { accessToken } }),
+      ]);
+      setResult(reavaliacaoResult);
+      if (recordsResult.cloudReady && "records" in recordsResult) {
+        setSealedRecords(recordsResult.records);
+      }
+    } catch {
+      setError("Erro ao carregar a Sala de Vitórias.");
+    } finally {
+      setLoading(false);
+    }
+  }, [isRealMode]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  async function handleSeal(ata: AtaDeVitoria, cycleKey: string) {
+    setSealingDriverId(ata.driverId);
+    setError(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const sealResult = await sealVictoryRecord({
+        data: { accessToken, cycleKey, driverId: ata.driverId, ata: ata as unknown as Record<string, unknown> },
+      });
+      if (!sealResult.accepted) {
+        setError(
+          sealResult.reason === "victory_already_sealed"
+            ? "Esta Ata já foi selada para este ciclo."
+            : "Erro ao selar a Ata.",
+        );
+        return;
+      }
+      await fetchAll();
+    } catch {
+      setError("Erro ao selar a Ata.");
+    } finally {
+      setSealingDriverId(null);
+    }
+  }
+
+  if (!isRealMode) return null;
+
+  const bundle = result && result.cloudReady && "bundle" in result ? result.bundle : null;
+  const sealedKey = (driverId: string, cycleKey: string) => `${driverId}::${cycleKey}`;
+  const sealedSet = new Set(sealedRecords.map((r) => sealedKey(r.driverId, r.cycleKey)));
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="space-y-3 border-t border-border/50 pt-6"
+    >
+      <div className="flex items-center gap-2">
+        <Award className="h-4 w-4 text-primary" aria-hidden />
+        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          Evoluir · Sala de Vitórias (dados reais desta organização)
+        </p>
+      </div>
+
+      {loading && !bundle && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Carregando…
+        </p>
+      )}
+
+      {error && (
+        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs text-destructive">
+          {error}
+        </p>
+      )}
+
+      {bundle && (
+        <>
+          {bundle.cycleCount < 2 ? (
+            <p className="rounded-2xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
+              Registre pelo menos 2 ciclos no Cofre de Ciclos acima para a Reavaliação NR-1 real
+              começar a comparar exposição — e para uma Ata de Vitória poder nascer.
+            </p>
+          ) : bundle.reavaliacao.drivers.length === 0 ? (
+            <p className="rounded-2xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
+              Nenhuma dimensão COPSOQ visível nos ciclos registrados ainda tem driver
+              correspondente no crosswalk.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {bundle.reavaliacao.drivers.map((driver) => {
+                const meta = TREND_META[driver.trend];
+                const TrendIcon = meta.icon;
+                const ata = bundle.victories.find((v) => v.driverId === driver.driverId) ?? null;
+                const alreadySealed =
+                  bundle.latestCycleKey !== null && sealedSet.has(sealedKey(driver.driverId, bundle.latestCycleKey));
+                return (
+                  <div
+                    key={driver.driverId}
+                    className="rounded-2xl border border-border/60 bg-card p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-card-foreground">{driver.label}</span>
+                        <TrendIcon className={`h-3.5 w-3.5 ${meta.tint}`} aria-hidden />
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.firstRisk]}`}>
+                          {RISK_LABEL[driver.firstRisk]}
+                        </span>
+                        <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden />
+                        <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.lastRisk]}`}>
+                          {RISK_LABEL[driver.lastRisk]}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {driver.dimensionLabel}: {driver.firstLoad} → {driver.lastLoad}
+                      {driver.reduction !== 0 &&
+                        ` (${driver.reduction > 0 ? "−" : "+"}${Math.abs(driver.reduction)})`}
+                    </p>
+
+                    {ata && bundle.latestCycleKey && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2">
+                        <ScrollText className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                        <p className="flex-1 text-xs text-foreground">
+                          Vitória elegível — medida mantida, queda de {driver.reduction} pts confirmada.
+                        </p>
+                        {alreadySealed ? (
+                          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                            Ata selada
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={sealingDriverId === driver.driverId}
+                            onClick={() => handleSeal(ata, bundle.latestCycleKey!)}
+                            className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground disabled:opacity-40"
+                          >
+                            {sealingDriverId === driver.driverId ? "Selando…" : "Selar Ata de Vitória"}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {sealedRecords.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Atas seladas
+              </p>
+              <ul className="space-y-1">
+                {sealedRecords.map((r) => (
+                  <li key={r.id} className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                    <span>{r.driverId}</span>
+                    <span>· ciclo {r.cycleKey}</span>
+                    <span>· {new Date(r.issuedAt).toLocaleDateString("pt-BR")}</span>
+                    <span className="truncate font-mono">hash {r.contentHash.slice(0, 12)}…</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Sem delta real, sem medida mantida ou sem amostra reportável (k≥5) — não há Ata. Atividade
+        não é evidência; associação orientativa, nunca prova de causalidade.
+      </p>
+    </motion.section>
+  );
+}
+
 function ReavaliacaoPage() {
   const { exposure, cycles, measures, maintenance } = useSectorNR1();
 
@@ -506,6 +723,7 @@ function ReavaliacaoPage() {
         </div>
 
         <CofreDeCiclosSection />
+        <VitoriasSection />
 
         {/* Atalhos + disclaimer */}
         <div className="flex flex-wrap items-center gap-4 print:hidden">

@@ -19,7 +19,7 @@ import { buildRegisteredHistory, type DimensionMeta, type RegisteredCycleRow } f
 import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 
-const K_ANONYMITY_MIN = 5;
+export const K_ANONYMITY_MIN = 5;
 
 // Único instrumento de Domínio B hoje no pipeline real (ver capsule-aggregator.server.ts
 // OUTCOME_PILLARS / COPSOQ_POLARITIES) — os demais (PERMA, VIA_T) são Domínio A.
