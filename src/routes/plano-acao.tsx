@@ -1377,7 +1377,7 @@ function PlanoAcao() {
         { orgName, cycleLabel, documentId, generatedAt: new Date().toISOString() },
         summary,
       );
-      downloadPlanDocumentPdf(doc, `plano-vivo-${documentId}.pdf`);
+      downloadPlanDocumentPdf(doc, enrichedPlan, summary, `plano-vivo-${documentId}.pdf`);
     } finally {
       setDownloadingPdf(false);
     }

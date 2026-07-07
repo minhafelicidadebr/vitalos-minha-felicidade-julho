@@ -57,7 +57,7 @@ describe("renderPlanDocumentPdf", () => {
       { orgName: "Org Teste", cycleLabel: "2026-t3", documentId: "doc-1", generatedAt: "2026-07-05T00:00:00.000Z" },
       LOG_SUMMARY,
     );
-    const pdf = renderPlanDocumentPdf(doc);
+    const pdf = renderPlanDocumentPdf(doc, samplePlan(), LOG_SUMMARY);
     expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
 
@@ -67,7 +67,7 @@ describe("renderPlanDocumentPdf", () => {
       { orgName: "Org Teste", cycleLabel: "2026-t3", documentId: "doc-1", generatedAt: "2026-07-05T00:00:00.000Z" },
       LOG_SUMMARY,
     );
-    const pdf = renderPlanDocumentPdf(doc);
+    const pdf = renderPlanDocumentPdf(doc, samplePlan(), LOG_SUMMARY);
     const output = pdf.output("datauristring");
     expect(output.startsWith("data:application/pdf")).toBe(true);
     expect(output.length).toBeGreaterThan(100);
@@ -81,12 +81,13 @@ describe("renderPlanDocumentPdf", () => {
       leverId: `lever-${i}`,
       leverLabel: `Ação número ${i + 1} com um título razoavelmente longo para ocupar espaço`,
     }));
+    const bigPlan = { ...base, actions: manyActions };
     const doc = buildPlanDocument(
-      { ...base, actions: manyActions },
+      bigPlan,
       { orgName: "Org Teste", cycleLabel: "2026-t3", documentId: "doc-1", generatedAt: "2026-07-05T00:00:00.000Z" },
       LOG_SUMMARY,
     );
-    const pdf = renderPlanDocumentPdf(doc);
+    const pdf = renderPlanDocumentPdf(doc, bigPlan, LOG_SUMMARY);
     expect(pdf.getNumberOfPages()).toBeGreaterThan(1);
   });
 });

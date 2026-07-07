@@ -36,6 +36,8 @@ export interface RealPgrDocumentResult {
   document: PgrDocument;
   markdown: string;
   hasReavaliacao: boolean;
+  /** Leitura longitudinal real (≥2 ciclos) — alimenta a tabela premium de reavaliação no PDF. */
+  reavaliacao?: LongitudinalReading;
 }
 
 function resolveReavaliacao(
@@ -84,6 +86,7 @@ export async function buildRealOrgPgrDocument(
     document,
     markdown: serializePgrDocumentMarkdown(document),
     hasReavaliacao: document.hasReavaliacao,
+    reavaliacao,
   };
 }
 

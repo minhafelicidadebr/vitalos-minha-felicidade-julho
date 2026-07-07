@@ -345,7 +345,12 @@ function RealPgrView({ org }: { org: RealOrgSession }) {
     setDownloadError(null);
     try {
       const { downloadPgrDocumentPdf } = await import("@/lib/pdf/pgr-document-pdf");
-      downloadPgrDocumentPdf(bundle.document, `pgr-dossie-${org.orgName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+      downloadPgrDocumentPdf(
+        bundle.document,
+        bundle.plan,
+        bundle.reavaliacao,
+        `pgr-dossie-${org.orgName.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+      );
     } catch {
       setDownloadError("Erro ao gerar o dossiê em PDF.");
     } finally {
@@ -513,11 +518,21 @@ function PgrPage() {
     setDownloading(true);
     setDownloadError(null);
     try {
-      const [{ document }, { downloadPgrDocumentPdf }] = await Promise.all([
-        getSectorPgrDocument({ data: { packId, sectorLabel } }),
-        import("@/lib/pdf/pgr-document-pdf"),
-      ]);
-      downloadPgrDocumentPdf(document, `pgr-dossie-${packId}.pdf`);
+      const [{ document }, { downloadPgrDocumentPdf }, { getCapsuleHistory }, { buildLongitudinalReading }] =
+        await Promise.all([
+          getSectorPgrDocument({ data: { packId, sectorLabel } }),
+          import("@/lib/pdf/pgr-document-pdf"),
+          import("@/mocks/capsule-history-mock"),
+          import("@/engine/ai/capsule-longitudinal-engine"),
+        ]);
+      const history = getCapsuleHistory(packId, "COPSOQ");
+      const longitudinal = history.length >= 2 ? buildLongitudinalReading({ capsules: history }) : null;
+      downloadPgrDocumentPdf(
+        document,
+        plan,
+        longitudinal?.ok ? longitudinal.reading : undefined,
+        `pgr-dossie-${packId}.pdf`,
+      );
     } catch {
       setDownloadError("Erro ao gerar o dossiê em PDF.");
     } finally {
