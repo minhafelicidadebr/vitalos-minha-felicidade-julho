@@ -229,6 +229,12 @@
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN"],
       "group": "provar"
     },
+    {
+      "id": "cycle_book",
+      "label": "Livro do Ciclo",
+      "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "HOLDING_ADMIN"],
+      "group": "provar"
+    },
 
     {
       "id": "program",
