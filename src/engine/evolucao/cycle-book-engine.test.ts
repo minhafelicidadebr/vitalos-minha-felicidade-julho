@@ -227,3 +227,69 @@ describe("cycle-book-engine — disclaimer e determinismo", () => {
     expect(doc.meta).toEqual(META);
   });
 });
+
+describe("cycle-book-engine — não-vitórias com igual dignidade (GRI)", () => {
+  test("sem 2 ciclos comparáveis, o capítulo de não-vitórias nem aparece (nunca forçado)", () => {
+    const doc = buildCycleBook(baseInput({ cycleCount: 1 }));
+    expect(doc.chapters.find((c) => c.id === "nao_vitorias")).toBeUndefined();
+  });
+
+  test("com 2+ ciclos e algum driver sem melhora, lista com respeito — nunca tom de fracasso", () => {
+    const notImproved = { ...sampleReavaliacao().drivers[0]!, improved: false, driverId: "clareza", label: "Clareza & Previsibilidade" };
+    const doc = buildCycleBook(
+      baseInput({ cycleCount: 2, reavaliacao: sampleReavaliacao({ drivers: [notImproved], improvedCount: 0 }) }),
+    );
+    const chapter = doc.chapters.find((c) => c.id === "nao_vitorias")!;
+    expect(chapter.hasContent).toBe(true);
+    expect(chapter.body[0]).toMatch(/1 driver\(es\) ainda não mostraram/);
+    expect(chapter.body[0]).not.toMatch(/falhou|fracassou/i); // nunca culpa, mesmo negando "fracasso" explicitamente
+    expect(chapter.body[0]).toMatch(/não é fracasso/i); // reassegura explicitamente — dignidade, não veredicto
+    expect(chapter.table!.rows[0]![0]).toBe("Clareza & Previsibilidade");
+  });
+
+  test("quando TODOS os drivers melhoraram, o capítulo ainda aparece — com manchete positiva honesta", () => {
+    const doc = buildCycleBook(baseInput({ cycleCount: 2, reavaliacao: sampleReavaliacao() }));
+    const chapter = doc.chapters.find((c) => c.id === "nao_vitorias")!;
+    expect(chapter).toBeDefined();
+    expect(chapter.hasContent).toBe(true);
+    expect(chapter.body[0]).toMatch(/todos os drivers medidos/i);
+  });
+
+  test("aparece DEPOIS do capítulo de vitórias na ordem dos capítulos", () => {
+    const doc = buildCycleBook(baseInput({ cycleCount: 2, reavaliacao: sampleReavaliacao() }));
+    const victoriesIdx = doc.chapters.findIndex((c) => c.id === "vitorias");
+    const nonVictoriesIdx = doc.chapters.findIndex((c) => c.id === "nao_vitorias");
+    expect(nonVictoriesIdx).toBeGreaterThan(victoriesIdx);
+  });
+});
+
+describe("cycle-book-engine — capítulo de limitações (sempre presente, sempre por último)", () => {
+  test("está sempre presente, mesmo no Livro mais vazio possível", () => {
+    const doc = buildCycleBook(baseInput());
+    const chapter = doc.chapters.find((c) => c.id === "limitacoes");
+    expect(chapter).toBeDefined();
+    expect(chapter!.hasContent).toBe(true);
+  });
+
+  test("é sempre o último capítulo, mesmo quando o capítulo opcional de eficácia existe", () => {
+    const doc = buildCycleBook(
+      baseInput({
+        cycleCount: 2,
+        reavaliacao: sampleReavaliacao({
+          efficacy: { withSourceMeasure: 2, maintained: 2, lapsed: 0, ofWhichImproved: 2, driverIds: [], lapsedDriverIds: [] },
+        }),
+      }),
+    );
+    expect(doc.chapters.at(-1)!.id).toBe("limitacoes");
+  });
+
+  test("declara o escopo real (COPSOQ) e o que ainda não é real (FIB-T, Selo)", () => {
+    const doc = buildCycleBook(baseInput());
+    const chapter = doc.chapters.find((c) => c.id === "limitacoes")!;
+    const fullText = chapter.body.join(" ");
+    expect(fullText).toMatch(/COPSOQ/);
+    expect(fullText).toMatch(/FIB-T/);
+    expect(fullText).toMatch(/Selo Empresa Viva/);
+    expect(fullText).toMatch(/k-anonimato ≥ 5/);
+  });
+});

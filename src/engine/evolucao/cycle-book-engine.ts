@@ -159,6 +159,43 @@ function buildEvolutionChapter(input: CycleBookInput): CycleBookChapter {
   };
 }
 
+/**
+ * "As não-vitórias com igual dignidade" (I-E3, GRI — equilíbrio entre desempenho positivo e
+ * negativo é o que torna o resto crível). Nunca oculta um driver que não melhorou; nunca usa
+ * tom de fracasso — é o próximo ciclo de trabalho, não um veredicto.
+ */
+function buildNonVictoriesChapter(input: CycleBookInput): CycleBookChapter | null {
+  const r = input.reavaliacao;
+  if (!r || input.cycleCount < 2 || r.drivers.length === 0) return null;
+
+  const notImproved = r.drivers.filter((d) => !d.improved);
+  if (notImproved.length === 0) {
+    return {
+      id: "nao_vitorias",
+      title: "4. Onde ainda estamos trabalhando",
+      hasContent: true,
+      body: [
+        "Todos os drivers medidos neste ciclo melhoraram de nível de risco — nenhum fica de fora " +
+          "desta honestidade porque não havia nada difícil a relatar.",
+      ],
+    };
+  }
+  return {
+    id: "nao_vitorias",
+    title: "4. Onde ainda estamos trabalhando",
+    hasContent: true,
+    body: [
+      `${notImproved.length} driver(es) ainda não mostraram melhora de nível de risco entre os ` +
+        "ciclos medidos — registrado com a mesma dignidade das vitórias. Atividade sem prova não é " +
+        "evidência, mas isto também não é fracasso: é o próximo ciclo de trabalho.",
+    ],
+    table: {
+      headers: ["Driver", "Camada", "Primeiro ciclo", "Último ciclo", "Tendência"],
+      rows: notImproved.map((d) => [d.label, d.macroLayer, String(d.firstLoad), String(d.lastLoad), d.trend]),
+    },
+  };
+}
+
 function buildVictoriesChapter(input: CycleBookInput): CycleBookChapter {
   if (input.victories.length === 0) {
     return {
@@ -193,7 +230,7 @@ function buildEsgChapter(input: CycleBookInput): CycleBookChapter {
   if (input.esgSnapshots.length === 0) {
     return {
       id: "esg",
-      title: "4. A prova para fora (ESG)",
+      title: "5. A prova para fora (ESG)",
       hasContent: false,
       body: [
         "Nenhum snapshot ESG imutável foi gerado ainda. O Dossiê ESG Auditável (Relatório Global) " +
@@ -203,7 +240,7 @@ function buildEsgChapter(input: CycleBookInput): CycleBookChapter {
   }
   return {
     id: "esg",
-    title: "4. A prova para fora (ESG)",
+    title: "5. A prova para fora (ESG)",
     hasContent: true,
     body: [`${input.esgSnapshots.length} snapshot(s) ESG imutável(is) gerado(s).`],
     table: {
@@ -218,14 +255,14 @@ function buildPlanChapter(input: CycleBookInput): CycleBookChapter {
   if (!p) {
     return {
       id: "plano",
-      title: "5. O plano em curso",
+      title: "6. O plano em curso",
       hasContent: false,
       body: ["Nenhum Plano Vivo ativo no momento."],
     };
   }
   return {
     id: "plano",
-    title: "5. O plano em curso",
+    title: "6. O plano em curso",
     hasContent: true,
     body: [
       `Temporada "${p.seasonName}": ${p.totalActions} ação(ões), ${p.compliancePct}% com dono+prazo+métrica ` +
@@ -239,7 +276,7 @@ function buildEfficacyChapter(input: CycleBookInput): CycleBookChapter | null {
   if (!eff || eff.withSourceMeasure === 0) return null;
   return {
     id: "eficacia",
-    title: "6. Eficácia honesta",
+    title: "7. Eficácia honesta",
     hasContent: true,
     body: [
       `Dos ${eff.withSourceMeasure} driver(es) com medida de fonte implementada, ${eff.maintained} ` +
@@ -249,16 +286,44 @@ function buildEfficacyChapter(input: CycleBookInput): CycleBookChapter | null {
   };
 }
 
+/**
+ * "Capítulo de limitações obrigatório; nada sem fonte computada" (I-E3, spec verbatim).
+ * Sempre presente, sempre por último — declara o que este Livro NÃO é, e o que ainda não
+ * tem pipeline de dado real (honestidade sobre o próprio blueprint: FIB-T e Selo Empresa
+ * Viva são citados no blueprint original, mas não têm computação real por organização
+ * hoje — aparecerão quando tiverem, nunca antes disso).
+ */
+function buildLimitationsChapter(): CycleBookChapter {
+  return {
+    id: "limitacoes",
+    title: "Limitações deste Livro",
+    hasContent: true,
+    body: [
+      "Este Livro reúne só o que já é real e computado nesta organização — nada é estimado para " +
+        "preencher uma lacuna.",
+      "Associações entre medidas do Plano Vivo e queda de exposição são orientativas: sem grupo de " +
+        "controle, é correlação, nunca prova de causalidade.",
+      "Toda leitura agregada respeita k-anonimato ≥ 5 — nenhum recorte menor aparece, mesmo quando " +
+        "existiria um número a mostrar.",
+      "O escopo real hoje é o instrumento COPSOQ (Domínio B, exposição psicossocial NR-01). Outras " +
+        "lentes do blueprint original (FIB-T, Selo Empresa Viva) ainda não têm pipeline de dado real " +
+        "equivalente por organização — entrarão neste Livro quando tiverem, nunca antes.",
+    ],
+  };
+}
+
 export function buildCycleBook(input: CycleBookInput): CycleBookDocument {
   const chapters = [
     buildMeasurementChapter(input),
     buildEvolutionChapter(input),
     buildVictoriesChapter(input),
-    buildEsgChapter(input),
-    buildPlanChapter(input),
   ];
+  const nonVictoriesChapter = buildNonVictoriesChapter(input);
+  if (nonVictoriesChapter) chapters.push(nonVictoriesChapter);
+  chapters.push(buildEsgChapter(input), buildPlanChapter(input));
   const efficacyChapter = buildEfficacyChapter(input);
   if (efficacyChapter) chapters.push(efficacyChapter);
+  chapters.push(buildLimitationsChapter());
 
   return {
     meta: input.meta,
