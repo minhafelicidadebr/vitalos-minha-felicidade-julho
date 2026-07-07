@@ -255,6 +255,12 @@
       "group": "estrategico"
     },
     {
+      "id": "lupa_da_escuta",
+      "label": "Lupa da Escuta",
+      "roles": ["CHRO", "C_LEVEL", "HOLDING_ADMIN", "RH_ADMIN"],
+      "group": "estrategico"
+    },
+    {
       "id": "viat",
       "label": "Mapa de Forças",
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"],

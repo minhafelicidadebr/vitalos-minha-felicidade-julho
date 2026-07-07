@@ -9,7 +9,7 @@
 // (routes/responder.tsx) sem <Outlet/>, e aninhar um filho ali nunca renderiza.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useId, useEffect } from "react";
+import { useState, useId, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, ShieldCheck, Users, Loader2 } from "lucide-react";
 import { getWaveSurvey } from "@/mocks/survey-mock";
@@ -27,6 +27,7 @@ import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions
 import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
+import { recordSurveyFunnelSnapshot } from "@/lib/api/survey-telemetry.functions";
 
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -92,6 +93,40 @@ function SurveyFlow({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Lupa da Escuta (I-M7): telemetria k-anon, sem token, sem identidade — mede a
+  // qualidade do INSTRUMENTO, nunca a pessoa. sessionStartRef/itemTimingsRef vivem
+  // só no cliente até o snapshot ser enviado; nada disto é persistido com identidade.
+  const sessionStartRef = useRef(Date.now());
+  const itemTimingsRef = useRef<Record<string, number>>({});
+  const funnelSentRef = useRef(false);
+
+  function sendFunnelSnapshot(completed: boolean) {
+    recordSurveyFunnelSnapshot({
+      data: {
+        packId: PILOT_PACK_ID,
+        instrument: survey.instrumentShort,
+        totalItems: survey.items.length,
+        completed,
+        elapsedMs: Date.now() - sessionStartRef.current,
+        itemTimingsMs: itemTimingsRef.current,
+      },
+    }).catch(() => {});
+  }
+
+  // Captura best-effort de abandono: dispara no MÁXIMO uma vez por sessão quando a
+  // aba é ocultada antes do envio. Não é garantido (fechar a aba sem trocar de aba
+  // primeiro pode não disparar) — documentado como limitação honesta, não promessa.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState !== "hidden" || funnelSentRef.current) return;
+      funnelSentRef.current = true;
+      sendFunnelSnapshot(false);
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const progress = surveyProgress(survey.items, responses);
   const allAnswered = progress.answered === progress.total;
 
@@ -119,6 +154,8 @@ function SurveyFlow({
 
       if (result?.accepted) {
         setSubmitted(true);
+        funnelSentRef.current = true;
+        sendFunnelSnapshot(true);
         // Dispara agregação server-side sem bloquear a confirmação da UI.
         // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda.
         checkAndAggregateByToken({ data: { token } }).catch(() => {});
@@ -196,7 +233,12 @@ function SurveyFlow({
               index={idx}
               scale={survey.scale}
               value={responses[item.id] as SurveyValue | undefined}
-              onChange={(v) => setResponses((prev) => ({ ...prev, [item.id]: v }))}
+              onChange={(v) => {
+                if (responses[item.id] === undefined) {
+                  itemTimingsRef.current[item.id] = Date.now() - sessionStartRef.current;
+                }
+                setResponses((prev) => ({ ...prev, [item.id]: v }));
+              }}
             />
           ))}
         </div>

@@ -378,6 +378,44 @@ KPI real (onda, cápsula, n, fórmula), permitir declarar materialidade por
 tema, mostrar as 5 regras F3 com status ao vivo, e "Gerar snapshot imutável"
 deve gravar uma linha nova a cada clique (nunca substituir a anterior).
 
+## A Lupa da Escuta — telemetria k-anon do funil de resposta (I-M7)
+
+`supabase/migrations/20260706130000_item_funnel_events.sql` — 1 tabela
+(`item_funnel_events`) + 1 RPC (`record_item_funnel_event`), INSERT-only,
+**sem token, sem identidade, sem org_id** — deliberadamente cross-tenant
+(mede a qualidade do INSTRUMENTO para toda a base, não um recorte por
+cliente). Nenhuma policy de SELECT para `anon`/`authenticated`; leitura
+agregada só via `service_role` (`survey-telemetry.server.ts`), sempre com
+corte k-anonimato ≥ 5 aplicado dentro do engine puro
+(`survey-telemetry-engine.ts`) antes de qualquer leitura.
+
+**Adaptação registrada (Fable5 §8):** o blueprint original imaginava um
+funil sequencial "página por item". O fluxo real (`/convite/$token`) é um
+formulário de PÁGINA ÚNICA — todos os itens visíveis ao mesmo tempo. A
+telemetria foi adaptada honestamente: cada item guarda o timestamp da
+PRIMEIRA resposta (não uma "tela vista"), e "chegou ao item X" significa
+"respondeu o item X". O tempo incremental entre itens é correlação com a
+ordem declarada do instrumento, não uma sequência estritamente observada —
+o disclaimer do resultado deixa isso explícito.
+
+**Captura no cliente:** `/convite/$token` grava um snapshot ao ENVIAR
+(`completed: true`, sempre disparado) e, best-effort, quando a aba é
+ocultada antes do envio (`completed: false`, via `visibilitychange` — não é
+garantido, é a captura possível sem instrumentação mais invasiva). Os
+outros 3 fluxos de resposta (`/responder` demo, `/respond.s/$token`,
+`/quiosque`) NÃO foram instrumentados nesta v1 — não têm um componente de
+item compartilhado (cada um define sua própria renderização), e
+`/quiosque` tem uma arquitetura de índice fundamentalmente diferente
+(pulses agregados, não itens de instrumento). Extensão futura, escopo
+declarado.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. A rota nova
+`/lupa-da-escuta` (aberta, sem RBAC — mesmo modelo de `/benchmark`) mostra
+"Amostra protegida" até existirem ≥5 sessões reais respondendo o mesmo
+pack+instrumento; depois disso, mostra por item: % que respondeu, queda
+relativa ao item anterior, tempo típico entre itens, e um selo "Carga alta"
+quando um item consome ≥3× o tempo típico do instrumento.
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -403,6 +441,7 @@ deve gravar uma linha nova a cada clique (nunca substituir a anterior).
 13. `20260706100000_esg_report_snapshots.sql` (Dossiê ESG Auditável, I-E1)
 14. `20260706110000_personal_assessments.sql` (Espelho Vivo real, I-M3/I-M5)
 15. `20260706120000_victory_records.sql` (Ata de Vitória, I-E2/I-E4)
+16. `20260706130000_item_funnel_events.sql` (Lupa da Escuta, I-M7)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
