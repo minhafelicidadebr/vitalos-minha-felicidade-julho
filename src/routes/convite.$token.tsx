@@ -9,9 +9,9 @@
 // (routes/responder.tsx) sem <Outlet/>, e aninhar um filho ali nunca renderiza.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useId, useEffect, useRef } from "react";
+import { useState, useId, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, ShieldCheck, Users, Loader2 } from "lucide-react";
+import { CheckCircle, ShieldCheck, Smartphone, Users, Loader2 } from "lucide-react";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import {
   surveyProgress,
@@ -22,12 +22,20 @@ import {
   type SurveyValue,
   type SurveyScale,
 } from "@/engine/survey/survey-engine";
+import {
+  draftStorageKey,
+  instrumentSignatureFor,
+  buildDraftPayload,
+  validateDraft,
+  estimateRemainingLabel,
+  type DraftPayload,
+} from "@/engine/survey/survey-draft-engine";
 import { submitSurveyResponses } from "@/lib/api/survey.functions";
 import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions";
 import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
-import { recordSurveyFunnelSnapshot } from "@/lib/api/survey-telemetry.functions";
+import { recordSurveyFunnelSnapshot, loadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
 
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -92,6 +100,7 @@ function SurveyFlow({
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   // Lupa da Escuta (I-M7): telemetria k-anon, sem token, sem identidade — mede a
   // qualidade do INSTRUMENTO, nunca a pessoa. sessionStartRef/itemTimingsRef vivem
@@ -99,6 +108,66 @@ function SurveyFlow({
   const sessionStartRef = useRef(Date.now());
   const itemTimingsRef = useRef<Record<string, number>>({});
   const funnelSentRef = useRef(false);
+
+  // Travessia Leve (I-M1): rascunho SÓ NESTE APARELHO (localStorage), nunca no
+  // servidor — a resposta não se perde numa queda de conexão. Chave derivada de
+  // hash do token; invalidado se o instrumento mudar de forma ou passar o TTL.
+  const itemIds = useMemo(() => survey.items.map((i) => i.id), [survey.items]);
+  const instrumentSignature = useMemo(() => instrumentSignatureFor(itemIds), [itemIds]);
+  const draftKey = useMemo(() => draftStorageKey(token), [token]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const payload = JSON.parse(raw) as DraftPayload;
+      const validity = validateDraft(payload, instrumentSignature, Date.now());
+      if (validity === "valid") {
+        setResponses(payload.responses as SurveyResponses);
+        setDraftRestored(true);
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {
+      // localStorage indisponível (modo privado, quota, SSR) — degrada silenciosamente.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(responses).length === 0) return; // nunca sobrescreve com vazio (evitaria apagar um rascunho ao montar)
+    try {
+      const payload = buildDraftPayload(responses as Record<string, number>, instrumentSignature, Date.now());
+      localStorage.setItem(draftKey, JSON.stringify(payload));
+    } catch {
+      // quota excedida ou indisponível — degrada silenciosamente, o envio final continua funcionando.
+    }
+  }, [responses, instrumentSignature, draftKey]);
+
+  // Tempo restante honesto, alimentado pela Lupa da Escuta (I-M7) quando há telemetria
+  // real; cai para uma estimativa genérica declarada como tal quando ainda não há.
+  const [funnelStats, setFunnelStats] = useState<{
+    medianByItem: Record<string, number> | null;
+    overallMedianMs: number | null;
+  }>({ medianByItem: null, overallMedianMs: null });
+
+  useEffect(() => {
+    let active = true;
+    loadSurveyFunnelResult({ data: { packId: PILOT_PACK_ID, instrument: survey.instrumentShort } })
+      .then((r) => {
+        if (!active || !r.cloudReady || !r.funnel.ok) return;
+        const medianByItem: Record<string, number> = {};
+        for (const item of r.funnel.items) {
+          if (item.medianDeltaMs !== null) medianByItem[item.itemId] = item.medianDeltaMs;
+        }
+        setFunnelStats({ medianByItem, overallMedianMs: r.funnel.overallMedianDeltaMs });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function sendFunnelSnapshot(completed: boolean) {
     recordSurveyFunnelSnapshot({
@@ -129,6 +198,12 @@ function SurveyFlow({
 
   const progress = surveyProgress(survey.items, responses);
   const allAnswered = progress.answered === progress.total;
+  const timeRemainingLabel = estimateRemainingLabel({
+    itemIds,
+    answeredCount: progress.answered,
+    medianDeltaMsByItem: funnelStats.medianByItem,
+    overallMedianDeltaMs: funnelStats.overallMedianMs,
+  });
 
   async function handleSubmit() {
     if (!allAnswered || submitting) return;
@@ -156,6 +231,11 @@ function SurveyFlow({
         setSubmitted(true);
         funnelSentRef.current = true;
         sendFunnelSnapshot(true);
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {
+          // indisponível — sem risco, o rascunho expira sozinho pelo TTL.
+        }
         // Dispara agregação server-side sem bloquear a confirmação da UI.
         // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda.
         checkAndAggregateByToken({ data: { token } }).catch(() => {});
@@ -182,11 +262,28 @@ function SurveyFlow({
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
           <p className="font-serif text-sm font-semibold text-foreground">4 Lentes VitalOS™</p>
-          <ProgressPill answered={progress.answered} total={progress.total} />
+          <div className="flex flex-col items-end gap-0.5">
+            <ProgressPill answered={progress.answered} total={progress.total} />
+            {progress.answered > 0 && (
+              <span className="text-[10px] text-muted-foreground">{timeRemainingLabel}</span>
+            )}
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-8 px-4 py-8 sm:px-6">
+        {/* Travessia Leve (I-M1): banner honesto — nunca escondido, nunca vago. */}
+        {Object.keys(responses).length > 0 && (
+          <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+            <Smartphone className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>
+              {draftRestored
+                ? "Continuando de onde você parou — rascunho salvo só neste aparelho."
+                : "Rascunho salvo só neste aparelho."}
+            </span>
+          </div>
+        )}
+
         {/* Apresentação usando campos reais do SurveyDefinition */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
