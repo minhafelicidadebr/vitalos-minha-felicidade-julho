@@ -8,10 +8,10 @@
 // "/responder" — "/responder" já é uma rota de demo interna pack-aware
 // (routes/responder.tsx) sem <Outlet/>, e aninhar um filho ali nunca renderiza.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useId, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, ShieldCheck, Smartphone, Users, Loader2 } from "lucide-react";
+import { CheckCircle, Sparkles, ShieldCheck, Smartphone, Users, Loader2 } from "lucide-react";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import {
   surveyProgress,
@@ -30,6 +30,7 @@ import {
   estimateRemainingLabel,
   type DraftPayload,
 } from "@/engine/survey/survey-draft-engine";
+import { buildReceiptJourney, type AggregationOutcome, type ReceiptJourney } from "@/engine/survey/receipt-journey-engine";
 import { submitSurveyResponses } from "@/lib/api/survey.functions";
 import { checkAndAggregateByToken } from "@/lib/api/capsule-aggregator.functions";
 import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
@@ -101,6 +102,9 @@ function SurveyFlow({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  // Recibo Vivo (I-M2): `null` enquanto o resultado da agregação ainda não é
+  // conhecido — o engine (receipt-journey-engine) nunca inventa um número nesse caso.
+  const [aggregationOutcome, setAggregationOutcome] = useState<AggregationOutcome | null>(null);
 
   // Lupa da Escuta (I-M7): telemetria k-anon, sem token, sem identidade — mede a
   // qualidade do INSTRUMENTO, nunca a pessoa. sessionStartRef/itemTimingsRef vivem
@@ -237,8 +241,18 @@ function SurveyFlow({
           // indisponível — sem risco, o rascunho expira sozinho pelo TTL.
         }
         // Dispara agregação server-side sem bloquear a confirmação da UI.
-        // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda.
-        checkAndAggregateByToken({ data: { token } }).catch(() => {});
+        // Se n≥5 e ainda não houve capsule, o engine agrega e sela a onda. O
+        // resultado (sempre agregado — nunca identifica esta contribuição) alimenta
+        // a linha do tempo do Recibo Vivo (I-M2).
+        checkAndAggregateByToken({ data: { token } })
+          .then((r) => {
+            setAggregationOutcome(
+              r.triggered
+                ? { triggered: true, participantCount: r.participantCount }
+                : { triggered: false, count: r.count },
+            );
+          })
+          .catch(() => {});
       } else {
         setError(
           (result && CAPTURE_ERROR_COPY[result.reason]) ??
@@ -253,7 +267,7 @@ function SurveyFlow({
   }
 
   if (submitted) {
-    return <ConfirmationScreen />;
+    return <ConfirmationScreen journey={buildReceiptJourney({ aggregation: aggregationOutcome })} />;
   }
 
   return (
@@ -461,9 +475,9 @@ function ProgressPill({ answered, total }: { answered: number; total: number }) 
 
 // ─── Tela de confirmação ──────────────────────────────────────────────────────
 
-function ConfirmationScreen() {
+function ConfirmationScreen({ journey }: { journey: ReceiptJourney }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -476,16 +490,48 @@ function ConfirmationScreen() {
         <h1 className="font-serif text-2xl text-foreground">
           Obrigado — sua contribuição está protegida.
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Os resultados só aparecem quando{" "}
-          <span className="font-medium text-foreground">5+ pessoas</span>{" "}
-          responderem.
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{journey.reciprocityLine}</p>
+
+        <ol className="mt-8 space-y-3 text-left">
+          {journey.steps.map((step) => (
+            <li key={step.id} className="flex items-center gap-3">
+              <span
+                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                  step.done ? "bg-primary text-primary-foreground" : "border border-border/70 bg-transparent"
+                }`}
+              >
+                {step.done && <CheckCircle className="h-3.5 w-3.5" strokeWidth={2.5} />}
+              </span>
+              <span className={`text-sm ${step.done ? "text-foreground" : "text-muted-foreground"}`}>
+                {step.label}
+              </span>
+            </li>
+          ))}
+        </ol>
+
         <div className="mt-6 flex justify-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
           <p className="text-xs text-muted-foreground">
             Resposta anônima · Não há como identificar você
           </p>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 text-left">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <p className="text-xs font-medium uppercase tracking-[0.1em] text-primary">Os Dois Trilhos</p>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Suas respostas desta onda são anônimas e nunca viram um perfil seu — o banco não
+            tem onde guardar isso. Se você quiser ver o SEU espelho, existe outro caminho: seu,
+            opcional, identificado.
+          </p>
+          <Link
+            to="/espelho"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            Ver meu espelho pessoal →
+          </Link>
         </div>
       </motion.div>
     </div>
