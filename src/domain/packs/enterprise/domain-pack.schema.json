@@ -368,6 +368,17 @@
             }
           }
         },
+        "credentials": {
+          "type": "object",
+          "required": ["credentialTitle", "issuerName", "disclaimer"],
+          "properties": {
+            "credentialTitle": { "type": "string", "minLength": 1 },
+            "issuerName": { "type": "string", "minLength": 1 },
+            "disclaimer": {
+              "const": "Documento educativo de reconhecimento de aprendizagem. Não constitui capacitação legal, habilitação profissional ou certificação exigida por norma."
+            }
+          }
+        },
         "vitrine": {
           "type": "object",
           "required": ["categories", "collectiveOffers", "portaAberta", "rules"],

@@ -65,6 +65,7 @@ import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
 import { Route as EmbaixadorRouteImport } from './routes/embaixador'
 import { Route as DriversRouteImport } from './routes/drivers'
+import { Route as DiplomaRouteImport } from './routes/diploma'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
@@ -365,6 +366,11 @@ const DriversRoute = DriversRouteImport.update({
   path: '/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiplomaRoute = DiplomaRouteImport.update({
+  id: '/diploma',
+  path: '/diploma',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
   id: '/devolutiva',
   path: '/devolutiva',
@@ -476,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/diploma': typeof DiplomaRoute
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/diploma': typeof DiplomaRoute
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/copiloto': typeof CopilotoRoute
   '/design-system': typeof DesignSystemRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/diploma': typeof DiplomaRoute
   '/drivers': typeof DriversRoute
   '/embaixador': typeof EmbaixadorRoute
   '/embaixadorias': typeof EmbaixadoriasRoute
@@ -710,6 +719,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/diploma'
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
@@ -787,6 +797,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/diploma'
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
@@ -864,6 +875,7 @@ export interface FileRouteTypes {
     | '/copiloto'
     | '/design-system'
     | '/devolutiva'
+    | '/diploma'
     | '/drivers'
     | '/embaixador'
     | '/embaixadorias'
@@ -942,6 +954,7 @@ export interface RootRouteChildren {
   CopilotoRoute: typeof CopilotoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  DiplomaRoute: typeof DiplomaRoute
   DriversRoute: typeof DriversRoute
   EmbaixadorRoute: typeof EmbaixadorRoute
   EmbaixadoriasRoute: typeof EmbaixadoriasRoute
@@ -1399,6 +1412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diploma': {
+      id: '/diploma'
+      path: '/diploma'
+      fullPath: '/diploma'
+      preLoaderRoute: typeof DiplomaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devolutiva': {
       id: '/devolutiva'
       path: '/devolutiva'
@@ -1550,6 +1570,7 @@ const rootRouteChildren: RootRouteChildren = {
   CopilotoRoute: CopilotoRoute,
   DesignSystemRoute: DesignSystemRoute,
   DevolutivaRoute: DevolutivaRoute,
+  DiplomaRoute: DiplomaRoute,
   DriversRoute: DriversRoute,
   EmbaixadorRoute: EmbaixadorRoute,
   EmbaixadoriasRoute: EmbaixadoriasRoute,

@@ -77,6 +77,11 @@ interface EconomyShape {
     collectiveOffers?: Array<Record<string, unknown>>;
     portaAberta?: { id?: string; title?: string; description?: string; howToAccess?: string };
   };
+  credentials?: {
+    credentialTitle?: string;
+    issuerName?: string;
+    disclaimer?: string;
+  };
 }
 
 export interface ParticipationLedgerConfig {
@@ -217,6 +222,25 @@ export function getSeedPools(economy: GamificationEconomy): SeedPoolDef[] {
     channel: (pool.channel === "cause" ? "cause" : "team") as SeedPoolDef["channel"],
     target: typeof pool.target === "number" ? pool.target : undefined,
   }));
+}
+
+export interface CredentialsConfig {
+  credentialTitle: string;
+  issuerName: string;
+  /** Disclaimer verbatim do verso — obrigatório no schema, nunca omitido do documento. */
+  disclaimer: string;
+}
+
+/** null quando o pack não declara credenciais — a UI esconde o Diploma Vivo inteiro. */
+export function getCredentialsConfig(economy: GamificationEconomy): CredentialsConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.credentials;
+  if (!config?.credentialTitle || !config.issuerName || !config.disclaimer) return null;
+  return {
+    credentialTitle: config.credentialTitle,
+    issuerName: config.issuerName,
+    disclaimer: config.disclaimer,
+  };
 }
 
 export interface VitrineCategoryDef {

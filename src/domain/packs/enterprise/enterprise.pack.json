@@ -349,6 +349,20 @@
       "group": "gestao"
     },
     {
+      "id": "diploma",
+      "label": "Diploma Vivo",
+      "roles": [
+        "COLABORADOR",
+        "EMBAIXADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "HOLDING_ADMIN"
+      ],
+      "group": "gestao"
+    },
+    {
       "id": "living_map",
       "label": "Mapa Vivo",
       "roles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE"],

@@ -328,6 +328,11 @@
       "donor_name_optin_per_gift"
     ]
   },
+  "credentials": {
+    "credentialTitle": "Diploma Vivo",
+    "issuerName": "4 Lentes VitalOS™ · Academia do Florescimento",
+    "disclaimer": "Documento educativo de reconhecimento de aprendizagem. Não constitui capacitação legal, habilitação profissional ou certificação exigida por norma."
+  },
   "vitrine": {
     "categories": [
       { "id": "cultural", "label": "Cultural" },
