@@ -13,6 +13,7 @@ import type {
   SeedEconomyPolicy,
   SeedPoolDef,
 } from "../recognition/seed-economy-engine";
+import { defineOffer, type InstitutionalOffer, type PortaAbertaResource } from "../vitrine/vitrine-offer-engine";
 
 export interface MissionDef {
   id: string;
@@ -70,6 +71,11 @@ interface EconomyShape {
     kAnonymityMin?: number;
     catalog?: Array<Record<string, unknown>>;
     pools?: Array<Record<string, unknown>>;
+  };
+  vitrine?: {
+    categories?: Array<{ id?: string; label?: string }>;
+    collectiveOffers?: Array<Record<string, unknown>>;
+    portaAberta?: { id?: string; title?: string; description?: string; howToAccess?: string };
   };
 }
 
@@ -211,4 +217,53 @@ export function getSeedPools(economy: GamificationEconomy): SeedPoolDef[] {
     channel: (pool.channel === "cause" ? "cause" : "team") as SeedPoolDef["channel"],
     target: typeof pool.target === "number" ? pool.target : undefined,
   }));
+}
+
+export interface VitrineCategoryDef {
+  id: string;
+  label: string;
+}
+
+export interface VitrineConfig {
+  categories: VitrineCategoryDef[];
+  offers: InstitutionalOffer[];
+  portaAberta: PortaAbertaResource;
+}
+
+/** null quando o pack não declara a Vitrine — a UI esconde a seção inteira. */
+export function getVitrineConfig(economy: GamificationEconomy): VitrineConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.vitrine;
+  if (!config?.portaAberta || !config.collectiveOffers) return null;
+
+  const offers: InstitutionalOffer[] = [];
+  for (const raw of config.collectiveOffers) {
+    // defineOffer valida de novo aqui (pack é JSON solto, sem tipos do TS protegendo) — uma
+    // oferta malformada é OMITIDA, nunca aceita por acidente sem contrapartida/categoria válida.
+    const result = defineOffer({
+      id: String(raw.id),
+      category: String(raw.category),
+      title: String(raw.title ?? ""),
+      description: String(raw.description ?? ""),
+      provider: raw.provider === "partner" ? "partner" : "institution",
+      accessMode: (raw.accessMode as InstitutionalOffer["accessMode"]) ?? "collective",
+      mirroredPledge: String(raw.mirroredPledge ?? ""),
+      capacity: typeof raw.capacity === "number" ? raw.capacity : undefined,
+    });
+    if (result.ok) offers.push(result.offer);
+  }
+
+  return {
+    categories: (config.categories ?? []).map((c) => ({
+      id: String(c.id),
+      label: String(c.label ?? c.id),
+    })),
+    offers,
+    portaAberta: {
+      id: String(config.portaAberta.id),
+      title: String(config.portaAberta.title ?? "Porta Aberta"),
+      description: String(config.portaAberta.description ?? ""),
+      howToAccess: String(config.portaAberta.howToAccess ?? ""),
+    },
+  };
 }

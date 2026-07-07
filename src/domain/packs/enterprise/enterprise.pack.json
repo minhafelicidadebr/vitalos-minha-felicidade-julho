@@ -186,6 +186,12 @@
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"],
       "group": "agir"
     },
+    {
+      "id": "vitrine",
+      "label": "Vitrine do Bem-Comum",
+      "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN"],
+      "group": "agir"
+    },
 
     {
       "id": "impact",

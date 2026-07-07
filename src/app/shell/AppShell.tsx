@@ -55,6 +55,7 @@ const NAV_ROUTES: Record<string, string> = {
   drivers: "/drivers",
   missions: "/missoes",
   recognition: "/reconhecimento",
+  vitrine: "/vitrine",
   access: "/acesso",
   data_pipeline: "/pipeline-dados",
   ambassadorships: "/embaixadorias",
@@ -181,6 +182,7 @@ const NAV_GROUPS: NavGroupDef[] = [
       "copilot",
       "missions",
       "recognition",
+      "vitrine",
     ],
   },
   {

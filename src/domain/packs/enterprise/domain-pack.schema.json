@@ -367,6 +367,60 @@
               ]
             }
           }
+        },
+        "vitrine": {
+          "type": "object",
+          "required": ["categories", "collectiveOffers", "portaAberta", "rules"],
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "label"],
+                "properties": {
+                  "id": { "enum": ["cultural", "educacional", "entretenimento", "comunitario"] },
+                  "label": { "type": "string" }
+                }
+              }
+            },
+            "collectiveOffers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "category", "title", "description", "provider", "accessMode", "mirroredPledge"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "category": { "enum": ["cultural", "educacional", "entretenimento", "comunitario"] },
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "provider": { "enum": ["institution", "partner"] },
+                  "accessMode": { "enum": ["collective", "lottery", "rotation", "universal_unlock"] },
+                  "mirroredPledge": { "type": "string", "minLength": 1 },
+                  "capacity": { "type": "number", "minimum": 1 }
+                }
+              }
+            },
+            "portaAberta": {
+              "type": "object",
+              "required": ["id", "title", "description", "howToAccess"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "howToAccess": { "type": "string" }
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": { "type": "string" },
+              "allOf": [
+                { "contains": { "const": "eligibility_never_reads_merit_or_balance" } },
+                { "contains": { "const": "care_is_a_right_not_a_reward" } },
+                { "contains": { "const": "platform_never_intermediates_money" } },
+                { "contains": { "const": "every_individual_offer_mirrors_collective" } }
+              ]
+            }
+          }
         }
       }
     }

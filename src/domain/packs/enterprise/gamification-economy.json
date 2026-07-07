@@ -328,6 +328,59 @@
       "donor_name_optin_per_gift"
     ]
   },
+  "vitrine": {
+    "categories": [
+      { "id": "cultural", "label": "Cultural" },
+      { "id": "educacional", "label": "Educacional" },
+      { "id": "entretenimento", "label": "Entretenimento" },
+      { "id": "comunitario", "label": "Comunitário" }
+    ],
+    "collectiveOffers": [
+      {
+        "id": "of_ingressos_museu",
+        "category": "cultural",
+        "title": "Ingressos para o museu da cidade",
+        "description": "Quando o Bosque do Bem-Comum atinge a meta do ciclo, a empresa libera uma Ciranda de ingressos culturais.",
+        "provider": "institution",
+        "accessMode": "lottery",
+        "mirroredPledge": "A cada resgate, a empresa doa 1 ingresso equivalente ao Bosque do Bem-Comum.",
+        "capacity": 4
+      },
+      {
+        "id": "of_vale_cursos_livros",
+        "category": "educacional",
+        "title": "Vale para cursos e livros",
+        "description": "Um vale-formação sorteado entre quem participou do ciclo.",
+        "provider": "institution",
+        "accessMode": "lottery",
+        "mirroredPledge": "A cada resgate, a empresa financia 1 vaga equivalente num curso comunitário parceiro.",
+        "capacity": 2
+      },
+      {
+        "id": "of_dia_voluntariado",
+        "category": "comunitario",
+        "title": "Dia de voluntariado remunerado",
+        "description": "Um dia de trabalho remunerado dedicado a uma causa escolhida pela pessoa, quando o ciclo atinge o marco coletivo.",
+        "provider": "institution",
+        "accessMode": "universal_unlock",
+        "mirroredPledge": "Cada dia de voluntariado individual soma horas ao compromisso de cidadania corporativa do ciclo."
+      }
+    ],
+    "portaAberta": {
+      "id": "porta_aberta_saude_mental",
+      "title": "Porta Aberta",
+      "description": "Apoio à saúde mental não é prêmio nem depende de sorteio, participação ou desempenho — é um direito de acesso universal deste programa, sempre disponível.",
+      "howToAccess": "Fale com o RH ou acesse o canal de apoio psicológico da empresa a qualquer momento."
+    },
+    "rules": [
+      "eligibility_never_reads_merit_or_balance",
+      "care_is_a_right_not_a_reward",
+      "platform_never_intermediates_money",
+      "every_individual_offer_mirrors_collective",
+      "never_survey_response_as_lottery_entry",
+      "winner_public_only_with_consent"
+    ]
+  },
   "nudgeLibrarySeed": [
     {
       "id": "n_pausa_timely",

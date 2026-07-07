@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as ViatRouteImport } from './routes/viat'
 import { Route as TrajetoriaRouteImport } from './routes/trajetoria'
 import { Route as TemporadaRouteImport } from './routes/temporada'
@@ -42,6 +43,8 @@ import { Route as Nr1RouteImport } from './routes/nr1'
 import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as MatrizRouteImport } from './routes/matriz'
+import { Route as LupaDaEscutaRouteImport } from './routes/lupa-da-escuta'
+import { Route as LivroDoCicloRouteImport } from './routes/livro-do-ciclo'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LabRouteImport } from './routes/lab'
@@ -82,6 +85,11 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
+const VitrineRoute = VitrineRouteImport.update({
+  id: '/vitrine',
+  path: '/vitrine',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViatRoute = ViatRouteImport.update({
   id: '/viat',
   path: '/viat',
@@ -245,6 +253,16 @@ const MetodologiaRoute = MetodologiaRouteImport.update({
 const MatrizRoute = MatrizRouteImport.update({
   id: '/matriz',
   path: '/matriz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LupaDaEscutaRoute = LupaDaEscutaRouteImport.update({
+  id: '/lupa-da-escuta',
+  path: '/lupa-da-escuta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LivroDoCicloRoute = LivroDoCicloRouteImport.update({
+  id: '/livro-do-ciclo',
+  path: '/livro-do-ciclo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiderRoute = LiderRouteImport.update({
@@ -478,6 +496,8 @@ export interface FileRoutesByFullPath {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
@@ -511,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/vitrine': typeof VitrineRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -552,6 +573,8 @@ export interface FileRoutesByTo {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
@@ -585,6 +608,7 @@ export interface FileRoutesByTo {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/vitrine': typeof VitrineRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -627,6 +651,8 @@ export interface FileRoutesById {
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
+  '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
   '/missoes': typeof MissoesRoute
@@ -660,6 +686,7 @@ export interface FileRoutesById {
   '/temporada': typeof TemporadaRoute
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
+  '/vitrine': typeof VitrineRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -703,6 +730,8 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/livro-do-ciclo'
+    | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
     | '/missoes'
@@ -736,6 +765,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/vitrine'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -777,6 +807,8 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/livro-do-ciclo'
+    | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
     | '/missoes'
@@ -810,6 +842,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/vitrine'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -851,6 +884,8 @@ export interface FileRouteTypes {
     | '/lab'
     | '/landing'
     | '/lider'
+    | '/livro-do-ciclo'
+    | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
     | '/missoes'
@@ -884,6 +919,7 @@ export interface FileRouteTypes {
     | '/temporada'
     | '/trajetoria'
     | '/viat'
+    | '/vitrine'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -926,6 +962,8 @@ export interface RootRouteChildren {
   LabRoute: typeof LabRoute
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
+  LivroDoCicloRoute: typeof LivroDoCicloRoute
+  LupaDaEscutaRoute: typeof LupaDaEscutaRoute
   MatrizRoute: typeof MatrizRoute
   MetodologiaRoute: typeof MetodologiaRoute
   MissoesRoute: typeof MissoesRoute
@@ -959,6 +997,7 @@ export interface RootRouteChildren {
   TemporadaRoute: typeof TemporadaRoute
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
+  VitrineRoute: typeof VitrineRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
@@ -968,6 +1007,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vitrine': {
+      id: '/vitrine'
+      path: '/vitrine'
+      fullPath: '/vitrine'
+      preLoaderRoute: typeof VitrineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/viat': {
       id: '/viat'
       path: '/viat'
@@ -1197,6 +1243,20 @@ declare module '@tanstack/react-router' {
       path: '/matriz'
       fullPath: '/matriz'
       preLoaderRoute: typeof MatrizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lupa-da-escuta': {
+      id: '/lupa-da-escuta'
+      path: '/lupa-da-escuta'
+      fullPath: '/lupa-da-escuta'
+      preLoaderRoute: typeof LupaDaEscutaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/livro-do-ciclo': {
+      id: '/livro-do-ciclo'
+      path: '/livro-do-ciclo'
+      fullPath: '/livro-do-ciclo'
+      preLoaderRoute: typeof LivroDoCicloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lider': {
@@ -1510,6 +1570,8 @@ const rootRouteChildren: RootRouteChildren = {
   LabRoute: LabRoute,
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
+  LivroDoCicloRoute: LivroDoCicloRoute,
+  LupaDaEscutaRoute: LupaDaEscutaRoute,
   MatrizRoute: MatrizRoute,
   MetodologiaRoute: MetodologiaRoute,
   MissoesRoute: MissoesRoute,
@@ -1543,6 +1605,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemporadaRoute: TemporadaRoute,
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
+  VitrineRoute: VitrineRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
@@ -1552,3 +1615,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
