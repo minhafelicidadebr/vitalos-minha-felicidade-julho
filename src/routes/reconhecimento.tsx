@@ -5,8 +5,10 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
+  Gift,
   HeartHandshake,
   LockKeyhole,
+  PartyPopper,
   Send,
   ShieldCheck,
   Sprout,
@@ -14,6 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
+import { usePersona } from "@/app/identity/persona-store";
 import { useRecognition } from "@/app/gamification/use-recognition";
 import { useSeedEconomy } from "@/app/gamification/use-seed-economy";
 import { usePack } from "@/engine/pack";
@@ -22,14 +25,22 @@ import type {
   RecognitionRecordReason,
   RecognitionVisibility,
 } from "@/engine/recognition/recognition-engine";
-import type { SeedDonationReason } from "@/engine/recognition/seed-economy-engine";
+import type { SeedDonationReason, SeedPoolAggregate } from "@/engine/recognition/seed-economy-engine";
+import {
+  celebratePool,
+  celebratedThisWeek,
+  type CelebrationRejectReason,
+} from "@/engine/recognition/celebration-engine";
+import { useCelebrations } from "@/engine/recognition/celebration-store";
 import {
   MOCK_COLLEAGUES,
   MOCK_KUDOS_PILLARS,
   MOCK_KUDOS_RECEIVED,
   RECOGNITION_COPY,
+  MOCK_USER,
   type MockKudo,
 } from "@/mocks/colaborador-mock";
+import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 
 export const Route = createFileRoute("/reconhecimento")({
   head: () => ({ meta: [{ title: "Reconhecimento · Comunidade — VitalOS™" }] }),
@@ -661,6 +672,8 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
             )}
           </div>
 
+          <CelebrationPanel pools={economy.pools} />
+
           <TrustCard icon={Sprout} title="Doar não rende nada — de propósito" text={economy.copy.noRewardNote} />
           <TrustCard icon={EyeOff} title="Reconhecer sem expor" text={economy.copy.privacyNote} />
         </aside>
@@ -670,6 +683,117 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
         {economy.copy.scienceNote} {economy.copy.demoNote}
       </p>
     </section>
+  );
+}
+
+// ─── Celebração do Jardineiro (Academia Viva 2.0 · I6) ───────────────────────
+// Fecha a promessa aberta na sprint das Sementes: só o LIDER_EQUIPE converte o
+// Pomar da Equipe em celebração real registrada. Visível só para esse papel.
+
+const CELEBRATION_RESULT_COPY: Record<CelebrationRejectReason, string> = {
+  invalid_request: "Escreva o que a equipe vai ganhar antes de celebrar.",
+  duplicate: "Esta celebração já foi registrada.",
+  not_team_channel: "Só pools de equipe podem ser celebrados desta forma.",
+  empty_pool: "O pool ainda está vazio — sem sementes, não há o que celebrar.",
+  pool_protected: "Protegido por k-anonimato: menos de 5 pessoas contribuíram ainda.",
+  already_celebrated_this_week: "Este pool já foi celebrado nesta semana.",
+};
+
+function CelebrationPanel({ pools }: { pools: SeedPoolAggregate[] }) {
+  const { roleId } = usePersona();
+  const records = useCelebrations((state) => state.records);
+  const append = useCelebrations((state) => state.append);
+  const [description, setDescription] = useState("");
+  const [rejection, setRejection] = useState<CelebrationRejectReason | null>(null);
+
+  const teamPool = pools.find((p) => p.channel === "team");
+  if (roleId !== "LIDER_EQUIPE" || !teamPool) return null;
+
+  const alreadyDone = celebratedThisWeek(records, teamPool.id, GAMIFICATION_TODAY);
+  const lastRecord = [...records].reverse().find((r) => r.poolId === teamPool.id);
+
+  function celebrate() {
+    if (!teamPool) return;
+    const result = celebratePool(
+      records,
+      {
+        id: `celebration:${teamPool.id}:${records.length + 1}`,
+        poolId: teamPool.id,
+        leaderId: MOCK_USER.id,
+        celebrationDescription: description,
+        occurredOn: GAMIFICATION_TODAY,
+      },
+      teamPool,
+    );
+    if (result.reason === "recorded" && result.record) {
+      append(result.record);
+      setDescription("");
+      setRejection(null);
+      return;
+    }
+    if (result.reason !== "recorded") {
+      setRejection(result.reason);
+    }
+  }
+
+  return (
+    <div className="rounded-3xl border border-accent/25 bg-accent/5 p-5 shadow-sm">
+      <div className="flex items-center gap-2">
+        <PartyPopper className="h-5 w-5 text-primary" aria-hidden />
+        <h3 className="font-serif text-xl text-foreground">Celebração do Jardineiro</h3>
+      </div>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        Só você, como líder, converte o {teamPool.name} numa celebração real — registrada,
+        nunca genérica.
+      </p>
+
+      {alreadyDone && lastRecord ? (
+        <div className="mt-4 rounded-2xl border border-emerald-300/60 bg-emerald-50/60 p-4 dark:border-emerald-800/50 dark:bg-emerald-950/20">
+          <p className="text-sm font-medium text-emerald-900 dark:text-emerald-300">
+            {lastRecord.celebrationDescription}
+          </p>
+          <p className="mt-1 text-[11px] text-emerald-800/80 dark:text-emerald-300/70">
+            {lastRecord.seedsConverted} sementes convertidas · {lastRecord.contributorCount}{" "}
+            pessoas · {lastRecord.occurredOn}
+          </p>
+        </div>
+      ) : !teamPool.visible ? (
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          🔒 {CELEBRATION_RESULT_COPY.pool_protected}
+        </p>
+      ) : teamPool.total <= 0 ? (
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          {CELEBRATION_RESULT_COPY.empty_pool}
+        </p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <textarea
+            value={description}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              setRejection(null);
+            }}
+            rows={2}
+            placeholder="O que a equipe vai ganhar? Ex.: pizza na sexta, tarde livre…"
+            className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+          />
+          {rejection && (
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+              {CELEBRATION_RESULT_COPY[rejection]}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={celebrate}
+            disabled={!description.trim()}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <Gift className="h-4 w-4" aria-hidden />
+            Celebrar {teamPool.name}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
