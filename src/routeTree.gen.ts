@@ -44,6 +44,7 @@ import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as MatrizRouteImport } from './routes/matriz'
 import { Route as LupaDaEscutaRouteImport } from './routes/lupa-da-escuta'
+import { Route as LoopVivoRouteImport } from './routes/loop-vivo'
 import { Route as LivroDoCicloRouteImport } from './routes/livro-do-ciclo'
 import { Route as LiderRouteImport } from './routes/lider'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -260,6 +261,11 @@ const MatrizRoute = MatrizRouteImport.update({
 const LupaDaEscutaRoute = LupaDaEscutaRouteImport.update({
   id: '/lupa-da-escuta',
   path: '/lupa-da-escuta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoopVivoRoute = LoopVivoRouteImport.update({
+  id: '/loop-vivo',
+  path: '/loop-vivo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LivroDoCicloRoute = LivroDoCicloRouteImport.update({
@@ -511,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/loop-vivo': typeof LoopVivoRoute
   '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
@@ -590,6 +597,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/loop-vivo': typeof LoopVivoRoute
   '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
@@ -670,6 +678,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
   '/livro-do-ciclo': typeof LivroDoCicloRoute
+  '/loop-vivo': typeof LoopVivoRoute
   '/lupa-da-escuta': typeof LupaDaEscutaRoute
   '/matriz': typeof MatrizRoute
   '/metodologia': typeof MetodologiaRoute
@@ -751,6 +760,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/livro-do-ciclo'
+    | '/loop-vivo'
     | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
@@ -830,6 +840,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/livro-do-ciclo'
+    | '/loop-vivo'
     | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
@@ -909,6 +920,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/lider'
     | '/livro-do-ciclo'
+    | '/loop-vivo'
     | '/lupa-da-escuta'
     | '/matriz'
     | '/metodologia'
@@ -989,6 +1001,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
   LivroDoCicloRoute: typeof LivroDoCicloRoute
+  LoopVivoRoute: typeof LoopVivoRoute
   LupaDaEscutaRoute: typeof LupaDaEscutaRoute
   MatrizRoute: typeof MatrizRoute
   MetodologiaRoute: typeof MetodologiaRoute
@@ -1276,6 +1289,13 @@ declare module '@tanstack/react-router' {
       path: '/lupa-da-escuta'
       fullPath: '/lupa-da-escuta'
       preLoaderRoute: typeof LupaDaEscutaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loop-vivo': {
+      id: '/loop-vivo'
+      path: '/loop-vivo'
+      fullPath: '/loop-vivo'
+      preLoaderRoute: typeof LoopVivoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/livro-do-ciclo': {
@@ -1613,6 +1633,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
   LivroDoCicloRoute: LivroDoCicloRoute,
+  LoopVivoRoute: LoopVivoRoute,
   LupaDaEscutaRoute: LupaDaEscutaRoute,
   MatrizRoute: MatrizRoute,
   MetodologiaRoute: MetodologiaRoute,

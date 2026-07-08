@@ -368,6 +368,28 @@
             }
           }
         },
+        "weeklyLoop": {
+          "type": "object",
+          "required": ["stepLabels", "coverageThresholdPct", "kAnonymityMin", "cadence"],
+          "properties": {
+            "stepLabels": {
+              "type": "object",
+              "required": [
+                "aprender",
+                "praticar",
+                "evidenciar",
+                "refletir",
+                "compartilhar",
+                "celebrar",
+                "evoluir"
+              ],
+              "additionalProperties": { "type": "string" }
+            },
+            "coverageThresholdPct": { "type": "number", "minimum": 1, "maximum": 100 },
+            "kAnonymityMin": { "type": "number", "minimum": 5 },
+            "cadence": { "enum": ["semanal", "quinzenal"] }
+          }
+        },
         "practiceJournal": {
           "type": "object",
           "required": ["enabledKinds", "summaryMaxChars", "kAnonymityMin"],

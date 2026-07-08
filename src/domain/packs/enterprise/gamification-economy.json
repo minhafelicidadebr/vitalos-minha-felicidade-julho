@@ -328,6 +328,20 @@
       "donor_name_optin_per_gift"
     ]
   },
+  "weeklyLoop": {
+    "stepLabels": {
+      "aprender": "Aprender",
+      "praticar": "Praticar",
+      "evidenciar": "Evidenciar",
+      "refletir": "Refletir",
+      "compartilhar": "Compartilhar",
+      "celebrar": "Celebrar",
+      "evoluir": "Evoluir"
+    },
+    "coverageThresholdPct": 60,
+    "kAnonymityMin": 5,
+    "cadence": "semanal"
+  },
   "practiceJournal": {
     "enabledKinds": ["texto", "checklist", "reflexao"],
     "kindLabels": {

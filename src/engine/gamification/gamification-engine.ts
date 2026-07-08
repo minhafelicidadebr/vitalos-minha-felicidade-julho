@@ -20,6 +20,12 @@ import {
   type PracticeEvidenceKind,
   type PracticeJournalPolicy,
 } from "../learning/practice-journal-engine";
+import {
+  DEFAULT_LOOP_POLICY,
+  LOOP_STEP_ORDER,
+  type LoopStepId,
+  type WeeklyLoopPolicy,
+} from "../season/weekly-loop-engine";
 
 export interface MissionDef {
   id: string;
@@ -93,6 +99,12 @@ interface EconomyShape {
     kindLabels?: Record<string, string>;
     summaryMaxChars?: number;
     kAnonymityMin?: number;
+  };
+  weeklyLoop?: {
+    stepLabels?: Record<string, string>;
+    coverageThresholdPct?: number;
+    kAnonymityMin?: number;
+    cadence?: string;
   };
 }
 
@@ -267,6 +279,36 @@ export function getPracticeJournalConfig(
       kAnonymityMin: config.kAnonymityMin ?? DEFAULT_JOURNAL_POLICY.kAnonymityMin,
     },
     kindLabels,
+  };
+}
+
+export interface WeeklyLoopConfig {
+  policy: WeeklyLoopPolicy;
+  cadence: "semanal" | "quinzenal";
+  /** Rótulos por passo — vocabulário do pack, nunca do engine. */
+  stepLabels: Record<LoopStepId, string>;
+}
+
+/** null quando o pack não declara o Loop Vivo — a UI esconde a seção. */
+export function getWeeklyLoopConfig(economy: GamificationEconomy): WeeklyLoopConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.weeklyLoop;
+  if (!config?.stepLabels || !config.coverageThresholdPct || !config.kAnonymityMin) return null;
+
+  const stepLabels = {} as Record<LoopStepId, string>;
+  for (const step of LOOP_STEP_ORDER) {
+    const label = config.stepLabels[step];
+    if (!label) return null; // pack incompleto: falta rótulo de um passo canônico
+    stepLabels[step] = label;
+  }
+
+  return {
+    policy: {
+      coverageThresholdPct: config.coverageThresholdPct ?? DEFAULT_LOOP_POLICY.coverageThresholdPct,
+      kAnonymityMin: config.kAnonymityMin ?? DEFAULT_LOOP_POLICY.kAnonymityMin,
+    },
+    cadence: config.cadence === "quinzenal" ? "quinzenal" : "semanal",
+    stepLabels,
   };
 }
 

@@ -349,6 +349,20 @@
       "group": "gestao"
     },
     {
+      "id": "weekly_loop",
+      "label": "Loop Vivo da Semana",
+      "roles": [
+        "COLABORADOR",
+        "EMBAIXADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "HOLDING_ADMIN"
+      ],
+      "group": "gestao"
+    },
+    {
       "id": "practice_journal",
       "label": "Diário de Prática",
       "roles": [
