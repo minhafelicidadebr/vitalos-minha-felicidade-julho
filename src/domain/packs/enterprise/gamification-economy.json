@@ -400,6 +400,11 @@
       }
     ]
   },
+  "practicePairs": {
+    "label": "Duplas de Prática",
+    "maxSharedStrengths": 3,
+    "weeklyConfirmationLimit": 1
+  },
   "practiceJournal": {
     "enabledKinds": ["texto", "checklist", "reflexao"],
     "kindLabels": {

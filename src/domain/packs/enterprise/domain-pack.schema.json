@@ -430,6 +430,15 @@
             }
           }
         },
+        "practicePairs": {
+          "type": "object",
+          "required": ["label", "maxSharedStrengths", "weeklyConfirmationLimit"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1 },
+            "maxSharedStrengths": { "type": "number", "minimum": 1, "maximum": 5 },
+            "weeklyConfirmationLimit": { "type": "number", "minimum": 1 }
+          }
+        },
         "practiceJournal": {
           "type": "object",
           "required": ["enabledKinds", "summaryMaxChars", "kAnonymityMin"],

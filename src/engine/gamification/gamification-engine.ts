@@ -28,6 +28,7 @@ import {
 } from "../season/weekly-loop-engine";
 import { DEFAULT_CIRCLE_POLICY, type CircleSessionPolicy } from "../embaixadorias/circle-engine";
 import { CANONICAL_ANTAGONIST_IDS, type AntagonistDef } from "../academia/expedition-engine";
+import { DEFAULT_PAIR_POLICY, type PairPolicy } from "../learning/practice-pair-engine";
 
 export interface MissionDef {
   id: string;
@@ -112,6 +113,11 @@ interface EconomyShape {
     label?: string;
     minPresence?: number;
     maxPresence?: number;
+  };
+  practicePairs?: {
+    label?: string;
+    maxSharedStrengths?: number;
+    weeklyConfirmationLimit?: number;
   };
   collectiveNarrative?: {
     antagonists?: Array<{
@@ -343,6 +349,26 @@ export function getCirclesConfig(economy: GamificationEconomy): CirclesConfig | 
     policy: {
       minPresence: config.minPresence ?? DEFAULT_CIRCLE_POLICY.minPresence,
       maxPresence: config.maxPresence ?? DEFAULT_CIRCLE_POLICY.maxPresence,
+    },
+  };
+}
+
+export interface PracticePairsConfig {
+  label: string;
+  policy: PairPolicy;
+}
+
+/** null quando o pack não declara Duplas de Prática — a UI esconde a seção. */
+export function getPracticePairsConfig(economy: GamificationEconomy): PracticePairsConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.practicePairs;
+  if (!config?.label || !config.maxSharedStrengths || !config.weeklyConfirmationLimit) return null;
+  return {
+    label: config.label,
+    policy: {
+      maxSharedStrengths: config.maxSharedStrengths ?? DEFAULT_PAIR_POLICY.maxSharedStrengths,
+      weeklyConfirmationLimit:
+        config.weeklyConfirmationLimit ?? DEFAULT_PAIR_POLICY.weeklyConfirmationLimit,
     },
   };
 }

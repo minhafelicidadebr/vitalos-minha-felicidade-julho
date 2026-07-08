@@ -18,7 +18,25 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
-import { getPracticeJournalConfig } from "@/engine/gamification/gamification-engine";
+import type { GamificationEconomy } from "@/engine/pack/pack-types";
+import {
+  getPracticeJournalConfig,
+  getPracticePairsConfig,
+} from "@/engine/gamification/gamification-engine";
+import {
+  confirmPartnerEvidence,
+  formPair,
+  suggestPairs,
+  type ConfirmReason,
+} from "@/engine/learning/practice-pair-engine";
+import { usePracticePairs } from "@/engine/learning/practice-pair-store";
+import {
+  MARINA_PAIR_PROFILE,
+  PAIR_CANDIDATES,
+  PAIR_STRENGTH_LABELS,
+  PARTNER_PRACTICE_REF,
+  PRACTICE_PAIR_COPY,
+} from "@/mocks/practice-pair-mock";
 import {
   recordPractice,
   buildPracticeAggregates,
@@ -418,6 +436,8 @@ function DiarioPage() {
           </section>
         )}
 
+        {gamification && <PairSection economy={gamification} />}
+
         <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
@@ -437,6 +457,197 @@ function DiarioPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+const CONFIRM_COPY: Record<Exclude<ConfirmReason, "confirmed">, string> = {
+  invalid_request: "Confirmação inválida — atualize a página e tente de novo.",
+  not_pair_member: "Só membros da dupla confirmam evidência um do outro.",
+  self_confirmation: "Você não confirma a própria evidência — só a do seu par.",
+  duplicate: "Esta confirmação já foi registrada.",
+  entry_already_confirmed: "Esta prática já foi confirmada.",
+  weekly_limit_reached: "A dupla já usou a confirmação desta semana — volta a abrir na próxima.",
+};
+
+/** Duplas de Prática (I6) — só aparece quando o pack declara `practicePairs`. */
+function PairSection({ economy }: { economy: GamificationEconomy }) {
+  const config = useMemo(() => getPracticePairsConfig(economy), [economy]);
+  const pairs = usePracticePairs((state) => state.pairs);
+  const confirmations = usePracticePairs((state) => state.confirmations);
+  const appendPair = usePracticePairs((state) => state.appendPair);
+  const appendConfirmation = usePracticePairs((state) => state.appendConfirmation);
+  const [confirmResult, setConfirmResult] = useState<ConfirmReason | null>(null);
+
+  const suggestions = useMemo(() => suggestPairs(MARINA_PAIR_PROFILE, PAIR_CANDIDATES), []);
+  const myPair = pairs.find((p) => p.memberIds.includes(MARINA_PAIR_PROFILE.personId)) ?? null;
+
+  if (!config) return null;
+
+  function accept(candidateId: string) {
+    const candidate = PAIR_CANDIDATES.find((c) => c.personId === candidateId);
+    if (!candidate) return;
+    // O candidato já optou por participar (mock opt-in); o clique é o aceite da Marina —
+    // com os dois aceites explícitos, o engine forma a dupla (bilateral por construção).
+    const result = formPair(pairs, {
+      id: `pair-session-${candidate.personId}`,
+      a: MARINA_PAIR_PROFILE,
+      b: candidate,
+      aAccepted: true,
+      bAccepted: true,
+      formedOn: GAMIFICATION_TODAY,
+    });
+    if (result.reason === "formed" && result.pair) appendPair(result.pair);
+  }
+
+  function confirmPartner() {
+    if (!myPair || !config) return;
+    const result = confirmPartnerEvidence(
+      confirmations,
+      {
+        id: `conf-session-${confirmations.length + 1}`,
+        pairId: myPair.id,
+        confirmerId: MARINA_PAIR_PROFILE.personId,
+        partnerId: PARTNER_PRACTICE_REF.ownerId,
+        entryId: PARTNER_PRACTICE_REF.entryId,
+        occurredOn: GAMIFICATION_TODAY,
+      },
+      myPair,
+      config.policy,
+    );
+    setConfirmResult(result.reason);
+    if (result.reason === "confirmed" && result.confirmation) {
+      appendConfirmation(result.confirmation);
+    }
+  }
+
+  const partnerName =
+    PAIR_CANDIDATES.find((c) => myPair?.memberIds.includes(c.personId))?.displayName ?? null;
+
+  return (
+    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+      <div className="flex items-start gap-3">
+        <span
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"
+          aria-hidden
+        >
+          <Users className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            {config.label}
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-foreground">{PRACTICE_PAIR_COPY.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {PRACTICE_PAIR_COPY.lead}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-border/55 bg-background/45 px-4 py-3">
+        <p className="text-xs font-medium text-foreground">Forças que você escolheu compartilhar</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {MARINA_PAIR_PROFILE.sharedStrengthIds.map((id) => (
+            <span key={id} className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] text-primary">
+              {PAIR_STRENGTH_LABELS[id] ?? id}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          {PRACTICE_PAIR_COPY.consentNote}
+        </p>
+      </div>
+
+      {!myPair ? (
+        <div className="mt-4 space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Sugestões (mesmo driver em foco + forças complementares)
+          </p>
+          {suggestions.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhum colega opt-in com forças complementares no seu driver em foco por enquanto.
+            </p>
+          )}
+          {suggestions.map((s) => (
+            <div
+              key={s.candidate.personId}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/55 bg-background/45 px-4 py-3"
+            >
+              <div>
+                <p className="text-sm font-medium text-foreground">{s.candidate.displayName}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Complementa você com:{" "}
+                  {s.complementaryStrengthIds
+                    .map((id) => PAIR_STRENGTH_LABELS[id] ?? id)
+                    .join(", ")}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Já sinalizou aceite — a dupla só se forma com o seu.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => accept(s.candidate.personId)}
+                className="min-h-11 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              >
+                Aceitar formar dupla
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3">
+            <p className="text-sm font-medium text-foreground">
+              Dupla ativa: você e {partnerName ?? "seu par"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Formada em {myPair.formedOn} · driver em foco:{" "}
+              {PRACTICE_DRIVER_LABELS[myPair.focusDriverId] ?? myPair.focusDriverId}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border/55 bg-background/45 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Evidência do seu par esta semana
+            </p>
+            <p className="mt-2 text-sm text-foreground">
+              {partnerName ?? "Seu par"} registrou uma prática em{" "}
+              {PRACTICE_DRIVER_LABELS[PARTNER_PRACTICE_REF.driverId] ?? PARTNER_PRACTICE_REF.driverId}{" "}
+              ({PARTNER_PRACTICE_REF.kindLabel}, {PARTNER_PRACTICE_REF.occurredOn}).
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Você confirma que a prática aconteceu — o conteúdo do registro é dele e nunca é
+              exibido aqui.
+            </p>
+            <button
+              type="button"
+              onClick={confirmPartner}
+              className="mt-3 min-h-11 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+            >
+              Confirmar prática do par
+            </button>
+            {confirmResult === "confirmed" && (
+              <p className="mt-2 text-xs font-medium text-primary" role="status">
+                Confirmação registrada — a evidência do seu par agora tem validação recíproca.
+              </p>
+            )}
+            {confirmResult && confirmResult !== "confirmed" && (
+              <p className="mt-2 text-xs font-medium text-destructive" role="alert">
+                {CONFIRM_COPY[confirmResult]}
+              </p>
+            )}
+          </div>
+
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            {PRACTICE_PAIR_COPY.antiColusionNote}
+          </p>
+        </div>
+      )}
+
+      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+        {PRACTICE_PAIR_COPY.demoNote}
+      </p>
+    </section>
   );
 }
 
