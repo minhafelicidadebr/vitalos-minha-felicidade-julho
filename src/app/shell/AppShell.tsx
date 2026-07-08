@@ -52,6 +52,7 @@ const NAV_ROUTES: Record<string, string> = {
   // Educar (revisão espaçada) e a plataforma de drivers NR-1 (catálogo + matriz crosswalk).
   review: "/revisar",
   diploma: "/diploma",
+  practice_journal: "/diario",
   matrix: "/matriz",
   drivers: "/drivers",
   missions: "/missoes",
@@ -214,7 +215,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "comunidade",
     label: "Comunidade",
     hint: "Pessoas, forças e cultura",
-    items: ["academy", "review", "diploma", "ambassadorships", "lab", "ai"],
+    items: ["academy", "review", "practice_journal", "diploma", "ambassadorships", "lab", "ai"],
   },
   {
     id: "confianca",

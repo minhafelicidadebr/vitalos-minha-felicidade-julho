@@ -7,6 +7,9 @@
 // virão de participation_events (trilha), sm2_card_state (retenção — a ponte
 // card→driver já existe no catálogo de flashcards) e evidence_records
 // (prática, via query nova recorded_by+lever_id). O engine não muda.
+//
+// O sinal de PRÁTICA não é fixo aqui: é COMPOSTO do Diário de Prática Viva
+// (I7 → I2) na rota — registrar uma prática no /diario muda o critério na hora.
 
 import type { DiplomaEligibilityInput } from "@/engine/academia/diploma-engine";
 
@@ -14,7 +17,8 @@ export interface DiplomaMockCase {
   driverId: string;
   driverLabel: string;
   pathTitle: string;
-  signals: DiplomaEligibilityInput;
+  /** Trilha e retenção fixas na demo; a prática vem do Diário (I7). */
+  signals: Omit<DiplomaEligibilityInput, "appliedPracticeCount">;
 }
 
 export const DIPLOMA_MOCK_CASES: DiplomaMockCase[] = [
@@ -22,15 +26,16 @@ export const DIPLOMA_MOCK_CASES: DiplomaMockCase[] = [
     driverId: "energia",
     driverLabel: "Energia & Vitalidade",
     pathTitle: "Energia que se Renova",
-    // Elegível: trilha completa, 2 cartões maduros (28d e 35d), 1 prática registrada.
-    signals: { pathCompleted: true, cardIntervalsDays: [28, 35], appliedPracticeCount: 1 },
+    // Trilha completa + 2 cartões maduros (28d e 35d); a prática vem do Diário
+    // (a base do mock do Diário dá 1 registro da Marina em "energia" → elegível).
+    signals: { pathCompleted: true, cardIntervalsDays: [28, 35] },
   },
   {
     driverId: "seguranca_psicologica",
     driverLabel: "Segurança Psicológica",
     pathTitle: "Fundamentos do Florescimento",
-    // Não elegível: trilha completa, mas só 1 cartão maduro (o outro tem 7d) e zero prática.
-    signals: { pathCompleted: true, cardIntervalsDays: [30, 7], appliedPracticeCount: 0 },
+    // Retenção imatura (1 cartão de 7d) e zero prática no Diário → em jornada.
+    signals: { pathCompleted: true, cardIntervalsDays: [30, 7] },
   },
 ];
 

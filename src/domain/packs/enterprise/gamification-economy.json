@@ -328,6 +328,17 @@
       "donor_name_optin_per_gift"
     ]
   },
+  "practiceJournal": {
+    "enabledKinds": ["texto", "checklist", "reflexao"],
+    "kindLabels": {
+      "texto": "Relato curto",
+      "foto": "Foto",
+      "checklist": "Checklist aplicado",
+      "reflexao": "Reflexão"
+    },
+    "summaryMaxChars": 280,
+    "kAnonymityMin": 5
+  },
   "credentials": {
     "credentialTitle": "Diploma Vivo",
     "issuerName": "4 Lentes VitalOS™ · Academia do Florescimento",

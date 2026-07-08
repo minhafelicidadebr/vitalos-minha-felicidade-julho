@@ -368,6 +368,23 @@
             }
           }
         },
+        "practiceJournal": {
+          "type": "object",
+          "required": ["enabledKinds", "summaryMaxChars", "kAnonymityMin"],
+          "properties": {
+            "enabledKinds": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "enum": ["texto", "foto", "checklist", "reflexao"] }
+            },
+            "kindLabels": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            },
+            "summaryMaxChars": { "type": "number", "minimum": 40 },
+            "kAnonymityMin": { "type": "number", "minimum": 5 }
+          }
+        },
         "credentials": {
           "type": "object",
           "required": ["credentialTitle", "issuerName", "disclaimer"],

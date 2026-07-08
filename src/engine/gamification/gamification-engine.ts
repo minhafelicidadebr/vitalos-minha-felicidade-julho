@@ -14,6 +14,12 @@ import type {
   SeedPoolDef,
 } from "../recognition/seed-economy-engine";
 import { defineOffer, type InstitutionalOffer, type PortaAbertaResource } from "../vitrine/vitrine-offer-engine";
+import {
+  DEFAULT_JOURNAL_POLICY,
+  PRACTICE_EVIDENCE_KINDS,
+  type PracticeEvidenceKind,
+  type PracticeJournalPolicy,
+} from "../learning/practice-journal-engine";
 
 export interface MissionDef {
   id: string;
@@ -81,6 +87,12 @@ interface EconomyShape {
     credentialTitle?: string;
     issuerName?: string;
     disclaimer?: string;
+  };
+  practiceJournal?: {
+    enabledKinds?: string[];
+    kindLabels?: Record<string, string>;
+    summaryMaxChars?: number;
+    kAnonymityMin?: number;
   };
 }
 
@@ -222,6 +234,40 @@ export function getSeedPools(economy: GamificationEconomy): SeedPoolDef[] {
     channel: (pool.channel === "cause" ? "cause" : "team") as SeedPoolDef["channel"],
     target: typeof pool.target === "number" ? pool.target : undefined,
   }));
+}
+
+export interface PracticeJournalConfig {
+  policy: PracticeJournalPolicy;
+  /** Rótulos por tipo — vocabulário do pack, nunca do engine. */
+  kindLabels: Record<PracticeEvidenceKind, string>;
+}
+
+/** null quando o pack não declara o Diário de Prática — a UI esconde a seção. */
+export function getPracticeJournalConfig(
+  economy: GamificationEconomy,
+): PracticeJournalConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.practiceJournal;
+  if (!config?.enabledKinds?.length) return null;
+
+  const enabledKinds = config.enabledKinds.filter((k): k is PracticeEvidenceKind =>
+    (PRACTICE_EVIDENCE_KINDS as readonly string[]).includes(k),
+  );
+  if (enabledKinds.length === 0) return null;
+
+  const kindLabels = {} as Record<PracticeEvidenceKind, string>;
+  for (const kind of PRACTICE_EVIDENCE_KINDS) {
+    kindLabels[kind] = config.kindLabels?.[kind] ?? kind;
+  }
+
+  return {
+    policy: {
+      enabledKinds,
+      summaryMaxChars: config.summaryMaxChars ?? DEFAULT_JOURNAL_POLICY.summaryMaxChars,
+      kAnonymityMin: config.kAnonymityMin ?? DEFAULT_JOURNAL_POLICY.kAnonymityMin,
+    },
+    kindLabels,
+  };
 }
 
 export interface CredentialsConfig {

@@ -25,9 +25,12 @@ import {
   buildDiploma,
   type DiplomaCriterionResult,
 } from "@/engine/academia/diploma-engine";
+import { appliedPracticeCountByDriver } from "@/engine/learning/practice-journal-engine";
+import { usePracticeJournal } from "@/engine/learning/practice-journal-store";
 import { downloadDiplomaPdf } from "@/lib/pdf/diploma-pdf";
 import { MOCK_USER } from "@/mocks/colaborador-mock";
 import { DIPLOMA_AWARDED_ON, DIPLOMA_COPY, DIPLOMA_MOCK_CASES } from "@/mocks/diploma-mock";
+import { PRACTICE_JOURNAL_SEED } from "@/mocks/practice-journal-mock";
 
 export const Route = createFileRoute("/diploma")({
   head: () => ({ meta: [{ title: "Diploma Vivo · Academia — VitalOS™" }] }),
@@ -47,15 +50,23 @@ function DiplomaPage() {
     [gamification],
   );
   const [nameConsent, setNameConsent] = useState(false);
+  const sessionEntries = usePracticeJournal((state) => state.entries);
 
-  const cases = useMemo(
-    () =>
-      DIPLOMA_MOCK_CASES.map((c) => ({
-        ...c,
-        eligibility: assessDiplomaEligibility(c.signals),
-      })),
-    [],
-  );
+  // Composição I7 → I2: a terceira prova (prática aplicada) vem do Diário de
+  // Prática Viva — base demonstrativa + registros criados nesta sessão.
+  const cases = useMemo(() => {
+    const practiceCounts = appliedPracticeCountByDriver(
+      [...PRACTICE_JOURNAL_SEED, ...sessionEntries],
+      MOCK_USER.id,
+    );
+    return DIPLOMA_MOCK_CASES.map((c) => ({
+      ...c,
+      eligibility: assessDiplomaEligibility({
+        ...c.signals,
+        appliedPracticeCount: practiceCounts[c.driverId] ?? 0,
+      }),
+    }));
+  }, [sessionEntries]);
 
   if (status.state === "idle" || status.state === "loading") {
     return (
@@ -248,6 +259,16 @@ function DiplomaPage() {
                       </li>
                     ))}
                   </ul>
+                  {demoCase.eligibility.criteria.some(
+                    (c) => c.id === "pratica" && c.status !== "cumprido",
+                  ) && (
+                    <Link
+                      to="/diario"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                    >
+                      Registrar uma prática no Diário →
+                    </Link>
+                  )}
                 </div>
               )}
             </article>
