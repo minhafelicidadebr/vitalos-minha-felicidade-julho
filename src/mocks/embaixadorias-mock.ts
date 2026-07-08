@@ -9,6 +9,9 @@ export interface Ambassadorship {
   members: number;
   openMissions: number;
   joined?: boolean;
+  /** Driver do crosswalk (mesmo vocabulário de flashcard-mock/practice-journal) —
+   * é o que liga esta embaixadoria a um roteiro de Círculo Vivo (I5), quando existe. */
+  driverId?: string;
 }
 
 export const AMBASSADORSHIPS: Ambassadorship[] = [
@@ -20,6 +23,8 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Pausas reais, rituais de recuperação e fim do glamour do cansaço.",
     members: 18,
     openMissions: 2,
+    joined: true,
+    driverId: "energia",
   },
   {
     id: "amb-proposito",
@@ -29,6 +34,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Conectar o trabalho diário ao impacto que ele gera.",
     members: 12,
     openMissions: 1,
+    driverId: "proposito",
   },
   {
     id: "amb-aprendizagem",
@@ -38,6 +44,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Comunidades de prática e trocas de conhecimento entre áreas.",
     members: 21,
     openMissions: 3,
+    driverId: "crescimento",
   },
   {
     id: "amb-equilibrio",
@@ -47,7 +54,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Direito à desconexão e agendas humanas.",
     members: 15,
     openMissions: 2,
-    joined: true,
+    driverId: "autonomia",
   },
   {
     id: "amb-seguranca",
@@ -57,6 +64,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Espaços onde errar ensina e discordar constrói.",
     members: 14,
     openMissions: 1,
+    driverId: "seguranca_psicologica",
   },
   {
     id: "amb-cooperacao",
@@ -66,6 +74,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Quebrar silos com colaboração real entre equipes.",
     members: 9,
     openMissions: 1,
+    driverId: "cooperacao",
   },
   {
     id: "amb-reconhecimento",
@@ -75,6 +84,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Cultura de reconhecimento específico e sincero.",
     members: 26,
     openMissions: 2,
+    driverId: "reconhecimento",
   },
   {
     id: "amb-pertencimento",
@@ -84,6 +94,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Ninguém almoça sozinho se não quiser.",
     members: 17,
     openMissions: 2,
+    driverId: "pertencimento",
   },
   {
     id: "amb-clareza",
@@ -93,6 +104,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Comunicação que chega, prioridade que se entende.",
     members: 8,
     openMissions: 1,
+    driverId: "clareza",
   },
   {
     id: "amb-justica",
@@ -102,6 +114,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Regras que valem para todos, decisões explicáveis.",
     members: 7,
     openMissions: 0,
+    driverId: "justica",
   },
   {
     id: "amb-desenvolvimento",
@@ -111,6 +124,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Mentoria voluntária e conversas de carreira.",
     members: 13,
     openMissions: 2,
+    driverId: "desenvolvimento",
   },
   {
     id: "amb-cuidado",
@@ -120,6 +134,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Apoiar líderes a perceber e agir cedo.",
     members: 11,
     openMissions: 1,
+    driverId: "cuidado",
   },
   {
     id: "amb-condicoes",
@@ -129,6 +144,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Termômetro de carga e repactuação sem medo.",
     members: 10,
     openMissions: 2,
+    driverId: "condicoes",
   },
   {
     id: "amb-inclusao",
@@ -138,6 +154,7 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Oportunidades iguais e respeito às identidades.",
     members: 19,
     openMissions: 1,
+    driverId: "inclusao",
   },
   {
     id: "amb-sustentabilidade",
@@ -147,5 +164,6 @@ export const AMBASSADORSHIPS: Ambassadorship[] = [
     description: "Voluntariado, impacto social e responsabilidade ambiental.",
     members: 16,
     openMissions: 2,
+    driverId: "sustentabilidade",
   },
 ];

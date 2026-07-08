@@ -328,6 +328,11 @@
       "donor_name_optin_per_gift"
     ]
   },
+  "circles": {
+    "label": "Círculos Vivos",
+    "minPresence": 5,
+    "maxPresence": 8
+  },
   "weeklyLoop": {
     "stepLabels": {
       "aprender": "Aprender",

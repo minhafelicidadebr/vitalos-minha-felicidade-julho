@@ -26,6 +26,7 @@ import {
   type LoopStepId,
   type WeeklyLoopPolicy,
 } from "../season/weekly-loop-engine";
+import { DEFAULT_CIRCLE_POLICY, type CircleSessionPolicy } from "../embaixadorias/circle-engine";
 
 export interface MissionDef {
   id: string;
@@ -105,6 +106,11 @@ interface EconomyShape {
     coverageThresholdPct?: number;
     kAnonymityMin?: number;
     cadence?: string;
+  };
+  circles?: {
+    label?: string;
+    minPresence?: number;
+    maxPresence?: number;
   };
 }
 
@@ -309,6 +315,25 @@ export function getWeeklyLoopConfig(economy: GamificationEconomy): WeeklyLoopCon
     },
     cadence: config.cadence === "quinzenal" ? "quinzenal" : "semanal",
     stepLabels,
+  };
+}
+
+export interface CirclesConfig {
+  label: string;
+  policy: CircleSessionPolicy;
+}
+
+/** null quando o pack não declara Círculos Vivos — a UI esconde a seção. */
+export function getCirclesConfig(economy: GamificationEconomy): CirclesConfig | null {
+  const shape = economy as unknown as EconomyShape;
+  const config = shape.circles;
+  if (!config?.label || !config.minPresence || !config.maxPresence) return null;
+  return {
+    label: config.label,
+    policy: {
+      minPresence: config.minPresence ?? DEFAULT_CIRCLE_POLICY.minPresence,
+      maxPresence: config.maxPresence ?? DEFAULT_CIRCLE_POLICY.maxPresence,
+    },
   };
 }
 

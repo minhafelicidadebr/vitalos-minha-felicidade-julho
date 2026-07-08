@@ -368,6 +368,15 @@
             }
           }
         },
+        "circles": {
+          "type": "object",
+          "required": ["label", "minPresence", "maxPresence"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1 },
+            "minPresence": { "type": "number", "minimum": 2 },
+            "maxPresence": { "type": "number", "minimum": 2 }
+          }
+        },
         "weeklyLoop": {
           "type": "object",
           "required": ["stepLabels", "coverageThresholdPct", "kAnonymityMin", "cadence"],
