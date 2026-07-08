@@ -57,6 +57,7 @@ import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as FechamentoRouteImport } from './routes/fechamento'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
+import { Route as ExpedicaoRouteImport } from './routes/expedicao'
 import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
 import { Route as EvolucaoRouteImport } from './routes/evolucao'
 import { Route as EspelhoRouteImport } from './routes/espelho'
@@ -328,6 +329,11 @@ const ExperimentosRoute = ExperimentosRouteImport.update({
   path: '/experimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExpedicaoRoute = ExpedicaoRouteImport.update({
+  id: '/expedicao',
+  path: '/expedicao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EvolucaoNr1Route = EvolucaoNr1RouteImport.update({
   id: '/evolucao-nr1',
   path: '/evolucao-nr1',
@@ -505,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
+  '/expedicao': typeof ExpedicaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -585,6 +592,7 @@ export interface FileRoutesByTo {
   '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
+  '/expedicao': typeof ExpedicaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -666,6 +674,7 @@ export interface FileRoutesById {
   '/espelho': typeof EspelhoRoute
   '/evolucao': typeof EvolucaoRoute
   '/evolucao-nr1': typeof EvolucaoNr1Route
+  '/expedicao': typeof ExpedicaoRoute
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
@@ -748,6 +757,7 @@ export interface FileRouteTypes {
     | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
+    | '/expedicao'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -828,6 +838,7 @@ export interface FileRouteTypes {
     | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
+    | '/expedicao'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -908,6 +919,7 @@ export interface FileRouteTypes {
     | '/espelho'
     | '/evolucao'
     | '/evolucao-nr1'
+    | '/expedicao'
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
@@ -989,6 +1001,7 @@ export interface RootRouteChildren {
   EspelhoRoute: typeof EspelhoRoute
   EvolucaoRoute: typeof EvolucaoRoute
   EvolucaoNr1Route: typeof EvolucaoNr1Route
+  ExpedicaoRoute: typeof ExpedicaoRoute
   ExperimentosRoute: typeof ExperimentosRoute
   FechamentoRoute: typeof FechamentoRoute
   FibtRoute: typeof FibtRoute
@@ -1382,6 +1395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/expedicao': {
+      id: '/expedicao'
+      path: '/expedicao'
+      fullPath: '/expedicao'
+      preLoaderRoute: typeof ExpedicaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/evolucao-nr1': {
       id: '/evolucao-nr1'
       path: '/evolucao-nr1'
@@ -1621,6 +1641,7 @@ const rootRouteChildren: RootRouteChildren = {
   EspelhoRoute: EspelhoRoute,
   EvolucaoRoute: EvolucaoRoute,
   EvolucaoNr1Route: EvolucaoNr1Route,
+  ExpedicaoRoute: ExpedicaoRoute,
   ExperimentosRoute: ExperimentosRoute,
   FechamentoRoute: FechamentoRoute,
   FibtRoute: FibtRoute,

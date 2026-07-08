@@ -399,6 +399,37 @@
             "cadence": { "enum": ["semanal", "quinzenal"] }
           }
         },
+        "collectiveNarrative": {
+          "type": "object",
+          "required": ["antagonists"],
+          "properties": {
+            "antagonists": {
+              "type": "array",
+              "minItems": 8,
+              "items": {
+                "type": "object",
+                "required": ["id", "name", "tagline", "counteredBy"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "name": { "type": "string", "minLength": 1 },
+                  "tagline": { "type": "string", "minLength": 1 },
+                  "counteredBy": { "type": "array", "items": { "type": "string" } },
+                  "finalBoss": { "type": "boolean" }
+                }
+              },
+              "allOf": [
+                { "contains": { "properties": { "id": { "const": "sobrecarga" } } } },
+                { "contains": { "properties": { "id": { "const": "silencio" } } } },
+                { "contains": { "properties": { "id": { "const": "nevoa" } } } },
+                { "contains": { "properties": { "id": { "const": "invisibilidade" } } } },
+                { "contains": { "properties": { "id": { "const": "atrito" } } } },
+                { "contains": { "properties": { "id": { "const": "injustica_percebida" } } } },
+                { "contains": { "properties": { "id": { "const": "desconexao" } } } },
+                { "contains": { "properties": { "id": { "const": "cinismo" } } } }
+              ]
+            }
+          }
+        },
         "practiceJournal": {
           "type": "object",
           "required": ["enabledKinds", "summaryMaxChars", "kAnonymityMin"],

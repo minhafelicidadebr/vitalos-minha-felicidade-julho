@@ -42,6 +42,18 @@ export interface AntagonistDef {
   finalBoss?: boolean;
 }
 
+/** Os 8 ids canônicos do bestiário (§1.5) — o pack precisa declarar todos, nenhum a mais nem a menos. */
+export const CANONICAL_ANTAGONIST_IDS: readonly string[] = [
+  "sobrecarga",
+  "silencio",
+  "nevoa",
+  "invisibilidade",
+  "atrito",
+  "injustica_percebida",
+  "desconexao",
+  "cinismo",
+];
+
 // ─── Seleção do antagonista da temporada (medição real, nunca marketing) ──────
 
 export interface SeasonAntagonistSelection {

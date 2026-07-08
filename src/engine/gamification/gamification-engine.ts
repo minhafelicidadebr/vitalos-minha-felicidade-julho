@@ -27,6 +27,7 @@ import {
   type WeeklyLoopPolicy,
 } from "../season/weekly-loop-engine";
 import { DEFAULT_CIRCLE_POLICY, type CircleSessionPolicy } from "../embaixadorias/circle-engine";
+import { CANONICAL_ANTAGONIST_IDS, type AntagonistDef } from "../academia/expedition-engine";
 
 export interface MissionDef {
   id: string;
@@ -111,6 +112,15 @@ interface EconomyShape {
     label?: string;
     minPresence?: number;
     maxPresence?: number;
+  };
+  collectiveNarrative?: {
+    antagonists?: Array<{
+      id?: string;
+      name?: string;
+      tagline?: string;
+      counteredBy?: string[];
+      finalBoss?: boolean;
+    }>;
   };
 }
 
@@ -335,6 +345,29 @@ export function getCirclesConfig(economy: GamificationEconomy): CirclesConfig | 
       maxPresence: config.maxPresence ?? DEFAULT_CIRCLE_POLICY.maxPresence,
     },
   };
+}
+
+/** null quando o pack não declara a Expedição — a UI esconde a seção. O bestiário exige os 8 ids canônicos. */
+export function getCollectiveNarrative(economy: GamificationEconomy): AntagonistDef[] | null {
+  const shape = economy as unknown as EconomyShape;
+  const raw = shape.collectiveNarrative?.antagonists;
+  if (!raw?.length) return null;
+
+  const bestiary: AntagonistDef[] = raw
+    .filter((a) => Boolean(a.id && a.name && a.tagline && a.counteredBy))
+    .map((a) => ({
+      id: a.id!,
+      name: a.name!,
+      tagline: a.tagline!,
+      counteredBy: a.counteredBy!,
+      finalBoss: a.finalBoss,
+    }));
+
+  const ids = new Set(bestiary.map((a) => a.id));
+  const hasAllCanonical = CANONICAL_ANTAGONIST_IDS.every((id) => ids.has(id));
+  if (!hasAllCanonical) return null; // pack incompleto: falta um antagonista canônico
+
+  return bestiary;
 }
 
 export interface CredentialsConfig {

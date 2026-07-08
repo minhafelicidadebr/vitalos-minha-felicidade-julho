@@ -347,6 +347,59 @@
     "kAnonymityMin": 5,
     "cadence": "semanal"
   },
+  "collectiveNarrative": {
+    "antagonists": [
+      {
+        "id": "sobrecarga",
+        "name": "A Sobrecarga",
+        "tagline": "O peso que nunca alivia.",
+        "counteredBy": ["carga"]
+      },
+      {
+        "id": "silencio",
+        "name": "O Silêncio",
+        "tagline": "Ninguém fala o que precisa ser dito.",
+        "counteredBy": ["confianca"]
+      },
+      {
+        "id": "nevoa",
+        "name": "A Névoa",
+        "tagline": "Prioridades e mudanças que ninguém enxerga com clareza.",
+        "counteredBy": ["clareza"]
+      },
+      {
+        "id": "invisibilidade",
+        "name": "A Invisibilidade",
+        "tagline": "Existir no time sem ser visto ou incluído de verdade.",
+        "counteredBy": ["inclusao"]
+      },
+      {
+        "id": "atrito",
+        "name": "O Atrito",
+        "tagline": "Chefia que cobra sem organizar, decisões sem margem de manobra.",
+        "counteredBy": ["lideranca", "autonomia"]
+      },
+      {
+        "id": "injustica_percebida",
+        "name": "A Injustiça Percebida",
+        "tagline": "As regras não valem igual para todos.",
+        "counteredBy": ["justica"]
+      },
+      {
+        "id": "desconexao",
+        "name": "A Desconexão",
+        "tagline": "Ninguém por perto quando é preciso.",
+        "counteredBy": ["apoio"]
+      },
+      {
+        "id": "cinismo",
+        "name": "O Cinismo",
+        "tagline": "Por que se importar, se nada muda de verdade?",
+        "counteredBy": [],
+        "finalBoss": true
+      }
+    ]
+  },
   "practiceJournal": {
     "enabledKinds": ["texto", "checklist", "reflexao"],
     "kindLabels": {
