@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { buildBoardBrief } from "./board-brief.server";
+import { buildBoardBrief, buildBoardBriefFromHistory } from "./board-brief.server";
+import { getCapsuleHistory } from "@/mocks/capsule-history-mock";
 
 // Board Brief: o arco lido pelos 5 céticos, cada veredicto lastreado em dado real.
 
@@ -70,5 +71,53 @@ describe("buildBoardBrief — honestidade", () => {
     const b = buildBoardBrief("enterprise");
     expect(a.headline).toBe(b.headline);
     expect(a.satisfiedCount).toBe(b.satisfiedCount);
+  });
+});
+
+// ─── Variante REAL (E4, S8): brief executivo sobre o Cofre de Ciclos ──────────
+
+describe("buildBoardBriefFromHistory — brief executivo sobre ciclos reais", () => {
+  // O mock de histórico tem o MESMO shape que o Cofre real devolve (S6.75) —
+  // fixture legítima para exercitar a composição sem inventar formato.
+  const history = getCapsuleHistory("enterprise", "COPSOQ");
+  const brief = buildBoardBriefFromHistory("enterprise", history);
+
+  test("com ≥2 ciclos: CHRO satisfeito com a leitura longitudinal real", () => {
+    expect(history.length).toBeGreaterThanOrEqual(2);
+    const chro = brief.skeptics.find((s) => s.id === "chro")!;
+    expect(chro.satisfied).toBe(true);
+    expect(chro.answer).toContain("SUA organização");
+  });
+
+  test("investidor NUNCA satisfeito no modo real — selo pendente, jamais fabricado do mock", () => {
+    const inv = brief.skeptics.find((s) => s.id === "investidor")!;
+    expect(inv.satisfied).toBe(false);
+    expect(inv.metric).toContain("pendente");
+    expect(brief.sealTierLabel).toContain("Pendente");
+  });
+
+  test("colaborador (k-anon) satisfeito também no real — invariante de arquitetura", () => {
+    expect(brief.skeptics.find((s) => s.id === "colaborador")!.satisfied).toBe(true);
+  });
+
+  test("histórico vazio ou 1 ciclo: arco em construção, nada satisfeito além do k-anon", () => {
+    const empty = buildBoardBriefFromHistory("enterprise", []);
+    expect(empty.headline).toContain("Cofre de Ciclos");
+    expect(empty.satisfiedCount).toBe(1); // só o colaborador (invariante)
+
+    const one = buildBoardBriefFromHistory("enterprise", history.slice(0, 1));
+    expect(one.skeptics.find((s) => s.id === "chro")!.satisfied).toBe(false);
+  });
+
+  test("determinístico e com os 5 céticos, igual à variante mock", () => {
+    const again = buildBoardBriefFromHistory("enterprise", history);
+    expect(again.headline).toBe(brief.headline);
+    expect(brief.skeptics.map((s) => s.id).sort()).toEqual([
+      "auditor",
+      "cfo",
+      "chro",
+      "colaborador",
+      "investidor",
+    ]);
   });
 });

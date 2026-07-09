@@ -11,3 +11,35 @@ const packIdSchema = z.string().min(2).max(40);
 export const getBoardBrief = createServerFn({ method: "GET" })
   .inputValidator(z.object({ packId: packIdSchema }))
   .handler(({ data }) => buildBoardBrief(data.packId));
+
+export type RealBoardBriefResult =
+  | { available: false; reason: "cloud_not_ready" | "no_session" | "insufficient_cycles" }
+  | { available: true; brief: import("../proof/board-brief.server").BoardBrief };
+
+/**
+ * Board Brief REAL (E4): o mesmo brief dos 5 céticos, sobre o Cofre de Ciclos
+ * da organização da SESSÃO (nunca orgId do payload — P0-04). Exige ≥2 ciclos
+ * registrados; abaixo disso devolve o motivo honesto em vez de um brief vazio.
+ */
+export const getRealBoardBrief = createServerFn({ method: "GET" })
+  .inputValidator(z.object({ accessToken: z.string().min(10) }))
+  .handler(async ({ data }): Promise<RealBoardBriefResult> => {
+    const { readIdentityBoundaryStatus } = await import("@/lib/identity/identity-boundary.server");
+    if (readIdentityBoundaryStatus().state !== "cloud") {
+      return { available: false, reason: "cloud_not_ready" };
+    }
+
+    const { resolveOrgMembership } = await import("@/lib/auth/authorize.server");
+    const auth = await resolveOrgMembership(data.accessToken);
+    if (!auth.ok) return { available: false, reason: "no_session" };
+
+    const { loadOrgCycleHistory } = await import("@/lib/evolucao/cycle-history.server");
+    const history = await loadOrgCycleHistory(auth.membership.orgId, "COPSOQ");
+    if (history.length < 2) return { available: false, reason: "insufficient_cycles" };
+
+    const { buildBoardBriefFromHistory } = await import("../proof/board-brief.server");
+    return {
+      available: true,
+      brief: buildBoardBriefFromHistory(history[0]!.packId, history),
+    };
+  });

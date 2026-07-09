@@ -14,7 +14,7 @@ import {
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
-import { getBoardBrief } from "@/lib/api/board-brief.functions";
+import { getBoardBrief, getRealBoardBrief } from "@/lib/api/board-brief.functions";
 import type { BoardBrief } from "@/lib/proof/board-brief.server";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +102,8 @@ function PanoramaPage() {
   const [realCycleResult, setRealCycleResult] = useState<LoadCycleHistoryResult | null>(null);
   const [realCycleLoading, setRealCycleLoading] = useState(false);
 
+  const [realBrief, setRealBrief] = useState<BoardBrief | null>(null);
+
   const fetchRealCycleProof = useCallback(async () => {
     if (!isRealMode) return;
     setRealCycleLoading(true);
@@ -110,8 +112,12 @@ function PanoramaPage() {
       if (!accessToken) return;
       const result = await loadCycleHistory({ data: { accessToken, instrument: "COPSOQ" } });
       setRealCycleResult(result);
+      // Brief executivo REAL (E4): mesma sessão, só existe com ≥2 ciclos no Cofre.
+      const briefResult = await getRealBoardBrief({ data: { accessToken } });
+      setRealBrief(briefResult.available ? briefResult.brief : null);
     } catch {
       setRealCycleResult(null);
+      setRealBrief(null);
     } finally {
       setRealCycleLoading(false);
     }
@@ -311,6 +317,9 @@ function PanoramaPage() {
         {isRealMode && (
           <RealCycleProofCard result={realCycleResult} loading={realCycleLoading} />
         )}
+
+        {/* Board Brief REAL (E4, S8): os 5 céticos sobre os ciclos DESTA org */}
+        {isRealMode && realBrief && <RealBoardBriefCard brief={realBrief} />}
 
         {/* Prova de Ciclo — o arco lido pelos cinco céticos (medir→provar→custo→selo) */}
         {brief && <BoardBriefCard brief={brief} isRealMode={isRealMode} />}
@@ -518,7 +527,30 @@ function RealCycleProofCard({
   );
 }
 
-function BoardBriefCard({ brief, isRealMode }: { brief: BoardBrief; isRealMode: boolean }) {
+// Brief executivo REAL (E4, S8): o mesmo corpo visual do BoardBriefCard, com o
+// cabeçalho declarando a fonte (Cofre de Ciclos DESTA org) — compor, não duplicar.
+function RealBoardBriefCard({ brief }: { brief: BoardBrief }) {
+  return (
+    <BoardBriefCard
+      brief={brief}
+      isRealMode={false}
+      heading="Board Brief REAL · os cinco céticos"
+      subtitle="Sobre os ciclos registrados no Cofre DESTA organização — o relatório executivo com dado real, não referência de setor."
+    />
+  );
+}
+
+function BoardBriefCard({
+  brief,
+  isRealMode,
+  heading,
+  subtitle,
+}: {
+  brief: BoardBrief;
+  isRealMode: boolean;
+  heading?: string;
+  subtitle?: string;
+}) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -529,12 +561,14 @@ function BoardBriefCard({ brief, isRealMode }: { brief: BoardBrief; isRealMode: 
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="font-serif text-base text-foreground">
-            Prova de Ciclo · os cinco céticos{isRealMode ? " (leitura de referência do setor)" : ""}
+            {heading ??
+              `Prova de Ciclo · os cinco céticos${isRealMode ? " (leitura de referência do setor)" : ""}`}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {isRealMode
-              ? "Histórico compartilhado de demonstração — a Prova de Ciclo REAL desta organização está no card acima."
-              : "Cada dúvida do board, respondida por um número real do arco — não por marketing."}
+            {subtitle ??
+              (isRealMode
+                ? "Histórico compartilhado de demonstração — a Prova de Ciclo REAL desta organização está no card acima."
+                : "Cada dúvida do board, respondida por um número real do arco — não por marketing.")}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">

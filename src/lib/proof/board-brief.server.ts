@@ -11,8 +11,9 @@
 //
 // Server-only, determinístico. Em produção (Fase 2): dados do Cloud com RLS por org.
 
-import { buildCycleProof } from "./cycle-proof.server";
+import { buildCycleProof, buildCycleProofFromHistory, type CycleProof } from "./cycle-proof.server";
 import { buildEarnedSeal } from "./earned-seal.server";
+import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 
 export type SkepticId = "chro" | "cfo" | "auditor" | "colaborador" | "investidor";
 
@@ -132,4 +133,98 @@ function buildHeadline(satisfied: number, cycleCount: number, sealLabel: string)
     return "Arco em construção: faltam ciclos para a prova longitudinal de board.";
   }
   return `${satisfied}/5 céticos com evidência satisfeita · Selo "${sealLabel}". O arco medir→provar→custo→selo, lastreado em dado real.`;
+}
+
+// ─── Variante REAL (E4, S8): o mesmo brief sobre o Cofre de Ciclos da org ─────
+
+/**
+ * O MESMO brief dos 5 céticos, mas sobre o histórico REAL registrado no Cofre
+ * de Ciclos da organização (S6.75) — nunca sobre o mock de referência do setor.
+ *
+ * Honestidade estrutural: o Selo Empresa Viva exige IVO/participação/
+ * consentimento reais que ainda não existem em produção (decisão declarada no
+ * S6.75) — então o cético "investidor" aparece como PENDENTE no modo real,
+ * nunca fabricado a partir do selo mock. O "auditor" responde só com o que o
+ * histórico real prova (intervenções com efeito atribuível nos ciclos).
+ */
+export function buildBoardBriefFromHistory(
+  packId: string,
+  history: readonly MeasurementContextCapsule[],
+  instrumentShort = "COPSOQ",
+): BoardBrief {
+  const proof: CycleProof = buildCycleProofFromHistory([...history], packId, instrumentShort);
+
+  const measured = proof.cycleCount >= 2;
+  const hasRoi = (proof.preventionRoi?.avoidedCostYear ?? 0) > 0;
+  const hasEffect = proof.interventionsWithEffect >= 1;
+
+  const skeptics: SkepticVerdict[] = [
+    {
+      id: "chro",
+      persona: "CHRO",
+      doubt: "Isso mede algo real, ou é mais uma pesquisa de clima?",
+      answer: measured
+        ? `Medição viva da SUA organização em ${proof.cycleCount} ciclos: ${proof.improvedDimensions} dimensões melhoraram, ${proof.worsenedDimensions} pioraram — sem maquiar.`
+        : "Ainda não há ciclos registrados suficientes para uma leitura longitudinal real (registre ≥2 cápsulas seladas no Cofre).",
+      metric: measured
+        ? `${proof.cycleLabels.join(" → ")} · direção ${proof.overallDirection ?? "—"}`
+        : `${proof.cycleCount} ciclo(s) registrado(s)`,
+      satisfied: measured,
+    },
+    {
+      id: "cfo",
+      persona: "CFO",
+      doubt: "Qual o custo disso para o negócio?",
+      answer: hasRoi
+        ? "Redução de exposição atribuível evita custo de prevenção estimado — com a conta visível, cenário médio, sobre os ciclos reais."
+        : "Sem redução atribuível medida nos ciclos reais, não há custo evitado a declarar (honesto).",
+      metric: hasRoi
+        ? `R$ ${proof.preventionRoi!.avoidedCostYear.toLocaleString("pt-BR")}/ano evitado`
+        : "R$ 0 (sem efeito atribuível ainda)",
+      satisfied: hasRoi,
+    },
+    {
+      id: "auditor",
+      persona: "Auditor NR-1",
+      doubt: "Isso sustenta uma auditoria de risco psicossocial?",
+      answer: hasEffect
+        ? "Há intervenção com efeito atribuível medido entre ciclos reais — a base do 11.4.4 do Guia MTE."
+        : "Ainda sem intervenção com efeito atribuível nos ciclos reais — o sistema não declara o que não provou.",
+      metric: `${proof.interventionsWithEffect} intervenção(ões) com efeito atribuível`,
+      satisfied: hasEffect,
+    },
+    {
+      id: "colaborador",
+      persona: "Colaborador",
+      doubt: "Minha resposta me expõe?",
+      answer:
+        "Nunca. Agregados protegidos por k-anonimato (≥5); identidade invisível por desenho; recorte pequeno é suprimido, não mostrado.",
+      metric: "k-anonimato ≥ 5 imposto no servidor",
+      satisfied: true, // invariante de arquitetura, vale igual no real
+    },
+    {
+      id: "investidor",
+      persona: "Investidor",
+      doubt: "Há categoria nova com moat defensável?",
+      answer:
+        "Selo Empresa Viva pendente no modo real: exige IVO, participação e consentimento reais (ainda não coletados em produção). O sistema nunca exibe um selo que não foi ganho com dado real.",
+      metric: "Selo: pendente de dados reais",
+      satisfied: false, // nunca fabricado a partir do selo mock
+    },
+  ];
+
+  const satisfiedCount = skeptics.filter((s) => s.satisfied).length;
+
+  return {
+    packId,
+    headline: measured
+      ? `${satisfiedCount}/5 céticos com evidência satisfeita — sobre os ciclos REAIS da organização.`
+      : "Arco real em construção: registre ≥2 cápsulas seladas no Cofre de Ciclos.",
+    cycleVerdict: proof.verdict,
+    sealTier: "pendente",
+    sealTierLabel: "Pendente de dados reais",
+    skeptics,
+    satisfiedCount,
+    disclaimer: DISCLAIMER,
+  };
 }
