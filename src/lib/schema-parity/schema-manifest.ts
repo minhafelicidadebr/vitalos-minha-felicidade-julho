@@ -64,4 +64,10 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "leads", column: "consent", usedBy: "lead-capture.server.ts submitLead" },
   { table: "leads", column: "consent_version", usedBy: "lead-capture.server.ts submitLead" },
   { table: "leads", column: "created_at", usedBy: "lead-capture.server.ts listLeads" },
+
+  // Customer Health v1 (E4) — contagens org-level; colunas filtradas/lidas.
+  { table: "action_items", column: "owner_user_id", usedBy: "customer-health.server.ts listAccountHealth" },
+  { table: "action_items", column: "due_on", usedBy: "customer-health.server.ts listAccountHealth" },
+  { table: "organizations", column: "pack_id", usedBy: "customer-health.server.ts listAccountHealth" },
+  { table: "organizations", column: "plan", usedBy: "customer-health.server.ts listAccountHealth" },
 ];

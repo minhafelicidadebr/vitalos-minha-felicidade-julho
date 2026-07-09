@@ -52,3 +52,15 @@ export const adminListLeads = createServerFn({ method: "GET" })
     const { listLeads } = await import("@/lib/growth/lead-capture.server");
     return { leads: await listLeads() };
   });
+
+/** Saúde das contas (Customer Health v1, E4) — só admin da plataforma. */
+export const adminListAccountHealth = createServerFn({ method: "GET" })
+  .inputValidator(z.object({ accessToken: z.string().min(10) }))
+  .handler(async ({ data }) => {
+    const { verifyPlatformAdmin } = await import("@/lib/api/org-invite.server");
+    const auth = await verifyPlatformAdmin(data.accessToken);
+    if (!auth.authorized) return { accounts: [] };
+
+    const { listAccountHealth } = await import("@/lib/growth/customer-health.server");
+    return { accounts: await listAccountHealth() };
+  });

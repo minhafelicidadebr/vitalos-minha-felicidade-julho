@@ -10,8 +10,9 @@ import { ShieldCheck, ShieldAlert, Copy, CheckCircle2, Loader2, KeyRound, Users 
 import { supabase } from "@/integrations/supabase/client";
 import { createOrgInviteLink, listPlatformOrgInvites } from "@/lib/api/org-invite.functions";
 import type { OrgInviteSummary } from "@/lib/api/org-invite.server";
-import { adminListLeads } from "@/lib/api/lead-capture.functions";
+import { adminListLeads, adminListAccountHealth } from "@/lib/api/lead-capture.functions";
 import type { LeadRow } from "@/lib/growth/lead-capture.server";
+import type { AccountHealthRow } from "@/lib/growth/customer-health.server";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -33,6 +34,7 @@ function PlataformaPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [invites, setInvites] = useState<OrgInviteSummary[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [accounts, setAccounts] = useState<AccountHealthRow[]>([]);
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanId>("pilot");
   const [creating, setCreating] = useState(false);
@@ -63,6 +65,9 @@ function PlataformaPage() {
       setInvites(result.invites);
       setStatus("ready");
       adminListLeads({ data: { accessToken: token } }).then((r) => setLeads(r.leads));
+      adminListAccountHealth({ data: { accessToken: token } }).then((r) =>
+        setAccounts(r.accounts),
+      );
     });
     return () => {
       active = false;
@@ -267,6 +272,73 @@ function PlataformaPage() {
                     )}
                   </button>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Saúde das contas (S8 · Customer Health v1, E4) */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
+      >
+        <div className="mb-1 flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <p className="font-medium text-card-foreground">Saúde das contas</p>
+        </div>
+        <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+          Leitura de cada conta contra o próprio arco medir→aprender→transformar→evoluir —
+          nunca comparação entre contas. Só contagens de operação; nenhum conteúdo.
+        </p>
+
+        {accounts.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Nenhuma organização ativa ainda.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {accounts.map((acc) => (
+              <div key={acc.orgId} className="rounded-xl border border-border/60 bg-background p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">{acc.orgName}</p>
+                  <div className="flex items-center gap-2">
+                    {acc.health.northStarMet && (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        ★ Equipes Florescendo
+                      </span>
+                    )}
+                    <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {acc.packId} · {acc.plan}
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums text-foreground">
+                      {acc.health.score}
+                      <span className="text-[10px] font-normal text-muted-foreground">/100</span>
+                    </span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {acc.health.band}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                  {acc.health.dimensions.map((dim) => (
+                    <div key={dim.id} className="rounded-lg border border-border/50 px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-foreground">{dim.label}</p>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {dim.score}/25
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">{dim.evidence}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2.5 text-[11px] text-muted-foreground">
+                  <span className="font-medium text-foreground">Próxima melhor ação:</span>{" "}
+                  {acc.health.nextBestAction}
+                </p>
               </div>
             ))}
           </div>
