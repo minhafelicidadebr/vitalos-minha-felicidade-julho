@@ -32,6 +32,7 @@ import { getSectorLinkRecord } from "@/mocks/sector-link-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import { dbInstrumentToSurveyKey } from "./instrument-mapping";
 import { readIdentityBoundaryStatus } from "../identity/identity-boundary.server";
+import { emitOpsEvent } from "../telemetry/ops-events.server";
 
 /** SHA-256 hex do token bruto — a ÚNICA forma que toca o banco. */
 export function hashSectorToken(token: string): string {
@@ -167,6 +168,7 @@ export async function captureSectorLinkResponse(
   if (boundary.state === "cloud") {
     const row = await loadCloudLink(input.token);
     if (!row || !row.waves || row.status !== "active" || row.expires_at <= nowIso) {
+      emitOpsEvent("sector_response_rejected", { reason: "unknown_wave" });
       return { accepted: false, reason: "unknown_wave" };
     }
 
@@ -188,6 +190,7 @@ export async function captureSectorLinkResponse(
     // A mesma validação pura do modo demo — item inventado nunca chega ao banco.
     const validation = validateBlindSubmission(submission, survey);
     if (!validation.valid) {
+      emitOpsEvent("sector_response_rejected", { waveId: row.wave_id, reason: validation.reason });
       return { accepted: false, reason: validation.reason };
     }
 
@@ -202,9 +205,14 @@ export async function captureSectorLinkResponse(
       | { accepted: boolean; reason: string | null }
       | null;
     if (error || !outcome?.accepted) {
+      emitOpsEvent("sector_response_rejected", {
+        waveId: row.wave_id,
+        reason: outcome?.reason ?? "rpc_error",
+      });
       return { accepted: false, reason: "unknown_wave" };
     }
 
+    emitOpsEvent("sector_response_accepted", { waveId: row.wave_id });
     return {
       accepted: true,
       receipt: issueCaptureReceipt(

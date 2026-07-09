@@ -10,6 +10,7 @@ import {
 } from "@/engine/aggregation/response-aggregation-engine";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import { dbInstrumentToSurveyKey } from "@/lib/survey/instrument-mapping";
+import { emitOpsEvent } from "@/lib/telemetry/ops-events.server";
 
 const K_ANONYMITY_MIN = 5;
 // Desfechos Domínio B: não são dimensões de exposição; ficam em coluna separada.
@@ -207,6 +208,12 @@ export async function triggerCapsuleAggregation(
   if (capsuleErr || !capsule) {
     return { triggered: false, count: n, reason: "capsule_insert_error" };
   }
+
+  emitOpsEvent("capsule_published", {
+    orgId: waveOwner.org_id as string,
+    waveId,
+    context: { participantCount: result.participantCount },
+  });
 
   // A onda NUNCA é tocada aqui — fechar é decisão humana separada (ver
   // closeWaveAsAdmin em wave-admin.server.ts), nunca um efeito colateral

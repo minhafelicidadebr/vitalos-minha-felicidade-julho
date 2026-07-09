@@ -9,6 +9,7 @@ import { getWaveSurvey } from "@/mocks/survey-mock";
 import { readIdentityBoundaryStatus } from "../identity/identity-boundary.server";
 import { saveWaveResponse } from "../cloud/db-adapter";
 import { dbInstrumentToSurveyKey } from "./instrument-mapping";
+import { emitOpsEvent } from "../telemetry/ops-events.server";
 
 export interface ServerCaptureInput extends BlindSurveySubmission {
   packId: string;
@@ -16,11 +17,12 @@ export interface ServerCaptureInput extends BlindSurveySubmission {
   inviteToken?: string;
 }
 
-// Trilha mínima de observabilidade (P1-04 parcial) — sem tabela de eventos
-// ainda (S4+ formaliza isso); por ora, uma linha estruturada nos logs da
-// função é a diferença entre "falha visível" e "falha silenciosa" no Cloud.
-function logCloudRejection(reason: string, context: Record<string, unknown>): void {
+// Trilha de observabilidade (P1-04): além do log estruturado, cada recusa
+// cloud vira um evento em ops_events (fire-and-forget — nunca bloqueia nem
+// derruba a submissão). O evento carrega só motivo + waveId, nunca conteúdo.
+function logCloudRejection(reason: string, context: { waveId?: string; surveyId?: string }): void {
   console.warn("[response-capture] submissão cloud rejeitada", { reason, ...context });
+  emitOpsEvent("response_submit_rejected", { waveId: context.waveId, reason });
 }
 
 /**
@@ -42,6 +44,7 @@ export async function captureSurveySubmission(
   }
 
   if (boundary.state === "cloud" && input.inviteToken) {
+    emitOpsEvent("response_submit_attempted", { waveId: input.waveId });
     // ── Modo real: valida e persiste no Supabase ──────────────────────────
     // Resolve o instrumento REAL da onda NO MOMENTO DO ENVIO — nunca assume
     // um instrumento fixo. A resolução feita quando a tela carregou
@@ -95,6 +98,7 @@ export async function captureSurveySubmission(
       return { accepted: false, reason };
     }
 
+    emitOpsEvent("response_submit_accepted", { waveId: input.waveId });
     return {
       accepted: true,
       receipt: issueCaptureReceipt(

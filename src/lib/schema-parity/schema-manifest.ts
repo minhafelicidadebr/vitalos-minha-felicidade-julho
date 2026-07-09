@@ -39,4 +39,12 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "sector_links", column: "expires_at", usedBy: "sector-link.server.ts loadCloudLink" },
   { table: "sector_links", column: "org_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
   { table: "sector_links", column: "wave_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
+
+  // ops_events — telemetria operacional mínima (P1-04).
+  { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
+  { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },
+  { table: "ops_events", column: "wave_id", usedBy: "ops-events.server.ts emitOpsEvent" },
+  { table: "ops_events", column: "reason", usedBy: "ops-events.server.ts emitOpsEvent" },
+  { table: "ops_events", column: "context", usedBy: "ops-events.server.ts emitOpsEvent" },
+  { table: "ops_events", column: "occurred_at", usedBy: "ops-events.server.ts listOpsEventsForOrg" },
 ];

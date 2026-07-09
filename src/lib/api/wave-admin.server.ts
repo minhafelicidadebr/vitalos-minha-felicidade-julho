@@ -9,6 +9,7 @@ import {
   checkInstrumentAllowed,
   describeLimitViolation,
 } from "@/engine/billing/plan-engine";
+import { emitOpsEvent } from "../telemetry/ops-events.server";
 
 export type AdminCreateWaveResult = CreateWaveResult & { emailsSent: number; emailsAttempted: number };
 
@@ -58,6 +59,12 @@ export async function createWaveAsAdmin(
 
   const result = await createWaveWithAdmin(input, admin);
   if ("error" in result) return { error: result.error };
+
+  emitOpsEvent("wave_created", {
+    orgId: input.orgId,
+    waveId: result.waveId,
+    context: { instrument: input.instrument, inviteCount: input.inviteCount },
+  });
 
   // Dispara e-mails para os convites que têm endereço associado. Awaited (não
   // fire-and-forget) — em runtimes tipo Workers, promises soltas após o
@@ -125,6 +132,12 @@ export async function closeWaveAsAdmin(
 
   const { triggerCapsuleAggregation } = await import("./capsule-aggregator.server");
   const aggregation = await triggerCapsuleAggregation(waveId, wave.instrument as string, orgId);
+
+  emitOpsEvent("wave_closed", {
+    orgId,
+    waveId,
+    reason: aggregation.triggered ? "published" : aggregation.reason,
+  });
 
   const seal_outcome = aggregation.triggered ? "published" : "insufficient_data";
   await admin

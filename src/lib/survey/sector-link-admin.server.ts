@@ -9,6 +9,7 @@
 
 import { randomBytes } from "node:crypto";
 import { hashSectorToken } from "./sector-link.server";
+import { emitOpsEvent } from "../telemetry/ops-events.server";
 
 export type CreateSectorLinkOutcome =
   | { created: true; token: string; expiresAt: string; sectorLabel: string }
@@ -58,5 +59,6 @@ export async function createSectorLinkAsAdmin(
   });
   if (error) return { created: false, error: "Falha ao registrar o link. Tente novamente." };
 
+  emitOpsEvent("sector_link_created", { orgId, waveId });
   return { created: true, token, expiresAt, sectorLabel: label };
 }

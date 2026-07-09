@@ -12,7 +12,7 @@ import {
 import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { adminCreateWave, adminListWaves, adminCloseWave } from "@/lib/api/wave-admin.functions";
-import { adminCreateSectorLink } from "@/lib/api/sector-link.functions";
+import { adminCreateSectorLink, adminListOpsEvents } from "@/lib/api/sector-link.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -404,10 +404,99 @@ function AdminPage() {
                 <WaveCard key={wave.id} wave={wave} onAggregated={fetchWaves} />
               ))}
             </div>
+
+            <OpsTrailPanel />
           </motion.div>
         )}
       </div>
     </AppShell>
+  );
+}
+
+// ─── Trilha de operações (P1-04) — falha visível sem precisar de SQL ─────────
+
+const OPS_EVENT_LABELS: Record<string, string> = {
+  response_submit_attempted: "Resposta iniciada",
+  response_submit_accepted: "Resposta aceita",
+  response_submit_rejected: "Resposta recusada",
+  sector_response_accepted: "Resposta de setor aceita",
+  sector_response_rejected: "Resposta de setor recusada",
+  sector_link_created: "Link de setor emitido",
+  wave_created: "Onda criada",
+  wave_closed: "Onda fechada",
+  capsule_published: "Leitura protegida publicada",
+  authorization_denied: "Autorização negada",
+};
+
+function OpsTrailPanel() {
+  const [events, setEvents] = useState<
+    Array<{ event: string; waveId: string | null; reason: string | null; occurredAt: string }>
+  >([]);
+  const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function load() {
+    setOpen(true);
+    if (loaded) return;
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const result = await adminListOpsEvents({ data: { accessToken } });
+      setEvents(result.events);
+    } finally {
+      setLoaded(true);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-xl border border-border/60 bg-background p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">Trilha de operações</p>
+          <p className="text-[11px] text-muted-foreground">
+            Últimos eventos da coleta — só metadados de operação, nunca conteúdo de resposta.
+          </p>
+        </div>
+        {!open && (
+          <button
+            onClick={load}
+            className="rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/40"
+          >
+            Ver trilha
+          </button>
+        )}
+      </div>
+      {open && !loaded && (
+        <p className="mt-3 text-xs text-muted-foreground animate-pulse">Carregando…</p>
+      )}
+      {open && loaded && events.length === 0 && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Nenhum evento registrado ainda (a trilha começa a contar após a migration de
+          telemetria ser aplicada).
+        </p>
+      )}
+      {open && events.length > 0 && (
+        <ol className="mt-3 space-y-1.5">
+          {events.map((e, i) => (
+            <li key={i} className="flex flex-wrap items-center gap-2 text-[11px]">
+              <span className="text-muted-foreground tabular-nums">
+                {new Date(e.occurredAt).toLocaleString("pt-BR")}
+              </span>
+              <span
+                className={`font-medium ${
+                  e.event.endsWith("rejected") || e.event === "authorization_denied"
+                    ? "text-destructive"
+                    : "text-foreground"
+                }`}
+              >
+                {OPS_EVENT_LABELS[e.event] ?? e.event}
+              </span>
+              {e.reason && <span className="text-muted-foreground">({e.reason})</span>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 

@@ -58,3 +58,15 @@ export const adminCreateSectorLink = createServerFn({ method: "POST" })
       data.expiresInDays,
     );
   });
+
+/** Últimos eventos operacionais da org (P1-04) — falha visível sem SQL. */
+export const adminListOpsEvents = createServerFn({ method: "GET" })
+  .inputValidator(z.object({ accessToken: z.string().min(10) }))
+  .handler(async ({ data }) => {
+    const { requireOrgAdmin } = await import("@/lib/auth/authorize.server");
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { events: [] };
+
+    const { listOpsEventsForOrg } = await import("@/lib/telemetry/ops-events.server");
+    return { events: await listOpsEventsForOrg(auth.membership.orgId) };
+  });

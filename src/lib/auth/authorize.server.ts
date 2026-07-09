@@ -16,6 +16,7 @@
 // como ser expresso na assinatura da função.
 
 import { REGISTERED_PACK_IDS, resolvePackBundle } from "@/domain/packs/registry";
+import { emitOpsEvent } from "@/lib/telemetry/ops-events.server";
 
 export type AuthFailureReason = "invalid_session" | "no_profile" | "not_admin";
 
@@ -108,8 +109,15 @@ export async function resolveOrgMembership(accessToken: string): Promise<Members
  */
 export async function requireOrgAdmin(accessToken: string): Promise<MembershipResult> {
   const result = await resolveOrgMembership(accessToken);
-  if (!result.ok) return result;
-  if (!isOrgAdminRole(result.membership.role)) return { ok: false, reason: "not_admin" };
+  if (!result.ok) {
+    emitOpsEvent("authorization_denied", { reason: result.reason });
+    return result;
+  }
+  if (!isOrgAdminRole(result.membership.role)) {
+    // orgId aqui é seguro: é a org REAL da sessão, não a alegada pelo payload.
+    emitOpsEvent("authorization_denied", { orgId: result.membership.orgId, reason: "not_admin" });
+    return { ok: false, reason: "not_admin" };
+  }
   return result;
 }
 

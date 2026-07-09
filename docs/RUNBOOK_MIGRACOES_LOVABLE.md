@@ -435,6 +435,24 @@ Teste no app real: em `/admin`, numa onda aberta, "+ Gerar link de setor" →
 copiar o link (aparece UMA vez só) → abrir numa aba anônima → responder →
 a contagem da onda deve subir e a resposta entra no relatório protegido.
 
+## Ops Events — telemetria operacional mínima (P1-04, EV-13)
+
+`supabase/migrations/20260708130000_ops_events.sql` — 1 tabela INSERT-only
+(`ops_events`), escrita SÓ pelo servidor (service role), zero policies. O
+emissor TypeScript (`ops-events.server.ts`) é fire-and-forget e NUNCA lança
+— telemetria jamais derruba o fluxo que observa. Um evento carrega só nome/
+org/onda/motivo/contexto mínimo — nunca resposta, token ou e-mail
+(privacidade por schema: o tipo não tem onde colocar).
+
+Eventos emitidos: response_submit_attempted/accepted/rejected,
+sector_response_accepted/rejected, sector_link_created, wave_created,
+wave_closed, capsule_published, authorization_denied.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Rodar as 2
+queries de verificação do rodapé. Depois, em `/admin`, o painel "Trilha de
+operações" (botão "Ver trilha") mostra os últimos 20 eventos da org — é a
+"falha visível" do P1-04 sem precisar de SQL.
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -462,6 +480,7 @@ a contagem da onda deve subir e a resposta entra no relatório protegido.
 15. `20260706120000_victory_records.sql` (Ata de Vitória, I-E2/I-E4)
 16. `20260706130000_item_funnel_events.sql` (Lupa da Escuta, I-M7)
 17. `20260708120000_sector_links.sql` (Sector Links reais, P0-01)
+18. `20260708130000_ops_events.sql` (Telemetria operacional, P1-04)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
