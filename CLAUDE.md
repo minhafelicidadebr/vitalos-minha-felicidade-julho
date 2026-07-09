@@ -11,6 +11,33 @@
 
 ---
 
+## 🧩 Skills do Claude Code deste projeto (`.claude/skills/`)
+
+Seis skills operacionais vivem em `.claude/skills/<nome>/SKILL.md` — cada uma
+carrega sozinha quando relevante, então instruções de comportamento (não de
+estado do projeto) vivem lá, não neste arquivo. Leia a skill quando a
+situação bater, não sempre.
+
+| Skill | Quando ela entra |
+| --- | --- |
+| `surgical-implementation-guard` | Em TODA tarefa de implementação — default, não opcional. Diffs mínimos, plano curto antes de editar, risco antes de tocar migration/RLS/auth/billing. |
+| `supabase-rls-security-definer-auditor` | Escrevendo/revisando migration, RLS policy, RPC `SECURITY DEFINER`, GRANT/REVOKE, ou qualquer server function que resolve `org_id`/tenant. |
+| `nr1-copsoq-defensibility-guard` | Qualquer copy, relatório ou feature tocando NR-1/COPSOQ II/risco psicossocial/PGR — impede claim de conformidade automática, mistura Domínio A/B, ranking individual. |
+| `ai-governance-edge-wrapper` | Implementando/revisando qualquer feature de IA (`src/engine/ai/`, `src/lib/ai/`) — tenant, plano, prompt versionado, validação de saída, aprovação humana. |
+| `ux-ix-premium-accessibility-guard` | Toda rota ou componente novo/alterado — mobile-first, a11y, os 4 estados obrigatórios, tom não punitivo, zero ranking/gamificação tóxica. |
+| `token-context-economy-guard` | Disciplina contínua da sessão — leitura seletiva, grep antes de abrir arquivo grande, resumir saída longa, `CLAUDE.md` enxuto. |
+
+**Regras de sessão (sempre válidas, reforçadas em `surgical-implementation-guard`):**
+- Trabalho novo entra em branch (`chore/*`/`feat/*`/`fix/*`) — nunca commit
+  direto planejado como definitivo na `main` sem ela já ser o destino claro.
+- Nunca push na `main` sem pedir confirmação explícita ao founder, a cada
+  push.
+- Nunca tocar produção (migration, seed, deploy) sem pedido explícito.
+- Gate recomendado antes de commit: `bun run gate` (roda `bun test src` +
+  `bun run parity` + `bunx tsc --noEmit`).
+
+---
+
 ## 📌 Repositório oficial
 
 `https://github.com/minhafelicidadebr/vitalos.git`
