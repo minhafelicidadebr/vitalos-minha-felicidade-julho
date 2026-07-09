@@ -1,0 +1,37 @@
+# Gate de qualidade no CI (P1-02, S8 · Confiança Comprovável).
+# Roda o MESMO ritual que o desenvolvimento local já usa (`bun run gate`:
+# testes + paridade de schema + typecheck) + build de produção, em cada push
+# e PR na main. Nenhum segredo necessário: os testes mockam o Supabase e o
+# build funciona sem env (modo demo é o default quando VITE_* está ausente).
+#
+# Nota Lovable: os commits automáticos do bot (gpt-engineer-app[bot]) também
+# passam por aqui — se o Lovable quebrar o gate, o X vermelho aparece no
+# GitHub, que é exatamente a "falha visível" que queremos.
+
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Gate (testes + paridade de schema + typecheck)
+        run: bun run gate
+
+      - name: Build de produção
+        run: bun run build

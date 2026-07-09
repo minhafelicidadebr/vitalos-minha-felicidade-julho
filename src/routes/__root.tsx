@@ -12,7 +12,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { A11yProvider } from "../app/shell/A11yProvider";
 import { MockDataProvider } from "../app/shell/MockDataProvider";
-import { PackProvider } from "../engine/pack";
+import { PackProvider } from "../app/composition/PackProvider";
 import { AuthGate } from "../app/auth/AuthGate";
 
 function NotFoundComponent() {

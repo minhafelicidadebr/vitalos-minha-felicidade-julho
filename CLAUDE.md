@@ -86,7 +86,8 @@ src/styles.css — nunca hex solto em componente.
 src/
   engine/                          # motor setor-agnóstico
     pack/
-      PackProvider.tsx             # ✅ carrega pack, valida Ajv, expõe usePack()
+      pack-context.tsx             # ✅ contexto puro + usePack() (zero import de domain)
+      # PackProvider vive em src/app/composition/ (P1-07: carrega pack, valida Ajv)
       pack-types.ts                # ✅ DomainPack, ProprietaryIndex, PackStatus
       index.ts                     # ✅
     index/        .gitkeep         # 🔲 PRÓXIMO — motor IVO (Bloco 3)

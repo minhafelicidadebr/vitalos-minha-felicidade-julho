@@ -1,4 +1,4 @@
-export { PackProvider, usePack } from "./PackProvider";
+export { usePack, PackContext, type PackContextValue } from "./pack-context";
 export type {
   DomainPack,
   HierarchyLevel,

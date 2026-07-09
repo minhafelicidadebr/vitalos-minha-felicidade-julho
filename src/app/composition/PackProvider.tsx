@@ -1,14 +1,18 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+// Composition root do pack ativo — a METADE DE DOMÍNIO da fronteira
+// Engine↔Domínio (P1-07). Este é o ÚNICO lugar do app (fora de domain/ e
+// testes) autorizado a importar o registro de packs: carrega o bundle do
+// setor ativo, valida com Ajv contra o schema versionado e publica o
+// resultado no PackContext (engine/pack/pack-context — puro, sem domain).
+// Engine faz conta; ESTA camada injeta o significado.
+
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Ajv, { type ErrorObject } from "ajv";
 import addFormats from "ajv-formats";
 
-import type { DomainPack, GamificationEconomy, PackStatus, ProprietaryIndex } from "./pack-types";
-
-// O Engine apenas LÊ o registro de packs (domain/). Engine ≠ Domínio preservado:
-// nenhuma lógica de domínio vive aqui — só o carregamento + validação Ajv do pack
-// ativo, resolvido por id a partir do registro setor-agnóstico.
+import { PackContext, type PackContextValue } from "@/engine/pack/pack-context";
+import type { DomainPack, PackStatus } from "@/engine/pack/pack-types";
 import { resolvePackBundle, DEFAULT_PACK_ID } from "@/domain/packs/registry";
 import packSchema from "@/domain/packs/enterprise/domain-pack.schema.json";
 
@@ -29,24 +33,6 @@ export const usePackStore = create<PackState>()(
     { name: "vita-pack" },
   ),
 );
-
-interface PackContextValue {
-  status: PackStatus;
-  pack: DomainPack | null;
-  index: ProprietaryIndex | null;
-  gamification: GamificationEconomy | null;
-  /** Id do pack ativo (setor). */
-  packId: string;
-  /** Rótulo institucional do setor ativo (ex.: "Empresa", "Escola"). */
-  sectorLabel: string;
-  /** Troca o setor ativo em runtime. */
-  setPackId: (packId: string) => void;
-  t: (token: string, fallback?: string) => string;
-  hasRole: (roleId: string) => boolean;
-  reload: () => void;
-}
-
-const PackContext = createContext<PackContextValue | null>(null);
 
 interface ValidationResult {
   valid: boolean;
@@ -158,10 +144,4 @@ export function PackProvider({
   }, [status, activePackId, setActivePackId]);
 
   return <PackContext.Provider value={value}>{children}</PackContext.Provider>;
-}
-
-export function usePack() {
-  const ctx = useContext(PackContext);
-  if (!ctx) throw new Error("usePack deve ser usado dentro de <PackProvider>.");
-  return ctx;
 }
