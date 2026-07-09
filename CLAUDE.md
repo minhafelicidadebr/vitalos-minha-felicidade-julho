@@ -11,21 +11,23 @@
 
 ---
 
-## 🧩 Skills do Claude Code deste projeto (`.claude/skills/`)
+## 🧩 Skills do Claude Code (projeto + globais da conta)
 
-Seis skills operacionais vivem em `.claude/skills/<nome>/SKILL.md` — cada uma
-carrega sozinha quando relevante, então instruções de comportamento (não de
-estado do projeto) vivem lá, não neste arquivo. Leia a skill quando a
-situação bater, não sempre.
+Quatro skills específicas do VitalOS vivem em `.claude/skills/<nome>/SKILL.md`
+(só valem neste repo). Mais três disciplinas de engenharia genéricas
+(implementação cirúrgica, economia de tokens, e outras que se repetiam em
+todo projeto) foram promovidas a **skills globais da conta**
+(`~/.claude/skills/`) — valem em qualquer projeto, não só aqui. Cada skill
+carrega sozinha quando relevante; leia-a quando a situação bater, não sempre.
 
-| Skill | Quando ela entra |
-| --- | --- |
-| `surgical-implementation-guard` | Em TODA tarefa de implementação — default, não opcional. Diffs mínimos, plano curto antes de editar, risco antes de tocar migration/RLS/auth/billing. |
-| `supabase-rls-security-definer-auditor` | Escrevendo/revisando migration, RLS policy, RPC `SECURITY DEFINER`, GRANT/REVOKE, ou qualquer server function que resolve `org_id`/tenant. |
-| `nr1-copsoq-defensibility-guard` | Qualquer copy, relatório ou feature tocando NR-1/COPSOQ II/risco psicossocial/PGR — impede claim de conformidade automática, mistura Domínio A/B, ranking individual. |
-| `ai-governance-edge-wrapper` | Implementando/revisando qualquer feature de IA (`src/engine/ai/`, `src/lib/ai/`) — tenant, plano, prompt versionado, validação de saída, aprovação humana. |
-| `ux-ix-premium-accessibility-guard` | Toda rota ou componente novo/alterado — mobile-first, a11y, os 4 estados obrigatórios, tom não punitivo, zero ranking/gamificação tóxica. |
-| `token-context-economy-guard` | Disciplina contínua da sessão — leitura seletiva, grep antes de abrir arquivo grande, resumir saída longa, `CLAUDE.md` enxuto. |
+| Skill | Escopo | Quando ela entra |
+| --- | --- | --- |
+| `surgical-implementation-guard` | global | Em TODA tarefa de implementação — default, não opcional. Diffs mínimos, plano curto antes de editar, risco antes de tocar migration/RLS/auth/billing. |
+| `token-context-economy-guard` | global | Disciplina contínua da sessão — leitura seletiva, grep antes de abrir arquivo grande, resumir saída longa, `CLAUDE.md` enxuto. |
+| `supabase-rls-security-definer-auditor` | **projeto** | Escrevendo/revisando migration, RLS policy, RPC `SECURITY DEFINER`, GRANT/REVOKE, ou qualquer server function que resolve `org_id`/tenant DESTE repo. (Versão genérica para outros projetos: `sql-rls-security-auditor`, global.) |
+| `nr1-copsoq-defensibility-guard` | **projeto** | Qualquer copy, relatório ou feature tocando NR-1/COPSOQ II/risco psicossocial/PGR — impede claim de conformidade automática, mistura Domínio A/B, ranking individual. Doutrina de produto, não generalizável. |
+| `ai-governance-edge-wrapper` | **projeto** | Implementando/revisando qualquer feature de IA (`src/engine/ai/`, `src/lib/ai/`) DESTE repo. (Versão genérica: `ai-feature-governance-guard`, global.) |
+| `ux-ix-premium-accessibility-guard` | **projeto** | Toda rota ou componente novo/alterado — mobile-first, a11y, os 4 estados obrigatórios, tom não punitivo, zero ranking/gamificação tóxica. (Versão genérica: `ui-accessibility-premium-guard`, global.) |
 
 **Regras de sessão (sempre válidas, reforçadas em `surgical-implementation-guard`):**
 - Trabalho novo entra em branch (`chore/*`/`feat/*`/`fix/*`) — nunca commit
