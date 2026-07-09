@@ -31,3 +31,30 @@ export const submitSectorLinkResponse = createServerFn({ method: "POST" })
       consentVersion: data.consentVersion,
     }),
   );
+
+/**
+ * Emite um link de setor (admin da org, sessão real). O token bruto retorna
+ * UMA única vez — o banco só guarda o hash. orgId vem da SESSÃO (P0-04).
+ */
+export const adminCreateSectorLink = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      accessToken: z.string().min(10),
+      waveId: z.string().uuid(),
+      sectorLabel: z.string().min(1).max(80),
+      expiresInDays: z.number().int().min(1).max(365).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const { requireOrgAdmin, describeAuthFailure } = await import("@/lib/auth/authorize.server");
+    const auth = await requireOrgAdmin(data.accessToken);
+    if (!auth.ok) return { created: false as const, error: describeAuthFailure(auth.reason) };
+
+    const { createSectorLinkAsAdmin } = await import("@/lib/survey/sector-link-admin.server");
+    return createSectorLinkAsAdmin(
+      auth.membership.orgId,
+      data.waveId,
+      data.sectorLabel,
+      data.expiresInDays,
+    );
+  });

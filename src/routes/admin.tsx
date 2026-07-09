@@ -12,6 +12,7 @@ import {
 import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { adminCreateWave, adminListWaves, adminCloseWave } from "@/lib/api/wave-admin.functions";
+import { adminCreateSectorLink } from "@/lib/api/sector-link.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -424,6 +425,11 @@ function WaveCard({
   const [closing, setClosing] = useState(false);
   const [closeMsg, setCloseMsg] = useState<string | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [sectorOpen, setSectorOpen] = useState(false);
+  const [sectorLabel, setSectorLabel] = useState("");
+  const [sectorBusy, setSectorBusy] = useState(false);
+  const [sectorMsg, setSectorMsg] = useState<string | null>(null);
+  const [sectorUrl, setSectorUrl] = useState<string | null>(null);
 
   const pct = wave.invitedCount > 0
     ? Math.min(100, Math.round((wave.responseCount / wave.invitedCount) * 100))
@@ -457,6 +463,34 @@ function WaveCard({
       setAggMsg("Erro ao agregar — verifique o Cloud.");
     } finally {
       setAggregating(false);
+    }
+  }
+
+  async function handleCreateSectorLink() {
+    if (sectorBusy || !sectorLabel.trim()) return;
+    setSectorBusy(true);
+    setSectorMsg(null);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setSectorMsg("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await adminCreateSectorLink({
+        data: { accessToken, waveId: wave.id, sectorLabel: sectorLabel.trim() },
+      });
+      if (result.created) {
+        // O token só existe NESTA resposta — o banco guarda apenas o hash.
+        setSectorUrl(`${window.location.origin}/respond/s/${result.token}`);
+        setSectorMsg(null);
+        setSectorLabel("");
+      } else {
+        setSectorMsg(result.error);
+      }
+    } catch {
+      setSectorMsg("Erro ao gerar o link — verifique o Cloud.");
+    } finally {
+      setSectorBusy(false);
     }
   }
 
@@ -583,6 +617,70 @@ function WaveCard({
               )}
             </div>
           )}
+          {/* Link de setor — coleta anônima multi-uso (modalidade shared_sector) */}
+          {!isSealed && (
+            <div className="mt-3">
+              {!sectorOpen && !sectorUrl && (
+                <button
+                  onClick={() => setSectorOpen(true)}
+                  className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  + Gerar link de setor (coleta anônima compartilhada)
+                </button>
+              )}
+              {sectorOpen && !sectorUrl && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={sectorLabel}
+                    onChange={(e) => setSectorLabel(e.target.value)}
+                    placeholder="Nome do setor (ex.: Operações)"
+                    maxLength={80}
+                    className="min-h-9 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-xs text-foreground"
+                  />
+                  <button
+                    onClick={handleCreateSectorLink}
+                    disabled={sectorBusy || !sectorLabel.trim()}
+                    className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+                  >
+                    {sectorBusy ? "Gerando…" : "Gerar link"}
+                  </button>
+                  <button
+                    onClick={() => { setSectorOpen(false); setSectorMsg(null); }}
+                    className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+              {sectorUrl && (
+                <div className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2">
+                  <p className="text-[11px] font-medium text-primary">
+                    Link de setor gerado — copie AGORA: por segurança, ele não pode ser
+                    exibido de novo (o sistema guarda só a impressão digital).
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <code className="max-w-full overflow-x-auto rounded bg-background px-2 py-1 text-[10px] text-foreground">
+                      {sectorUrl}
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(sectorUrl)}
+                      className="rounded-lg border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/40"
+                    >
+                      Copiar
+                    </button>
+                    <button
+                      onClick={() => { setSectorUrl(null); setSectorOpen(false); }}
+                      className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )}
+              {sectorMsg && <p className="mt-1.5 text-[11px] font-medium text-destructive">{sectorMsg}</p>}
+            </div>
+          )}
+
           {aggMsg && <p className="mt-2 text-[11px] font-medium text-primary">{aggMsg}</p>}
           {closeMsg && <p className="mt-2 text-[11px] font-medium text-foreground">{closeMsg}</p>}
         </div>

@@ -30,4 +30,13 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
 
   // wave_invites — marca de disparo de e-mail do convite de onda.
   { table: "wave_invites", column: "emailed_at", usedBy: "wave-admin.server.ts createWaveAsAdmin" },
+
+  // sector_links — link setorial compartilhado (modalidade shared_sector).
+  { table: "sector_links", column: "token_hash", usedBy: "sector-link.server.ts loadCloudLink" },
+  { table: "sector_links", column: "sector_label", usedBy: "sector-link.server.ts loadCloudLink" },
+  { table: "sector_links", column: "access_mode", usedBy: "sector-link.server.ts loadCloudLink" },
+  { table: "sector_links", column: "status", usedBy: "sector-link.server.ts loadCloudLink" },
+  { table: "sector_links", column: "expires_at", usedBy: "sector-link.server.ts loadCloudLink" },
+  { table: "sector_links", column: "org_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
+  { table: "sector_links", column: "wave_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
 ];

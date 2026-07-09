@@ -416,6 +416,25 @@ pack+instrumento; depois disso, mostra por item: % que respondeu, queda
 relativa ao item anterior, tempo típico entre itens, e um selo "Carga alta"
 quando um item consome ≥3× o tempo típico do instrumento.
 
+## Sector Links reais — persistência do link setorial (P0-01, Plano §I)
+
+`supabase/migrations/20260708120000_sector_links.sql` — 1 tabela
+(`sector_links`: só `token_hash` SHA-256, nunca o token bruto; zero policy
+de SELECT, tudo via service role) + 1 RPC (`submit_sector_response`,
+SECURITY DEFINER, chamável por `anon` — o link compartilhado É a
+credencial, modalidade `shared_sector` MULTI-USO, diferente do convite de
+onda de uso único). A resposta entra em `wave_responses` com
+`invite_token NULL` (anônima por schema) e passa pelo MESMO pipeline de
+agregação k-anon (capsule, n≥5). Agregado POR SETOR é v2 declarada.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Depois,
+rodar as 4 queries de verificação comentadas no rodapé do próprio arquivo
+(`has_table_privilege`/`has_function_privilege` — lição do S5: o REVOKE
+explícito precisa ser CONFERIDO, nunca presumido nesta conta Supabase).
+Teste no app real: em `/admin`, numa onda aberta, "+ Gerar link de setor" →
+copiar o link (aparece UMA vez só) → abrir numa aba anônima → responder →
+a contagem da onda deve subir e a resposta entra no relatório protegido.
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -442,6 +461,7 @@ quando um item consome ≥3× o tempo típico do instrumento.
 14. `20260706110000_personal_assessments.sql` (Espelho Vivo real, I-M3/I-M5)
 15. `20260706120000_victory_records.sql` (Ata de Vitória, I-E2/I-E4)
 16. `20260706130000_item_funnel_events.sql` (Lupa da Escuta, I-M7)
+17. `20260708120000_sector_links.sql` (Sector Links reais, P0-01)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
