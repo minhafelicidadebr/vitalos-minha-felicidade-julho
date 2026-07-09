@@ -168,6 +168,60 @@ export type Database = {
           },
         ]
       }
+      sector_links: {
+        Row: {
+          access_mode: string
+          created_at: string
+          expires_at: string
+          id: string
+          org_id: string
+          revoked_at: string | null
+          sector_label: string
+          status: string
+          token_hash: string
+          wave_id: string
+        }
+        Insert: {
+          access_mode?: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          org_id: string
+          revoked_at?: string | null
+          sector_label: string
+          status?: string
+          token_hash: string
+          wave_id: string
+        }
+        Update: {
+          access_mode?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          org_id?: string
+          revoked_at?: string | null
+          sector_label?: string
+          status?: string
+          token_hash?: string
+          wave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sector_links_wave_id_fkey"
+            columns: ["wave_id"]
+            isOneToOne: false
+            referencedRelation: "waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sm2_card_state: {
         Row: {
           card_id: string
@@ -410,6 +464,14 @@ export type Database = {
           org_id: string
           plan: string
           profile_id: string
+        }[]
+      }
+      submit_sector_response: {
+        Args: { p_answers: Json; p_token_hash: string }
+        Returns: {
+          accepted: boolean
+          reason: string
+          response_count: number
         }[]
       }
       submit_wave_response: {
