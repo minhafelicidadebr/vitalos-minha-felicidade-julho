@@ -47,4 +47,21 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "ops_events", column: "reason", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "context", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "occurred_at", usedBy: "ops-events.server.ts listOpsEventsForOrg" },
+
+  // leads — captura real de leads comerciais (P1-05, S7 Porta de Entrada).
+  { table: "leads", column: "name", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "company", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "role", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "email", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "whatsapp", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "interest", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "source_page", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "utm_source", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "utm_medium", usedBy: "lead-capture.server.ts submitLead" },
+  { table: "leads", column: "utm_campaign", usedBy: "lead-capture.server.ts submitLead/listLeads" },
+  { table: "leads", column: "utm_term", usedBy: "lead-capture.server.ts submitLead" },
+  { table: "leads", column: "utm_content", usedBy: "lead-capture.server.ts submitLead" },
+  { table: "leads", column: "consent", usedBy: "lead-capture.server.ts submitLead" },
+  { table: "leads", column: "consent_version", usedBy: "lead-capture.server.ts submitLead" },
+  { table: "leads", column: "created_at", usedBy: "lead-capture.server.ts listLeads" },
 ];

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BrainCircuit,
@@ -19,8 +19,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "@tanstack/react-router";
+import { submitLeadForm } from "@/lib/api/lead-capture.functions";
+import { parseUtmParams } from "@/engine/growth/lead-capture-engine";
 import {
   APPLICATION_MODALS,
   EDUCATIONAL_INNOVATION_MODALS,
@@ -1144,23 +1148,43 @@ function DashboardModal() {
 
 // ─── Modal · Apresentação executiva (form visual, sem backend) ────────────────
 
+const LEAD_CONSENT_VERSION = "2026.1";
+
+const LEAD_ERROR_COPY: Record<string, string> = {
+  invalid_request: "Preencha nome, empresa, e-mail e o interesse principal antes de enviar.",
+  invalid_email: "Digite um e-mail corporativo válido.",
+  field_too_long: "Um dos campos passou do tamanho permitido — encurte e tente de novo.",
+  missing_consent: "É preciso marcar o consentimento para enviarmos sua solicitação.",
+  cloud_adapter_missing: "Não foi possível enviar agora. Tente novamente em instantes.",
+};
+
 function ExecutiveModal() {
   const f = EXECUTIVE_FORM;
-  const [submitted, setSubmitted] = useState(false);
+  const [fields, setFields] = useState<Record<string, string>>({});
   const [interest, setInterest] = useState<string>(f.interests[0]!);
+  const [consent, setConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ persisted: boolean } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Reinicia o estado sempre que o modal monta.
   useEffect(() => {
-    setSubmitted(false);
+    setFields({});
     setInterest(f.interests[0]!);
+    setConsent(false);
+    setResult(null);
+    setError(null);
   }, [f.interests]);
 
-  if (submitted) {
+  if (result) {
+    const successText = result.persisted
+      ? "Recebemos sua solicitação — o time VitalOS™ entra em contato pelo e-mail ou WhatsApp informado."
+      : f.successText;
     return (
       <DialogContent className="max-w-md text-center">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">{f.successTitle}</DialogTitle>
-          <DialogDescription>{f.successText}</DialogDescription>
+          <DialogDescription>{successText}</DialogDescription>
         </DialogHeader>
         <span
           className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-2xl text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
@@ -1172,19 +1196,48 @@ function ExecutiveModal() {
     );
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const utm = parseUtmParams(window.location.search);
+      const response = await submitLeadForm({
+        data: {
+          name: fields.nome ?? "",
+          company: fields.empresa ?? "",
+          role: fields.cargo ?? "",
+          email: fields.email ?? "",
+          whatsapp: fields.whatsapp ?? "",
+          interest,
+          sourcePage: window.location.pathname,
+          consent,
+          consentVersion: LEAD_CONSENT_VERSION,
+          utm,
+        },
+      });
+      if (response.accepted) {
+        setResult({ persisted: response.persisted });
+      } else {
+        setError(LEAD_ERROR_COPY[response.reason] ?? "Não foi possível enviar — tente novamente.");
+      }
+    } catch {
+      setError("Não foi possível enviar agora. Tente novamente em instantes.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <DialogContent className="max-w-lg">
       <DialogHeader>
         <DialogTitle className="font-serif text-xl">{f.title}</DialogTitle>
-        <DialogDescription>{f.subtitle}</DialogDescription>
+        <DialogDescription>
+          Deixe seus dados e o time VitalOS™ entra em contato.
+        </DialogDescription>
       </DialogHeader>
-      <form
-        className="space-y-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSubmitted(true);
-        }}
-      >
+      <form className="space-y-3" onSubmit={handleSubmit}>
         {f.fields.map((field) => (
           <div key={field.id}>
             <Label htmlFor={`lp-${field.id}`} className="text-xs text-muted-foreground">
@@ -1196,6 +1249,9 @@ function ExecutiveModal() {
               placeholder={field.placeholder}
               autoComplete="off"
               className="mt-1"
+              value={fields[field.id] ?? ""}
+              onChange={(e) => setFields((s) => ({ ...s, [field.id]: e.target.value }))}
+              required={field.id !== "cargo" && field.id !== "whatsapp"}
             />
           </div>
         ))}
@@ -1228,11 +1284,32 @@ function ExecutiveModal() {
           </div>
         </div>
 
-        <Button type="submit" size="lg" className="mt-2 w-full">
-          {f.submitLabel}
+        <label className="flex items-start gap-2.5 pt-1">
+          <Checkbox
+            checked={consent}
+            onCheckedChange={(v) => setConsent(v === true)}
+            className="mt-0.5"
+          />
+          <span className="text-xs leading-relaxed text-muted-foreground">
+            Concordo com o tratamento dos meus dados para este contato comercial, conforme a{" "}
+            <Link to="/privacidade-comercial" className="underline underline-offset-2 hover:text-foreground">
+              Política de Privacidade Comercial
+            </Link>
+            .
+          </span>
+        </label>
+
+        <Button type="submit" size="lg" className="mt-2 w-full" disabled={submitting || !consent}>
+          {submitting ? "Enviando…" : f.submitLabel.replace(" (demonstração)", "")}
         </Button>
+        {error && (
+          <p className="text-center text-xs font-medium text-destructive" role="alert">
+            {error}
+          </p>
+        )}
         <p className="text-center text-[11px] text-muted-foreground">
-          Demonstração visual — nenhum dado é enviado ou armazenado.
+          Nunca prometemos laudo automático ou blindagem jurídica — VitalOS mede, educa e evidencia;
+          a responsabilidade técnica do PGR é sempre do profissional habilitado.
         </p>
       </form>
     </DialogContent>

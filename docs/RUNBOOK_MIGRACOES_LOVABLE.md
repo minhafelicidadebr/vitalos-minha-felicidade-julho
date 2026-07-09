@@ -453,6 +453,22 @@ queries de verificação do rodapé. Depois, em `/admin`, o painel "Trilha de
 operações" (botão "Ver trilha") mostra os últimos 20 eventos da org — é a
 "falha visível" do P1-04 sem precisar de SQL.
 
+## Leads — captura real da landing (P1-05, S7 Porta de Entrada)
+
+`supabase/migrations/20260709140000_leads.sql` — 1 tabela (`leads`), sem
+RPC (cada submissão é independente, sem recurso concorrente disputado).
+Escrita SÓ pelo servidor (service role); zero policy de SELECT — só o
+painel admin lê, via a mesma allowlist `PLATFORM_ADMIN_EMAILS` de
+`/plataforma`. Fecha o modal "Receber apresentação executiva" (`/`, `/nr1`),
+que antes descartava tudo silenciosamente (honestamente rotulado como
+demonstração).
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Rodar as 2
+queries de verificação do rodapé. Depois, em `/plataforma`, o painel "Leads
+recentes" mostra cada solicitação com origem (página + UTM). Teste real:
+preencher o modal em `/` ou `/nr1` com o consentimento marcado → o lead
+aparece em `/plataforma` com a origem correta.
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
@@ -481,6 +497,7 @@ operações" (botão "Ver trilha") mostra os últimos 20 eventos da org — é a
 16. `20260706130000_item_funnel_events.sql` (Lupa da Escuta, I-M7)
 17. `20260708120000_sector_links.sql` (Sector Links reais, P0-01)
 18. `20260708130000_ops_events.sql` (Telemetria operacional, P1-04)
+19. `20260709140000_leads.sql` (Captura real de leads, P1-05, S7)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

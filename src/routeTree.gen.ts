@@ -27,6 +27,7 @@ import { Route as ReconhecimentoRouteImport } from './routes/reconhecimento'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as ProgramaRouteImport } from './routes/programa'
+import { Route as PrivacidadeComercialRouteImport } from './routes/privacidade-comercial'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PnlRouteImport } from './routes/pnl'
@@ -177,6 +178,11 @@ const PulseRoute = PulseRouteImport.update({
 const ProgramaRoute = ProgramaRouteImport.update({
   id: '/programa',
   path: '/programa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeComercialRoute = PrivacidadeComercialRouteImport.update({
+  id: '/privacidade-comercial',
+  path: '/privacidade-comercial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -542,6 +548,7 @@ export interface FileRoutesByFullPath {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
@@ -623,6 +630,7 @@ export interface FileRoutesByTo {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
@@ -705,6 +713,7 @@ export interface FileRoutesById {
   '/pnl': typeof PnlRoute
   '/prioridades': typeof PrioridadesRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
   '/quiosque': typeof QuiosqueRoute
@@ -788,6 +797,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
     | '/quiosque'
@@ -869,6 +879,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
     | '/quiosque'
@@ -950,6 +961,7 @@ export interface FileRouteTypes {
     | '/pnl'
     | '/prioridades'
     | '/privacidade'
+    | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
     | '/quiosque'
@@ -1032,6 +1044,7 @@ export interface RootRouteChildren {
   PnlRoute: typeof PnlRoute
   PrioridadesRoute: typeof PrioridadesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  PrivacidadeComercialRoute: typeof PrivacidadeComercialRoute
   ProgramaRoute: typeof ProgramaRoute
   PulseRoute: typeof PulseRoute
   QuiosqueRoute: typeof QuiosqueRoute
@@ -1183,6 +1196,13 @@ declare module '@tanstack/react-router' {
       path: '/programa'
       fullPath: '/programa'
       preLoaderRoute: typeof ProgramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade-comercial': {
+      id: '/privacidade-comercial'
+      path: '/privacidade-comercial'
+      fullPath: '/privacidade-comercial'
+      preLoaderRoute: typeof PrivacidadeComercialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -1672,6 +1692,7 @@ const rootRouteChildren: RootRouteChildren = {
   PnlRoute: PnlRoute,
   PrioridadesRoute: PrioridadesRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  PrivacidadeComercialRoute: PrivacidadeComercialRoute,
   ProgramaRoute: ProgramaRoute,
   PulseRoute: PulseRoute,
   QuiosqueRoute: QuiosqueRoute,
@@ -1699,3 +1720,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

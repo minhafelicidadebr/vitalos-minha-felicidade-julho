@@ -6,10 +6,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, ShieldAlert, Copy, CheckCircle2, Loader2, KeyRound } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Copy, CheckCircle2, Loader2, KeyRound, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createOrgInviteLink, listPlatformOrgInvites } from "@/lib/api/org-invite.functions";
 import type { OrgInviteSummary } from "@/lib/api/org-invite.server";
+import { adminListLeads } from "@/lib/api/lead-capture.functions";
+import type { LeadRow } from "@/lib/growth/lead-capture.server";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -30,6 +32,7 @@ function PlataformaPage() {
   const [status, setStatus] = useState<Status>("checking");
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [invites, setInvites] = useState<OrgInviteSummary[]>([]);
+  const [leads, setLeads] = useState<LeadRow[]>([]);
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanId>("pilot");
   const [creating, setCreating] = useState(false);
@@ -59,6 +62,7 @@ function PlataformaPage() {
       }
       setInvites(result.invites);
       setStatus("ready");
+      adminListLeads({ data: { accessToken: token } }).then((r) => setLeads(r.leads));
     });
     return () => {
       active = false;
@@ -263,6 +267,55 @@ function PlataformaPage() {
                     )}
                   </button>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Leads da landing (S7 · Porta de Entrada) */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Users className="h-4 w-4 text-primary" />
+          <p className="font-medium text-card-foreground">Leads recentes</p>
+        </div>
+
+        {leads.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Nenhum lead ainda — os pedidos de demonstração da landing (`/`, `/nr1`) aparecem aqui.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {leads.map((lead) => (
+              <div
+                key={lead.id}
+                className="rounded-xl border border-border/60 bg-background p-3.5"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {lead.name} · {lead.company}
+                  </p>
+                  <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {lead.interest}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {lead.email}
+                  {lead.whatsapp ? ` · ${lead.whatsapp}` : ""}
+                  {lead.role ? ` · ${lead.role}` : ""}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Origem: {lead.sourcePage}
+                  {lead.utmSource ? ` · utm_source=${lead.utmSource}` : " · acesso direto"}
+                  {lead.utmCampaign ? ` · ${lead.utmCampaign}` : ""}
+                  {" · "}
+                  {new Date(lead.createdAt).toLocaleString("pt-BR")}
+                </p>
               </div>
             ))}
           </div>

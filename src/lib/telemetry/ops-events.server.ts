@@ -24,7 +24,9 @@ export type OpsEventName =
   | "wave_created"
   | "wave_closed"
   | "capsule_published"
-  | "authorization_denied";
+  | "authorization_denied"
+  | "lead_submitted"
+  | "lead_rejected";
 
 export interface OpsEventInput {
   orgId?: string;
