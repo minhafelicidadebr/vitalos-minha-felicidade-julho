@@ -33,23 +33,34 @@ export type AggregationTriggerResult =
 export async function triggerCapsuleAggregation(
   waveId: string,
   instrument: string,
-  packId = "enterprise",
   authorizedOrgId?: string,
 ): Promise<AggregationTriggerResult> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
-  // 0. Vínculo tenant (P0-04): quando o chamador é um admin autenticado
+  // 0. Dono da onda + pack da organização, numa consulta só. O packId NUNCA vem
+  // do chamador (mesma disciplina P0-04 de nunca aceitar do payload o que o
+  // banco resolve): uma org Escola agrega com o survey do pack Escola, sempre.
+  const { data: waveOwner } = await admin
+    .from("waves")
+    .select("org_id, organizations(pack_id)")
+    .eq("id", waveId)
+    .maybeSingle();
+  if (!waveOwner) {
+    return { triggered: false, count: 0, reason: "wave_not_found" };
+  }
+
+  // Vínculo tenant (P0-04): quando o chamador é um admin autenticado
   // (checkAndAggregateCapsule), a onda TEM que pertencer à organização dele.
   // Verificado ANTES de qualquer leitura de resposta individual — nega cedo,
   // sem tocar dado sensível. checkAndAggregateByToken (fluxo anônimo pós-
   // submissão) não passa authorizedOrgId: o token já é a autorização.
-  if (authorizedOrgId) {
-    const { data: waveOwner } = await admin.from("waves").select("org_id").eq("id", waveId).maybeSingle();
-    if (!waveOwner || waveOwner.org_id !== authorizedOrgId) {
-      return { triggered: false, count: 0, reason: "cross_tenant_denied" };
-    }
+  if (authorizedOrgId && waveOwner.org_id !== authorizedOrgId) {
+    return { triggered: false, count: 0, reason: "cross_tenant_denied" };
   }
+
+  const packId: string =
+    (waveOwner.organizations as { pack_id?: string | null } | null)?.pack_id ?? "enterprise";
 
   // 1. Conta respostas via RPC SECURITY DEFINER (não SELECT direto)
   const { data: count } = await admin.rpc("count_wave_responses", { p_wave_id: waveId });
@@ -228,5 +239,5 @@ export async function triggerCapsuleAggregationByToken(
   }
 
   const instrument: string = (invite.waves as { instrument?: string } | null)?.instrument ?? "COPSOQ";
-  return triggerCapsuleAggregation(invite.wave_id as string, instrument, "enterprise");
+  return triggerCapsuleAggregation(invite.wave_id as string, instrument);
 }

@@ -7,7 +7,8 @@ const TriggerInput = z.object({
   accessToken: z.string().min(10),
   waveId: z.string().uuid(),
   instrument: z.string().min(1),
-  packId: z.string().default("enterprise"),
+  // packId deliberadamente AUSENTE: o servidor resolve o pack da organização
+  // dona da onda (organizations.pack_id) — nunca confia no payload (P0-04).
 });
 
 // Fechar/agregar uma onda é ação administrativa (sela dados, irreversível) —
@@ -21,7 +22,7 @@ export const checkAndAggregateCapsule = createServerFn({ method: "POST" })
     if (!auth.ok) return { triggered: false, count: 0, reason: describeAuthFailure(auth.reason) };
 
     const { triggerCapsuleAggregation } = await import("./capsule-aggregator.server");
-    return triggerCapsuleAggregation(data.waveId, data.instrument, data.packId, auth.membership.orgId);
+    return triggerCapsuleAggregation(data.waveId, data.instrument, auth.membership.orgId);
   });
 
 // Variante por token — usada pelo /responder após submit bem-sucedido.

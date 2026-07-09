@@ -445,7 +445,7 @@ function WaveCard({
         return;
       }
       const result = await checkAndAggregateCapsule({
-        data: { accessToken, waveId: wave.id, instrument: wave.instrument, packId: "enterprise" },
+        data: { accessToken, waveId: wave.id, instrument: wave.instrument },
       });
       if (result.triggered) {
         setAggMsg(`Leitura protegida atualizada — ${result.participantCount} participantes`);

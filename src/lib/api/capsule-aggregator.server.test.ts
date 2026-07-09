@@ -15,6 +15,10 @@ function buildRawResponses(count: number) {
 let responseCount = 5;
 let rawResponses = buildRawResponses(5);
 let waveOrgId = "org-real";
+// pack_id da organização dona da onda — null = coluna vazia (fallback enterprise);
+// "missing" = onda inexistente (waves retorna null).
+let orgPackId: string | null = null;
+let waveExists = true;
 const upsertCalls: unknown[] = [];
 const wavesUpdateCalls: unknown[] = [];
 
@@ -28,8 +32,16 @@ const fakeAdmin = {
       return {
         select: (_cols: string) => ({
           eq: (_c: string, _v: string) => ({
-            maybeSingle: async () => ({ data: { org_id: waveOrgId, instrument: "COPSOQ" } }),
-            single: async () => ({ data: { org_id: waveOrgId, instrument: "COPSOQ" } }),
+            maybeSingle: async () => ({
+              data: waveExists
+                ? { org_id: waveOrgId, instrument: "COPSOQ", organizations: { pack_id: orgPackId } }
+                : null,
+            }),
+            single: async () => ({
+              data: waveExists
+                ? { org_id: waveOrgId, instrument: "COPSOQ", organizations: { pack_id: orgPackId } }
+                : null,
+            }),
           }),
         }),
         update: (payload: unknown) => {
@@ -69,6 +81,8 @@ beforeEach(() => {
   responseCount = 5;
   rawResponses = buildRawResponses(5);
   waveOrgId = "org-real";
+  orgPackId = null;
+  waveExists = true;
   upsertCalls.length = 0;
   wavesUpdateCalls.length = 0;
 });
@@ -76,13 +90,13 @@ beforeEach(() => {
 describe("triggerCapsuleAggregation — k-anon publica, NUNCA sela a onda (P0-08)", () => {
   test("n < 5: recusa por below_k_anonymity e não escreve nada", async () => {
     responseCount = 3;
-    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise");
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
     expect(result).toEqual({ triggered: false, count: 3, reason: "below_k_anonymity" });
     expect(upsertCalls).toHaveLength(0);
   });
 
   test("n >= 5: agrega e faz UPSERT em wave_capsules — nunca UPDATE em waves", async () => {
-    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise");
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
     expect(result.triggered).toBe(true);
     expect(upsertCalls).toHaveLength(1);
     // A prova central do P0-08: agregação bem-sucedida NUNCA toca a tabela waves.
@@ -90,11 +104,11 @@ describe("triggerCapsuleAggregation — k-anon publica, NUNCA sela a onda (P0-08
   });
 
   test("chamar de novo com MAIS respostas atualiza a cápsula (upsert), não recusa como 'already_aggregated'", async () => {
-    await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise");
+    await triggerCapsuleAggregation("wave-1", "COPSOQ");
     responseCount = 12;
     rawResponses = buildRawResponses(12);
 
-    const second = await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise");
+    const second = await triggerCapsuleAggregation("wave-1", "COPSOQ");
     expect(second.triggered).toBe(true);
     if (second.triggered) expect(second.participantCount).toBe(12);
     expect(upsertCalls).toHaveLength(2); // duas chamadas, nenhuma recusada
@@ -102,21 +116,45 @@ describe("triggerCapsuleAggregation — k-anon publica, NUNCA sela a onda (P0-08
   });
 
   test("cada upsert usa onConflict wave_id — uma cápsula por onda, sempre atualizada", async () => {
-    await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise");
+    await triggerCapsuleAggregation("wave-1", "COPSOQ");
     // A chamada de upsert precisa carregar o wave_id para o onConflict funcionar.
     expect(upsertCalls[0]).toMatchObject({ wave_id: "wave-1" });
   });
 
   test("authorizedOrgId divergente do dono real da onda: nega ANTES de ler qualquer resposta (P0-04)", async () => {
     waveOrgId = "org-real";
-    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise", "org-atacante");
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "org-atacante");
     expect(result).toEqual({ triggered: false, count: 0, reason: "cross_tenant_denied" });
     expect(upsertCalls).toHaveLength(0);
   });
 
   test("authorizedOrgId correto: prossegue normalmente", async () => {
     waveOrgId = "org-real";
-    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "enterprise", "org-real");
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "org-real");
     expect(result.triggered).toBe(true);
+  });
+});
+
+describe("triggerCapsuleAggregation — pack resolvido da ORG dona da onda, nunca do chamador", () => {
+  test("onda inexistente: wave_not_found, nada é lido nem escrito", async () => {
+    waveExists = false;
+    const result = await triggerCapsuleAggregation("wave-fantasma", "COPSOQ");
+    expect(result).toEqual({ triggered: false, count: 0, reason: "wave_not_found" });
+    expect(upsertCalls).toHaveLength(0);
+  });
+
+  test("organizations.pack_id vazio: fallback honesto para enterprise, agrega normalmente", async () => {
+    orgPackId = null;
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    expect(result.triggered).toBe(true);
+  });
+
+  test("org de pack sem survey COPSOQ: unknown_instrument — prova que NÃO caiu silenciosamente no enterprise", async () => {
+    // Se o código ainda usasse "enterprise" fixo, esta agregação teria sucesso —
+    // o erro aqui é a prova de que o pack da org é quem manda.
+    orgPackId = "pack-sem-copsoq";
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    expect(result).toEqual({ triggered: false, count: 5, reason: "unknown_instrument" });
+    expect(upsertCalls).toHaveLength(0);
   });
 });

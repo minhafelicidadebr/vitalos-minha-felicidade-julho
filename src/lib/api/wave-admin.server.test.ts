@@ -78,7 +78,8 @@ describe("closeWaveAsAdmin — fechamento é a ÚNICA ação que sela uma onda (
     expect(waveUpdateCalls[0]!.payload).toMatchObject({ status: "sealed", seal_outcome: "published" });
     // A agregação final é chamada com a organização JÁ autorizada (P0-04) —
     // fechar não abre uma segunda porta para agregação cross-tenant.
-    expect(lastAggregationArgs).toEqual(["wave-org-a", "COPSOQ", "enterprise", "org-a"]);
+    // packId não viaja mais por parâmetro — o aggregator resolve da org da onda.
+    expect(lastAggregationArgs).toEqual(["wave-org-a", "COPSOQ", "org-a"]);
   });
 
   test("fechamento com participação insuficiente: sela mesmo assim, sem cápsula, seal_outcome=insufficient_data", async () => {

@@ -124,12 +124,7 @@ export async function closeWaveAsAdmin(
   }
 
   const { triggerCapsuleAggregation } = await import("./capsule-aggregator.server");
-  const aggregation = await triggerCapsuleAggregation(
-    waveId,
-    wave.instrument as string,
-    "enterprise",
-    orgId,
-  );
+  const aggregation = await triggerCapsuleAggregation(waveId, wave.instrument as string, orgId);
 
   const seal_outcome = aggregation.triggered ? "published" : "insufficient_data";
   await admin
