@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ops_events: {
+        Row: {
+          context: Json
+          event: string
+          id: string
+          occurred_at: string
+          org_id: string | null
+          reason: string | null
+          wave_id: string | null
+        }
+        Insert: {
+          context?: Json
+          event: string
+          id?: string
+          occurred_at?: string
+          org_id?: string | null
+          reason?: string | null
+          wave_id?: string | null
+        }
+        Update: {
+          context?: Json
+          event?: string
+          id?: string
+          occurred_at?: string
+          org_id?: string | null
+          reason?: string | null
+          wave_id?: string | null
+        }
+        Relationships: []
+      }
       org_invites: {
         Row: {
           created_at: string | null
