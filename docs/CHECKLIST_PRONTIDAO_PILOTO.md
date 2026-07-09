@@ -2,6 +2,9 @@
 
 > Estado em **2026-07-09** (commit `b1f703a`). Cada linha cita a evidência
 > verificável — nada é "afirmado". Reverificar antes de assinar o 1º piloto.
+> Ver também `docs/AUDITORIA_DE_PRODUCAO_VITALOS_G1.md` — reauditoria
+> completa dos 8 P0 + 7 P1 do Plano Mestre, item por item, contra o código
+> atual (commit `90a1f10`).
 > Nota de fonte: os gates G0–G3 nomeados vêm da auditoria externa (documento
 > não versionado neste repo); aqui eles são operacionalizados a partir da
 > decisão de go-live do Plano Mestre §A, que É versionada.
