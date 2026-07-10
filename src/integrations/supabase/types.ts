@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      leads: {
+        Row: {
+          company: string
+          consent: boolean
+          consent_version: string
+          created_at: string
+          email: string
+          id: string
+          interest: string
+          name: string
+          role: string | null
+          source_page: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          company: string
+          consent: boolean
+          consent_version: string
+          created_at?: string
+          email: string
+          id?: string
+          interest: string
+          name: string
+          role?: string | null
+          source_page: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          company?: string
+          consent?: boolean
+          consent_version?: string
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: string
+          name?: string
+          role?: string | null
+          source_page?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       ops_events: {
         Row: {
           context: Json
