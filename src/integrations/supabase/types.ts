@@ -184,6 +184,47 @@ export type Database = {
         }
         Relationships: []
       }
+      pair_directory_entries: {
+        Row: {
+          display_name: string
+          focus_driver_id: string
+          id: string
+          org_id: string
+          shared_strength_ids: string[]
+          updated_at: string
+          user_id: string
+          visible: boolean
+        }
+        Insert: {
+          display_name: string
+          focus_driver_id: string
+          id?: string
+          org_id: string
+          shared_strength_ids?: string[]
+          updated_at?: string
+          user_id: string
+          visible?: boolean
+        }
+        Update: {
+          display_name?: string
+          focus_driver_id?: string
+          id?: string
+          org_id?: string
+          shared_strength_ids?: string[]
+          updated_at?: string
+          user_id?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_directory_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participation_events: {
         Row: {
           capped: boolean
