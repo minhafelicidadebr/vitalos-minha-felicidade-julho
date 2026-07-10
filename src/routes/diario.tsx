@@ -27,9 +27,12 @@ import {
   confirmPartnerEvidence,
   formPair,
   suggestPairs,
+  validatePairProfile,
   type ConfirmReason,
 } from "@/engine/learning/practice-pair-engine";
 import { usePracticePairs } from "@/engine/learning/practice-pair-store";
+import { usePairDirectorySync } from "@/app/identity/usePairDirectorySync";
+import { VIAT_INSTRUMENT } from "@/mocks/viat-mock";
 import {
   MARINA_PAIR_PROFILE,
   PAIR_CANDIDATES,
@@ -476,9 +479,9 @@ function DiarioPage() {
           </section>
         )}
 
-        {/* Duplas de Prática ainda são demo (pessoas mock) — nunca exibidas
-            numa sessão real como se fossem colegas de verdade. */}
-        {gamification && !isRealSession && <PairSection economy={gamification} />}
+        {/* Duplas de Prática: diretório consentido real em sessão real
+            (opt-in explícito, sugestões reais); pessoas mock só na demo. */}
+        {gamification && <PairSection economy={gamification} />}
 
         <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
           <div className="flex items-start gap-3">
@@ -517,6 +520,219 @@ const CONFIRM_COPY: Record<Exclude<ConfirmReason, "confirmed">, string> = {
 /** Duplas de Prática (I6) — só aparece quando o pack declara `practicePairs`. */
 function PairSection({ economy }: { economy: GamificationEconomy }) {
   const config = useMemo(() => getPracticePairsConfig(economy), [economy]);
+  const { isRealSession, org } = useRealOrgSessionFlag();
+  if (!config) return null;
+  if (isRealSession && org) {
+    return <RealPairSection config={config} orgUserId={org.userId} orgDisplayName={org.displayName ?? org.orgName} />;
+  }
+  return <DemoPairSection config={config} />;
+}
+
+/** `useRealOrgSession` já é chamado em DiarioPage — aqui é só um espelho leve
+ * para não duplicar a assinatura de import em cada função interna. */
+function useRealOrgSessionFlag() {
+  const { org } = useRealOrgSession();
+  return { isRealSession: !!org, org };
+}
+
+const VIAT_STRENGTH_OPTIONS = VIAT_INSTRUMENT.strengths.map((s) => ({ id: s.id, name: s.name }));
+
+/** Sessão real: diretório consentido — opt-in explícito, sugestões reais.
+ * Formação bilateral da dupla ainda não está disponível (exige RPC própria
+ * para consentimento simultâneo dos dois lados — declarado, não fabricado
+ * com storage local que enganaria o parceiro real). */
+function RealPairSection({
+  config,
+  orgUserId,
+  orgDisplayName,
+}: {
+  config: NonNullable<ReturnType<typeof getPracticePairsConfig>>;
+  orgUserId: string;
+  orgDisplayName: string;
+}) {
+  const { ownEntry, directory, loading, joinDirectory, leaveDirectory } = usePairDirectorySync();
+  const [focusDriverId, setFocusDriverId] = useState("");
+  const [strengthIds, setStrengthIds] = useState<string[]>([]);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  const suggestions = useMemo(
+    () => (ownEntry ? suggestPairs(ownEntry, directory) : []),
+    [ownEntry, directory],
+  );
+
+  function toggleStrength(id: string) {
+    setStrengthIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((s) => s !== id)
+        : prev.length >= config.policy.maxSharedStrengths
+          ? prev
+          : [...prev, id],
+    );
+  }
+
+  async function join() {
+    if (!focusDriverId || strengthIds.length === 0) return;
+    const validation = validatePairProfile(
+      {
+        personId: orgUserId,
+        displayName: orgDisplayName,
+        focusDriverId,
+        sharedStrengthIds: strengthIds,
+      },
+      config.policy,
+    );
+    if (validation.reason !== "ok") {
+      setJoinError(validation.reason);
+      return;
+    }
+    const ok = await joinDirectory({
+      personId: orgUserId,
+      displayName: orgDisplayName,
+      focusDriverId,
+      sharedStrengthIds: strengthIds,
+    });
+    setJoinError(ok ? null : "invalid_request");
+  }
+
+  return (
+    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+      <div className="flex items-start gap-3">
+        <span
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"
+          aria-hidden
+        >
+          <Users className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            {config.label}
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-foreground">{PRACTICE_PAIR_COPY.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Entrar no diretório é o ato de consentir ser visto por colegas da sua organização —
+            ninguém aparece aqui sem ter optado por participar. Você pode sair a qualquer momento.
+          </p>
+        </div>
+      </div>
+
+      {loading && <p className="mt-4 text-sm text-muted-foreground animate-pulse">Carregando…</p>}
+
+      {!loading && !ownEntry && (
+        <div className="mt-4 space-y-4">
+          <Field label="Driver em foco desta temporada">
+            <select
+              value={focusDriverId}
+              onChange={(e) => setFocusDriverId(e.target.value)}
+              className="min-h-11 w-full rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">Selecione…</option>
+              {Object.entries(PRACTICE_DRIVER_LABELS).map(([id, label]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div>
+            <p className="mb-2 text-xs font-medium text-foreground">
+              Escolha até {config.policy.maxSharedStrengths} forças para compartilhar
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {VIAT_STRENGTH_OPTIONS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => toggleStrength(s.id)}
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    strengthIds.includes(s.id)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border/60 text-muted-foreground hover:bg-muted/30"
+                  }`}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={join}
+            disabled={!focusDriverId || strengthIds.length === 0}
+            className="min-h-11 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            Entrar no diretório
+          </button>
+          {joinError && (
+            <p className="text-xs font-medium text-destructive" role="alert">
+              Não foi possível entrar — confira o driver e as forças escolhidas.
+            </p>
+          )}
+        </div>
+      )}
+
+      {!loading && ownEntry && (
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl border border-border/55 bg-background/45 px-4 py-3">
+            <p className="text-xs font-medium text-foreground">Forças que você escolheu compartilhar</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ownEntry.sharedStrengthIds.map((id) => (
+                <span key={id} className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] text-primary">
+                  {VIAT_STRENGTH_OPTIONS.find((s) => s.id === id)?.name ?? id}
+                </span>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => leaveDirectory()}
+              className="mt-3 text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Sair do diretório
+            </button>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Colegas com forças complementares no seu driver
+            </p>
+            {suggestions.length === 0 && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Nenhum colega opt-in com forças complementares ainda — o diretório cresce conforme
+                mais pessoas entram.
+              </p>
+            )}
+            <div className="mt-2 space-y-2">
+              {suggestions.map((s) => (
+                <div
+                  key={s.candidate.personId}
+                  className="rounded-2xl border border-border/55 bg-background/45 px-4 py-3"
+                >
+                  <p className="text-sm font-medium text-foreground">{s.candidate.displayName}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Complementa você com:{" "}
+                    {s.complementaryStrengthIds
+                      .map((id) => VIAT_STRENGTH_OPTIONS.find((v) => v.id === id)?.name ?? id)
+                      .join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            A formação da dupla (aceite dos dois lados) ainda não está disponível — hoje o
+            diretório mostra sugestões reais; o próximo passo é um convite mútuo, em construção.
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DemoPairSection({
+  config,
+}: {
+  config: NonNullable<ReturnType<typeof getPracticePairsConfig>>;
+}) {
   const pairs = usePracticePairs((state) => state.pairs);
   const confirmations = usePracticePairs((state) => state.confirmations);
   const appendPair = usePracticePairs((state) => state.appendPair);
@@ -525,8 +741,6 @@ function PairSection({ economy }: { economy: GamificationEconomy }) {
 
   const suggestions = useMemo(() => suggestPairs(MARINA_PAIR_PROFILE, PAIR_CANDIDATES), []);
   const myPair = pairs.find((p) => p.memberIds.includes(MARINA_PAIR_PROFILE.personId)) ?? null;
-
-  if (!config) return null;
 
   function accept(candidateId: string) {
     const candidate = PAIR_CANDIDATES.find((c) => c.personId === candidateId);

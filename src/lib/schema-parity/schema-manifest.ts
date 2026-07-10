@@ -60,6 +60,15 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "seed_events", column: "pool_id", usedBy: "seed-wallet-adapter.ts / seed-pools.server.ts" },
   { table: "seed_events", column: "occurred_on", usedBy: "seed-wallet-adapter.ts" },
 
+  // pair_directory_entries — diretório consentido de colegas (Academia Viva 2.0 I6 real).
+  { table: "pair_directory_entries", column: "user_id", usedBy: "pair-directory-adapter.ts" },
+  { table: "pair_directory_entries", column: "org_id", usedBy: "pair-directory-adapter.ts upsertOwnDirectoryEntry" },
+  { table: "pair_directory_entries", column: "display_name", usedBy: "pair-directory-adapter.ts" },
+  { table: "pair_directory_entries", column: "focus_driver_id", usedBy: "pair-directory-adapter.ts" },
+  { table: "pair_directory_entries", column: "shared_strength_ids", usedBy: "pair-directory-adapter.ts" },
+  { table: "pair_directory_entries", column: "visible", usedBy: "pair-directory-adapter.ts leaveDirectory" },
+  { table: "pair_directory_entries", column: "updated_at", usedBy: "pair-directory-adapter.ts" },
+
   // ops_events — telemetria operacional mínima (P1-04).
   { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },

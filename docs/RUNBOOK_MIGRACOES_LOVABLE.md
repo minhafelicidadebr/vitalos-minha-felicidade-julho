@@ -510,8 +510,22 @@ aparece em `/plataforma` com a origem correta.
     (Pomar/Bosque) computados só via service role com k-anon ≥5 por pool.
     Após aplicar, rodar as 4 verificações do rodapé. Teste no app: logar
     real → `/reconhecimento` → a carteira mostra saldo 0 real (não o mock
-    da Marina), o plantio pessoal aparece bloqueado com a nota do diretório
-    consentido, e os pools aparecem protegidos (0 contribuintes < 5).)
+    da Marina); o plantio pessoal só lista destinatários depois da migration
+    22 abaixo — antes dela, aparece a nota honesta "ninguém entrou no
+    diretório ainda"; os pools aparecem protegidos (0 contribuintes < 5).)
+22. `20260710130000_pair_directory.sql` (Diretório consentido de colegas —
+    destrava Duplas de Prática reais e os destinatários reais do plantio de
+    Sementes. Entrar no diretório É o ato de consentir ser visto pela
+    própria org; leitura alcança colegas VISÍVEIS da mesma org (nunca
+    cross-tenant), escrita é sempre da própria pessoa. Sair =
+    `visible=false`, nunca DELETE — histórico auditável. Após aplicar,
+    rodar as 2 verificações do rodapé. Teste no app: logar com DUAS contas
+    reais da mesma org → `/diario` → cada uma entra no diretório com um
+    driver em foco + até 3 forças → a segunda pessoa aparece na lista de
+    sugestões da primeira (e vice-versa) → em `/reconhecimento`, cada uma
+    aparece como destinatário possível de semente para a outra. Formação
+    bilateral da dupla ainda não está disponível — só sugestão real, por
+    design desta fatia.)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

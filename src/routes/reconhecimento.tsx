@@ -32,6 +32,7 @@ import {
   type CelebrationRejectReason,
 } from "@/engine/recognition/celebration-engine";
 import { useCelebrations } from "@/engine/recognition/celebration-store";
+import { usePairDirectorySync } from "@/app/identity/usePairDirectorySync";
 import {
   MOCK_COLLEAGUES,
   MOCK_KUDOS_PILLARS,
@@ -438,8 +439,18 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
   const [namedVisibility, setNamedVisibility] = useState(false);
   const [result, setResult] = useState<SeedDonationReason | null>(null);
 
+  // Destinatários reais: o MESMO diretório consentido das Duplas de Prática
+  // (I6) — quem optou por entrar lá também pode receber uma semente. Nunca
+  // pessoas fabricadas; se ninguém entrou ainda, a lista fica honestamente vazia.
+  const { directory: realColleagues } = usePairDirectorySync();
+
   const item = economy.catalog.find((c) => c.id === itemId) ?? null;
-  const recipient = MOCK_COLLEAGUES.find((c) => c.id === recipientId) ?? null;
+  const recipient = economy.isRealSession
+    ? (() => {
+        const c = realColleagues.find((c) => c.personId === recipientId);
+        return c ? { id: c.personId, name: c.displayName } : null;
+      })()
+    : MOCK_COLLEAGUES.find((c) => c.id === recipientId) ?? null;
   const sessionGifts = economy.events.filter((e) => e.kind === "donated_person");
 
   function plant() {
@@ -494,21 +505,22 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
         </div>
       </motion.header>
 
-      {/* Plantio pessoal exige escolher UM colega — hoje os destinatários são
-          pessoas de demonstração (MOCK_COLLEAGUES). Numa sessão real, esconder
-          é a única opção honesta até existir um diretório de colegas
-          CONSENTIDO (mesma razão estrutural do bloqueio das Duplas reais). */}
-      {economy.isRealSession && (
+      {/* Plantio pessoal exige escolher UM colega — em sessão real, os
+          destinatários vêm do diretório consentido (I6): só quem optou por
+          entrar aparece aqui, nunca uma pessoa fabricada. */}
+      {economy.isRealSession && realColleagues.length === 0 && (
         <div className="rounded-3xl border border-border/70 bg-card p-5 text-sm leading-relaxed text-muted-foreground shadow-sm sm:p-6">
-          O plantio de sementes para colegas específicos chega quando o diretório
-          consentido de colegas estiver disponível — ninguém aparece como
-          destinatário sem ter aceitado participar. Sua carteira e os pools
-          coletivos já são reais.
+          Ainda ninguém da sua organização entrou no diretório consentido de
+          colegas (ver Duplas de Prática, no Diário) — o plantio para uma
+          pessoa específica aparece assim que houver alguém para escolher.
+          Sua carteira e os pools coletivos já são reais.
         </div>
       )}
       <div
         className={
-          economy.isRealSession ? "hidden" : "grid gap-5 lg:grid-cols-[1.05fr_0.95fr]"
+          economy.isRealSession && realColleagues.length === 0
+            ? "hidden"
+            : "grid gap-5 lg:grid-cols-[1.05fr_0.95fr]"
         }
       >
         <div className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
@@ -575,11 +587,17 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
                 className="min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground"
               >
                 <option value="">Selecione uma pessoa…</option>
-                {MOCK_COLLEAGUES.map((colleague) => (
-                  <option key={colleague.id} value={colleague.id}>
-                    {colleague.name} · {colleague.team}
-                  </option>
-                ))}
+                {economy.isRealSession
+                  ? realColleagues.map((colleague) => (
+                      <option key={colleague.personId} value={colleague.personId}>
+                        {colleague.displayName}
+                      </option>
+                    ))
+                  : MOCK_COLLEAGUES.map((colleague) => (
+                      <option key={colleague.id} value={colleague.id}>
+                        {colleague.name} · {colleague.team}
+                      </option>
+                    ))}
               </select>
             </Field>
 

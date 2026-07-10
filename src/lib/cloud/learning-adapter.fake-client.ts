@@ -16,8 +16,12 @@ export const fakeSupabaseState: {
   eventRows: Record<string, unknown[]>;
   /** Registros do Diário de Prática por userId (practice_entries, I7 real). */
   practiceRows: Record<string, unknown[]>;
+  /** Diretório de colegas (I6 real): chave "__org__" = pool geral (para o
+   * caminho .neq()), chave userId = a própria linha (para o caminho .eq()). */
+  directoryRows: Record<string, unknown[]>;
   lastInsert: Record<string, unknown> | null;
   lastUpsert: Record<string, unknown> | null;
+  lastUpdate: Record<string, unknown> | null;
   lastDelete: { table: string; filters: Array<[string, string]> } | null;
   insertError: { code: string; message: string } | null;
   /** Id que o fake devolve para insert().select("id").single() (linha nova). */
@@ -26,32 +30,52 @@ export const fakeSupabaseState: {
   cardRows: {},
   eventRows: {},
   practiceRows: {},
+  directoryRows: {},
   lastInsert: null,
   lastUpsert: null,
+  lastUpdate: null,
   lastDelete: null,
   insertError: null,
   nextInsertedId: "row-uuid-1",
 };
 
-function rowsFor(table: string, userId: string): unknown[] {
-  if (table === "sm2_card_state") return fakeSupabaseState.cardRows[userId] ?? [];
-  if (table === "participation_events") return fakeSupabaseState.eventRows[userId] ?? [];
-  if (table === "practice_entries") return fakeSupabaseState.practiceRows[userId] ?? [];
+function rowsFor(table: string, filters: Array<[string, unknown]>): unknown[] {
+  const firstValue = filters[0]?.[1] as string | undefined;
+  if (table === "sm2_card_state") return fakeSupabaseState.cardRows[firstValue ?? ""] ?? [];
+  if (table === "participation_events") return fakeSupabaseState.eventRows[firstValue ?? ""] ?? [];
+  if (table === "practice_entries") return fakeSupabaseState.practiceRows[firstValue ?? ""] ?? [];
+  if (table === "pair_directory_entries") {
+    // .eq("user_id", x) busca a própria linha; .neq(...) busca o pool geral.
+    const userIdFilter = filters.find(([col]) => col === "user_id");
+    return fakeSupabaseState.directoryRows[(userIdFilter?.[1] as string) ?? "__org__"] ?? [];
+  }
   return [];
 }
 
 export const fakeSupabase = {
   from: (table: string) => ({
-    select: (_cols: string) => ({
-      // eq() é awaitable direto (consumidores S5) E encadeável com .order()
-      // (practice-journal-adapter) — um único fake cobre os dois idiomas.
-      eq: (_col: string, userId: string) => {
-        const result = { data: rowsFor(table, userId), error: null };
-        return Object.assign(Promise.resolve(result), {
-          order: async (_o: string, _opts: unknown) => result,
-        });
-      },
-    }),
+    select: (_cols: string) => {
+      const filters: Array<[string, unknown]> = [];
+      const chain: Record<string, unknown> = {
+        // eq() é awaitable direto (consumidores S5) E encadeável com .order()/
+        // outro .eq()/.maybeSingle() (practice-journal-adapter, pair-directory).
+        eq: (col: string, value: unknown) => {
+          filters.push([col, value]);
+          const rows = rowsFor(table, filters);
+          const result = { data: rows, error: null };
+          return Object.assign(Promise.resolve(result), chain, {
+            order: async (_o: string, _opts: unknown) => result,
+            maybeSingle: async () => ({ data: rows[0] ?? null, error: null }),
+          });
+        },
+        // neq() é awaitable direto (loadOrgDirectory nunca encadeia depois).
+        neq: (_col: string, _value: unknown) => {
+          const rows = rowsFor(table, filters);
+          return Promise.resolve({ data: rows, error: null });
+        },
+      };
+      return chain;
+    },
     upsert: (payload: Record<string, unknown>, _opts: unknown) => {
       fakeSupabaseState.lastUpsert = payload;
       return Promise.resolve({ data: null, error: null });
@@ -69,6 +93,12 @@ export const fakeSupabase = {
         }),
       });
     },
+    update: (payload: Record<string, unknown>) => ({
+      eq: (_col: string, _value: string) => {
+        fakeSupabaseState.lastUpdate = payload;
+        return Promise.resolve({ data: null, error: null });
+      },
+    }),
     delete: () => {
       const filters: Array<[string, string]> = [];
       const chain = {
