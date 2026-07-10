@@ -223,6 +223,50 @@ export type Database = {
         }
         Relationships: []
       }
+      practice_entries: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          kind: string
+          occurred_on: string
+          org_id: string
+          share_consent: boolean
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          kind: string
+          occurred_on: string
+          org_id: string
+          share_consent?: boolean
+          summary: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          kind?: string
+          occurred_on?: string
+          org_id?: string
+          share_consent?: boolean
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -305,6 +349,56 @@ export type Database = {
             columns: ["wave_id"]
             isOneToOne: false
             referencedRelation: "waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seed_events: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          item_id: string | null
+          kind: string
+          occurred_on: string
+          org_id: string
+          pool_id: string | null
+          recipient_id: string | null
+          source_kind: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind: string
+          occurred_on: string
+          org_id: string
+          pool_id?: string | null
+          recipient_id?: string | null
+          source_kind?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind?: string
+          occurred_on?: string
+          org_id?: string
+          pool_id?: string | null
+          recipient_id?: string | null
+          source_kind?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seed_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
