@@ -504,6 +504,14 @@ aparece em `/plataforma` com a origem correta.
     verificações do rodapé do arquivo. Teste no app: logar com conta real →
     `/diario` → registrar prática → recarregar a página → o registro
     persiste; no modo demo nada muda — segue efêmero e declarado.)
+21. `20260709160000_seed_events.sql` (Sementes Vivas reais, I1 — ledger
+    pessoal INSERT-ONLY: nem UPDATE nem DELETE, os limites semanais são
+    folds do histórico e apagar evento os burlaria. Pools coletivos
+    (Pomar/Bosque) computados só via service role com k-anon ≥5 por pool.
+    Após aplicar, rodar as 4 verificações do rodapé. Teste no app: logar
+    real → `/reconhecimento` → a carteira mostra saldo 0 real (não o mock
+    da Marina), o plantio pessoal aparece bloqueado com a nota do diretório
+    consentido, e os pools aparecem protegidos (0 contribuintes < 5).)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

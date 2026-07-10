@@ -5,7 +5,7 @@
 // Composição I7 → I2: cada registro alimenta a terceira prova do Diploma Vivo.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -47,6 +47,9 @@ import {
 import { usePracticeJournal } from "@/engine/learning/practice-journal-store";
 import { usePracticeJournalSync } from "@/app/identity/usePracticeJournalSync";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+import { loadRealPracticeAggregates } from "@/lib/api/practice-aggregates.functions";
+import type { PracticeAggregate } from "@/engine/learning/practice-journal-engine";
 import { MOCK_USER } from "@/mocks/colaborador-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import {
@@ -103,9 +106,32 @@ function DiarioPage() {
     () => appliedPracticeCountByDriver(allEntries, authorId),
     [allEntries, authorId],
   );
+  // Coletivo REAL da org (k-anon computado no servidor, conteúdo nunca lido)
+  // quando há sessão real; na demo, o agregado deriva do mock local.
+  const [realAggregates, setRealAggregates] = useState<PracticeAggregate[]>([]);
+  useEffect(() => {
+    if (!isRealSession) return;
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      const accessToken = data.session?.access_token;
+      if (!accessToken) return;
+      loadRealPracticeAggregates({ data: { accessToken } })
+        .then((r) => active && r.available && setRealAggregates(r.aggregates))
+        .catch(() => {});
+    });
+    return () => {
+      active = false;
+    };
+  }, [isRealSession, sessionEntries.length]);
+
   const aggregates = useMemo(
-    () => (journal ? buildPracticeAggregates(allEntries, journal.policy) : []),
-    [allEntries, journal],
+    () =>
+      isRealSession
+        ? realAggregates
+        : journal
+          ? buildPracticeAggregates(allEntries, journal.policy)
+          : [],
+    [isRealSession, realAggregates, allEntries, journal],
   );
 
   if (status.state === "idle" || status.state === "loading") {

@@ -494,7 +494,23 @@ function SeedGarden({ economy }: { economy: ReturnType<typeof useSeedEconomy> })
         </div>
       </motion.header>
 
-      <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      {/* Plantio pessoal exige escolher UM colega — hoje os destinatários são
+          pessoas de demonstração (MOCK_COLLEAGUES). Numa sessão real, esconder
+          é a única opção honesta até existir um diretório de colegas
+          CONSENTIDO (mesma razão estrutural do bloqueio das Duplas reais). */}
+      {economy.isRealSession && (
+        <div className="rounded-3xl border border-border/70 bg-card p-5 text-sm leading-relaxed text-muted-foreground shadow-sm sm:p-6">
+          O plantio de sementes para colegas específicos chega quando o diretório
+          consentido de colegas estiver disponível — ninguém aparece como
+          destinatário sem ter aceitado participar. Sua carteira e os pools
+          coletivos já são reais.
+        </div>
+      )}
+      <div
+        className={
+          economy.isRealSession ? "hidden" : "grid gap-5 lg:grid-cols-[1.05fr_0.95fr]"
+        }
+      >
         <div className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
           <div className="flex items-start gap-3">
             <span

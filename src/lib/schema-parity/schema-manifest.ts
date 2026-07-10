@@ -49,6 +49,17 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "practice_entries", column: "share_consent", usedBy: "practice-journal-adapter.ts" },
   { table: "practice_entries", column: "occurred_on", usedBy: "practice-journal-adapter.ts" },
 
+  // seed_events — Sementes Vivas reais (Academia Viva 2.0 I1).
+  { table: "seed_events", column: "user_id", usedBy: "seed-wallet-adapter.ts" },
+  { table: "seed_events", column: "org_id", usedBy: "seed-wallet-adapter.ts / seed-pools.server.ts" },
+  { table: "seed_events", column: "kind", usedBy: "seed-wallet-adapter.ts / seed-pools.server.ts" },
+  { table: "seed_events", column: "amount", usedBy: "seed-wallet-adapter.ts / seed-pools.server.ts" },
+  { table: "seed_events", column: "source_kind", usedBy: "seed-wallet-adapter.ts" },
+  { table: "seed_events", column: "item_id", usedBy: "seed-wallet-adapter.ts" },
+  { table: "seed_events", column: "recipient_id", usedBy: "seed-wallet-adapter.ts" },
+  { table: "seed_events", column: "pool_id", usedBy: "seed-wallet-adapter.ts / seed-pools.server.ts" },
+  { table: "seed_events", column: "occurred_on", usedBy: "seed-wallet-adapter.ts" },
+
   // ops_events — telemetria operacional mínima (P1-04).
   { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },
