@@ -14,24 +14,42 @@
 export const fakeSupabaseState: {
   cardRows: Record<string, unknown[]>;
   eventRows: Record<string, unknown[]>;
+  /** Registros do Diário de Prática por userId (practice_entries, I7 real). */
+  practiceRows: Record<string, unknown[]>;
   lastInsert: Record<string, unknown> | null;
   lastUpsert: Record<string, unknown> | null;
+  lastDelete: { table: string; filters: Array<[string, string]> } | null;
   insertError: { code: string; message: string } | null;
+  /** Id que o fake devolve para insert().select("id").single() (linha nova). */
+  nextInsertedId: string;
 } = {
   cardRows: {},
   eventRows: {},
+  practiceRows: {},
   lastInsert: null,
   lastUpsert: null,
+  lastDelete: null,
   insertError: null,
+  nextInsertedId: "row-uuid-1",
 };
+
+function rowsFor(table: string, userId: string): unknown[] {
+  if (table === "sm2_card_state") return fakeSupabaseState.cardRows[userId] ?? [];
+  if (table === "participation_events") return fakeSupabaseState.eventRows[userId] ?? [];
+  if (table === "practice_entries") return fakeSupabaseState.practiceRows[userId] ?? [];
+  return [];
+}
 
 export const fakeSupabase = {
   from: (table: string) => ({
     select: (_cols: string) => ({
-      eq: async (_col: string, userId: string) => {
-        if (table === "sm2_card_state") return { data: fakeSupabaseState.cardRows[userId] ?? [] };
-        if (table === "participation_events") return { data: fakeSupabaseState.eventRows[userId] ?? [] };
-        return { data: [] };
+      // eq() é awaitable direto (consumidores S5) E encadeável com .order()
+      // (practice-journal-adapter) — um único fake cobre os dois idiomas.
+      eq: (_col: string, userId: string) => {
+        const result = { data: rowsFor(table, userId), error: null };
+        return Object.assign(Promise.resolve(result), {
+          order: async (_o: string, _opts: unknown) => result,
+        });
       },
     }),
     upsert: (payload: Record<string, unknown>, _opts: unknown) => {
@@ -40,7 +58,27 @@ export const fakeSupabase = {
     },
     insert: (payload: Record<string, unknown>) => {
       fakeSupabaseState.lastInsert = payload;
-      return Promise.resolve({ data: null, error: fakeSupabaseState.insertError });
+      const result = { data: null, error: fakeSupabaseState.insertError };
+      // Awaitable direto (S5) E encadeável com .select().single() (I7 real).
+      return Object.assign(Promise.resolve(result), {
+        select: (_c: string) => ({
+          single: async () =>
+            fakeSupabaseState.insertError
+              ? { data: null, error: fakeSupabaseState.insertError }
+              : { data: { id: fakeSupabaseState.nextInsertedId }, error: null },
+        }),
+      });
+    },
+    delete: () => {
+      const filters: Array<[string, string]> = [];
+      const chain = {
+        eq: (col: string, value: string) => {
+          filters.push([col, value]);
+          fakeSupabaseState.lastDelete = { table, filters };
+          return Object.assign(Promise.resolve({ data: null, error: null }), chain);
+        },
+      };
+      return chain;
     },
   }),
 };

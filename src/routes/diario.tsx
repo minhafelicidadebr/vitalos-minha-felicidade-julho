@@ -45,6 +45,8 @@ import {
   type PracticeRecordReason,
 } from "@/engine/learning/practice-journal-engine";
 import { usePracticeJournal } from "@/engine/learning/practice-journal-store";
+import { usePracticeJournalSync } from "@/app/identity/usePracticeJournalSync";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { MOCK_USER } from "@/mocks/colaborador-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import {
@@ -72,6 +74,11 @@ function DiarioPage() {
     [gamification],
   );
 
+  // Sessão real (I7 real): hidrata o store com os registros persistidos da
+  // pessoa e liga a sincronização fire-and-forget. Demo: 100% efêmero.
+  const { isRealSession } = usePracticeJournalSync();
+  const { org } = useRealOrgSession();
+
   const sessionEntries = usePracticeJournal((state) => state.entries);
   const append = usePracticeJournal((state) => state.append);
 
@@ -81,17 +88,20 @@ function DiarioPage() {
   const [shareConsent, setShareConsent] = useState(false);
   const [result, setResult] = useState<PracticeRecordReason | null>(null);
 
+  // Sessão real: só os registros REAIS da pessoa (nunca compor o mock da
+  // demo — mesma disciplina do branch real do /rh). Demo: base mock + delta.
+  const authorId = isRealSession && org ? org.userId : MOCK_USER.id;
   const allEntries = useMemo(
-    () => [...PRACTICE_JOURNAL_SEED, ...sessionEntries],
-    [sessionEntries],
+    () => (isRealSession ? sessionEntries : [...PRACTICE_JOURNAL_SEED, ...sessionEntries]),
+    [isRealSession, sessionEntries],
   );
   const myEntries = useMemo(
-    () => allEntries.filter((e) => e.authorId === MOCK_USER.id),
-    [allEntries],
+    () => allEntries.filter((e) => e.authorId === authorId),
+    [allEntries, authorId],
   );
   const myCounts = useMemo(
-    () => appliedPracticeCountByDriver(allEntries, MOCK_USER.id),
-    [allEntries],
+    () => appliedPracticeCountByDriver(allEntries, authorId),
+    [allEntries, authorId],
   );
   const aggregates = useMemo(
     () => (journal ? buildPracticeAggregates(allEntries, journal.policy) : []),
@@ -149,13 +159,17 @@ function DiarioPage() {
     const response = recordPractice(
       allEntries,
       {
-        id: `pj-session-${MOCK_USER.id}-${sessionEntries.length + 1}-${driverId}`,
-        authorId: MOCK_USER.id,
+        id: `pj-session-${authorId}-${sessionEntries.length + 1}-${driverId}`,
+        authorId,
         driverId,
         kind,
         summary,
         shareConsent,
-        occurredOn: GAMIFICATION_TODAY,
+        // Real: a data de HOJE de verdade (o registro persiste na conta).
+        // Demo: a constante determinística de sempre.
+        occurredOn: isRealSession
+          ? new Date().toISOString().slice(0, 10)
+          : GAMIFICATION_TODAY,
       },
       journal.policy,
     );
@@ -436,7 +450,9 @@ function DiarioPage() {
           </section>
         )}
 
-        {gamification && <PairSection economy={gamification} />}
+        {/* Duplas de Prática ainda são demo (pessoas mock) — nunca exibidas
+            numa sessão real como se fossem colegas de verdade. */}
+        {gamification && !isRealSession && <PairSection economy={gamification} />}
 
         <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
           <div className="flex items-start gap-3">
@@ -453,7 +469,10 @@ function DiarioPage() {
         </section>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          {PRACTICE_JOURNAL_COPY.scienceNote} {PRACTICE_JOURNAL_COPY.demoNote}
+          {PRACTICE_JOURNAL_COPY.scienceNote}{" "}
+          {isRealSession
+            ? "Seus registros ficam salvos na sua conta — só você lê o conteúdo, e você pode apagá-los quando quiser."
+            : PRACTICE_JOURNAL_COPY.demoNote}
         </p>
       </div>
     </AppShell>

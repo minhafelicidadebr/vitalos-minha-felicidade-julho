@@ -40,6 +40,15 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "sector_links", column: "org_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
   { table: "sector_links", column: "wave_id", usedBy: "sector-link-admin.server.ts createSectorLinkAsAdmin" },
 
+  // practice_entries — Diário de Prática real (Academia Viva 2.0 I7).
+  { table: "practice_entries", column: "user_id", usedBy: "practice-journal-adapter.ts" },
+  { table: "practice_entries", column: "org_id", usedBy: "practice-journal-adapter.ts savePracticeEntry" },
+  { table: "practice_entries", column: "driver_id", usedBy: "practice-journal-adapter.ts" },
+  { table: "practice_entries", column: "kind", usedBy: "practice-journal-adapter.ts" },
+  { table: "practice_entries", column: "summary", usedBy: "practice-journal-adapter.ts" },
+  { table: "practice_entries", column: "share_consent", usedBy: "practice-journal-adapter.ts" },
+  { table: "practice_entries", column: "occurred_on", usedBy: "practice-journal-adapter.ts" },
+
   // ops_events — telemetria operacional mínima (P1-04).
   { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },

@@ -498,6 +498,12 @@ aparece em `/plataforma` com a origem correta.
 17. `20260708120000_sector_links.sql` (Sector Links reais, P0-01)
 18. `20260708130000_ops_events.sql` (Telemetria operacional, P1-04)
 19. `20260709140000_leads.sql` (Captura real de leads, P1-05, S7)
+20. `20260709150000_practice_entries.sql` (Diário de Prática real, I7 —
+    tabela PESSOAL padrão S5: RLS own-only SELECT/INSERT/DELETE, sem UPDATE;
+    o INSERT amarra org_id ao profile da sessão. Após aplicar, rodar as 3
+    verificações do rodapé do arquivo. Teste no app: logar com conta real →
+    `/diario` → registrar prática → recarregar a página → o registro
+    persiste; no modo demo nada muda — segue efêmero e declarado.)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em
