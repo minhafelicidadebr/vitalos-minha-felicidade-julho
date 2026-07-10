@@ -4,7 +4,7 @@
 // por construção. Consentimento de nome é confirmado por checkbox antes de emitir.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -27,10 +27,18 @@ import {
 } from "@/engine/academia/diploma-engine";
 import { appliedPracticeCountByDriver } from "@/engine/learning/practice-journal-engine";
 import { usePracticeJournal } from "@/engine/learning/practice-journal-store";
+import { usePracticeJournalSync } from "@/app/identity/usePracticeJournalSync";
+import { useParticipationSync } from "@/app/identity/useParticipationSync";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { useParticipationLedger } from "@/engine/gamification/participation-store";
+import { hasParticipationEvidence } from "@/engine/gamification/participation-ledger";
+import type { StoredCardState } from "@/lib/cloud/learning-adapter";
 import { downloadDiplomaPdf } from "@/lib/pdf/diploma-pdf";
 import { MOCK_USER } from "@/mocks/colaborador-mock";
 import { DIPLOMA_AWARDED_ON, DIPLOMA_COPY, DIPLOMA_MOCK_CASES } from "@/mocks/diploma-mock";
 import { PRACTICE_JOURNAL_SEED } from "@/mocks/practice-journal-mock";
+import { LEARNING_PATHS } from "@/mocks/academia-mock";
+import { FLASHCARDS } from "@/mocks/flashcard-mock";
 
 export const Route = createFileRoute("/diploma")({
   head: () => ({ meta: [{ title: "Diploma Vivo · Academia — VitalOS™" }] }),
@@ -43,6 +51,13 @@ const CRITERION_ICON: Record<DiplomaCriterionResult["id"], typeof Brain> = {
   pratica: Sprout,
 };
 
+// Correspondência SOURCED (nunca inventada): cardId → driverId vem do próprio
+// catálogo de flashcards (Flashcard.driverId); pathTitle → pathId casa o texto
+// já idêntico entre diploma-mock.ts e academia-mock.ts (mesma trilha, dois
+// arquivos — não uma nova relação).
+const CARD_DRIVER_BY_ID = new Map(FLASHCARDS.map((f) => [f.id, f.driverId]));
+const PATH_ID_BY_TITLE = new Map(LEARNING_PATHS.map((p) => [p.title, p.id]));
+
 function DiplomaPage() {
   const { status, gamification, reload } = usePack();
   const credentials = useMemo(
@@ -52,21 +67,73 @@ function DiplomaPage() {
   const [nameConsent, setNameConsent] = useState(false);
   const sessionEntries = usePracticeJournal((state) => state.entries);
 
+  // Sessão real (fecha a composição I7→I2 de verdade): Diário real hidrata,
+  // trilha real vem do ledger de participação (S5), retenção real vem do
+  // sm2_card_state (S5) — as MESMAS infraestruturas reais já existentes,
+  // nenhuma migration nova.
+  const { isRealSession } = usePracticeJournalSync();
+  useParticipationSync();
+  const { org } = useRealOrgSession();
+  const participationEvents = useParticipationLedger((state) => state.events);
+  const authorId = isRealSession && org ? org.userId : MOCK_USER.id;
+
+  const [realCardStates, setRealCardStates] = useState<StoredCardState[]>([]);
+  useEffect(() => {
+    if (!isRealSession || !org) return;
+    let active = true;
+    import("@/lib/cloud/learning-adapter").then(({ loadCardStates }) => {
+      loadCardStates(org.userId).then((states) => active && setRealCardStates(states));
+    });
+    return () => {
+      active = false;
+    };
+  }, [isRealSession, org]);
+
   // Composição I7 → I2: a terceira prova (prática aplicada) vem do Diário de
-  // Prática Viva — base demonstrativa + registros criados nesta sessão.
+  // Prática Viva — base demonstrativa + registros criados nesta sessão; em
+  // sessão real, só os registros REAIS da própria pessoa.
   const cases = useMemo(() => {
     const practiceCounts = appliedPracticeCountByDriver(
-      [...PRACTICE_JOURNAL_SEED, ...sessionEntries],
-      MOCK_USER.id,
+      isRealSession ? sessionEntries : [...PRACTICE_JOURNAL_SEED, ...sessionEntries],
+      authorId,
     );
-    return DIPLOMA_MOCK_CASES.map((c) => ({
-      ...c,
-      eligibility: assessDiplomaEligibility({
-        ...c.signals,
-        appliedPracticeCount: practiceCounts[c.driverId] ?? 0,
-      }),
-    }));
-  }, [sessionEntries]);
+
+    if (!isRealSession) {
+      return DIPLOMA_MOCK_CASES.map((c) => ({
+        ...c,
+        eligibility: assessDiplomaEligibility({
+          ...c.signals,
+          appliedPracticeCount: practiceCounts[c.driverId] ?? 0,
+        }),
+      }));
+    }
+
+    // Retenção real: intervalos dos cartões do PRÓPRIO driver, via o mesmo
+    // catálogo de flashcards (cardId → driverId), nunca uma correspondência nova.
+    const intervalsByDriver = new Map<string, number[]>();
+    for (const state of realCardStates) {
+      const driverId = CARD_DRIVER_BY_ID.get(state.cardId);
+      if (!driverId) continue;
+      const list = intervalsByDriver.get(driverId) ?? [];
+      list.push(state.schedule.intervalDays);
+      intervalsByDriver.set(driverId, list);
+    }
+
+    return DIPLOMA_MOCK_CASES.map((c) => {
+      const pathId = PATH_ID_BY_TITLE.get(c.pathTitle);
+      const pathCompleted = pathId
+        ? hasParticipationEvidence(participationEvents, "learning_path", pathId)
+        : false;
+      return {
+        ...c,
+        eligibility: assessDiplomaEligibility({
+          pathCompleted,
+          cardIntervalsDays: intervalsByDriver.get(c.driverId) ?? [],
+          appliedPracticeCount: practiceCounts[c.driverId] ?? 0,
+        }),
+      };
+    });
+  }, [isRealSession, sessionEntries, authorId, realCardStates, participationEvents]);
 
   if (status.state === "idle" || status.state === "loading") {
     return (
@@ -112,17 +179,20 @@ function DiplomaPage() {
     );
   }
 
+  const recipientDisplayName =
+    isRealSession && org ? (org.displayName ?? org.orgName) : MOCK_USER.name;
+
   function emitDiploma(caseIndex: number) {
     const demoCase = cases[caseIndex];
     if (!credentials) return;
     const result = buildDiploma({
       eligibility: demoCase.eligibility,
-      recipientName: nameConsent ? MOCK_USER.name : "",
+      recipientName: nameConsent ? recipientDisplayName : "",
       credentialTitle: credentials.credentialTitle,
       issuerName: credentials.issuerName,
       driverLabel: demoCase.driverLabel,
       pathTitle: demoCase.pathTitle,
-      awardedOn: DIPLOMA_AWARDED_ON,
+      awardedOn: isRealSession ? new Date().toISOString().slice(0, 10) : DIPLOMA_AWARDED_ON,
     });
     if (!result.ok) return;
     downloadDiplomaPdf(
@@ -167,7 +237,7 @@ function DiplomaPage() {
             className="mt-0.5 h-4 w-4 accent-primary"
           />
           <span className="text-xs leading-relaxed text-muted-foreground">
-            Autorizo que meu nome ({MOCK_USER.name}) apareça no documento emitido.{" "}
+            Autorizo que meu nome ({recipientDisplayName}) apareça no documento emitido.{" "}
             {DIPLOMA_COPY.consentNote}
           </span>
         </label>
@@ -296,7 +366,10 @@ function DiplomaPage() {
         </section>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          {DIPLOMA_COPY.scienceNote} {DIPLOMA_COPY.demoNote}
+          {DIPLOMA_COPY.scienceNote}{" "}
+          {isRealSession
+            ? "Elegibilidade calculada com seus dados reais: prática do seu Diário, retenção dos seus cartões e trilhas concluídas."
+            : DIPLOMA_COPY.demoNote}
         </p>
       </div>
     </AppShell>
