@@ -32,6 +32,7 @@ import {
 } from "@/engine/learning/practice-pair-engine";
 import { usePracticePairs } from "@/engine/learning/practice-pair-store";
 import { usePairDirectorySync } from "@/app/identity/usePairDirectorySync";
+import { usePairInvites } from "@/app/identity/usePairInvites";
 import { VIAT_INSTRUMENT } from "@/mocks/viat-mock";
 import {
   MARINA_PAIR_PROFILE,
@@ -541,6 +542,15 @@ const VIAT_STRENGTH_OPTIONS = VIAT_INSTRUMENT.strengths.map((s) => ({ id: s.id, 
  * Formação bilateral da dupla ainda não está disponível (exige RPC própria
  * para consentimento simultâneo dos dois lados — declarado, não fabricado
  * com storage local que enganaria o parceiro real). */
+const INVITE_ERROR_COPY: Record<string, string> = {
+  already_invited: "Já existe um convite pendente entre vocês.",
+  already_paired: "Uma de vocês já está numa dupla ativa.",
+  left_directory: "Uma das partes saiu do diretório — o convite não vale mais.",
+  not_pending: "Este convite já foi respondido.",
+  not_invitee: "Só quem recebeu o convite pode aceitá-lo.",
+  invite_not_found: "Convite não encontrado.",
+};
+
 function RealPairSection({
   config,
   orgUserId,
@@ -551,14 +561,39 @@ function RealPairSection({
   orgDisplayName: string;
 }) {
   const { ownEntry, directory, loading, joinDirectory, leaveDirectory } = usePairDirectorySync();
+  const pairing = usePairInvites();
   const [focusDriverId, setFocusDriverId] = useState("");
   const [strengthIds, setStrengthIds] = useState<string[]>([]);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
 
   const suggestions = useMemo(
     () => (ownEntry ? suggestPairs(ownEntry, directory) : []),
     [ownEntry, directory],
   );
+
+  const nameOf = (personId: string) =>
+    directory.find((d) => d.personId === personId)?.displayName ??
+    (personId === orgUserId ? orgDisplayName : "colega");
+
+  async function handleInvite(toUser: string) {
+    if (!ownEntry) return;
+    const result = await pairing.invite(toUser, ownEntry.focusDriverId);
+    setInviteFeedback(
+      result.sent
+        ? "Convite enviado — a dupla se forma quando a outra pessoa aceitar."
+        : (INVITE_ERROR_COPY[result.reason ?? ""] ?? "Não foi possível enviar o convite."),
+    );
+  }
+
+  async function handleAccept(inviteId: string) {
+    const result = await pairing.accept(inviteId);
+    setInviteFeedback(
+      result.accepted
+        ? "Dupla formada! Vocês duas confirmaram — o aceite foi dos dois lados."
+        : (INVITE_ERROR_COPY[result.reason ?? ""] ?? "Não foi possível aceitar."),
+    );
+  }
 
   function toggleStrength(id: string) {
     setStrengthIds((prev) =>
@@ -670,7 +705,31 @@ function RealPairSection({
         </div>
       )}
 
-      {!loading && ownEntry && (
+      {!loading && ownEntry && pairing.activePair && (
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3">
+            <p className="text-sm font-medium text-foreground">
+              Dupla ativa: você e{" "}
+              {nameOf(
+                pairing.activePair.memberA === orgUserId
+                  ? pairing.activePair.memberB
+                  : pairing.activePair.memberA,
+              )}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Formada em {pairing.activePair.formedOn} · driver em foco:{" "}
+              {PRACTICE_DRIVER_LABELS[pairing.activePair.focusDriverId] ??
+                pairing.activePair.focusDriverId}
+            </p>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            A confirmação de prática entre parceiros (um confirma a evidência do outro) chega na
+            próxima fatia — hoje a dupla já é real, formada com aceite dos dois lados.
+          </p>
+        </div>
+      )}
+
+      {!loading && ownEntry && !pairing.activePair && (
         <div className="mt-4 space-y-4">
           <div className="rounded-2xl border border-border/55 bg-background/45 px-4 py-3">
             <p className="text-xs font-medium text-foreground">Forças que você escolheu compartilhar</p>
@@ -690,6 +749,43 @@ function RealPairSection({
             </button>
           </div>
 
+          {pairing.invitesReceived.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Convites recebidos
+              </p>
+              <div className="mt-2 space-y-2">
+                {pairing.invitesReceived.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3"
+                  >
+                    <p className="text-sm text-foreground">
+                      <span className="font-medium">{nameOf(inv.fromUser)}</span> quer formar dupla
+                      com você
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAccept(inv.id)}
+                        className="min-h-9 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+                      >
+                        Aceitar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => pairing.decline(inv.id)}
+                        className="min-h-9 rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/40"
+                      >
+                        Recusar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Colegas com forças complementares no seu driver
@@ -701,26 +797,46 @@ function RealPairSection({
               </p>
             )}
             <div className="mt-2 space-y-2">
-              {suggestions.map((s) => (
-                <div
-                  key={s.candidate.personId}
-                  className="rounded-2xl border border-border/55 bg-background/45 px-4 py-3"
-                >
-                  <p className="text-sm font-medium text-foreground">{s.candidate.displayName}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Complementa você com:{" "}
-                    {s.complementaryStrengthIds
-                      .map((id) => VIAT_STRENGTH_OPTIONS.find((v) => v.id === id)?.name ?? id)
-                      .join(", ")}
-                  </p>
-                </div>
-              ))}
+              {suggestions.map((s) => {
+                const alreadyInvited = pairing.invitesSent.some(
+                  (inv) => inv.toUser === s.candidate.personId,
+                );
+                return (
+                  <div
+                    key={s.candidate.personId}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/55 bg-background/45 px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{s.candidate.displayName}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Complementa você com:{" "}
+                        {s.complementaryStrengthIds
+                          .map((id) => VIAT_STRENGTH_OPTIONS.find((v) => v.id === id)?.name ?? id)
+                          .join(", ")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={alreadyInvited}
+                      onClick={() => handleInvite(s.candidate.personId)}
+                      className="min-h-9 shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {alreadyInvited ? "Convite enviado" : "Convidar"}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
+          {inviteFeedback && (
+            <p className="text-xs font-medium text-primary" role="status">
+              {inviteFeedback}
+            </p>
+          )}
+
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            A formação da dupla (aceite dos dois lados) ainda não está disponível — hoje o
-            diretório mostra sugestões reais; o próximo passo é um convite mútuo, em construção.
+            A dupla só se forma com o aceite dos DOIS lados — nunca é designada, nunca é automática.
           </p>
         </div>
       )}

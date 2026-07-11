@@ -69,6 +69,17 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "pair_directory_entries", column: "visible", usedBy: "pair-directory-adapter.ts leaveDirectory" },
   { table: "pair_directory_entries", column: "updated_at", usedBy: "pair-directory-adapter.ts" },
 
+  // pair_invites / pair_records — formação bilateral da Dupla de Prática (I6).
+  { table: "pair_invites", column: "from_user", usedBy: "pair-invite-adapter.ts" },
+  { table: "pair_invites", column: "to_user", usedBy: "pair-invite-adapter.ts" },
+  { table: "pair_invites", column: "focus_driver_id", usedBy: "pair-invite-adapter.ts" },
+  { table: "pair_invites", column: "status", usedBy: "pair-invite-adapter.ts" },
+  { table: "pair_records", column: "member_a", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
+  { table: "pair_records", column: "member_b", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
+  { table: "pair_records", column: "focus_driver_id", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
+  { table: "pair_records", column: "formed_on", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
+  { table: "pair_records", column: "active", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
+
   // ops_events — telemetria operacional mínima (P1-04).
   { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },

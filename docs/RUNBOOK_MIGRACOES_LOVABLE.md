@@ -524,8 +524,24 @@ aparece em `/plataforma` com a origem correta.
     driver em foco + até 3 forças → a segunda pessoa aparece na lista de
     sugestões da primeira (e vice-versa) → em `/reconhecimento`, cada uma
     aparece como destinatário possível de semente para a outra. Formação
-    bilateral da dupla ainda não está disponível — só sugestão real, por
-    design desta fatia.)
+    bilateral da dupla chega na migration 23, abaixo.)
+23. `20260710140000_bilateral_pairs.sql` (Formação bilateral REAL da Dupla
+    de Prática — o aperto de mão que fecha a I6. Duas tabelas
+    (`pair_invites`, `pair_records`) + 3 RPCs SECURITY DEFINER
+    (`accept_pair_invite` atômica — `FOR UPDATE` no convite, revalida
+    diretório e "uma dupla ativa por pessoa" dos DOIS lados antes de criar
+    a dupla; `decline_pair_invite`/`cancel_pair_invite`). `pair_records`
+    nunca recebe INSERT/UPDATE/DELETE de cliente — só a RPC cria. Convite
+    só pode ser endereçado a quem está VISÍVEL no diretório (migration 22);
+    anti-spam por UNIQUE parcial (1 convite pendente por par ordenado).
+    Após aplicar, rodar as 4 verificações do rodapé — atenção: o SQL tem
+    `ON DELETE CASCADE` nas FKs, o Lovable vai mostrar o aviso de
+    "destructive operation"; seguro confirmar (mesmo falso-positivo já
+    documentado). Teste no app: com DUAS contas reais no diretório, a
+    primeira convida a segunda (botão "Convidar" na sugestão) → a segunda
+    vê o convite em "Convites recebidos" e aceita → as duas veem "Dupla
+    ativa" imediatamente. Uma terceira conta tentando convidar qualquer
+    uma das duas recebe `already_paired`.)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

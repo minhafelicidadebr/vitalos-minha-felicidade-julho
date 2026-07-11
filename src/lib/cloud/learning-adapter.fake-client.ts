@@ -19,6 +19,13 @@ export const fakeSupabaseState: {
   /** Diretório de colegas (I6 real): chave "__org__" = pool geral (para o
    * caminho .neq()), chave userId = a própria linha (para o caminho .eq()). */
   directoryRows: Record<string, unknown[]>;
+  /** Convites pendentes visíveis ao "eu" do teste (I6 bilateral). */
+  pairInviteRows: unknown[];
+  /** Dupla ativa do "eu" do teste, ou null (I6 bilateral). */
+  pairRecordRow: unknown | null;
+  /** name → resultado que o fake devolve para .rpc(name, args). */
+  rpcResults: Record<string, unknown>;
+  rpcCalls: Array<{ name: string; args: Record<string, unknown> }>;
   lastInsert: Record<string, unknown> | null;
   lastUpsert: Record<string, unknown> | null;
   lastUpdate: Record<string, unknown> | null;
@@ -31,6 +38,10 @@ export const fakeSupabaseState: {
   eventRows: {},
   practiceRows: {},
   directoryRows: {},
+  pairInviteRows: [],
+  pairRecordRow: null,
+  rpcResults: {},
+  rpcCalls: [],
   lastInsert: null,
   lastUpsert: null,
   lastUpdate: null,
@@ -49,10 +60,20 @@ function rowsFor(table: string, filters: Array<[string, unknown]>): unknown[] {
     const userIdFilter = filters.find(([col]) => col === "user_id");
     return fakeSupabaseState.directoryRows[(userIdFilter?.[1] as string) ?? "__org__"] ?? [];
   }
+  if (table === "pair_invites") return fakeSupabaseState.pairInviteRows;
+  if (table === "pair_records") {
+    return fakeSupabaseState.pairRecordRow ? [fakeSupabaseState.pairRecordRow] : [];
+  }
   return [];
 }
 
 export const fakeSupabase = {
+  rpc: async (name: string, args: Record<string, unknown>) => {
+    fakeSupabaseState.rpcCalls.push({ name, args });
+    const configured = fakeSupabaseState.rpcResults[name];
+    if (configured === undefined) return { data: null, error: { message: `no fake result for ${name}` } };
+    return { data: configured, error: null };
+  },
   from: (table: string) => ({
     select: (_cols: string) => {
       const filters: Array<[string, unknown]> = [];
