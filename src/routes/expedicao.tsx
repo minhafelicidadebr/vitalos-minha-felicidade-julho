@@ -8,7 +8,7 @@
 // só o Bosque do Bem-Comum, que é sabor CSR, não sabor "combate").
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Minus, ShieldAlert, Skull, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
@@ -25,6 +25,12 @@ import {
 } from "@/engine/academia/expedition-engine";
 import { NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
 import { useSectorNR1 } from "@/hooks/use-sector-nr1";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getRealExpeditionState,
+  type RealExpeditionResult,
+} from "@/lib/api/expedition-real.functions";
 
 export const Route = createFileRoute("/expedicao")({
   head: () => ({ meta: [{ title: "Expedição contra a Drenagem · Academia — VitalOS™" }] }),
@@ -118,15 +124,41 @@ function ExpedicaoPage() {
     });
   }, [exposure, cycles, measures, maintenance]);
 
-  const selection = useMemo(
+  const demoSelection = useMemo(
     () => (bestiary ? selectSeasonAntagonist(bestiary, needs) : null),
     [bestiary, needs],
   );
 
-  const assessments = useMemo(
+  const demoAssessments = useMemo(
     () => (bestiary ? assessBestiary(bestiary, reavaliacao.drivers, reavaliacao.efficacy) : []),
     [bestiary, reavaliacao],
   );
+
+  // Sessão real: a mesma composição (rankDriversByExposure → buildReavaliacao →
+  // assessBestiary), só que sobre o Cofre de Ciclos REAL desta organização —
+  // resolvida no servidor (nunca confia em pack/org do payload, P0-04).
+  const { org: realOrg } = useRealOrgSession();
+  const isRealMode = !!realOrg;
+  const [realResult, setRealResult] = useState<RealExpeditionResult | null>(null);
+
+  useEffect(() => {
+    if (!isRealMode) return;
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      const accessToken = data.session?.access_token;
+      if (!accessToken) return;
+      getRealExpeditionState({ data: { accessToken } })
+        .then((r) => active && setRealResult(r))
+        .catch(() => active && setRealResult(null));
+    });
+    return () => {
+      active = false;
+    };
+  }, [isRealMode]);
+
+  const realState = realResult?.available ? realResult.state : null;
+  const selection = isRealMode ? (realState?.selection ?? null) : demoSelection;
+  const assessments = isRealMode ? (realState?.assessments ?? []) : demoAssessments;
 
   if (status.state === "idle" || status.state === "loading") {
     return (
@@ -198,6 +230,16 @@ function ExpedicaoPage() {
             </p>
           </div>
         </motion.header>
+
+        {isRealMode && realState && realState.cycleCount < 2 && (
+          <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
+            <p className="text-sm leading-relaxed text-foreground/80">
+              {realState.cycleCount === 0
+                ? "Sua organização ainda não tem ciclo registrado no Cofre de Ciclos — sem medição, não se inventa antagonista."
+                : "1 ciclo registrado: o antagonista da temporada já é real, mas a reavaliação (recuo/derrota) exige pelo menos um 2º ciclo para comparar."}
+            </p>
+          </section>
+        )}
 
         <motion.section
           initial={{ opacity: 0, y: 12 }}
@@ -286,8 +328,10 @@ function ExpedicaoPage() {
         </section>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          {reavaliacao.disclaimer} Leitura de referência do setor ativo (mesma série usada em
-          Matriz e Reavaliação NR-1) — não constitui diagnóstico individual.
+          {reavaliacao.disclaimer}{" "}
+          {isRealMode
+            ? "Leitura REAL desta organização, sobre o Cofre de Ciclos — não constitui diagnóstico individual."
+            : "Leitura de referência do setor ativo (mesma série usada em Matriz e Reavaliação NR-1) — não constitui diagnóstico individual."}
         </p>
       </div>
     </AppShell>
