@@ -1,6 +1,8 @@
 // /vitrine — Vitrine do Bem-Comum (I-M6, Mensurar Vivo). DEMO v1 (blueprint §I: a própria
 // spec recomenda rollout DEMO antes de institutional_offers real, porque depende de
-// csr_pledges real — que ainda não existe; a economia de Sementes também é demo hoje).
+// csr_pledges real — que ainda não existe). Nota: a economia de Sementes (carteira +
+// pools) JÁ é real em sessão real desde 2026-07-10 (/reconhecimento) — o que falta
+// aqui é especificamente institutional_offers/csr_pledges, não a economia em si.
 //
 // O indivíduo sai da posição de comprador: nada aqui tem preço, checkout ou saldo lido.
 // Porta Aberta fica ACIMA do catálogo, sem condição — nunca dentro do sorteio.
