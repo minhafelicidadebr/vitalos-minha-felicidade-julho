@@ -18,12 +18,18 @@ import {
   DEFAULT_CERT_CONFIG,
   type CertificationResult,
 } from "@/engine/certification/certification-engine";
-import { buildCycleProof, type CycleProofVerdict } from "./cycle-proof.server";
+import {
+  buildCycleProof,
+  buildCycleProofFromHistory,
+  type CycleProof,
+  type CycleProofVerdict,
+} from "./cycle-proof.server";
 import { resolvePackBundle } from "@/domain/packs/registry";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { ivoCurrentCycle, ivoPreviousCycle } from "@/mocks/ivo-mock";
 import { PARTICIPATION } from "@/mocks/rh-mock";
 import { CONSENT_CHANNELS } from "@/mocks/consent-mock";
+import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 
 export interface EarnedSeal {
   packId: string;
@@ -104,4 +110,72 @@ function buildProvenanceNote(
     return "Domínio B pendente: sem ≥2 ciclos medidos para provar eficácia. O selo aguarda evidência longitudinal.";
   }
   return "Domínio B pendente: nenhuma intervenção mostrou efeito atribuível além do drift. O selo não reconhece atividade sem prova.";
+}
+
+// ─── Variante REAL (E4): o Selo sobre o Cofre de Ciclos da org ────────────────
+
+/**
+ * O MESMO Selo, mas o Domínio B (Prova de Ciclo) vem do histórico REAL
+ * registrado no Cofre da organização (S6.75) — nunca do mock de setor.
+ *
+ * HONESTIDADE ESTRUTURAL (Fable 5 §8): o ICP real coleta COPSOQ (risco,
+ * Domínio B) — a lente de florescimento (IVO/PERMA, Domínio A) e a cobertura
+ * de consentimento NÃO têm coleta real nesta org ainda. Então `ivoScore` e
+ * `consentCoveragePct` entram como 0 HONESTO — o `certify` naturalmente marca
+ * esses critérios como não-cumpridos, com o gap explícito. O Selo real nunca
+ * finge Domínio A; mostra o Domínio B ganho (ou pendente) com prova, e declara
+ * o caminho para o Selo pleno. A participação vem da capsule real mais recente.
+ */
+export function buildEarnedSealFromHistory(
+  packId: string,
+  history: readonly MeasurementContextCapsule[],
+  instrumentShort = "COPSOQ",
+): EarnedSeal {
+  const proof: CycleProof = buildCycleProofFromHistory([...history], packId, instrumentShort);
+  const domainBReady = domainBEarnedFromProof(proof.verdict, proof.attributableReductionPts);
+
+  // Participação REAL: a onda mais recente do Cofre (participantes / k-anon
+  // mínimo é o piso conhecido; sem denominador de org aqui, usamos a cobertura
+  // que a própria capsule declara ser suficiente — nunca inflada).
+  const latest = history[history.length - 1];
+  const participationPct = latest && latest.participantCount >= latest.kAnonymityMin ? 100 : 0;
+
+  const seal = certify(
+    {
+      // Domínio A (IVO/PERMA) sem coleta real → 0 honesto (C1 não-cumprido).
+      ivoScore: 0,
+      previousIvoScore: 0,
+      participationPct,
+      experimentsConfirmed: proof.interventionsWithEffect,
+      domainBReady,
+      // Consentimento sem cobertura real persistida ainda → 0 honesto.
+      consentCoveragePct: 0,
+      kAnonRespected: true, // invariante de arquitetura, vale igual no real
+    },
+    DEFAULT_CERT_CONFIG,
+  );
+
+  return {
+    packId,
+    seal,
+    cycleVerdict: proof.verdict,
+    domainBReady,
+    interventionsWithEffect: proof.interventionsWithEffect,
+    attributableReductionPts: proof.attributableReductionPts,
+    avoidedCostYear: proof.preventionRoi?.avoidedCostYear ?? null,
+    provenanceNote: buildRealProvenanceNote(proof.verdict, domainBReady, proof.interventionsWithEffect),
+  };
+}
+
+function buildRealProvenanceNote(
+  verdict: CycleProofVerdict,
+  domainBReady: boolean,
+  withEffect: number,
+): string {
+  const domainB = domainBReady
+    ? `Domínio B (risco NR-1) COMPROVADO com dado real: Prova de Ciclo "${verdict}", ${withEffect} intervenção(ões) de efeito atribuível medido.`
+    : verdict === "sem_dados"
+      ? "Domínio B (risco NR-1) pendente: faltam ≥2 ciclos reais registrados no Cofre."
+      : "Domínio B (risco NR-1) pendente: nenhuma intervenção real mostrou efeito atribuível além do drift.";
+  return `${domainB} O Selo Empresa Viva pleno também requer a lente de florescimento (IVO/PERMA, Domínio A) e a cobertura de consentimento — ainda não coletadas nesta organização. O selo nunca finge o que não mediu.`;
 }

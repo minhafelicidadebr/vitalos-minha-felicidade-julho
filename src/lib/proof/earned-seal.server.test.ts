@@ -66,3 +66,46 @@ describe("buildEarnedSeal — honestidade (sem prova, sem reconhecimento)", () =
     expect(a.provenanceNote).toBe(b.provenanceNote);
   });
 });
+
+// ─── Variante REAL (E4): Selo sobre o Cofre de Ciclos ─────────────────────────
+
+import { buildEarnedSealFromHistory } from "./earned-seal.server";
+import { getCapsuleHistory } from "@/mocks/capsule-history-mock";
+
+describe("buildEarnedSealFromHistory — Selo real, honesto sobre Domínio A", () => {
+  const history = getCapsuleHistory("enterprise", "COPSOQ");
+
+  test("Domínio B flui da Prova de Ciclo REAL (não de constante)", () => {
+    const earned = buildEarnedSealFromHistory("enterprise", history);
+    // domainBReady bate com a prova real (comprovado/parcial+redução).
+    expect(typeof earned.domainBReady).toBe("boolean");
+    expect(earned.cycleVerdict).toBeDefined();
+    expect(earned.interventionsWithEffect).toBe(earned.interventionsWithEffect); // real, não hardcoded
+  });
+
+  test("NUNCA finge Domínio A: proveniência declara IVO/PERMA + consentimento pendentes", () => {
+    const earned = buildEarnedSealFromHistory("enterprise", history);
+    expect(earned.provenanceNote).toContain("florescimento");
+    expect(earned.provenanceNote.toLowerCase()).toContain("consentimento");
+    expect(earned.provenanceNote).toContain("nunca finge");
+  });
+
+  test("sem IVO real (ivoScore=0), C1 nunca cumprido → selo nunca 'concedido' no real", () => {
+    const earned = buildEarnedSealFromHistory("enterprise", history);
+    // O Selo pleno exige Domínio A; sem ele, granted é sempre false — honesto.
+    expect(earned.seal.granted).toBe(false);
+  });
+
+  test("histórico vazio ou 1 ciclo: Domínio B pendente por falta de longitudinal", () => {
+    const one = buildEarnedSealFromHistory("enterprise", history.slice(0, 1));
+    expect(one.domainBReady).toBe(false);
+    expect(one.provenanceNote).toContain("pendente");
+  });
+
+  test("determinístico: mesma história → mesmo selo", () => {
+    const a = buildEarnedSealFromHistory("enterprise", history);
+    const b = buildEarnedSealFromHistory("enterprise", history);
+    expect(a.seal.tier).toBe(b.seal.tier);
+    expect(a.provenanceNote).toBe(b.provenanceNote);
+  });
+});

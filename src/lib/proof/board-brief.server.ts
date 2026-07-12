@@ -12,7 +12,7 @@
 // Server-only, determinístico. Em produção (Fase 2): dados do Cloud com RLS por org.
 
 import { buildCycleProof, buildCycleProofFromHistory, type CycleProof } from "./cycle-proof.server";
-import { buildEarnedSeal } from "./earned-seal.server";
+import { buildEarnedSeal, buildEarnedSealFromHistory } from "./earned-seal.server";
 import type { MeasurementContextCapsule } from "@/engine/ai/measurement-capsule-engine";
 
 export type SkepticId = "chro" | "cfo" | "auditor" | "colaborador" | "investidor";
@@ -158,6 +158,12 @@ export function buildBoardBriefFromHistory(
   const hasRoi = (proof.preventionRoi?.avoidedCostYear ?? 0) > 0;
   const hasEffect = proof.interventionsWithEffect >= 1;
 
+  // Selo REAL: o Domínio B flui da mesma Prova de Ciclo real; o Domínio A
+  // (IVO/PERMA) e consentimento são honestamente declarados pendentes. O
+  // investidor deixa de ver um "pendente total" vago e passa a ver exatamente
+  // o que JÁ está provado com dado real e o que falta.
+  const realSeal = buildEarnedSealFromHistory(packId, history, instrumentShort);
+
   const skeptics: SkepticVerdict[] = [
     {
       id: "chro",
@@ -206,10 +212,15 @@ export function buildBoardBriefFromHistory(
       id: "investidor",
       persona: "Investidor",
       doubt: "Há categoria nova com moat defensável?",
-      answer:
-        "Selo Empresa Viva pendente no modo real: exige IVO, participação e consentimento reais (ainda não coletados em produção). O sistema nunca exibe um selo que não foi ganho com dado real.",
-      metric: "Selo: pendente de dados reais",
-      satisfied: false, // nunca fabricado a partir do selo mock
+      // O Domínio B (risco NR-1) é o moat comprovável do ICP; o Selo pleno
+      // ainda exige a lente de florescimento — o brief mostra os dois com
+      // precisão, nunca um "pendente" vago nem um selo fabricado.
+      answer: realSeal.provenanceNote,
+      metric: `Selo: ${realSeal.seal.tierLabel}${realSeal.domainBReady ? " · Domínio B comprovado" : ""}`,
+      // "Satisfeito" só quando o Selo pleno é concedido (exige Domínio A real,
+      // que o ICP COPSOQ não coleta) — permanece honestamente false, mas agora
+      // com uma leitura precisa do que já está provado.
+      satisfied: realSeal.seal.granted,
     },
   ];
 
@@ -221,8 +232,8 @@ export function buildBoardBriefFromHistory(
       ? `${satisfiedCount}/5 céticos com evidência satisfeita — sobre os ciclos REAIS da organização.`
       : "Arco real em construção: registre ≥2 cápsulas seladas no Cofre de Ciclos.",
     cycleVerdict: proof.verdict,
-    sealTier: "pendente",
-    sealTierLabel: "Pendente de dados reais",
+    sealTier: realSeal.seal.tier,
+    sealTierLabel: realSeal.seal.tierLabel,
     skeptics,
     satisfiedCount,
     disclaimer: DISCLAIMER,

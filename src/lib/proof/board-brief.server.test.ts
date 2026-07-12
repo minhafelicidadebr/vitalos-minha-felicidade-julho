@@ -89,11 +89,16 @@ describe("buildBoardBriefFromHistory — brief executivo sobre ciclos reais", ()
     expect(chro.answer).toContain("SUA organização");
   });
 
-  test("investidor NUNCA satisfeito no modo real — selo pendente, jamais fabricado do mock", () => {
+  test("investidor NÃO satisfeito no real (Selo pleno exige Domínio A), mas com leitura PRECISA do Selo real", () => {
     const inv = brief.skeptics.find((s) => s.id === "investidor")!;
+    // Sem IVO/PERMA real, o Selo pleno nunca é concedido — honesto.
     expect(inv.satisfied).toBe(false);
-    expect(inv.metric).toContain("pendente");
-    expect(brief.sealTierLabel).toContain("Pendente");
+    // Mas a resposta agora é a proveniência real: cita florescimento pendente,
+    // nunca mais um "pendente total" vago, e nunca um selo fabricado do mock.
+    expect(inv.answer).toContain("florescimento");
+    expect(inv.answer).toContain("nunca finge");
+    // O tier vem do certify real (não a constante "Pendente" antiga).
+    expect(brief.sealTierLabel.length).toBeGreaterThan(0);
   });
 
   test("colaborador (k-anon) satisfeito também no real — invariante de arquitetura", () => {
