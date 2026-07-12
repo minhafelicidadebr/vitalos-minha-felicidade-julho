@@ -542,6 +542,17 @@ aparece em `/plataforma` com a origem correta.
     vê o convite em "Convites recebidos" e aceita → as duas veem "Dupla
     ativa" imediatamente. Uma terceira conta tentando convidar qualquer
     uma das duas recebe `already_paired`.)
+24. `20260710150000_circle_sessions.sql` (Círculos Vivos reais, I5 —
+    privacidade POR SCHEMA: a tabela NÃO tem coluna de conteúdo nem lista
+    de participantes, só `{facilitator_id, embassy_id, driver_id,
+    occurred_on, presence_count}`. O facilitador (autenticado) registra a
+    própria roda; qualquer membro da org vê que a roda aconteceu (ritual
+    coletivo), nunca quem participou. Sem UPDATE/DELETE — roda que ocorreu
+    é fato. Após aplicar, rodar as 4 verificações do rodapé (todas `false`
+    + COUNT policies = 2). Teste no app: logar real → `/embaixador` abrir
+    uma roda com presença ≥2 → recarregar → a roda persiste; o
+    micro-compromisso de cada pessoa vai para o Diário dela, nunca para o
+    registro da roda.)
 
 Depois de colar as cinco primeiras, teste no app real: (a) criar uma onda em `/admin` —
 antes falhava com "Falha ao criar onda no banco" se as RPCs não existissem em

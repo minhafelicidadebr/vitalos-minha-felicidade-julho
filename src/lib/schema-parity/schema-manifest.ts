@@ -80,6 +80,14 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "pair_records", column: "formed_on", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
   { table: "pair_records", column: "active", usedBy: "pair-invite-adapter.ts loadMyActivePair" },
 
+  // circle_sessions — Círculos Vivos reais (I5, privacidade por schema).
+  { table: "circle_sessions", column: "org_id", usedBy: "circle-sessions-adapter.ts" },
+  { table: "circle_sessions", column: "facilitator_id", usedBy: "circle-sessions-adapter.ts" },
+  { table: "circle_sessions", column: "embassy_id", usedBy: "circle-sessions-adapter.ts" },
+  { table: "circle_sessions", column: "driver_id", usedBy: "circle-sessions-adapter.ts" },
+  { table: "circle_sessions", column: "occurred_on", usedBy: "circle-sessions-adapter.ts" },
+  { table: "circle_sessions", column: "presence_count", usedBy: "circle-sessions-adapter.ts" },
+
   // ops_events — telemetria operacional mínima (P1-04).
   { table: "ops_events", column: "event", usedBy: "ops-events.server.ts emitOpsEvent" },
   { table: "ops_events", column: "org_id", usedBy: "ops-events.server.ts emitOpsEvent" },

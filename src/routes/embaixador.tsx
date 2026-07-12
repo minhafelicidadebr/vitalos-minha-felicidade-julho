@@ -15,6 +15,8 @@ import {
   type CircleSessionRejectReason,
 } from "@/engine/embaixadorias/circle-engine";
 import { useCircleSessions } from "@/engine/embaixadorias/circle-session-store";
+import { useCircleSessionsSync } from "@/app/identity/useCircleSessionsSync";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { AMBASSADORSHIPS } from "@/mocks/embaixadorias-mock";
 import { CIRCLE_SCRIPTS, CIRCLE_VIVO_COPY } from "@/mocks/circle-script-mock";
@@ -218,14 +220,22 @@ function EmbaixadorPage() {
 function CircleSection({ embassyId, driverId }: { embassyId: string; driverId?: string }) {
   const { gamification } = usePack();
   const circles = useMemo(() => (gamification ? getCirclesConfig(gamification) : null), [gamification]);
-  const sessions = useCircleSessions((state) => state.sessions);
+  const demoSessions = useCircleSessions((state) => state.sessions);
   const append = useCircleSessions((state) => state.append);
+
+  // Sessão real: rodas da ORG persistidas (privacidade por schema — só
+  // metadados, nunca quem participou). Demo: store local efêmero.
+  const { isRealSession, orgSessions, persist } = useCircleSessionsSync();
+  const { org } = useRealOrgSession();
+  const sessions = isRealSession ? orgSessions : demoSessions;
 
   const [presenceCount, setPresenceCount] = useState(6);
   const [result, setResult] = useState<CircleSessionRejectReason | "recorded" | null>(null);
 
   if (!circles) return null;
 
+  const facilitatorId = isRealSession && org ? org.userId : MOCK_USER.id;
+  const today = isRealSession ? new Date().toISOString().slice(0, 10) : GAMIFICATION_TODAY;
   const script = driverId ? getCircleScript(CIRCLE_SCRIPTS, driverId) : undefined;
   const mySessions = sessionsByEmbassy(sessions, embassyId);
   const lastSession = [...mySessions].reverse()[0] ?? null;
@@ -237,16 +247,29 @@ function CircleSection({ embassyId, driverId }: { embassyId: string; driverId?: 
       {
         id: `circ-${embassyId}-${sessions.length + 1}`,
         embassyId,
-        facilitatorId: MOCK_USER.id,
+        facilitatorId,
         driverId,
-        occurredOn: GAMIFICATION_TODAY,
+        occurredOn: today,
         presenceCount,
       },
       CIRCLE_SCRIPTS,
       circles.policy,
     );
     setResult(response.reason);
-    if (response.reason === "recorded" && response.session) append(response.session);
+    if (response.reason === "recorded" && response.session) {
+      if (isRealSession) {
+        // Persiste no banco (fire-and-forget; reload traz o id real).
+        void persist({
+          id: response.session.id,
+          embassyId: response.session.embassyId,
+          driverId: response.session.driverId,
+          occurredOn: response.session.occurredOn,
+          presenceCount: response.session.presenceCount,
+        });
+      } else {
+        append(response.session);
+      }
+    }
   }
 
   return (

@@ -5,7 +5,7 @@
 // celebrar o Pomar em /reconhecimento muda o Loop aqui, na hora.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -27,6 +27,10 @@ import { getWeeklyLoopConfig } from "@/engine/gamification/gamification-engine";
 import { buildWeeklyLoop, type LoopStepId } from "@/engine/season/weekly-loop-engine";
 import { usePracticeJournal } from "@/engine/learning/practice-journal-store";
 import { useCelebrations } from "@/engine/recognition/celebration-store";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { supabase } from "@/integrations/supabase/client";
+import { getRealWeeklyLoop } from "@/lib/api/weekly-loop-real.functions";
+import type { WeeklyLoopResult } from "@/engine/season/weekly-loop-engine";
 import {
   LOOP_FIXED_COUNTS,
   LOOP_TEAM_LABEL,
@@ -57,7 +61,7 @@ function LoopVivoPage() {
   const sessionEntries = usePracticeJournal((state) => state.entries);
   const celebrationRecords = useCelebrations((state) => state.records);
 
-  const result = useMemo(() => {
+  const demoResult = useMemo(() => {
     if (!loop) return null;
     const evidenciarCount = countEvidenciarCoverage(sessionEntries);
     const celebrarCount = countCelebrarCoverage(celebrationRecords);
@@ -72,7 +76,31 @@ function LoopVivoPage() {
       },
       loop.policy,
     );
-  }, [loop, sessionEntries]);
+  }, [loop, sessionEntries, celebrationRecords]);
+
+  // Sessão real: a cobertura dos 7 passos vem da ORG inteira (mesma "equipe"
+  // que Diário/Sementes reais agregam), contada no servidor — DISTINCT user_id,
+  // nunca quem. O k-anon do próprio engine protege orgs pequenas.
+  const { org: realOrg } = useRealOrgSession();
+  const isRealMode = !!realOrg;
+  const [realLoop, setRealLoop] = useState<WeeklyLoopResult | null>(null);
+
+  useEffect(() => {
+    if (!isRealMode) return;
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      const accessToken = data.session?.access_token;
+      if (!accessToken) return;
+      getRealWeeklyLoop({ data: { accessToken } })
+        .then((r) => active && setRealLoop(r.available ? r.loop : null))
+        .catch(() => active && setRealLoop(null));
+    });
+    return () => {
+      active = false;
+    };
+  }, [isRealMode]);
+
+  const result = isRealMode ? realLoop : demoResult;
 
   if (status.state === "idle" || status.state === "loading") {
     return (
@@ -141,8 +169,13 @@ function LoopVivoPage() {
           <div className="relative mt-5 inline-flex items-center gap-2 rounded-2xl border border-border/60 bg-card/75 px-4 py-2.5 backdrop-blur">
             <Users className="h-4 w-4 text-primary" aria-hidden />
             <span className="text-sm text-foreground">
-              {LOOP_TEAM_LABEL} · {LOOP_TEAM_SIZE} pessoas · {result.completedSteps}/
-              {result.totalSteps} passos concluídos
+              {isRealMode ? realOrg!.orgName : LOOP_TEAM_LABEL} ·{" "}
+              {isRealMode
+                ? result.visible
+                  ? "cobertura real da organização"
+                  : "organização pequena — cobertura protegida (k-anon)"
+                : `${LOOP_TEAM_SIZE} pessoas`}{" "}
+              · {result.completedSteps}/{result.totalSteps} passos concluídos
             </span>
           </div>
         </motion.header>
@@ -260,7 +293,10 @@ function LoopVivoPage() {
         </section>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          {LOOP_VIVO_COPY.scienceNote} {LOOP_VIVO_COPY.demoNote}
+          {LOOP_VIVO_COPY.scienceNote}{" "}
+          {isRealMode
+            ? "Cobertura REAL da organização: cada passo conta quantas pessoas o cumpriram (nunca quem), a partir do Diário, das trilhas, das Sementes e das revisões reais."
+            : LOOP_VIVO_COPY.demoNote}
         </p>
       </div>
     </AppShell>
