@@ -173,3 +173,42 @@ bunx supabase projects list
 bunx supabase link --project-ref shlmzzchddohaytfakol
 bunx supabase db diff --linked   # comparar migrations locais vs. remoto aplicado
 ```
+
+---
+
+## 8. Addendum — Alternativa A e B executadas nesta mesma sessão (branch `claude/handoff-validation-vitalos-julho`)
+
+Após a leitura do baseline acima, o founder autorizou seguir com a Alternativa A
+(mínima e segura) do `PLANO_PROXIMA_ONDA_VITALOS_2026-07-13.md` e, em seguida,
+partes da Alternativa B. Commits (todos na branch de validação, pushed,
+**nenhum na `main`**):
+
+| Commit | O que fecha |
+|---|---|
+| `519b16b` | `.gitattributes` com `eol=lf` — fecha a causa raiz do P1-03 (CRLF) da seção 4 |
+| `88c43ae` | Restaura o cast `as unknown as typeof fetch` nos 3 clients Supabase — fecha os 3 `TS2741` da seção 4. `bun run gate` passa a **PASS** (2007→2009 testes com os 2 novos abaixo, parity OK, tsc limpo) |
+| `8dac6b2` | `src/route-mock-boundary.test.ts` — trava arquitetural que congela em 61 a contagem de rotas com `@/mocks` (linha 153 acima); rota nova que importar mock quebra o teste |
+| `c0ea414` | `DataSourceBadge` (`src/app/shell/DataSourceBadge.tsx`) aplicado em `/academia`, `/benchmark`, `/panorama` (este último dinâmico mock↔proxy via `isRealMode`) |
+| `ca202b9` | Playwright + `@axe-core/playwright`. `tests/e2e/landing.spec.ts` **verificado rodando de verdade** (2/2 pass, zero violação a11y crítica/séria). `tests/e2e/demo-journey.spec.ts` **skip local** — ver bloqueio abaixo |
+
+**`bun run lint` não foi zerado** — a causa raiz CRLF foi fechada, mas restam
+~2.876 problemas de formatação prettier real em 229 arquivos (dívida
+pré-existente, não CRLF). Não fechado nesta sessão.
+
+### Bloqueio novo descoberto: preview local não renderiza rota protegida nenhuma
+
+`src/app/auth/AuthGate.tsx:46-51` chama `supabase.auth.getSession()`
+incondicionalmente em toda rota. Sem `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY`
+no ambiente, o client (`src/integrations/supabase/client.ts:39-47`) lança
+exceção síncrona → error boundary remonta → loop de crash. `@lovable.dev/vite-tanstack-config`
+declara fazer sua própria "VITE_* env injection" (`vite.config.ts:1-5`),
+não dotenv padrão — um `.env` local com placeholder foi testado e **não
+resolveu** (criado e revertido nesta sessão). Isso bloqueia:
+- screenshot/preview local de qualquer rota fora de `AuthGate.tsx` `PUBLIC_PREFIXES`;
+- a suíte `demo-journey.spec.ts` (6 testes), que fica em `test.skip` até o
+  ambiente ter essas duas env vars (a publishable/anon key é client-safe,
+  não é a service role key — pode vir de `bunx supabase login` + `projects api-keys`
+  uma vez autenticado, ou da própria plataforma Lovable/CI).
+
+Isso é um gap de ambiente, não uma regressão desta sessão — `/` (pública)
+renderiza normalmente.
