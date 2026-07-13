@@ -18,6 +18,7 @@ import { getBoardBrief, getRealBoardBrief } from "@/lib/api/board-brief.function
 import type { BoardBrief } from "@/lib/proof/board-brief.server";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
+import { DataSourceBadge } from "@/app/shell/DataSourceBadge";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { loadCycleHistory, type LoadCycleHistoryResult } from "@/lib/api/cycle-history.functions";
 import { projectForecast } from "@/engine/forecast/forecast-engine";
@@ -250,6 +251,7 @@ function PanoramaPage() {
             <p className="mt-1 text-xs text-muted-foreground">{today}</p>
           </div>
           <div className="flex items-center gap-3">
+            <DataSourceBadge source={isRealMode ? "proxy" : "mock"} />
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${tone.bg} ${tone.text}`}
             >

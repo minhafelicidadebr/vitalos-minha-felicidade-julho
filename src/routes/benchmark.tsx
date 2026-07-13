@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
+import { DataSourceBadge } from "@/app/shell/DataSourceBadge";
 import { useIvo } from "@/mocks/hooks";
 import { buildBenchmark, type BenchmarkRow } from "@/engine/benchmark/benchmark-engine";
 import {
@@ -47,9 +48,12 @@ function BenchmarkPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {BENCHMARK_INTRO.eyebrow}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              {BENCHMARK_INTRO.eyebrow}
+            </p>
+            <DataSourceBadge source="mock" />
+          </div>
           <h1 className="mt-1 font-serif text-3xl text-foreground">{BENCHMARK_INTRO.title}</h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
             {BENCHMARK_INTRO.lead}

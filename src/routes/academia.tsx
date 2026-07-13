@@ -37,6 +37,7 @@ import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { MARINA_VIAT_RESULT, VIAT_INTRO } from "@/mocks/viat-mock";
 import { dynamicsForRoute, type LearningDynamic } from "@/engine/learning/learning-dynamics";
 import { getLearningDynamics } from "@/mocks/learning-dynamics-mock";
+import { DataSourceBadge } from "@/app/shell/DataSourceBadge";
 
 export const Route = createFileRoute("/academia")({
   head: () => ({ meta: [{ title: "Academia adaptativa — 4 Lentes VitalOS™" }] }),
@@ -152,9 +153,12 @@ function AcademiaPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {academyName} · Curadoria adaptativa
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              {academyName} · Curadoria adaptativa
+            </p>
+            <DataSourceBadge source="mock" />
+          </div>
           <h1 className="mt-1 font-serif text-3xl text-foreground sm:text-4xl">
             Aprender a partir do que importa agora
           </h1>

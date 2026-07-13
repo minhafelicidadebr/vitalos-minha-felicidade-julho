@@ -16,7 +16,11 @@ import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const ROUTES_DIR = import.meta.dir;
+// Fora de src/routes/ de propósito: o roteador file-based do TanStack
+// escaneia essa pasta em busca de rotas e emite warning para qualquer
+// arquivo que não exporte `Route` — mesmo padrão de src/integration.test.ts
+// e src/multipack.test.ts, que também ficam soltos em src/.
+const ROUTES_DIR = join(import.meta.dir, "routes");
 
 // Congelada em 2026-07-13 (passagem de bastão game.felicidade) — 61 rotas.
 // Idêntica à contagem revalidada em MATRIZ_REVALIDACAO_ANALISES_2026-07-13.md.
