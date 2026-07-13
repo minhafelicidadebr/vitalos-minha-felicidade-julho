@@ -29,7 +29,18 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Instrument = "COPSOQ" | "PERMA" | "VIA_T";
+type Instrument = "COPSOQ" | "PERMA" | "VIA_T" | "FIB_T";
+
+// Código de banco → nome público do instrumento. O banco guarda códigos
+// estáveis (VIA_T, FIB_T — ver instrument-mapping.ts); a UI e as mensagens
+// mostram os nomes de produto (VIA-T, FIB-T).
+const INSTRUMENT_LABEL: Record<Instrument, string> = {
+  COPSOQ: "COPSOQ II · NR-1",
+  PERMA: "PERMA",
+  VIA_T: "VIA-T",
+  FIB_T: "FIB-T",
+};
+const instrumentLabel = (code: string) => INSTRUMENT_LABEL[code as Instrument] ?? code;
 
 interface CreatedWave {
   waveId: string;
@@ -209,17 +220,18 @@ function AdminPage() {
                 Instrumento
               </label>
               <div className="flex flex-wrap gap-2">
-                {(["COPSOQ", "PERMA", "VIA_T"] as Instrument[]).map((inst) => (
+                {(["COPSOQ", "PERMA", "VIA_T", "FIB_T"] as Instrument[]).map((inst) => (
                   <button
                     key={inst}
                     onClick={() => setInstrument(inst)}
+                    aria-pressed={instrument === inst}
                     className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
                       instrument === inst
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border/60 bg-background text-foreground hover:border-primary/40"
                     }`}
                   >
-                    {inst === "COPSOQ" ? "COPSOQ II · NR-1" : inst}
+                    {INSTRUMENT_LABEL[inst]}
                   </button>
                 ))}
               </div>
@@ -239,7 +251,7 @@ function AdminPage() {
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder={`${instrument} · ${new Date().toLocaleDateString("pt-BR")} · T${Math.ceil(new Date().getMonth() / 3) || 1}/2026`}
+                placeholder={`${instrumentLabel(instrument)} · ${new Date().toLocaleDateString("pt-BR")} · T${Math.ceil(new Date().getMonth() / 3) || 1}/2026`}
                 className="w-full rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
@@ -298,7 +310,7 @@ function AdminPage() {
             <div className="mb-4 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-primary" />
               <p className="font-medium text-foreground">
-                {created.inviteLinks.length} links gerados · {created.instrument}
+                {created.inviteLinks.length} links gerados · {instrumentLabel(created.instrument)}
               </p>
             </div>
 
@@ -350,7 +362,7 @@ function AdminPage() {
                 {copiedIdx === -1 ? "Copiado!" : `Copiar ${created.inviteLinks.length} links`}
               </button>
               <button
-                onClick={() => copyWhatsApp(created.inviteLinks, created.instrument)}
+                onClick={() => copyWhatsApp(created.inviteLinks, instrumentLabel(created.instrument))}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
               >
                 <MessageCircle className="h-3.5 w-3.5" />
@@ -628,7 +640,7 @@ function WaveCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-foreground">
-              {wave.label ?? wave.instrument}
+              {wave.label ?? instrumentLabel(wave.instrument)}
             </span>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
               isSealed
@@ -640,7 +652,8 @@ function WaveCard({
           </div>
 
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            {wave.instrument} · criada em {new Date(wave.createdAt).toLocaleDateString("pt-BR")}
+            {instrumentLabel(wave.instrument)} · criada em{" "}
+            {new Date(wave.createdAt).toLocaleDateString("pt-BR")}
           </p>
 
           {/* Barra de progresso de respostas */}

@@ -16,7 +16,7 @@ const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
 const createWaveSchema = accessTokenSchema
   .extend({
-    instrument: z.enum(["COPSOQ", "PERMA", "VIA_T"]),
+    instrument: z.enum(["COPSOQ", "PERMA", "VIA_T", "FIB_T"]),
     label: z.string().max(200).optional(),
     inviteCount: z.number().int().min(5).max(500),
     closesAt: z.string().datetime().optional(),

@@ -32,7 +32,7 @@ export const PLAN_CATALOG: Record<PlanId, PlanLimits> = {
     maxWavesPerMonth: 4,
     maxInvitesPerWave: 500,
     maxAdminSeats: 5,
-    allowedInstruments: ["COPSOQ", "PERMA", "VIA_T"],
+    allowedInstruments: ["COPSOQ", "PERMA", "VIA_T", "FIB_T"],
     capsuleRetentionMonths: 12,
   },
   enterprise: {
@@ -41,7 +41,7 @@ export const PLAN_CATALOG: Record<PlanId, PlanLimits> = {
     maxWavesPerMonth: Infinity,
     maxInvitesPerWave: Infinity,
     maxAdminSeats: Infinity,
-    allowedInstruments: ["COPSOQ", "PERMA", "VIA_T"],
+    allowedInstruments: ["COPSOQ", "PERMA", "VIA_T", "FIB_T"],
     capsuleRetentionMonths: Infinity,
   },
 };

@@ -7,6 +7,7 @@ const DB_INSTRUMENT_TO_SURVEY_KEY: Record<string, string> = {
   COPSOQ: "COPSOQ",
   PERMA: "PERMA+V / IVO",
   VIA_T: "VIA-T",
+  FIB_T: "FIB-T",
 };
 
 export function dbInstrumentToSurveyKey(dbInstrument: string): string {

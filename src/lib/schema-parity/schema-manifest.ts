@@ -30,6 +30,10 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
 
   // wave_invites — marca de disparo de e-mail do convite de onda.
   { table: "wave_invites", column: "emailed_at", usedBy: "wave-admin.server.ts createWaveAsAdmin" },
+  // wave_invites.email — trava opcional do convite a um endereço. Escapou do
+  // manifesto até 2026-07-13 (drift aplicado fora de banda no projeto original;
+  // quebrou a criação de onda na cópia nova). Versionada em 20260713210000.
+  { table: "wave_invites", column: "email", usedBy: "db-adapter.ts createWaveWithAdmin" },
 
   // sector_links — link setorial compartilhado (modalidade shared_sector).
   { table: "sector_links", column: "token_hash", usedBy: "sector-link.server.ts loadCloudLink" },

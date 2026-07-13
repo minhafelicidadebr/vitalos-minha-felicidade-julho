@@ -21,7 +21,7 @@ export interface SubmitResponseResult {
 
 export interface CreateWaveInput {
   orgId: string;
-  instrument: "COPSOQ" | "PERMA" | "VIA_T";
+  instrument: "COPSOQ" | "PERMA" | "VIA_T" | "FIB_T";
   label?: string;
   inviteCount: number;
   closesAt?: string;
@@ -116,24 +116,29 @@ export async function createWaveWithAdmin(
     return { error: waveErr?.message ?? "Falha ao inserir onda — resposta vazia do banco." };
   }
 
-  const inviteRows = Array.from({ length: input.inviteCount }, (_, i) => ({
-    wave_id: wave.id,
-    email: input.emails?.[i] ?? null,
-  }));
+  // Só toca na coluna email quando há e-mails de fato: o fluxo majoritário
+  // (links genéricos p/ WhatsApp) não pode falhar se a migration
+  // 20260713210000_add_wave_invites_email ainda não tiver sido aplicada ao
+  // banco remoto — inserir a chave (mesmo NULL) ou selecioná-la derruba o
+  // PostgREST com "Could not find the 'email' column in the schema cache".
+  const hasEmails = (input.emails ?? []).some((e) => e != null && e.trim() !== "");
+  const inviteRows = Array.from({ length: input.inviteCount }, (_, i) =>
+    hasEmails ? { wave_id: wave.id, email: input.emails?.[i] ?? null } : { wave_id: wave.id },
+  );
   const { data: invites, error: inviteErr } = await adminClient
     .from("wave_invites")
     .insert(inviteRows)
-    .select("token, email");
+    .select(hasEmails ? "token, email" : "token");
 
   if (inviteErr || !invites) {
     return { error: inviteErr?.message ?? "Falha ao gerar convites — resposta vazia do banco." };
   }
 
   // Zipado da MESMA resposta — garante alinhamento de índice entre os três arrays.
-  const rows = invites as Array<{ token: string; email: string | null }>;
+  const rows = invites as Array<{ token: string; email?: string | null }>;
   const tokens = rows.map((i) => i.token);
   const links = rows.map((i) => `${BASE_URL}/convite/${i.token}`);
-  const emails = rows.map((i) => i.email);
+  const emails = rows.map((i) => i.email ?? null);
 
   return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links, inviteEmails: emails };
 }

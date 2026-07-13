@@ -62,12 +62,18 @@ export interface Database {
         Row: {
           token: string;
           wave_id: string;
+          // Trava opcional do convite a um e-mail específico (migration 20260713210000).
+          email: string | null;
           used_at: string | null;
           created_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["wave_invites"]["Row"], "token" | "created_at"> & {
+        Insert: Omit<
+          Database["public"]["Tables"]["wave_invites"]["Row"],
+          "token" | "created_at" | "email"
+        > & {
           token?: string;
           created_at?: string;
+          email?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["wave_invites"]["Insert"]>;
       };

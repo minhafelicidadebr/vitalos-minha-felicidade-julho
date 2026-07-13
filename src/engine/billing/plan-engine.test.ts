@@ -47,11 +47,12 @@ describe("plan-engine", () => {
     expect(checkInstrumentAllowed("pilot", "COPSOQ").allowed).toBe(true);
     expect(checkInstrumentAllowed("pilot", "PERMA").allowed).toBe(false);
     expect(checkInstrumentAllowed("pilot", "VIA_T").allowed).toBe(false);
+    expect(checkInstrumentAllowed("pilot", "FIB_T").allowed).toBe(false);
   });
 
-  test("instrument gating — growth and enterprise unlock all three", () => {
+  test("instrument gating — growth and enterprise unlock all four", () => {
     for (const plan of ["growth", "enterprise"]) {
-      for (const instrument of ["COPSOQ", "PERMA", "VIA_T"]) {
+      for (const instrument of ["COPSOQ", "PERMA", "VIA_T", "FIB_T"]) {
         expect(checkInstrumentAllowed(plan, instrument).allowed).toBe(true);
       }
     }

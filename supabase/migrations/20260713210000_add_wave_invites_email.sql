@@ -1,0 +1,16 @@
+-- wave_invites.email — endereço opcional que trava o convite de onda a um
+-- e-mail específico (paridade com org_invites.email, criada em 20260701150019).
+--
+-- POR QUE SÓ AGORA: o código já grava e lê esta coluna desde o fluxo de
+-- disparo de e-mails (db-adapter.ts createWaveWithAdmin → insert {email};
+-- wave-admin.server.ts dispatchInviteEmailBatch), mas a coluna nunca entrou
+-- numa migration versionada — foi aplicada fora de banda no projeto Supabase
+-- original (a exata classe de drift que o schema-parity existe para caçar;
+-- a reconciliação 20260703120000 cobriu apenas emailed_at). Na cópia nova
+-- (shlmzzchddohaytfakol), provisionada estritamente pelas migrations, a
+-- coluna não existe — criar onda falhava com "Could not find the 'email'
+-- column of 'wave_invites' in the schema cache".
+--
+-- Sem backfill e sem mudança de RLS: coluna nullable, os SELECTs de convite
+-- por token continuam idênticos. NULL = convite genérico (fluxo WhatsApp).
+ALTER TABLE public.wave_invites ADD COLUMN IF NOT EXISTS email TEXT;
