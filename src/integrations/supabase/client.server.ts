@@ -10,7 +10,7 @@ function isNewSupabaseApiKey(value: string): boolean {
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
-  return (input, init) => {
+  const fetchWithApiKey = (input: RequestInfo | URL, init?: RequestInit) => {
     const headers = new Headers(
       typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
     );
@@ -27,6 +27,9 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     headers.set('apikey', supabaseKey);
     return fetch(input, { ...init, headers });
   };
+  // Cast necessário: o typeof fetch do Bun exige a propriedade extra
+  // `preconnect`, que o Supabase nunca usa. Mesma forma do repo original.
+  return fetchWithApiKey as unknown as typeof fetch;
 }
 
 function createSupabaseAdminClient() {
