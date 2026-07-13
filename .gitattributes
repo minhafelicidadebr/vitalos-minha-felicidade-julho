@@ -1,0 +1,22 @@
+# Normalização de fim de linha — fecha a causa raiz do P1-03 (dívida CRLF).
+#
+# Os blobs do repositório sempre foram LF puros; o problema era o checkout:
+# em Windows com core.autocrlf=true, o Git convertia tudo para CRLF no
+# working tree e o Prettier (endOfLine: lf) reportava ~116 mil erros falsos.
+# Este arquivo força LF no checkout em qualquer SO, independentemente da
+# configuração local de cada contribuidor.
+#
+# Evidência: docs/handoff/BASELINE_TECNICO_COPIA_VITALOS_2026-07-13.md §4.
+
+* text=auto eol=lf
+
+# Binários — nunca normalizar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
+*.zip binary
