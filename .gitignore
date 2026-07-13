@@ -16,11 +16,17 @@ dist-ssr
 .nitro
 *.local
 
-# Segredos / variáveis de ambiente (P1-01) — nunca versionar.
-# .env.example é a exceção: documenta as chaves SEM valores.
-.env
-.env.*
-!.env.example
+# Segredos / variáveis de ambiente.
+# .env agora versiona só as chaves Supabase PUBLISHABLE/ANON (SUPABASE_URL,
+# SUPABASE_PUBLISHABLE_KEY, SUPABASE_PROJECT_ID e os espelhos VITE_*) —
+# client-safe por desenho, necessárias para o pipeline de publish do Lovable
+# injetar VITE_SUPABASE_* no bundle (sem isso, AuthGate.tsx crasha em toda
+# rota não-pública; ver docs/handoff/BASELINE_TECNICO_COPIA_VITALOS_2026-07-13.md §8).
+# SUPABASE_SERVICE_ROLE_KEY e PLATFORM_ADMIN_EMAILS NUNCA vão para .env nem
+# para o repo — só como secret de servidor no Lovable Cloud.
+# .env.local (e variantes) continuam ignorados — são overrides pessoais.
+.env.local
+.env.*.local
 
 # Wrangler / Cloudflare
 .wrangler/
