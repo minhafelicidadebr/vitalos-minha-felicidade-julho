@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_sessions: {
+        Row: {
+          created_at: string
+          driver_id: string
+          embassy_id: string
+          facilitator_id: string
+          id: string
+          occurred_on: string
+          org_id: string
+          presence_count: number
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          embassy_id: string
+          facilitator_id: string
+          id?: string
+          occurred_on: string
+          org_id: string
+          presence_count: number
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          embassy_id?: string
+          facilitator_id?: string
+          id?: string
+          occurred_on?: string
+          org_id?: string
+          presence_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           company: string
@@ -218,6 +259,88 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pair_directory_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pair_invites: {
+        Row: {
+          created_at: string
+          focus_driver_id: string
+          from_user: string
+          id: string
+          org_id: string
+          responded_at: string | null
+          status: string
+          to_user: string
+        }
+        Insert: {
+          created_at?: string
+          focus_driver_id: string
+          from_user: string
+          id?: string
+          org_id: string
+          responded_at?: string | null
+          status?: string
+          to_user: string
+        }
+        Update: {
+          created_at?: string
+          focus_driver_id?: string
+          from_user?: string
+          id?: string
+          org_id?: string
+          responded_at?: string | null
+          status?: string
+          to_user?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pair_records: {
+        Row: {
+          active: boolean
+          dissolved_at: string | null
+          focus_driver_id: string
+          formed_on: string
+          id: string
+          member_a: string
+          member_b: string
+          org_id: string
+        }
+        Insert: {
+          active?: boolean
+          dissolved_at?: string | null
+          focus_driver_id: string
+          formed_on?: string
+          id?: string
+          member_a: string
+          member_b: string
+          org_id: string
+        }
+        Update: {
+          active?: boolean
+          dissolved_at?: string | null
+          focus_driver_id?: string
+          formed_on?: string
+          id?: string
+          member_a?: string
+          member_b?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_records_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -660,7 +783,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_pair_invite: {
+        Args: { p_invite_id: string }
+        Returns: {
+          accepted: boolean
+          pair_id: string
+          reason: string
+        }[]
+      }
+      cancel_pair_invite: { Args: { p_invite_id: string }; Returns: boolean }
       count_wave_responses: { Args: { p_wave_id: string }; Returns: number }
+      decline_pair_invite: { Args: { p_invite_id: string }; Returns: boolean }
       is_invite_valid: { Args: { p_token: string }; Returns: boolean }
       is_invite_valid_for_wave: {
         Args: { p_token: string; p_wave_id: string }
