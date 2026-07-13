@@ -79,52 +79,52 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0B3D2E" },
-      { title: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
+      { title: "Programa VitalOS™ — Felicidade e Crescimento para Todos" },
       {
         name: "description",
         content:
-          "VitalOS é uma plataforma SaaS B2B para operar vitalidade organizacional com dados agregados, ações, evidências e governança.",
+          "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências.",
       },
       { name: "author", content: "4 Lentes VitalOS™" },
       {
         property: "og:title",
-        content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional",
+        content: "Programa VitalOS™ — Felicidade e Crescimento para Todos",
       },
       {
         property: "og:description",
         content:
-          "VitalOS é uma plataforma SaaS B2B para operar vitalidade organizacional com dados agregados, ações, evidências e governança.",
+          "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional",
+        content: "Programa VitalOS™ — Felicidade e Crescimento para Todos",
       },
       {
         name: "twitter:description",
         content:
-          "VitalOS é uma plataforma SaaS B2B para operar vitalidade organizacional com dados agregados, ações, evidências e governança.",
+          "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências.",
       },
       {
         property: "og:image",
         content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/842acc4b-1242-459d-b559-dc967ea466a0/id-preview-32983166--292740c3-dda6-488c-b2bc-34a4f1979283.lovable.app-1781702322036.png",
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d",
       },
       {
         name: "twitter:image",
         content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/842acc4b-1242-459d-b559-dc967ea466a0/id-preview-32983166--292740c3-dda6-488c-b2bc-34a4f1979283.lovable.app-1781702322036.png",
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d",
       },
-      { property: "og:title", content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
-      { name: "twitter:title", content: "4 Lentes VitalOS™ — Sistema Operacional da Vitalidade Organizacional" },
-      { name: "description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
-      { property: "og:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
-      { name: "twitter:description", content: "VitalOS is a B2B SaaS platform for organizational vitality, starting with its foundational layer." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/765637be-b170-4a35-8df0-394f1e013395" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/765637be-b170-4a35-8df0-394f1e013395" },
+      { property: "og:title", content: "Programa VitalOS™ — Felicidade e Crescimento para Todos" },
+      { name: "twitter:title", content: "Programa VitalOS™ — Felicidade e Crescimento para Todos" },
+      { name: "description", content: "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências." },
+      { property: "og:description", content: "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências." },
+      { name: "twitter:description", content: "VitalOS™ — Sistema Operacional da Vitalidade Organizacional. Transforme bem-estar, riscos psicossociais, cultura e performance em dados, ações e evidências." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [{ rel: "stylesheet", href: appCss }, { rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
