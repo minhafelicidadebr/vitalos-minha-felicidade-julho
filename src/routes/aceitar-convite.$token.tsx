@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { AlertCircle, Check, Loader2, ShieldAlert, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { checkMemberInviteToken, submitMemberInviteAcceptance } from "@/lib/api/member-invite.functions";
+import { ROLE_HOME } from "@/app/shell/AppShell";
 
 export const Route = createFileRoute("/aceitar-convite/$token")({
   head: () => ({ meta: [{ title: "Aceitar convite — 4 Lentes VitalOS™" }] }),
@@ -96,10 +97,11 @@ function AcceptForm({
         setSubmitting(false);
         return;
       }
-      // Sem lógica de destino aqui — o AppShell já resolve a home certa a
-      // partir do papel real (resolveEffectiveRoleId), a mesma fonte que
-      // roteia qualquer sessão real.
-      navigate({ to: "/" });
+      // "/" é só a landing pública (nunca verifica sessão real) — navegar pra
+      // lá aqui deixava a pessoa de volta no marketing. ROLE_HOME é a mesma
+      // fonte que o AppShell usa pra resolver a home de uma sessão real
+      // (mesmo princípio de resolveOrgOverviewRoute em /ativar, por papel).
+      navigate({ to: ROLE_HOME[result.role] ?? "/painel" });
     } catch {
       setError("Erro de conexão. Tente novamente.");
       setSubmitting(false);

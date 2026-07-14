@@ -96,7 +96,11 @@ const NAV_ROUTES: Record<string, string> = {
   esg: "/esg",
 };
 
-const ROLE_HOME: Record<string, string> = {
+// Exportado: usado por rotas fora do shell que precisam saber onde uma
+// sessão real deve pousar por papel (ex.: aceitar-convite.$token.tsx, após
+// aceitar um convite de membro — mesmo princípio de resolveOrgOverviewRoute
+// para o admin em /ativar, mas por papel em vez de por pack).
+export const ROLE_HOME: Record<string, string> = {
   COLABORADOR: "/colaborador",
   EMBAIXADOR: "/embaixador",
   LIDER_EQUIPE: "/lider",
