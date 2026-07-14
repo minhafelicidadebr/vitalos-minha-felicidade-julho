@@ -1,0 +1,973 @@
+<title>VitalOS — Manual da Jornada do Usuário</title>
+<style>
+  /* ───────────────────────── Tokens ───────────────────────── */
+  :root{
+    --marfim:#FAF8F3;          /* fundo página */
+    --papel:#FFFFFF;           /* cartões */
+    --papel-2:#F3EFE5;         /* cartões suaves */
+    --tinta:#17261E;           /* texto corrido */
+    --tinta-2:#54665C;         /* texto de apoio */
+    --verde:#0B3D2E;           /* verde profundo da marca */
+    --verde-chip:#0B3D2E;
+    --verde-suave:rgba(11,61,46,.08);
+    --ouro:#C9A227;            /* dourado decorativo (filetes, marcas) */
+    --ouro-texto:#8A6E12;      /* dourado legível p/ texto pequeno */
+    --ouro-claro:#E8CB6B;
+    --linha:rgba(11,61,46,.16);
+    --sombra:0 1px 2px rgba(11,61,46,.06),0 8px 28px rgba(11,61,46,.07);
+    --foco:#0B3D2E;
+    --wordmark-vital:#0B3D2E;
+    --serif:"Source Serif 4","Source Serif Pro",Georgia,"Times New Roman",serif;
+    --sans:"Inter",system-ui,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --marfim:#0B1511; --papel:#12211A; --papel-2:#16281F;
+      --tinta:#E9EFE9; --tinta-2:#A3B4A9;
+      --verde:#8CC7A6; --verde-chip:#8CC7A6; --verde-suave:rgba(140,199,166,.1);
+      --ouro-texto:#E3C25F; --linha:rgba(233,239,233,.16);
+      --sombra:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+      --foco:#E3C25F; --wordmark-vital:#F4F7F4;
+    }
+  }
+  :root[data-theme="dark"]{
+    --marfim:#0B1511; --papel:#12211A; --papel-2:#16281F;
+    --tinta:#E9EFE9; --tinta-2:#A3B4A9;
+    --verde:#8CC7A6; --verde-chip:#8CC7A6; --verde-suave:rgba(140,199,166,.1);
+    --ouro-texto:#E3C25F; --linha:rgba(233,239,233,.16);
+    --sombra:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+    --foco:#E3C25F; --wordmark-vital:#F4F7F4;
+  }
+  :root[data-theme="light"]{
+    --marfim:#FAF8F3; --papel:#FFFFFF; --papel-2:#F3EFE5;
+    --tinta:#17261E; --tinta-2:#54665C;
+    --verde:#0B3D2E; --verde-chip:#0B3D2E; --verde-suave:rgba(11,61,46,.08);
+    --ouro-texto:#8A6E12; --linha:rgba(11,61,46,.16);
+    --sombra:0 1px 2px rgba(11,61,46,.06),0 8px 28px rgba(11,61,46,.07);
+    --foco:#0B3D2E; --wordmark-vital:#0B3D2E;
+  }
+
+  /* ───────────────────────── Base ───────────────────────── */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+  body{
+    margin:0; background:var(--marfim); color:var(--tinta);
+    font-family:var(--serif); font-size:17px; line-height:1.72;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--foco); outline-offset:3px; border-radius:2px}
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px}
+  .prose{max-width:66ch}
+  h1,h2,h3,h4{font-family:var(--serif); line-height:1.18; text-wrap:balance; margin:0}
+  p{margin:0 0 1em}
+  .eyebrow{
+    font-family:var(--sans); font-size:12.5px; font-weight:700;
+    letter-spacing:.17em; text-transform:uppercase; color:var(--ouro-texto);
+  }
+  .fio{height:2px; background:linear-gradient(90deg,var(--ouro) 0 38%,transparent 38.01%); border:0; margin:14px 0 0}
+
+  /* ───────────────────────── Capa ───────────────────────── */
+  .capa{
+    min-height:92vh; display:grid; place-items:center; text-align:center;
+    padding:64px 22px 48px; position:relative;
+  }
+  .capa .miolo{display:grid; justify-items:center; gap:26px; max-width:640px}
+  .marca{width:150px; height:auto}
+  .wordmark{font-family:var(--serif); font-size:clamp(42px,7vw,64px); letter-spacing:.01em}
+  .wordmark .vital{color:var(--wordmark-vital)}
+  .wordmark .os{color:var(--ouro)}
+  .tagline{
+    font-family:var(--sans); font-size:13px; letter-spacing:.28em;
+    text-transform:uppercase; color:var(--tinta-2); margin-top:-14px;
+  }
+  .capa h1{font-size:clamp(26px,4.4vw,38px); font-weight:600; color:var(--tinta)}
+  .capa .sub{font-size:18px; color:var(--tinta-2); max-width:52ch; margin:0}
+  .edicao{
+    font-family:var(--sans); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--tinta-2); border:1px solid var(--linha); border-radius:999px; padding:7px 18px;
+  }
+
+  /* ───────────────────────── Sumário ───────────────────────── */
+  .sumario{padding:56px 0 8px}
+  .sumario ol{
+    list-style:none; counter-reset:cap -1; margin:26px 0 0; padding:0;
+    display:grid; gap:0; border-top:1px solid var(--linha);
+  }
+  .sumario li{counter-increment:cap; border-bottom:1px solid var(--linha)}
+  .sumario a{
+    display:flex; align-items:baseline; gap:18px; padding:15px 6px; text-decoration:none;
+  }
+  .sumario a:hover{background:var(--verde-suave)}
+  .sumario .n{
+    font-family:var(--sans); font-size:12.5px; font-weight:700; color:var(--ouro-texto);
+    min-width:2.2em; font-variant-numeric:tabular-nums;
+  }
+  .sumario .n::before{content:counter(cap,decimal-leading-zero)}
+  .sumario .t{font-size:17px}
+  .sumario .quem{margin-left:auto; font-family:var(--sans); font-size:12px; color:var(--tinta-2); letter-spacing:.06em; text-transform:uppercase; text-align:right}
+
+  /* ───────────────────────── Capítulos ───────────────────────── */
+  .cap{padding:74px 0 10px; scroll-margin-top:24px}
+  .cap-cabeca{display:grid; gap:10px; margin-bottom:30px}
+  .cap-cabeca h2{font-size:clamp(26px,4vw,34px); font-weight:600}
+  .cap-cabeca .contexto{font-size:18px; color:var(--tinta-2); max-width:60ch}
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; width:fit-content;
+    font-family:var(--sans); font-size:12px; font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--verde-chip);
+    background:var(--verde-suave); border-radius:999px; padding:6px 14px;
+  }
+  .chip::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--ouro)}
+
+  /* Blocos pedagógicos */
+  .bloco{background:var(--papel); border:1px solid var(--linha); border-radius:14px; padding:22px 24px; box-shadow:var(--sombra); margin:22px 0}
+  .bloco .rotulo{
+    font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ouro-texto); display:block; margin-bottom:10px;
+  }
+  .bloco.ativa{background:var(--papel-2); border-style:dashed}
+  .bloco.ativa p{margin:0; font-style:italic}
+  ul.objetivos{margin:0; padding:0; list-style:none; display:grid; gap:9px}
+  ul.objetivos li{padding-left:26px; position:relative}
+  ul.objetivos li::before{
+    content:""; position:absolute; left:2px; top:.62em; width:12px; height:2px; background:var(--ouro);
+  }
+
+  .persona{border-left:3px solid var(--ouro); padding:4px 0 4px 20px; margin:26px 0; color:var(--tinta)}
+  .persona .nome{font-family:var(--sans); font-size:12.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--tinta-2); display:block; margin-bottom:6px}
+  .persona p{margin:0}
+
+  /* Mapa da jornada — passos numerados no fio dourado */
+  ol.jornada{list-style:none; counter-reset:passo; margin:26px 0; padding:0; position:relative}
+  ol.jornada::before{
+    content:""; position:absolute; left:17px; top:10px; bottom:10px; width:2px;
+    background:linear-gradient(var(--ouro) 0 100%); opacity:.45;
+  }
+  ol.jornada li{counter-increment:passo; position:relative; padding:0 0 22px 56px}
+  ol.jornada li:last-child{padding-bottom:0}
+  ol.jornada li::before{
+    content:counter(passo); position:absolute; left:0; top:-1px;
+    width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+    background:var(--papel); border:2px solid var(--ouro); color:var(--ouro-texto);
+    font-family:var(--sans); font-size:14px; font-weight:700;
+  }
+  ol.jornada .momento{font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--verde-chip); display:block; margin-bottom:3px}
+  ol.jornada p{margin:0; color:var(--tinta)}
+  ol.jornada .nota{font-size:14.5px; color:var(--tinta-2); margin-top:4px}
+
+  /* O que vê / nunca vê */
+  .ve-grid{display:grid; gap:14px; grid-template-columns:1fr 1fr; margin:26px 0}
+  @media (max-width:640px){ .ve-grid{grid-template-columns:1fr} }
+  .ve, .naove{border-radius:14px; padding:20px 22px; border:1px solid var(--linha)}
+  .ve{background:var(--verde-suave)}
+  .naove{background:var(--papel)}
+  .ve h4,.naove h4{font-family:var(--sans); font-size:12.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:12px}
+  .ve h4{color:var(--verde-chip)} .naove h4{color:var(--tinta-2)}
+  .ve ul,.naove ul{margin:0; padding:0; list-style:none; display:grid; gap:8px; font-size:15.5px}
+  .ve li,.naove li{padding-left:22px; position:relative}
+  .ve li::before{content:""; position:absolute; left:0; top:.5em; width:10px; height:10px; border-radius:50%; border:2px solid var(--verde-chip)}
+  .naove li::before{content:""; position:absolute; left:2px; top:.66em; width:10px; height:2px; background:var(--tinta-2)}
+
+  /* Prática (checklist) */
+  .pratica label{display:flex; gap:12px; align-items:flex-start; padding:9px 0; cursor:pointer; font-size:16px}
+  .pratica label + label{border-top:1px dashed var(--linha)}
+  .pratica input{accent-color:#0B3D2E; width:18px; height:18px; margin-top:4px; flex:none}
+  :root[data-theme="dark"] .pratica input{accent-color:#8CC7A6}
+
+  /* Auto-teste */
+  details.quiz{border:1px solid var(--linha); border-radius:12px; background:var(--papel); margin:10px 0; overflow:hidden}
+  details.quiz summary{
+    cursor:pointer; padding:15px 18px; font-size:16px; font-weight:600; list-style:none;
+    display:flex; gap:12px; align-items:baseline;
+  }
+  details.quiz summary::-webkit-details-marker{display:none}
+  details.quiz summary::before{content:"?"; font-family:var(--sans); font-weight:800; color:var(--ouro-texto); flex:none}
+  details.quiz[open] summary{border-bottom:1px solid var(--linha)}
+  details.quiz .resp{padding:14px 18px 16px 42px; font-size:15.5px; color:var(--tinta); background:var(--papel-2)}
+  details.quiz .resp p{margin:0}
+
+  /* Deixa de revisão espaçada */
+  .revisita{
+    display:flex; gap:14px; align-items:flex-start; margin:26px 0 8px;
+    font-family:var(--sans); font-size:14px; color:var(--tinta-2);
+    border-top:1px solid var(--linha); padding-top:16px;
+  }
+  .revisita svg{flex:none; margin-top:2px}
+
+  /* Aviso de honestidade / privacidade */
+  .aviso{
+    border:1px solid var(--linha); border-left:4px solid var(--ouro);
+    background:var(--papel); border-radius:0 12px 12px 0;
+    padding:18px 22px; margin:26px 0; font-size:15.5px;
+  }
+  .aviso strong{font-family:var(--sans); font-size:12.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ouro-texto); display:block; margin-bottom:8px}
+  .aviso p{margin:0}
+
+  /* 4 Lentes 2×2 */
+  .lentes{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:26px 0}
+  @media (max-width:560px){ .lentes{grid-template-columns:1fr} }
+  .lente{background:var(--papel); border:1px solid var(--linha); border-radius:14px; padding:20px 22px; box-shadow:var(--sombra)}
+  .lente .qual{font-family:var(--sans); font-size:13px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--verde-chip)}
+  .lente p{margin:8px 0 0; font-size:15.5px; color:var(--tinta-2)}
+
+  /* Ciclo M.E.T.E. */
+  .mete{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:26px 0; font-family:var(--sans)}
+  @media (max-width:640px){ .mete{grid-template-columns:1fr 1fr} }
+  .mete .fase{
+    background:var(--papel); border:1px solid var(--linha); border-radius:12px;
+    padding:16px 14px; text-align:center; position:relative;
+  }
+  .mete .fase b{display:block; font-size:15px; color:var(--tinta)}
+  .mete .fase span{font-size:12.5px; color:var(--tinta-2); display:block; margin-top:4px; line-height:1.45}
+  .mete .fase i{
+    font-style:normal; display:inline-grid; place-items:center; width:30px; height:30px;
+    border-radius:50%; background:var(--verde-suave); color:var(--verde-chip);
+    font-weight:800; font-size:13px; margin-bottom:8px;
+  }
+
+  /* Dois trilhos */
+  .trilhos{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:26px 0}
+  @media (max-width:640px){ .trilhos{grid-template-columns:1fr} }
+  .trilho{border-radius:14px; padding:22px; border:1px solid var(--linha); background:var(--papel)}
+  .trilho.anonimo{background:var(--verde-suave)}
+  .trilho h4{font-size:17px; margin-bottom:8px}
+  .trilho .tag{font-family:var(--sans); font-size:11.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ouro-texto); display:block; margin-bottom:10px}
+  .trilho p{font-size:15.5px; color:var(--tinta-2); margin:0}
+
+  /* Glossário */
+  dl.glossario{margin:26px 0 0; display:grid; gap:0; border-top:1px solid var(--linha)}
+  dl.glossario > div{display:grid; grid-template-columns:180px 1fr; gap:18px; padding:14px 4px; border-bottom:1px solid var(--linha)}
+  @media (max-width:560px){ dl.glossario > div{grid-template-columns:1fr; gap:4px} }
+  dl.glossario dt{font-family:var(--sans); font-size:14px; font-weight:700; color:var(--verde-chip)}
+  dl.glossario dd{margin:0; font-size:15.5px; color:var(--tinta-2)}
+
+  /* Rodapé */
+  .rodape{padding:70px 0 60px; text-align:center}
+  .rodape .marca{width:74px; opacity:.9}
+  .rodape p{font-family:var(--sans); font-size:13px; color:var(--tinta-2); max-width:58ch; margin:16px auto 0}
+
+  .voltar{
+    font-family:var(--sans); font-size:12.5px; letter-spacing:.1em; text-transform:uppercase;
+    text-decoration:none; color:var(--tinta-2); display:inline-block; margin-top:26px;
+  }
+  .voltar:hover{color:var(--tinta)}
+
+  @media print{
+    .cap{page-break-before:always}
+    .capa{min-height:auto}
+    .voltar{display:none}
+  }
+</style>
+
+<!-- ═══════════════════════════ CAPA ═══════════════════════════ -->
+<header class="capa">
+  <div class="miolo">
+    <svg class="marca" viewBox="0 0 200 224" role="img" aria-label="Marca VitalOS — quatro laços dourados com esfera verde ao centro">
+      <defs>
+        <linearGradient id="au" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#EED98A"/><stop offset=".45" stop-color="#C9A227"/><stop offset="1" stop-color="#9A7A14"/>
+        </linearGradient>
+        <radialGradient id="esf" cx=".33" cy=".28" r=".95">
+          <stop offset="0" stop-color="#2E7D5B"/><stop offset="1" stop-color="#0B3D2E"/>
+        </radialGradient>
+      </defs>
+      <g fill="none" stroke="url(#au)" stroke-width="13">
+        <ellipse cx="62"  cy="66"  rx="44" ry="60" transform="rotate(33 62 66)"/>
+        <ellipse cx="138" cy="66"  rx="44" ry="60" transform="rotate(-33 138 66)"/>
+        <ellipse cx="62"  cy="158" rx="44" ry="60" transform="rotate(-33 62 158)"/>
+        <ellipse cx="138" cy="158" rx="44" ry="60" transform="rotate(33 138 158)"/>
+      </g>
+      <circle cx="100" cy="112" r="17" fill="url(#esf)"/>
+    </svg>
+    <div>
+      <div class="wordmark"><span class="vital">Vital</span><span class="os">OS</span></div>
+      <div class="tagline">Felicidade e Crescimento para Todos</div>
+    </div>
+    <h1>Manual da Jornada do Usuário</h1>
+    <p class="sub">Um guia educacional, papel por papel, para operar o Sistema Operacional da Vitalidade Organizacional — desenhado com ciência da aprendizagem.</p>
+    <span class="edicao">Edição 1 · Julho 2026</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ SUMÁRIO ═══════════════════════════ -->
+<nav class="sumario wrap" aria-label="Sumário">
+  <span class="eyebrow">Sumário</span>
+  <hr class="fio">
+  <ol>
+    <li><a href="#uso"><span class="n"></span><span class="t">Como usar este manual</span><span class="quem">Todos</span></a></li>
+    <li><a href="#modelo"><span class="n"></span><span class="t">O modelo mental do VitalOS</span><span class="quem">Todos</span></a></li>
+    <li><a href="#portas"><span class="n"></span><span class="t">As três portas de entrada</span><span class="quem">Todos</span></a></li>
+    <li><a href="#colaborador"><span class="n"></span><span class="t">Jornada do Colaborador</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#lider"><span class="n"></span><span class="t">Jornada do Líder de Equipe</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#rh"><span class="n"></span><span class="t">Jornada do RH Admin</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#chro"><span class="n"></span><span class="t">Jornada do CHRO / Diretor de Pessoas</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#clevel"><span class="n"></span><span class="t">Jornada do C-Level</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#sst"><span class="n"></span><span class="t">Jornada do Profissional SST</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#holding"><span class="n"></span><span class="t">Jornada do Admin do Grupo</span><span class="quem">Perfil</span></a></li>
+    <li><a href="#privacidade"><span class="n"></span><span class="t">Privacidade por construção</span><span class="quem">Todos</span></a></li>
+    <li><a href="#glossario"><span class="n"></span><span class="t">Glossário vivo</span><span class="quem">Consulta</span></a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════ CAP 0 ═══════════════════════════ -->
+<section class="cap wrap" id="uso">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 00</span>
+    <h2>Como usar este manual</h2>
+    <p class="contexto">Este não é um manual de telas — é um manual de <em>jornadas</em>. Cada capítulo de perfil segue o mesmo andaime pedagógico, para que seu cérebro reconheça o padrão e gaste energia no conteúdo, não na estrutura.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">O andaime de cada capítulo</span>
+    <ul class="objetivos">
+      <li><strong>Objetivos de aprendizagem</strong> — o que você saberá fazer ao terminar (3 itens, sempre verbos de ação).</li>
+      <li><strong>Ative o repertório</strong> — uma pergunta antes do conteúdo. Responder de memória prepara o cérebro para reter o que vem.</li>
+      <li><strong>Persona</strong> — um exemplo trabalhado: uma pessoa concreta percorrendo a jornada. Exemplos precedem abstrações.</li>
+      <li><strong>Mapa da jornada</strong> — os passos na ordem em que acontecem de verdade.</li>
+      <li><strong>O que vê · o que nunca vê</strong> — a fronteira de privacidade do papel, lado a lado.</li>
+      <li><strong>Primeiras ações</strong> — checklist prático para sair do manual e entrar na plataforma.</li>
+      <li><strong>Teste de retenção</strong> — 3 perguntas. Tente responder <em>antes</em> de abrir a resposta: o esforço de recuperar é o que consolida.</li>
+      <li><strong>Deixa de revisão</strong> — quando revisitar o capítulo. Repetição espaçada vence releitura maratonada.</li>
+    </ul>
+  </div>
+
+  <div class="aviso prose">
+    <strong>Honestidade em camadas</strong>
+    <p>O VitalOS está em evolução contínua. Este manual distingue sempre o que <em>opera hoje com dados reais</em> (Capítulo 02) do que existe como <em>demonstração navegável</em> do produto em construção. Você nunca vai encontrar aqui uma promessa que a plataforma ainda não cumpre.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CAP 1 ═══════════════════════════ -->
+<section class="cap wrap" id="modelo">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 01</span>
+    <h2>O modelo mental do VitalOS</h2>
+    <p class="contexto">Quatro ideias sustentam tudo o que você verá em qualquer papel. Aprenda-as uma vez; reconheça-as em todo lugar.</p>
+  </div>
+
+  <div class="prose">
+    <h3 style="font-size:21px; margin:30px 0 6px">1 · As 4 Lentes</h3>
+    <p>A vitalidade de uma organização é lida por quatro lentes complementares — nunca por uma nota única de "clima".</p>
+  </div>
+  <div class="lentes">
+    <div class="lente"><span class="qual">EU</span><p>Como cada pessoa floresce: energia, sentido, forças pessoais.</p></div>
+    <div class="lente"><span class="qual">NÓS</span><p>Como as relações sustentam: confiança, pertencimento, cooperação.</p></div>
+    <div class="lente"><span class="qual">LIDERANÇA</span><p>Como a gestão cuida: clareza, justiça, reconhecimento.</p></div>
+    <div class="lente"><span class="qual">ORGANIZAÇÃO</span><p>Como o sistema habilita: carga, autonomia, futuro.</p></div>
+  </div>
+
+  <div class="prose">
+    <h3 style="font-size:21px; margin:30px 0 6px">2 · O ciclo M.E.T.E.</h3>
+    <p>O ano da organização gira em um ciclo de quatro tempos. Toda tela que você abrir pertence a um deles.</p>
+  </div>
+  <div class="mete">
+    <div class="fase"><i>M</i><b>Mensurar</b><span>Ondas de escuta: COPSOQ, PERMA, VIA-T, FIB-T</span></div>
+    <div class="fase"><i>E</i><b>Educar</b><span>Academia, trilhas, prática deliberada</span></div>
+    <div class="fase"><i>T</i><b>Transformar</b><span>Planos de ação com dono, prazo e evidência</span></div>
+    <div class="fase"><i>E</i><b>Evoluir</b><span>Reavaliação honesta: o que mudou de fato</span></div>
+  </div>
+
+  <div class="prose">
+    <h3 style="font-size:21px; margin:30px 0 6px">3 · Os dois trilhos</h3>
+    <p>Toda contribuição individual viaja por um de dois trilhos que <em>nunca se cruzam</em>.</p>
+  </div>
+  <div class="trilhos">
+    <div class="trilho anonimo">
+      <span class="tag">Trilho coletivo</span>
+      <h4>Anônimo por construção</h4>
+      <p>Respostas de pesquisa entram sem identidade — o banco não tem onde guardar quem respondeu. Viram agregados protegidos que orientam decisões coletivas.</p>
+    </div>
+    <div class="trilho">
+      <span class="tag">Trilho pessoal</span>
+      <h4>Identificado por escolha</h4>
+      <p>Espelho pessoal, trilhas de aprendizagem, diário: seu, opcional, visível só para você. Nunca alimenta avaliação de desempenho.</p>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3 style="font-size:21px; margin:30px 0 6px">4 · A regra k ≥ 5</h3>
+    <p>Nenhum recorte coletivo aparece com menos de 5 respondentes. Se uma equipe tem 4 respostas, o gestor vê o recorte <em>oculto com explicação</em> — não um número. É o que torna a promessa de anonimato verificável, não retórica.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>Uma equipe de 4 pessoas respondeu à onda. O que o líder vê?</summary><div class="resp"><p>Nada além de um recorte oculto com a explicação da regra k ≥ 5. O agregado só existe a partir de 5 respostas — proteção que nenhuma configuração desliga.</p></div></details>
+    <details class="quiz"><summary>Em qual fase do M.E.T.E. vive o plano de ação?</summary><div class="resp"><p>Transformar — a terceira fase, onde a leitura vira intervenção com dono, prazo e evidência. A quarta (Evoluir) mede se a intervenção funcionou.</p></div></details>
+    <details class="quiz"><summary>O diário pessoal pode aparecer para o RH?</summary><div class="resp"><p>Nunca. Ele pertence ao trilho pessoal — identificado, opcional e visível apenas para a própria pessoa. Os trilhos não se cruzam.</p></div></details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CAP 2 ═══════════════════════════ -->
+<section class="cap wrap" id="portas">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 02</span>
+    <h2>As três portas de entrada</h2>
+    <p class="contexto">Hoje, três jornadas operam ponta a ponta com dados reais. Todas as outras chegam por elas.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li>
+      <span class="momento">Porta 1 · Admin da Plataforma</span>
+      <p>Entra por login com link mágico no e-mail autorizado. Em <em>Plataforma → Convites</em>, gera o link de ativação de cada empresa cliente, já com o plano contratado (Pilot, Growth ou Enterprise).</p>
+      <p class="nota">É a porta do time VitalOS — não do cliente.</p>
+    </li>
+    <li>
+      <span class="momento">Porta 2 · Admin da Organização (RH)</span>
+      <p>Recebe o link de ativação por e-mail, faz login com o próprio endereço e cadastra a empresa. A partir daí opera o painel real: cria ondas de medição, gera e distribui os links, acompanha respostas e <strong>fecha a onda</strong> — decisão sempre humana, nunca automática.</p>
+    </li>
+    <li>
+      <span class="momento">Porta 3 · Colaborador respondente</span>
+      <p>Recebe um link de convite e responde <strong>sem login</strong> — o anonimato começa na porta: se não há conta, não há como ligar resposta a pessoa. Ao final, pode opcionalmente conhecer o trilho pessoal identificado.</p>
+    </li>
+  </ol>
+
+  <div class="aviso prose">
+    <strong>E os demais papéis?</strong>
+    <p>Líder, CHRO, C-Level, SST e Admin do Grupo têm hoje <em>jornadas demonstrativas completas</em> — dashboards navegáveis com dados fictícios que mostram exatamente o produto que estão recebendo. O convite nominal por papel (RH convida o líder, que loga e vê a própria equipe real) é a próxima onda do roadmap. A fundação já existe: todo usuário real já carrega um papel no banco desde o primeiro dia.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CAP 3 · COLABORADOR ═══════════════════════════ -->
+<section class="cap wrap" id="colaborador">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 03 · Perfil</span>
+    <h2>Jornada do Colaborador</h2>
+    <span class="chip">Quem vive a organização todos os dias</span>
+    <p class="contexto">A pessoa cuja voz alimenta o sistema — e que recebe de volta um caminho próprio de florescimento, sem jamais ser vigiada.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Responder a uma onda entendendo exatamente para onde vai (e para onde <em>não</em> vai) sua resposta.</li>
+      <li>Distinguir o trilho anônimo do trilho pessoal e escolher conscientemente quando usar cada um.</li>
+      <li>Usar a Academia e a revisão espaçada para transformar um ponto fraco coletivo em prática pessoal.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>Antes de seguir: na última pesquisa de clima que você respondeu, você saberia dizer quem tinha acesso à sua resposta individual?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Marina, analista financeira</span>
+    <p>Marina recebe no WhatsApp um link da pesquisa. Abre no celular, responde em 9 minutos, sem criar conta. A tela final mostra: "sua resposta soma ao coletivo — faltam 3 para o resultado aparecer". Semanas depois, na devolutiva do time, ela vê que "carga de trabalho" foi o tema mais sensível — e que existe uma trilha na Academia sobre acordos de carga. Ela decide, por conta própria, ativar seu espelho pessoal.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Link de convite (WhatsApp ou e-mail) → responde sem login.</p></li>
+    <li><span class="momento">Contribuição</span><p>Responde à onda no próprio ritmo — o rascunho fica salvo no aparelho, não no servidor.</p></li>
+    <li><span class="momento">Confirmação</span><p>Tela de agradecimento mostra o caminho da resposta: soma ao coletivo → cápsula selada → devolutiva → plano de ação.</p></li>
+    <li><span class="momento">Escolha</span><p>Opcional: ativa o trilho pessoal — espelho, trilhas da Academia, flashcards com revisão espaçada, diário, missões e reconhecimento entre colegas.</p></li>
+    <li><span class="momento">Rotina</span><p>Sessões curtas de prática (5–10 min): revisar cartões no ponto ideal da curva do esquecimento, registrar um experimento no diário, reconhecer um colega.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>A própria participação e o próprio progresso</li>
+      <li>Devolutivas coletivas da organização (sempre k ≥ 5)</li>
+      <li>Trilhas, cartões e dinâmicas do seu papel</li>
+      <li>Reconhecimentos que deu e recebeu</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê (nem ninguém vê dele)</h4><ul>
+      <li>Resposta individual de qualquer colega</li>
+      <li>Seu nome ligado à sua resposta de pesquisa</li>
+      <li>Ranking de pessoas — não existe no produto</li>
+      <li>Seu diário ou espelho exposto a gestores</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Responder à onda ativa pelo link recebido, de preferência num momento calmo.</label>
+    <label><input type="checkbox"> Ler a tela de confirmação até o fim — ela é o mapa do que acontece com sua voz.</label>
+    <label><input type="checkbox"> Visitar a Academia e iniciar a trilha sugerida para o seu papel.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>Por que responder não exige criar conta?</summary><div class="resp"><p>Porque anonimato de verdade começa na arquitetura: sem conta, o banco não tem como ligar resposta a pessoa. O link de uso único é a credencial inteira.</p></div></details>
+    <details class="quiz"><summary>O espelho pessoal é obrigatório?</summary><div class="resp"><p>Não — é o trilho identificado, sempre opcional. A contribuição coletiva funciona completa sem ele.</p></div></details>
+    <details class="quiz"><summary>Seus pontos de prática (XP) podem influenciar promoção ou remuneração?</summary><div class="resp"><p>Nunca. É regra inviolável do produto: gamificação jamais alimenta desempenho, promoção ou punição.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite em 7 dias</strong> — depois da sua primeira devolutiva coletiva, releia "os dois trilhos" e observe como cada um apareceu na prática.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 4 · LÍDER ═══════════════════════════ -->
+<section class="cap wrap" id="lider">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 04 · Perfil</span>
+    <h2>Jornada do Líder de Equipe</h2>
+    <span class="chip">Quem transforma leitura em conversa</span>
+    <p class="contexto">O líder é o primeiro tradutor do dado coletivo em ação local — e o papel com a fronteira de privacidade mais rigorosa de todas.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Ler o agregado da sua equipe respeitando o que a regra k ≥ 5 mostra e oculta.</li>
+      <li>Conduzir a devolutiva como conversa de melhoria — nunca como caça a quem respondeu o quê.</li>
+      <li>Converter um driver sensível do time em um acordo de equipe com prazo e evidência.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>O que acontece com a confiança de uma equipe quando ela suspeita que o gestor consegue identificar respostas "anônimas"?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Jorge, coordenador de operações</span>
+    <p>Jorge abre o painel do time e vê o agregado dos 11 que responderam: "autonomia" está dois tons abaixo do restante da empresa. Um subgrupo de 4 pessoas aparece oculto — a regra k ≥ 5 protege até dele. Na reunião semanal, ele apresenta o dado coletivo, pergunta "o que tornaria nossas decisões mais rápidas?" e sai com um acordo experimental de duas semanas, registrado como ação com prazo.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Hoje: navegação demonstrativa pelo seletor de papel. Roadmap: convite nominal do RH com escopo da própria equipe.</p></li>
+    <li><span class="momento">Leitura</span><p>Painel do time: agregado k ≥ 5, pulso da equipe, comparação honesta com a média da organização (sem ranking entre equipes).</p></li>
+    <li><span class="momento">Conversa</span><p>Devolutiva com o time: dado coletivo na mesa, pergunta aberta, escuta antes de solução.</p></li>
+    <li><span class="momento">Acordo</span><p>Um experimento de equipe por ciclo — pequeno, com dono, prazo e critério de sucesso observável.</p></li>
+    <li><span class="momento">Evidência</span><p>Na onda seguinte, verificar: o driver moveu? O acordo virou prática ou precisa de ajuste?</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Agregado da própria equipe quando n ≥ 5</li>
+      <li>Tendência do time entre ciclos</li>
+      <li>Dinâmicas de equipe e trilhas de liderança</li>
+      <li>Ações do time e seus prazos</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Resposta ou identidade de qualquer respondente</li>
+      <li>Recortes com menos de 5 respostas</li>
+      <li>Dados individuais de saúde ou risco</li>
+      <li>Ranking de pessoas da equipe</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Explorar o painel demonstrativo do líder e localizar onde a regra k ≥ 5 aparece em ação.</label>
+    <label><input type="checkbox"> Preparar o roteiro da primeira devolutiva: dado → pergunta aberta → escuta → acordo.</label>
+    <label><input type="checkbox"> Definir com o RH qual driver do time merece o primeiro experimento.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>Sua equipe tem 9 pessoas; 4 responderam. O que você vê?</summary><div class="resp"><p>Um recorte oculto com explicação — e um bom motivo para incentivar participação <em>coletivamente</em>, nunca perguntando quem já respondeu.</p></div></details>
+    <details class="quiz"><summary>Qual é o erro clássico na devolutiva de equipe?</summary><div class="resp"><p>Tentar adivinhar quem respondeu o quê. Além de impossível (o dado não existe), destrói a confiança que sustenta as próximas ondas.</p></div></details>
+    <details class="quiz"><summary>O painel compara sua equipe com outras equipes nominalmente?</summary><div class="resp"><p>Não — compara com a média da organização. Ranking entre equipes criaria o incentivo errado: competir pelo número, não cuidar das pessoas.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite antes da primeira devolutiva</strong> — o roteiro do passo 3 vale ser relido na véspera da conversa com o time.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 5 · RH ═══════════════════════════ -->
+<section class="cap wrap" id="rh">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 05 · Perfil</span>
+    <h2>Jornada do RH Admin</h2>
+    <span class="chip">Quem opera o ciclo — jornada real hoje</span>
+    <p class="contexto">O papel operacional central: é o RH Admin quem abre ondas, distribui a escuta, sela resultados e mantém o ciclo M.E.T.E. girando. Esta jornada já opera ponta a ponta com dados reais.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Ativar a organização e criar sua primeira onda de medição real.</li>
+      <li>Escolher entre links individuais e link setorial conforme o tamanho da operação.</li>
+      <li>Fechar uma onda com segurança e transformar a cápsula em devolutiva e plano.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>Quantos dias a última pesquisa da sua empresa levou entre "coleta encerrada" e "resultado na mão de quem decide"?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Cláudia, gerente de RH</span>
+    <p>Cláudia recebe o link de ativação, cadastra a empresa e cria a primeira onda COPSOQ com 30 convites. Copia a mensagem pronta de WhatsApp e distribui. Acompanha o contador subir — 5, 12, 23 — e no décimo dia fecha a onda. A cápsula agregada nasce na hora; a devolutiva aponta "carga" e "reconhecimento" como drivers prioritários. Ela leva os dois para a reunião de diretoria com o plano de ação já esboçado.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Ativação</span><p>Link de ativação → login com o próprio e-mail → cadastro da organização (uma vez só).</p></li>
+    <li><span class="momento">Onda</span><p>Painel admin → nova onda: escolhe instrumento (COPSOQ no plano Pilot; PERMA, VIA-T e FIB-T nos planos superiores), rótulo e número de convites.</p></li>
+    <li><span class="momento">Distribuição</span><p>Links individuais de uso único (mensagem de WhatsApp pronta) ou link setorial compartilhado para populações grandes.</p></li>
+    <li><span class="momento">Acompanhamento</span><p>Contador de respostas em tempo real — sem nunca saber <em>quem</em> respondeu, apenas <em>quantos</em>.</p></li>
+    <li><span class="momento">Fechamento</span><p>Decisão humana de selar a onda. Com n ≥ 5, a cápsula agregada é publicada; abaixo disso, o sistema reconhece honestamente que não há resultado publicável.</p></li>
+    <li><span class="momento">Devolutiva e plano</span><p>Cápsula → devolutiva coletiva → drivers prioritários → plano de ação com donos e prazos.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Ondas, contadores e status de coleta</li>
+      <li>Cápsulas agregadas e devolutivas (k ≥ 5)</li>
+      <li>Heatmap por lente e kanban de ações</li>
+      <li>Saúde do ciclo: o que está atrasado ou parado</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Resposta individual — de ninguém, nunca</li>
+      <li>Qual pessoa usou qual link</li>
+      <li>Recortes abaixo de 5 respondentes</li>
+      <li>Trilho pessoal de qualquer colaborador</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Ativar a organização pelo link recebido e conferir os dados cadastrais.</label>
+    <label><input type="checkbox"> Criar a primeira onda com um grupo-piloto pequeno (≥ 5 pessoas) para dominar o fluxo.</label>
+    <label><input type="checkbox"> Agendar desde já a data de fechamento — coleta sem prazo definido perde tração.</label>
+    <label><input type="checkbox"> Reservar 30 minutos pós-fechamento para ler a cápsula antes de qualquer reunião.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>A onda fecha sozinha quando atinge as respostas esperadas?</summary><div class="resp"><p>Não — o fechamento é sempre decisão humana do admin. Selar uma onda é um ato de responsabilidade, não um efeito automático.</p></div></details>
+    <details class="quiz"><summary>Quando usar link setorial em vez de links individuais?</summary><div class="resp"><p>Em populações grandes, onde administrar centenas de links individuais é inviável: um link por setor, com as mesmas proteções de anonimato e agregação.</p></div></details>
+    <details class="quiz"><summary>Fechou com 4 respostas. O que acontece?</summary><div class="resp"><p>A onda sela, mas nenhuma cápsula é publicada — reconhecimento honesto de que não há resultado protegível. Melhor do que publicar um dado que exporia pessoas.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite a cada nova onda</strong> — o checklist de primeiras ações funciona como pré-voo de qualquer ciclo de medição.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 6 · CHRO ═══════════════════════════ -->
+<section class="cap wrap" id="chro">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 06 · Perfil</span>
+    <h2>Jornada do CHRO / Diretor de Pessoas</h2>
+    <span class="chip">Quem orquestra o ano inteiro</span>
+    <p class="contexto">Se o RH Admin opera o ciclo, o CHRO o governa: define prioridades entre drivers, patrocina os rituais e responde pela narrativa de pessoas diante da diretoria.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Ler o panorama da organização e escolher poucos drivers prioritários por ciclo.</li>
+      <li>Sustentar o calendário M.E.T.E. anual como agenda institucional, não como evento isolado.</li>
+      <li>Preparar a leitura executiva que conecta vitalidade a risco e resultado.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>Na sua organização, a pesquisa de clima é um evento anual que termina em slide — ou o começo de um ciclo que termina em evidência?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Renata, CHRO</span>
+    <p>Renata abre o diagnóstico integrado e resiste à tentação de atacar os oito drivers em vermelho. Escolhe dois — os de maior alavancagem segundo a fila de prioridades — e transforma cada um em compromisso com dono, verba e prazo. No comitê executivo, apresenta três números: exposição atual, meta do ciclo e a evidência que provará a mudança. O resto do vermelho fica explicitamente para o próximo ciclo.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Hoje: navegação demonstrativa. Roadmap: convite nominal com visão de toda a organização.</p></li>
+    <li><span class="momento">Panorama</span><p>Leitura do arco completo: prioridades, tendências entre ciclos, saúde do calendário M.E.T.E.</p></li>
+    <li><span class="momento">Foco</span><p>Poucos drivers por ciclo — priorização explícita vence dispersão bem-intencionada.</p></li>
+    <li><span class="momento">Patrocínio</span><p>Garante que devolutivas aconteçam, planos tenham dono e a agenda sobreviva ao trimestre corrido.</p></li>
+    <li><span class="momento">Prestação de contas</span><p>Evolução ciclo a ciclo diante da diretoria: o que moveu, o que não moveu, e o que se aprendeu com ambos.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Panorama executivo de todas as lentes</li>
+      <li>Fila de prioridades entre drivers</li>
+      <li>Evolução longitudinal entre ciclos</li>
+      <li>Status agregado dos planos de ação</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Dado individual de qualquer pessoa</li>
+      <li>Recortes abaixo de k ≥ 5</li>
+      <li>Comparação punitiva entre gestores</li>
+      <li>Conteúdo de diários ou espelhos pessoais</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Percorrer o panorama demonstrativo e identificar os 2 drivers que você priorizaria hoje.</label>
+    <label><input type="checkbox"> Rascunhar o calendário M.E.T.E. do próximo ano com as 4 temporadas.</label>
+    <label><input type="checkbox"> Definir o ritual executivo: em qual fórum a evolução será apresentada a cada ciclo.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>Oito drivers em vermelho. Quantos atacar neste ciclo?</summary><div class="resp"><p>Poucos — tipicamente dois ou três de maior alavancagem. Priorização explícita com prestação de contas vence o ataque disperso a tudo ao mesmo tempo.</p></div></details>
+    <details class="quiz"><summary>Qual a diferença entre o papel do CHRO e o do RH Admin?</summary><div class="resp"><p>O RH Admin opera o ciclo (ondas, links, fechamento); o CHRO governa o ciclo (prioridades, patrocínio, narrativa executiva). Um faz girar; o outro decide para onde girar.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite no fechamento de cada ciclo</strong> — antes de definir as prioridades da temporada seguinte.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 7 · C-LEVEL ═══════════════════════════ -->
+<section class="cap wrap" id="clevel">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 07 · Perfil</span>
+    <h2>Jornada do C-Level</h2>
+    <span class="chip">Quem decide o investimento</span>
+    <p class="contexto">Para a alta liderança, vitalidade é tese de negócio: risco regulatório sob controle, capacidade humana preservada e uma narrativa institucional que se prova com evidência.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Ler o panorama executivo em minutos: onde está o risco, onde está a alavanca.</li>
+      <li>Interpretar o P&amp;L de vitalidade e o simulador de trajetória como apoio à decisão de investimento.</li>
+      <li>Usar benchmark setorial e certificação como ativos de reputação — sem transformá-los em promessa vazia.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>Quanto custa, por ano, a rotatividade evitável da sua operação? Se a resposta é "não sei", essa é exatamente a lacuna que esta jornada fecha.</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Fábio, CEO</span>
+    <p>Fábio tem doze minutos entre reuniões. Abre o panorama: índice geral estável, mas a lente Organização caiu dois tons no trimestre — puxada por "carga". O P&amp;L de vitalidade estima o custo de não agir; o simulador mostra a trajetória com e sem intervenção. Ele sai da tela com uma pergunta precisa para a CHRO: "qual o plano para carga, e o que ele precisa de mim?"</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Hoje: navegação demonstrativa. Roadmap: convite nominal com visão executiva.</p></li>
+    <li><span class="momento">Leitura rápida</span><p>Panorama em uma página: as 4 lentes, tendência e o que mudou desde a última leitura.</p></li>
+    <li><span class="momento">Tradução econômica</span><p>P&amp;L de vitalidade: estimativas explícitas (e auditáveis) do custo da inação.</p></li>
+    <li><span class="momento">Cenários</span><p>Simulador de trajetória: para onde os índices caminham com e sem intervenção.</p></li>
+    <li><span class="momento">Posição externa</span><p>Benchmark setorial anônimo e Selo Empresa Viva — computado do arco real, nunca comprado.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Panorama executivo consolidado</li>
+      <li>P&amp;L de vitalidade e simulador de cenários</li>
+      <li>Posição no benchmark setorial (k-anônimo entre empresas)</li>
+      <li>Status de elegibilidade do Selo</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Dado individual de colaboradores</li>
+      <li>Identidade de outras empresas no benchmark</li>
+      <li>Promessa de ROI sem premissas explícitas</li>
+      <li>Selo comprável — elegibilidade é computada</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Reservar 15 minutos para o panorama demonstrativo — a leitura executiva completa.</label>
+    <label><input type="checkbox"> Examinar as premissas do P&amp;L de vitalidade e ajustá-las à realidade do negócio.</label>
+    <label><input type="checkbox"> Definir a pergunta padrão que você fará à liderança de pessoas a cada ciclo.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>O benchmark revela quais empresas compõem o coorte?</summary><div class="resp"><p>Nunca — a mesma lógica k-anônima que protege pessoas protege empresas: só coortes com organizações suficientes aparecem, sem identidades.</p></div></details>
+    <details class="quiz"><summary>O Selo Empresa Viva pode ser adquirido comercialmente?</summary><div class="resp"><p>Não. A elegibilidade é computada do arco real de medição, ação e evolução. É certificação de prática, não peça de marketing.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite trimestralmente</strong> — a leitura de doze minutos do panorama é o ritual mínimo viável do C-Level.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 8 · SST ═══════════════════════════ -->
+<section class="cap wrap" id="sst">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 08 · Perfil</span>
+    <h2>Jornada do Profissional SST</h2>
+    <span class="chip">Quem responde pelo risco psicossocial</span>
+    <p class="contexto">O território do Domínio B: risco psicossocial, NR-1 e GRO. Rigor metodológico e honestidade regulatória acima de tudo — este capítulo tem as fronteiras mais explícitas do manual.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Navegar o inventário agregado de exposição psicossocial e a matriz de risco.</li>
+      <li>Construir o plano psicossocial na hierarquia de controle da NR-01, priorizando medidas na fonte.</li>
+      <li>Conduzir a reavaliação com honestidade epistêmica: correlação registrada como correlação, nunca como prova causal.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>Na hierarquia de controle, por que treinar pessoas para "aguentar melhor a pressão" é uma medida mais fraca do que redistribuir a carga que gera a pressão?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Davi, engenheiro de segurança do trabalho</span>
+    <p>Davi abre o painel do Domínio B após o fechamento da onda COPSOQ. A matriz cruza probabilidade (exposição medida) com severidade: "carga" cai no quadrante alto, com prazo de ação inferior a três meses. Ele monta o plano priorizando medidas organizacionais — redistribuição e pactos de disponibilidade — e agenda a reavaliação. No ciclo seguinte, a exposição caiu; Davi registra a melhora como correlação com as medidas mantidas, anexa o histórico como insumo ao PGR e leva o caso ao profissional legalmente responsável.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Hoje: navegação demonstrativa. Roadmap: convite nominal com escopo do Domínio B.</p></li>
+    <li><span class="momento">Inventário</span><p>Exposição agregada por dimensão COPSOQ — sempre coletiva, sempre k ≥ 5.</p></li>
+    <li><span class="momento">Matriz</span><p>Probabilidade × severidade → classificação e prazo por nível de risco (crítico = ação imediata).</p></li>
+    <li><span class="momento">Plano</span><p>Medidas na hierarquia de controle da NR-01 — eliminação e organização antes de medidas administrativas; cada medida com dono e fonte citável.</p></li>
+    <li><span class="momento">Reavaliação</span><p>Ciclo seguinte: a exposição moveu? Medidas em desuso não recebem crédito; melhora é correlação, não veredito causal.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Inventário agregado de exposição (Domínio B)</li>
+      <li>Matriz de risco com prazos por severidade</li>
+      <li>Plano psicossocial e status das medidas</li>
+      <li>Evolução da exposição entre ciclos</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Resposta ou risco individual de qualquer pessoa</li>
+      <li>Diagnóstico clínico — o sistema não diagnostica</li>
+      <li>Dados do Domínio A misturados ao risco</li>
+      <li>"Conformidade automática" — não existe</li>
+    </ul></div>
+  </div>
+
+  <div class="aviso prose">
+    <strong>Fronteira regulatória — leia duas vezes</strong>
+    <p>O VitalOS é <em>insumo educativo e organizativo</em> para o GRO psicossocial. Ele não substitui o PGR, não emite laudo, não diagnostica pessoas e não dispensa o profissional legalmente habilitado. Toda leitura deste capítulo pressupõe essa fronteira.</p>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Percorrer a cadeia demonstrativa completa: inventário → matriz → plano → reavaliação.</label>
+    <label><input type="checkbox"> Verificar na matriz quais drivers têm medida de fonte disponível no catálogo.</label>
+    <label><input type="checkbox"> Alinhar com o responsável técnico como o histórico entrará como insumo do PGR.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>A exposição caiu após as medidas. Pode registrar que as medidas causaram a queda?</summary><div class="resp"><p>Registre como correlação sob medidas mantidas — sem grupo de controle não há prova causal, e o sistema é explícito sobre isso. Honestidade epistêmica é defensabilidade.</p></div></details>
+    <details class="quiz"><summary>Por que medidas "na fonte" vêm antes de treinamento na hierarquia?</summary><div class="resp"><p>Porque atacam a causa organizacional do risco em vez de transferir ao indivíduo a responsabilidade de suportá-lo — é a lógica da NR-01 e do desenho ético do produto.</p></div></details>
+    <details class="quiz"><summary>O VitalOS emite o PGR da empresa?</summary><div class="resp"><p>Não. Ele organiza evidência e plano psicossocial como insumo. O PGR e sua assinatura permanecem com o profissional legalmente habilitado.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite a cada reavaliação</strong> — e sempre que alguém pedir ao sistema uma promessa que ele deliberadamente não faz.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 9 · HOLDING ═══════════════════════════ -->
+<section class="cap wrap" id="holding">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 09 · Perfil</span>
+    <h2>Jornada do Admin do Grupo</h2>
+    <span class="chip">Quem enxerga o grupo inteiro</span>
+    <p class="contexto">Para holdings e grupos econômicos: a leitura agregada entre organizações — com a mesma disciplina que protege pessoas protegendo também cada unidade.</p>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Ao final deste capítulo você saberá</span>
+    <ul class="objetivos">
+      <li>Ler o painel multi-organização sem transformá-lo em ranking punitivo de unidades.</li>
+      <li>Identificar onde o grupo deve investir apoio — e onde deve aprender com quem está indo bem.</li>
+      <li>Respeitar a autonomia de cada organização no seu próprio ciclo M.E.T.E.</li>
+    </ul>
+  </div>
+
+  <div class="bloco ativa prose">
+    <span class="rotulo">Ative o repertório</span>
+    <p>O que acontece com os números de uma unidade no ano seguinte a eles terem sido usados para punir o gestor local?</p>
+  </div>
+
+  <div class="persona prose">
+    <span class="nome">Persona · Helena, diretora do grupo</span>
+    <p>Helena vê as cinco empresas do grupo lado a lado. Uma unidade destoa para baixo em "liderança" — em vez de cobrar o número, ela investiga o contexto: a unidade passou por troca de gestão há três meses. A que destoa para cima vira fonte: Helena conecta os dois RHs para transferir a prática que está funcionando. O painel virou circulação de aprendizado, não tribunal.</p>
+  </div>
+
+  <ol class="jornada prose">
+    <li><span class="momento">Entrada</span><p>Hoje: navegação demonstrativa. Roadmap: visão consolidada por convite nominal de grupo.</p></li>
+    <li><span class="momento">Consolidado</span><p>Painel multi-organização: índices agregados por unidade, tendências e participação.</p></li>
+    <li><span class="momento">Contexto antes de cobrança</span><p>Número que destoa é pergunta a investigar, não veredito a distribuir.</p></li>
+    <li><span class="momento">Circulação</span><p>Conectar unidades: quem resolveu um driver ajuda quem ainda luta com ele.</p></li>
+    <li><span class="momento">Governança</span><p>Padrões mínimos do grupo (calendário, privacidade, rituais) com autonomia local de execução.</p></li>
+  </ol>
+
+  <div class="ve-grid">
+    <div class="ve"><h4>O que vê</h4><ul>
+      <li>Agregados por organização do grupo</li>
+      <li>Tendências comparadas entre ciclos</li>
+      <li>Participação e saúde de cada ciclo local</li>
+    </ul></div>
+    <div class="naove"><h4>O que nunca vê</h4><ul>
+      <li>Dado individual de qualquer unidade</li>
+      <li>Recortes abaixo de k ≥ 5 em qualquer nível</li>
+      <li>Ferramentas de ranking punitivo — não existem</li>
+    </ul></div>
+  </div>
+
+  <div class="bloco pratica prose">
+    <span class="rotulo">Primeiras ações</span>
+    <label><input type="checkbox"> Percorrer o painel demonstrativo do grupo e escolher uma métrica de acompanhamento por unidade.</label>
+    <label><input type="checkbox"> Definir o pacto do grupo: como os números serão usados (e como nunca serão).</label>
+    <label><input type="checkbox"> Mapear a primeira dupla de unidades para circulação de prática.</label>
+  </div>
+
+  <div class="bloco prose">
+    <span class="rotulo">Teste de retenção</span>
+    <details class="quiz"><summary>Uma unidade destoa para baixo. Qual o primeiro movimento?</summary><div class="resp"><p>Investigar contexto — mudanças recentes, participação, momento do ciclo — antes de qualquer cobrança. Número sem contexto é armadilha de gestão.</p></div></details>
+    <details class="quiz"><summary>Por que o painel do grupo não rankeia gestores?</summary><div class="resp"><p>Porque ranking punitivo ensina as unidades a maquiar o número — e destrói a única coisa que dá valor ao sistema: respostas honestas.</p></div></details>
+  </div>
+
+  <p class="revisita"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span><strong>Revisite semestralmente</strong> — junto com a revisão do pacto de uso dos números no grupo.</span></p>
+</section>
+
+<!-- ═══════════════════════════ CAP 10 · PRIVACIDADE ═══════════════════════════ -->
+<section class="cap wrap" id="privacidade">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 10 · Transversal</span>
+    <h2>Privacidade por construção</h2>
+    <p class="contexto">As garantias que apareceram em cada capítulo, agora reunidas — porque confiança é o único combustível que faz este sistema funcionar.</p>
+  </div>
+
+  <div class="prose">
+    <p><strong>Anonimato arquitetural, não prometido.</strong> O respondente não cria conta; o link de uso único é a credencial inteira. Não existe tabela ligando resposta a pessoa — o anonimato não depende de política interna, depende de o dado não existir.</p>
+    <p><strong>k ≥ 5 em toda superfície coletiva.</strong> Nenhum agregado aparece com menos de cinco respondentes — para líder, RH, CHRO, C-Level, SST ou grupo. A regra não tem interruptor.</p>
+    <p><strong>Dois trilhos que nunca se cruzam.</strong> O trilho coletivo é anônimo; o trilho pessoal é identificado, opcional e invisível para gestão. Progresso pessoal jamais alimenta avaliação de desempenho.</p>
+    <p><strong>Domínio A e Domínio B separados.</strong> Florescimento (PERMA, VIA-T, FIB-T) e risco psicossocial (COPSOQ/NR-1) vivem em telas, fluxos e responsabilidades distintas — dado de bem-estar nunca vira instrumento de risco, e vice-versa.</p>
+    <p><strong>Fechamento é ato humano.</strong> Selar uma onda, publicar uma cápsula, abrir um plano: decisões com responsável, nunca efeitos automáticos.</p>
+    <p><strong>Honestidade epistêmica.</strong> Correlação é registrada como correlação. Estimativas têm premissas visíveis. O que o sistema não pode afirmar, ele diz que não pode afirmar.</p>
+  </div>
+
+  <div class="aviso prose">
+    <strong>Compromisso regulatório</strong>
+    <p>O VitalOS apoia a gestão de riscos psicossociais e a cultura de vitalidade com evidência organizada. Ele não emite laudos, não diagnostica indivíduos, não garante conformidade automática com norma alguma e não substitui profissionais legalmente habilitados. Qualquer comunicação que prometa o contrário está errada — inclusive a nossa.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ GLOSSÁRIO ═══════════════════════════ -->
+<section class="cap wrap" id="glossario">
+  <div class="cap-cabeca">
+    <span class="eyebrow">Capítulo 11 · Consulta</span>
+    <h2>Glossário vivo</h2>
+    <p class="contexto">Os termos que você encontrará em qualquer tela — em ordem de importância para quem chega agora.</p>
+  </div>
+  <dl class="glossario">
+    <div><dt>Onda</dt><dd>Um ciclo de coleta: instrumento + população convidada + período. A unidade básica de medição.</dd></div>
+    <div><dt>Cápsula</dt><dd>O agregado protegido (k ≥ 5) que nasce quando uma onda é fechada. É o único formato em que respostas viram leitura.</dd></div>
+    <div><dt>Devolutiva</dt><dd>A entrega do resultado de volta a quem respondeu — coletiva, educativa, sem exposição de ninguém.</dd></div>
+    <div><dt>Driver</dt><dd>Fator organizacional acionável (carga, autonomia, reconhecimento…) que conecta a medição às intervenções.</dd></div>
+    <div><dt>4 Lentes</dt><dd>EU · NÓS · LIDERANÇA · ORGANIZAÇÃO — as quatro perspectivas que compõem a leitura de vitalidade.</dd></div>
+    <div><dt>M.E.T.E.</dt><dd>Mensurar → Educar → Transformar → Evoluir: o ciclo anual que organiza toda a plataforma.</dd></div>
+    <div><dt>IVO</dt><dd>Índice de Vitalidade Organizacional — a síntese experimental das 4 Lentes. Sempre agregado, nunca individual.</dd></div>
+    <div><dt>k-anonimato</dt><dd>Regra que oculta qualquer recorte com menos de 5 respondentes (k ≥ 5). Proteção estrutural, não configurável.</dd></div>
+    <div><dt>Domínio A</dt><dd>Florescimento: PERMA, VIA-T, FIB-T. Foco em desenvolvimento e bem-estar.</dd></div>
+    <div><dt>Domínio B</dt><dd>Risco psicossocial: COPSOQ/NR-1. Foco educativo em exposição e GRO — insumo, não laudo.</dd></div>
+    <div><dt>COPSOQ II</dt><dd>Instrumento de leitura de exposição psicossocial no trabalho, aplicado de forma agregada e educativa.</dd></div>
+    <div><dt>PERMA</dt><dd>Modelo de florescimento (emoções positivas, engajamento, relações, sentido, realização) aplicado ao trabalho.</dd></div>
+    <div><dt>VIA-T</dt><dd>Mapa exploratório de forças percebidas no trabalho. Nunca diagnóstico, ranking ou avaliação de perfil.</dd></div>
+    <div><dt>FIB-T</dt><dd>Lente de ecossistema: 32 itens em nove domínios de vida e trabalho, inspirada no Índice de Felicidade Interna Bruta.</dd></div>
+    <div><dt>Selo Empresa Viva</dt><dd>Certificação cuja elegibilidade é computada do arco real medir→agir→provar. Não é comprável.</dd></div>
+    <div><dt>Espelho pessoal</dt><dd>A superfície identificada e opcional do colaborador — trilho pessoal, invisível para gestão.</dd></div>
+  </dl>
+</section>
+
+<!-- ═══════════════════════════ RODAPÉ ═══════════════════════════ -->
+<footer class="rodape wrap">
+  <svg class="marca" viewBox="0 0 200 224" role="img" aria-label="Marca VitalOS">
+    <g fill="none" stroke="url(#au)" stroke-width="13">
+      <ellipse cx="62"  cy="66"  rx="44" ry="60" transform="rotate(33 62 66)"/>
+      <ellipse cx="138" cy="66"  rx="44" ry="60" transform="rotate(-33 138 66)"/>
+      <ellipse cx="62"  cy="158" rx="44" ry="60" transform="rotate(-33 62 158)"/>
+      <ellipse cx="138" cy="158" rx="44" ry="60" transform="rotate(33 138 158)"/>
+    </g>
+    <circle cx="100" cy="112" r="17" fill="url(#esf)"/>
+  </svg>
+  <p><span style="color:var(--wordmark-vital); font-family:var(--serif); font-size:17px">Vital</span><span style="color:var(--ouro); font-family:var(--serif); font-size:17px">OS</span> · Manual da Jornada do Usuário · Edição 1 — Julho 2026<br>Documento educacional. Reflete o produto em evolução: jornadas reais e demonstrativas estão identificadas como tais. Nenhum conteúdo deste manual constitui laudo, diagnóstico ou garantia de conformidade regulatória.</p>
+  <a class="voltar" href="#uso">↑ Voltar ao início</a>
+</footer>
