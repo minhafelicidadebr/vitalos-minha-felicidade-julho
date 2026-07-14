@@ -663,6 +663,7 @@ export type Database = {
       wave_invites: {
         Row: {
           created_at: string | null
+          email: string | null
           emailed_at: string | null
           token: string
           used_at: string | null
@@ -670,6 +671,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
           emailed_at?: string | null
           token?: string
           used_at?: string | null
@@ -677,6 +679,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          email?: string | null
           emailed_at?: string | null
           token?: string
           used_at?: string | null

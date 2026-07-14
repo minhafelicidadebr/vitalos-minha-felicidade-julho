@@ -1,0 +1,1 @@
+ALTER TABLE public.wave_invites ADD COLUMN IF NOT EXISTS email TEXT;
