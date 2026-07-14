@@ -20,7 +20,7 @@ const PUBLIC_PREFIXES = [
 // Rotas que executam ações reais (provisionamento, escrita privilegiada) —
 // nunca aceitam a senha de demonstração como suficiente. Exigem sessão
 // Supabase de verdade sempre, mesmo com o portão de demo destravado.
-const REAL_AUTH_ONLY_PREFIXES = ["/admin", "/plataforma", "/ativar"];
+const REAL_AUTH_ONLY_PREFIXES = ["/admin", "/plataforma", "/ativar", "/aceitar-convite"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));

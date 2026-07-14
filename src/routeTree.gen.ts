@@ -88,6 +88,7 @@ import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
+import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
 const VitrineRoute = VitrineRouteImport.update({
@@ -485,6 +486,11 @@ const AtivarTokenRoute = AtivarTokenRouteImport.update({
   path: '/ativar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AceitarConviteTokenRoute = AceitarConviteTokenRouteImport.update({
+  id: '/aceitar-convite/$token',
+  path: '/aceitar-convite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RespondSTokenRoute = RespondSTokenRouteImport.update({
   id: '/respond/s/$token',
   path: '/respond/s/$token',
@@ -567,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -649,6 +656,7 @@ export interface FileRoutesByTo {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -732,6 +740,7 @@ export interface FileRoutesById {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -816,6 +825,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -898,6 +908,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -980,6 +991,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -1063,6 +1075,7 @@ export interface RootRouteChildren {
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
   VitrineRoute: typeof VitrineRoute
+  AceitarConviteTokenRoute: typeof AceitarConviteTokenRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
@@ -1625,6 +1638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtivarTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aceitar-convite/$token': {
+      id: '/aceitar-convite/$token'
+      path: '/aceitar-convite/$token'
+      fullPath: '/aceitar-convite/$token'
+      preLoaderRoute: typeof AceitarConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/respond/s/$token': {
       id: '/respond/s/$token'
       path: '/respond/s/$token'
@@ -1711,6 +1731,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
   VitrineRoute: VitrineRoute,
+  AceitarConviteTokenRoute: AceitarConviteTokenRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
@@ -1720,3 +1741,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
