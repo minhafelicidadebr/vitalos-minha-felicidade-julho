@@ -495,6 +495,22 @@ pessoa" → gerar link para um e-mail com papel Colaborador → abrir o link
 numa aba anônima → logar com aquele e-mail → deve cair em `/colaborador`
 com o card real da Academia (não o mock).
 
+**Achado real ao verificar (2026-07-14) — já aplicado em produção:**
+`has_function_privilege('authenticated', 'accept_member_invite(text,uuid)',
+'EXECUTE')` voltou `true` mesmo com o `REVOKE ... FROM PUBLIC` explícito na
+migration acima — mesma classe do achado #3 de `provision_organization_from_invite`
+(20260705160043): o scanner de segurança do próprio Lovable detecta função
+`SECURITY DEFINER` nova e adiciona `GRANT EXECUTE TO authenticated` por conta
+própria. Aqui isso é mais grave que no precedente: `accept_member_invite`
+nunca confere se quem chama é o próprio `p_user_id`, só que o e-mail bate —
+com `authenticated` liberado, qualquer pessoa logada poderia criar perfil
+para outra pessoa sem consentimento dela. Fechado por
+`supabase/migrations/20260714130000_fix_accept_member_invite_execute_grant.sql`
+(mesmo padrão dos achados #6/#8/#12 — REVOKE de acompanhamento, idempotente).
+**Lição para toda função `SECURITY DEFINER` nova deste projeto: sempre
+re-rodar a verificação de `EXECUTE` DEPOIS de aplicar, nunca confiar que o
+`REVOKE` da própria migration "grudou".**
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
