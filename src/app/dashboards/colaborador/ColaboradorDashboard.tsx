@@ -1,18 +1,25 @@
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { GraduationCap } from "lucide-react";
 import { useLiveEconomy } from "@/app/gamification/use-live-economy";
 import { useRecognition } from "@/app/gamification/use-recognition";
+import { useRealOrgSession, type RealOrgSession } from "@/app/identity/useRealOrgSession";
+import { useParticipationSync } from "@/app/identity/useParticipationSync";
+import { useParticipationLedger } from "@/engine/gamification/participation-store";
 import {
   hasParticipationEvidence,
+  buildParticipationSummary,
   type ParticipationBadgeResult,
   type ParticipationEventKind,
   type ParticipationRecordResult,
 } from "@/engine/gamification/participation-ledger";
+import { getParticipationLedgerConfig } from "@/engine/gamification/gamification-engine";
 import type { LiveMission } from "@/engine/gamification/live-economy";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { getNudgeLibrary, selectNudges } from "@/engine/nudges/nudge-engine";
 import { usePack } from "@/engine/pack";
+import { resolvePackBundle } from "@/domain/packs/registry";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 import {
   MOCK_USER,
@@ -24,8 +31,87 @@ import {
 import { GAMIFICATION_COPY } from "@/mocks/gamification-mock";
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
+//
+// Cliente real (organização provisionada) nunca mistura com dados de
+// demonstração — vê só o que é seu de verdade: progresso real na Academia
+// (sm2_card_state/participation_events, RLS por auth.uid()). Nunca IVO
+// pessoal, status de resposta de pesquisa, missões ou kudos — não existe (e
+// não deve existir) rastreamento individual de resposta de pesquisa; mostrar
+// isso quebraria o desenho de anonimato do produto. Mesmo padrão de honestidade
+// de RHDashboard.tsx (if (realOrg) return <Real.../>).
 
 export function ColaboradorDashboard() {
+  const { org: realOrg } = useRealOrgSession();
+  if (realOrg) return <RealColaboradorDashboard org={realOrg} />;
+  return <DemoColaboradorDashboard />;
+}
+
+function RealColaboradorDashboard({ org }: { org: RealOrgSession }) {
+  useParticipationSync();
+  const events = useParticipationLedger((s) => s.events);
+  const gamification = resolvePackBundle(org.orgPackId).gamification;
+  const today = new Date().toISOString().slice(0, 10);
+  const summary = gamification
+    ? buildParticipationSummary(events, today, getParticipationLedgerConfig(gamification).badges)
+    : null;
+  const earnedBadges = summary?.badges.filter((b) => b.earned).length ?? 0;
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-5 px-4 py-8 sm:px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Visão Pessoal
+        </p>
+        <h1 className="mt-1 font-serif text-2xl text-foreground">
+          Olá{org.displayName ? `, ${org.displayName}` : ""}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{org.orgName}</p>
+      </motion.div>
+
+      {summary ? (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <GraduationCap className="h-4 w-4 text-primary" />
+            <p className="font-medium text-card-foreground">Sua Academia</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <StatChip label="Práticas registradas" value={`${summary.eventCount}`} />
+            <StatChip label="Conquistas" value={`${earnedBadges}/${summary.badges.length}`} />
+          </div>
+          <Link
+            to="/academia"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+          >
+            Continuar na Academia →
+          </Link>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className="rounded-2xl border border-dashed border-border/70 bg-card p-5"
+        >
+          <p className="text-sm text-muted-foreground">
+            Ainda não há trilhas de aprendizagem configuradas para este setor.
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+function DemoColaboradorDashboard() {
   const { index } = usePack();
   const live = useLiveEconomy();
   const recognition = useRecognition();
