@@ -469,6 +469,32 @@ recentes" mostra cada solicitação com origem (página + UTM). Teste real:
 preencher o modal em `/` ou `/nr1` com o consentimento marcado → o lead
 aparece em `/plataforma` com a origem correta.
 
+## Convite de Membro real — segunda+ pessoa por organização (Onda "Convite de Pessoa", passo 2)
+
+`supabase/migrations/20260714120000_member_invites.sql` — 1 tabela
+(`member_invites`: token, org_id, email, role, expires_at) + 1 RPC
+(`accept_member_invite`, SECURITY DEFINER, mesmo padrão transacional de
+`provision_organization_from_invite` — `SELECT ... FOR UPDATE` trava a
+linha do convite contra corrida de duas aceitações simultâneas). Fecha a
+lacuna de `org_invites`, que só serve para criar uma organização nova (sem
+`org_id`/`role`), nunca para convidar uma segunda pessoa numa organização
+já existente.
+
+Mais restritivo que o precedente de propósito: `EXECUTE` da RPC só para
+`service_role` (não `authenticated`) — a única chamadora é
+`member-invite.server.ts`, que sempre resolve `p_user_id` do próprio
+access_token do chamador, nunca do payload.
+
+`HOLDING_ADMIN`/`GESTOR_CARTEIRA` (papéis multi-organização) **não** são
+convidáveis por este mecanismo — o modelo continua 1 pessoa = 1 perfil = 1
+organização; ver `invitableRoles()` em `pack-routes.ts`.
+
+**Ação do founder:** colar o arquivo no Lovable. Idempotente. Rodar as 4
+queries de verificação do rodapé. Depois, em `/admin`, o card "Convidar
+pessoa" → gerar link para um e-mail com papel Colaborador → abrir o link
+numa aba anônima → logar com aquele e-mail → deve cair em `/colaborador`
+com o card real da Academia (não o mock).
+
 ## Ordem de aplicação recomendada (S0 → S6.75, cumulativa)
 
 1. `20260703120000_reconcile_prod_drift.sql`
