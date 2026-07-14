@@ -117,6 +117,20 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "leads", column: "consent_version", usedBy: "lead-capture.server.ts submitLead" },
   { table: "leads", column: "created_at", usedBy: "lead-capture.server.ts listLeads" },
 
+  // member_invites — convite de uma segunda+ pessoa numa org já existente
+  // (Onda "Convite de Pessoa"). Distinto de org_invites: aqui org_id e role
+  // são explícitos desde a criação, não decorrência do próprio convite.
+  { table: "member_invites", column: "org_id", usedBy: "member-invite.server.ts createMemberInvite/listMemberInvites" },
+  { table: "member_invites", column: "email", usedBy: "member-invite.server.ts createMemberInvite/resolveMemberInvite" },
+  { table: "member_invites", column: "role", usedBy: "member-invite.server.ts createMemberInvite/resolveMemberInvite" },
+  { table: "member_invites", column: "created_by", usedBy: "member-invite.server.ts createMemberInvite" },
+  { table: "member_invites", column: "used_at", usedBy: "member-invite.server.ts resolveMemberInvite/listMemberInvites" },
+  { table: "member_invites", column: "expires_at", usedBy: "member-invite.server.ts resolveMemberInvite/listMemberInvites" },
+  { table: "member_invites", column: "created_at", usedBy: "member-invite.server.ts listMemberInvites" },
+  { table: "organizations", column: "pack_id", usedBy: "member-invite.server.ts createMemberInvite/resolveMemberInvite" },
+  { table: "organizations", column: "plan", usedBy: "member-invite.server.ts createMemberInvite" },
+  { table: "profiles", column: "org_id", usedBy: "member-invite.server.ts createMemberInvite (contagem de seats)" },
+
   // Customer Health v1 (E4) — contagens org-level; colunas filtradas/lidas.
   { table: "action_items", column: "owner_user_id", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "action_items", column: "due_on", usedBy: "customer-health.server.ts listAccountHealth" },
