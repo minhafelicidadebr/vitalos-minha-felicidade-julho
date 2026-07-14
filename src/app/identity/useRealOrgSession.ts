@@ -16,6 +16,7 @@ export interface RealOrgSession {
   orgId: string;
   orgName: string;
   orgPlan: string;
+  orgPackId: string;
   role: string;
   displayName: string | null;
 }
@@ -57,7 +58,7 @@ export function useRealOrgSession(): RealOrgSessionState {
 
       const { data: org } = await supabase
         .from("organizations")
-        .select("name, plan")
+        .select("name, plan, pack_id")
         .eq("id", (profile as { org_id: string }).org_id)
         .maybeSingle();
 
@@ -74,6 +75,7 @@ export function useRealOrgSession(): RealOrgSessionState {
           orgId: (profile as { org_id: string }).org_id,
           orgName: (org as { name: string }).name,
           orgPlan: (org as { plan: string }).plan,
+          orgPackId: (org as { pack_id: string }).pack_id,
           role: (profile as { role: string }).role,
           displayName: (profile as { display_name: string | null }).display_name,
         },

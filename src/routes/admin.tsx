@@ -7,15 +7,18 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Copy, Plus, Waves, Database, CheckCircle2, AlertCircle,
-  ExternalLink, MessageCircle, RefreshCw, Lock, Users, Zap,
+  ExternalLink, MessageCircle, RefreshCw, Lock, Users, UserPlus, Zap,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { adminCreateWave, adminListWaves, adminCloseWave } from "@/lib/api/wave-admin.functions";
+import { createMemberInviteLink } from "@/lib/api/member-invite.functions";
 import { adminCreateSectorLink, adminListOpsEvents } from "@/lib/api/sector-link.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePackBundle } from "@/domain/packs/registry";
+import { invitableRoles } from "@/domain/packs/pack-routes";
 
 // A organização não vem mais do cliente (P0-04) — o servidor resolve quem é
 // o admin de verdade a partir do access_token da própria sessão.
@@ -97,6 +100,19 @@ function AdminPage() {
   const [waves, setWaves] = useState<WaveItem[]>([]);
   const [loadingWaves, setLoadingWaves] = useState(false);
 
+  // Convidar pessoa (papel real, distinto de convidar organização) — os
+  // papéis oferecidos vêm do pack DA ORGANIZAÇÃO REAL, nunca do pack de
+  // demonstração selecionado no navegador (podem divergir).
+  const orgPack = resolvePackBundle(realOrg?.orgPackId ?? "enterprise").pack;
+  const invitablePersonRoles = invitableRoles(orgPack);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("");
+  const effectiveInviteRole = inviteRole || invitablePersonRoles[0]?.id || "";
+  const [creatingInvite, setCreatingInvite] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+
   const fetchWaves = useCallback(async () => {
     if (!cloudActive || !orgId) return;
     setLoadingWaves(true);
@@ -173,6 +189,41 @@ function AdminPage() {
     setTimeout(() => setCopiedIdx(null), 2000);
   }
 
+  async function handleCreateMemberInvite() {
+    if (!cloudActive || creatingInvite || !orgId || !inviteEmail.trim() || !effectiveInviteRole) return;
+    setCreatingInvite(true);
+    setInviteError(null);
+    setInviteLink(null);
+
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setInviteError("Sessão expirada. Faça login novamente.");
+        return;
+      }
+      const result = await createMemberInviteLink({
+        data: { accessToken, email: inviteEmail.trim(), role: effectiveInviteRole },
+      });
+      if (!result.ok) {
+        setInviteError(result.error);
+        return;
+      }
+      setInviteLink(result.link);
+      setInviteEmail("");
+    } catch {
+      setInviteError("Erro ao gerar convite. Verifique a conexão com o Cloud.");
+    } finally {
+      setCreatingInvite(false);
+    }
+  }
+
+  async function copyInviteLink() {
+    if (!inviteLink) return;
+    await navigator.clipboard.writeText(inviteLink);
+    setInviteCopied(true);
+    setTimeout(() => setInviteCopied(false), 2000);
+  }
+
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6">
@@ -200,6 +251,97 @@ function AdminPage() {
         <CloudStatusBanner active={cloudActive} />
 
         {cloudActive && !orgLoading && !orgId && <NoOrgBanner />}
+
+        {/* Convidar pessoa — segunda+ pessoa real da organização, com papel próprio */}
+        {cloudActive && orgId && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.04 }}
+            className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <UserPlus className="h-4 w-4 text-primary" />
+              <p className="font-medium text-card-foreground">Convidar pessoa</p>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <label className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="pessoa@empresa.com"
+                  className="w-full rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  Papel
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {invitablePersonRoles.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setInviteRole(r.id)}
+                      aria-pressed={effectiveInviteRole === r.id}
+                      className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition-all ${
+                        effectiveInviteRole === r.id
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border/60 bg-background text-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {inviteError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                  <p className="text-sm text-destructive">{inviteError}</p>
+                </div>
+              )}
+
+              {inviteLink ? (
+                <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 truncate font-mono text-[11px] text-foreground">{inviteLink}</span>
+                    <button
+                      onClick={copyInviteLink}
+                      className="shrink-0 rounded-lg p-1.5 hover:bg-muted transition-colors"
+                      title="Copiar link"
+                    >
+                      {inviteCopied ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Link de uso único — envie por WhatsApp ou e-mail. Aparece só uma vez.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={handleCreateMemberInvite}
+                  disabled={creatingInvite || !inviteEmail.trim() || !effectiveInviteRole}
+                  className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Plus className="h-4 w-4" aria-hidden />
+                  {creatingInvite ? "Gerando…" : "Gerar link de convite"}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Formulário de criação */}
         <motion.div
