@@ -21,7 +21,7 @@ import { usePersona } from "@/app/identity/persona-store";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { usePack } from "@/engine/pack";
-import { navForRole } from "@/engine/rbac/rbac";
+import { navForRole, resolveEffectiveRoleId } from "@/engine/rbac/rbac";
 import { useA11y } from "./A11yProvider";
 import {
   DropdownMenu,
@@ -251,9 +251,11 @@ const DEMO_ROUTE_POLICIES: Record<string, string> = {
 const REAL_ROLE_LABEL: Record<string, string> = {
   RH_ADMIN: "Administrador",
   DIRETOR: "Diretor",
-  SST: "SST",
+  CHRO: "CHRO",
+  C_LEVEL: "C-Level",
+  SST_PROFISSIONAL: "SST",
   COLABORADOR: "Colaborador",
-  LIDER: "Líder",
+  LIDER_EQUIPE: "Líder de Equipe",
 };
 
 /** Indicador de sessão real — substitui os seletores de demonstração (persona
@@ -355,17 +357,23 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <DemoGateScreen />;
   }
 
-  const roleLabel = pack?.roles?.find((r) => r.id === roleId)?.label ?? roleId;
+  // Sessão real presente → o papel dela vence a persona de demonstração salva
+  // no localStorage deste navegador. Sem isso, alguém logado como SST real
+  // podia navegar pelo menu de Holding só porque foi o último papel explorado
+  // na demo. Ver src/engine/rbac/rbac.ts para o teste desse invariante.
+  const effectiveRoleId = resolveEffectiveRoleId(realOrg?.role, roleId);
+
+  const roleLabel = pack?.roles?.find((r) => r.id === effectiveRoleId)?.label ?? effectiveRoleId;
   const configuredOverviewRoute =
     typeof pack?.overviewRoute === "string" ? pack.overviewRoute : undefined;
-  const roleHome = configuredOverviewRoute ?? ROLE_HOME[roleId] ?? "/painel";
+  const roleHome = configuredOverviewRoute ?? ROLE_HOME[effectiveRoleId] ?? "/painel";
 
   // Personas de demonstração vêm do pack ativo — pack-driven, não hardcoded.
   const demoPersonas =
     (pack?.demoPersonas as string[] | undefined) ?? (DEMO_PERSONAS_FALLBACK as readonly string[]);
 
   const visibleItems = pack
-    ? navForRole(pack, roleId)
+    ? navForRole(pack, effectiveRoleId)
         .map((item) => ({
           ...item,
           to: item.id === "overview" ? roleHome : NAV_ROUTES[item.id],

@@ -19,3 +19,15 @@ export function navForRole(pack: DomainPack, roleId: string): NavItemDef[] {
   const items = (pack.navigation ?? []) as unknown as NavItemDef[];
   return items.filter((item) => canSeeNavItem(item, roleId));
 }
+
+/**
+ * O papel real de uma sessão logada sempre vence o papel de demonstração —
+ * uma pessoa real nunca deve navegar pela persona que por acaso estava salva
+ * no localStorage daquele navegador.
+ */
+export function resolveEffectiveRoleId(
+  realRoleId: string | null | undefined,
+  demoRoleId: string,
+): string {
+  return realRoleId ?? demoRoleId;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { canSeeNavItem, navForRole, type NavItemDef } from "./rbac";
+import { canSeeNavItem, navForRole, resolveEffectiveRoleId, type NavItemDef } from "./rbac";
 import type { DomainPack } from "../pack/pack-types";
 
 // ─── canSeeNavItem (invariante de visibilidade) ───────────────────────────────
@@ -53,5 +53,21 @@ describe("navForRole", () => {
 
   test("pack sem navegação → lista vazia (sem throw)", () => {
     expect(navForRole({} as DomainPack, "RH_ADMIN")).toEqual([]);
+  });
+});
+
+// ─── resolveEffectiveRoleId (papel real vence a persona de demo) ─────────────
+
+describe("resolveEffectiveRoleId", () => {
+  test("sessão real presente → papel real vence, ignora a persona de demo", () => {
+    expect(resolveEffectiveRoleId("SST_PROFISSIONAL", "HOLDING_ADMIN")).toBe("SST_PROFISSIONAL");
+  });
+
+  test("sem sessão real (null) → cai na persona de demo", () => {
+    expect(resolveEffectiveRoleId(null, "COLABORADOR")).toBe("COLABORADOR");
+  });
+
+  test("sem sessão real (undefined) → cai na persona de demo", () => {
+    expect(resolveEffectiveRoleId(undefined, "RH_ADMIN")).toBe("RH_ADMIN");
   });
 });
