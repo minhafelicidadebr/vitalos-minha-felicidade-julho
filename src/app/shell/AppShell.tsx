@@ -557,20 +557,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="group flex min-w-0 shrink-0 items-center gap-3"
               aria-label="4 Lentes VitalOS™ — painel"
             >
-              <span
-                aria-hidden
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/18 ring-1 ring-inset ring-white/10 transition-transform duration-300 group-hover:-translate-y-0.5"
-              >
-                <VitalOsMark className="h-6 w-6" />
-              </span>
-              <span className="hidden min-w-0 flex-col leading-tight md:flex">
-                <span className="truncate font-serif text-base tracking-tight">
-                  Programa VitalOS™
-                </span>
-                <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground lg:block">
-                  Sistema da Vitalidade Organizacional
-                </span>
-              </span>
+              <VitalOSBrand variant="horizontal" size="md" />
             </Link>
 
             {/* Desktop grouped nav */}
