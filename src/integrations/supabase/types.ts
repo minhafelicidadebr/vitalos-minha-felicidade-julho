@@ -112,6 +112,50 @@ export type Database = {
         }
         Relationships: []
       }
+      member_invites: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          expires_at: string | null
+          org_id: string
+          role: string
+          token: string
+          used_at: string | null
+          used_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          expires_at?: string | null
+          org_id: string
+          role: string
+          token?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          expires_at?: string | null
+          org_id?: string
+          role?: string
+          token?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ops_events: {
         Row: {
           context: Json
@@ -786,6 +830,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_member_invite: {
+        Args: { p_invite_token: string; p_user_id: string }
+        Returns: {
+          error: string
+          org_id: string
+          role: string
+        }[]
+      }
       accept_pair_invite: {
         Args: { p_invite_id: string }
         Returns: {
