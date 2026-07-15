@@ -1,0 +1,255 @@
+// Trilha Voz Segura (Segurança × Liderança) — corte vertical do sistema
+// estudo → mecanismo → trilha → atividade → intervenção → execução → indicador → ESG.
+//
+// FONTES AUTORIZADAS (TASK.md): TRU-006 (Edmondson 1999, aliases LDR-013/VOI-005)
+// e LDR-007 (Hammer et al. 2021). Mecanismo: MECH-VOICE-001.
+// Todo claim aqui é o safe_claim do registro congelado ou MAIS FRACO — nunca
+// mais forte. A consistência (ids existem + trust gate) é verificada por teste.
+//
+// Orçamento de evidência respeitado (learning-patterns.json):
+// 1 mecanismo + 1 estudo principal + 1 complementar + limites + aplicação.
+
+import type { BranchingScenario, QuizItem } from "@/engine/learning/trail-engine";
+
+export const VOZ_SEGURA_TRAIL = {
+  id: "trilha-voz-segura",
+  title: "Voz Segura",
+  subtitle: "Aprender com erros antes que eles custem caro",
+  nascente: "Segurança (Nascentes da Vitalidade v0.9 — nome de trabalho)",
+  targetRoles: ["LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
+  mechanismId: "MECH-VOICE-001",
+  budget: {
+    mechanismIds: ["MECH-VOICE-001"],
+    primaryStudyId: "TRU-006",
+    complementaryStudyIds: ["LDR-007"],
+  },
+} as const;
+
+// ─── Aprender · microlearning (~5 min) ───────────────────────────────────────
+
+export const VOZ_SEGURA_MICROLEARNING = {
+  id: "voz-segura-micro",
+  title: "Por que respostas punitivas tornam problemas invisíveis",
+  minutes: 5,
+  sections: [
+    {
+      heading: "O erro que chegou tarde demais",
+      body: "Todo líder já viveu isso: um problema que custaria pouco na segunda-feira aparece na sexta, grande e caro. Quase nunca é porque ninguém sabia — é porque quem sabia avaliou que avisar custava mais do que calar. A conta que a pessoa faz é silenciosa e racional: 'se eu levantar isso, viro o problema?'",
+    },
+    {
+      heading: "O mecanismo, em linguagem humana",
+      body: "Quando perguntar, discordar e admitir erro recebem resposta não punitiva, o time exibe mais comportamentos de aprendizagem — pergunta mais cedo, admite mais rápido, pede ajuda antes do prazo. É isso que a pesquisa fundacional de segurança psicológica observou em equipes reais: onde o medo interpessoal é menor, os problemas aparecem enquanto ainda são baratos.",
+    },
+    {
+      heading: "O limite honesto",
+      body: "A evidência fundacional é correlacional (equipes de uma manufatura, 1999) — associa segurança a aprendizagem, não garante resultado. E segurança psicológica NÃO é ausência de responsabilização: o time continua respondendo pelo trabalho; o que muda é que o erro vira insumo de processo, não julgamento de pessoa.",
+    },
+    {
+      heading: "Aplicação imediata",
+      body: "A primeira resposta do líder a um erro reportado define o preço do próximo aviso. Antes de perguntar 'como isso aconteceu?', diga 'obrigado por avisar agora'. Depois: conter primeiro, aprender depois, processo antes de pessoa.",
+    },
+  ],
+} as const;
+
+// ─── Praticar · quiz de recuperação ──────────────────────────────────────────
+
+export const VOZ_SEGURA_QUIZ: QuizItem[] = [
+  {
+    id: "vs-q1",
+    question:
+      "Um time com alta segurança psicológica se caracteriza, segundo a evidência fundacional, por…",
+    options: [
+      { id: "a", label: "Menos erros cometidos" },
+      { id: "b", label: "Mais comportamentos de aprendizagem (perguntar, admitir, pedir ajuda)" },
+      { id: "c", label: "Menos conflito nas reuniões" },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "O estudo observou mais comportamentos de aprendizagem — não menos erros nem menos conflito. Times seguros frequentemente RELATAM mais erros, porque escondem menos.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-q2",
+    question: "Segurança psicológica significa que ninguém é cobrado por resultados?",
+    options: [
+      { id: "a", label: "Sim — cobrança gera medo" },
+      { id: "b", label: "Não — responsabilização continua; muda a resposta ao erro reportado" },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "Confundir segurança com ausência de responsabilização é o erro de leitura mais comum (e está na lista de claims proibidos do registro). Alta exigência e alta segurança coexistem.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-q3",
+    question: "O que a evidência fundacional (1999) PERMITE afirmar?",
+    options: [
+      { id: "a", label: "Segurança psicológica causa desempenho superior garantido" },
+      { id: "b", label: "Há associação entre segurança, aprendizagem e desempenho de equipe" },
+      { id: "c", label: "O efeito vale igualmente para qualquer setor e país" },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "É um estudo correlacional em um contexto específico: autoriza falar em associação, nunca em garantia nem em generalização automática — por isso o passaporte mostra o desenho do estudo.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-q4",
+    question: "Sobre o papel do líder, o que a evidência de treinamento de supervisores sugere?",
+    options: [
+      { id: "a", label: "Treinar o líder resolve o bem-estar da equipe" },
+      { id: "b", label: "Apoio do supervisor pode melhorar desfechos, dependendo de adesão e contexto" },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "A intervenção controlada com treinamento de apoio do supervisor mostrou efeitos positivos condicionados à implementação — nunca garantia. O comportamento do líder é alavanca, não interruptor.",
+    sourceStudyId: "LDR-007",
+  },
+];
+
+// ─── Praticar · cenário ramificado ───────────────────────────────────────────
+
+export const VOZ_SEGURA_SCENARIO: BranchingScenario = {
+  id: "vs-cenario-erro-prazo",
+  title: "O erro perto do prazo",
+  setup:
+    "Quarta-feira, 17h. A entrega mais importante do trimestre sai sexta. Uma colaboradora te procura: 'Encontrei um erro no que eu fiz semana passada. Pode afetar a entrega.' O time inteiro está ouvindo. O que você faz primeiro?",
+  bestChoiceId: "vs-c3",
+  choices: [
+    {
+      id: "vs-c1",
+      label: "“Como isso foi acontecer? Precisamos ver onde você errou.”",
+      likelyConsequence:
+        "A entrega talvez saia — mas o próximo erro tende a chegar mais tarde (ou não chegar). O time inteiro acabou de aprender o preço de avisar.",
+      mechanismNote:
+        "Resposta punitiva em público eleva o medo interpessoal — exatamente o que reduz perguntar, admitir e pedir ajuda dali em diante.",
+      commonMistake: "Tratar quem avisou como o problema, na frente do time.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Agradecer o aviso primeiro; investigar o processo depois, sem plateia e sem caça ao culpado.",
+    },
+    {
+      id: "vs-c2",
+      label: "“Deixa comigo. Eu assumo daqui.”",
+      likelyConsequence:
+        "O incêndio de hoje apaga, mas o time não aprende nada — e você vira o gargalo de todos os próximos erros.",
+      mechanismNote:
+        "Proteger não é ensinar: sem examinar o que o processo deixou passar, o mesmo erro volta — e a capacidade de resolver continua concentrada no líder.",
+      commonMistake: "Confundir blindar o time com desenvolver o time.",
+      sourceStudyId: "LDR-007",
+      betterAlternative:
+        "Resolver JUNTO com quem reportou e registrar o aprendizado para o processo.",
+    },
+    {
+      id: "vs-c3",
+      label: "“Obrigado por avisar agora. O que precisamos conter primeiro?”",
+      likelyConsequence:
+        "O problema é contido com dois dias de margem — e o time acabou de ver que avisar cedo compensa. Provavelmente o próximo aviso chega ainda mais cedo.",
+      mechanismNote:
+        "Resposta não punitiva focada em contenção-depois-processo reduz o medo interpessoal: é o comportamento de liderança que a evidência associa a mais aprendizagem de equipe.",
+      commonMistake:
+        "Cuidado com o falso positivo: agradecer e depois punir em privado destrói o efeito — a coerência importa mais que o script.",
+      sourceStudyId: "TRU-006",
+    },
+  ],
+};
+
+// ─── Aplicar · checklist de reunião + missão real ────────────────────────────
+
+export const VOZ_SEGURA_CHECKLIST = {
+  id: "vs-checklist-reuniao",
+  title: "Checklist da reunião com voz segura",
+  items: [
+    { id: "ck1", label: "Abri espaço explícito para riscos, dúvidas e hipóteses não validadas" },
+    { id: "ck2", label: "A primeira resposta a um problema levantado foi de curiosidade, não julgamento" },
+    { id: "ck3", label: "Agradeci nominalmente quem trouxe um problema (não só quem trouxe solução)" },
+    { id: "ck4", label: "Analisamos processo antes de pessoa em pelo menos um caso" },
+    { id: "ck5", label: "Ninguém foi pressionado a se expor — participação foi voluntária" },
+    { id: "ck6", label: "Algo levantado virou decisão ou ação registrada" },
+  ],
+} as const;
+
+export const VOZ_SEGURA_MISSION = {
+  /** actionKey no ActionLog. */
+  id: "missao-voz-segura-5min",
+  title: "Missão real: 5 minutos para riscos",
+  description:
+    "Na próxima reunião da sua equipe, abra cinco minutos exclusivos para riscos, dúvidas e hipóteses que ainda não foram validadas. Sem pauta paralela, sem julgamento na primeira resposta — e sem obrigar ninguém a falar.",
+  registerGuidance: [
+    "quantas pessoas participaram (número, nunca nomes)",
+    "quantos riscos/dúvidas foram levantados",
+    "quantas decisões ou ações saíram",
+    "dificuldades operacionais (ex.: pouco tempo, silêncio inicial)",
+  ],
+  doneCriteria: "A rodada aconteceu e foi registrada — independentemente de quantos riscos surgiram.",
+} as const;
+
+// ─── Intervention Builder · projeto de 30 dias ───────────────────────────────
+
+export const VOZ_SEGURA_PROJECT_30D = {
+  id: "proj-rodadas-voz-segura",
+  patternId: "projeto_lideranca",
+  name: "Rodadas de Voz Segura — 30 dias",
+  studyIds: ["TRU-006", "LDR-007"],
+  justification:
+    "Problemas reportados cedo custam menos. A evidência associa resposta não punitiva do líder a mais comportamentos de aprendizagem da equipe.",
+  hypothesis:
+    "SE o líder mantiver um espaço semanal protegido para riscos e dúvidas com resposta não punitiva, ENTÃO mais problemas serão levantados cedo (indicador de processo) — sem obrigar ninguém a se expor.",
+  eligibleContext:
+    "Equipes de 4 a 15 pessoas com reunião recorrente e líder disposto a sustentar o ritual por 4 semanas. NÃO elegível: times em processo disciplinar ativo ou reestruturação com demissões em curso.",
+  phases: [
+    { days: "1-7", focus: "Baseline e co-design: combinar com o time o formato dos 5 minutos (quando, como, o que se registra)" },
+    { days: "8-21", focus: "Duas a três rodadas semanais registradas no diário de execução" },
+    { days: "22-30", focus: "Avaliação honesta com o time + decisão registrada: continuar, ajustar ou interromper" },
+  ],
+  processMetrics: [
+    "nº de rodadas realizadas",
+    "participação média (contagem)",
+    "nº de riscos/dúvidas levantados por rodada",
+  ],
+  outcomeMetrics: [
+    "nº de problemas identificados antes de virarem incidente (mudança observada, sem atribuição causal automática)",
+    "nº de decisões/ações corretivas originadas nas rodadas",
+  ],
+  adverseEffects: [
+    "alguém se sentir exposto ou constrangido",
+    "o espaço virar cobrança individual disfarçada",
+    "participação simbólica (rodada acontece, ninguém fala, nada muda)",
+    "intensificação (a rodada virar mais uma tarefa sem tirar nada da agenda)",
+  ],
+  stopRule:
+    "Interromper imediatamente se alguém for exposto ou constrangido, se a rodada virar instrumento de cobrança individual, ou se duas rodadas seguidas tiverem participação zero — revisar o desenho com o time antes de retomar.",
+  clinicalBoundary:
+    "Este projeto desenvolve prática de gestão. O líder não vira profissional clínico: sofrimento individual identificado deve ser encaminhado aos canais adequados (RH/SST/profissional habilitado).",
+} as const;
+
+// ─── ESG · rastro (contrato esg-trace.schema.json) ───────────────────────────
+
+export const VOZ_SEGURA_ESG_TRACE = {
+  trace_id: "ESGT-VOZ-SEGURA-001",
+  project_ref: "proj-rodadas-voz-segura",
+  mechanism_ref: "MECH-VOICE-001",
+  study_ids: ["TRU-006", "LDR-007"],
+  reporting_language: "mudanca_observada",
+  process_indicators: [
+    { indicator: "rodadas de voz segura realizadas", value_kind: "contagem_agregada" },
+    { indicator: "participação média por rodada", value_kind: "contagem_agregada" },
+    { indicator: "riscos/dúvidas levantados", value_kind: "contagem_agregada" },
+  ],
+  outcome_indicators: [
+    {
+      indicator: "decisões e ações corretivas originadas nas rodadas",
+      value_kind: "contagem_agregada",
+      attribution_note:
+        "Mudança observada no período do piloto; sem atribuição causal automática — outros fatores podem ter contribuído.",
+    },
+  ],
+  execution_evidence: [] as string[], // preenchido com refs de eventos do ActionLog em runtime
+  adverse_effects_observed: [] as string[],
+  limitations: [
+    "Evidência de base é correlacional (TRU-006) e de intervenção em contexto distinto (LDR-007)",
+    "Piloto em uma equipe — sem grupo de comparação",
+    "Indicadores de processo, não de saúde: nenhum claim de redução de adoecimento é autorizado",
+  ],
+  next_cycle: "decisão registrada na fase Evoluir (continuar/ajustar/interromper)",
+} as const;

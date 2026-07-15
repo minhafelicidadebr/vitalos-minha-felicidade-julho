@@ -37,6 +37,7 @@ import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
 import { MARINA_VIAT_RESULT, VIAT_INTRO } from "@/mocks/viat-mock";
 import { dynamicsForRoute, type LearningDynamic } from "@/engine/learning/learning-dynamics";
 import { getLearningDynamics } from "@/mocks/learning-dynamics-mock";
+import { VOZ_SEGURA_TRAIL } from "@/mocks/voz-segura-mock";
 
 export const Route = createFileRoute("/academia")({
   head: () => ({ meta: [{ title: "Academia adaptativa — 4 Lentes VitalOS™" }] }),
@@ -209,6 +210,11 @@ function AcademiaPage() {
           </div>
         )}
 
+        {packId === "enterprise" &&
+          (VOZ_SEGURA_TRAIL.targetRoles as readonly string[]).includes(roleId) && (
+            <PilotTrailCard />
+          )}
+
         <LearningDynamicsSection priorityPillars={recommendation.priorityPillars} />
 
         <div className="rounded-2xl border border-border/70 bg-muted/30 px-5 py-4">
@@ -232,6 +238,34 @@ function AcademiaPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function PilotTrailCard() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.08 }}
+      className="rounded-3xl border border-primary/30 bg-primary/5 p-6"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+        Trilha piloto · com Passaporte de Evidência
+      </p>
+      <h2 className="mt-2 font-serif text-2xl text-foreground">{VOZ_SEGURA_TRAIL.title}</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {VOZ_SEGURA_TRAIL.subtitle}. A primeira trilha em que cada afirmação carrega o próprio
+        passaporte científico — fontes verificadas, limites declarados, e uma missão real que
+        termina em indicadores e rastro ESG.
+      </p>
+      <Link
+        to="/voz-segura"
+        className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        Começar a trilha
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      </Link>
+    </motion.div>
   );
 }
 

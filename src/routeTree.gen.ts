@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VozSeguraRouteImport } from './routes/voz-segura'
 import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as ViatRouteImport } from './routes/viat'
 import { Route as TrajetoriaRouteImport } from './routes/trajetoria'
@@ -91,6 +92,11 @@ import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
+const VozSeguraRoute = VozSeguraRouteImport.update({
+  id: '/voz-segura',
+  path: '/voz-segura',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VitrineRoute = VitrineRouteImport.update({
   id: '/vitrine',
   path: '/vitrine',
@@ -573,6 +579,7 @@ export interface FileRoutesByFullPath {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -656,6 +663,7 @@ export interface FileRoutesByTo {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -740,6 +748,7 @@ export interface FileRoutesById {
   '/trajetoria': typeof TrajetoriaRoute
   '/viat': typeof ViatRoute
   '/vitrine': typeof VitrineRoute
+  '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -825,6 +834,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
@@ -908,6 +918,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
@@ -991,6 +1002,7 @@ export interface FileRouteTypes {
     | '/trajetoria'
     | '/viat'
     | '/vitrine'
+    | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/ativar/$token'
     | '/auth/callback'
@@ -1075,6 +1087,7 @@ export interface RootRouteChildren {
   TrajetoriaRoute: typeof TrajetoriaRoute
   ViatRoute: typeof ViatRoute
   VitrineRoute: typeof VitrineRoute
+  VozSeguraRoute: typeof VozSeguraRoute
   AceitarConviteTokenRoute: typeof AceitarConviteTokenRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -1085,6 +1098,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voz-segura': {
+      id: '/voz-segura'
+      path: '/voz-segura'
+      fullPath: '/voz-segura'
+      preLoaderRoute: typeof VozSeguraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vitrine': {
       id: '/vitrine'
       path: '/vitrine'
@@ -1731,6 +1751,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrajetoriaRoute: TrajetoriaRoute,
   ViatRoute: ViatRoute,
   VitrineRoute: VitrineRoute,
+  VozSeguraRoute: VozSeguraRoute,
   AceitarConviteTokenRoute: AceitarConviteTokenRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,

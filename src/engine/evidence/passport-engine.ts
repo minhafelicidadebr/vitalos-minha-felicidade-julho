@@ -234,9 +234,9 @@ export function buildPassport(study: EvidenceStudy, level: PassportLevel): Evide
 // ─── Orçamento de evidência (contrato dos learning patterns) ─────────────────
 
 export interface ActivityEvidenceBudget {
-  mechanismIds: string[];
+  mechanismIds: readonly string[];
   primaryStudyId: string;
-  complementaryStudyIds: string[];
+  complementaryStudyIds: readonly string[];
 }
 
 /** 1 mecanismo, 1 estudo principal, ≤2 complementares — recusa telas-bibliografia. */
