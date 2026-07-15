@@ -54,26 +54,21 @@ interface IvoDimensionCopy {
 
 // ─── 1 · Hero ─────────────────────────────────────────────────────────────────
 export const HERO = {
-  eyebrow: "Programa Felicidade e Crescimento para Todos - VITALOS™",
+  eyebrow: "NR-1 EM VIGOR · RISCOS PSICOSSOCIAIS NO GRO/PGR",
   headline: "O Sistema Operacional da Vitalidade Organizacional",
   subheadline:
-    "A NR-1 tornou obrigatória a gestão de riscos psicossociais. O VitalOS™ começa por aí — COPSOQ II com evidência anônima agregada — e transforma a obrigação numa jornada anual de vitalidade: risco, ecossistema, florescimento e forças, até o Relatório Global ESG.",
-  support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Comprove evolução.",
+    "Transforme a adequação à NR-1 em uma jornada contínua de diagnóstico, aprendizagem e transformação. O VitalOS combina dados agregados, ciência da felicidade aplicada e planos de ação para proteger pessoas, fortalecer equipes e evidenciar a evolução.",
+  support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Evidencie a evolução.",
   ctas: [
     {
-      label: "Agendar demonstração",
-      action: { kind: "modal", modal: "executive" },
+      label: "Avaliar a prontidão da organização",
+      action: { kind: "route", to: "/nr1" },
       variant: "primary",
     },
     {
-      label: "Conformidade NR-1",
-      action: { kind: "route", to: "/nr1" },
+      label: "Conhecer a jornada VitalOS",
+      action: { kind: "anchor", id: "metodologia" },
       variant: "outline",
-    },
-    {
-      label: "Ver 4 Dimensões e 4 Lentes",
-      action: { kind: "anchor", id: "nova-categoria" },
-      variant: "ghost",
     },
   ] as Cta[],
   signals: ["k-anonimato ≥ 5", "Dados agregados", "Consentimento como produto", "WCAG 2.2 AA"],

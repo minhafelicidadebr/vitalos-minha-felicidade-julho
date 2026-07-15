@@ -11,9 +11,9 @@ const VARIANT: Record<string, "default" | "outline" | "ghost"> = {
 
 const CTA_CLASS: Record<string, string> = {
   primary:
-    "bg-accent text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/25",
+    "min-h-11 bg-accent text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/25",
   outline:
-    "border-accent/70 bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:text-accent-foreground hover:shadow-xl hover:shadow-accent/30",
+    "min-h-11 border border-white/40 bg-white/5 text-white shadow-none hover:border-white/60 hover:bg-white/15 hover:text-white",
   ghost: "text-white/70 hover:bg-white/10 hover:text-white",
 };
 
