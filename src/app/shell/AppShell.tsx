@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 
 /**
  * AppShell — header institucional + navegação dirigida pelo pack × papel,
