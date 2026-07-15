@@ -1507,7 +1507,7 @@ export const WHY_IT_MATTERS = {
   ],
   returnTitle: "Benefícios organizacionais e econômicos de promover a felicidade para todos",
   returnSource:
-    "Síntese divulgada por Delivering Happiness, com referências a pesquisas de Gallup, Shawn Achor e Martin Seligman.",
+    "Compilação de indicadores citados na literatura de bem-estar organizacional (Gallup, Shawn Achor, Martin Seligman) — números ilustrativos de estudos distintos, não uma medição única e verificada.",
   returns: [
     { value: "+21%", label: "Produtividade", icon: "cog", tone: "emerald" },
     { value: "+45%", label: "Adaptabilidade à mudança", icon: "workflow", tone: "cyan" },
@@ -1521,7 +1521,7 @@ export const WHY_IT_MATTERS = {
     ratio: "4:1",
     unit: "ROI",
     text: "Cada R$ 1 investido em bem-estar retorna ~R$ 4",
-    source: "Programas de bem-estar reduzem burnout ~40% · Deloitte, 2022",
+    source: "Ordem de grandeza observada em revisões de programas de bem-estar corporativo · referência: Deloitte, 2022 (retorno varia por tipo de programa)",
   },
   bridge: {
     title: "Bem-estar é investimento, não custo",
@@ -1533,7 +1533,7 @@ export const WHY_IT_MATTERS = {
     } as Cta,
   },
   disclaimer:
-    "Valores de “custo” representam impacto econômico agregado estimado (não gasto direto) e projeções cuja metodologia varia entre fontes. Indicadores de retorno são de estudos organizacionais citados.",
+    "Valores de “custo” representam impacto econômico agregado estimado (não gasto direto) e projeções cuja metodologia varia entre fontes. Indicadores de retorno são ilustrativos, compilados de estudos organizacionais distintos — não constituem auditoria da VitalOS nem garantia de resultado.",
 };
 
 // ─── Calculadora de Impacto Financeiro (copy) ─────────────────────────────────
@@ -1551,7 +1551,7 @@ export const CALCULATOR = {
   totalLabel: "Custo Total Anual Estimado",
   netGainLabel: "Ganho líquido anual projetado",
   disclaimer:
-    "Modelagem baseada em meta-análise OMS (2019), Gallup (2020) e Oxford Wellbeing Research (2019). Valores estimados — não constituem auditoria financeira.",
+    "Modelagem ilustrativa baseada em pesquisas públicas sobre bem-estar no trabalho (OMS, Gallup, Oxford) — parâmetros ajustáveis, não uma auditoria financeira nem previsão garantida.",
 };
 
 // ─── Gestão NR-1 com Bem-Estar ────────────────────────────────────────────────
