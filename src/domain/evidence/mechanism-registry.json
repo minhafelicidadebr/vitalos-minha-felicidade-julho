@@ -1,0 +1,23 @@
+{
+  "registry": "Mechanism Registry VitalOS",
+  "version": "1.0.0",
+  "description": "Mecanismos científicos derivados do Evidence Registry. A lógica de produto é: vários estudos → um mecanismo → um objeto educacional reutilizável → várias atividades → diferentes perfis. Todo mechanism_id referenciado por conteúdo deve existir aqui; todo study_id deve existir no evidence-registry.json e passar no trustGate (ou carregar o caveat de C3/V2).",
+  "mechanisms": [
+    {
+      "mechanism_id": "MECH-VOICE-001",
+      "name": "Redução do medo interpessoal",
+      "nascente": "seguranca",
+      "safe_explanation": "Ambientes em que perguntar, discordar e admitir erro recebem resposta não punitiva favorecem comportamentos de aprendizagem — e problemas aparecem cedo, enquanto ainda são baratos de corrigir.",
+      "study_ids": ["TRU-006", "LDR-007"],
+      "primary_study_id": "TRU-006",
+      "allowed_profiles": ["colaborador", "lider", "rh", "chro"],
+      "known_limit": "Evidência fundacional é correlacional (equipes de uma manufatura); segurança psicológica não é ausência de responsabilização nem garante desempenho.",
+      "practical_application": "Rituais de reunião em que o líder responde a erro/dúvida com curiosidade antes de julgamento (ex.: abrir espaço fixo para riscos e hipóteses não validadas).",
+      "risks": [
+        "confundir segurança com ausência de responsabilização",
+        "transformar 'voz segura' em obrigação de se expor",
+        "líder usar o ritual para vigiar em vez de aprender"
+      ]
+    }
+  ]
+}

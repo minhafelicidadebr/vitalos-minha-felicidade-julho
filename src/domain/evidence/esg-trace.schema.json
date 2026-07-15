@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vitalos.com.br/schemas/esg-trace.schema.json",
+  "title": "ESG Trace VitalOS",
+  "description": "Contrato de rastreabilidade entre ação e relatório ESG. O relatório NÃO repete bibliografia: referencia o projeto, o mecanismo, o Evidence Passport, os indicadores, as evidências de execução e as limitações. PROIBIDO por construção: afirmar automaticamente ganho de saúde, produtividade ou segurança — relata-se prática implementada e mudança observada, nunca impacto garantido.",
+  "type": "object",
+  "required": [
+    "trace_id",
+    "project_ref",
+    "mechanism_ref",
+    "study_ids",
+    "reporting_language",
+    "process_indicators",
+    "execution_evidence",
+    "limitations",
+    "next_cycle"
+  ],
+  "properties": {
+    "trace_id": { "type": "string", "pattern": "^ESGT-[A-Z0-9-]+$" },
+    "project_ref": { "type": "string", "description": "id do projeto de intervenção instanciado" },
+    "mechanism_ref": { "type": "string", "pattern": "^MECH-[A-Z]+-\\d{3}$" },
+    "study_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": { "type": "string", "pattern": "^[A-Z]{3}-\\d{3}$" },
+      "description": "Referência ao Evidence Registry — o relatório aponta para o passport, não repete a bibliografia."
+    },
+    "reporting_language": {
+      "enum": ["mudanca_observada"],
+      "description": "Gate G2: linguagem permitida é 'mudança observada' / 'prática implementada' — nunca 'impacto garantido' ou causalidade."
+    },
+    "process_indicators": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["indicator", "value_kind"],
+        "properties": {
+          "indicator": { "type": "string" },
+          "value_kind": {
+            "enum": ["contagem_agregada", "percentual_agregado"],
+            "description": "Somente agregados; recortes de pessoas respeitam k>=5; nunca dado individual."
+          }
+        }
+      }
+    },
+    "outcome_indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["indicator", "value_kind", "attribution_note"],
+        "properties": {
+          "indicator": { "type": "string" },
+          "value_kind": { "enum": ["contagem_agregada", "percentual_agregado"] },
+          "attribution_note": {
+            "type": "string",
+            "description": "Obrigatório: declarar que a mudança é observada no período, sem atribuição causal automática."
+          }
+        }
+      }
+    },
+    "execution_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Referências a eventos do ActionLog (evidence_recorded) — referência, nunca conteúdo pessoal."
+    },
+    "adverse_effects_observed": { "type": "array", "items": { "type": "string" } },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "next_cycle": { "type": "string", "description": "continuidade, ajuste ou interrupção — decisão registrada" }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "registry": "Intervention Patterns VitalOS",
+  "version": "1.0.0",
+  "description": "Modelos de projeto de intervenção. Orçamento de evidência por projeto: 2-5 estudos + 1 justificativa + 1 hipótese + 1 contexto elegível + métricas de processo + métricas de resultado + efeitos adversos monitorados + stop rule. Todo projeto instanciado alimenta o ActionLog (ledger INSERT-only) e o rastro ESG.",
+  "required_fields": [
+    "hypothesis",
+    "eligible_context",
+    "process_metrics",
+    "outcome_metrics",
+    "adverse_effects_monitored",
+    "stop_rule"
+  ],
+  "plan_90d_default": {
+    "phases": [
+      { "days": "0-15", "focus": "baseline e co-design com quem faz o trabalho" },
+      { "days": "16-45", "focus": "piloto restrito" },
+      { "days": "46-75", "focus": "ajuste com base no que apareceu" },
+      { "days": "76-90", "focus": "avaliação honesta e relato (incluindo o que não funcionou)" }
+    ],
+    "adverse_effects_watchlist": [
+      "intensificação do trabalho",
+      "exclusão de quem não participa",
+      "participação simbólica sem poder real",
+      "transferência de responsabilidade sistêmica para o indivíduo"
+    ]
+  },
+  "patterns": [
+    {
+      "pattern_id": "projeto_equipe",
+      "name": "Microprojeto de equipe",
+      "scope": "uma equipe, acordo local",
+      "supervision": "líder da equipe; RH informado"
+    },
+    {
+      "pattern_id": "projeto_lideranca",
+      "name": "Projeto de liderança",
+      "scope": "prática de gestão de um ou mais líderes",
+      "supervision": "RH acompanha; líder executa",
+      "rule": "desenvolve prática de gestão — nunca transforma o líder em profissional clínico"
+    },
+    {
+      "pattern_id": "projeto_organizacional",
+      "name": "Projeto organizacional",
+      "scope": "política ou processo que atravessa áreas",
+      "supervision": "RH/DHO + patrocínio executivo"
+    },
+    {
+      "pattern_id": "experimento_cultural",
+      "name": "Experimento cultural",
+      "scope": "ritual ou prática voluntária, prazo curto, reversível",
+      "supervision": "embaixadoria ou facilitador"
+    }
+  ]
+}

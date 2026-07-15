@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vitalos.com.br/schemas/evidence-registry.schema.json",
+  "title": "Evidence Registry VitalOS",
+  "description": "Registro canônico congelado de estudos verificados. Regra de ouro: nenhuma superfície exibe mais certeza do que este registro autoriza. Taxonomias: B (verificação independente), V (status operacional), E (força da evidência), C (alinhamento claim-fonte — refere-se ao safe_claim DESTE registro), L (situação legal), T (transponibilidade: T0 macro/política → T3 transponível com adaptação).",
+  "type": "object",
+  "required": [
+    "registry",
+    "version",
+    "frozen",
+    "provenance",
+    "trust_rule",
+    "global_prohibited_claims",
+    "excluded",
+    "studies"
+  ],
+  "properties": {
+    "registry": { "const": "Evidence Registry VitalOS" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "frozen": { "const": true },
+    "frozen_at": { "type": "string", "format": "date" },
+    "provenance": {
+      "type": "object",
+      "required": ["sources", "count_reconciliation"],
+      "properties": {
+        "sources": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "count_reconciliation": { "type": "string" },
+        "claim_grades_note": { "type": "string" }
+      }
+    },
+    "trust_rule": {
+      "type": "object",
+      "required": ["auto_trust_when", "reopen_review_when"],
+      "properties": {
+        "auto_trust_when": { "type": "array", "items": { "type": "string" } },
+        "reopen_review_when": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "global_prohibited_claims": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["study_id", "citation", "reason"],
+        "properties": {
+          "study_id": { "type": "string" },
+          "aka": { "type": "string" },
+          "citation": { "type": "string" },
+          "reason": { "type": "string" },
+          "blocked_until": { "type": "string" }
+        }
+      }
+    },
+    "studies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "study_id",
+          "aliases",
+          "canonical_citation",
+          "origin_driver",
+          "access_type",
+          "verification_status",
+          "operational_status",
+          "evidence_grade",
+          "claim_alignment",
+          "transposability",
+          "legal_status",
+          "safe_claim",
+          "prohibited_claims",
+          "mechanisms",
+          "nascente_candidates",
+          "profiles",
+          "last_verified"
+        ],
+        "properties": {
+          "study_id": { "type": "string", "pattern": "^[A-Z]{3}-\\d{3}$" },
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^[A-Z]{3}-\\d{3}$" },
+            "description": "Ocorrências duplicadas na biblioteca consolidadas neste nó canônico (dedup por DOI, Fase 1a)."
+          },
+          "canonical_citation": { "type": "string", "minLength": 20 },
+          "doi": {
+            "type": ["string", "null"],
+            "pattern": "^10\\.\\d{4,9}/\\S+$",
+            "description": "null apenas quando a fonte primária verificada não expõe DOI (working paper, periódico sem registro)."
+          },
+          "origin_driver": { "type": "string" },
+          "access_type": {
+            "enum": ["abstract_and_metadata", "metadata_only", "full_text"],
+            "description": "Tipo de acesso HONESTO usado na verificação — nunca declarar full_text quando só o resumo foi lido."
+          },
+          "verification_status": {
+            "const": "B2",
+            "description": "Só estudos com verificação independente B2 entram no registro congelado. B0/B1 nunca."
+          },
+          "operational_status": {
+            "enum": ["V1", "V2"],
+            "description": "V1 = totalmente verificado; V2 = verificado com ressalva. V0 (pendente) é INVÁLIDO por construção neste registro."
+          },
+          "evidence_grade": { "enum": ["E1", "E2", "E3", "E4", "E5"] },
+          "claim_alignment": {
+            "enum": ["C1", "C2", "C3"],
+            "description": "Alinhamento do safe_claim registrado. C4–C7 nunca entram. C3 exige o campo caveat."
+          },
+          "transposability": { "enum": ["T0", "T1", "T2", "T3", "T4"] },
+          "legal_status": {
+            "enum": ["L0", "L1"],
+            "description": "L0 = licença aberta; L1 = citação de fato científico por metadados permitida, sem reprodução de texto. L2+ nunca entram."
+          },
+          "safe_claim": {
+            "type": "string",
+            "minLength": 40,
+            "description": "O ÚNICO claim autorizado deste estudo em qualquer superfície. Usar textualmente ou mais fraco — nunca mais forte."
+          },
+          "prohibited_claims": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Proibições específicas deste estudo, SOMADAS às global_prohibited_claims."
+          },
+          "caveat": {
+            "type": "string",
+            "minLength": 20,
+            "description": "Obrigatório quando claim_alignment=C3 ou operational_status=V2 — a ressalva acompanha o claim em toda superfície."
+          },
+          "mechanisms": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9_]+$" }, "minItems": 1 },
+          "nascente_candidates": {
+            "type": "array",
+            "items": { "enum": ["recuperacao", "seguranca", "autoria", "vinculo", "horizonte"] },
+            "description": "Vazio quando o estudo é classe de contexto (ver context_class), não nascente."
+          },
+          "context_class": {
+            "enum": ["tecnologia_ia"],
+            "description": "P0-4: tecnologia/IA é moderador de contexto, nunca nascente."
+          },
+          "profiles": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "enum": ["colaborador", "lider", "rh", "chro", "clevel", "sst", "dpo", "facilitador"] }
+          },
+          "notes": { "type": "string" },
+          "last_verified": { "type": "string", "format": "date" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "claim_alignment": { "const": "C3" } } },
+            "then": { "required": ["caveat"] }
+          },
+          {
+            "if": { "properties": { "operational_status": { "const": "V2" } } },
+            "then": { "required": ["caveat"] }
+          }
+        ]
+      }
+    }
+  }
+}

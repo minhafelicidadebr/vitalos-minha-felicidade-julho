@@ -40,6 +40,23 @@ carrega sozinha quando relevante; leia-a quando a situação bater, não sempre.
 
 ---
 
+## 🔬 Regras científicas permanentes (Evidence Registry — congelado)
+
+O corpus verificado vive em `src/domain/evidence/evidence-registry.json` (v1, `frozen`).
+Tarefa atual: `TASK.md` na raiz. Doc do congelamento: `docs/NASCENTES_REGISTRY_V1_CONGELAMENTO.md`.
+
+1. **Não pesquisar nem revalidar** fontes B2 + C1/C2 + L0/L1 — regra *trust once, reuse many* (`trustGate` em `src/engine/evidence/passport-engine.ts`).
+2. **Usar apenas os `safe_claim` registrados** — textualmente ou mais fraco, nunca mais forte.
+3. **Não ler o Work Wellbeing Playbook** em tarefa de implementação (licença CC BY-NC-ND; GOV-01).
+4. **Não inventar** DOI, referência, efeito, indicador ou percentual. Nunca.
+5. **C3/V2 só circulam com o `caveat` registrado**; C4–C7 e V0 são bloqueados por construção (validador recusa o arquivo).
+6. **Todo texto de status científico é derivado dos códigos** via `buildPassport()` — proibido digitar "verificado" à mão em conteúdo.
+7. **Orçamento de evidência** (`learning-patterns.json`): atividade = 1 mecanismo + 1 estudo principal + ≤2 complementares; trilha = 2–6 âncoras. Nada de telas-bibliografia.
+8. Revisão científica reabre SÓ quando: claim muda · público/contexto muda · estudo C3 · uso clínico/legal sensível · retratação · claim comercial de alto impacto.
+9. Relatório ESG referencia projeto→mecanismo→passport→indicadores (`esg-trace.schema.json`) — linguagem "mudança observada", nunca impacto garantido.
+
+---
+
 ## 📌 Repositório oficial
 
 `https://github.com/minhafelicidadebr/vitalos.git`

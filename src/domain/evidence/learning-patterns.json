@@ -1,0 +1,57 @@
+{
+  "registry": "Learning Patterns VitalOS",
+  "version": "1.0.0",
+  "description": "Templates reutilizáveis de objetos educacionais. Cada instância de conteúdo declara seu orçamento de evidência — nunca 10-20 estudos por tela. Contrato: 1 mecanismo + 1 estudo principal + até 2 complementares + 1 limite conhecido + 1 aplicação prática.",
+  "evidence_budget": {
+    "activity": {
+      "mechanisms": 1,
+      "primary_studies": 1,
+      "complementary_studies_max": 2,
+      "known_limits_min": 1,
+      "practical_applications_min": 1
+    },
+    "trail": {
+      "anchor_studies_min": 2,
+      "anchor_studies_max": 6,
+      "mechanism_maps": 1,
+      "guardrail_sets": 1,
+      "transfer_plans": 1
+    }
+  },
+  "patterns": [
+    {
+      "pattern_id": "microlearning",
+      "name": "Microlearning",
+      "duration_minutes_max": 7,
+      "structure": ["gancho concreto", "o mecanismo em linguagem humana", "o limite honesto", "uma aplicação imediata"],
+      "evidence_display": "passport nível humano embutido; fonte por citação curta"
+    },
+    {
+      "pattern_id": "quiz_recuperacao",
+      "name": "Quiz de recuperação",
+      "items_min": 3,
+      "items_max": 6,
+      "structure": ["pergunta de aplicação (não decoreba)", "alternativas plausíveis", "explicação do porquê", "fonte"],
+      "rule": "errar ensina: a explicação aparece sempre, acerto ou erro"
+    },
+    {
+      "pattern_id": "cenario_ramificado",
+      "name": "Cenário ramificado",
+      "structure": ["situação realista", "3 escolhas plausíveis", "por escolha: consequência provável + mecanismo + erro comum + fonte + alternativa melhor"],
+      "rule": "nenhuma escolha é ridícula; a errada é a tentadora do dia a dia"
+    },
+    {
+      "pattern_id": "checklist",
+      "name": "Checklist de prática",
+      "items_min": 4,
+      "items_max": 8,
+      "rule": "cada item é observável em comportamento, nunca em traço de personalidade"
+    },
+    {
+      "pattern_id": "missao_real",
+      "name": "Missão real",
+      "structure": ["ação concreta na próxima ocasião natural (reunião, 1:1)", "o que registrar depois (sem nomes, sem conteúdo pessoal)", "critério de feita/não feita"],
+      "rule": "voluntária; nunca vira meta de desempenho nem ranking"
+    }
+  ]
+}
