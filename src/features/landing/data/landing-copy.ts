@@ -66,8 +66,8 @@ export const HERO = {
       variant: "primary",
     },
     {
-      label: "Conhecer a jornada VitalOS",
-      action: { kind: "anchor", id: "metodologia" },
+      label: "Conhecer Sistema VitalOS",
+      action: { kind: "anchor", id: "nova-categoria" },
       variant: "outline",
     },
   ] as Cta[],
