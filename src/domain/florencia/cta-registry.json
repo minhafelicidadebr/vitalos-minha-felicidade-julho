@@ -1,0 +1,102 @@
+{
+  "registry": "FlorêncIA CTA Registry",
+  "version": "1.1.0",
+  "description": "As 5 CTAs do primeiro corte (Empresa × Líder × Voz Segura). cta_id é o identificador estável do RawContextEnvelope (docs/ai/florencia-skills/schemas/context-envelope.schema.json); intent é resolvido daqui e decide o modo M.E.T.E. via mode-router — este registro nunca declara mode/profile diretamente. suggestedQuestions é a fonte única. allowedEntityRefPrefixes é a allowlist que src/engine/florencia/cta-resolution.ts aplica sobre os entity_refs do envelope — nenhum ref fora dela sobrevive à resolução. candidateSkillIds usa só os skill_id reais de docs/ai/florencia-skills/registries/skill-registry.json (1 principal + até 3 auxiliares).",
+  "ctas": [
+    {
+      "cta_id": "CTA-EXPLAIN-MECHANISM",
+      "intent": "explain_mechanism",
+      "label": "Explique por que isso importa",
+      "icon": "lightbulb",
+      "entityRefs": ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
+      "allowedEntityRefPrefixes": ["mechanism", "study"],
+      "requestedClaimIds": ["CLAIM-EDMONDSON1999-VOICE-001"],
+      "candidateSkillIds": [
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-CONTEXT-ORCHESTRATION",
+        "SKILL-LEARNING-EXPERIENCE-DESIGNER"
+      ],
+      "suggestedQuestions": [
+        "Por que a resposta do líder a um erro muda o comportamento do time?",
+        "Isso vale para qualquer tipo de erro?",
+        "Qual é o limite dessa evidência?"
+      ]
+    },
+    {
+      "cta_id": "CTA-PREPARE-CONVERSATION",
+      "intent": "prepare_conversation",
+      "label": "Prepare esta conversa",
+      "icon": "message-circle",
+      "entityRefs": ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
+      "allowedEntityRefPrefixes": ["mechanism", "study"],
+      "requestedClaimIds": ["CLAIM-EDMONDSON1999-VOICE-002"],
+      "candidateSkillIds": [
+        "SKILL-CONVERSATION-FACILITATOR",
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-PRIVACY-SAFETY-GUARDIAN"
+      ],
+      "suggestedQuestions": [
+        "Como abrir a conversa sem soar artificial?",
+        "O que evitar na primeira resposta?",
+        "E se a pessoa não quiser falar?"
+      ]
+    },
+    {
+      "cta_id": "CTA-CREATE-TEAM-MISSION",
+      "intent": "create_team_mission",
+      "label": "Transforme em missão de equipe",
+      "icon": "flag",
+      "entityRefs": ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+      "allowedEntityRefPrefixes": ["mechanism", "study"],
+      "requestedClaimIds": ["CLAIM-LDR007-VOICE-001"],
+      "candidateSkillIds": [
+        "SKILL-INTERVENTION-PLANNER",
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-AGILE-PROJECT-ARCHITECT"
+      ],
+      "suggestedQuestions": [
+        "Como faço a equipe topar experimentar?",
+        "Quanto tempo até ver algum sinal?",
+        "O que muda se a adesão for baixa?"
+      ]
+    },
+    {
+      "cta_id": "CTA-SUGGEST-OBSERVATION",
+      "intent": "suggest_observation",
+      "label": "O que devemos observar?",
+      "icon": "eye",
+      "entityRefs": ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+      "allowedEntityRefPrefixes": ["mechanism", "study"],
+      "requestedClaimIds": ["CLAIM-LDR007-VOICE-002"],
+      "candidateSkillIds": [
+        "SKILL-EVOLVE-MONITOR",
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-PRIVACY-SAFETY-GUARDIAN"
+      ],
+      "suggestedQuestions": [
+        "Quais são os sinais de que está funcionando?",
+        "Quais são os sinais de alerta?",
+        "Quando devo interromper o piloto?"
+      ]
+    },
+    {
+      "cta_id": "CTA-ORGANIZE-EVIDENCE",
+      "intent": "organize_evidence",
+      "label": "Organize as evidências",
+      "icon": "folder-check",
+      "entityRefs": ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
+      "allowedEntityRefPrefixes": ["mechanism", "study"],
+      "requestedClaimIds": ["CLAIM-EDMONDSON1999-VOICE-003"],
+      "candidateSkillIds": [
+        "SKILL-ESG-TRACE-ARCHITECT",
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-CORE-GOVERNANCE"
+      ],
+      "suggestedQuestions": [
+        "O que essa prévia pode e não pode afirmar?",
+        "O que falta para virar um relatório real?",
+        "Quais limitações preciso declarar?"
+      ]
+    }
+  ]
+}
