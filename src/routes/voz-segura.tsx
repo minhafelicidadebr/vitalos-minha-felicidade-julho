@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { EvidencePassport } from "@/app/evidence/EvidencePassport";
+import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   checkActivityBudget,
@@ -452,6 +453,7 @@ function VozSeguraTrail({
             <p className="mt-2 text-xs text-muted-foreground">
               Critério de feita: {VOZ_SEGURA_MISSION.doneCriteria}
             </p>
+            <FlorenciaSafeConversationEntryPoint />
             {missionStatus === "planejada" ? (
               <button
                 type="button"
