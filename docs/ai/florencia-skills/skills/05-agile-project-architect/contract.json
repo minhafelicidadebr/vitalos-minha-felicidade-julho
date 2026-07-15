@@ -1,0 +1,56 @@
+{
+  "skill_id": "SKILL-AGILE-PROJECT-ARCHITECT",
+  "name": "Arquiteto de Projetos Ágeis",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "project_management",
+  "purpose": "Converter intervenção aprovada em charter, backlog e cadência.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government"
+  ],
+  "supported_roles": [
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "COORDENACAO",
+    "DIRECAO",
+    "SECRETARIA_REDE",
+    "GESTOR_PUBLICO"
+  ],
+  "allowed_modes": [
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "approved_intervention",
+    "capacity",
+    "time_horizon"
+  ],
+  "outputs": [
+    "project_charter",
+    "epics",
+    "backlog",
+    "acceptance_criteria"
+  ],
+  "evidence_requirements": [
+    "Não cria claim científico."
+  ],
+  "privacy_rules": [
+    "Backlog sem dados sensíveis."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "budget",
+      "owner_assignment"
+    ]
+  },
+  "prohibited_uses": [
+    "Atribuir responsabilidade sem aprovação"
+  ],
+  "acceptance_tests": [
+    "Todo backlog tem critério de aceite."
+  ]
+}

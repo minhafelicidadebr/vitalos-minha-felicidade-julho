@@ -1,0 +1,161 @@
+{
+  "version": "1.0.0",
+  "methods": [
+    {
+      "method_id": "METHOD-30D-INTERVENTION",
+      "name": "Projeto de Intervenção de 30 Dias",
+      "segments": [
+        "enterprise",
+        "school"
+      ],
+      "purpose": "Converter prioridade em experimento supervisionado.",
+      "steps": [
+        "hipótese",
+        "contexto elegível",
+        "ações",
+        "métricas",
+        "efeitos adversos",
+        "stop rule",
+        "execução",
+        "revisão"
+      ],
+      "outputs": [
+        "project_charter",
+        "action_plan",
+        "metrics",
+        "stop_rules"
+      ],
+      "limitations": [
+        "Não prova causalidade.",
+        "Requer aprovação humana."
+      ]
+    },
+    {
+      "method_id": "METHOD-RACI-GOV",
+      "name": "Matriz RACI de Governança",
+      "segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "purpose": "Clarificar responsabilidade, aprovação, consulta e informação.",
+      "steps": [
+        "decisões",
+        "papéis",
+        "RACI",
+        "conflitos",
+        "aprovação",
+        "revisão"
+      ],
+      "outputs": [
+        "raci",
+        "decision_matrix"
+      ],
+      "limitations": [
+        "Não cria autoridade legal."
+      ]
+    },
+    {
+      "method_id": "METHOD-AGILE-BACKLOG",
+      "name": "Backlog Ágil de Transformação",
+      "segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "purpose": "Converter projeto em épicos, histórias e critérios.",
+      "steps": [
+        "resultado",
+        "épicos",
+        "histórias",
+        "aceite",
+        "priorização",
+        "cadência"
+      ],
+      "outputs": [
+        "epics",
+        "stories",
+        "acceptance_criteria"
+      ],
+      "limitations": [
+        "Não garante prazo ou resultado."
+      ]
+    },
+    {
+      "method_id": "METHOD-LEARNING-SPRINT",
+      "name": "Sprint de Aprendizagem",
+      "segments": [
+        "enterprise",
+        "school"
+      ],
+      "purpose": "Criar sequência aprender-praticar-aplicar-revisar.",
+      "steps": [
+        "microlearning",
+        "quiz",
+        "cenário",
+        "prática",
+        "missão",
+        "reflexão"
+      ],
+      "outputs": [
+        "learning_sequence",
+        "assessment",
+        "transfer_task"
+      ],
+      "limitations": [
+        "Não é formação clínica."
+      ]
+    },
+    {
+      "method_id": "METHOD-EVOLVE-REVIEW",
+      "name": "Revisão Evoluir",
+      "segments": [
+        "enterprise",
+        "school"
+      ],
+      "purpose": "Revisar execução, efeitos e decisão.",
+      "steps": [
+        "processo",
+        "resultado proximal",
+        "efeitos adversos",
+        "stop rules",
+        "decisão",
+        "aprendizado"
+      ],
+      "outputs": [
+        "review",
+        "decision",
+        "next_cycle"
+      ],
+      "limitations": [
+        "Não infere causalidade."
+      ]
+    },
+    {
+      "method_id": "METHOD-ESG-TRACE",
+      "name": "Rastro ESG Responsável",
+      "segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "purpose": "Documentar mecanismo, projeto, execução e limitações.",
+      "steps": [
+        "objetivo",
+        "mecanismo",
+        "evidências",
+        "indicadores",
+        "limitações",
+        "revisão"
+      ],
+      "outputs": [
+        "trace",
+        "evidence_index",
+        "narrative"
+      ],
+      "limitations": [
+        "Não autoriza claim de impacto."
+      ]
+    }
+  ]
+}

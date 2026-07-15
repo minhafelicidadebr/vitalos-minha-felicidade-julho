@@ -1,0 +1,57 @@
+{
+  "skill_id": "SKILL-INTERVENTION-PLANNER",
+  "name": "Planejador de Intervenções",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "intervention",
+  "purpose": "Converter prioridade em alternativas e projeto supervisionado.",
+  "supported_segments": [
+    "enterprise",
+    "school"
+  ],
+  "supported_roles": [
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "COORDENACAO",
+    "DIRECAO",
+    "SECRETARIA_REDE"
+  ],
+  "allowed_modes": [
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "priority",
+    "mechanism_id",
+    "allowed_claims",
+    "context"
+  ],
+  "outputs": [
+    "options",
+    "project_draft",
+    "metrics",
+    "risks",
+    "stop_rules"
+  ],
+  "evidence_requirements": [
+    "Toda intervenção declara hipótese e limites."
+  ],
+  "privacy_rules": [
+    "Somente contexto agregado ou institucional."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "project_approval",
+      "resource_commitment"
+    ]
+  },
+  "prohibited_uses": [
+    "Prescrição automática",
+    "Promessa de impacto"
+  ],
+  "acceptance_tests": [
+    "Toda opção inclui stop rule."
+  ]
+}

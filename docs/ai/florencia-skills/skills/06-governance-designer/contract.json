@@ -1,0 +1,54 @@
+{
+  "skill_id": "SKILL-GOVERNANCE-DESIGNER",
+  "name": "Designer de Governança",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "governance",
+  "purpose": "Estruturar papéis, alçadas, fóruns, decisões e prestação de contas.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government"
+  ],
+  "supported_roles": [
+    "RH_ADMIN",
+    "CHRO",
+    "C_LEVEL",
+    "DIRECAO",
+    "SECRETARIA_REDE",
+    "GESTOR_PUBLICO"
+  ],
+  "allowed_modes": [
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "program_scope",
+    "stakeholders",
+    "decision_types"
+  ],
+  "outputs": [
+    "raci",
+    "decision_matrix",
+    "governance_calendar",
+    "escalation_path"
+  ],
+  "evidence_requirements": [
+    "Método vem do Method Registry."
+  ],
+  "privacy_rules": [
+    "Menor privilégio."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "formal_governance_change"
+    ]
+  },
+  "prohibited_uses": [
+    "Criar autoridade inexistente"
+  ],
+  "acceptance_tests": [
+    "Cada decisão tem responsável e aprovador."
+  ]
+}

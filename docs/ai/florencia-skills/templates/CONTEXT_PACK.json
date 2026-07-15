@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "task_id": "TASK-EXAMPLE",
+  "segment": "enterprise",
+  "role": "LIDER_EQUIPE",
+  "route": "/voz-segura",
+  "section": "mission",
+  "cta_id": "CTA-PREPARE-CONVERSATION",
+  "privacy_scope": "aggregate_only",
+  "product_status": "PARCIAL",
+  "allowed_skills": [
+    "SKILL-INTERVENTION-PLANNER",
+    "SKILL-EVIDENCE-CLAIM-GUARDIAN"
+  ],
+  "allowed_claims": [
+    {
+      "claim_id": "CLAIM-VOICE-001",
+      "study_id": "EDMONDSON-1999",
+      "intended_use": "leader_microlearning"
+    }
+  ],
+  "mechanism_ids": [
+    "MECH-VOICE-001"
+  ],
+  "constraints": [
+    "no_llm",
+    "no_new_claims",
+    "no_individual_data"
+  ]
+}

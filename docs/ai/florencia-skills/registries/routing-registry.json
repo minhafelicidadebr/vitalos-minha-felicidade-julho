@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "intent": "explain_signal",
+      "mode": "MEASURE",
+      "primary_skill": "SKILL-DATA-TO-ACTION",
+      "auxiliary_skills": [
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-PRIVACY-SAFETY-GUARDIAN"
+      ]
+    },
+    {
+      "intent": "create_learning_path",
+      "mode": "LEARN",
+      "primary_skill": "SKILL-LEARNING-EXPERIENCE-DESIGNER",
+      "auxiliary_skills": [
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-PREMIUM-UX-ACCESSIBILITY"
+      ]
+    },
+    {
+      "intent": "plan_intervention",
+      "mode": "TRANSFORM",
+      "primary_skill": "SKILL-INTERVENTION-PLANNER",
+      "auxiliary_skills": [
+        "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+        "SKILL-AGILE-PROJECT-ARCHITECT",
+        "SKILL-PRIVACY-SAFETY-GUARDIAN"
+      ]
+    },
+    {
+      "intent": "design_governance",
+      "mode": "TRANSFORM",
+      "primary_skill": "SKILL-GOVERNANCE-DESIGNER",
+      "auxiliary_skills": [
+        "SKILL-CORE-GOVERNANCE"
+      ]
+    },
+    {
+      "intent": "review_evolution",
+      "mode": "EVOLVE",
+      "primary_skill": "SKILL-EVOLVE-MONITOR",
+      "auxiliary_skills": [
+        "SKILL-PRIVACY-SAFETY-GUARDIAN",
+        "SKILL-ESG-TRACE-ARCHITECT"
+      ]
+    }
+  ]
+}

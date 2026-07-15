@@ -1,0 +1,53 @@
+{
+  "skill_id": "SKILL-PREMIUM-UX-ACCESSIBILITY",
+  "name": "UX Premium e Acessibilidade",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "ux",
+  "purpose": "Garantir interação contextual, clara, acessível e sem poluição visual.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government",
+    "condominium",
+    "health"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "surface",
+    "cta_definition",
+    "response_contract",
+    "a11y_preferences"
+  ],
+  "outputs": [
+    "cta_hierarchy",
+    "drawer_state",
+    "copy",
+    "a11y_checks"
+  ],
+  "evidence_requirements": [
+    "Não altera claims."
+  ],
+  "privacy_rules": [
+    "Transparência de dados e limites."
+  ],
+  "human_review": {
+    "required": false,
+    "triggers": []
+  },
+  "prohibited_uses": [
+    "Dark patterns",
+    "Capacidade simulada como real"
+  ],
+  "acceptance_tests": [
+    "Teclado, foco, ARIA, mobile e reduced motion."
+  ]
+}
