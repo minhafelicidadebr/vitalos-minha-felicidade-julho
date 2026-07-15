@@ -29,8 +29,10 @@ export function FlorenciaDrawer({ open, onOpenChange, result }: FlorenciaDrawerP
         className="flex w-[92vw] max-w-md flex-col overflow-y-auto border-l-border/60 bg-background/98 p-0 backdrop-blur-xl"
       >
         <SheetHeader className="border-b border-border/60 bg-card/55 px-6 py-5 text-left">
-          <SheetTitle className="font-serif text-lg">FlorêncIA</SheetTitle>
-          <SheetDescription>Copiloto contextual</SheetDescription>
+          <SheetTitle className="font-serif text-lg">FlorêncIA — Copiloto VitalOS</SheetTitle>
+          <SheetDescription>
+            Inteligência para compreender, aprender, transformar e evoluir.
+          </SheetDescription>
         </SheetHeader>
         <div className="flex-1 px-6 py-6">
           {result === null ? <EmptyState /> : null}
@@ -42,8 +44,10 @@ export function FlorenciaDrawer({ open, onOpenChange, result }: FlorenciaDrawerP
   );
 }
 
+// Fallback defensivo — o orquestrador não deve abrir o drawer com
+// result === null. O drawer não busca, gera ou reconstrói o resultado.
 function EmptyState() {
-  return <p className="text-sm text-muted-foreground">Nenhuma orientação selecionada ainda.</p>;
+  return <p className="text-sm text-muted-foreground">Não foi possível preparar esta orientação.</p>;
 }
 
 function BlockedState({
@@ -66,6 +70,9 @@ function AllowedState({
           <h2 className="font-serif text-xl text-foreground">{result.title}</h2>
           <StatusBadge status={result.classification} />
         </div>
+        {result.classification === "DEMO" ? (
+          <p className="text-xs text-muted-foreground">Conteúdo demonstrativo.</p>
+        ) : null}
         <p className="text-sm text-muted-foreground">{result.summary}</p>
       </div>
 
@@ -97,9 +104,12 @@ function AllowedState({
 
       <Separator />
 
-      <p className="text-sm font-medium text-foreground">
-        Próximo passo sugerido: {result.nextActionLabel}
-      </p>
+      <div className="space-y-1">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          Próximo passo sugerido
+        </h3>
+        <p className="text-sm font-medium text-foreground">{result.nextActionLabel}</p>
+      </div>
     </div>
   );
 }

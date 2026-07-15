@@ -60,24 +60,39 @@ function withClassification(
 function noop() {}
 
 describe("FlorenciaDrawer — identidade institucional", () => {
-  test("mostra o título FlorêncIA no estado allowed", () => {
+  test("mostra o título 'FlorêncIA — Copiloto VitalOS' no estado allowed", () => {
     render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
-    expect(screen.getByRole("heading", { name: "FlorêncIA" })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "FlorêncIA — Copiloto VitalOS" })).toBeDefined();
   });
 
   test("mostra o título FlorêncIA no estado blocked", () => {
     render(<FlorenciaDrawer open result={BLOCKED_RESULT} onOpenChange={noop} />);
-    expect(screen.getByRole("heading", { name: "FlorêncIA" })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "FlorêncIA — Copiloto VitalOS" })).toBeDefined();
   });
 
   test("mostra o título FlorêncIA no estado vazio (result null)", () => {
     render(<FlorenciaDrawer open result={null} onOpenChange={noop} />);
-    expect(screen.getByRole("heading", { name: "FlorêncIA" })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "FlorêncIA — Copiloto VitalOS" })).toBeDefined();
   });
 
-  test("mostra a descrição institucional 'Copiloto contextual'", () => {
+  test("mostra a assinatura institucional aprovada", () => {
     render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
-    expect(screen.getByText("Copiloto contextual")).toBeDefined();
+    expect(
+      screen.getByText("Inteligência para compreender, aprender, transformar e evoluir."),
+    ).toBeDefined();
+  });
+
+  test.each([
+    "Copiloto contextual",
+    "Assistente VitalOS",
+    "Chatbot",
+    "Agente de IA",
+    "Conselheira",
+    "Consultora",
+    "Auditora",
+  ])("nunca usa a denominação proibida '%s'", (forbidden) => {
+    const { container } = render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
+    expect(container.textContent?.includes(forbidden)).toBe(false);
   });
 });
 
@@ -110,9 +125,16 @@ describe("FlorenciaDrawer — estado allowed", () => {
 
   test("renderiza nextActionLabel como texto, não como controle clicável", () => {
     render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
-    expect(screen.getByText(/Revisar o roteiro da conversa/)).toBeDefined();
+    expect(screen.getByText("Revisar o roteiro da conversa")).toBeDefined();
     expect(screen.queryByRole("button", { name: /Revisar o roteiro da conversa/ })).toBeNull();
     expect(screen.queryByRole("link", { name: /Revisar o roteiro da conversa/ })).toBeNull();
+  });
+
+  test("próximo passo aparece em título de seção + conteúdo separados, não concatenados", () => {
+    render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
+    expect(screen.getByText("Próximo passo sugerido")).toBeDefined();
+    expect(screen.getByText("Revisar o roteiro da conversa")).toBeDefined();
+    expect(screen.queryByText("Próximo passo sugerido: Revisar o roteiro da conversa")).toBeNull();
   });
 
   test.each([["REAL"], ["PARCIAL"], ["DEMO"]] as const)(
@@ -121,6 +143,19 @@ describe("FlorenciaDrawer — estado allowed", () => {
       render(<FlorenciaDrawer open result={withClassification(classification)} onOpenChange={noop} />);
       const expectedLabel = { REAL: "Real", PARCIAL: "Parcial", DEMO: "Demo" }[classification];
       expect(screen.getByText(expectedLabel)).toBeDefined();
+    },
+  );
+
+  test("classification=DEMO mostra 'Conteúdo demonstrativo.' sem parecer selo de aprovação", () => {
+    render(<FlorenciaDrawer open result={withClassification("DEMO")} onOpenChange={noop} />);
+    expect(screen.getByText("Conteúdo demonstrativo.")).toBeDefined();
+  });
+
+  test.each([["REAL"], ["PARCIAL"]] as const)(
+    "classification=%s não mostra a nota 'Conteúdo demonstrativo.'",
+    (classification) => {
+      render(<FlorenciaDrawer open result={withClassification(classification)} onOpenChange={noop} />);
+      expect(screen.queryByText("Conteúdo demonstrativo.")).toBeNull();
     },
   );
 
@@ -154,9 +189,9 @@ describe("FlorenciaDrawer — estado blocked", () => {
 });
 
 describe("FlorenciaDrawer — estado vazio (result null)", () => {
-  test("renderiza a mensagem de estado vazio", () => {
+  test("renderiza a mensagem de fallback defensivo", () => {
     render(<FlorenciaDrawer open result={null} onOpenChange={noop} />);
-    expect(screen.getByText("Nenhuma orientação selecionada ainda.")).toBeDefined();
+    expect(screen.getByText("Não foi possível preparar esta orientação.")).toBeDefined();
   });
 
   test("não renderiza conteúdo de allowed nem de blocked", () => {
