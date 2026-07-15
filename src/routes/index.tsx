@@ -165,7 +165,7 @@ function LandingPage() {
         <Nr1Section onAction={onAction} />
         <ProductModulesSection />
         <EcosystemApplicationsSection onAction={onAction} />
-        <EducationalInnovationsSection onAction={onAction} />
+        
         <PersonaPathwaysSection />
         <TrustSection />
         <ProofNumbersSection />
