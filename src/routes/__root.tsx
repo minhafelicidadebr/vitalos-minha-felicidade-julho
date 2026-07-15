@@ -124,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/af93e811-644d-46bc-98b3-d017d7d1313d" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }, { rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+    links: [{ rel: "stylesheet", href: appCss },],
   }),
   shellComponent: RootShell,
   component: RootComponent,
