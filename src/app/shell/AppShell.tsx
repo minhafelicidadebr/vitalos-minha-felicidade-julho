@@ -563,7 +563,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {/* Desktop grouped nav */}
             <nav
-              className="ml-2 hidden flex-1 items-center gap-0.5 xl:flex"
+              className="ml-6 hidden flex-1 items-center gap-1 xl:ml-10 xl:flex"
               aria-label="Navegação principal"
             >
               {overview && (
