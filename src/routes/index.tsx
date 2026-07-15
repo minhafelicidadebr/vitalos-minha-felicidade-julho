@@ -17,7 +17,7 @@ import { GlobalEsgSection } from "@/features/landing/components/GlobalEsgSection
 import { MethodologySection } from "@/features/landing/components/MethodologySection";
 import { ProductModulesSection } from "@/features/landing/components/ProductModulesSection";
 import { EcosystemApplicationsSection } from "@/features/landing/components/EcosystemApplicationsSection";
-import { EducationalInnovationsSection } from "@/features/landing/components/EducationalInnovationsSection";
+
 import { PersonaPathwaysSection } from "@/features/landing/components/PersonaPathwaysSection";
 import { TrustSection } from "@/features/landing/components/TrustSection";
 import { Nr1Section } from "@/features/landing/components/Nr1Section";
