@@ -1,6 +1,6 @@
 {
   "registry": "FlorêncIA CTA Registry",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "As 5 CTAs do primeiro corte (Empresa × Líder × Voz Segura). cta_id é o identificador estável do RawContextEnvelope (docs/ai/florencia-skills/schemas/context-envelope.schema.json); intent é resolvido daqui e decide o modo M.E.T.E. via mode-router — este registro nunca declara mode/profile diretamente. suggestedQuestions é a fonte única. allowedEntityRefPrefixes é a allowlist que src/engine/florencia/cta-resolution.ts aplica sobre os entity_refs do envelope — nenhum ref fora dela sobrevive à resolução. candidateSkillIds usa só os skill_id reais de docs/ai/florencia-skills/registries/skill-registry.json (1 principal + até 3 auxiliares).",
   "ctas": [
     {
@@ -25,7 +25,7 @@
     {
       "cta_id": "CTA-PREPARE-CONVERSATION",
       "intent": "prepare_conversation",
-      "label": "Prepare esta conversa",
+      "label": "Preparar uma conversa segura",
       "icon": "message-circle",
       "entityRefs": ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
       "allowedEntityRefPrefixes": ["mechanism", "study"],
