@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { EvidencePassport } from "@/app/evidence/EvidencePassport";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   checkActivityBudget,
   resolveStudy,
@@ -469,6 +470,12 @@ function VozSeguraTrail({
 
         {/* ─── 6 · Registrar (ActionLog) ─── */}
         <Section step="6" title="Registrar a rodada" lead="Só números e fatos operacionais — nunca nomes, nunca conteúdo pessoal.">
+          <div className="mb-3 flex items-center gap-2">
+            <StatusBadge status="DEMO" title="Sem persistência — os dados desta seção existem só nesta sessão do navegador" />
+            <span className="text-xs text-muted-foreground">
+              sem persistência — dados desta sessão
+            </span>
+          </div>
           {missionStatus === "planejada" ? (
             <p className="rounded-2xl border border-dashed border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
               Assuma a missão (etapa 5) para começar a registrar rodadas.
@@ -619,9 +626,12 @@ function VozSeguraTrail({
           </div>
 
           <div className="mt-3 rounded-2xl border border-border/70 bg-muted/20 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Rastro ESG · {esgTrace.trace_id}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Prévia de rastreabilidade ESG · {esgTrace.trace_id}
+              </p>
+              <StatusBadge status="DEMO" title="Sem persistência — nenhum relatório ESG real é gerado a partir desta prévia" />
+            </div>
             <dl className="mt-2 space-y-1.5 text-xs leading-relaxed">
               <TraceLine label="Projeto" value={esgTrace.project_ref} />
               <TraceLine label="Mecanismo" value={esgTrace.mechanism_ref} />
