@@ -30,6 +30,7 @@ import type { CtaAction } from "@/features/landing/data/landing-copy";
 import { DemoGateForm } from "@/app/shell/DemoGate";
 import { useDemoGate } from "@/app/shell/demo-gate";
 import { ThemeToggle } from "@/app/shell/ThemeToggle";
+import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 
 const LANDING_NAV = [
   ["Solução", "#solucao"],
@@ -50,32 +51,6 @@ export const Route = createFileRoute("/")({
   }),
   component: LandingPage,
 });
-
-/** Logo simbólica do Programa VitalOS™ — quatro pétalas vivas (EU · NÓS ·
- * LIDERANÇA · ORGANIZAÇÃO) em torno de um núcleo de vitalidade. SVG puro,
- * usa tokens semânticos (currentColor + accent). */
-function VitalOsLogo({ className = "h-9 w-9" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="vlos-core" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      {/* Pétalas — 4 lentes */}
-      <g fill="currentColor" opacity="0.9">
-        <ellipse cx="20" cy="9" rx="4" ry="7" />
-        <ellipse cx="20" cy="31" rx="4" ry="7" />
-        <ellipse cx="9" cy="20" rx="7" ry="4" />
-        <ellipse cx="31" cy="20" rx="7" ry="4" />
-      </g>
-      {/* Núcleo */}
-      <circle cx="20" cy="20" r="9" fill="url(#vlos-core)" />
-      <circle cx="20" cy="20" r="3.2" fill="var(--color-accent)" />
-    </svg>
-  );
-}
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -103,23 +78,10 @@ function LandingPage() {
         <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link
             to="/"
-            className="group flex min-w-0 items-center gap-2.5 text-primary"
-            aria-label="Programa VitalOS — início"
+            className="flex min-w-0 shrink-0 items-center transition-transform duration-300 hover:-translate-y-0.5"
+            aria-label="Programa VitalOS — página inicial"
           >
-            <span
-              aria-hidden
-              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl"
-            >
-              <VitalOsLogo className="h-6 w-6 text-primary-foreground" />
-            </span>
-            <span className="hidden min-w-0 flex-col leading-tight min-[480px]:flex">
-              <span className="font-serif text-base tracking-tight text-foreground">
-                Programa VitalOS™
-              </span>
-              <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
-                Felicidade e Crescimento para Todos
-              </span>
-            </span>
+            <VitalOSBrand variant="horizontal" size="md" />
           </Link>
 
           <nav

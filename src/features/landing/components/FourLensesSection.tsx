@@ -4,47 +4,17 @@ import { ArrowRight, FileText, Grid3X3, ScanSearch } from "lucide-react";
 import { LENSES, CATEGORY, IVO_DIMENSIONS, IVO_BRAND, type CtaAction } from "../data/landing-copy";
 import { TONE_CLASS } from "./icons";
 import strategyLenses from "@/assets/strategy-lenses-hologram-transparent.png";
+import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 
 function IvoBrandMark() {
   return (
     <div className="flex flex-col gap-5 rounded-3xl border border-accent/25 bg-background/65 p-5 shadow-xl shadow-primary/5 backdrop-blur">
       <div className="flex items-center gap-4">
-        <svg
-          viewBox="0 0 96 96"
-          aria-hidden
-          className="h-20 w-20 shrink-0 text-primary drop-shadow-[0_0_18px_rgba(201,162,39,0.26)]"
-        >
-          <defs>
-            <radialGradient id="ivo-mark-core" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.95" />
-              <stop offset="72%" stopColor="var(--color-primary)" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <circle cx="48" cy="48" r="34" fill="none" stroke="currentColor" strokeOpacity="0.22" />
-          <circle
-            cx="48"
-            cy="48"
-            r="42"
-            fill="none"
-            stroke="var(--color-accent)"
-            strokeDasharray="5 8"
-            strokeOpacity="0.55"
-          />
-          <ellipse cx="48" cy="21" rx="8" ry="15" fill="currentColor" opacity="0.88" />
-          <ellipse cx="48" cy="75" rx="8" ry="15" fill="currentColor" opacity="0.42" />
-          <ellipse cx="21" cy="48" rx="15" ry="8" fill="currentColor" opacity="0.62" />
-          <ellipse cx="75" cy="48" rx="15" ry="8" fill="currentColor" opacity="0.72" />
-          <circle cx="48" cy="48" r="22" fill="url(#ivo-mark-core)" />
-          <text
-            x="48"
-            y="53"
-            textAnchor="middle"
-            className="fill-background font-serif text-[17px] font-bold"
-          >
-            IVO
-          </text>
-        </svg>
+        <VitalOSBrand
+          variant="mark"
+          size="ivo"
+          className="drop-shadow-[0_0_18px_rgba(201,162,39,0.26)]"
+        />
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
             {IVO_BRAND.acronym}
