@@ -64,19 +64,8 @@ function Nr1Page() {
       {/* Header público */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/82 backdrop-blur-xl supports-[backdrop-filter]:bg-background/72">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link to="/" className="group flex min-w-0 items-center gap-2.5 text-primary" aria-label="VitalOS — início">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-inset ring-white/10"
-            >
-              <VitalOsMark className="h-5 w-5 text-primary-foreground" />
-            </span>
-            <span className="hidden min-w-0 flex-col leading-tight min-[420px]:flex">
-              <span className="font-serif text-sm tracking-tight text-foreground">VitalOS™</span>
-              <span className="truncate text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Conformidade NR-1
-              </span>
-            </span>
+          <Link to="/" className="group flex min-w-0 items-center gap-2.5" aria-label="VitalOS — início">
+            <VitalOSBrand variant="horizontal" size="md" />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
