@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Florencia Raw Context Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cta_id",
+    "segment",
+    "role",
+    "route",
+    "section",
+    "privacy_scope",
+    "product_status"
+  ],
+  "properties": {
+    "cta_id": {
+      "type": "string",
+      "pattern": "^CTA-[A-Z0-9-]+$"
+    },
+    "segment": {
+      "enum": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ]
+    },
+    "role": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string",
+      "pattern": "^/"
+    },
+    "section": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "entity_refs": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "string",
+        "pattern": "^(mechanism|study|claim|cycle|driver|project):[A-Za-z0-9._-]+$"
+      }
+    },
+    "privacy_scope": {
+      "enum": [
+        "self_private",
+        "aggregate_only",
+        "tenant_authorized",
+        "public_content"
+      ]
+    },
+    "product_status": {
+      "enum": [
+        "REAL",
+        "PARCIAL",
+        "DEMO",
+        "ROADMAP"
+      ]
+    }
+  }
+}

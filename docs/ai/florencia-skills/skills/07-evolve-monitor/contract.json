@@ -1,0 +1,54 @@
+{
+  "skill_id": "SKILL-EVOLVE-MONITOR",
+  "name": "Monitor de Evolução",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "monitoring",
+  "purpose": "Converter ActionLog e indicadores em aprendizado e decisão manter/ajustar/interromper.",
+  "supported_segments": [
+    "enterprise",
+    "school"
+  ],
+  "supported_roles": [
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "COORDENACAO",
+    "DIRECAO",
+    "SECRETARIA_REDE"
+  ],
+  "allowed_modes": [
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "action_log_events",
+    "process_metrics",
+    "outcome_metrics",
+    "stop_rules"
+  ],
+  "outputs": [
+    "progress_summary",
+    "adverse_effects",
+    "decision_options"
+  ],
+  "evidence_requirements": [
+    "Não inferir causalidade."
+  ],
+  "privacy_rules": [
+    "Somente agregados autorizados."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "stop_rule_triggered",
+      "adverse_effect"
+    ]
+  },
+  "prohibited_uses": [
+    "Comparar indivíduos",
+    "Ocultar efeitos adversos"
+  ],
+  "acceptance_tests": [
+    "Stop rule gera escalonamento."
+  ]
+}

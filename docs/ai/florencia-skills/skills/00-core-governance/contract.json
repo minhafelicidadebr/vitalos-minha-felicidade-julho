@@ -1,0 +1,56 @@
+{
+  "skill_id": "SKILL-CORE-GOVERNANCE",
+  "name": "Governança Central",
+  "version": "1.0.0",
+  "status": "REAL",
+  "category": "governance",
+  "purpose": "Aplicar Constituição, Policy Gate, status e revisão humana.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government",
+    "condominium",
+    "health"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "context_envelope",
+    "intent",
+    "role",
+    "segment"
+  ],
+  "outputs": [
+    "policy_decision",
+    "allowed_skills",
+    "limits"
+  ],
+  "evidence_requirements": [
+    "Não cria claims."
+  ],
+  "privacy_rules": [
+    "Bloqueia cross-tenant e dados individuais."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "legal_risk",
+      "clinical_risk",
+      "people_decision"
+    ]
+  },
+  "prohibited_uses": [
+    "Bypass de gates",
+    "Aprovação automática"
+  ],
+  "acceptance_tests": [
+    "Toda execução retorna limites."
+  ]
+}

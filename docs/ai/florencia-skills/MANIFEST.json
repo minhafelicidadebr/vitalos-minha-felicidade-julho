@@ -1,0 +1,271 @@
+{
+  "repository": "florencia-skills-repository",
+  "version": "1.0.1",
+  "files": [
+    {
+      "path": "ACTIVATE.md",
+      "sha256": "b2543af1d7133def45200903fec63d37b9108d5b8c2c48967195bce5783fae1f",
+      "size_bytes": 459
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "b173e42fdc8f84be2080c355dd18c19e7f3b985ba87656f366947c91f33a67b0",
+      "size_bytes": 596
+    },
+    {
+      "path": "FLORÊNCIA_CONSTITUTION.md",
+      "sha256": "cb38741eede5329f378049ef42e6c06572327f6f631eebd337fc328c4b573ff7",
+      "size_bytes": 1628
+    },
+    {
+      "path": "LICENSE_INTERNAL.md",
+      "sha256": "01846170e770af9366cb9387c76005d3aa888a5979633ac110641b552381077c",
+      "size_bytes": 189
+    },
+    {
+      "path": "README.md",
+      "sha256": "bcfc284487930c84dcc9d302b66e92ae9dff9bf4a6253e9f9bb012de0cfc1b0e",
+      "size_bytes": 989
+    },
+    {
+      "path": "SUPER_PROMPT_INTEGRACAO_FABLE5.md",
+      "sha256": "c565a13f86be5c9503632e07b486c6da0d3a5260c39e7015bee1cf74e3c98e09",
+      "size_bytes": 2953
+    },
+    {
+      "path": "VALIDATION_REPORT.txt",
+      "sha256": "0d0292616dce846c1b3084734870398313660c3874516394a9dc4ee3c5de5df2",
+      "size_bytes": 29
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "083c4cb1e37fd24679da7529ff06c24751dd380e98770cc0fad39396dd653c00",
+      "size_bytes": 385
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "sha256": "3a00c4b96e7dba764a23180bd1444e97db99e7a357f181de8b1b1a5bd08b5445",
+      "size_bytes": 346
+    },
+    {
+      "path": "docs/TOT_ARCHITECTURE_DECISION.md",
+      "sha256": "7eaceda9f25a00639ece228adf14a5c37bf8a97e63d731d00be740ba0e4c4315",
+      "size_bytes": 539
+    },
+    {
+      "path": "examples/enterprise-safe-voice.md",
+      "sha256": "8c78035e56aba7be00688a17e4a7a8dcefdd221e294301737e5f50344152f525",
+      "size_bytes": 434
+    },
+    {
+      "path": "examples/school-voice-belonging.md",
+      "sha256": "6ea2811c221374f7e4ff5ff850d3784221890960265f882fccbbb23b0397e7b2",
+      "size_bytes": 328
+    },
+    {
+      "path": "registries/method-registry.json",
+      "sha256": "270faa92eedef941f5f06c3fd51a2a0fba03bd04d2911386e91dd80a63f2f6c9",
+      "size_bytes": 3546
+    },
+    {
+      "path": "registries/routing-registry.json",
+      "sha256": "a87c405b9a5ce8f8102beaea66adfaad4d2f59e748ee7f6d135b2d8ba2814c4b",
+      "size_bytes": 1250
+    },
+    {
+      "path": "registries/segment-registry.json",
+      "sha256": "45dbd71fb64b630aef68414bf22097609008ad8eb85a2c799c7ca709e7de53f9",
+      "size_bytes": 826
+    },
+    {
+      "path": "registries/skill-registry.json",
+      "sha256": "1f23530d6b501f9da318272bb18365429b8627a42f5be321fcf914139aad9f3b",
+      "size_bytes": 6607
+    },
+    {
+      "path": "schemas/context-envelope.schema.json",
+      "sha256": "6df344ce656118ca592d0cf01074cbdee23d19420257d3511e1f2bd70b3e8016",
+      "size_bytes": 1381
+    },
+    {
+      "path": "schemas/response.schema.json",
+      "sha256": "110a38366acee0353a1c2a4eadd7b35b28d957302ca4f7a63bc269b3b774faa4",
+      "size_bytes": 951
+    },
+    {
+      "path": "schemas/skill.schema.json",
+      "sha256": "48a34478e099fa0e3ce2bcc856d0748d1a247cf662121c6113db400598fe150b",
+      "size_bytes": 1973
+    },
+    {
+      "path": "scripts/validate_repository.py",
+      "sha256": "aac12cea74b5e9abb75949ee2c74924a88d26cbaf5b72ec5f4c9db3479b58eee",
+      "size_bytes": 817
+    },
+    {
+      "path": "skills/00-core-governance/SKILL.md",
+      "sha256": "bd2e7b849ddfaf8b35cb5a130ae328b890725958ddf24fd9c43ab09444368f07",
+      "size_bytes": 819
+    },
+    {
+      "path": "skills/00-core-governance/contract.json",
+      "sha256": "29e5bf3b9f87e4baaba4a5d46154509b5317283b281579bd12cbe35ed2e1ea87",
+      "size_bytes": 1046
+    },
+    {
+      "path": "skills/01-context-orchestration/SKILL.md",
+      "sha256": "c4901d905c6809c57ad13f2e77ec5aeebede02c06580753d4c4ec1d880fcf149",
+      "size_bytes": 782
+    },
+    {
+      "path": "skills/01-context-orchestration/contract.json",
+      "sha256": "b01b0f3b019b1bbcba9f6714a9a69ef1727d624b6f9d8645932d470c6b7e2c46",
+      "size_bytes": 959
+    },
+    {
+      "path": "skills/02-evidence-claim-guardian/SKILL.md",
+      "sha256": "a19a5915c07b568732fe6c76e616c6ef5b22da8be46e57c64357eded7e415733",
+      "size_bytes": 913
+    },
+    {
+      "path": "skills/02-evidence-claim-guardian/contract.json",
+      "sha256": "d1a652cb222cff1c4a5af7a20ea462c8e52a01454c59e8cbc04d6351e9fdf7a9",
+      "size_bytes": 1143
+    },
+    {
+      "path": "skills/03-learning-experience-designer/SKILL.md",
+      "sha256": "3363de68526df2b6f540848a57582f0fa94c081ed158864c00389f72f6d949d0",
+      "size_bytes": 881
+    },
+    {
+      "path": "skills/03-learning-experience-designer/contract.json",
+      "sha256": "71a5c114ba2b21ed6e48cf9784dcfa563c837f378bcbdf995e51b9e05a80920f",
+      "size_bytes": 1137
+    },
+    {
+      "path": "skills/04-intervention-planner/SKILL.md",
+      "sha256": "3482f09cddd4f44aa1237e5ca79e75c87b3379240c0b893c051d37e36711fe51",
+      "size_bytes": 886
+    },
+    {
+      "path": "skills/04-intervention-planner/contract.json",
+      "sha256": "1b6b66133e44a8cdbc1752c44fed82beb8a03c971d2d6df9b1295e382719e5a3",
+      "size_bytes": 1134
+    },
+    {
+      "path": "skills/05-agile-project-architect/SKILL.md",
+      "sha256": "13783bd56aaa2abed00359296e128c1591b20116d8fd789df697ed7c69f3e002",
+      "size_bytes": 848
+    },
+    {
+      "path": "skills/05-agile-project-architect/contract.json",
+      "sha256": "cf77111f94925b46c2d9da3d406974365a1c8f1e6102a4181239be443a4ed1ad",
+      "size_bytes": 1125
+    },
+    {
+      "path": "skills/06-governance-designer/SKILL.md",
+      "sha256": "ce6ce62e0a75239447c2b08167190cae8f0d66b574c65c4ef9438b876e058e56",
+      "size_bytes": 826
+    },
+    {
+      "path": "skills/06-governance-designer/contract.json",
+      "sha256": "45571d44b549d1b0565a8715d917b8f9287b945d5ec46ec8db3b2aee32f6c65e",
+      "size_bytes": 1074
+    },
+    {
+      "path": "skills/07-evolve-monitor/SKILL.md",
+      "sha256": "27ee217c8d5813c699b3cf42c0906d41db137e40a0d2f740118dfb812c5b2c0d",
+      "size_bytes": 870
+    },
+    {
+      "path": "skills/07-evolve-monitor/contract.json",
+      "sha256": "3d98c0cde8c1cdb1f9439e7a494d8e9fbc9fbd6a274ebc7da8673166f66b765c",
+      "size_bytes": 1095
+    },
+    {
+      "path": "skills/08-esg-trace-architect/SKILL.md",
+      "sha256": "5c848aaa01b8611cc15122f308f088a7e4bf5f7bedbd87951fc6486e73ef3267",
+      "size_bytes": 918
+    },
+    {
+      "path": "skills/08-esg-trace-architect/contract.json",
+      "sha256": "eff95b3a34d548cfed7e8febdbabd83c37e10ef5b7a774854bbc1c2f10cdcbfa",
+      "size_bytes": 1165
+    },
+    {
+      "path": "skills/09-enterprise-pack/SKILL.md",
+      "sha256": "14e1a9837db5c6eb09f8885ae4e83386c0789e31033c89bae5b89a0d777455c0",
+      "size_bytes": 845
+    },
+    {
+      "path": "skills/09-enterprise-pack/contract.json",
+      "sha256": "dcd4be75765be2462d5b392518ac696fe249f53f21f34cd7e4377efc54391a62",
+      "size_bytes": 1063
+    },
+    {
+      "path": "skills/10-school-pack/SKILL.md",
+      "sha256": "f7a79cb5cbcc5ac41d13f6850d14a6a2ed9d3ba57d42f45a2c5b44dc424e5edb",
+      "size_bytes": 869
+    },
+    {
+      "path": "skills/10-school-pack/contract.json",
+      "sha256": "431536281b1cebb9637ace7431210143554ad9d3e905eee37ff00b810c97fd92",
+      "size_bytes": 1123
+    },
+    {
+      "path": "skills/11-privacy-safety-guardian/SKILL.md",
+      "sha256": "b4c61c91bbbfb600d745a820ca041948a9fc966d71a936bf1c54295e66c77f29",
+      "size_bytes": 935
+    },
+    {
+      "path": "skills/11-privacy-safety-guardian/contract.json",
+      "sha256": "7d255524a84623b14007fd86eb45c5a746122d0f7b2a8a0d72140f9eab04e0c1",
+      "size_bytes": 1183
+    },
+    {
+      "path": "skills/12-premium-ux-accessibility/SKILL.md",
+      "sha256": "97c80450fd9df490c862f6c50539950b4b8d6a5227302b153f16d2ac22f4c095",
+      "size_bytes": 856
+    },
+    {
+      "path": "skills/12-premium-ux-accessibility/contract.json",
+      "sha256": "de303c6864e282a80502edf39864691e9055e8dd90bcafde97b5c283e3a7cf3a",
+      "size_bytes": 1045
+    },
+    {
+      "path": "skills/13-conversation-facilitator/SKILL.md",
+      "sha256": "38d72bbdd0b5b248c4811fda59f2e576562cc74ffbc6643ddac75c5ba757e703",
+      "size_bytes": 793
+    },
+    {
+      "path": "skills/13-conversation-facilitator/contract.json",
+      "sha256": "82cc3705f1d162eb6b10b8e0ccc7f3b73c586d1017948786833f0411c62d5e4c",
+      "size_bytes": 961
+    },
+    {
+      "path": "skills/14-data-to-action/SKILL.md",
+      "sha256": "1d5a9288ad366935791ea874b973d2cdcd1f76698b73af0092c5bb72c412822b",
+      "size_bytes": 887
+    },
+    {
+      "path": "skills/14-data-to-action/contract.json",
+      "sha256": "f58de54d749fbdafdc868a9e61f0d85bda82ae27e11bc90bd502bca47ebedabc",
+      "size_bytes": 1138
+    },
+    {
+      "path": "templates/CONTEXT_PACK.json",
+      "sha256": "c213de13626ce93d26fdf712d2830b9273a7e9604d14380b9972f2a22e47636e",
+      "size_bytes": 649
+    },
+    {
+      "path": "templates/TASK.md",
+      "sha256": "5bb8d61e88bd21c53e1f5973bbeecc0715f65afa9543489d8d5e9d67b190ee19",
+      "size_bytes": 368
+    },
+    {
+      "path": "tests/TEST_PLAN.md",
+      "sha256": "d45186c003ce4ff9b22881ded1def8d525c95360b4c032f1343415c7d5ac6e63",
+      "size_bytes": 487
+    }
+  ]
+}

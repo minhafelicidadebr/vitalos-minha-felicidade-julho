@@ -1,0 +1,61 @@
+{
+  "skill_id": "SKILL-PRIVACY-SAFETY-GUARDIAN",
+  "name": "Guardião de Privacidade e Segurança",
+  "version": "1.0.0",
+  "status": "REAL",
+  "category": "privacy",
+  "purpose": "Controlar minimização, retenção, agregação e escalonamento.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government",
+    "condominium",
+    "health"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "data_scope",
+    "privacy_scope",
+    "role",
+    "segment",
+    "risk_level"
+  ],
+  "outputs": [
+    "privacy_decision",
+    "masked_fields",
+    "retention_rule",
+    "escalation"
+  ],
+  "evidence_requirements": [
+    "Não cria claims."
+  ],
+  "privacy_rules": [
+    "Menor privilégio; sem raw responses."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "sensitive_data",
+      "small_group",
+      "minor",
+      "violence",
+      "harassment",
+      "health_data"
+    ]
+  },
+  "prohibited_uses": [
+    "Expor dado suprimido",
+    "Persistência sensível indefinida"
+  ],
+  "acceptance_tests": [
+    "Grupo abaixo do limiar é bloqueado."
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Florencia Skill Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "skill_id",
+    "name",
+    "version",
+    "status",
+    "category",
+    "purpose",
+    "supported_segments",
+    "supported_roles",
+    "allowed_modes",
+    "required_inputs",
+    "outputs",
+    "human_review",
+    "prohibited_uses"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "pattern": "^SKILL-[A-Z0-9-]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "REAL",
+        "PARCIAL",
+        "DEMO",
+        "ROADMAP"
+      ]
+    },
+    "category": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "supported_segments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supported_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_modes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "MEASURE",
+          "LEARN",
+          "TRANSFORM",
+          "EVOLVE"
+        ]
+      }
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "privacy_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "human_review": {
+      "type": "object",
+      "required": [
+        "required",
+        "triggers"
+      ]
+    },
+    "prohibited_uses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance_tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

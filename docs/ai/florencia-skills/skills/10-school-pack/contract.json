@@ -1,0 +1,56 @@
+{
+  "skill_id": "SKILL-SCHOOL-PACK",
+  "name": "Pack Escola",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "segment",
+  "purpose": "Adaptar linguagem, papéis, atividades e governança ao contexto escolar.",
+  "supported_segments": [
+    "school"
+  ],
+  "supported_roles": [
+    "ESTUDANTE",
+    "EDUCADOR",
+    "COORDENACAO",
+    "DIRECAO",
+    "FAMILIA",
+    "SECRETARIA_REDE"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "resolved_context",
+    "school_role"
+  ],
+  "outputs": [
+    "school_vocabulary",
+    "role_constraints",
+    "eligible_methods",
+    "safeguards"
+  ],
+  "evidence_requirements": [
+    "Conteúdo adequado ao papel."
+  ],
+  "privacy_rules": [
+    "Proteção reforçada para crianças e adolescentes."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "minor_safety",
+      "disciplinary_use"
+    ]
+  },
+  "prohibited_uses": [
+    "Diagnóstico de estudante",
+    "Ranking de turma",
+    "Predição de comportamento"
+  ],
+  "acceptance_tests": [
+    "Reflexão privada não é exposta."
+  ]
+}

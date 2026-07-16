@@ -1,0 +1,50 @@
+{
+  "skill_id": "SKILL-CONVERSATION-FACILITATOR",
+  "name": "Facilitador Conversacional",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "conversation",
+  "purpose": "Reescrever saída estruturada sem adicionar fatos.",
+  "supported_segments": [
+    "enterprise",
+    "school"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "structured_response",
+    "audience",
+    "tone"
+  ],
+  "outputs": [
+    "rewritten_response",
+    "integrity_report"
+  ],
+  "evidence_requirements": [
+    "Somente reescrita; nenhum fato novo."
+  ],
+  "privacy_rules": [
+    "Não aumenta escopo de dados."
+  ],
+  "human_review": {
+    "required": false,
+    "triggers": [
+      "external_publication"
+    ]
+  },
+  "prohibited_uses": [
+    "Adicionar estatística",
+    "Criar fonte",
+    "Remover caveat"
+  ],
+  "acceptance_tests": [
+    "Diff sem novos claims."
+  ]
+}

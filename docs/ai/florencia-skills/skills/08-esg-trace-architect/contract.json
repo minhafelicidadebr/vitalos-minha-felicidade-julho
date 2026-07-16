@@ -1,0 +1,57 @@
+{
+  "skill_id": "SKILL-ESG-TRACE-ARCHITECT",
+  "name": "Arquiteto de Rastreabilidade ESG",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "reporting",
+  "purpose": "Organizar projeto, mecanismo, execução, evidências, indicadores e limitações.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government"
+  ],
+  "supported_roles": [
+    "RH_ADMIN",
+    "CHRO",
+    "C_LEVEL",
+    "DIRECAO",
+    "SECRETARIA_REDE",
+    "GESTOR_PUBLICO"
+  ],
+  "allowed_modes": [
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "project",
+    "mechanism",
+    "allowed_claims",
+    "execution_evidence",
+    "metrics"
+  ],
+  "outputs": [
+    "esg_trace",
+    "evidence_index",
+    "limitations",
+    "narrative"
+  ],
+  "evidence_requirements": [
+    "Sem claim de saúde, produtividade ou ROI não autorizado."
+  ],
+  "privacy_rules": [
+    "Sem dados individuais ou pequenos grupos."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "external_report",
+      "public_disclosure"
+    ]
+  },
+  "prohibited_uses": [
+    "Greenwashing",
+    "Impacto garantido"
+  ],
+  "acceptance_tests": [
+    "Toda narrativa possui limitações."
+  ]
+}

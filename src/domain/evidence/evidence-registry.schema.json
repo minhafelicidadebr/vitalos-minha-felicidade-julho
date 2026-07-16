@@ -104,7 +104,7 @@
           "evidence_grade": { "enum": ["E1", "E2", "E3", "E4", "E5"] },
           "claim_alignment": {
             "enum": ["C1", "C2", "C3"],
-            "description": "Alinhamento do safe_claim registrado. C4–C7 nunca entram. C3 exige o campo caveat."
+            "description": "DEPRECATED (Onda 3.5) — use claim-registry.json; não ler em código novo. Mantido por compatibilidade com callers legacy. Alinhamento do safe_claim registrado. C4–C7 nunca entram. C3 exige o campo caveat."
           },
           "transposability": { "enum": ["T0", "T1", "T2", "T3", "T4"] },
           "legal_status": {
@@ -114,17 +114,17 @@
           "safe_claim": {
             "type": "string",
             "minLength": 40,
-            "description": "O ÚNICO claim autorizado deste estudo em qualquer superfície. Usar textualmente ou mais fraco — nunca mais forte."
+            "description": "DEPRECATED (Onda 3.5) — use claim-registry.json; não ler em código novo. O ÚNICO claim autorizado deste estudo em qualquer superfície. Usar textualmente ou mais fraco — nunca mais forte."
           },
           "prohibited_claims": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Proibições específicas deste estudo, SOMADAS às global_prohibited_claims."
+            "description": "DEPRECATED (Onda 3.5) — use claim-registry.json; não ler em código novo. Proibições específicas deste estudo, SOMADAS às global_prohibited_claims."
           },
           "caveat": {
             "type": "string",
             "minLength": 20,
-            "description": "Obrigatório quando claim_alignment=C3 ou operational_status=V2 — a ressalva acompanha o claim em toda superfície."
+            "description": "DEPRECATED (Onda 3.5) — use claim-registry.json; não ler em código novo. Obrigatório quando claim_alignment=C3 ou operational_status=V2 — a ressalva acompanha o claim em toda superfície."
           },
           "mechanisms": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9_]+$" }, "minItems": 1 },
           "nascente_candidates": {

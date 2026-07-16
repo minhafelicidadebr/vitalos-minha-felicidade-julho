@@ -1,0 +1,2 @@
+VALIDATION PASSED
+Skills: 15

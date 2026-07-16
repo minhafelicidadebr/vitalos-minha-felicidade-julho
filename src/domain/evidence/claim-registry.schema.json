@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vitalos.com.br/schemas/claim-registry.schema.json",
+  "title": "Claim Registry VitalOS",
+  "description": "Fonte oficial de claims — estudo × uso pretendido × papel × segmento × contexto-alvo. Substitui os campos de claim embutidos no Evidence Registry para código novo.",
+  "type": "object",
+  "required": ["registry", "version", "provenance", "claims"],
+  "properties": {
+    "registry": { "const": "Claim Registry VitalOS" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "frozen": { "type": "boolean" },
+    "description": { "type": "string" },
+    "provenance": {
+      "type": "object",
+      "required": ["sources", "scope"],
+      "properties": {
+        "sources": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "scope": { "type": "string" },
+        "canonical_study_names": { "type": "string" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "study_id",
+          "intended_use",
+          "role",
+          "segment",
+          "target_context",
+          "claim_alignment",
+          "safe_claim",
+          "prohibited_claims"
+        ],
+        "properties": {
+          "claim_id": { "type": "string", "pattern": "^CLAIM-[A-Z0-9-]+$" },
+          "study_id": {
+            "type": "string",
+            "description": "Nome canônico legível (ex.: EDMONDSON-1999) — resolvido em código para o nó do Evidence Registry."
+          },
+          "intended_use": {
+            "enum": [
+              "explain_mechanism",
+              "prepare_conversation",
+              "create_team_mission",
+              "suggest_observation",
+              "organize_evidence"
+            ]
+          },
+          "role": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "enum": ["colaborador", "lider", "rh", "chro", "clevel", "sst", "dpo"] }
+          },
+          "segment": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "enum": ["enterprise", "school", "government", "condo", "health"] }
+          },
+          "target_context": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Identificador de seção kebab-case — mesmo vocabulário do campo `section` do RawContextEnvelope (docs/ai/florencia-skills/schemas/context-envelope.schema.json). Cada claim autoriza um uso numa seção específica da trilha."
+          },
+          "claim_alignment": { "enum": ["C1", "C2", "C3"] },
+          "safe_claim": { "type": "string", "minLength": 40 },
+          "prohibited_claims": { "type": "array", "items": { "type": "string" } },
+          "caveat": { "type": "string", "minLength": 20 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "claim_alignment": { "const": "C3" } } },
+            "then": { "required": ["caveat"] }
+          }
+        ]
+      }
+    }
+  }
+}

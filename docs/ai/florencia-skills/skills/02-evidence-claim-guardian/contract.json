@@ -1,0 +1,57 @@
+{
+  "skill_id": "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+  "name": "Guardião de Evidências e Claims",
+  "version": "1.0.0",
+  "status": "REAL",
+  "category": "evidence",
+  "purpose": "Autorizar somente claims sustentados e contextualizados.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government",
+    "condominium",
+    "health"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "evidence_registry",
+    "claim_registry",
+    "requested_claim_ids",
+    "target_context"
+  ],
+  "outputs": [
+    "allowed_claims",
+    "blocked_claims",
+    "caveats",
+    "evidence_passport"
+  ],
+  "evidence_requirements": [
+    "B2+C1/C2 autorizável; C3 com caveat; B0/V0/C4-C7 bloqueados."
+  ],
+  "privacy_rules": [
+    "Sem respostas individuais."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "causal_claim",
+      "commercial_claim",
+      "legal_claim"
+    ]
+  },
+  "prohibited_uses": [
+    "Inventar DOI",
+    "Generalizar além do contexto"
+  ],
+  "acceptance_tests": [
+    "Claim inexistente bloqueia."
+  ]
+}

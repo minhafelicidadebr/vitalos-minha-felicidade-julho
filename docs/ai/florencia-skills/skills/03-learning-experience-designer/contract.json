@@ -1,0 +1,56 @@
+{
+  "skill_id": "SKILL-LEARNING-EXPERIENCE-DESIGNER",
+  "name": "Designer de Aprendizagem",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "learning",
+  "purpose": "Criar microlearning, quiz, cenários, checklists e missões.",
+  "supported_segments": [
+    "enterprise",
+    "school"
+  ],
+  "supported_roles": [
+    "COLABORADOR",
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "ESTUDANTE",
+    "EDUCADOR",
+    "COORDENACAO",
+    "DIRECAO"
+  ],
+  "allowed_modes": [
+    "LEARN",
+    "TRANSFORM"
+  ],
+  "required_inputs": [
+    "mechanism_id",
+    "allowed_claims",
+    "learner_role",
+    "time_budget"
+  ],
+  "outputs": [
+    "learning_sequence",
+    "quiz",
+    "scenario",
+    "practice"
+  ],
+  "evidence_requirements": [
+    "1 mecanismo + 1 estudo principal + até 2 complementares + 1 limite + 1 aplicação."
+  ],
+  "privacy_rules": [
+    "Reflexão privada; sem ranking."
+  ],
+  "human_review": {
+    "required": false,
+    "triggers": [
+      "sensitive_school_content"
+    ]
+  },
+  "prohibited_uses": [
+    "Diagnóstico",
+    "Uso punitivo"
+  ],
+  "acceptance_tests": [
+    "Cada item possui explicação e fonte."
+  ]
+}

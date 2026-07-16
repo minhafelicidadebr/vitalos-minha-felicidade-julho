@@ -1,0 +1,52 @@
+{
+  "skill_id": "SKILL-ENTERPRISE-PACK",
+  "name": "Pack Empresa",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "segment",
+  "purpose": "Adaptar linguagem, papéis, métodos e saídas ao contexto empresarial.",
+  "supported_segments": [
+    "enterprise"
+  ],
+  "supported_roles": [
+    "COLABORADOR",
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "C_LEVEL",
+    "SST",
+    "ADMIN_GRUPO"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "resolved_context",
+    "enterprise_role"
+  ],
+  "outputs": [
+    "enterprise_vocabulary",
+    "role_constraints",
+    "eligible_methods"
+  ],
+  "evidence_requirements": [
+    "Riscos psicossociais separados de florescimento."
+  ],
+  "privacy_rules": [
+    "Gestores não recebem respostas individuais."
+  ],
+  "human_review": {
+    "required": false,
+    "triggers": []
+  },
+  "prohibited_uses": [
+    "Decisão automática de RH",
+    "Garantia de conformidade"
+  ],
+  "acceptance_tests": [
+    "Líder não recebe dado individual."
+  ]
+}

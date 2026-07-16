@@ -23,6 +23,12 @@ export type Transposability = "T0" | "T1" | "T2" | "T3" | "T4";
 export type LegalStatus = "L0" | "L1";
 export type AccessType = "abstract_and_metadata" | "metadata_only" | "full_text";
 
+/**
+ * @deprecated claim_alignment/safe_claim/prohibited_claims/caveat neste tipo são
+ * LEGACY (Onda 3.5) — mantidos só para compatibilidade com callers antigos
+ * (trustGate/buildPassport de 1-2 argumentos). Código NOVO nunca lê estes campos
+ * direto de um EvidenceStudy — usa ClaimRecord via src/domain/evidence/claim-registry.json.
+ */
 export interface EvidenceStudy {
   study_id: string;
   aliases: string[];
@@ -33,11 +39,15 @@ export interface EvidenceStudy {
   verification_status: "B2";
   operational_status: OperationalStatus;
   evidence_grade: EvidenceGrade;
+  /** @deprecated legacy — use ClaimRecord.claim_alignment */
   claim_alignment: ClaimAlignment;
   transposability: Transposability;
   legal_status: LegalStatus;
+  /** @deprecated legacy — use ClaimRecord.safe_claim */
   safe_claim: string;
+  /** @deprecated legacy — use ClaimRecord.prohibited_claims */
   prohibited_claims: string[];
+  /** @deprecated legacy — use ClaimRecord.caveat */
   caveat?: string;
   mechanisms: string[];
   nascente_candidates: string[];
@@ -54,6 +64,64 @@ export interface EvidenceRegistry {
   global_prohibited_claims: string[];
   excluded: { study_id: string; reason: string }[];
   studies: EvidenceStudy[];
+}
+
+// ─── Claim Registry (Onda 3.5 — fonte oficial de claims) ────────────────────
+//
+// Um claim é estudo × uso pretendido × papel × segmento × contexto-alvo. O
+// mesmo estudo pode ter claims diferentes para usos diferentes — por isso
+// claims vivem separados de estudos, não embutidos neles.
+
+export type IntendedUse =
+  | "explain_mechanism"
+  | "prepare_conversation"
+  | "create_team_mission"
+  | "suggest_observation"
+  | "organize_evidence";
+
+export interface ClaimRecord {
+  claim_id: string;
+  /** Nome canônico legível (ex.: EDMONDSON-1999) — resolvido via resolveCanonicalStudy. */
+  study_id: string;
+  intended_use: IntendedUse;
+  role: string[];
+  segment: string[];
+  target_context: string;
+  claim_alignment: ClaimAlignment;
+  safe_claim: string;
+  prohibited_claims: string[];
+  caveat?: string;
+}
+
+export interface ClaimRegistry {
+  registry: string;
+  version: string;
+  claims: ClaimRecord[];
+}
+
+export interface RequestContext {
+  intendedUse: string;
+  role: string;
+  segment: string;
+  targetContext: string;
+}
+
+/**
+ * Nomes canônicos legíveis usados pelo Claim Registry → id do nó no Evidence
+ * Registry congelado. O evidence-registry.json do checkpoint NÃO é reescrito
+ * (zero byte alterado) — esta tabela vive só em código.
+ */
+const CANONICAL_STUDY_NAMES: Record<string, string> = {
+  "EDMONDSON-1999": "TRU-006",
+};
+
+/** Resolve um nome canônico legível (ex.: EDMONDSON-1999) para o EvidenceStudy. */
+export function resolveCanonicalStudy(
+  registry: EvidenceRegistry,
+  canonicalName: string,
+): EvidenceStudy | null {
+  const mappedId = CANONICAL_STUDY_NAMES[canonicalName] ?? canonicalName;
+  return resolveStudy(registry, mappedId);
 }
 
 export interface MechanismRecord {
@@ -119,16 +187,56 @@ export interface TrustDecision {
   reasons: string[];
 }
 
-/** Decide se um estudo pode ser usado sem nova pesquisa. C3/V2 passam SÓ com caveat junto. */
-export function trustGate(study: EvidenceStudy): TrustDecision {
+/**
+ * Decide se um estudo (e, opcionalmente, um claim específico) pode ser usado
+ * sem nova pesquisa. C3/V2 passam SÓ com caveat junto.
+ *
+ * - `trustGate(study)` — caminho LEGACY (Onda ≤3), lê claim_alignment/caveat
+ *   direto do EvidenceStudy. Mantido inalterado para callers existentes.
+ * - `trustGate(study, claim, requestContext)` — caminho NOVO (Onda 3.5):
+ *   valida estudo + claim (C1-C3 com caveat obrigatório em C3, C4+ nunca
+ *   passa) + compatibilidade de intendedUse/role/segment/targetContext do
+ *   requestContext contra o claim. Qualquer incompatibilidade bloqueia.
+ */
+export function trustGate(
+  study: EvidenceStudy,
+  claim?: ClaimRecord,
+  requestContext?: RequestContext,
+): TrustDecision {
   const reasons: string[] = [];
   if (study.verification_status !== "B2") reasons.push("verificação independente ausente");
   if (!["L0", "L1"].includes(study.legal_status)) reasons.push("situação legal não liberada");
-  const needsCaveat = study.claim_alignment === "C3" || study.operational_status === "V2";
-  if (needsCaveat && !study.caveat) reasons.push("exige ressalva e não há caveat registrado");
+
+  if (!claim) {
+    const needsCaveat = study.claim_alignment === "C3" || study.operational_status === "V2";
+    if (needsCaveat && !study.caveat) reasons.push("exige ressalva e não há caveat registrado");
+    return {
+      trusted: reasons.length === 0,
+      requiredCaveat: needsCaveat ? (study.caveat ?? null) : null,
+      reasons,
+    };
+  }
+
+  if (study.operational_status === "V2" && !claim.caveat)
+    reasons.push("estudo V2 exige ressalva e o claim não tem caveat registrado");
+  if (claim.claim_alignment === "C3" && !claim.caveat)
+    reasons.push("claim C3 exige ressalva e não há caveat registrado");
+
+  if (requestContext) {
+    if (requestContext.intendedUse !== claim.intended_use)
+      reasons.push(`uso pretendido incompatível: pedido "${requestContext.intendedUse}", claim autoriza "${claim.intended_use}"`);
+    if (!claim.role.includes(requestContext.role))
+      reasons.push(`papel incompatível: "${requestContext.role}" não está em [${claim.role.join(", ")}]`);
+    if (!claim.segment.includes(requestContext.segment))
+      reasons.push(`segmento incompatível: "${requestContext.segment}" não está em [${claim.segment.join(", ")}]`);
+    if (requestContext.targetContext !== claim.target_context)
+      reasons.push(`contexto-alvo incompatível: pedido "${requestContext.targetContext}", claim autoriza "${claim.target_context}"`);
+  }
+
+  const needsCaveat = claim.claim_alignment === "C3" || study.operational_status === "V2";
   return {
     trusted: reasons.length === 0,
-    requiredCaveat: needsCaveat ? (study.caveat ?? null) : null,
+    requiredCaveat: needsCaveat ? (claim.caveat ?? null) : null,
     reasons,
   };
 }
@@ -187,9 +295,20 @@ export interface EvidencePassport {
   trusted: boolean;
 }
 
-/** Constrói o passaporte para um nível de leitura. Toda string sai dos códigos do registro. */
-export function buildPassport(study: EvidenceStudy, level: PassportLevel): EvidencePassport {
-  const gate = trustGate(study);
+/**
+ * Constrói o passaporte para um nível de leitura. Toda string sai dos códigos
+ * do registro. Aceita opcionalmente um `claim` do Claim Registry (Onda 3.5) —
+ * quando presente, `claim`/`alignment` exibidos vêm dele, não do EvidenceStudy
+ * legacy. Sem `claim`, comportamento idêntico ao de antes (compatibilidade).
+ */
+export function buildPassport(
+  study: EvidenceStudy,
+  level: PassportLevel,
+  claim?: ClaimRecord,
+): EvidencePassport {
+  const gate = trustGate(study, claim);
+  const alignment = claim?.claim_alignment ?? study.claim_alignment;
+  const displayClaim = claim?.safe_claim ?? study.safe_claim;
   const lines: { label: string; value: string }[] = [];
 
   if (level === "humano") {
@@ -199,7 +318,7 @@ export function buildPassport(study: EvidenceStudy, level: PassportLevel): Evide
     lines.push({ label: "Fonte", value: study.canonical_citation });
     if (study.doi) lines.push({ label: "DOI", value: study.doi });
     lines.push({ label: "Desenho", value: DESIGN_LABEL[study.evidence_grade] });
-    lines.push({ label: "Alinhamento", value: ALIGNMENT_LABEL[study.claim_alignment] });
+    lines.push({ label: "Alinhamento", value: ALIGNMENT_LABEL[alignment] });
     lines.push({ label: "Acesso na verificação", value: ACCESS_LABEL[study.access_type] });
   }
 
@@ -210,7 +329,7 @@ export function buildPassport(study: EvidenceStudy, level: PassportLevel): Evide
         study.verification_status,
         study.operational_status,
         study.evidence_grade,
-        study.claim_alignment,
+        alignment,
         study.transposability,
         study.legal_status,
       ].join(" · "),
@@ -219,16 +338,50 @@ export function buildPassport(study: EvidenceStudy, level: PassportLevel): Evide
     if (study.aliases.length > 0)
       lines.push({ label: "Ocorrências consolidadas", value: study.aliases.join(", ") });
     if (study.notes) lines.push({ label: "Notas", value: study.notes });
+    if (claim) lines.push({ label: "Claim", value: claim.claim_id });
   }
 
   return {
     studyId: study.study_id,
     level,
-    claim: study.safe_claim,
+    claim: displayClaim,
     caveat: gate.requiredCaveat,
     lines,
     trusted: gate.trusted,
   };
+}
+
+// ─── Validação do Claim Registry (Onda 3.5) ──────────────────────────────────
+
+/** Espelha validateEvidenceRegistry: todo claim referencia estudo canônico existente;
+ * C3 exige caveat; V0/B0/C4-C7 nunca passam (herdado da validação do estudo). */
+export function validateClaimRegistry(
+  evidenceRegistry: EvidenceRegistry,
+  claimRegistry: ClaimRegistry,
+): RegistryValidation {
+  const errors: string[] = [];
+  const ids = new Set<string>();
+  for (const claim of claimRegistry.claims) {
+    if (ids.has(claim.claim_id)) errors.push(`${claim.claim_id}: claim_id duplicado`);
+    ids.add(claim.claim_id);
+
+    const study = resolveCanonicalStudy(evidenceRegistry, claim.study_id);
+    if (!study) {
+      errors.push(`${claim.claim_id}: estudo canônico "${claim.study_id}" não existe no registro`);
+      continue;
+    }
+    if (study.operational_status !== "V1" && study.operational_status !== "V2")
+      errors.push(`${claim.claim_id}: estudo ${claim.study_id} não é V1/V2 — V0 nunca é referenciável`);
+    if (!["C1", "C2", "C3"].includes(claim.claim_alignment))
+      errors.push(`${claim.claim_id}: claim_alignment ${claim.claim_alignment} — C4+ é bloqueado`);
+    if (claim.claim_alignment === "C3" && !claim.caveat)
+      errors.push(`${claim.claim_id}: C3 sem caveat — ressalva é obrigatória`);
+    if (!claim.safe_claim || claim.safe_claim.trim().length < 40)
+      errors.push(`${claim.claim_id}: safe_claim ausente ou curto demais`);
+    if (claim.role.length === 0) errors.push(`${claim.claim_id}: sem papel autorizado`);
+    if (claim.segment.length === 0) errors.push(`${claim.claim_id}: sem segmento autorizado`);
+  }
+  return { valid: errors.length === 0, errors };
 }
 
 // ─── Orçamento de evidência (contrato dos learning patterns) ─────────────────

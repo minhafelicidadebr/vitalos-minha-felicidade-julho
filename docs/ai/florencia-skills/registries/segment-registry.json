@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "segments": [
+    {
+      "segment_id": "enterprise",
+      "priority": 1,
+      "status": "PARCIAL",
+      "roles": [
+        "COLABORADOR",
+        "LIDER_EQUIPE",
+        "RH_ADMIN",
+        "CHRO",
+        "C_LEVEL",
+        "SST",
+        "ADMIN_GRUPO"
+      ]
+    },
+    {
+      "segment_id": "school",
+      "priority": 2,
+      "status": "ROADMAP",
+      "roles": [
+        "ESTUDANTE",
+        "EDUCADOR",
+        "COORDENACAO",
+        "DIRECAO",
+        "FAMILIA",
+        "SECRETARIA_REDE"
+      ]
+    },
+    {
+      "segment_id": "government",
+      "priority": 3,
+      "status": "ROADMAP"
+    },
+    {
+      "segment_id": "condominium",
+      "priority": 4,
+      "status": "ROADMAP"
+    },
+    {
+      "segment_id": "health",
+      "priority": 5,
+      "status": "ROADMAP"
+    }
+  ]
+}

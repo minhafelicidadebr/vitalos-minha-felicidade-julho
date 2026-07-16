@@ -57,6 +57,28 @@ Tarefa atual: `TASK.md` na raiz. Doc do congelamento: `docs/NASCENTES_REGISTRY_V
 
 ---
 
+## 🌸 FlorêncIA — copiloto contextual (skills governadas)
+
+Repositório de skills em `docs/ai/florencia-skills/` (Constituição, registries, contratos,
+schemas, exemplos — documentação/governança versionada, **não é código de runtime**
+importado pelo app). Ativado nesta onda só para **Empresa × Líder × Voz Segura**; Pack
+Escola (`SKILL-SCHOOL-PACK`) fica fora da ativação — sem integração runtime ainda.
+
+Ao trabalhar em qualquer tarefa da FlorêncIA, nesta ordem:
+1. Ler `docs/ai/florencia-skills/FLORÊNCIA_CONSTITUTION.md` (regra controladora).
+2. Ler o `TASK.md` da tarefa atual.
+3. Carregar **1 Skill principal** + **no máximo 3 Skills auxiliares** — nunca o repositório inteiro.
+4. **Nunca carregar Skill com `status: "ROADMAP"`** em `registries/skill-registry.json`.
+5. Usar só claims do Claim Registry autorizados para aquele contexto — nunca inventar.
+6. Toda saída passa por Policy Gate; risco legal/clínico/de pessoas escala para revisão humana.
+
+Skills permanentes deste corte: `SKILL-CORE-GOVERNANCE`, `SKILL-CONTEXT-ORCHESTRATION`,
+`SKILL-EVIDENCE-CLAIM-GUARDIAN`, `SKILL-PRIVACY-SAFETY-GUARDIAN`, `SKILL-ENTERPRISE-PACK`.
+Sob demanda: `SKILL-LEARNING-EXPERIENCE-DESIGNER`, `SKILL-INTERVENTION-PLANNER`,
+`SKILL-AGILE-PROJECT-ARCHITECT`, `SKILL-EVOLVE-MONITOR`, `SKILL-ESG-TRACE-ARCHITECT`.
+
+---
+
 ## 📌 Repositório oficial
 
 `https://github.com/minhafelicidadebr/vitalos.git`

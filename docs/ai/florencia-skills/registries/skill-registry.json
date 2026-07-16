@@ -1,0 +1,280 @@
+{
+  "version": "1.0.0",
+  "assistant": "FlorêncIA",
+  "priority_segments": [
+    "enterprise",
+    "school"
+  ],
+  "skills": [
+    {
+      "skill_id": "SKILL-CORE-GOVERNANCE",
+      "name": "Governança Central",
+      "version": "1.0.0",
+      "status": "REAL",
+      "path": "skills/00-core-governance/SKILL.md",
+      "category": "governance",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-CONTEXT-ORCHESTRATION",
+      "name": "Orquestração Contextual",
+      "version": "1.0.0",
+      "status": "REAL",
+      "path": "skills/01-context-orchestration/SKILL.md",
+      "category": "orchestration",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+      "name": "Guardião de Evidências e Claims",
+      "version": "1.0.0",
+      "status": "REAL",
+      "path": "skills/02-evidence-claim-guardian/SKILL.md",
+      "category": "evidence",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-LEARNING-EXPERIENCE-DESIGNER",
+      "name": "Designer de Aprendizagem",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/03-learning-experience-designer/SKILL.md",
+      "category": "learning",
+      "supported_segments": [
+        "enterprise",
+        "school"
+      ],
+      "allowed_modes": [
+        "LEARN",
+        "TRANSFORM"
+      ]
+    },
+    {
+      "skill_id": "SKILL-INTERVENTION-PLANNER",
+      "name": "Planejador de Intervenções",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/04-intervention-planner/SKILL.md",
+      "category": "intervention",
+      "supported_segments": [
+        "enterprise",
+        "school"
+      ],
+      "allowed_modes": [
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-AGILE-PROJECT-ARCHITECT",
+      "name": "Arquiteto de Projetos Ágeis",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/05-agile-project-architect/SKILL.md",
+      "category": "project_management",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "allowed_modes": [
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-GOVERNANCE-DESIGNER",
+      "name": "Designer de Governança",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/06-governance-designer/SKILL.md",
+      "category": "governance",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "allowed_modes": [
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-EVOLVE-MONITOR",
+      "name": "Monitor de Evolução",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/07-evolve-monitor/SKILL.md",
+      "category": "monitoring",
+      "supported_segments": [
+        "enterprise",
+        "school"
+      ],
+      "allowed_modes": [
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-ESG-TRACE-ARCHITECT",
+      "name": "Arquiteto de Rastreabilidade ESG",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/08-esg-trace-architect/SKILL.md",
+      "category": "reporting",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government"
+      ],
+      "allowed_modes": [
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-ENTERPRISE-PACK",
+      "name": "Pack Empresa",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/09-enterprise-pack/SKILL.md",
+      "category": "segment",
+      "supported_segments": [
+        "enterprise"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-SCHOOL-PACK",
+      "name": "Pack Escola",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/10-school-pack/SKILL.md",
+      "category": "segment",
+      "supported_segments": [
+        "school"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-PRIVACY-SAFETY-GUARDIAN",
+      "name": "Guardião de Privacidade e Segurança",
+      "version": "1.0.0",
+      "status": "REAL",
+      "path": "skills/11-privacy-safety-guardian/SKILL.md",
+      "category": "privacy",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-PREMIUM-UX-ACCESSIBILITY",
+      "name": "UX Premium e Acessibilidade",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/12-premium-ux-accessibility/SKILL.md",
+      "category": "ux",
+      "supported_segments": [
+        "enterprise",
+        "school",
+        "government",
+        "condominium",
+        "health"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-CONVERSATION-FACILITATOR",
+      "name": "Facilitador Conversacional",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/13-conversation-facilitator/SKILL.md",
+      "category": "conversation",
+      "supported_segments": [
+        "enterprise",
+        "school"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    {
+      "skill_id": "SKILL-DATA-TO-ACTION",
+      "name": "Tradutor de Dados em Ação",
+      "version": "1.0.0",
+      "status": "PARCIAL",
+      "path": "skills/14-data-to-action/SKILL.md",
+      "category": "strategy",
+      "supported_segments": [
+        "enterprise",
+        "school"
+      ],
+      "allowed_modes": [
+        "MEASURE",
+        "TRANSFORM"
+      ]
+    }
+  ]
+}

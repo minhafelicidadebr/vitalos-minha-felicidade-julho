@@ -1,0 +1,50 @@
+{
+  "skill_id": "SKILL-CONTEXT-ORCHESTRATION",
+  "name": "Orquestração Contextual",
+  "version": "1.0.0",
+  "status": "REAL",
+  "category": "orchestration",
+  "purpose": "Resolver CTA, segmento, papel, perfil, modo e Skills.",
+  "supported_segments": [
+    "enterprise",
+    "school",
+    "government",
+    "condominium",
+    "health"
+  ],
+  "supported_roles": [
+    "*"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "LEARN",
+    "TRANSFORM",
+    "EVOLVE"
+  ],
+  "required_inputs": [
+    "raw_context_envelope",
+    "cta_registry"
+  ],
+  "outputs": [
+    "resolved_context",
+    "profile",
+    "mode"
+  ],
+  "evidence_requirements": [
+    "Não interpreta evidência."
+  ],
+  "privacy_rules": [
+    "Schema fechado e sem texto livre."
+  ],
+  "human_review": {
+    "required": false,
+    "triggers": []
+  },
+  "prohibited_uses": [
+    "Aceitar campos extras",
+    "Confiar em profile/mode do client"
+  ],
+  "acceptance_tests": [
+    "Campo extra falha."
+  ]
+}

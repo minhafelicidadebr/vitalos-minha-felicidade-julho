@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Florencia Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "mode",
+    "profile",
+    "summary",
+    "recommended_actions",
+    "limits",
+    "sources",
+    "product_status"
+  ],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "MEASURE",
+        "LEARN",
+        "TRANSFORM",
+        "EVOLVE"
+      ]
+    },
+    "profile": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "recommended_actions": {
+      "type": "array"
+    },
+    "risks": {
+      "type": "array"
+    },
+    "limits": {
+      "type": "array"
+    },
+    "sources": {
+      "type": "array"
+    },
+    "product_status": {
+      "enum": [
+        "REAL",
+        "PARCIAL",
+        "DEMO",
+        "ROADMAP"
+      ]
+    },
+    "human_review": {
+      "type": "object"
+    }
+  }
+}

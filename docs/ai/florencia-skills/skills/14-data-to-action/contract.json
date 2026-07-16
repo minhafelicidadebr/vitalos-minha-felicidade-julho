@@ -1,0 +1,57 @@
+{
+  "skill_id": "SKILL-DATA-TO-ACTION",
+  "name": "Tradutor de Dados em Ação",
+  "version": "1.0.0",
+  "status": "PARCIAL",
+  "category": "strategy",
+  "purpose": "Transformar sinais agregados em perguntas, hipóteses e opções sem prescrição automática.",
+  "supported_segments": [
+    "enterprise",
+    "school"
+  ],
+  "supported_roles": [
+    "LIDER_EQUIPE",
+    "RH_ADMIN",
+    "CHRO",
+    "COORDENACAO",
+    "DIRECAO",
+    "SECRETARIA_REDE"
+  ],
+  "allowed_modes": [
+    "MEASURE",
+    "TRANSFORM"
+  ],
+  "required_inputs": [
+    "aggregate_signals",
+    "data_limits",
+    "mechanisms",
+    "allowed_claims"
+  ],
+  "outputs": [
+    "interpretation",
+    "open_questions",
+    "action_options",
+    "human_decision_point"
+  ],
+  "evidence_requirements": [
+    "Diferenciar sinal, hipótese e conclusão."
+  ],
+  "privacy_rules": [
+    "Agregados somente."
+  ],
+  "human_review": {
+    "required": true,
+    "triggers": [
+      "high_impact_action",
+      "ambiguous_data"
+    ]
+  },
+  "prohibited_uses": [
+    "Diagnóstico",
+    "Causalidade",
+    "Ranking"
+  ],
+  "acceptance_tests": [
+    "Limites dos dados aparecem."
+  ]
+}

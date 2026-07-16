@@ -1,0 +1,80 @@
+{
+  "$schema": "./claim-registry.schema.json",
+  "registry": "Claim Registry VitalOS",
+  "version": "1.0.0",
+  "frozen": false,
+  "description": "Fonte OFICIAL de claims — substitui os campos safe_claim/prohibited_claims/claim_alignment/caveat do Evidence Registry para código novo (ver nota DEPRECATED em evidence-registry.schema.json). Cada claim é uma combinação estudo × uso pretendido × papel × segmento × contexto-alvo — o mesmo estudo pode ter claims diferentes para usos diferentes.",
+  "provenance": {
+    "sources": ["src/domain/evidence/evidence-registry.json (v1.0.0, campos de claim legacy)"],
+    "scope": "Só os claims necessários ao corte Voz Segura (Onda 3.5/4B) — EDMONDSON-1999 e LDR-007. Expansão para os outros 44 estudos é trabalho futuro, fora desta onda.",
+    "canonical_study_names": "study_id aqui usa o nome canônico legível (ex.: EDMONDSON-1999), resolvido para o nó do Evidence Registry (TRU-006, aliases LDR-013/VOI-005) via tabela em código — o evidence-registry.json congelado não é alterado."
+  },
+  "claims": [
+    {
+      "claim_id": "CLAIM-EDMONDSON1999-VOICE-001",
+      "study_id": "EDMONDSON-1999",
+      "intended_use": "explain_mechanism",
+      "role": ["lider", "rh", "chro"],
+      "segment": ["enterprise"],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Em equipes estudadas, segurança psicológica associa-se a mais comportamentos de aprendizagem (perguntar, admitir erro, pedir ajuda) e, por essa via, a melhor desempenho da equipe — estudo fundacional correlacional, não experimento.",
+      "prohibited_claims": [
+        "segurança psicológica garante desempenho",
+        "segurança psicológica é ausência de cobrança ou responsabilização"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-EDMONDSON1999-VOICE-002",
+      "study_id": "EDMONDSON-1999",
+      "intended_use": "prepare_conversation",
+      "role": ["lider"],
+      "segment": ["enterprise"],
+      "target_context": "preparar-conversa",
+      "claim_alignment": "C1",
+      "safe_claim": "A primeira resposta do líder a um erro reportado (curiosidade vs. julgamento) é o comportamento mais associado, na literatura de segurança psicológica, a mais ou menos avisos futuros — não uma garantia de resultado.",
+      "prohibited_claims": [
+        "esta conversa elimina o medo da equipe",
+        "seguir o script garante que a pessoa vai se abrir"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-LDR007-VOICE-001",
+      "study_id": "LDR-007",
+      "intended_use": "create_team_mission",
+      "role": ["lider", "rh"],
+      "segment": ["enterprise"],
+      "target_context": "missao-equipe",
+      "claim_alignment": "C2",
+      "caveat": "Correspondência adequada (C2): a intervenção estudada mediu desfechos de sono/bem-estar, não diretamente comportamento de voz — o mecanismo de apoio do supervisor é análogo, não idêntico ao de Voz Segura.",
+      "safe_claim": "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos de sono/bem-estar da equipe; o efeito depende de adesão do líder e contexto de implementação.",
+      "prohibited_claims": ["treinar líderes garante bem-estar da equipe"]
+    },
+    {
+      "claim_id": "CLAIM-LDR007-VOICE-002",
+      "study_id": "LDR-007",
+      "intended_use": "suggest_observation",
+      "role": ["lider", "rh", "chro"],
+      "segment": ["enterprise"],
+      "target_context": "observar-evoluir",
+      "claim_alignment": "C2",
+      "caveat": "Correspondência adequada (C2): observar adesão e contexto de implementação é extrapolação prudente do desenho do estudo original, não um indicador validado diretamente para Voz Segura.",
+      "safe_claim": "O efeito de intervenções de apoio do líder depende de adesão e contexto de implementação — vale observar continuidade do ritual, não só sua existência pontual.",
+      "prohibited_claims": ["ausência de adesão prova que a prática não funciona"]
+    },
+    {
+      "claim_id": "CLAIM-EDMONDSON1999-VOICE-003",
+      "study_id": "EDMONDSON-1999",
+      "intended_use": "organize_evidence",
+      "role": ["lider", "rh", "chro"],
+      "segment": ["enterprise"],
+      "target_context": "organizar-esg",
+      "claim_alignment": "C1",
+      "safe_claim": "A evidência de base (Edmondson, 1999) é correlacional, de uma amostra de equipes de manufatura — apropriada para fundamentar o mecanismo, não para provar impacto do piloto atual.",
+      "prohibited_claims": [
+        "este piloto prova redução de adoecimento",
+        "este piloto prova aumento de produtividade"
+      ]
+    }
+  ]
+}
