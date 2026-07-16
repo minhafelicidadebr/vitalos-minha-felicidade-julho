@@ -12,8 +12,8 @@ import {
   getAvailableDynamics,
   getRoadmapDynamics,
   assertDynamicRegistryIntegrity,
+  type CanonicalLearningDynamic,
 } from "./learning-dynamics-resolution";
-import type { CanonicalLearningDynamic } from "@/domain/learning/learning-dynamics-registry";
 
 function makeDynamic(overrides: Partial<CanonicalLearningDynamic> = {}): CanonicalLearningDynamic {
   return {

@@ -5,9 +5,81 @@
 //
 // `PLANNED`, `PROPOSED`, `R_AND_D`, `AUSENTE` e `DEPRECATED` nunca resolvem
 // CTA operacional — getAvailableDynamics exclui todos eles por construção.
+//
+// Os tipos do contrato (CanonicalLearningDynamic e os 6 enums de governança)
+// vivem AQUI, não em src/domain/ — mesmo padrão de EvidenceStudy/EvidenceRegistry
+// em src/engine/evidence/passport-engine.ts. src/domain/learning/ só guarda o
+// JSON congelado + um loader tipado que RE-EXPORTA estes tipos (domain pode
+// importar engine; o inverso é que é proibido — engine-domain-boundary.test.ts).
 
-import type { CanonicalLearningDynamic, RuntimeStatus } from "@/domain/learning/learning-dynamics-registry";
-import { ROADMAP_RUNTIME_STATUSES, NON_JOURNEY_EXPOSURES } from "@/domain/learning/learning-dynamics-registry";
+export type RuntimeStatus =
+  | "REAL"
+  | "PARCIAL"
+  | "DEMO"
+  | "PLANNED"
+  | "PROPOSED"
+  | "R_AND_D"
+  | "AUSENTE"
+  | "DEPRECATED";
+
+export type ContentStatus = "VERIFIED" | "CURATED" | "DEMO" | "DRAFT" | "ABSENT";
+
+export type PersistenceStatus =
+  | "PERSISTED_PRIVATE"
+  | "PERSISTED_TENANT"
+  | "PERSISTED_AGGREGATED"
+  | "SESSION_ONLY"
+  | "NONE"
+  | "NOT_APPLICABLE";
+
+export type AiMode = "NONE" | "DETERMINISTIC" | "GENERATIVE_GATED" | "GENERATIVE_PROHIBITED";
+
+export type PublicExposure = "AVAILABLE" | "PILOT" | "DEMO" | "PREPARATION" | "HIDDEN" | "R_AND_D";
+
+export type RiskTier = "R1_LOW" | "R2_MODERATE" | "R3_HIGH" | "R4_CRITICAL";
+
+export type MeteAxis = "medir" | "educar" | "transformar" | "evoluir";
+
+export interface CanonicalLearningDynamic {
+  id: string;
+  version: string;
+  slug: string;
+  title: string;
+  shortLabel: string;
+  description: string;
+  kind: string;
+  meteAxes: MeteAxis[];
+  primaryOutcome: string;
+  authorizedRoles: string[];
+  enrichesRoutes: string[];
+  runtimeStatus: RuntimeStatus;
+  contentStatus: ContentStatus;
+  persistenceStatus: PersistenceStatus;
+  aiMode: AiMode;
+  publicExposure: PublicExposure;
+  riskTier: RiskTier;
+  dataClasses: string[];
+  evidenceRefs: string[];
+  runtimeEvidence: string[];
+  documentationEvidence: string[];
+  dependencies: string[];
+  forbiddenUses: string[];
+  accessibilityRequirements: string[];
+  acceptanceCriteria: string[];
+  rolloutWave: string;
+}
+
+/** Estados que NUNCA podem resolver CTA operacional (invariante "sem funcionalidade fantasma"). */
+export const ROADMAP_RUNTIME_STATUSES: readonly RuntimeStatus[] = [
+  "PLANNED",
+  "PROPOSED",
+  "R_AND_D",
+  "AUSENTE",
+  "DEPRECATED",
+];
+
+/** Exposições que nunca aparecem na jornada comum do usuário final. */
+export const NON_JOURNEY_EXPOSURES: readonly PublicExposure[] = ["HIDDEN", "R_AND_D"];
 
 /**
  * Allowlist, não blocklist: falha FECHADO. Um runtimeStatus desconhecido ou

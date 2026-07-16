@@ -109,7 +109,7 @@
       "meteAxes": ["educar", "evoluir"],
       "primaryOutcome": "Revisar no momento certo de esquecer, nem antes nem tarde demais",
       "authorizedRoles": ["COLABORADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO"],
-      "enrichesRoutes": ["/revisar", "/academia"],
+      "enrichesRoutes": ["/revisar", "/academia", "/voz-segura"],
       "runtimeStatus": "REAL",
       "contentStatus": "CURATED",
       "persistenceStatus": "PERSISTED_PRIVATE",

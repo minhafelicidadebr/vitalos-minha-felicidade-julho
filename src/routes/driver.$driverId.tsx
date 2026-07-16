@@ -28,7 +28,8 @@ export const Route = createFileRoute("/driver/$driverId")({
 });
 
 // Rótulos dos pilares IVO (enterprise) — vocabulário de domínio só para exibição.
-const PILLAR_LABEL: Record<string, string> = {
+// Exportado para reuso pontual (LDX-1, /voz-segura, driver "confianca") — fonte única.
+export const PILLAR_LABEL: Record<string, string> = {
   energia_vitalidade: "Energia & Vitalidade",
   proposito_significado: "Propósito & Significado",
   crescimento_maestria: "Crescimento & Maestria",

@@ -7,9 +7,10 @@
 // nenhuma superfície exibe mais certeza do que o registro autoriza.
 // Execução (ActionLog) é local à sessão nesta demonstração — o conteúdo é real.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Brain } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { EvidencePassport } from "@/app/evidence/EvidencePassport";
 import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
@@ -45,6 +46,19 @@ import {
   VOZ_SEGURA_SCENARIO,
   VOZ_SEGURA_TRAIL,
 } from "@/mocks/voz-segura-mock";
+// ─── LDX-1: Learning Dynamics Registry (governança/descoberta contextual) ──
+import { getLearningDynamicsRegistry, type CanonicalLearningDynamic } from "@/domain/learning/learning-dynamics-registry";
+import { getAvailableDynamics, getRoadmapDynamics } from "@/engine/learning/learning-dynamics-resolution";
+import { LearningDynamicsRail } from "@/features/learning/components/LearningDynamicsRail";
+import { IntroVideoCard, type IntroVideoSource } from "@/features/learning/components/IntroVideoCard";
+import { LearningMethodDialog } from "@/features/learning/components/LearningMethodDialog";
+// ─── LD-011 Mapa Mental Governado: reuso puro do driver "confianca" (Confiança & Voz) ──
+import { DriverMindMapSvg } from "@/app/nr1/DriverMindMapSvg";
+import { buildDriverMindMap } from "@/engine/nr1/mindmap-engine";
+import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { PILLAR_LABEL } from "@/routes/driver.$driverId";
+
+const VOZ_SEGURA_DRIVER_ID = "confianca";
 
 export const Route = createFileRoute("/voz-segura")({
   head: () => ({ meta: [{ title: "Trilha Voz Segura — 4 Lentes VitalOS™" }] }),
@@ -120,6 +134,37 @@ function VozSeguraTrail({
   const [checkins, setCheckins] = useState<MissionCheckin[]>([]);
   const [form, setForm] = useState({ participants: "", risks: "", decisions: "", difficulty: "" });
   const [decision, setDecision] = useState<CycleDecision | null>(null);
+
+  // ─── LDX-1: Learning Dynamics — resolução contextual desta rota ────────────
+  const [methodOpen, setMethodOpen] = useState(false);
+  const navigate = useNavigate();
+  const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
+  const resolutionContext = useMemo(() => ({ route: "/voz-segura", role: ACTOR_ROLE }), []);
+  const availableDynamics = useMemo(
+    () => getAvailableDynamics(learningCatalog, resolutionContext),
+    [learningCatalog, resolutionContext],
+  );
+  const roadmapDynamics = useMemo(
+    () => getRoadmapDynamics(learningCatalog, resolutionContext),
+    [learningCatalog, resolutionContext],
+  );
+  function dynamicsById(ids: string[]): CanonicalLearningDynamic[] {
+    return availableDynamics.filter((d) => ids.includes(d.id));
+  }
+  function activateDynamic(dynamic: CanonicalLearningDynamic) {
+    const target = dynamic.enrichesRoutes.find((r) => r !== "/voz-segura") ?? dynamic.enrichesRoutes[0];
+    if (target) navigate({ to: target });
+  }
+  const driverMindMap = useMemo(
+    () => buildDriverMindMap(NR1_CROSSWALK, VOZ_SEGURA_DRIVER_ID, DEMO_COPSOQ_EXPOSURE),
+    [],
+  );
+  const introVideo: IntroVideoSource = {
+    title: "Em 90 segundos: por que a Voz Segura importa",
+    durationLabel: "~90 segundos · em preparação",
+    sourceType: "NOT_AVAILABLE",
+    contentStatus: "DRAFT",
+  };
 
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
   const quizGrade = gradeQuiz(VOZ_SEGURA_QUIZ, quizAnswers);
@@ -247,14 +292,21 @@ function VozSeguraTrail({
               <div className="h-full bg-primary transition-all" style={{ width: `${progress.pct}%` }} />
             </div>
             <span className="text-xs text-muted-foreground">
-              {progress.done} de {progress.total} etapas · {progress.pct}%
+              {progress.done} de {progress.total} marcos práticos concluídos · {progress.pct}%
             </span>
           </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            Os 5 marcos: responder o quiz, decidir o cenário, assumir a missão, registrar uma
+            rodada e tomar a decisão do ciclo.
+          </p>
           <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
             Conteúdo derivado do registro de evidência congelado (v1). O registro de execução
             desta demonstração permanece apenas na sessão atual.
           </p>
         </motion.header>
+
+        <IntroVideoCard source={introVideo} onOpenMethod={() => setMethodOpen(true)} />
+        <LearningMethodDialog open={methodOpen} onOpenChange={setMethodOpen} />
 
         {/* ─── 1 · A ciência (Evidence Passport) ─── */}
         <Section step="1" title="A ciência por trás" lead="Um mecanismo, duas fontes verificadas — e o limite dito com todas as letras.">
@@ -290,6 +342,46 @@ function VozSeguraTrail({
               </div>
             ))}
           </div>
+
+          {driverMindMap && (
+            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Brain className="h-3.5 w-3.5 text-primary" aria-hidden />
+                  Mapa Mental Governado · driver Confiança &amp; Voz
+                </p>
+                <StatusBadge status="PARCIAL" title="Motor real (mindmap-engine); integração nesta trilha é nova" />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Como o driver se conecta a COPSOQ II, FIB-T e aos pilares IVO — nunca gerado por
+                modelo generativo; toque numa dimensão para ver detalhes.
+              </p>
+              <div className="mt-3">
+                <DriverMindMapSvg
+                  registry={NR1_CROSSWALK}
+                  driverId={VOZ_SEGURA_DRIVER_ID}
+                  exposures={DEMO_COPSOQ_EXPOSURE}
+                  pillarLabels={PILLAR_LABEL}
+                />
+              </div>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                  Alternativa em texto (mesmas relações do mapa)
+                </summary>
+                <ul className="mt-2 space-y-1 text-xs leading-relaxed text-card-foreground">
+                  {driverMindMap.nodes
+                    .filter((n) => n.type === "dimension")
+                    .map((n) => (
+                      <li key={n.id}>
+                        {n.label} — {n.instrument === "copsoq" ? "COPSOQ II" : "FIB-T"}, força{" "}
+                        {Math.round((n.strength ?? 0) * 100)}%
+                        {n.exposure !== undefined ? `, exposição ${n.exposure}/100` : ""}
+                      </li>
+                    ))}
+                </ul>
+              </details>
+            </div>
+          )}
         </Section>
 
         {/* ─── 3 · Praticar: quiz ─── */}
@@ -411,6 +503,12 @@ function VozSeguraTrail({
               </p>
             </div>
           )}
+
+          <LearningDynamicsRail
+            title="Praticar em outro formato"
+            available={dynamicsById(["LD-003"])}
+            onActivate={activateDynamic}
+          />
         </Section>
 
         {/* ─── 5 · Aplicar ─── */}
@@ -607,6 +705,12 @@ function VozSeguraTrail({
               </div>
             </>
           )}
+
+          <LearningDynamicsRail
+            title="Sintetizar em plano"
+            available={dynamicsById(["LD-006"])}
+            onActivate={activateDynamic}
+          />
         </Section>
 
         {/* ─── 8 · Projeto 30 dias + ESG ─── */}
@@ -664,6 +768,10 @@ function VozSeguraTrail({
             </div>
           </div>
         </Section>
+
+        {roadmapDynamics.length > 0 && (
+          <LearningDynamicsRail title="Nesta trilha, em evolução" available={[]} roadmap={roadmapDynamics} />
+        )}
 
         <p className="text-xs leading-relaxed text-muted-foreground">
           Esta trilha desenvolve prática de gestão — não substitui PGR, avaliação profissional de

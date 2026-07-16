@@ -1,5 +1,10 @@
-// Learning Dynamics Registry — contrato de governança das 14 dinâmicas de
-// aprendizagem (LD-001..LD-014), Onda LDX-1.
+// Learning Dynamics Registry — camada de domínio: só JSON congelado + loader
+// tipado. Os tipos do contrato (CanonicalLearningDynamic e os 6 enums de
+// governança) vivem em src/engine/learning/learning-dynamics-resolution.ts
+// (mesmo padrão de EvidenceStudy/EvidenceRegistry em passport-engine.ts) —
+// re-exportados aqui só por conveniência de import para quem consome o
+// registro (rotas, componentes). Domínio pode importar engine; o inverso é
+// proibido (engine-domain-boundary.test.ts).
 //
 // Distinto de src/engine/learning/learning-dynamics.ts (catálogo pedagógico
 // D1..X3 do WWP, usado hoje em /academia): aquele descreve PEDAGOGIA por
@@ -8,82 +13,21 @@
 // Os dois catálogos coexistem deliberadamente — não fundir, não renomear.
 //
 // "Nenhuma interface pode apresentar uma dinâmica com status superior ao
-// autorizado aqui" — src/domain/learning/REGISTRO_CANONICO... (docs/learning/).
-//
-// Domínio: só tipos + dado + loader tipado. Zero lógica de resolução — isso
-// vive em src/engine/learning/learning-dynamics-resolution.ts (invariante
-// Engine ≠ Domínio: o engine recebe este catálogo por parâmetro, nunca
-// importa o JSON diretamente).
+// autorizado aqui" — docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md.
 
 import registryJson from "./learning-dynamics-registry.json";
-import type { MeteAxis } from "@/engine/learning/learning-dynamics";
+import type { CanonicalLearningDynamic } from "@/engine/learning/learning-dynamics-resolution";
 
-export type RuntimeStatus =
-  | "REAL"
-  | "PARCIAL"
-  | "DEMO"
-  | "PLANNED"
-  | "PROPOSED"
-  | "R_AND_D"
-  | "AUSENTE"
-  | "DEPRECATED";
-
-export type ContentStatus = "VERIFIED" | "CURATED" | "DEMO" | "DRAFT" | "ABSENT";
-
-export type PersistenceStatus =
-  | "PERSISTED_PRIVATE"
-  | "PERSISTED_TENANT"
-  | "PERSISTED_AGGREGATED"
-  | "SESSION_ONLY"
-  | "NONE"
-  | "NOT_APPLICABLE";
-
-export type AiMode = "NONE" | "DETERMINISTIC" | "GENERATIVE_GATED" | "GENERATIVE_PROHIBITED";
-
-export type PublicExposure = "AVAILABLE" | "PILOT" | "DEMO" | "PREPARATION" | "HIDDEN" | "R_AND_D";
-
-export type RiskTier = "R1_LOW" | "R2_MODERATE" | "R3_HIGH" | "R4_CRITICAL";
-
-/** Estados que NUNCA podem resolver CTA operacional (invariante "sem funcionalidade fantasma"). */
-export const ROADMAP_RUNTIME_STATUSES: readonly RuntimeStatus[] = [
-  "PLANNED",
-  "PROPOSED",
-  "R_AND_D",
-  "AUSENTE",
-  "DEPRECATED",
-];
-
-/** Exposições que nunca aparecem na jornada comum do usuário final. */
-export const NON_JOURNEY_EXPOSURES: readonly PublicExposure[] = ["HIDDEN", "R_AND_D"];
-
-export interface CanonicalLearningDynamic {
-  id: string;
-  version: string;
-  slug: string;
-  title: string;
-  shortLabel: string;
-  description: string;
-  kind: string;
-  meteAxes: MeteAxis[];
-  primaryOutcome: string;
-  authorizedRoles: string[];
-  enrichesRoutes: string[];
-  runtimeStatus: RuntimeStatus;
-  contentStatus: ContentStatus;
-  persistenceStatus: PersistenceStatus;
-  aiMode: AiMode;
-  publicExposure: PublicExposure;
-  riskTier: RiskTier;
-  dataClasses: string[];
-  evidenceRefs: string[];
-  runtimeEvidence: string[];
-  documentationEvidence: string[];
-  dependencies: string[];
-  forbiddenUses: string[];
-  accessibilityRequirements: string[];
-  acceptanceCriteria: string[];
-  rolloutWave: string;
-}
+export type {
+  RuntimeStatus,
+  ContentStatus,
+  PersistenceStatus,
+  AiMode,
+  PublicExposure,
+  RiskTier,
+  CanonicalLearningDynamic,
+} from "@/engine/learning/learning-dynamics-resolution";
+export { ROADMAP_RUNTIME_STATUSES, NON_JOURNEY_EXPOSURES } from "@/engine/learning/learning-dynamics-resolution";
 
 export interface LearningDynamicsRegistryFile {
   registry: string;
