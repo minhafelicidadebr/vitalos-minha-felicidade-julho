@@ -16,6 +16,7 @@ import { EvidencePassport } from "@/app/evidence/EvidencePassport";
 import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
+  buildPassport,
   checkActivityBudget,
   resolveStudy,
   validateEvidenceRegistry,
@@ -52,6 +53,7 @@ import { getAvailableDynamics, getRoadmapDynamics } from "@/engine/learning/lear
 import { LearningDynamicsRail } from "@/features/learning/components/LearningDynamicsRail";
 import { IntroVideoCard, type IntroVideoSource } from "@/features/learning/components/IntroVideoCard";
 import { LearningMethodDialog } from "@/features/learning/components/LearningMethodDialog";
+import { ComplementaryResources, type ComplementaryResource } from "@/features/learning/components/ComplementaryResources";
 // ─── LD-011 Mapa Mental Governado: reuso puro do driver "confianca" (Confiança & Voz) ──
 import { DriverMindMapSvg } from "@/app/nr1/DriverMindMapSvg";
 import { buildDriverMindMap } from "@/engine/nr1/mindmap-engine";
@@ -165,6 +167,50 @@ function VozSeguraTrail({
     sourceType: "NOT_AVAILABLE",
     contentStatus: "DRAFT",
   };
+
+  // Status de confiança sempre lido de buildPassport() — nunca digitado (CLAUDE.md §6).
+  const primaryConfidence = buildPassport(primary, "humano").lines.find((l) => l.label === "Confiança")?.value;
+  const complementaryConfidence = complementary[0]
+    ? buildPassport(complementary[0], "humano").lines.find((l) => l.label === "Confiança")?.value
+    : undefined;
+  const complementaryResources: ComplementaryResource[] = [
+    {
+      title: primary.canonical_citation,
+      type: "VERIFIED_EVIDENCE",
+      origin: "Registro de Evidência VitalOS",
+      year: "1999",
+      whyItMatters: "A origem do mecanismo desta trilha inteira — segurança psicológica e comportamento de aprendizagem.",
+      evidenceStatus: primaryConfidence,
+    },
+    ...(complementary[0]
+      ? [
+          {
+            title: complementary[0].canonical_citation,
+            type: "VERIFIED_EVIDENCE" as const,
+            origin: "Registro de Evidência VitalOS",
+            year: "2021",
+            whyItMatters: "Como o apoio do supervisor se conecta à segurança psicológica na prática.",
+            evidenceStatus: complementaryConfidence,
+          },
+        ]
+      : []),
+    {
+      title: "Mundo do Driver: Confiança & Voz",
+      type: "APPLIED_INTERPRETATION",
+      origin: "VitalOS — Plataforma de Drivers NR-1",
+      whyItMatters: "Conecta esta trilha aos indicadores COPSOQ/FIB-T que ela busca melhorar.",
+      internalHref: "/driver/confianca",
+      onOpen: () => navigate({ to: "/driver/$driverId", params: { driverId: VOZ_SEGURA_DRIVER_ID } }),
+    },
+    {
+      title: "Academia do Florescimento",
+      type: "PRACTICE_TOOL",
+      origin: "VitalOS",
+      whyItMatters: "Continue com outras trilhas de aprendizagem curadas por papel.",
+      internalHref: "/academia",
+      onOpen: () => navigate({ to: "/academia" }),
+    },
+  ];
 
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
   const quizGrade = gradeQuiz(VOZ_SEGURA_QUIZ, quizAnswers);
@@ -768,6 +814,8 @@ function VozSeguraTrail({
             </div>
           </div>
         </Section>
+
+        <ComplementaryResources resources={complementaryResources} />
 
         {roadmapDynamics.length > 0 && (
           <LearningDynamicsRail title="Nesta trilha, em evolução" available={[]} roadmap={roadmapDynamics} />
