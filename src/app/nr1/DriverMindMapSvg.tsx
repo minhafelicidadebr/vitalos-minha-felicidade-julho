@@ -51,6 +51,7 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
     [registry, driverId, exposures],
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
 
   if (!map) return null;
 
@@ -126,15 +127,39 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
           .map((node) => {
             const isLeft = node.x < cx;
             const isSelected = selectedId === node.id;
+            const isFocused = focusedId === node.id;
+            const toggle = () => setSelectedId(isSelected ? null : node.id);
             return (
               <g
                 key={node.id}
-                className="cursor-pointer"
-                onClick={() => setSelectedId(isSelected ? null : node.id)}
+                className="cursor-pointer outline-none"
+                onClick={toggle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                    // Espaço rola a página por padrão em elementos focáveis — nunca aqui.
+                    e.preventDefault();
+                    toggle();
+                  }
+                }}
+                onFocus={() => setFocusedId(node.id)}
+                onBlur={() => setFocusedId((current) => (current === node.id ? null : current))}
                 role="button"
                 tabIndex={0}
+                aria-pressed={isSelected}
                 aria-label={`${node.label}: força ${Math.round((node.strength ?? 0) * 100)}%`}
               >
+                {isFocused && (
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={node.size + 4}
+                    fill="none"
+                    stroke="oklch(0.55 0.2 250)"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    data-testid="focus-ring"
+                  />
+                )}
                 <circle
                   cx={node.x}
                   cy={node.y}

@@ -1,7 +1,8 @@
 # Handoff — Onda LDX-1 (Learning Dynamics Registry + Elevação Premium da `/voz-segura`)
 
 > **Data:** 2026-07-16 · **Branch:** `feat/ldx-1-learning-dynamics-registry` · **Base:** `main` @ `7f4c596`
-> **Status:** implementação concluída, gate verde, **sem push/PR/merge/deploy** — aguardando autorização.
+> **Status:** implementação concluída + follow-up de acessibilidade concluído (§13), gate verde,
+> **sem push/PR/merge/deploy** — aprovada preliminarmente pelo founder, aguardando autorização final.
 
 Sem linguagem promocional abaixo. Nenhuma afirmação de sucesso sem evidência de arquivo:linha ou de gate.
 
@@ -34,10 +35,11 @@ Commits (4 fatias, gate verde a cada uma):
   d97c71f  Fatia B — engine de resolução puro + cards/rail base
   e79a575  Fatia C — integração cirúrgica em /voz-segura (+ fix de fronteira)
   cd6d350  Fatia D — Continue aprofundando + testes DOM
-Pendente de commit nesta sessão: TASK.md (atualizado) + este handoff.
+  3175ad2  docs: handoff + TASK.md
+  (pendente) fix(a11y): teclado no DriverMindMapSvg — ver §13
 ```
 
-## 3 · Arquivos alterados (19 arquivos, +3233/−24)
+## 3 · Arquivos alterados (19 arquivos da onda original, +3233/−24; +2 no follow-up de acessibilidade — ver §13)
 
 **Documentação (3):**
 `docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md` ·
@@ -172,12 +174,14 @@ rail de flashcards nunca aparecia — corrigido no JSON.
   `fireEvent.keyDown`/`fireEvent.click` via Testing Library, que usa o sistema de
   eventos sintéticos do React de verdade) — mas a confirmação em navegador real
   por um humano continua recomendada antes de qualquer aceite formal.
-- `DriverMindMapSvg.tsx` (componente pré-existente, não modificado) tem nós
-  clicáveis com `role="button" tabIndex={0}` sem `onKeyDown` — Enter/Espaço não
-  ativam o clique por teclado (só clique de mouse funciona). Não é uma regressão
-  desta onda; é um gap pré-existente agora mais visível por ser reusado numa
-  nova superfície. Recomendo corrigir num follow-up dedicado (fora do escopo
-  cirúrgico da LDX-1).
+- ~~`DriverMindMapSvg.tsx` sem suporte de teclado~~ — **corrigido no follow-up de
+  acessibilidade, ver §13.** O anel de foco visível não pôde ser confirmado
+  visualmente pela automação do navegador pelo mesmo motivo do item acima
+  (chamadas `.focus()` programáticas não disparam evento `focus`/`focusin`
+  "trusted" nesta ferramenta — confirmado que isso afeta até um `<button>` HTML
+  puro na mesma página, não é específico do meu componente); coberto por 2
+  testes DOM dedicados que usam o `fireEvent.focus`/`fireEvent.blur` do
+  Testing Library (que simula o evento corretamente).
 - `LD-006`/`LD-002`/`LD-008`/`LD-013` registrados com `runtimeStatus: PARCIAL`
   descrevem fielmente o que existe hoje (real, mas não generalizado/adaptativo)
   — nenhuma mudança de comportamento foi feita nessas dinâmicas nesta onda,
@@ -222,4 +226,134 @@ bun run dev               # servidor local — abrir /voz-segura
 ```
 
 Diff completo vs. `main`: `git diff main...feat/ldx-1-learning-dynamics-registry --stat`
-(19 arquivos, +3233/−24).
+(19 arquivos da onda original +2 do follow-up de acessibilidade).
+
+---
+
+## 13 · Follow-up de acessibilidade — teclado no `DriverMindMapSvg`
+
+Pedido pelo founder após a aprovação preliminar da LDX-1: o componente é
+pré-existente (usado em `/driver/$driverId` desde antes desta onda), mas
+passou a integrar `/voz-segura` na Fatia C — por isso o gap de teclado virou
+parte da experiência entregue e foi corrigido antes do gate final.
+
+### Arquivos alterados
+
+- `src/app/nr1/DriverMindMapSvg.tsx` (+27/−2) — único arquivo de produto tocado.
+- `src/app/nr1/DriverMindMapSvg.test.tsx` (novo, 13 testes) — não existia teste
+  algum para este componente antes.
+
+Nenhum outro arquivo tocado — nem `mindmap-engine.ts` (a lógica pura de
+construção do grafo), nem `crosswalk-engine.ts`, nem os pontos de uso
+(`voz-segura.tsx`, `driver.$driverId.tsx` continuam passando as mesmas props).
+
+### Decisões
+
+1. **Elemento nativo não era tecnicamente viável sem risco desproporcional.**
+   Cada nó é um cluster SVG (círculo + texto + indicadores) posicionado por
+   coordenadas calculadas dinamicamente dentro de um `<svg>` com transformações
+   de layout radial. Converter para `<button>` real exigiria `<foreignObject>`
+   (comportamento de renderização/acessibilidade inconsistente entre
+   navegadores) — desproporcional para um follow-up cirúrgico. Mantido
+   `role="button"` + `tabIndex={0}` (já existia) e reforçada a semântica que
+   faltava: `aria-pressed={isSelected}` (o clique já era um toggle; o estado
+   ARIA agora declara isso).
+
+2. **Ativação por teclado replica exatamente a lógica de clique** — `toggle()`
+   foi extraído para uma função compartilhada entre `onClick` e `onKeyDown`
+   (`DriverMindMapSvg.tsx:131,136,141`), eliminando qualquer chance de
+   divergência de comportamento entre mouse e teclado.
+
+3. **Espaço: `e.preventDefault()` sempre que a tecla for reconhecida**
+   (`Enter`, `" "`, ou o legado `"Spacebar"`), antes de chamar `toggle()` —
+   impede a rolagem da página que o navegador faz por padrão em elementos
+   focáveis (`DriverMindMapSvg.tsx:137-143`).
+
+4. **Foco visível via anel SVG desenhado explicitamente, não `outline` CSS.**
+   `outline` em elementos SVG (`<g>`) tem suporte inconsistente entre motores
+   de renderização. Em vez de depender disso, um `<circle>` tracejado
+   (`stroke-dasharray`, cor `oklch(0.55 0.2 250)`, distinta da cor de seleção)
+   é renderizado condicionalmente via estado React (`focusedId`,
+   `onFocus`/`onBlur`) — visível em qualquer navegador, testável de forma
+   determinística. `outline-none` foi adicionado à className **só porque** este
+   substituto sempre o acompanha (nunca isolado — regra do
+   `ux-ix-premium-accessibility-guard`).
+
+5. **Nenhuma interação depende de hover.** Auditoria confirmou: o componente já
+   não tinha nenhum `:hover`-only reveal antes desta mudança; o painel de
+   detalhe sempre dependeu de clique/seleção, nunca de hover.
+
+### Evidências e resultados reais
+
+```
+bun test src/app/nr1/DriverMindMapSvg.test.tsx    → 13 pass / 0 fail
+bunx tsc --noEmit                                  → limpo
+bun run gate (testes + paridade + typecheck)       → 2278 pass / 0 fail (210→211 arquivos)
+bun run build                                       → verde
+```
+
+Os 13 testes cobrem exatamente os itens pedidos: role=button+tabIndex+nome
+acessível em todos os nós; Tab alcança o nó (`.focus()` + `document.activeElement`,
+envolvido em `act()`); Enter ativa (`aria-pressed` `false→true`); Espaço ativa
+E previne o padrão (`fireEvent.keyDown` retorna `false` = `preventDefault`
+chamado); toggle duplo desmarca; teclas irrelevantes (Tab, Escape) não ativam;
+clique continua funcionando; clique e teclado produzem o mesmo estado final
+(mesmo texto do painel de detalhe); anel de foco aparece/some com
+`focus`/`blur`; `outline-none` só existe porque o anel o substitui; **o driver
+"confianca" (o mesmo embutido em `/voz-segura`) continua resolvendo nós reais
+e ativáveis por teclado** — prova direta de ausência de regressão no ponto de
+integração da LDX-1; driver inexistente continua retornando `null`.
+
+**Verificação em navegador real** (dev server `vitalos-julho-dev`, reiniciado
+no meio da verificação porque uma instância de várias horas travou em
+`AuthGate` — ambiente, não código; confirmado por `preview_logs` sem erro e
+resolvido reiniciando o servidor):
+
+- **Desktop:** os 6 nós do mapa embutido em `/voz-segura` têm `tabindex="0"`;
+  Enter dispatchado no primeiro nó levou `aria-pressed` a `"true"` e abriu o
+  painel de detalhe real ("Qual. liderança · COPSOQ II · 60% · Exposição:
+  47/100..."); Espaço confirmado com `preventDefault` (retorno `false` de
+  `dispatchEvent`) e mesmo efeito de ativação.
+- **Mobile (375×812):** mesmos 6 nós, `tabIndex=0`, Enter ativa
+  (`aria-pressed=true`) sem introduzir overflow horizontal
+  (`scrollWidth === innerWidth` antes e depois da ativação).
+- **`/driver/$driverId` (o outro ponto de uso, não tocado por esta onda):**
+  Enter no primeiro nó também ativa (`aria-pressed=true`), zero erro de
+  console — confirma que a correção não regrediu a superfície original.
+- **Anel de foco visual:** não pôde ser confirmado pela automação do
+  navegador — chamadas `.focus()` programáticas não disparam eventos
+  `focus`/`focusin` "trusted" nesta ferramenta (testado isoladamente: nem um
+  `<button>` HTML puro da mesma página dispara o evento sob `.focus()`
+  programático aqui, então não é uma característica do SVG nem do meu código
+  — é a mesma classe de limitação já documentada para o Escape do Radix
+  Dialog). Coberto pelo teste DOM (happy-dom simula o evento corretamente).
+
+### Risco residual após o follow-up
+
+- **Nenhum.** Os 3 pontos pedidos (ativação por teclado, semântica acessível,
+  ausência de regressão) estão implementados, testados (13 testes dirigidos +
+  gate completo) e confirmados funcionalmente em navegador real nos dois
+  pontos de uso do componente, em desktop e mobile.
+- **Único item não 100% verificável por automação:** a aparência VISUAL do
+  anel de foco (existência/estilo do elemento é comprovada por teste DOM; a
+  automação de navegador não consegue disparar foco "trusted" para
+  screenshot). Recomendo, na próxima sessão manual do founder, um Tab real no
+  teclado em `/voz-segura` até o mapa mental, só para confirmar visualmente
+  — é o mesmo tipo de confirmação humana já pendente para o modal (§9).
+
+## 14 · Auditoria final
+
+Confirmações explícitas pedidas pelo founder, cada uma com a evidência que a sustenta:
+
+| Item | Status | Evidência |
+|---|---|---|
+| Nenhuma dinâmica `PLANNED`/`PROPOSED`/`R_AND_D` aparece como disponível | ✅ confirmado | Schema `allOf` (`learning-dynamics-registry.schema.json`) recusa o JSON se isso acontecer; teste "PLANNED/PROPOSED/R_AND_D/AUSENTE/DEPRECATED nunca têm exposição operacional" (`learning-dynamics-registry.test.ts`); `getAvailableDynamics` usa allowlist `{REAL,PARCIAL,DEMO}`, testado com status corrompido (`learning-dynamics-resolution.test.ts:106-119`); confirmado no navegador — seção "Em evolução" mostra LD-004/LD-007 sem nenhum botão |
+| Card de vídeo não apresenta player ou conteúdo inexistente | ✅ confirmado | `IntroVideoCard` só renderiza `<video>` quando `sourceType !== "NOT_AVAILABLE" && videoSrc`; teste "sourceType NOT_AVAILABLE nunca renderiza \<video\>"; confirmado no navegador — badge "Vídeo em preparação", zero tag `<video>` no DOM |
+| Mapa Mental Governado não cria relações por IA | ✅ confirmado | `buildDriverMindMap`/`driverProfile` são funções puras determinísticas (`mindmap-engine.ts`, `crosswalk-engine.ts`) — zero import de LLM/fetch/API externa; `grep -i "fetch\|openai\|anthropic\|llm\|generat"` nos 2 arquivos não retorna nada; o follow-up de acessibilidade não tocou a lógica de construção do grafo, só a interação do `<g>` |
+| Nenhum claim novo foi introduzido | ✅ confirmado | Zero arquivo do Claim/Evidence/Mechanism Registry no diff (`git diff --name-only main` não lista nenhum) |
+| Não houve migration | ✅ confirmado | Zero arquivo `supabase/migrations/` no diff |
+| FlorêncIA não foi conectada ao ActionLog | ✅ confirmado | Zero arquivo `src/engine/florencia/`, `FlorenciaDrawer.tsx` ou `action-log-engine.ts` alterado no diff |
+| NASCENTES_ATLAS não foi implementado em runtime | ✅ confirmado | Zero arquivo com "nascentes" no diff; nenhuma menção a NASCENTES em código novo desta onda |
+| Identidade, hero e card IVO permaneceram congelados | ✅ confirmado | Zero arquivo de landing/hero/IVO no diff — confirmado por leitura no preflight (§ preflight original) e por `git diff --name-only main` não listar nada em `src/features/landing/` |
+
+Nenhuma exceção encontrada em nenhum item.
