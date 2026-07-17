@@ -7,12 +7,14 @@
 // nenhuma superfície exibe mais certeza do que o registro autoriza.
 // Execução (ActionLog) é local à sessão nesta demonstração — o conteúdo é real.
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain } from "lucide-react";
+import { Brain, Layers } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { EvidencePassport } from "@/app/evidence/EvidencePassport";
+import { FlashcardDeck } from "@/app/academia/FlashcardDeck";
+import { getFlashcardSession } from "@/mocks/flashcard-mock";
 import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
@@ -159,6 +161,13 @@ function VozSeguraTrail({
   }
   const driverMindMap = useMemo(
     () => buildDriverMindMap(NR1_CROSSWALK, VOZ_SEGURA_DRIVER_ID, DEMO_COPSOQ_EXPOSURE),
+    [],
+  );
+  // LD-003 embutido de verdade (não cross-link): só os cartões já catalogados
+  // para "seguranca_psicologica" — mesmo catálogo de /revisar, filtrado.
+  // Efêmero por design, igual ao resto desta trilha (onGrade omitido).
+  const vozSeguraFlashcards = useMemo(
+    () => getFlashcardSession().filter((sc) => sc.card.driverId === "seguranca_psicologica"),
     [],
   );
   const introVideo: IntroVideoSource = {
@@ -550,11 +559,30 @@ function VozSeguraTrail({
             </div>
           )}
 
-          <LearningDynamicsRail
-            title="Praticar em outro formato"
-            available={dynamicsById(["LD-003"])}
-            onActivate={activateDynamic}
-          />
+          {vozSeguraFlashcards.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5 text-primary" aria-hidden />
+                  Praticar em outro formato · Flashcards
+                </p>
+                <StatusBadge status="PARCIAL" title="Motor SM-2 real; nesta sessão de demonstração, efêmero" />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Os mesmos 2 cartões de Segurança Psicológica do catálogo de revisão espaçada — sem
+                sair desta trilha.
+              </p>
+              <div className="mt-3">
+                <FlashcardDeck cards={vozSeguraFlashcards} />
+              </div>
+              <Link
+                to="/revisar"
+                className="mt-3 inline-block text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Ver todos os temas em Revisão Espaçada
+              </Link>
+            </div>
+          )}
         </Section>
 
         {/* ─── 5 · Aplicar ─── */}

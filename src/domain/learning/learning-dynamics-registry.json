@@ -122,7 +122,9 @@
         "src/engine/learning/sm2-engine.ts",
         "src/routes/revisar.tsx",
         "src/engine/learning/card-state-hydration.ts",
-        "src/lib/cloud/learning-adapter.ts"
+        "src/lib/cloud/learning-adapter.ts",
+        "src/app/academia/FlashcardDeck.tsx",
+        "src/routes/voz-segura.tsx"
       ],
       "documentationEvidence": [],
       "dependencies": ["sessão real autenticada para persistência (sem sessão: efêmero, local)"],
