@@ -17,7 +17,7 @@
 // integração, sem duplicar a lógica do Policy Gate na interface.
 
 import { useState } from "react";
-import { Eye, MessageCircle, type LucideIcon } from "lucide-react";
+import { Eye, Flag, FolderCheck, MessageCircle, type LucideIcon } from "lucide-react";
 import { FlorenciaDrawer } from "./FlorenciaDrawer";
 import {
   normalizeContextEnvelope,
@@ -44,6 +44,8 @@ const EVIDENCE = EVIDENCE_REGISTRY;
 const CTA_ICONS: Record<string, LucideIcon> = {
   "message-circle": MessageCircle,
   eye: Eye,
+  flag: Flag,
+  "folder-check": FolderCheck,
 };
 
 interface CtaRegistryEntry {

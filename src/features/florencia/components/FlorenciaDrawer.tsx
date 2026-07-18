@@ -75,6 +75,12 @@ function AllowedState({
         {result.classification === "DEMO" ? (
           <p className="text-xs text-muted-foreground">Conteúdo demonstrativo.</p>
         ) : null}
+        {result.requiresHumanReview ? (
+          <p className="rounded-lg border border-amber-400/40 bg-amber-50/60 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-950/20 dark:text-amber-300" role="note">
+            Requer revisão humana antes de qualquer uso real — esta orientação não é
+            aprovação automática.
+          </p>
+        ) : null}
         <p className="text-sm text-muted-foreground">{result.summary}</p>
       </div>
 

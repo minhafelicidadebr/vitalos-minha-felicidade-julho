@@ -678,7 +678,15 @@ function VozSeguraTrail({
                 Base de evidência: {missionClaim.safe_claim}
               </p>
             )}
-            <FlorenciaSafeConversationEntryPoint onInteraction={handleFlorenciaInteraction} />
+            <div className="flex flex-wrap gap-2">
+              <FlorenciaSafeConversationEntryPoint onInteraction={handleFlorenciaInteraction} />
+              <FlorenciaSafeConversationEntryPoint
+                ctaId="CTA-CREATE-TEAM-MISSION"
+                section="missao-equipe"
+                entityRefs={["mechanism:MECH-VOICE-001", "study:LDR-007"]}
+                onInteraction={handleFlorenciaInteraction}
+              />
+            </div>
             {missionStatus === "planejada" ? (
               <button
                 type="button"
@@ -912,6 +920,12 @@ function VozSeguraTrail({
                 ))}
               </ul>
             </div>
+            <FlorenciaSafeConversationEntryPoint
+              ctaId="CTA-ORGANIZE-EVIDENCE"
+              section="organizar-esg"
+              entityRefs={["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"]}
+              onInteraction={handleFlorenciaInteraction}
+            />
           </div>
         </Section>
 

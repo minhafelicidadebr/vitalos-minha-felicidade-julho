@@ -8,9 +8,14 @@
 // tabela bloqueia com unsupported_intent — nunca cai num texto genérico):
 // - prepare_conversation (capacidade canônica prepare_safe_conversation,
 //   ver docs/ai/florencia/CAPABILITY-MAP.md)
-// - suggest_observation (momento Evoluir da trilha — o que observar no
-//   piloto; claim CLAIM-LDR007-VOICE-002, contexto observar-evoluir)
-// Escopo de ambos: Empresa × Liderança × Voz Segura.
+// - suggest_observation (momento Evoluir — claim CLAIM-LDR007-VOICE-002,
+//   contexto observar-evoluir)
+// - create_team_mission (momento da missão — claim CLAIM-LDR007-VOICE-001,
+//   contexto missao-equipe)
+// - organize_evidence (prévia ESG — claim CLAIM-EDMONDSON1999-VOICE-003,
+//   contexto organizar-esg; o Policy Gate marca requiresHumanReview)
+// explain_mechanism NÃO tem template: sua superfície é o Evidence Passport
+// estático, não um drawer. Escopo de todos: Empresa × Liderança × Voz Segura.
 
 import type { ResolvedFlorenciaContext, CtaResolution } from "./cta-resolution";
 import type { PolicyGateResult } from "./policy-gate";
@@ -34,7 +39,11 @@ export type FlorenciaBlockReason =
   | "policy_gate_denied"
   | "claim_not_allowed";
 
-export type FlorenciaTemplateId = "prepare-safe-conversation-v1" | "suggest-observation-v1";
+export type FlorenciaTemplateId =
+  | "prepare-safe-conversation-v1"
+  | "suggest-observation-v1"
+  | "create-team-mission-v1"
+  | "organize-evidence-v1";
 
 export interface FlorenciaResponseAllowed {
   status: "allowed";
@@ -46,6 +55,9 @@ export interface FlorenciaResponseAllowed {
   nextActionLabel: string;
   usedClaimIds: readonly string[];
   classification: ProductStatus;
+  /** Repassado do Policy Gate (caveat presente ou intent sensível como
+   * organize_evidence) — a superfície DEVE exibir a nota de revisão humana. */
+  requiresHumanReview: boolean;
 }
 
 export interface FlorenciaResponseBlocked {
@@ -158,6 +170,48 @@ const TEMPLATES: Record<string, TemplateSpec> = {
     ],
     nextActionLabel: "Rever os indicadores desta seção",
   },
+  create_team_mission: {
+    templateId: "create-team-mission-v1",
+    requiredClaimId: "CLAIM-LDR007-VOICE-001",
+    summary:
+      "Como transformar a missão dos cinco minutos num compromisso de equipe: co-desenho, adesão voluntária e critério de feita combinado antes — sem promessa de resultado.",
+    guidance: [
+      "Apresentar a missão ao time como experimento com prazo definido, não como nova obrigação permanente.",
+      "Co-desenhar o formato com o time (quando acontece, como funciona, o que se anota) antes da primeira rodada.",
+      "Garantir participação voluntária — ninguém precisa se expor para a rodada contar como feita.",
+      "Combinar o critério de feita observável antes de começar, não depois.",
+      "Marcar desde o início o ponto de avaliação honesta com o time: continuar, ajustar ou interromper é decisão conjunta.",
+    ],
+    limitations: [
+      "Treinar ou engajar o líder não garante bem-estar da equipe — o efeito observado na evidência depende de adesão e contexto de implementação.",
+      "A intervenção estudada mediu desfechos de sono/bem-estar em contexto distinto — o mecanismo de apoio do supervisor é análogo, não idêntico ao desta missão.",
+      "A missão não pode virar instrumento de cobrança individual nem alimentar avaliação de desempenho, promoção ou remuneração.",
+      "Não substitui RH, SST, ouvidoria ou canais formais quando o caso exigir.",
+      "Este template não realiza diagnóstico clínico, jurídico ou individual.",
+    ],
+    nextActionLabel: "Rever a missão com o time",
+  },
+  organize_evidence: {
+    templateId: "organize-evidence-v1",
+    requiredClaimId: "CLAIM-EDMONDSON1999-VOICE-003",
+    summary:
+      "Como organizar o que a prévia ESG pode e não pode afirmar: o que a evidência fundamenta, o que só a execução real demonstra e quais limitações declarar.",
+    guidance: [
+      "Separar três camadas ao montar o relato: evidência científica (mecanismo), execução registrada (ActionLog) e interpretação — nunca misturá-las numa afirmação só.",
+      "Usar a evidência de base apenas para fundamentar o mecanismo, nunca como prova de impacto do piloto atual.",
+      "Relatar mudança observada com indicadores de processo, deixando explícito o que não foi medido.",
+      "Declarar as limitações junto do resultado, no mesmo documento — não em anexo separado.",
+      "Submeter o relato a uma pessoa responsável pela revisão antes de qualquer uso externo (relatório, ESG, comunicação).",
+    ],
+    limitations: [
+      "Este piloto não prova redução de adoecimento nem aumento de produtividade — nenhum claim de impacto é autorizado.",
+      "A evidência de base é correlacional e de amostra específica (equipes de manufatura) — fundamenta o mecanismo, não o resultado do piloto atual.",
+      "Indicadores de processo não são indicadores de saúde; a linguagem autorizada é mudança observada, nunca impacto garantido.",
+      "Esta organização de evidências exige revisão humana antes de uso real — a prévia é demonstrativa.",
+      "Não substitui auditoria, parecer jurídico ou avaliação profissional de riscos.",
+    ],
+    nextActionLabel: "Rever a prévia de rastreabilidade",
+  },
 };
 
 /**
@@ -199,5 +253,6 @@ export function buildResponseTemplate(
     nextActionLabel: spec.nextActionLabel,
     usedClaimIds,
     classification: resolveResponseClassification(context),
+    requiresHumanReview: policyGate.requiresHumanReview,
   };
 }
