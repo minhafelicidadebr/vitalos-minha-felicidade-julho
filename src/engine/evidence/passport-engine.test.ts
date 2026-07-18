@@ -2,10 +2,12 @@ import { describe, expect, test } from "bun:test";
 import {
   buildPassport,
   checkActivityBudget,
+  findClaimForStudy,
   resolveStudy,
   trustGate,
   validateEvidenceRegistry,
   validateMechanisms,
+  type ClaimRegistry,
   type EvidenceRegistry,
   type EvidenceStudy,
   type MechanismRecord,
@@ -13,9 +15,11 @@ import {
 // O engine é puro; o teste de consistência importa o registro REAL congelado
 // (padrão journey-consistency: a fonte única é verificada por teste, não por fé).
 import registryJson from "../../domain/evidence/evidence-registry.json";
+import claimRegistryJson from "../../domain/evidence/claim-registry.json";
 import mechanismJson from "../../domain/evidence/mechanism-registry.json";
 
 const REGISTRY = registryJson as unknown as EvidenceRegistry;
+const CLAIM_REGISTRY = claimRegistryJson as unknown as ClaimRegistry;
 const MECHANISMS = mechanismJson.mechanisms as unknown as MechanismRecord[];
 
 function makeStudy(overrides: Partial<EvidenceStudy> = {}): EvidenceStudy {
@@ -153,6 +157,43 @@ describe("buildPassport", () => {
   test("estudo C3 carrega o caveat no passaporte em qualquer nível", () => {
     const c3 = REGISTRY.studies.find((s) => s.claim_alignment === "C3")!;
     expect(buildPassport(c3, "humano").caveat).toBeTruthy();
+  });
+});
+
+// ─── findClaimForStudy (passaporte × Claim Registry oficial) ─────────────────
+
+describe("findClaimForStudy", () => {
+  const edmondson = resolveStudy(REGISTRY, "TRU-006")!;
+  const ldr007 = resolveStudy(REGISTRY, "LDR-007")!;
+
+  test("acha o claim oficial de passaporte para TRU-006 (via nome canônico EDMONDSON-1999)", () => {
+    const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, edmondson, "explain_mechanism");
+    expect(claim?.claim_id).toBe("CLAIM-EDMONDSON1999-VOICE-001");
+  });
+
+  test("estudo resolvido por alias aponta para o mesmo claim (nó canônico decide)", () => {
+    const viaAlias = resolveStudy(REGISTRY, "VOI-005")!;
+    const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, viaAlias, "explain_mechanism");
+    expect(claim?.claim_id).toBe("CLAIM-EDMONDSON1999-VOICE-001");
+  });
+
+  test("lacuna do registro = null — LDR-007 não tem claim de explain_mechanism e NUNCA herda o de outro contexto", () => {
+    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "explain_mechanism")).toBeNull();
+    // O claim que existe para LDR-007 é de outro uso (create_team_mission) — não vaza para cá.
+    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "create_team_mission")?.claim_id).toBe(
+      "CLAIM-LDR007-VOICE-001",
+    );
+  });
+
+  test("buildPassport com o claim oficial: texto idêntico ao legacy (registro semeado dele) e claim_id na auditoria", () => {
+    const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, edmondson, "explain_mechanism")!;
+    const withClaim = buildPassport(edmondson, "auditoria", claim);
+    const legacy = buildPassport(edmondson, "auditoria");
+    expect(withClaim.claim).toBe(legacy.claim); // convergência sem mudança visível
+    expect(withClaim.trusted).toBe(true);
+    expect(withClaim.lines.find((l) => l.label === "Claim")?.value).toBe(
+      "CLAIM-EDMONDSON1999-VOICE-001",
+    );
   });
 });
 

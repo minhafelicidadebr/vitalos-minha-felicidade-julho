@@ -21,6 +21,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import {
   buildPassport,
   checkActivityBudget,
+  findClaimForStudy,
   resolveStudy,
   validateEvidenceRegistry,
 } from "@/engine/evidence/passport-engine";
@@ -38,7 +39,7 @@ import {
   recordActionEvent,
   type ActionLogEvent,
 } from "@/engine/action-plan/action-log-engine";
-import { EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
+import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
@@ -177,10 +178,20 @@ function VozSeguraTrail({
     contentStatus: "DRAFT",
   };
 
+  // Claim oficial do Claim Registry (Onda 3.5) para o contexto do passaporte
+  // (explain_mechanism). Onde o registro ainda não cobre a combinação (ex.:
+  // LDR-007), fica o caminho legacy do registro congelado — a lacuna nunca é
+  // preenchida com claim de outro contexto.
+  const primaryClaim =
+    findClaimForStudy(REGISTRY, CLAIM_REGISTRY, primary, "explain_mechanism") ?? undefined;
+  const complementaryClaims = complementary.map(
+    (s) => findClaimForStudy(REGISTRY, CLAIM_REGISTRY, s, "explain_mechanism") ?? undefined,
+  );
+
   // Status de confiança sempre lido de buildPassport() — nunca digitado (CLAUDE.md §6).
-  const primaryConfidence = buildPassport(primary, "humano").lines.find((l) => l.label === "Confiança")?.value;
+  const primaryConfidence = buildPassport(primary, "humano", primaryClaim).lines.find((l) => l.label === "Confiança")?.value;
   const complementaryConfidence = complementary[0]
-    ? buildPassport(complementary[0], "humano").lines.find((l) => l.label === "Confiança")?.value
+    ? buildPassport(complementary[0], "humano", complementaryClaims[0]).lines.find((l) => l.label === "Confiança")?.value
     : undefined;
   const complementaryResources: ComplementaryResource[] = [
     {
@@ -392,9 +403,14 @@ function VozSeguraTrail({
             </p>
           </div>
           <div className="mt-3 space-y-3">
-            <EvidencePassport study={primary} role="principal" />
-            {complementary.map((study) => (
-              <EvidencePassport key={study.study_id} study={study} role="complementar" />
+            <EvidencePassport study={primary} claim={primaryClaim} role="principal" />
+            {complementary.map((study, i) => (
+              <EvidencePassport
+                key={study.study_id}
+                study={study}
+                claim={complementaryClaims[i]}
+                role="complementar"
+              />
             ))}
           </div>
         </Section>
