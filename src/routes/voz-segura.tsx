@@ -23,7 +23,9 @@ import {
   checkActivityBudget,
   findClaimForStudy,
   resolveStudy,
+  trustGate,
   validateEvidenceRegistry,
+  type IntendedUse,
 } from "@/engine/evidence/passport-engine";
 import {
   computeEvolveIndicators,
@@ -179,14 +181,28 @@ function VozSeguraTrail({
   };
 
   // Claim oficial do Claim Registry (Onda 3.5) para o contexto do passaporte
-  // (explain_mechanism). Onde o registro ainda não cobre a combinação (ex.:
-  // LDR-007), fica o caminho legacy do registro congelado — a lacuna nunca é
-  // preenchida com claim de outro contexto.
+  // (explain_mechanism). Onde o registro não cobrir a combinação, fica o
+  // caminho legacy do registro congelado — a lacuna nunca é preenchida com
+  // claim de outro contexto.
   const primaryClaim =
     findClaimForStudy(REGISTRY, CLAIM_REGISTRY, primary, "explain_mechanism") ?? undefined;
   const complementaryClaims = complementary.map(
     (s) => findClaimForStudy(REGISTRY, CLAIM_REGISTRY, s, "explain_mechanism") ?? undefined,
   );
+
+  // Demais usos registrados da trilha — cada superfície consome só o SEU claim
+  // (uso pretendido próprio), derivado do registry e validado no trustGate.
+  // Sem claim autorizado e confiável, a superfície simplesmente não mostra a linha.
+  function trustedClaimForUse(use: IntendedUse) {
+    for (const study of [primary, ...complementary]) {
+      const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, study, use);
+      if (claim && trustGate(study, claim).trusted) return claim;
+    }
+    return null;
+  }
+  const missionClaim = trustedClaimForUse("create_team_mission");
+  const observationClaim = trustedClaimForUse("suggest_observation");
+  const esgClaim = trustedClaimForUse("organize_evidence");
 
   // Status de confiança sempre lido de buildPassport() — nunca digitado (CLAUDE.md §6).
   const primaryConfidence = buildPassport(primary, "humano", primaryClaim).lines.find((l) => l.label === "Confiança")?.value;
@@ -657,6 +673,11 @@ function VozSeguraTrail({
             <p className="mt-2 text-xs text-muted-foreground">
               Critério de feita: {VOZ_SEGURA_MISSION.doneCriteria}
             </p>
+            {missionClaim && (
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                Base de evidência: {missionClaim.safe_claim}
+              </p>
+            )}
             <FlorenciaSafeConversationEntryPoint onInteraction={handleFlorenciaInteraction} />
             {missionStatus === "planejada" ? (
               <button
@@ -812,6 +833,12 @@ function VozSeguraTrail({
             </>
           )}
 
+          {observationClaim && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              O que observar: {observationClaim.safe_claim}
+            </p>
+          )}
+
           <LearningDynamicsRail
             title="Sintetizar em plano"
             available={dynamicsById(["LD-006"])}
@@ -848,6 +875,12 @@ function VozSeguraTrail({
               <TraceLine label="Projeto" value={esgTrace.project_ref} />
               <TraceLine label="Mecanismo" value={esgTrace.mechanism_ref} />
               <TraceLine label="Evidência" value={`${esgTrace.study_ids.join(", ")} (via Evidence Passport — a bibliografia não se repete aqui)`} />
+              {esgClaim && (
+                <TraceLine
+                  label="Claim autorizado"
+                  value={`${esgClaim.claim_id} — ${esgClaim.safe_claim}`}
+                />
+              )}
               <TraceLine label="Linguagem" value="mudança observada — nunca impacto garantido" />
               <TraceLine
                 label="Execução"
