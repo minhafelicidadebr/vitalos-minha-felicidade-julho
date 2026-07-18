@@ -1,6 +1,10 @@
-// CTA governado da única capacidade ACTIVE desta onda — prepare_safe_conversation
-// (docs/ai/florencia/CAPABILITY-MAP.md). Orquestra o pipeline canônico já
-// existente e abre o FlorenciaDrawer com o resultado computado.
+// Entry point dos CTAs governados da FlorêncIA na trilha. Nasceu para a única
+// capacidade ACTIVE da onda inicial (prepare_safe_conversation, ver
+// docs/ai/florencia/CAPABILITY-MAP.md) — o nome do arquivo/componente ficou
+// por compatibilidade; hoje serve qualquer CTA do registry cujo intent tenha
+// template ativo em response-templates.ts (via prop ctaId; label e ícone vêm
+// do registry, nunca digitados aqui). Orquestra o pipeline canônico e abre o
+// FlorenciaDrawer com o resultado computado.
 //
 // Não cria claims, não decide allowedClaimIds, não duplica o Policy Gate,
 // não persiste nada, não grava ActionLog, não chama LLM/RAG, não acessa
@@ -13,7 +17,7 @@
 // integração, sem duplicar a lógica do Policy Gate na interface.
 
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { Eye, MessageCircle, type LucideIcon } from "lucide-react";
 import { FlorenciaDrawer } from "./FlorenciaDrawer";
 import {
   normalizeContextEnvelope,
@@ -30,11 +34,17 @@ import {
 import ctaRegistryJson from "@/domain/florencia/cta-registry.json";
 import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 
-const CTA_ID = "CTA-PREPARE-CONVERSATION";
 // Mesma fonte governada dos passaportes de /voz-segura — nenhuma leitura
 // paralela dos JSONs de evidência aqui (ver domain/evidence/registries.ts).
 const CLAIMS = CLAIM_REGISTRY.claims;
 const EVIDENCE = EVIDENCE_REGISTRY;
+
+// Ícones permitidos por nome do registry — fallback MessageCircle para nome
+// desconhecido (o ícone é decorativo; o label do registry é a informação).
+const CTA_ICONS: Record<string, LucideIcon> = {
+  "message-circle": MessageCircle,
+  eye: Eye,
+};
 
 interface CtaRegistryEntry {
   cta_id: string;
@@ -68,6 +78,8 @@ function resolveCtaFromRegistry(ctaId: string): CtaResolution | null {
 }
 
 export interface FlorenciaSafeConversationEntryPointProps {
+  /** CTA do registry a orquestrar — o label/ícone do botão vêm de lá. */
+  ctaId?: string;
   segment?: string;
   role?: string;
   route?: string;
@@ -84,6 +96,7 @@ export interface FlorenciaSafeConversationEntryPointProps {
 }
 
 export function FlorenciaSafeConversationEntryPoint({
+  ctaId = "CTA-PREPARE-CONVERSATION",
   segment = "enterprise",
   role = "lider",
   route = "/voz-segura",
@@ -97,13 +110,14 @@ export function FlorenciaSafeConversationEntryPoint({
   const [result, setResult] = useState<FlorenciaResponseTemplateResult | null>(null);
 
   const isAuthorizedSurface = segment === "enterprise" && role === "lider";
+  const registryCta = resolveCtaFromRegistry(ctaId);
 
   function handleClick() {
-    const cta = resolveCtaFromRegistry(CTA_ID);
+    const cta = registryCta;
     if (!cta) return;
 
     const raw: RawContextEnvelope = {
-      cta_id: CTA_ID,
+      cta_id: ctaId,
       segment,
       role,
       route,
@@ -130,8 +144,11 @@ export function FlorenciaSafeConversationEntryPoint({
 
   // Autorização de superfície: só Empresa × Liderança vê esta CTA. Rota e
   // entity_refs continuam validadas pelo pipeline — bloqueiam com safeMessage
-  // em vez de esconder o botão (ver response-templates.ts).
-  if (!isAuthorizedSurface) return null;
+  // em vez de esconder o botão (ver response-templates.ts). CTA inexistente
+  // no registry também não renderiza nada (falha estrutural, não governada).
+  if (!isAuthorizedSurface || !registryCta) return null;
+
+  const Icon = CTA_ICONS[registryCta.icon] ?? MessageCircle;
 
   return (
     <>
@@ -140,8 +157,8 @@ export function FlorenciaSafeConversationEntryPoint({
         onClick={handleClick}
         className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
-        <MessageCircle className="h-4 w-4" aria-hidden />
-        Preparar uma conversa segura
+        <Icon className="h-4 w-4" aria-hidden />
+        {registryCta.label}
       </button>
       <FlorenciaDrawer open={open} onOpenChange={setOpen} result={result} />
     </>

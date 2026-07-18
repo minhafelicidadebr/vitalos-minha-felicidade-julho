@@ -226,3 +226,61 @@ describe("FlorenciaSafeConversationEntryPoint — fechamento e determinismo", ()
     }).not.toThrow();
   });
 });
+
+describe("FlorenciaSafeConversationEntryPoint — CTA-SUGGEST-OBSERVATION (Evoluir)", () => {
+  const observationProps = {
+    ctaId: "CTA-SUGGEST-OBSERVATION",
+    section: "observar-evoluir",
+    entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+  };
+
+  test("botão usa o label do registry, não texto digitado no componente", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    expect(screen.getByRole("button", { name: "O que devemos observar?" })).toBeDefined();
+  });
+
+  test("clique no contexto autorizado abre o drawer com o template de observação", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByRole("dialog")).toBeDefined();
+    expect(
+      screen.getByText(
+        "O que observar durante o piloto de rodadas: continuidade do ritual e indicadores de processo — sinais de funcionamento, sinais de alerta e o momento de parar.",
+      ),
+    ).toBeDefined();
+    expect(screen.getByText("Rever os indicadores desta seção")).toBeDefined();
+  });
+
+  test("classificação DEMO também na observação — nunca elevada pelo componente", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByText("Demo")).toBeDefined();
+  });
+
+  test("seção errada (preparar-conversa) bloqueia a observação pelo pipeline real", () => {
+    render(
+      <FlorenciaSafeConversationEntryPoint {...observationProps} section="preparar-conversa" />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByText("Esta orientação não está disponível neste contexto.")).toBeDefined();
+  });
+
+  test("papel não autorizado não vê a CTA de observação", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} role="colaborador" />);
+    expect(screen.queryByRole("button", { name: "O que devemos observar?" })).toBeNull();
+  });
+
+  test("ctaId inexistente no registry não renderiza nada", () => {
+    const { container } = render(
+      <FlorenciaSafeConversationEntryPoint ctaId="CTA-NAO-EXISTE" />,
+    );
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  test("claim ID e skill ID não aparecem no DOM da observação", () => {
+    const { container } = render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(container.textContent?.includes("CLAIM-")).toBe(false);
+    expect(container.textContent?.includes("SKILL-")).toBe(false);
+  });
+});

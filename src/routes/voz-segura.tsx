@@ -839,6 +839,13 @@ function VozSeguraTrail({
             </p>
           )}
 
+          <FlorenciaSafeConversationEntryPoint
+            ctaId="CTA-SUGGEST-OBSERVATION"
+            section="observar-evoluir"
+            entityRefs={["mechanism:MECH-VOICE-001", "study:LDR-007"]}
+            onInteraction={handleFlorenciaInteraction}
+          />
+
           <LearningDynamicsRail
             title="Sintetizar em plano"
             available={dynamicsById(["LD-006"])}
