@@ -27,14 +27,14 @@ import {
   buildResponseTemplate,
   type FlorenciaResponseTemplateResult,
 } from "@/engine/florencia/response-templates";
-import type { ClaimRegistry, EvidenceRegistry } from "@/engine/evidence/passport-engine";
 import ctaRegistryJson from "@/domain/florencia/cta-registry.json";
-import claimRegistryJson from "@/domain/evidence/claim-registry.json";
-import evidenceRegistryJson from "@/domain/evidence/evidence-registry.json";
+import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 
 const CTA_ID = "CTA-PREPARE-CONVERSATION";
-const CLAIMS = (claimRegistryJson as unknown as ClaimRegistry).claims;
-const EVIDENCE = evidenceRegistryJson as unknown as EvidenceRegistry;
+// Mesma fonte governada dos passaportes de /voz-segura — nenhuma leitura
+// paralela dos JSONs de evidência aqui (ver domain/evidence/registries.ts).
+const CLAIMS = CLAIM_REGISTRY.claims;
+const EVIDENCE = EVIDENCE_REGISTRY;
 
 interface CtaRegistryEntry {
   cta_id: string;

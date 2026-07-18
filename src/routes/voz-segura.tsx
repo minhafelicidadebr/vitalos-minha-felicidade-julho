@@ -23,7 +23,6 @@ import {
   checkActivityBudget,
   resolveStudy,
   validateEvidenceRegistry,
-  type EvidenceRegistry,
 } from "@/engine/evidence/passport-engine";
 import {
   computeEvolveIndicators,
@@ -39,7 +38,7 @@ import {
   recordActionEvent,
   type ActionLogEvent,
 } from "@/engine/action-plan/action-log-engine";
-import registryJson from "@/domain/evidence/evidence-registry.json";
+import { EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
@@ -70,7 +69,7 @@ export const Route = createFileRoute("/voz-segura")({
   component: VozSeguraPage,
 });
 
-const REGISTRY = registryJson as unknown as EvidenceRegistry;
+const REGISTRY = EVIDENCE_REGISTRY;
 const ACTOR_ROLE = "LIDER_EQUIPE";
 
 function todayIso(): string {
