@@ -177,12 +177,28 @@ describe("findClaimForStudy", () => {
     expect(claim?.claim_id).toBe("CLAIM-EDMONDSON1999-VOICE-001");
   });
 
-  test("lacuna do registro = null — LDR-007 não tem claim de explain_mechanism e NUNCA herda o de outro contexto", () => {
-    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "explain_mechanism")).toBeNull();
-    // O claim que existe para LDR-007 é de outro uso (create_team_mission) — não vaza para cá.
+  test("LDR-007 tem claim próprio de passaporte — e cada uso resolve para o SEU claim, nunca o de outro contexto", () => {
+    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "explain_mechanism")?.claim_id).toBe(
+      "CLAIM-LDR007-VOICE-003",
+    );
     expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "create_team_mission")?.claim_id).toBe(
       "CLAIM-LDR007-VOICE-001",
     );
+  });
+
+  test("lacuna do registro = null — estudo sem claim registrado NUNCA herda claim de outro estudo/contexto", () => {
+    const semClaims = REGISTRY.studies.find(
+      (s) => s.study_id !== "TRU-006" && s.study_id !== "LDR-007",
+    )!;
+    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, semClaims, "explain_mechanism")).toBeNull();
+  });
+
+  test("claim C2 de LDR-007 não dispara ressalva no passaporte (caveat obrigatório é só C3/V2)", () => {
+    const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, ldr007, "explain_mechanism")!;
+    const p = buildPassport(ldr007, "humano", claim);
+    expect(p.claim).toBe(ldr007.safe_claim); // texto idêntico ao legacy — sem mudança visível
+    expect(p.caveat).toBeNull();
+    expect(p.trusted).toBe(true);
   });
 
   test("buildPassport com o claim oficial: texto idêntico ao legacy (registro semeado dele) e claim_id na auditoria", () => {

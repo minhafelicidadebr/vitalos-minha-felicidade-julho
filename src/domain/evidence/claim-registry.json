@@ -63,6 +63,18 @@
       "prohibited_claims": ["ausência de adesão prova que a prática não funciona"]
     },
     {
+      "claim_id": "CLAIM-LDR007-VOICE-003",
+      "study_id": "LDR-007",
+      "intended_use": "explain_mechanism",
+      "role": ["lider", "rh", "chro"],
+      "segment": ["enterprise"],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "caveat": "Correspondência adequada (C2): a intervenção estudada mediu desfechos de sono/bem-estar, não diretamente comportamento de voz — o mecanismo de apoio do supervisor é análogo, não idêntico ao de Voz Segura.",
+      "safe_claim": "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos de sono/bem-estar da equipe; o efeito depende de adesão do líder e contexto de implementação.",
+      "prohibited_claims": ["treinar líderes garante bem-estar da equipe"]
+    },
+    {
       "claim_id": "CLAIM-EDMONDSON1999-VOICE-003",
       "study_id": "EDMONDSON-1999",
       "intended_use": "organize_evidence",
