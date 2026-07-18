@@ -2,8 +2,10 @@
 // FlorenciaResponseTemplateResult já computado (allowed/blocked) ou o
 // estado vazio (result === null, nenhuma capacidade acionada ainda). Não
 // resolve contexto, não roda Policy Gate, não importa registries, não
-// persiste nada, não chama LLM. Ainda não é acionado por nenhuma rota —
-// wiring em /voz-segura acontece numa etapa futura, com nova autorização.
+// persiste nada, não chama LLM. Acionado por /voz-segura via
+// FlorenciaSafeConversationEntryPoint (onInteraction registra o desfecho
+// "allowed" no ActionLog local da rota — o drawer em si continua sem
+// gravar nada).
 //
 // Reaproveita o Sheet (mesmo primitivo do menu mobile do AppShell) e o
 // StatusBadge (doutrina REAL/PARCIAL/DEMO/ROADMAP do CLAUDE.md) — nenhuma

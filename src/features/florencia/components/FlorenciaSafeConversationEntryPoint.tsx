@@ -75,6 +75,12 @@ export interface FlorenciaSafeConversationEntryPointProps {
   entityRefs?: string[];
   privacyScope?: PrivacyScope;
   productStatus?: ProductStatus;
+  /**
+   * Notifica o caller do resultado computado (allowed ou blocked) — o
+   * componente não persiste nada sozinho (ver nota no topo do arquivo);
+   * quem decide se/como registrar (ex.: ActionLog) é a rota que o compõe.
+   */
+  onInteraction?: (result: FlorenciaResponseTemplateResult) => void;
 }
 
 export function FlorenciaSafeConversationEntryPoint({
@@ -85,6 +91,7 @@ export function FlorenciaSafeConversationEntryPoint({
   entityRefs = ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
   privacyScope = "aggregate_only",
   productStatus = "DEMO",
+  onInteraction,
 }: FlorenciaSafeConversationEntryPointProps) {
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<FlorenciaResponseTemplateResult | null>(null);
@@ -115,8 +122,10 @@ export function FlorenciaSafeConversationEntryPoint({
       allowedPrivacyScopes: ["aggregate_only"],
     });
 
-    setResult(buildResponseTemplate({ context: outcome.context, cta, policyGate }));
+    const templateResult = buildResponseTemplate({ context: outcome.context, cta, policyGate });
+    setResult(templateResult);
     setOpen(true);
+    onInteraction?.(templateResult);
   }
 
   // Autorização de superfície: só Empresa × Liderança vê esta CTA. Rota e

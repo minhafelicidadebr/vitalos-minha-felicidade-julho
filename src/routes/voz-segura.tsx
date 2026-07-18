@@ -16,6 +16,7 @@ import { EvidencePassport } from "@/app/evidence/EvidencePassport";
 import { FlashcardDeck } from "@/app/academia/FlashcardDeck";
 import { getFlashcardSession } from "@/mocks/flashcard-mock";
 import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
+import type { FlorenciaResponseTemplateResult } from "@/engine/florencia/response-templates";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   buildPassport,
@@ -245,6 +246,22 @@ function VozSeguraTrail({
         occurredOn: todayIso(),
       });
       return result.reason === "recorded" ? result.events : prev;
+    });
+  }
+
+  // Fecha o gap confirmado no handoff LDX-1 §14: a orientação da FlorêncIA
+  // era mostrada mas nunca deixava rastro no ActionLog. Só o desfecho
+  // "allowed" gera evento — um bloqueio não produziu orientação real, não
+  // há o que atestar. evidenceRef é o templateId (referência, nunca o
+  // conteúdo da orientação, mesma disciplina de evidence_recorded).
+  function handleFlorenciaInteraction(result: FlorenciaResponseTemplateResult) {
+    if (result.status !== "allowed") return;
+    appendEvent({
+      actionKey: VOZ_SEGURA_MISSION.id,
+      kind: "evidence_recorded",
+      actorRole: ACTOR_ROLE,
+      evidenceKind: "florencia_orientation",
+      evidenceRef: result.templateId,
     });
   }
 
@@ -625,7 +642,7 @@ function VozSeguraTrail({
             <p className="mt-2 text-xs text-muted-foreground">
               Critério de feita: {VOZ_SEGURA_MISSION.doneCriteria}
             </p>
-            <FlorenciaSafeConversationEntryPoint />
+            <FlorenciaSafeConversationEntryPoint onInteraction={handleFlorenciaInteraction} />
             {missionStatus === "planejada" ? (
               <button
                 type="button"
