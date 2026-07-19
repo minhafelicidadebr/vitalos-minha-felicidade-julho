@@ -64,6 +64,36 @@ describe("claim-registry × evidence-registry — congelado real", () => {
     expect(claimRegistryJson.provenance.frozen_on).toContain("descongelamento formal");
   });
 
+  // v1.1.0 — expansão mecânica para o corpus: todo estudo do Evidence Registry
+  // tem EXATAMENTE UM claim de passaporte (explain_mechanism × evidencia-passaporte),
+  // com texto VERBATIM dos campos legacy do registro congelado. Se um estudo novo
+  // entrar no Evidence Registry sem claim (ou um claim divergir do legacy), quebra aqui.
+  test("v1.1.0: cobertura 1:1 do corpus no passaporte, verbatim do legacy, todos passando no gate", () => {
+    const passportClaims = CLAIMS.claims.filter(
+      (c) => c.intended_use === "explain_mechanism" && c.target_context === "evidencia-passaporte",
+    );
+    const coveredCanonical = new Map<string, number>();
+    for (const claim of passportClaims) {
+      const study = resolveCanonicalStudy(EVIDENCE, claim.study_id)!;
+      coveredCanonical.set(study.study_id, (coveredCanonical.get(study.study_id) ?? 0) + 1);
+      expect(trustGate(study, claim).trusted).toBe(true);
+      // Verbatim SÓ nos claims da derivação mecânica (-PASSPORT-001): o claim nunca
+      // diz mais (nem diferente) do que o registro congelado. Os claims do corte
+      // Voz Segura (VOICE-*) foram registrados deliberadamente e podem carregar
+      // caveat adicional (mais fraco é permitido; mais forte, nunca).
+      if (claim.claim_id.endsWith("-PASSPORT-001")) {
+        expect(claim.safe_claim).toBe(study.safe_claim);
+        expect(claim.prohibited_claims).toEqual(study.prohibited_claims);
+        expect(claim.claim_alignment).toBe(study.claim_alignment);
+        expect(claim.caveat).toBe(study.caveat);
+      }
+    }
+    expect(coveredCanonical.size).toBe(EVIDENCE.studies.length); // 46 estudos, todos cobertos
+    expect([...coveredCanonical.values()].every((n) => n === 1)).toBe(true); // exatamente um cada
+    expect(CLAIMS.claims).toHaveLength(50); // 6 Voz Segura + 44 passaporte
+    expect(CLAIMS.version).toBe("1.1.0");
+  });
+
   test("EDMONDSON-1999 resolve para o nó canônico TRU-006 sem tocar o JSON congelado", () => {
     const study = resolveCanonicalStudy(EVIDENCE, "EDMONDSON-1999");
     expect(study?.study_id).toBe("TRU-006");
