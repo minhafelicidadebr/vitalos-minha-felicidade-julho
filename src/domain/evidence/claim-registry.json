@@ -2,12 +2,13 @@
   "$schema": "./claim-registry.schema.json",
   "registry": "Claim Registry VitalOS",
   "version": "1.0.0",
-  "frozen": false,
+  "frozen": true,
   "description": "Fonte OFICIAL de claims — substitui os campos safe_claim/prohibited_claims/claim_alignment/caveat do Evidence Registry para código novo (ver nota DEPRECATED em evidence-registry.schema.json). Cada claim é uma combinação estudo × uso pretendido × papel × segmento × contexto-alvo — o mesmo estudo pode ter claims diferentes para usos diferentes.",
   "provenance": {
     "sources": ["src/domain/evidence/evidence-registry.json (v1.0.0, campos de claim legacy)"],
     "scope": "Só os claims necessários ao corte Voz Segura (Onda 3.5/4B) — EDMONDSON-1999 e LDR-007. Expansão para os outros 44 estudos é trabalho futuro, fora desta onda.",
-    "canonical_study_names": "study_id aqui usa o nome canônico legível (ex.: EDMONDSON-1999), resolvido para o nó do Evidence Registry (TRU-006, aliases LDR-013/VOI-005) via tabela em código — o evidence-registry.json congelado não é alterado."
+    "canonical_study_names": "study_id aqui usa o nome canônico legível (ex.: EDMONDSON-1999), resolvido para o nó do Evidence Registry (TRU-006, aliases LDR-013/VOI-005) via tabela em código — o evidence-registry.json congelado não é alterado.",
+    "frozen_on": "2026-07-18 — v1.0.0 congelada com os 6 claims do corte Voz Segura, todos com superfície verificada (passaportes, missão, evoluir, ESG, FlorêncIA). Alterar ou adicionar claim exige descongelamento formal com bump de versão, mesma disciplina do Evidence Registry."
   },
   "claims": [
     {
