@@ -286,18 +286,19 @@ function VozSeguraTrail({
     });
   }
 
-  // Fecha o gap confirmado no handoff LDX-1 §14: a orientação da FlorêncIA
-  // era mostrada mas nunca deixava rastro no ActionLog. Só o desfecho
-  // "allowed" gera evento — um bloqueio não produziu orientação real, não
-  // há o que atestar. evidenceRef é o templateId e evidenceClaimIds são os
-  // claim_ids que o Policy Gate autorizou (referências, nunca o conteúdo —
-  // mesma disciplina de evidence_recorded). requiresHumanReview vira nota
+  // Rastro do copiloto no ActionLog (handoff LDX-1 §14 + bloqueador 1 pré-§5):
+  // consultar orientação NÃO é evidência — o kind é orientation_consulted,
+  // nunca evidence_recorded (que fica reservado para prova de execução real,
+  // ex.: rodada registrada). Só o desfecho "allowed" gera evento — um bloqueio
+  // não produziu orientação, não há o que atestar. evidenceRef é o templateId
+  // e evidenceClaimIds são os claim_ids que o Policy Gate autorizou
+  // (referências, nunca o conteúdo). requiresHumanReview vira nota
   // operacional no evento: o rastro diz que a orientação não é aprovação.
   function handleFlorenciaInteraction(result: FlorenciaResponseTemplateResult) {
     if (result.status !== "allowed") return;
     appendEvent({
       actionKey: VOZ_SEGURA_MISSION.id,
-      kind: "evidence_recorded",
+      kind: "orientation_consulted",
       actorRole: ACTOR_ROLE,
       evidenceKind: "florencia_orientation",
       evidenceRef: result.templateId,
@@ -375,8 +376,10 @@ function VozSeguraTrail({
   };
 
   // Rastro do copiloto — derivado do ActionLog, nunca contado à parte.
+  // orientation_consulted ≠ evidence_recorded: consulta não entra na régua
+  // de evidência da ação (summarizeActionLog), só no rastro de uso.
   const florenciaOrientations = logEvents.filter(
-    (e) => e.kind === "evidence_recorded" && e.evidenceKind === "florencia_orientation",
+    (e) => e.kind === "orientation_consulted" && e.evidenceKind === "florencia_orientation",
   );
 
   return (
