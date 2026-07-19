@@ -204,3 +204,17 @@ describe("deriveProductStatus — Truth Layer (elo mais fraco, falha fechado)", 
     expect(deriveProductStatus(makeDynamic({ runtimeStatus: "CORROMPIDO" as never, contentStatus: "VERIFIED" }))).toBe("DEMO");
   });
 });
+
+describe("deriveProductStatus — embed efêmero (superfície descarta persistência)", () => {
+  test("dinâmica REAL embutida como efêmera rebaixa para PARCIAL — nunca se apresenta REAL", () => {
+    const real = makeDynamic({ runtimeStatus: "REAL", contentStatus: "CURATED" });
+    expect(deriveProductStatus(real, { ephemeral: true })).toBe("PARCIAL");
+    expect(deriveProductStatus(real)).toBe("REAL"); // sem o flag, a dinâmica global segue REAL
+  });
+
+  test("efêmero nunca ELEVA — DEMO continua DEMO", () => {
+    expect(
+      deriveProductStatus(makeDynamic({ runtimeStatus: "PARCIAL", contentStatus: "DEMO" }), { ephemeral: true }),
+    ).toBe("DEMO");
+  });
+});

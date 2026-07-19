@@ -54,7 +54,12 @@ import {
 } from "@/mocks/voz-segura-mock";
 // ─── LDX-1: Learning Dynamics Registry (governança/descoberta contextual) ──
 import { getLearningDynamicsRegistry, type CanonicalLearningDynamic } from "@/domain/learning/learning-dynamics-registry";
-import { getAvailableDynamics, getRoadmapDynamics } from "@/engine/learning/learning-dynamics-resolution";
+import {
+  deriveProductStatus,
+  getAvailableDynamics,
+  getRoadmapDynamics,
+  type SurfaceTruthOptions,
+} from "@/engine/learning/learning-dynamics-resolution";
 import { LearningDynamicsRail } from "@/features/learning/components/LearningDynamicsRail";
 import { IntroVideoCard, type IntroVideoSource } from "@/features/learning/components/IntroVideoCard";
 import { LearningMethodDialog } from "@/features/learning/components/LearningMethodDialog";
@@ -146,6 +151,12 @@ function VozSeguraTrail({
   const [methodOpen, setMethodOpen] = useState(false);
   const navigate = useNavigate();
   const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
+  // Truth Layer (Onda 5): status dos badges derivado do registro canônico —
+  // nunca digitado. Dinâmica ausente = piso DEMO (falha fechado).
+  function dynamicStatus(id: string, opts?: SurfaceTruthOptions) {
+    const dynamic = learningCatalog.find((d) => d.id === id);
+    return dynamic ? deriveProductStatus(dynamic, opts) : "DEMO";
+  }
   const resolutionContext = useMemo(() => ({ route: "/voz-segura", role: ACTOR_ROLE }), []);
   const availableDynamics = useMemo(
     () => getAvailableDynamics(learningCatalog, resolutionContext),
@@ -462,7 +473,7 @@ function VozSeguraTrail({
                   <Brain className="h-3.5 w-3.5 text-primary" aria-hidden />
                   Mapa Mental Governado · driver Confiança &amp; Voz
                 </p>
-                <StatusBadge status="PARCIAL" title="Motor real (mindmap-engine); integração nesta trilha é nova" />
+                <StatusBadge status={dynamicStatus("LD-011")} title="Derivado do registro canônico LD-011 (motor real, conteúdo verificado, integração parcial)" />
               </div>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Como o driver se conecta a COPSOQ II, FIB-T e aos pilares IVO — nunca gerado por
@@ -623,7 +634,7 @@ function VozSeguraTrail({
                   <Layers className="h-3.5 w-3.5 text-primary" aria-hidden />
                   Praticar em outro formato · Flashcards
                 </p>
-                <StatusBadge status="PARCIAL" title="Motor SM-2 real; nesta sessão de demonstração, efêmero" />
+                <StatusBadge status={dynamicStatus("LD-003", { ephemeral: true })} title="Derivado do registro canônico LD-003 — motor SM-2 real, mas este embed é efêmero (nunca se apresenta acima de parcial)" />
               </div>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Os mesmos 2 cartões de Segurança Psicológica do catálogo de revisão espaçada — sem

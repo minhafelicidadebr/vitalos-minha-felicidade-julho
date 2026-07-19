@@ -231,12 +231,20 @@ export function assertDynamicRegistryIntegrity(
  *   DEMO, mesmo com runtime REAL: engine real com conteúdo demonstrativo É
  *   uma demonstração.
  */
+export interface SurfaceTruthOptions {
+  /** A superfície descarta a persistência da dinâmica (embed efêmero de uma
+   * dinâmica persistente) — nunca pode se apresentar REAL, mesmo que a
+   * dinâmica global seja REAL: a experiência entregue ali é parcial. */
+  ephemeral?: boolean;
+}
+
 export function deriveProductStatus(
   dynamic: CanonicalLearningDynamic,
+  opts: SurfaceTruthOptions = {},
 ): "REAL" | "PARCIAL" | "DEMO" {
   if (!AVAILABLE_RUNTIME_STATUSES.includes(dynamic.runtimeStatus)) return "DEMO";
   if (dynamic.contentStatus !== "VERIFIED" && dynamic.contentStatus !== "CURATED") return "DEMO";
-  if (dynamic.runtimeStatus === "REAL") return "REAL";
+  if (dynamic.runtimeStatus === "REAL") return opts.ephemeral ? "PARCIAL" : "REAL";
   if (dynamic.runtimeStatus === "PARCIAL") return "PARCIAL";
   return "DEMO";
 }
