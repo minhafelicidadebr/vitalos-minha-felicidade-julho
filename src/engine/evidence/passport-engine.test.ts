@@ -186,11 +186,18 @@ describe("findClaimForStudy", () => {
     );
   });
 
-  test("lacuna do registro = null — estudo sem claim registrado NUNCA herda claim de outro estudo/contexto", () => {
-    const semClaims = REGISTRY.studies.find(
+  test("lacuna do registro = null por USO — v1.1.0 cobre todo estudo no passaporte, mas usos específicos seguem exigindo registro deliberado", () => {
+    const foraDoVozSegura = REGISTRY.studies.find(
       (s) => s.study_id !== "TRU-006" && s.study_id !== "LDR-007",
     )!;
-    expect(findClaimForStudy(REGISTRY, CLAIM_REGISTRY, semClaims, "explain_mechanism")).toBeNull();
+    // Passaporte: coberto para o corpus inteiro desde v1.1.0.
+    expect(
+      findClaimForStudy(REGISTRY, CLAIM_REGISTRY, foraDoVozSegura, "explain_mechanism")?.claim_id,
+    ).toBe(`CLAIM-${foraDoVozSegura.study_id}-PASSPORT-001`);
+    // Uso específico (ex.: preparar conversa): NUNCA herdado do claim de passaporte.
+    expect(
+      findClaimForStudy(REGISTRY, CLAIM_REGISTRY, foraDoVozSegura, "prepare_conversation"),
+    ).toBeNull();
   });
 
   test("claim C2 de LDR-007 não dispara ressalva no passaporte (caveat obrigatório é só C3/V2)", () => {

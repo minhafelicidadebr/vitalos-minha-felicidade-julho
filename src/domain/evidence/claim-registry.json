@@ -1,22 +1,30 @@
 {
   "$schema": "./claim-registry.schema.json",
   "registry": "Claim Registry VitalOS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "frozen": true,
   "description": "Fonte OFICIAL de claims — substitui os campos safe_claim/prohibited_claims/claim_alignment/caveat do Evidence Registry para código novo (ver nota DEPRECATED em evidence-registry.schema.json). Cada claim é uma combinação estudo × uso pretendido × papel × segmento × contexto-alvo — o mesmo estudo pode ter claims diferentes para usos diferentes.",
   "provenance": {
-    "sources": ["src/domain/evidence/evidence-registry.json (v1.0.0, campos de claim legacy)"],
-    "scope": "Só os claims necessários ao corte Voz Segura (Onda 3.5/4B) — EDMONDSON-1999 e LDR-007. Expansão para os outros 44 estudos é trabalho futuro, fora desta onda.",
+    "sources": [
+      "src/domain/evidence/evidence-registry.json (v1.0.0, campos de claim legacy)"
+    ],
+    "scope": "v1.1.0: corpus completo — os 6 claims do corte Voz Segura (uso-especificos) + 44 claims de passaporte (explain_mechanism x evidencia-passaporte), um por estudo restante do Evidence Registry congelado, derivados VERBATIM dos campos de claim legacy (safe_claim/prohibited_claims/claim_alignment/caveat). Zero texto novo; role = profiles do estudo; segment = enterprise (unico segmento ativado). Claims uso-especificos para outras superficies continuam exigindo registro deliberado, nunca derivacao automatica.",
     "canonical_study_names": "study_id aqui usa o nome canônico legível (ex.: EDMONDSON-1999), resolvido para o nó do Evidence Registry (TRU-006, aliases LDR-013/VOI-005) via tabela em código — o evidence-registry.json congelado não é alterado.",
-    "frozen_on": "2026-07-18 — v1.0.0 congelada com os 6 claims do corte Voz Segura, todos com superfície verificada (passaportes, missão, evoluir, ESG, FlorêncIA). Alterar ou adicionar claim exige descongelamento formal com bump de versão, mesma disciplina do Evidence Registry."
+    "frozen_on": "2026-07-18 — v1.0.0 congelada com os 6 claims do corte Voz Segura; no mesmo dia, descongelamento formal com bump para v1.1.0 (expansao mecanica para o corpus completo, 44 claims de passaporte derivados verbatim do registro congelado) e re-congelamento imediato apos validacao. Alterar ou adicionar claim exige novo descongelamento formal com bump de versao, mesma disciplina do Evidence Registry."
   },
   "claims": [
     {
       "claim_id": "CLAIM-EDMONDSON1999-VOICE-001",
       "study_id": "EDMONDSON-1999",
       "intended_use": "explain_mechanism",
-      "role": ["lider", "rh", "chro"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider",
+        "rh",
+        "chro"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "evidencia-passaporte",
       "claim_alignment": "C1",
       "safe_claim": "Em equipes estudadas, segurança psicológica associa-se a mais comportamentos de aprendizagem (perguntar, admitir erro, pedir ajuda) e, por essa via, a melhor desempenho da equipe — estudo fundacional correlacional, não experimento.",
@@ -29,8 +37,12 @@
       "claim_id": "CLAIM-EDMONDSON1999-VOICE-002",
       "study_id": "EDMONDSON-1999",
       "intended_use": "prepare_conversation",
-      "role": ["lider"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "preparar-conversa",
       "claim_alignment": "C1",
       "safe_claim": "A primeira resposta do líder a um erro reportado (curiosidade vs. julgamento) é o comportamento mais associado, na literatura de segurança psicológica, a mais ou menos avisos futuros — não uma garantia de resultado.",
@@ -43,44 +55,73 @@
       "claim_id": "CLAIM-LDR007-VOICE-001",
       "study_id": "LDR-007",
       "intended_use": "create_team_mission",
-      "role": ["lider", "rh"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider",
+        "rh"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "missao-equipe",
       "claim_alignment": "C2",
       "caveat": "Correspondência adequada (C2): a intervenção estudada mediu desfechos de sono/bem-estar, não diretamente comportamento de voz — o mecanismo de apoio do supervisor é análogo, não idêntico ao de Voz Segura.",
       "safe_claim": "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos de sono/bem-estar da equipe; o efeito depende de adesão do líder e contexto de implementação.",
-      "prohibited_claims": ["treinar líderes garante bem-estar da equipe"]
+      "prohibited_claims": [
+        "treinar líderes garante bem-estar da equipe"
+      ]
     },
     {
       "claim_id": "CLAIM-LDR007-VOICE-002",
       "study_id": "LDR-007",
       "intended_use": "suggest_observation",
-      "role": ["lider", "rh", "chro"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider",
+        "rh",
+        "chro"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "observar-evoluir",
       "claim_alignment": "C2",
       "caveat": "Correspondência adequada (C2): observar adesão e contexto de implementação é extrapolação prudente do desenho do estudo original, não um indicador validado diretamente para Voz Segura.",
       "safe_claim": "O efeito de intervenções de apoio do líder depende de adesão e contexto de implementação — vale observar continuidade do ritual, não só sua existência pontual.",
-      "prohibited_claims": ["ausência de adesão prova que a prática não funciona"]
+      "prohibited_claims": [
+        "ausência de adesão prova que a prática não funciona"
+      ]
     },
     {
       "claim_id": "CLAIM-LDR007-VOICE-003",
       "study_id": "LDR-007",
       "intended_use": "explain_mechanism",
-      "role": ["lider", "rh", "chro"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider",
+        "rh",
+        "chro"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "evidencia-passaporte",
       "claim_alignment": "C2",
       "caveat": "Correspondência adequada (C2): a intervenção estudada mediu desfechos de sono/bem-estar, não diretamente comportamento de voz — o mecanismo de apoio do supervisor é análogo, não idêntico ao de Voz Segura.",
       "safe_claim": "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos de sono/bem-estar da equipe; o efeito depende de adesão do líder e contexto de implementação.",
-      "prohibited_claims": ["treinar líderes garante bem-estar da equipe"]
+      "prohibited_claims": [
+        "treinar líderes garante bem-estar da equipe"
+      ]
     },
     {
       "claim_id": "CLAIM-EDMONDSON1999-VOICE-003",
       "study_id": "EDMONDSON-1999",
       "intended_use": "organize_evidence",
-      "role": ["lider", "rh", "chro"],
-      "segment": ["enterprise"],
+      "role": [
+        "lider",
+        "rh",
+        "chro"
+      ],
+      "segment": [
+        "enterprise"
+      ],
       "target_context": "organizar-esg",
       "claim_alignment": "C1",
       "safe_claim": "A evidência de base (Edmondson, 1999) é correlacional, de uma amostra de equipes de manufatura — apropriada para fundamentar o mecanismo, não para provar impacto do piloto atual.",
@@ -88,6 +129,799 @@
         "este piloto prova redução de adoecimento",
         "este piloto prova aumento de produtividade"
       ]
+    },
+    {
+      "claim_id": "CLAIM-ACH-001-PASSPORT-001",
+      "study_id": "ACH-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Participar do desenho do próprio sistema de avaliação/metas está associado a atitudes e desempenho mais favoráveis do que receber o sistema pronto, nos contextos organizacionais estudados.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-ACH-002-PASSPORT-001",
+      "study_id": "ACH-002",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Em contexto de gestão da qualidade, participação dos empregados associou-se a respostas mais favoráveis ao sistema, com efeitos dependentes do desenho da participação.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-ACH-003-PASSPORT-001",
+      "study_id": "ACH-003",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "Correspondência parcial (C3): estudo de contabilidade gerencial — mede desempenho operacional, não bem-estar. Usar só como evidência de participação, com esta ressalva.",
+      "safe_claim": "Participação no desenvolvimento de medidas de desempenho associou-se a maior uso e desempenho operacional em um contexto específico.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-ACH-004-PASSPORT-001",
+      "study_id": "ACH-004",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Meta-análise: metas de grupo bem desenhadas associam-se a melhor desempenho grupal; o efeito varia conforme o tipo de meta e o contexto.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-ACH-005-PASSPORT-001",
+      "study_id": "ACH-005",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Na prática organizacional, a forma de implementar metas (clareza, participação, feedback) relaciona-se com atitudes no trabalho; evidência emergente.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-APP-008-PASSPORT-001",
+      "study_id": "APP-008",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Intervenção organizacional (STAR) que aumentou controle sobre o tempo e apoio do gestor reduziu conflito trabalho-família em ensaio de campo randomizado por grupo; efeitos dependem de implementação.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-COM-002-PASSPORT-001",
+      "study_id": "COM-002",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Transparência salarial relaciona-se com percepção de equidade e mudanças na alocação de recompensas; efeitos distributivos variam — não é neutra nem automaticamente positiva.",
+      "prohibited_claims": [
+        "transparência salarial melhora automaticamente o clima"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-ENE-019-PASSPORT-001",
+      "study_id": "ENE-019",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: evidência de LIMITE (o que não basta fazer), não de eficácia de intervenção. Usar apenas nesse sentido.",
+      "safe_claim": "Em larga amostra no Reino Unido, intervenções individuais de bem-estar (apps, mindfulness isolado) não mostraram melhora média detectável — reforça que a intervenção deve começar na condição de trabalho (Princípio da Proteção na Fonte).",
+      "prohibited_claims": [
+        "apps de bem-estar não funcionam para ninguém",
+        "programas individuais são inúteis"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-FLX-001-PASSPORT-001",
+      "study_id": "FLX-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Trabalhadores atribuem valor econômico real a arranjos de trabalho alternativos (ex.: trabalhar de casa, evitar horários impostos); a valorização varia fortemente entre pessoas.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-INC-022-PASSPORT-001",
+      "study_id": "INC-022",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Clima de inclusão associa-se a maior compromisso e percepção de apoio em organizações estudadas; construir inclusão é processo contínuo, não evento.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-001-PASSPORT-001",
+      "study_id": "JOB-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Medida seminal de insegurança no emprego: o construto é multidimensional (ameaça ao emprego e a características valorizadas dele) — medir só 'medo de demissão' subestima o fenômeno.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-002-PASSPORT-001",
+      "study_id": "JOB-002",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Meta-análise: insegurança no emprego associa-se a piores atitudes no trabalho e pior saúde percebida; magnitudes variam por população e método.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-003-PASSPORT-001",
+      "study_id": "JOB-003",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "colaborador",
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "A insegurança no emprego está associada a resultados adversos de saúde e bem-estar, com variações entre grupos e contextos.",
+      "prohibited_claims": [
+        "insegurança causa necessariamente adoecimento",
+        "esta intervenção elimina a insegurança"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-JOB-005-PASSPORT-001",
+      "study_id": "JOB-005",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Evidência recente sobre insegurança e qualidade do emprego em contexto dos EUA; leitura complementar, não âncora.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-006-PASSPORT-001",
+      "study_id": "JOB-006",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Tipos de contrato de trabalho relacionam-se com seleção e saúde ocupacional em coorte holandesa; contexto regulatório específico.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-009-PASSPORT-001",
+      "study_id": "JOB-009",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Revisão: emprego precário é determinante social emergente de saúde — a condição de emprego em si, não só o conteúdo do trabalho, afeta saúde.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-012-PASSPORT-001",
+      "study_id": "JOB-012",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Intervenção organizacional participativa conseguiu reduzir percepções de insegurança em contexto de mudança — insegurança é manejável no nível da organização, com participação real.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-016-PASSPORT-001",
+      "study_id": "JOB-016",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Transparência financeira da organização associa-se a maior bem-estar no trabalho em survey amplo; toca segurança (previsibilidade) e justiça relacional.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-018-PASSPORT-001",
+      "study_id": "JOB-018",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Meta-análise (56 estudos): rotação de tarefas/funções tem efeitos modestos e heterogêneos — 'mais hype que substância' em média; depende do desenho.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-021-PASSPORT-001",
+      "study_id": "JOB-021",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Revisão sistemática sobre bem-estar após retorno ao trabalho: o retorno exige suporte estruturado; adjacente (não central) à segurança do emprego.",
+      "prohibited_claims": [
+        "protocolo automatizado de retorno ao trabalho substitui acompanhamento profissional"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-JOB-035-PASSPORT-001",
+      "study_id": "JOB-035",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "caveat": "V2: working paper verificado com ressalva; o deck usava claim C4 ('+15–40% generalizado') — bloqueado (CA-001).",
+      "safe_claim": "Experimento de campo pré-registrado (N=758): IA generativa melhorou desempenho em tarefas dentro da fronteira de capacidade do modelo e piorou em tarefas fora dela — efeitos heterogêneos por tarefa, nunca ganho uniforme.",
+      "prohibited_claims": [
+        "IA generativa aumenta a produtividade em 15–40%",
+        "ganho de produtividade uniforme com IA"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-JOB-036-PASSPORT-001",
+      "study_id": "JOB-036",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Revisão fundacional: insegurança no emprego associa-se consistentemente a pior bem-estar psicológico; questões de causalidade e moderadores permanecem abertas no texto original.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-038-PASSPORT-001",
+      "study_id": "JOB-038",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Quase-experimento (5.172 atendentes): assistente de IA aumentou produtividade média ~15% no contexto estudado, com ganhos concentrados em trabalhadores menos experientes — efeito heterogêneo, específico do contexto.",
+      "prohibited_claims": [
+        "IA generativa aumenta a produtividade em 15–40%",
+        "resultado transferível a qualquer função"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-JOB-041-PASSPORT-001",
+      "study_id": "JOB-041",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: mede resultado de FIRMA, não bem-estar individual — usar apenas como contexto econômico, com esta ressalva explícita.",
+      "safe_claim": "Investimento em IA associa-se a crescimento de firmas e inovação de produto em dados firm-level.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-043-PASSPORT-001",
+      "study_id": "JOB-043",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Síntese: downsizing tem custos organizacionais e humanos frequentemente subestimados; efeitos em desempenho da firma são, na média, negativos ou nulos.",
+      "prohibited_claims": [
+        "usar este estudo como evidência sobre governança de IA (má-aplicação CA-004 do deck)"
+      ]
+    },
+    {
+      "claim_id": "CLAIM-JOB-045-PASSPORT-001",
+      "study_id": "JOB-045",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Após demissões, o esforço dos que ficam segue relação em U-invertido com a insegurança percebida — insegurança moderada mobiliza, alta paralisa; carga econômica modera.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-050-PASSPORT-001",
+      "study_id": "JOB-050",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Meta-análise: percepção de justiça no processo de downsizing relaciona-se fortemente com o compromisso de quem fica — o COMO importa tanto quanto o quê.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-JOB-057-PASSPORT-001",
+      "study_id": "JOB-057",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: evidência de POLÍTICA PÚBLICA/macro, não de bem-estar individual — só contexto, nunca prescrição organizacional.",
+      "safe_claim": "Painel macro OCDE: legislação de proteção ao emprego relaciona-se com produtividade agregada de formas heterogêneas por setor.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LDR-005-PASSPORT-001",
+      "study_id": "LDR-005",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: revisão conceitual, não avaliação de eficácia. Grupo DUP-015: MGT-003 é o mesmo estudo (DOI retro-preenchido).",
+      "safe_claim": "Desenvolvimento de liderança pode funcionar como intervenção de saúde ocupacional — posição/revisão conceitual; efeitos dependem do desenho do programa.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LDR-014-PASSPORT-001",
+      "study_id": "LDR-014",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Comportamentos de liderança transformacional associam-se a bem-estar psicológico dos liderados em estudos correlacionais; direção causal não estabelecida.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-001-PASSPORT-001",
+      "study_id": "LRN-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: inferência longitudinal observacional, não intervenção — usar como contexto, não como prescrição.",
+      "safe_claim": "Trabalho intelectualmente complexo associa-se longitudinalmente a melhor funcionamento cognitivo.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-002-PASSPORT-001",
+      "study_id": "LRN-002",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Empoderamento associou-se a maior conhecimento do trabalho em contexto industrial estudado; ganhos dependem de suporte real, não só de delegação nominal.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-003-PASSPORT-001",
+      "study_id": "LRN-003",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "caveat": "V2: verificado com ressalva — população específica (expatriados), evidência emergente; nunca usar como âncora de trilha.",
+      "safe_claim": "Evidência emergente sobre demandas de aprendizagem e ajustamento em contexto de expatriados; leitura complementar.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-004-PASSPORT-001",
+      "study_id": "LRN-004",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Programa baseado em flexibilidade psicológica associou-se a melhora de saúde mental e desempenho de aprendizagem em contexto ocupacional estudado.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-005-PASSPORT-001",
+      "study_id": "LRN-005",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "colaborador",
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Revisão sistemática: aprendizagem no local de trabalho associa-se a maior bem-estar; a relação depende de a aprendizagem ser voluntária e sustentada pela organização.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-006-PASSPORT-001",
+      "study_id": "LRN-006",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C3",
+      "caveat": "C3: amostra setorial específica — generalizar exige cautela explícita.",
+      "safe_claim": "Cultura de aprendizagem organizacional associou-se a satisfação e menor intenção de saída em profissionais de TI dos EUA.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-LRN-007-PASSPORT-001",
+      "study_id": "LRN-007",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Oportunidades de aprender no trabalho associam-se a maior bem-estar e atitudes positivas em survey representativo do Reino Unido.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-MGT-005-PASSPORT-001",
+      "study_id": "MGT-005",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "sst",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Revisão: intervenções de desenho do trabalho tendem a funcionar melhor quando quem faz o trabalho participa do redesenho; efeitos variam por contexto e implementação.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-OPD-001-PASSPORT-001",
+      "study_id": "OPD-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Síntese teórica: perspectivas relacionais e proativas ampliam o desenho do trabalho clássico — base conceitual para autoria e conexão com beneficiários.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-OPD-002-PASSPORT-001",
+      "study_id": "OPD-002",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "colaborador",
+        "lider",
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C2",
+      "safe_claim": "Modelo teórico de job crafting: pessoas remodelam ativamente tarefas e relações do próprio trabalho; é lente conceitual, não intervenção pronta.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-OPD-030-PASSPORT-001",
+      "study_id": "OPD-030",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "colaborador",
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Revisão de 25 anos de pesquisa sobre e-mail no trabalho: normas coletivas e fronteiras digitais relacionam-se com tensão e recuperação; a solução eficaz é de norma organizacional, não de disciplina individual.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-PUR-001-PASSPORT-001",
+      "study_id": "PUR-001",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "colaborador",
+        "lider",
+        "rh",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Três experimentos: ajudar outras pessoas no trabalho aumentou a percepção de sentido do próprio trabalho; efeito em percepção de sentido, não em desempenho.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-STR-009-PASSPORT-001",
+      "study_id": "STR-009",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "lider",
+        "rh",
+        "chro",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Meta-análise: boa liderança associa-se a maior bem-estar no trabalho e menos afastamentos; evidência majoritariamente transversal.",
+      "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-WLP-016-PASSPORT-001",
+      "study_id": "WLP-016",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh",
+        "chro",
+        "clevel",
+        "dpo"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "evidencia-passaporte",
+      "claim_alignment": "C1",
+      "safe_claim": "Pilotos de redução de jornada com manutenção de salário associaram-se a melhora de bem-estar nas organizações participantes; amostras autosselecionadas — exige piloto controlado antes de generalizar.",
+      "prohibited_claims": []
     }
   ]
 }
