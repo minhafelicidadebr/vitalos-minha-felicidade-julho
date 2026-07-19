@@ -5,7 +5,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   checkActivityBudget,
-  findClaimForStudy,
+  findClaimForContext,
   resolveStudy,
   trustGate,
   type ClaimRegistry,
@@ -63,19 +63,32 @@ describe("voz-segura × evidence registry", () => {
   });
 
   // "Todo claim registrado tem superfície, toda superfície tem claim":
-  // espelha exatamente a resolução da rota (trustedClaimForUse em voz-segura.tsx)
-  // — se um claim da trilha sumir do registry ou parar de passar no gate, quebra
-  // aqui, não silenciosamente na tela.
-  test("cada uso registrado da trilha resolve para o SEU claim e passa no trust gate", () => {
+  // espelha exatamente a resolução da rota (trustedClaimForUse em voz-segura.tsx,
+  // pós-bloqueador 2: seleção com CONTEXTO COMPLETO — uso, papel, segmento,
+  // contexto-alvo) — se um claim da trilha sumir do registry, parar de passar
+  // no gate ou perder compatibilidade dimensional, quebra aqui, não
+  // silenciosamente na tela.
+  test("cada uso registrado da trilha resolve para o SEU claim com contexto completo", () => {
     const anchors = [
       VOZ_SEGURA_TRAIL.budget.primaryStudyId,
       ...VOZ_SEGURA_TRAIL.budget.complementaryStudyIds,
     ].map((id) => resolveStudy(REGISTRY, id)!);
 
+    // Mesmo mapa uso → contexto-alvo da rota (claimContextFor).
+    const TARGET_BY_USE: Partial<Record<IntendedUse, string>> = {
+      explain_mechanism: "evidencia-passaporte",
+      create_team_mission: "missao-equipe",
+      suggest_observation: "observar-evoluir",
+      organize_evidence: "organizar-esg",
+    };
+
     function trustedClaimForUse(use: IntendedUse): string | null {
+      const targetContext = TARGET_BY_USE[use];
+      if (!targetContext) return null;
+      const context = { intendedUse: use, role: "lider", segment: "enterprise", targetContext };
       for (const study of anchors) {
-        const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, study, use);
-        if (claim && trustGate(study, claim).trusted) return claim.claim_id;
+        const claim = findClaimForContext(REGISTRY, CLAIM_REGISTRY, study, context);
+        if (claim) return claim.claim_id;
       }
       return null;
     }

@@ -21,9 +21,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import {
   buildPassport,
   checkActivityBudget,
-  findClaimForStudy,
+  findClaimForContext,
   resolveStudy,
-  trustGate,
   validateEvidenceRegistry,
   type IntendedUse,
 } from "@/engine/evidence/passport-engine";
@@ -191,23 +190,46 @@ function VozSeguraTrail({
     contentStatus: "DRAFT",
   };
 
-  // Claim oficial do Claim Registry (Onda 3.5) para o contexto do passaporte
-  // (explain_mechanism). Onde o registro não cobrir a combinação, fica o
-  // caminho legacy do registro congelado — a lacuna nunca é preenchida com
-  // claim de outro contexto.
-  const primaryClaim =
-    findClaimForStudy(REGISTRY, CLAIM_REGISTRY, primary, "explain_mechanism") ?? undefined;
-  const complementaryClaims = complementary.map(
-    (s) => findClaimForStudy(REGISTRY, CLAIM_REGISTRY, s, "explain_mechanism") ?? undefined,
+  // Seleção de claims com CONTEXTO COMPLETO (bloqueador 2 pré-§5 do
+  // SAFE-VOICE-BRIDGE): as quatro dimensões — uso pretendido, papel,
+  // segmento, contexto-alvo — entram na SELEÇÃO (findClaimForContext), não
+  // são validadas só depois. Vocabulário de papel é o do Claim Registry
+  // ("lider"), não o id de persona do pack (LIDER_EQUIPE) — mesma distinção
+  // que o envelope da FlorêncIA já faz. Onde o registro não cobrir a
+  // combinação, fica o caminho legacy do registro congelado — a lacuna nunca
+  // é preenchida com claim de outro contexto.
+  const CLAIM_TARGET_BY_USE: Partial<Record<IntendedUse, string>> = {
+    explain_mechanism: "evidencia-passaporte",
+    create_team_mission: "missao-equipe",
+    suggest_observation: "observar-evoluir",
+    organize_evidence: "organizar-esg",
+  };
+  function claimContextFor(use: IntendedUse) {
+    const targetContext = CLAIM_TARGET_BY_USE[use];
+    // Uso sem contexto-alvo mapeado nesta trilha → sem seleção (fail-closed).
+    return targetContext
+      ? { intendedUse: use, role: "lider", segment: "enterprise", targetContext }
+      : null;
+  }
+  const passportContext = claimContextFor("explain_mechanism");
+  const primaryClaim = passportContext
+    ? (findClaimForContext(REGISTRY, CLAIM_REGISTRY, primary, passportContext) ?? undefined)
+    : undefined;
+  const complementaryClaims = complementary.map((s) =>
+    passportContext
+      ? (findClaimForContext(REGISTRY, CLAIM_REGISTRY, s, passportContext) ?? undefined)
+      : undefined,
   );
 
   // Demais usos registrados da trilha — cada superfície consome só o SEU claim
-  // (uso pretendido próprio), derivado do registry e validado no trustGate.
-  // Sem claim autorizado e confiável, a superfície simplesmente não mostra a linha.
+  // (contexto completo próprio). Sem claim totalmente compatível e confiável,
+  // a superfície simplesmente não mostra a linha.
   function trustedClaimForUse(use: IntendedUse) {
+    const context = claimContextFor(use);
+    if (!context) return null;
     for (const study of [primary, ...complementary]) {
-      const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, study, use);
-      if (claim && trustGate(study, claim).trusted) return claim;
+      const claim = findClaimForContext(REGISTRY, CLAIM_REGISTRY, study, context);
+      if (claim) return claim;
     }
     return null;
   }

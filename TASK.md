@@ -27,21 +27,23 @@ ponte documental 4C `docs/ai/nascentes-atlas/SAFE-VOICE-BRIDGE.md`).
 Ver `docs/DECISAO_TRUTH_LAYER_SEMENTE_2026-07-18.md` (ToT completo dos 2
 cortes + critério de aceite + limitações remanescentes).
 
-### Bloqueadores registrados antes do próximo corte (§5 do SAFE-VOICE-BRIDGE)
+### Bloqueadores pré-§5 do SAFE-VOICE-BRIDGE — ✅ AMBOS RESOLVIDOS (2026-07-18)
 
-Não iniciar o registry operacional da ponte NASCENTES (`docs/ai/
-nascentes-atlas/SAFE-VOICE-BRIDGE.md` §5) sem resolver antes:
+1. ✅ **Semântica do ActionLog** — kind novo `orientation_consulted`
+   (consulta de orientação da FlorêncIA), separado de `evidence_recorded`
+   (prova de execução real). Consulta exige `evidenceRef`, NÃO conta em
+   `evidenceCountByAction`, e convive com evidência real na mesma ação sem
+   contaminar. `/plano-acao` rotula como "Consulta", nunca "Evidência".
+2. ✅ **Contexto completo na seleção de claims** — `findClaimForContext()`
+   em passport-engine exige as QUATRO dimensões (uso, papel, segmento,
+   contexto-alvo) já na SELEÇÃO, com trustGate embutido (claim
+   dimensionalmente certo mas C3/V2 sem caveat fica fora — fail-closed).
+   `findClaimForStudy()` deprecado, zero call sites de produção; rota e
+   teste-espelho migrados.
 
-1. **Semântica do ActionLog** — separar "orientação da FlorêncIA consultada"
-   (drawer abriu) de "evidência de fato registrada" (rodada registrada);
-   hoje ambos usam o mesmo `kind: "evidence_recorded"`.
-2. **Contexto completo na seleção de claims** — `findClaimForStudy()` só
-   resolve por `study × intended_use`; precisa aceitar `role`/`segment`/
-   `target_context` na SELEÇÃO (hoje esses três só são checados depois, em
-   `trustGate`), antes de qualquer consumidor novo depender disso.
-
-Nenhuma das duas foi implementada — registradas aqui como pré-requisito,
-aguardando decisão/super-prompt específico do founder.
+Com os dois resolvidos, o §5 do SAFE-VOICE-BRIDGE (registry operacional da
+ponte NASCENTES) está DESBLOQUEADO — mas segue exigindo o gatilho objetivo
+do próprio §5 (consumidor real que LEIA a ponte) + autorização do founder.
 
 ## Tarefa concluída — Onda LDX-1 (Learning Dynamics Registry)
 

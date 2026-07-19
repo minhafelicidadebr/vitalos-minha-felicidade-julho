@@ -253,10 +253,11 @@ export function resolveStudy(registry: EvidenceRegistry, id: string): EvidenceSt
 }
 
 /**
- * Claim OFICIAL (Onda 3.5) para estudo × uso pretendido — null quando o Claim
- * Registry ainda não cobre a combinação. O chamador então permanece no caminho
- * legacy documentado (buildPassport sem claim); nunca reaproveita um claim de
- * outro intended_use/contexto para preencher a lacuna.
+ * @deprecated (bloqueador 2 pré-§5 do SAFE-VOICE-BRIDGE) — seleciona só por
+ * estudo × uso pretendido, deixando papel/segmento/contexto-alvo para
+ * validação POSTERIOR no trustGate. Código novo usa findClaimForContext,
+ * que exige o contexto completo já na SELEÇÃO. Mantido para compatibilidade
+ * de testes existentes; nenhum call site de produção resta.
  */
 export function findClaimForStudy(
   evidenceRegistry: EvidenceRegistry,
@@ -270,6 +271,33 @@ export function findClaimForStudy(
         c.intended_use === intendedUse &&
         resolveCanonicalStudy(evidenceRegistry, c.study_id)?.study_id === study.study_id,
     ) ?? null
+  );
+}
+
+/**
+ * Claim OFICIAL para estudo × CONTEXTO COMPLETO (uso pretendido + papel +
+ * segmento + contexto-alvo) — a seleção já exige as quatro dimensões, não
+ * as valida só depois. null quando nenhuma combinação é totalmente
+ * compatível E confiável (o trustGate roda com o mesmo contexto: um claim
+ * dimensionalmente certo mas C3/V2 sem caveat continua fora — fail-closed).
+ * Nunca reaproveita claim de outro contexto para preencher lacuna.
+ */
+export function findClaimForContext(
+  evidenceRegistry: EvidenceRegistry,
+  claimRegistry: ClaimRegistry,
+  study: EvidenceStudy,
+  requestContext: RequestContext,
+): ClaimRecord | null {
+  return (
+    claimRegistry.claims.find((c) => {
+      if (c.intended_use !== requestContext.intendedUse) return false;
+      if (!c.role.includes(requestContext.role)) return false;
+      if (!c.segment.includes(requestContext.segment)) return false;
+      if (c.target_context !== requestContext.targetContext) return false;
+      if (resolveCanonicalStudy(evidenceRegistry, c.study_id)?.study_id !== study.study_id)
+        return false;
+      return trustGate(study, c, requestContext).trusted;
+    }) ?? null
   );
 }
 
