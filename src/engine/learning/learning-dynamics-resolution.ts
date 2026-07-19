@@ -214,3 +214,29 @@ export function assertDynamicRegistryIntegrity(
 
   return { valid: errors.length === 0, errors };
 }
+
+// ─── Truth Layer (Onda 5 — semente) ──────────────────────────────────────────
+
+/**
+ * Classificação de produto (ProductStatus do StatusBadge) que uma superfície
+ * pode exibir ao compor esta dinâmica — SEMPRE o elo mais fraco entre runtime
+ * e conteúdo, allowlist com piso DEMO (falha fechado). Generaliza para
+ * capacidades de produto a regra de ouro da ciência: "nenhuma superfície
+ * exibe mais certeza do que o registro canônico autoriza".
+ *
+ * - runtime fora de REAL/PARCIAL/DEMO (roadmap/desconhecido) → DEMO: se a
+ *   superfície renderizar mesmo assim, nunca se apresenta acima de demo
+ *   (a resolução de CTA já bloqueia roadmap antes daqui — dupla defesa).
+ * - conteúdo abaixo de VERIFIED/CURATED rebaixa a superfície inteira para
+ *   DEMO, mesmo com runtime REAL: engine real com conteúdo demonstrativo É
+ *   uma demonstração.
+ */
+export function deriveProductStatus(
+  dynamic: CanonicalLearningDynamic,
+): "REAL" | "PARCIAL" | "DEMO" {
+  if (!AVAILABLE_RUNTIME_STATUSES.includes(dynamic.runtimeStatus)) return "DEMO";
+  if (dynamic.contentStatus !== "VERIFIED" && dynamic.contentStatus !== "CURATED") return "DEMO";
+  if (dynamic.runtimeStatus === "REAL") return "REAL";
+  if (dynamic.runtimeStatus === "PARCIAL") return "PARCIAL";
+  return "DEMO";
+}
