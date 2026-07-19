@@ -12,6 +12,7 @@ import {
   getAvailableDynamics,
   getRoadmapDynamics,
   assertDynamicRegistryIntegrity,
+  deriveProductStatus,
   type CanonicalLearningDynamic,
 } from "./learning-dynamics-resolution";
 
@@ -179,5 +180,41 @@ describe("learning-dynamics-resolution — assertDynamicRegistryIntegrity", () =
     const result = assertDynamicRegistryIntegrity(getLearningDynamicsRegistry());
     expect(result.errors).toEqual([]);
     expect(result.valid).toBe(true);
+  });
+});
+
+describe("deriveProductStatus — Truth Layer (elo mais fraco, falha fechado)", () => {
+  test("runtime REAL + conteúdo VERIFIED → REAL (única combinação que se apresenta real)", () => {
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "REAL", contentStatus: "VERIFIED" }))).toBe("REAL");
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "REAL", contentStatus: "CURATED" }))).toBe("REAL");
+  });
+
+  test("runtime PARCIAL com conteúdo curado → PARCIAL; nunca REAL", () => {
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "PARCIAL", contentStatus: "VERIFIED" }))).toBe("PARCIAL");
+  });
+
+  test("conteúdo DEMO/DRAFT/ABSENT rebaixa a superfície inteira, mesmo com runtime REAL", () => {
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "REAL", contentStatus: "DEMO" }))).toBe("DEMO");
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "REAL", contentStatus: "DRAFT" }))).toBe("DEMO");
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "PARCIAL", contentStatus: "ABSENT" }))).toBe("DEMO");
+  });
+
+  test("runtime de roadmap/desconhecido → piso DEMO mesmo com conteúdo verificado (falha fechado)", () => {
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "PLANNED", contentStatus: "VERIFIED" }))).toBe("DEMO");
+    expect(deriveProductStatus(makeDynamic({ runtimeStatus: "CORROMPIDO" as never, contentStatus: "VERIFIED" }))).toBe("DEMO");
+  });
+});
+
+describe("deriveProductStatus — embed efêmero (superfície descarta persistência)", () => {
+  test("dinâmica REAL embutida como efêmera rebaixa para PARCIAL — nunca se apresenta REAL", () => {
+    const real = makeDynamic({ runtimeStatus: "REAL", contentStatus: "CURATED" });
+    expect(deriveProductStatus(real, { ephemeral: true })).toBe("PARCIAL");
+    expect(deriveProductStatus(real)).toBe("REAL"); // sem o flag, a dinâmica global segue REAL
+  });
+
+  test("efêmero nunca ELEVA — DEMO continua DEMO", () => {
+    expect(
+      deriveProductStatus(makeDynamic({ runtimeStatus: "PARCIAL", contentStatus: "DEMO" }), { ephemeral: true }),
+    ).toBe("DEMO");
   });
 });

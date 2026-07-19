@@ -3,6 +3,17 @@
 > Uma tarefa por vez. Este arquivo substitui o super prompt extenso no dia a dia.
 > Regras permanentes: seção "Regras científicas permanentes" do CLAUDE.md.
 > Registro canônico: `src/domain/evidence/evidence-registry.json` (congelado, v1.0.0).
+> Claim Registry: `src/domain/evidence/claim-registry.json` (congelado, v1.1.0 — corpus completo).
+
+## Tarefa atual — Onda 5 (Truth Layer), semente entregue
+
+Sequência do Plano de Elevação 180% autorizada pelo founder em 2026-07-18
+(após merge da Convergência de Evidências, do Claim Registry v1.1.0 e da
+ponte documental 4C `docs/ai/nascentes-atlas/SAFE-VOICE-BRIDGE.md`).
+Primeira fatia: `deriveProductStatus()` (elo mais fraco, falha fechado) em
+`learning-dynamics-resolution.ts` + entry point da FlorêncIA derivando o
+status do LD-001 canônico em vez de digitar "DEMO". Ver
+`docs/DECISAO_TRUTH_LAYER_SEMENTE_2026-07-18.md` (ToT + próximos cortes).
 
 ## Tarefa concluída — Onda LDX-1 (Learning Dynamics Registry)
 

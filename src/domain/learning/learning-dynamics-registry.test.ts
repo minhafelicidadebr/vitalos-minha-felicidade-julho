@@ -10,6 +10,7 @@ import { join } from "node:path";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import schema from "./learning-dynamics-registry.schema.json";
+import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
 import registryJson from "./learning-dynamics-registry.json";
 import {
   getLearningDynamicsRegistry,
@@ -130,6 +131,22 @@ describe("learning-dynamics-registry — invariantes de catálogo", () => {
     const real = dynamics.filter((d): d is CanonicalLearningDynamic => d.runtimeStatus === "REAL");
     for (const d of real) {
       expect(d.persistenceStatus).not.toBe("NOT_APPLICABLE");
+    }
+  });
+});
+
+describe("Truth Layer (Onda 5 — semente) × registro canônico", () => {
+  const dynamics = getLearningDynamicsRegistry();
+  test("LD-001 (FlorêncIA) deriva DEMO pelo elo mais fraco — PARCIAL × conteúdo DEMO", () => {
+    const ld1 = dynamics.find((d) => d.id === "LD-001")!;
+    expect(deriveProductStatus(ld1)).toBe("DEMO");
+  });
+
+  test("nenhuma dinâmica do registro deriva classificação acima do próprio runtime (anti-overclaim estrutural)", () => {
+    for (const d of dynamics) {
+      const derived = deriveProductStatus(d);
+      if (derived === "REAL") expect(d.runtimeStatus).toBe("REAL");
+      if (derived === "PARCIAL") expect(["REAL", "PARCIAL"]).toContain(d.runtimeStatus);
     }
   });
 });

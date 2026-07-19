@@ -33,6 +33,8 @@ import {
 } from "@/engine/florencia/response-templates";
 import ctaRegistryJson from "@/domain/florencia/cta-registry.json";
 import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
+import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
+import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
 
 // Mesma fonte governada dos passaportes de /voz-segura — nenhuma leitura
 // paralela dos JSONs de evidência aqui (ver domain/evidence/registries.ts).
@@ -47,6 +49,16 @@ const CTA_ICONS: Record<string, LucideIcon> = {
   flag: Flag,
   "folder-check": FolderCheck,
 };
+
+// Truth Layer (Onda 5 — semente): o status de produto default NÃO é digitado —
+// deriva do registro canônico de dinâmicas (LD-001 = FlorêncIA determinística,
+// runtime PARCIAL × conteúdo DEMO ⇒ superfície DEMO pelo elo mais fraco).
+// Dinâmica ausente do registro = piso DEMO (falha fechado, nunca eleva).
+const FLORENCIA_DYNAMIC_ID = "LD-001";
+const florenciaDynamic = getLearningDynamicsRegistry().find((d) => d.id === FLORENCIA_DYNAMIC_ID);
+const DERIVED_PRODUCT_STATUS: ProductStatus = florenciaDynamic
+  ? deriveProductStatus(florenciaDynamic)
+  : "DEMO";
 
 interface CtaRegistryEntry {
   cta_id: string;
@@ -105,7 +117,7 @@ export function FlorenciaSafeConversationEntryPoint({
   section = "preparar-conversa",
   entityRefs = ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
   privacyScope = "aggregate_only",
-  productStatus = "DEMO",
+  productStatus = DERIVED_PRODUCT_STATUS,
   onInteraction,
 }: FlorenciaSafeConversationEntryPointProps) {
   const [open, setOpen] = useState(false);
