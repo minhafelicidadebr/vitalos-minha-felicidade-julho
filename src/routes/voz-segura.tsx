@@ -278,8 +278,10 @@ function VozSeguraTrail({
   // Fecha o gap confirmado no handoff LDX-1 §14: a orientação da FlorêncIA
   // era mostrada mas nunca deixava rastro no ActionLog. Só o desfecho
   // "allowed" gera evento — um bloqueio não produziu orientação real, não
-  // há o que atestar. evidenceRef é o templateId (referência, nunca o
-  // conteúdo da orientação, mesma disciplina de evidence_recorded).
+  // há o que atestar. evidenceRef é o templateId e evidenceClaimIds são os
+  // claim_ids que o Policy Gate autorizou (referências, nunca o conteúdo —
+  // mesma disciplina de evidence_recorded). requiresHumanReview vira nota
+  // operacional no evento: o rastro diz que a orientação não é aprovação.
   function handleFlorenciaInteraction(result: FlorenciaResponseTemplateResult) {
     if (result.status !== "allowed") return;
     appendEvent({
@@ -288,6 +290,8 @@ function VozSeguraTrail({
       actorRole: ACTOR_ROLE,
       evidenceKind: "florencia_orientation",
       evidenceRef: result.templateId,
+      evidenceClaimIds: result.usedClaimIds,
+      ...(result.requiresHumanReview ? { note: "requer revisão humana antes de uso real" } : {}),
     });
   }
 
@@ -358,6 +362,11 @@ function VozSeguraTrail({
       .filter((c) => c.difficulty)
       .map((c) => `${c.occurredOn}: ${c.difficulty}`),
   };
+
+  // Rastro do copiloto — derivado do ActionLog, nunca contado à parte.
+  const florenciaOrientations = logEvents.filter(
+    (e) => e.kind === "evidence_recorded" && e.evidenceKind === "florencia_orientation",
+  );
 
   return (
     <AppShell>
@@ -903,6 +912,14 @@ function VozSeguraTrail({
                   esgTrace.execution_evidence.length > 0
                     ? `${esgTrace.execution_evidence.length} evento(s) de rodada no ActionLog`
                     : "nenhum evento ainda — o relatório só nasce de execução real"
+                }
+              />
+              <TraceLine
+                label="Copiloto"
+                value={
+                  florenciaOrientations.length > 0
+                    ? `${florenciaOrientations.length} orientação(ões) no ActionLog: ${[...new Set(florenciaOrientations.map((e) => e.evidenceRef))].join(", ")}`
+                    : "nenhuma orientação consultada ainda — só consultas efetivamente abertas entram no rastro"
                 }
               />
               {esgTrace.adverse_effects_observed.length > 0 && (

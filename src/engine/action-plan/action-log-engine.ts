@@ -65,6 +65,9 @@ export interface ActionLogEvent {
   /** evidence_recorded: tipo (vocabulário do pack) + referência, nunca conteúdo. */
   evidenceKind?: string;
   evidenceRef?: string;
+  /** evidence_recorded: claim_ids do Claim Registry que sustentaram a evidência —
+   * referências, nunca o texto do claim (mesma disciplina do evidenceRef). */
+  evidenceClaimIds?: readonly string[];
   /** checkin/note — texto curto operacional (nunca dado de pessoa). */
   note?: string;
 }

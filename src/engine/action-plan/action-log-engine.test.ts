@@ -129,3 +129,38 @@ describe("leituras derivadas — timeline, conclusão e o Vigia (I-E4)", () => {
     expect(summary.pctConcluded).toBe(0);
   });
 });
+
+describe("evidence_recorded — rastro do copiloto (claim_ids como referência)", () => {
+  test("evidenceClaimIds sobrevive intacto ao registro no ledger", () => {
+    const result = recordActionEvent([], {
+      id: "flor-1",
+      actionKey: "a1",
+      kind: "evidence_recorded",
+      actorRole: "LIDER_EQUIPE",
+      occurredOn: DAY,
+      evidenceKind: "florencia_orientation",
+      evidenceRef: "suggest-observation-v1",
+      evidenceClaimIds: ["CLAIM-LDR007-VOICE-002"],
+    });
+    expect(result.reason).toBe("recorded");
+    expect(result.events[0]?.evidenceClaimIds).toEqual(["CLAIM-LDR007-VOICE-002"]);
+  });
+
+  test("orientações contam como evidência da ação no summarize (mesma régua das demais)", () => {
+    let events = recordActionEvent([], {
+      id: "flor-2",
+      actionKey: "a1",
+      kind: "evidence_recorded",
+      actorRole: "LIDER_EQUIPE",
+      occurredOn: DAY,
+      evidenceKind: "florencia_orientation",
+      evidenceRef: "organize-evidence-v1",
+      evidenceClaimIds: ["CLAIM-EDMONDSON1999-VOICE-003"],
+      note: "requer revisão humana antes de uso real",
+    }).events;
+    const summary = summarizeActionLog(events, ["a1"]);
+    expect(summary.evidenceCountByAction["a1"]).toBe(1);
+    // A nota operacional preservada — o rastro carrega o aviso, não a aprovação.
+    expect(events[0]?.note).toBe("requer revisão humana antes de uso real");
+  });
+});
