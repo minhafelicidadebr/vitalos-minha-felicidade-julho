@@ -1,0 +1,70 @@
+{
+  "$schema": "./skill-status-projection.schema.json",
+  "projection": "FlorêncIA Skill Status Projection",
+  "description": "Espelho runtime MÍNIMO e curado do status de cada Skill — skill_id + status, nada além disso. Nunca importa docs/ai/florencia-skills/ diretamente (governança documental, não runtime — ver CLAUDE.md §FlorêncIA). Fonte canônica: docs/ai/florencia-skills/registries/skill-registry.json. Regenerar com `bun run scripts/sync-skill-status-projection.ts` sempre que a fonte mudar — divergência quebra o gate (skill-status-projection-parity.test.ts).",
+  "sourceRegistry": "docs/ai/florencia-skills/registries/skill-registry.json",
+  "sourceVersion": "1.0.0",
+  "generatedAt": "2026-07-18",
+  "skills": [
+    {
+      "skill_id": "SKILL-CORE-GOVERNANCE",
+      "status": "REAL"
+    },
+    {
+      "skill_id": "SKILL-CONTEXT-ORCHESTRATION",
+      "status": "REAL"
+    },
+    {
+      "skill_id": "SKILL-EVIDENCE-CLAIM-GUARDIAN",
+      "status": "REAL"
+    },
+    {
+      "skill_id": "SKILL-LEARNING-EXPERIENCE-DESIGNER",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-INTERVENTION-PLANNER",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-AGILE-PROJECT-ARCHITECT",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-GOVERNANCE-DESIGNER",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-EVOLVE-MONITOR",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-ESG-TRACE-ARCHITECT",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-ENTERPRISE-PACK",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-SCHOOL-PACK",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-PRIVACY-SAFETY-GUARDIAN",
+      "status": "REAL"
+    },
+    {
+      "skill_id": "SKILL-PREMIUM-UX-ACCESSIBILITY",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-CONVERSATION-FACILITATOR",
+      "status": "PARCIAL"
+    },
+    {
+      "skill_id": "SKILL-DATA-TO-ACTION",
+      "status": "PARCIAL"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ import {
   type EvidenceRegistry,
   type RequestContext,
 } from "@/engine/evidence/passport-engine";
+import { isSkillAvailable, type SkillLifecycleStatus } from "./skill-status";
 import type { PrivacyScope } from "./context-envelope";
 import type { ResolvedFlorenciaContext } from "./cta-resolution";
 
@@ -33,8 +34,16 @@ export interface PolicyGateOptions {
    * mas cada rota decide quais realmente usa. Ex.: /voz-segura só aceita
    * "aggregate_only". */
   allowedPrivacyScopes: PrivacyScope[];
-  /** Se fornecido, filtra candidateSkillIds — nunca deixa passar status ROADMAP. */
-  skillStatus?: Record<string, "REAL" | "PARCIAL" | "ROADMAP">;
+  /**
+   * Mapa canônico de status de Skill — OBRIGATÓRIO (Truth Layer, Onda 5).
+   * Omitir nunca foi um "deixa passar tudo" válido; agora é impossível por
+   * construção (o tipo exige o parâmetro). Fail-closed: skill ausente do
+   * mapa, com status desconhecido, ou ROADMAP nunca é permitida — só
+   * REAL/PARCIAL passam, via o único predicado isSkillAvailable(). Fonte
+   * real de produção: src/domain/florencia/skill-status-projection.ts
+   * (espelho curado e paritário do skill-registry.json documental).
+   */
+  skillStatus: Readonly<Record<string, SkillLifecycleStatus>>;
 }
 
 const INTENTS_REQUIRING_HUMAN_REVIEW = new Set(["organize_evidence"]);
@@ -98,9 +107,9 @@ export function evaluatePolicyGate(
     }
   }
 
-  const allowedSkillIds = options.skillStatus
-    ? context.candidateSkillIds.filter((id) => options.skillStatus![id] !== "ROADMAP" && options.skillStatus![id] !== undefined)
-    : context.candidateSkillIds;
+  const allowedSkillIds = context.candidateSkillIds.filter((id) =>
+    isSkillAvailable(options.skillStatus[id]),
+  );
 
   const requiresHumanReview = anyCaveat || INTENTS_REQUIRING_HUMAN_REVIEW.has(context.intent);
 

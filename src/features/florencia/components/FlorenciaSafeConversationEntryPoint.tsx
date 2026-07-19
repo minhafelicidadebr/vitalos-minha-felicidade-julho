@@ -33,6 +33,7 @@ import {
 } from "@/engine/florencia/response-templates";
 import ctaRegistryJson from "@/domain/florencia/cta-registry.json";
 import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
+import { resolveSkillStatusMap } from "@/domain/florencia/skill-status-projection";
 import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
 import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
 
@@ -40,6 +41,10 @@ import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolut
 // paralela dos JSONs de evidência aqui (ver domain/evidence/registries.ts).
 const CLAIMS = CLAIM_REGISTRY.claims;
 const EVIDENCE = EVIDENCE_REGISTRY;
+// Truth Layer (Onda 5): mapa canônico de status de Skill — obrigatório no
+// Policy Gate desde este corte. Espelho curado do skill-registry.json
+// documental, nunca lido diretamente aqui (ver skill-status-projection.ts).
+const SKILL_STATUS = resolveSkillStatusMap();
 
 // Ícones permitidos por nome do registry — fallback MessageCircle para nome
 // desconhecido (o ícone é decorativo; o label do registry é a informação).
@@ -148,6 +153,7 @@ export function FlorenciaSafeConversationEntryPoint({
 
     const policyGate = evaluatePolicyGate(outcome.context, CLAIMS, EVIDENCE, {
       allowedPrivacyScopes: ["aggregate_only"],
+      skillStatus: SKILL_STATUS,
     });
 
     const templateResult = buildResponseTemplate({ context: outcome.context, cta, policyGate });

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vitalos.com.br/schemas/skill-status-projection.schema.json",
+  "title": "FlorêncIA Skill Status Projection",
+  "description": "Espelho runtime MÍNIMO e curado do status de cada Skill da FlorêncIA — skill_id + status, nada além disso. NÃO é a fonte de verdade: a governança humana vive em docs/ai/florencia-skills/registries/skill-registry.json. sourceVersion ancora a paridade — se o canônico avançar de versão sem esta projeção ser regenerada, o teste de paridade falha.",
+  "type": "object",
+  "required": ["projection", "sourceRegistry", "sourceVersion", "generatedAt", "skills"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "projection": { "const": "FlorêncIA Skill Status Projection" },
+    "description": { "type": "string" },
+    "sourceRegistry": { "type": "string" },
+    "sourceVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "generatedAt": { "type": "string" },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["skill_id", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "skill_id": { "type": "string", "pattern": "^SKILL-[A-Z0-9-]+$" },
+          "status": { "enum": ["REAL", "PARCIAL", "ROADMAP"] }
+        }
+      }
+    }
+  }
+}

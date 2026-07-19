@@ -5,15 +5,43 @@
 > Registro canônico: `src/domain/evidence/evidence-registry.json` (congelado, v1.0.0).
 > Claim Registry: `src/domain/evidence/claim-registry.json` (congelado, v1.1.0 — corpus completo).
 
-## Tarefa atual — Onda 5 (Truth Layer), semente entregue
+## Tarefa atual — Onda 5 (Truth Layer), 2 cortes entregues
 
 Sequência do Plano de Elevação 180% autorizada pelo founder em 2026-07-18
 (após merge da Convergência de Evidências, do Claim Registry v1.1.0 e da
 ponte documental 4C `docs/ai/nascentes-atlas/SAFE-VOICE-BRIDGE.md`).
-Primeira fatia: `deriveProductStatus()` (elo mais fraco, falha fechado) em
-`learning-dynamics-resolution.ts` + entry point da FlorêncIA derivando o
-status do LD-001 canônico em vez de digitar "DEMO". Ver
-`docs/DECISAO_TRUTH_LAYER_SEMENTE_2026-07-18.md` (ToT + próximos cortes).
+
+- **Corte 1**: `deriveProductStatus()` (elo mais fraco, falha fechado) em
+  `learning-dynamics-resolution.ts` + badges de `/voz-segura` (FlorêncIA,
+  mapa mental, flashcards) derivando do registro canônico de dinâmicas em
+  vez de digitar "DEMO"/"PARCIAL".
+- **Corte 2**: `skillStatus` do Policy Gate deixou de ser opcional —
+  omitir era autorização implícita (fail-open). Decisão de governança do
+  founder: **opção B** — espelho runtime mínimo e curado
+  (`src/domain/florencia/contracts/skill-status-projection.json`, só
+  `skill_id`+`status`, gerado por `scripts/sync-skill-status-projection.ts`)
+  em paridade testada e integral contra `docs/ai/florencia-skills/
+  registries/skill-registry.json` (que segue sendo a ÚNICA fonte de
+  governança humana — nunca importado pelo bundle).
+
+Ver `docs/DECISAO_TRUTH_LAYER_SEMENTE_2026-07-18.md` (ToT completo dos 2
+cortes + critério de aceite + limitações remanescentes).
+
+### Bloqueadores registrados antes do próximo corte (§5 do SAFE-VOICE-BRIDGE)
+
+Não iniciar o registry operacional da ponte NASCENTES (`docs/ai/
+nascentes-atlas/SAFE-VOICE-BRIDGE.md` §5) sem resolver antes:
+
+1. **Semântica do ActionLog** — separar "orientação da FlorêncIA consultada"
+   (drawer abriu) de "evidência de fato registrada" (rodada registrada);
+   hoje ambos usam o mesmo `kind: "evidence_recorded"`.
+2. **Contexto completo na seleção de claims** — `findClaimForStudy()` só
+   resolve por `study × intended_use`; precisa aceitar `role`/`segment`/
+   `target_context` na SELEÇÃO (hoje esses três só são checados depois, em
+   `trustGate`), antes de qualquer consumidor novo depender disso.
+
+Nenhuma das duas foi implementada — registradas aqui como pré-requisito,
+aguardando decisão/super-prompt específico do founder.
 
 ## Tarefa concluída — Onda LDX-1 (Learning Dynamics Registry)
 
