@@ -39,7 +39,7 @@ legitimamente parte do estado que o superprompt descrevia:
 | "ActionLog: não integrado" | Integrado para orientações da FlorêncIA: evento `evidence_recorded` com `evidenceRef` (templateId) + `evidenceClaimIds` (ver §6) |
 | "conteúdo atual: DEMO" | Mantido DEMO — inalterado |
 | 1 CTA ativa (prepare) | 5 CTAs governadas ativas, 4 templates determinísticos (`explain_mechanism` segue sem template por design — superfície é o passaporte) |
-| Claim Registry "REAL para Voz Segura" | v1.0.0 **congelada** (frozen + validador); expansão v1.1.0 para o corpus completo em branch própria (`feat/claim-registry-v1-1-corpus`), aguardando merge |
+| Claim Registry "REAL para Voz Segura" | v1.1.0 **congelada** (frozen + validador): 6 claims uso-específicos do corte Voz Segura + 44 claims de passaporte derivados verbatim — corpus completo coberto (mergeada na main em 2026-07-18) |
 | "quatro capacidades adicionais: PLANNED" | As 4 CTAs restantes do registry foram ativadas com templates governados na onda autorizada — as capacidades PLANNED do skill-registry seguem inativas |
 | LLM/RAG/embeddings inexistentes | Inalterado — tudo determinístico |
 
@@ -71,7 +71,7 @@ Cadeia completa, com o artefato real onde cada elo vive:
 | # | Elo | Valor canônico | Onde vive | Status |
 | --- | --- | --- | --- | --- |
 | 1 | Evidence | `TRU-006` (EDMONDSON-1999; aliases LDR-013, VOI-005) · B2 · V1 · E3 · C1 · T3 · L1 · DOI 10.2307/2666999 | `src/domain/evidence/evidence-registry.json` (v1, frozen) | REAL |
-| 2 | Claim | `CLAIM-EDMONDSON1999-VOICE-002` · `prepare_conversation` × `preparar-conversa` × lider × enterprise · C1 | `src/domain/evidence/claim-registry.json` (v1.0.0, frozen) | REAL |
+| 2 | Claim | `CLAIM-EDMONDSON1999-VOICE-002` · `prepare_conversation` × `preparar-conversa` × lider × enterprise · C1 | `src/domain/evidence/claim-registry.json` (v1.1.0, frozen) | REAL |
 | 3 | Mecanismo | `MECH-VOICE-001` — Redução do medo interpessoal (estudos TRU-006 + LDR-007) | `src/domain/evidence/mechanism-registry.json` | REAL |
 | 4 | Nascente | `seguranca` (Segurança — NASCENTES v0.9, nome provisório) | campo `nascente` do MECH-VOICE-001 + `nascente_candidates` do TRU-006 + display da trilha | PROVISÓRIO — mapeada, **não** UNMAPPED (convergência de 3 fontes) |
 | 5 | Lente | LIDERANÇA | 4 Lentes VITA (pack enterprise) | REAL |
