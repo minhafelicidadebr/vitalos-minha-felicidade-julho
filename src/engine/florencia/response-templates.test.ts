@@ -278,3 +278,240 @@ describe("buildResponseTemplate — conteúdo governado, não texto livre", () =
     expect(result.nextActionLabel).not.toMatch(/registrar/i);
   });
 });
+
+// ─── suggest-observation-v1 (momento Evoluir) ────────────────────────────────
+
+function makeObservationInput(
+  overrides: Partial<{
+    context: Partial<ResolvedFlorenciaContext>;
+    cta: Partial<CtaResolution>;
+    policyGate: Partial<PolicyGateResult>;
+  }> = {},
+): FlorenciaResponseTemplateInput {
+  return {
+    context: makeContext({
+      ctaId: "CTA-SUGGEST-OBSERVATION",
+      section: "observar-evoluir",
+      intent: "suggest_observation",
+      label: "O que devemos observar?",
+      icon: "eye",
+      entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+      suggestedQuestions: ["Quais são os sinais de que está funcionando?"],
+      requestedClaimIds: ["CLAIM-LDR007-VOICE-002"],
+      candidateSkillIds: ["SKILL-EVOLVE-MONITOR"],
+      mode: "evoluir",
+      ...overrides.context,
+    }),
+    cta: makeCta({
+      ctaId: "CTA-SUGGEST-OBSERVATION",
+      intent: "suggest_observation",
+      label: "O que devemos observar?",
+      icon: "eye",
+      suggestedQuestions: ["Quais são os sinais de que está funcionando?"],
+      requestedClaimIds: ["CLAIM-LDR007-VOICE-002"],
+      candidateSkillIds: ["SKILL-EVOLVE-MONITOR"],
+      ...overrides.cta,
+    }),
+    policyGate: makePolicyGate({
+      allowedClaimIds: ["CLAIM-LDR007-VOICE-002"],
+      allowedSkillIds: ["SKILL-EVOLVE-MONITOR"],
+      ...overrides.policyGate,
+    }),
+  };
+}
+
+describe("buildResponseTemplate — suggest-observation-v1 (Evoluir)", () => {
+  test("contexto válido produz o template de observação com o claim LDR-007", () => {
+    const result = buildResponseTemplate(makeObservationInput());
+    expect(result.status).toBe("allowed");
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    expect(result.templateId).toBe("suggest-observation-v1");
+    expect(result.title).toBe("O que devemos observar?");
+    expect(result.usedClaimIds).toEqual(["CLAIM-LDR007-VOICE-002"]);
+    expect(result.classification).toBe("DEMO");
+  });
+
+  test("guidance é processo, nunca promessa: não afirma efeito garantido nem métrica de saúde", () => {
+    const result = buildResponseTemplate(makeObservationInput());
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const guidanceText = result.guidance.join(" ");
+    expect(guidanceText).not.toMatch(/garante(m)?\s|assegura|comprova/i);
+    expect(guidanceText).not.toMatch(/adoecimento|saúde mental|bem-estar médio/i);
+    expect(guidanceText).toMatch(/indicadores de processo/i);
+  });
+
+  test("limitations carrega o limite do claim (adesão/contexto) e nega o prohibited_claim registrado", () => {
+    const result = buildResponseTemplate(makeObservationInput());
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const limitationsText = result.limitations.join(" ");
+    // Derivado do safe_claim/caveat de CLAIM-LDR007-VOICE-002 — nunca mais forte.
+    expect(limitationsText).toMatch(/depende de adesão e contexto de implementação/i);
+    // Proteção contra o prohibited_claim "ausência de adesão prova que a prática não funciona".
+    expect(limitationsText).toMatch(/Ausência de adesão não prova/i);
+    expect(limitationsText).toMatch(/desempenho, promoção, punição/i);
+  });
+
+  test("claim errado para este intent bloqueia com claim_not_allowed (nunca herda o claim da conversa)", () => {
+    const result = buildResponseTemplate(
+      makeObservationInput({
+        cta: { requestedClaimIds: ["CLAIM-EDMONDSON1999-VOICE-002"] },
+        policyGate: { allowedClaimIds: ["CLAIM-EDMONDSON1999-VOICE-002"] },
+      }),
+    );
+    expect(result.status).toBe("blocked");
+    if (result.status !== "blocked") throw new Error("esperado blocked");
+    expect(result.reasonCode).toBe("claim_not_allowed");
+  });
+
+  test("intent sem template na tabela continua bloqueando com unsupported_intent (explain_mechanism é passaporte, não drawer)", () => {
+    const result = buildResponseTemplate(
+      makeObservationInput({
+        context: { intent: "explain_mechanism" },
+        cta: { intent: "explain_mechanism" },
+      }),
+    );
+    expect(result.status).toBe("blocked");
+    if (result.status !== "blocked") throw new Error("esperado blocked");
+    expect(result.reasonCode).toBe("unsupported_intent");
+  });
+
+  test("intent do contexto divergente do intent da CTA bloqueia (sem template cruzado)", () => {
+    const result = buildResponseTemplate(
+      makeObservationInput({ cta: { intent: "prepare_conversation" } }),
+    );
+    expect(result.status).toBe("blocked");
+    if (result.status !== "blocked") throw new Error("esperado blocked");
+    expect(result.reasonCode).toBe("unsupported_intent");
+  });
+});
+
+// ─── create-team-mission-v1 e organize-evidence-v1 (5 CTAs completas) ────────
+
+function makeIntentInput(
+  intent: "create_team_mission" | "organize_evidence",
+  claimId: string,
+  section: string,
+  overrides: Partial<{
+    context: Partial<ResolvedFlorenciaContext>;
+    cta: Partial<CtaResolution>;
+    policyGate: Partial<PolicyGateResult>;
+  }> = {},
+): FlorenciaResponseTemplateInput {
+  return {
+    context: makeContext({
+      section,
+      intent,
+      entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+      requestedClaimIds: [claimId],
+      ...overrides.context,
+    }),
+    cta: makeCta({
+      intent,
+      requestedClaimIds: [claimId],
+      ...overrides.cta,
+    }),
+    policyGate: makePolicyGate({
+      allowedClaimIds: [claimId],
+      ...overrides.policyGate,
+    }),
+  };
+}
+
+describe("buildResponseTemplate — create-team-mission-v1 (missão)", () => {
+  test("contexto válido produz o template da missão com o claim LDR-007-001", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("create_team_mission", "CLAIM-LDR007-VOICE-001", "missao-equipe"),
+    );
+    expect(result.status).toBe("allowed");
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    expect(result.templateId).toBe("create-team-mission-v1");
+    expect(result.usedClaimIds).toEqual(["CLAIM-LDR007-VOICE-001"]);
+    expect(result.requiresHumanReview).toBe(false);
+  });
+
+  test("limitations negam o prohibited_claim registrado ('treinar líderes garante bem-estar')", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("create_team_mission", "CLAIM-LDR007-VOICE-001", "missao-equipe"),
+    );
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const limitationsText = result.limitations.join(" ");
+    expect(limitationsText).toMatch(/não garante bem-estar da equipe/i);
+    expect(limitationsText).toMatch(/análogo, não idêntico/i);
+    expect(limitationsText).toMatch(/desempenho, promoção ou remuneração/i);
+  });
+
+  test("guidance é adesão voluntária e co-desenho — nunca obrigação nem exposição forçada", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("create_team_mission", "CLAIM-LDR007-VOICE-001", "missao-equipe"),
+    );
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const guidanceText = result.guidance.join(" ");
+    expect(guidanceText).toMatch(/voluntária/i);
+    expect(guidanceText).toMatch(/Co-desenhar/i);
+    expect(guidanceText).not.toMatch(/obrigatóri|garante/i);
+  });
+});
+
+describe("buildResponseTemplate — organize-evidence-v1 (prévia ESG)", () => {
+  test("contexto válido produz o template de organização com requiresHumanReview do gate", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("organize_evidence", "CLAIM-EDMONDSON1999-VOICE-003", "organizar-esg", {
+        policyGate: { requiresHumanReview: true },
+      }),
+    );
+    expect(result.status).toBe("allowed");
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    expect(result.templateId).toBe("organize-evidence-v1");
+    expect(result.usedClaimIds).toEqual(["CLAIM-EDMONDSON1999-VOICE-003"]);
+    expect(result.requiresHumanReview).toBe(true);
+  });
+
+  test("limitations negam os dois prohibited_claims registrados (adoecimento e produtividade)", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("organize_evidence", "CLAIM-EDMONDSON1999-VOICE-003", "organizar-esg"),
+    );
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const limitationsText = result.limitations.join(" ");
+    expect(limitationsText).toMatch(/não prova redução de adoecimento/i);
+    expect(limitationsText).toMatch(/nem aumento de produtividade/i);
+    expect(limitationsText).toMatch(/mudança observada, nunca impacto garantido/i);
+    expect(limitationsText).toMatch(/revisão humana antes de uso real/i);
+  });
+
+  test("guidance nunca promete impacto — só separação de camadas e mudança observada", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("organize_evidence", "CLAIM-EDMONDSON1999-VOICE-003", "organizar-esg"),
+    );
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    const guidanceText = result.guidance.join(" ");
+    expect(guidanceText).not.toMatch(/prova de impacto do piloto atual\b.*✓|garante|comprova que/i);
+    expect(guidanceText).toMatch(/nunca como prova de impacto/i);
+    expect(guidanceText).toMatch(/mudança observada/i);
+  });
+
+  test("claim de outro uso não destrava a organização (claim_not_allowed)", () => {
+    const result = buildResponseTemplate(
+      makeIntentInput("organize_evidence", "CLAIM-EDMONDSON1999-VOICE-001", "organizar-esg"),
+    );
+    expect(result.status).toBe("blocked");
+    if (result.status !== "blocked") throw new Error("esperado blocked");
+    expect(result.reasonCode).toBe("claim_not_allowed");
+  });
+});
+
+describe("buildResponseTemplate — requiresHumanReview repassado, nunca decidido aqui", () => {
+  test("template comum com gate marcando revisão repassa true sem alterar o resto", () => {
+    const result = buildResponseTemplate(
+      makeInput({ policyGate: { requiresHumanReview: true } }),
+    );
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    expect(result.requiresHumanReview).toBe(true);
+    expect(result.templateId).toBe("prepare-safe-conversation-v1");
+  });
+
+  test("gate sem revisão repassa false", () => {
+    const result = buildResponseTemplate(makeInput());
+    if (result.status !== "allowed") throw new Error("esperado allowed");
+    expect(result.requiresHumanReview).toBe(false);
+  });
+});

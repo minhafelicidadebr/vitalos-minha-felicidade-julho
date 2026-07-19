@@ -6,7 +6,12 @@
 // exibia "verificado" para estudo pendente).
 
 import { useState } from "react";
-import { buildPassport, type EvidenceStudy, type PassportLevel } from "@/engine/evidence/passport-engine";
+import {
+  buildPassport,
+  type ClaimRecord,
+  type EvidenceStudy,
+  type PassportLevel,
+} from "@/engine/evidence/passport-engine";
 
 const LEVELS: { id: PassportLevel; label: string; hint: string }[] = [
   { id: "humano", label: "Humano", hint: "para qualquer pessoa" },
@@ -16,16 +21,21 @@ const LEVELS: { id: PassportLevel; label: string; hint: string }[] = [
 
 export function EvidencePassport({
   study,
+  claim,
   role,
   defaultLevel = "humano",
 }: {
   study: EvidenceStudy;
+  /** Claim oficial do Claim Registry (Onda 3.5) para ESTE contexto de uso.
+   * Ausente = o registro ainda não cobre a combinação; buildPassport segue no
+   * caminho legacy do registro congelado — nunca um claim de outro contexto. */
+  claim?: ClaimRecord;
   /** "principal" | "complementar" — posição no orçamento de evidência da atividade. */
   role?: string;
   defaultLevel?: PassportLevel;
 }) {
   const [level, setLevel] = useState<PassportLevel>(defaultLevel);
-  const passport = buildPassport(study, level);
+  const passport = buildPassport(study, level, claim);
 
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">

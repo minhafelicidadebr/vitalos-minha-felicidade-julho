@@ -96,6 +96,8 @@ export interface ClaimRecord {
 export interface ClaimRegistry {
   registry: string;
   version: string;
+  /** Congelado desde v1.0.0 (2026-07-18) — validador recusa registro descongelado. */
+  frozen: boolean;
   claims: ClaimRecord[];
 }
 
@@ -250,6 +252,27 @@ export function resolveStudy(registry: EvidenceRegistry, id: string): EvidenceSt
   );
 }
 
+/**
+ * Claim OFICIAL (Onda 3.5) para estudo × uso pretendido — null quando o Claim
+ * Registry ainda não cobre a combinação. O chamador então permanece no caminho
+ * legacy documentado (buildPassport sem claim); nunca reaproveita um claim de
+ * outro intended_use/contexto para preencher a lacuna.
+ */
+export function findClaimForStudy(
+  evidenceRegistry: EvidenceRegistry,
+  claimRegistry: ClaimRegistry,
+  study: EvidenceStudy,
+  intendedUse: IntendedUse,
+): ClaimRecord | null {
+  return (
+    claimRegistry.claims.find(
+      (c) =>
+        c.intended_use === intendedUse &&
+        resolveCanonicalStudy(evidenceRegistry, c.study_id)?.study_id === study.study_id,
+    ) ?? null
+  );
+}
+
 // ─── Evidence Passport — 3 níveis progressivos ───────────────────────────────
 
 export type PassportLevel = "humano" | "profissional" | "auditoria";
@@ -353,13 +376,16 @@ export function buildPassport(
 
 // ─── Validação do Claim Registry (Onda 3.5) ──────────────────────────────────
 
-/** Espelha validateEvidenceRegistry: todo claim referencia estudo canônico existente;
- * C3 exige caveat; V0/B0/C4-C7 nunca passam (herdado da validação do estudo). */
+/** Espelha validateEvidenceRegistry: registro congelado; todo claim referencia estudo
+ * canônico existente; C3 exige caveat; V0/B0/C4-C7 nunca passam (herdado da validação
+ * do estudo). */
 export function validateClaimRegistry(
   evidenceRegistry: EvidenceRegistry,
   claimRegistry: ClaimRegistry,
 ): RegistryValidation {
   const errors: string[] = [];
+  if (!claimRegistry.frozen)
+    errors.push("claim registry não está congelado (frozen !== true) — v1.0.0 é congelada");
   const ids = new Set<string>();
   for (const claim of claimRegistry.claims) {
     if (ids.has(claim.claim_id)) errors.push(`${claim.claim_id}: claim_id duplicado`);

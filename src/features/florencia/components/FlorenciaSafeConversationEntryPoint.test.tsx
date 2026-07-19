@@ -226,3 +226,127 @@ describe("FlorenciaSafeConversationEntryPoint — fechamento e determinismo", ()
     }).not.toThrow();
   });
 });
+
+describe("FlorenciaSafeConversationEntryPoint — CTA-SUGGEST-OBSERVATION (Evoluir)", () => {
+  const observationProps = {
+    ctaId: "CTA-SUGGEST-OBSERVATION",
+    section: "observar-evoluir",
+    entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+  };
+
+  test("botão usa o label do registry, não texto digitado no componente", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    expect(screen.getByRole("button", { name: "O que devemos observar?" })).toBeDefined();
+  });
+
+  test("clique no contexto autorizado abre o drawer com o template de observação", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByRole("dialog")).toBeDefined();
+    expect(
+      screen.getByText(
+        "O que observar durante o piloto de rodadas: continuidade do ritual e indicadores de processo — sinais de funcionamento, sinais de alerta e o momento de parar.",
+      ),
+    ).toBeDefined();
+    expect(screen.getByText("Rever os indicadores desta seção")).toBeDefined();
+  });
+
+  test("classificação DEMO também na observação — nunca elevada pelo componente", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByText("Demo")).toBeDefined();
+  });
+
+  test("seção errada (preparar-conversa) bloqueia a observação pelo pipeline real", () => {
+    render(
+      <FlorenciaSafeConversationEntryPoint {...observationProps} section="preparar-conversa" />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(screen.getByText("Esta orientação não está disponível neste contexto.")).toBeDefined();
+  });
+
+  test("papel não autorizado não vê a CTA de observação", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...observationProps} role="colaborador" />);
+    expect(screen.queryByRole("button", { name: "O que devemos observar?" })).toBeNull();
+  });
+
+  test("ctaId inexistente no registry não renderiza nada", () => {
+    const { container } = render(
+      <FlorenciaSafeConversationEntryPoint ctaId="CTA-NAO-EXISTE" />,
+    );
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  test("claim ID e skill ID não aparecem no DOM da observação", () => {
+    const { container } = render(<FlorenciaSafeConversationEntryPoint {...observationProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "O que devemos observar?" }));
+    expect(container.textContent?.includes("CLAIM-")).toBe(false);
+    expect(container.textContent?.includes("SKILL-")).toBe(false);
+  });
+});
+
+describe("FlorenciaSafeConversationEntryPoint — CTA-CREATE-TEAM-MISSION (missão)", () => {
+  const missionProps = {
+    ctaId: "CTA-CREATE-TEAM-MISSION",
+    section: "missao-equipe",
+    entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"],
+  };
+
+  test("botão usa o label do registry e o drawer abre com o template da missão", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...missionProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Transforme em missão de equipe" }));
+    expect(screen.getByRole("dialog")).toBeDefined();
+    expect(screen.getByText("Rever a missão com o time")).toBeDefined();
+    expect(screen.getByText(/não garante bem-estar da equipe/)).toBeDefined();
+  });
+
+  test("sem nota de revisão humana (gate não marca create_team_mission)", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...missionProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Transforme em missão de equipe" }));
+    expect(screen.queryByText(/Requer revisão humana/)).toBeNull();
+  });
+
+  test("seção errada bloqueia pelo pipeline real", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...missionProps} section="preparar-conversa" />);
+    fireEvent.click(screen.getByRole("button", { name: "Transforme em missão de equipe" }));
+    expect(screen.getByText("Esta orientação não está disponível neste contexto.")).toBeDefined();
+  });
+});
+
+describe("FlorenciaSafeConversationEntryPoint — CTA-ORGANIZE-EVIDENCE (prévia ESG)", () => {
+  const organizeProps = {
+    ctaId: "CTA-ORGANIZE-EVIDENCE",
+    section: "organizar-esg",
+    entityRefs: ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"],
+  };
+
+  test("drawer abre com o template de organização e a NOTA DE REVISÃO HUMANA visível", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...organizeProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Organize as evidências" }));
+    expect(screen.getByRole("dialog")).toBeDefined();
+    expect(screen.getByText("Rever a prévia de rastreabilidade")).toBeDefined();
+    // organize_evidence está em INTENTS_REQUIRING_HUMAN_REVIEW no Policy Gate —
+    // a nota DEVE aparecer, repassada do gate (nunca decidida na interface).
+    expect(screen.getByText(/Requer revisão humana antes de qualquer uso real/)).toBeDefined();
+  });
+
+  test("limitations negam os prohibited_claims de impacto no DOM", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...organizeProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Organize as evidências" }));
+    expect(
+      screen.getByText(/não prova redução de adoecimento nem aumento de produtividade/),
+    ).toBeDefined();
+  });
+
+  test("papel não autorizado não vê a CTA", () => {
+    render(<FlorenciaSafeConversationEntryPoint {...organizeProps} role="colaborador" />);
+    expect(screen.queryByRole("button", { name: "Organize as evidências" })).toBeNull();
+  });
+
+  test("claim ID e skill ID não vazam no DOM", () => {
+    const { container } = render(<FlorenciaSafeConversationEntryPoint {...organizeProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Organize as evidências" }));
+    expect(container.textContent?.includes("CLAIM-")).toBe(false);
+    expect(container.textContent?.includes("SKILL-")).toBe(false);
+  });
+});

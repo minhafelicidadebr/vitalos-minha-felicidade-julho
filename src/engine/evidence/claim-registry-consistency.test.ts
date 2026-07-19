@@ -51,6 +51,19 @@ describe("claim-registry × evidence-registry — congelado real", () => {
     expect(validateClaimRegistry(EVIDENCE, CLAIMS).errors).toEqual([]);
   });
 
+  test("claim registry v1.0.0 está congelado — e o validador recusa registro descongelado", () => {
+    expect(CLAIMS.frozen).toBe(true);
+    const thawed: ClaimRegistry = { ...CLAIMS, frozen: false };
+    const result = validateClaimRegistry(EVIDENCE, thawed);
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("não está congelado");
+  });
+
+  test("congelamento registrado na proveniência com data e regra de descongelamento", () => {
+    expect(claimRegistryJson.provenance.frozen_on).toContain("2026-07-18");
+    expect(claimRegistryJson.provenance.frozen_on).toContain("descongelamento formal");
+  });
+
   test("EDMONDSON-1999 resolve para o nó canônico TRU-006 sem tocar o JSON congelado", () => {
     const study = resolveCanonicalStudy(EVIDENCE, "EDMONDSON-1999");
     expect(study?.study_id).toBe("TRU-006");

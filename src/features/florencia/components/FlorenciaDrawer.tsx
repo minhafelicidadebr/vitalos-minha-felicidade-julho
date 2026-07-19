@@ -2,8 +2,10 @@
 // FlorenciaResponseTemplateResult já computado (allowed/blocked) ou o
 // estado vazio (result === null, nenhuma capacidade acionada ainda). Não
 // resolve contexto, não roda Policy Gate, não importa registries, não
-// persiste nada, não chama LLM. Ainda não é acionado por nenhuma rota —
-// wiring em /voz-segura acontece numa etapa futura, com nova autorização.
+// persiste nada, não chama LLM. Acionado por /voz-segura via
+// FlorenciaSafeConversationEntryPoint (onInteraction registra o desfecho
+// "allowed" no ActionLog local da rota — o drawer em si continua sem
+// gravar nada).
 //
 // Reaproveita o Sheet (mesmo primitivo do menu mobile do AppShell) e o
 // StatusBadge (doutrina REAL/PARCIAL/DEMO/ROADMAP do CLAUDE.md) — nenhuma
@@ -72,6 +74,12 @@ function AllowedState({
         </div>
         {result.classification === "DEMO" ? (
           <p className="text-xs text-muted-foreground">Conteúdo demonstrativo.</p>
+        ) : null}
+        {result.requiresHumanReview ? (
+          <p className="rounded-lg border border-amber-400/40 bg-amber-50/60 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-950/20 dark:text-amber-300" role="note">
+            Requer revisão humana antes de qualquer uso real — esta orientação não é
+            aprovação automática.
+          </p>
         ) : null}
         <p className="text-sm text-muted-foreground">{result.summary}</p>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { buildDriverMindMap, type MindMapNode, type MindMapEdge } from "@/engine/nr1/mindmap-engine";
 import type { CrosswalkRegistry, DimensionExposure } from "@/engine/nr1/crosswalk-engine";
 
@@ -45,18 +45,40 @@ const PRIO_BG: Record<string, string> = {
   P2: "bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
 };
 
+const COPSOQ_HUE = "oklch(0.55 0.14 25)";
+const FIBT_HUE = "oklch(0.5 0.12 155)";
+
+/** Item de legenda — swatch + rótulo curto, mesma linguagem tipográfica do resto do app. */
+function LegendItem({ swatch, label }: { swatch: ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {swatch}
+      {label}
+    </span>
+  );
+}
+
 export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }: Props) {
   const map = useMemo(
     () => buildDriverMindMap(registry, driverId, exposures),
     [registry, driverId, exposures],
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
 
   if (!map) return null;
 
   const selected = selectedId ? map.nodes.find((n) => n.id === selectedId) ?? null : null;
   const nodeMap = new Map(map.nodes.map((n) => [n.id, n]));
   const cx = map.viewBox.width / 2;
+  const dimensionNodes = map.nodes.filter((n) => n.type === "dimension");
+  const hasPriority = dimensionNodes.some((n) => n.priority);
+  const hasExposure = dimensionNodes.some((n) => n.exposure !== undefined);
+  const selectedAccent = selected
+    ? selected.instrument === "copsoq"
+      ? COPSOQ_HUE
+      : FIBT_HUE
+    : undefined;
 
   return (
     <div>
@@ -66,16 +88,23 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
         role="img"
         aria-label={`Mapa mental do driver ${map.driverLabel}`}
       >
-        {/* Group labels */}
+        <defs>
+          <radialGradient id="driverHubGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="oklch(0.55 0.14 155)" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="oklch(0.55 0.14 155)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        {/* Group labels — cor já prenuncia a família de cor dos nós abaixo (reforço instrucional) */}
         <text
           x={cx * 0.56}
           y={38}
           textAnchor="middle"
           fontSize={10}
-          fontWeight={600}
+          fontWeight={700}
           letterSpacing="0.1em"
-          fill="currentColor"
-          opacity={0.35}
+          fill={COPSOQ_HUE}
+          opacity={0.85}
         >
           COPSOQ II · RISCO
         </text>
@@ -84,10 +113,10 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
           y={38}
           textAnchor="middle"
           fontSize={10}
-          fontWeight={600}
+          fontWeight={700}
           letterSpacing="0.1em"
-          fill="currentColor"
-          opacity={0.35}
+          fill={FIBT_HUE}
+          opacity={0.85}
         >
           FIB-T · ECOSSISTEMA
         </text>
@@ -99,7 +128,7 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
           fontWeight={600}
           letterSpacing="0.08em"
           fill="currentColor"
-          opacity={0.3}
+          opacity={0.45}
         >
           PILARES IVO · RECONCILIAÇÃO
         </text>
@@ -126,15 +155,39 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
           .map((node) => {
             const isLeft = node.x < cx;
             const isSelected = selectedId === node.id;
+            const isFocused = focusedId === node.id;
+            const toggle = () => setSelectedId(isSelected ? null : node.id);
             return (
               <g
                 key={node.id}
-                className="cursor-pointer"
-                onClick={() => setSelectedId(isSelected ? null : node.id)}
+                className="cursor-pointer outline-none"
+                onClick={toggle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                    // Espaço rola a página por padrão em elementos focáveis — nunca aqui.
+                    e.preventDefault();
+                    toggle();
+                  }
+                }}
+                onFocus={() => setFocusedId(node.id)}
+                onBlur={() => setFocusedId((current) => (current === node.id ? null : current))}
                 role="button"
                 tabIndex={0}
+                aria-pressed={isSelected}
                 aria-label={`${node.label}: força ${Math.round((node.strength ?? 0) * 100)}%`}
               >
+                {isFocused && (
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={node.size + 4}
+                    fill="none"
+                    stroke="oklch(0.55 0.2 250)"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    data-testid="focus-ring"
+                  />
+                )}
                 <circle
                   cx={node.x}
                   cy={node.y}
@@ -211,11 +264,12 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
             </g>
           ))}
 
-        {/* Center driver node */}
+        {/* Center driver node — glow sutil, mesma linguagem do medalhão do cabeçalho da trilha */}
         {map.nodes
           .filter((n) => n.type === "driver")
           .map((node) => (
             <g key={node.id}>
+              <circle cx={node.x} cy={node.y} r={node.size * 2.2} fill="url(#driverHubGlow)" />
               <circle cx={node.x} cy={node.y} r={node.size} fill="oklch(0.35 0.08 155)" />
               <circle
                 cx={node.x}
@@ -240,9 +294,70 @@ export function DriverMindMapSvg({ registry, driverId, exposures, pillarLabels }
           ))}
       </svg>
 
+      {/* Legenda — só os itens que o mapa atual de fato usa, nunca promete encoding ausente */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+        <LegendItem
+          swatch={
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: `linear-gradient(135deg, ${COPSOQ_HUE}, ${FIBT_HUE})` }}
+              aria-hidden
+            />
+          }
+          label="Preenchimento mais forte = conexão mais forte"
+        />
+        <LegendItem
+          swatch={
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full border-2"
+              style={{ borderColor: "oklch(0.45 0.18 155)" }}
+              aria-hidden
+            />
+          }
+          label="Selecionado"
+        />
+        <LegendItem
+          swatch={
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full border-2 border-dashed"
+              style={{ borderColor: "oklch(0.55 0.2 250)" }}
+              aria-hidden
+            />
+          }
+          label="Em foco (teclado)"
+        />
+        {hasPriority && (
+          <LegendItem
+            swatch={
+              <span className="inline-flex items-center gap-0.5" aria-hidden>
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PRIO_CLR.P0 }} />
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PRIO_CLR.P1 }} />
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PRIO_CLR.P2 }} />
+              </span>
+            }
+            label="Prioridade P0 · P1 · P2"
+          />
+        )}
+        {hasExposure && (
+          <LegendItem
+            swatch={
+              <span
+                className="inline-block h-1.5 w-4 rounded-full"
+                style={{ background: "oklch(0.65 0.2 25)" }}
+                aria-hidden
+              />
+            }
+            label="Barra = exposição medida (COPSOQ)"
+          />
+        )}
+      </div>
+
       {/* Detail panel */}
       {selected && selected.type === "dimension" && (
-        <div className="mt-3 rounded-2xl border border-border/60 bg-card/80 p-4 text-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+        <div
+          className="mt-3 rounded-2xl border border-border/60 bg-card/80 p-4 text-sm animate-in fade-in-0 slide-in-from-top-2 duration-200"
+          style={{ borderLeftWidth: 4, borderLeftColor: selectedAccent }}
+        >
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-foreground">{selected.label}</span>
             <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">

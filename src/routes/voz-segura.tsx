@@ -7,18 +7,25 @@
 // nenhuma superfície exibe mais certeza do que o registro autoriza.
 // Execução (ActionLog) é local à sessão nesta demonstração — o conteúdo é real.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Brain, Layers } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { EvidencePassport } from "@/app/evidence/EvidencePassport";
+import { FlashcardDeck } from "@/app/academia/FlashcardDeck";
+import { getFlashcardSession } from "@/mocks/flashcard-mock";
 import { FlorenciaSafeConversationEntryPoint } from "@/features/florencia/components/FlorenciaSafeConversationEntryPoint";
+import type { FlorenciaResponseTemplateResult } from "@/engine/florencia/response-templates";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
+  buildPassport,
   checkActivityBudget,
+  findClaimForStudy,
   resolveStudy,
+  trustGate,
   validateEvidenceRegistry,
-  type EvidenceRegistry,
+  type IntendedUse,
 } from "@/engine/evidence/passport-engine";
 import {
   computeEvolveIndicators,
@@ -34,7 +41,7 @@ import {
   recordActionEvent,
   type ActionLogEvent,
 } from "@/engine/action-plan/action-log-engine";
-import registryJson from "@/domain/evidence/evidence-registry.json";
+import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
@@ -45,13 +52,27 @@ import {
   VOZ_SEGURA_SCENARIO,
   VOZ_SEGURA_TRAIL,
 } from "@/mocks/voz-segura-mock";
+// ─── LDX-1: Learning Dynamics Registry (governança/descoberta contextual) ──
+import { getLearningDynamicsRegistry, type CanonicalLearningDynamic } from "@/domain/learning/learning-dynamics-registry";
+import { getAvailableDynamics, getRoadmapDynamics } from "@/engine/learning/learning-dynamics-resolution";
+import { LearningDynamicsRail } from "@/features/learning/components/LearningDynamicsRail";
+import { IntroVideoCard, type IntroVideoSource } from "@/features/learning/components/IntroVideoCard";
+import { LearningMethodDialog } from "@/features/learning/components/LearningMethodDialog";
+import { ComplementaryResources, type ComplementaryResource } from "@/features/learning/components/ComplementaryResources";
+// ─── LD-011 Mapa Mental Governado: reuso puro do driver "confianca" (Confiança & Voz) ──
+import { DriverMindMapSvg } from "@/app/nr1/DriverMindMapSvg";
+import { buildDriverMindMap } from "@/engine/nr1/mindmap-engine";
+import { DEMO_COPSOQ_EXPOSURE, NR1_CROSSWALK } from "@/mocks/nr1-crosswalk-mock";
+import { PILLAR_LABEL } from "@/routes/driver.$driverId";
+
+const VOZ_SEGURA_DRIVER_ID = "confianca";
 
 export const Route = createFileRoute("/voz-segura")({
   head: () => ({ meta: [{ title: "Trilha Voz Segura — 4 Lentes VitalOS™" }] }),
   component: VozSeguraPage,
 });
 
-const REGISTRY = registryJson as unknown as EvidenceRegistry;
+const REGISTRY = EVIDENCE_REGISTRY;
 const ACTOR_ROLE = "LIDER_EQUIPE";
 
 function todayIso(): string {
@@ -121,6 +142,112 @@ function VozSeguraTrail({
   const [form, setForm] = useState({ participants: "", risks: "", decisions: "", difficulty: "" });
   const [decision, setDecision] = useState<CycleDecision | null>(null);
 
+  // ─── LDX-1: Learning Dynamics — resolução contextual desta rota ────────────
+  const [methodOpen, setMethodOpen] = useState(false);
+  const navigate = useNavigate();
+  const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
+  const resolutionContext = useMemo(() => ({ route: "/voz-segura", role: ACTOR_ROLE }), []);
+  const availableDynamics = useMemo(
+    () => getAvailableDynamics(learningCatalog, resolutionContext),
+    [learningCatalog, resolutionContext],
+  );
+  const roadmapDynamics = useMemo(
+    () => getRoadmapDynamics(learningCatalog, resolutionContext),
+    [learningCatalog, resolutionContext],
+  );
+  function dynamicsById(ids: string[]): CanonicalLearningDynamic[] {
+    return availableDynamics.filter((d) => ids.includes(d.id));
+  }
+  function activateDynamic(dynamic: CanonicalLearningDynamic) {
+    const target = dynamic.enrichesRoutes.find((r) => r !== "/voz-segura") ?? dynamic.enrichesRoutes[0];
+    if (target) navigate({ to: target });
+  }
+  const driverMindMap = useMemo(
+    () => buildDriverMindMap(NR1_CROSSWALK, VOZ_SEGURA_DRIVER_ID, DEMO_COPSOQ_EXPOSURE),
+    [],
+  );
+  // LD-003 embutido de verdade (não cross-link): só os cartões já catalogados
+  // para "seguranca_psicologica" — mesmo catálogo de /revisar, filtrado.
+  // Efêmero por design, igual ao resto desta trilha (onGrade omitido).
+  const vozSeguraFlashcards = useMemo(
+    () => getFlashcardSession().filter((sc) => sc.card.driverId === "seguranca_psicologica"),
+    [],
+  );
+  const introVideo: IntroVideoSource = {
+    title: "Em 90 segundos: por que a Voz Segura importa",
+    durationLabel: "~90 segundos · em preparação",
+    sourceType: "NOT_AVAILABLE",
+    contentStatus: "DRAFT",
+  };
+
+  // Claim oficial do Claim Registry (Onda 3.5) para o contexto do passaporte
+  // (explain_mechanism). Onde o registro não cobrir a combinação, fica o
+  // caminho legacy do registro congelado — a lacuna nunca é preenchida com
+  // claim de outro contexto.
+  const primaryClaim =
+    findClaimForStudy(REGISTRY, CLAIM_REGISTRY, primary, "explain_mechanism") ?? undefined;
+  const complementaryClaims = complementary.map(
+    (s) => findClaimForStudy(REGISTRY, CLAIM_REGISTRY, s, "explain_mechanism") ?? undefined,
+  );
+
+  // Demais usos registrados da trilha — cada superfície consome só o SEU claim
+  // (uso pretendido próprio), derivado do registry e validado no trustGate.
+  // Sem claim autorizado e confiável, a superfície simplesmente não mostra a linha.
+  function trustedClaimForUse(use: IntendedUse) {
+    for (const study of [primary, ...complementary]) {
+      const claim = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, study, use);
+      if (claim && trustGate(study, claim).trusted) return claim;
+    }
+    return null;
+  }
+  const missionClaim = trustedClaimForUse("create_team_mission");
+  const observationClaim = trustedClaimForUse("suggest_observation");
+  const esgClaim = trustedClaimForUse("organize_evidence");
+
+  // Status de confiança sempre lido de buildPassport() — nunca digitado (CLAUDE.md §6).
+  const primaryConfidence = buildPassport(primary, "humano", primaryClaim).lines.find((l) => l.label === "Confiança")?.value;
+  const complementaryConfidence = complementary[0]
+    ? buildPassport(complementary[0], "humano", complementaryClaims[0]).lines.find((l) => l.label === "Confiança")?.value
+    : undefined;
+  const complementaryResources: ComplementaryResource[] = [
+    {
+      title: primary.canonical_citation,
+      type: "VERIFIED_EVIDENCE",
+      origin: "Registro de Evidência VitalOS",
+      year: "1999",
+      whyItMatters: "A origem do mecanismo desta trilha inteira — segurança psicológica e comportamento de aprendizagem.",
+      evidenceStatus: primaryConfidence,
+    },
+    ...(complementary[0]
+      ? [
+          {
+            title: complementary[0].canonical_citation,
+            type: "VERIFIED_EVIDENCE" as const,
+            origin: "Registro de Evidência VitalOS",
+            year: "2021",
+            whyItMatters: "Como o apoio do supervisor se conecta à segurança psicológica na prática.",
+            evidenceStatus: complementaryConfidence,
+          },
+        ]
+      : []),
+    {
+      title: "Mundo do Driver: Confiança & Voz",
+      type: "APPLIED_INTERPRETATION",
+      origin: "VitalOS — Plataforma de Drivers NR-1",
+      whyItMatters: "Conecta esta trilha aos indicadores COPSOQ/FIB-T que ela busca melhorar.",
+      internalHref: "/driver/confianca",
+      onOpen: () => navigate({ to: "/driver/$driverId", params: { driverId: VOZ_SEGURA_DRIVER_ID } }),
+    },
+    {
+      title: "Academia do Florescimento",
+      type: "PRACTICE_TOOL",
+      origin: "VitalOS",
+      whyItMatters: "Continue com outras trilhas de aprendizagem curadas por papel.",
+      internalHref: "/academia",
+      onOpen: () => navigate({ to: "/academia" }),
+    },
+  ];
+
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
   const quizGrade = gradeQuiz(VOZ_SEGURA_QUIZ, quizAnswers);
   const scenarioResult = scenarioChoiceId
@@ -145,6 +272,26 @@ function VozSeguraTrail({
         occurredOn: todayIso(),
       });
       return result.reason === "recorded" ? result.events : prev;
+    });
+  }
+
+  // Fecha o gap confirmado no handoff LDX-1 §14: a orientação da FlorêncIA
+  // era mostrada mas nunca deixava rastro no ActionLog. Só o desfecho
+  // "allowed" gera evento — um bloqueio não produziu orientação real, não
+  // há o que atestar. evidenceRef é o templateId e evidenceClaimIds são os
+  // claim_ids que o Policy Gate autorizou (referências, nunca o conteúdo —
+  // mesma disciplina de evidence_recorded). requiresHumanReview vira nota
+  // operacional no evento: o rastro diz que a orientação não é aprovação.
+  function handleFlorenciaInteraction(result: FlorenciaResponseTemplateResult) {
+    if (result.status !== "allowed") return;
+    appendEvent({
+      actionKey: VOZ_SEGURA_MISSION.id,
+      kind: "evidence_recorded",
+      actorRole: ACTOR_ROLE,
+      evidenceKind: "florencia_orientation",
+      evidenceRef: result.templateId,
+      evidenceClaimIds: result.usedClaimIds,
+      ...(result.requiresHumanReview ? { note: "requer revisão humana antes de uso real" } : {}),
     });
   }
 
@@ -216,6 +363,11 @@ function VozSeguraTrail({
       .map((c) => `${c.occurredOn}: ${c.difficulty}`),
   };
 
+  // Rastro do copiloto — derivado do ActionLog, nunca contado à parte.
+  const florenciaOrientations = logEvents.filter(
+    (e) => e.kind === "evidence_recorded" && e.evidenceKind === "florencia_orientation",
+  );
+
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
@@ -247,14 +399,21 @@ function VozSeguraTrail({
               <div className="h-full bg-primary transition-all" style={{ width: `${progress.pct}%` }} />
             </div>
             <span className="text-xs text-muted-foreground">
-              {progress.done} de {progress.total} etapas · {progress.pct}%
+              {progress.done} de {progress.total} marcos práticos concluídos · {progress.pct}%
             </span>
           </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            Os 5 marcos: responder o quiz, decidir o cenário, assumir a missão, registrar uma
+            rodada e tomar a decisão do ciclo.
+          </p>
           <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
             Conteúdo derivado do registro de evidência congelado (v1). O registro de execução
             desta demonstração permanece apenas na sessão atual.
           </p>
         </motion.header>
+
+        <IntroVideoCard source={introVideo} onOpenMethod={() => setMethodOpen(true)} />
+        <LearningMethodDialog open={methodOpen} onOpenChange={setMethodOpen} />
 
         {/* ─── 1 · A ciência (Evidence Passport) ─── */}
         <Section step="1" title="A ciência por trás" lead="Um mecanismo, duas fontes verificadas — e o limite dito com todas as letras.">
@@ -269,9 +428,14 @@ function VozSeguraTrail({
             </p>
           </div>
           <div className="mt-3 space-y-3">
-            <EvidencePassport study={primary} role="principal" />
-            {complementary.map((study) => (
-              <EvidencePassport key={study.study_id} study={study} role="complementar" />
+            <EvidencePassport study={primary} claim={primaryClaim} role="principal" />
+            {complementary.map((study, i) => (
+              <EvidencePassport
+                key={study.study_id}
+                study={study}
+                claim={complementaryClaims[i]}
+                role="complementar"
+              />
             ))}
           </div>
         </Section>
@@ -290,6 +454,46 @@ function VozSeguraTrail({
               </div>
             ))}
           </div>
+
+          {driverMindMap && (
+            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Brain className="h-3.5 w-3.5 text-primary" aria-hidden />
+                  Mapa Mental Governado · driver Confiança &amp; Voz
+                </p>
+                <StatusBadge status="PARCIAL" title="Motor real (mindmap-engine); integração nesta trilha é nova" />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Como o driver se conecta a COPSOQ II, FIB-T e aos pilares IVO — nunca gerado por
+                modelo generativo; toque numa dimensão para ver detalhes.
+              </p>
+              <div className="mt-3">
+                <DriverMindMapSvg
+                  registry={NR1_CROSSWALK}
+                  driverId={VOZ_SEGURA_DRIVER_ID}
+                  exposures={DEMO_COPSOQ_EXPOSURE}
+                  pillarLabels={PILLAR_LABEL}
+                />
+              </div>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                  Alternativa em texto (mesmas relações do mapa)
+                </summary>
+                <ul className="mt-2 space-y-1 text-xs leading-relaxed text-card-foreground">
+                  {driverMindMap.nodes
+                    .filter((n) => n.type === "dimension")
+                    .map((n) => (
+                      <li key={n.id}>
+                        {n.label} — {n.instrument === "copsoq" ? "COPSOQ II" : "FIB-T"}, força{" "}
+                        {Math.round((n.strength ?? 0) * 100)}%
+                        {n.exposure !== undefined ? `, exposição ${n.exposure}/100` : ""}
+                      </li>
+                    ))}
+                </ul>
+              </details>
+            </div>
+          )}
         </Section>
 
         {/* ─── 3 · Praticar: quiz ─── */}
@@ -411,6 +615,31 @@ function VozSeguraTrail({
               </p>
             </div>
           )}
+
+          {vozSeguraFlashcards.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5 text-primary" aria-hidden />
+                  Praticar em outro formato · Flashcards
+                </p>
+                <StatusBadge status="PARCIAL" title="Motor SM-2 real; nesta sessão de demonstração, efêmero" />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Os mesmos 2 cartões de Segurança Psicológica do catálogo de revisão espaçada — sem
+                sair desta trilha.
+              </p>
+              <div className="mt-3">
+                <FlashcardDeck cards={vozSeguraFlashcards} />
+              </div>
+              <Link
+                to="/revisar"
+                className="mt-3 inline-block text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Ver todos os temas em Revisão Espaçada
+              </Link>
+            </div>
+          )}
         </Section>
 
         {/* ─── 5 · Aplicar ─── */}
@@ -453,7 +682,20 @@ function VozSeguraTrail({
             <p className="mt-2 text-xs text-muted-foreground">
               Critério de feita: {VOZ_SEGURA_MISSION.doneCriteria}
             </p>
-            <FlorenciaSafeConversationEntryPoint />
+            {missionClaim && (
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                Base de evidência: {missionClaim.safe_claim}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <FlorenciaSafeConversationEntryPoint onInteraction={handleFlorenciaInteraction} />
+              <FlorenciaSafeConversationEntryPoint
+                ctaId="CTA-CREATE-TEAM-MISSION"
+                section="missao-equipe"
+                entityRefs={["mechanism:MECH-VOICE-001", "study:LDR-007"]}
+                onInteraction={handleFlorenciaInteraction}
+              />
+            </div>
             {missionStatus === "planejada" ? (
               <button
                 type="button"
@@ -607,6 +849,25 @@ function VozSeguraTrail({
               </div>
             </>
           )}
+
+          {observationClaim && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              O que observar: {observationClaim.safe_claim}
+            </p>
+          )}
+
+          <FlorenciaSafeConversationEntryPoint
+            ctaId="CTA-SUGGEST-OBSERVATION"
+            section="observar-evoluir"
+            entityRefs={["mechanism:MECH-VOICE-001", "study:LDR-007"]}
+            onInteraction={handleFlorenciaInteraction}
+          />
+
+          <LearningDynamicsRail
+            title="Sintetizar em plano"
+            available={dynamicsById(["LD-006"])}
+            onActivate={activateDynamic}
+          />
         </Section>
 
         {/* ─── 8 · Projeto 30 dias + ESG ─── */}
@@ -638,6 +899,12 @@ function VozSeguraTrail({
               <TraceLine label="Projeto" value={esgTrace.project_ref} />
               <TraceLine label="Mecanismo" value={esgTrace.mechanism_ref} />
               <TraceLine label="Evidência" value={`${esgTrace.study_ids.join(", ")} (via Evidence Passport — a bibliografia não se repete aqui)`} />
+              {esgClaim && (
+                <TraceLine
+                  label="Claim autorizado"
+                  value={`${esgClaim.claim_id} — ${esgClaim.safe_claim}`}
+                />
+              )}
               <TraceLine label="Linguagem" value="mudança observada — nunca impacto garantido" />
               <TraceLine
                 label="Execução"
@@ -645,6 +912,14 @@ function VozSeguraTrail({
                   esgTrace.execution_evidence.length > 0
                     ? `${esgTrace.execution_evidence.length} evento(s) de rodada no ActionLog`
                     : "nenhum evento ainda — o relatório só nasce de execução real"
+                }
+              />
+              <TraceLine
+                label="Copiloto"
+                value={
+                  florenciaOrientations.length > 0
+                    ? `${florenciaOrientations.length} orientação(ões) no ActionLog: ${[...new Set(florenciaOrientations.map((e) => e.evidenceRef))].join(", ")}`
+                    : "nenhuma orientação consultada ainda — só consultas efetivamente abertas entram no rastro"
                 }
               />
               {esgTrace.adverse_effects_observed.length > 0 && (
@@ -662,8 +937,20 @@ function VozSeguraTrail({
                 ))}
               </ul>
             </div>
+            <FlorenciaSafeConversationEntryPoint
+              ctaId="CTA-ORGANIZE-EVIDENCE"
+              section="organizar-esg"
+              entityRefs={["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"]}
+              onInteraction={handleFlorenciaInteraction}
+            />
           </div>
         </Section>
+
+        <ComplementaryResources resources={complementaryResources} />
+
+        {roadmapDynamics.length > 0 && (
+          <LearningDynamicsRail title="Nesta trilha, em evolução" available={[]} roadmap={roadmapDynamics} />
+        )}
 
         <p className="text-xs leading-relaxed text-muted-foreground">
           Esta trilha desenvolve prática de gestão — não substitui PGR, avaliação profissional de
