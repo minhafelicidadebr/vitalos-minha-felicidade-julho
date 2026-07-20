@@ -1687,6 +1687,7 @@ export const NR1_LANDING = {
     rows: [
       { sem: "Você monta o questionário e o relatório no Word", com: "A plataforma usa uma bateria estruturada nas dimensões do COPSOQ II e agrega automaticamente" },
       { sem: "Respostas em planilha — risco de reidentificar pessoas", com: "K-anonimato imposto no banco: individual nunca é lido" },
+      { sem: "Promessas de compliance sem mostrar o que está por trás", com: "Cada claim nosso é rastreável a uma fonte e a um status verificável" },
       { sem: "Um PDF entregue uma vez", com: "Jornada anual de 4 lentes + Relatório Global ESG" },
       { sem: "Fica na obrigação de compliance", com: "Vira ativo de governança e cultura" },
     ],
