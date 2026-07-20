@@ -1551,17 +1551,17 @@ export const CALCULATOR = {
 
 // ─── Gestão NR-1 com Bem-Estar ────────────────────────────────────────────────
 export const NR1 = {
-  eyebrow: "Compliance que cuida",
+  eyebrow: "Prevenção que cuida",
   title: "Gestão NR-1 com Bem-Estar",
-  text: "Mapeamento e mitigação de riscos psicossociais com COPSOQ II e o playbook de bem-estar no trabalho de Oxford — material auditável e plano de ação apoiado por IA.",
+  text: "Mapeamento e mitigação de riscos psicossociais com bateria estruturada nas dimensões do COPSOQ II e um plano de ação educativo fundamentado em ciência aplicada — material auditável e apoio de IA.",
   bullets: [
-    { icon: "shield-check", text: "COPSOQ II + matriz NR-1 (referência MTE 2026)" },
-    { icon: "scroll", text: "Playbook Oxford · +3.000 papers revisados" },
+    { icon: "shield-check", text: "Bateria COPSOQ II + matriz NR-1 (referência MTE 2026)" },
+    { icon: "scroll", text: "Ciência aplicada · educação baseada em evidências" },
     { icon: "file-bar-chart", text: "Relatório educativo em PDF auditável" },
     { icon: "sparkles", text: "Plano de ação com apoio do chatbot de IA" },
   ],
   cta: {
-    label: "Ver conformidade NR-1",
+    label: "Ver evidência para o PGR (NR-1)",
     action: { kind: "route", to: "/nr1" },
     variant: "outline",
   } as Cta,
@@ -1578,15 +1578,15 @@ export const NR1 = {
 // ⚠️ VALORES/DATAS: ilustrativos — CONFIRMAR na fonte oficial antes de publicar.
 export const NR1_LANDING = {
   meta: {
-    title: "Conformidade NR-1 sem dor — Riscos Psicossociais | VitalOS™",
+    title: "Gestão de Riscos Psicossociais (NR-1) sem dor | VitalOS™",
     description:
-      "A NR-1 passou a exigir a gestão de riscos psicossociais. O VitalOS™ aplica o COPSOQ II com anonimato garantido e entrega a evidência agregada que fundamenta o seu PGR — início de uma jornada anual de vitalidade.",
+      "A NR-1 passou a exigir a gestão de riscos psicossociais. O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II, com anonimato operacional por token e agregação k≥5, e entrega a evidência agregada que fundamenta o seu PGR — início de uma jornada anual de vitalidade.",
   },
   hero: {
-    eyebrow: "Conformidade NR-1 · Riscos Psicossociais",
+    eyebrow: "Gestão de Riscos Psicossociais · NR-1",
     headline: "A NR-1 agora exige gerenciar riscos psicossociais.",
     headlineAccent: "Comece pela medição que dá base ao seu PGR.",
-    sub: "O VitalOS™ aplica o COPSOQ II — referência internacional em fatores psicossociais — com anonimato garantido por construção (n≥5) e devolve a evidência agregada que fundamenta o seu Programa de Gerenciamento de Riscos. É o primeiro trimestre de uma jornada anual de vitalidade.",
+    sub: "O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com anonimato operacional por token e agregação k≥5 (n≥5), e devolve a evidência agregada que fundamenta o seu Programa de Gerenciamento de Riscos. É o primeiro trimestre de uma jornada anual de vitalidade.",
     disclaimer:
       "Instrumento educativo de mensuração e apoio à gestão. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade de profissional legalmente habilitado.",
     ctas: [
@@ -1594,7 +1594,7 @@ export const NR1_LANDING = {
       { label: "Ver como funciona", action: { kind: "anchor", id: "nr1-como-funciona" }, variant: "outline" },
     ] as Cta[],
     signals: [
-      "COPSOQ II validado",
+      "Bateria estruturada no COPSOQ II",
       "Anonimato n≥5 no banco",
       "Evidência agregada auditável",
       "Responsável técnico habilitado",
@@ -1639,17 +1639,17 @@ export const NR1_LANDING = {
   comoFunciona: {
     eyebrow: "Como funciona",
     title: "Da onda de escuta ao relatório educativo — em quatro passos",
-    lead: "Você não monta o diagnóstico no Word. A plataforma coleta com anonimato garantido, agrega com rigor e devolve a evidência pronta para o profissional habilitado interpretar.",
+    lead: "Você não monta o diagnóstico no Word. A plataforma coleta com anonimato operacional por token, agrega com rigor (k≥5) e devolve a evidência pronta para o profissional habilitado interpretar.",
     steps: [
       {
         k: "01",
         title: "Crie a onda",
-        text: "Configure a medição COPSOQ II para a organização ou por unidade. Gera links de convite anônimos, um por participante.",
+        text: "Configure a medição estruturada nas dimensões do COPSOQ II para a organização ou por unidade. Gera links de convite anônimos, um por participante.",
       },
       {
         k: "02",
         title: "Colaboradores respondem",
-        text: "Resposta anônima por token, no celular, em minutos. O conteúdo individual nunca é lido pela empresa nem pela plataforma.",
+        text: "Resposta anônima por token, no celular, em minutos. O conteúdo individual nunca é lido pela empresa; a plataforma processa cada resposta apenas no servidor de agregação, sob k-anonimato.",
       },
       {
         k: "03",
@@ -1669,7 +1669,7 @@ export const NR1_LANDING = {
     title: "A obrigação vira jornada. A jornada vira vantagem.",
     lead: "A NR-1 abre a porta. As 4 Lentes VitalOS™ transformam um relatório de compliance num sistema operacional de vitalidade — uma leitura científica por trimestre, culminando num Relatório Global ESG board-ready.",
     quarters: [
-      { q: "T1", instrument: "COPSOQ II", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
+      { q: "T1", instrument: "Bateria COPSOQ II", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
       { q: "T2", instrument: "FIB-T", theme: "Ecossistema & Governança", text: "Qualidade de vida no trabalho e ponte direta com ESG social.", tone: "emerald" },
       { q: "T3", instrument: "PERMA+V", theme: "Florescimento & Flow", text: "Energia, engajamento, sentido e realização que sustentam performance.", tone: "rose" },
       { q: "T4", instrument: "VIA-T", theme: "Cultura & Forças", text: "Forças e virtudes das equipes — leitura exploratória de desenvolvimento.", tone: "violet" },
@@ -1685,7 +1685,7 @@ export const NR1_LANDING = {
     title: "Guias ensinam a montar. O VitalOS entrega a evidência.",
     lead: "A diferença entre uma apostila e uma infraestrutura de mensuração.",
     rows: [
-      { sem: "Você monta o questionário e o relatório no Word", com: "A plataforma aplica o COPSOQ II e agrega automaticamente" },
+      { sem: "Você monta o questionário e o relatório no Word", com: "A plataforma usa uma bateria estruturada nas dimensões do COPSOQ II e agrega automaticamente" },
       { sem: "Respostas em planilha — risco de reidentificar pessoas", com: "K-anonimato imposto no banco: individual nunca é lido" },
       { sem: "Um PDF entregue uma vez", com: "Jornada anual de 4 lentes + Relatório Global ESG" },
       { sem: "Fica na obrigação de compliance", com: "Vira ativo de governança e cultura" },
@@ -1713,7 +1713,7 @@ export const NR1_LANDING = {
       },
       {
         q: "As respostas dos colaboradores ficam expostas?",
-        a: "Nunca. O anonimato é imposto no banco de dados: respostas individuais não são lidas pela empresa nem pela plataforma. Só aparecem agregados com no mínimo cinco respondentes (n≥5).",
+        a: "Nunca pela empresa. O anonimato é imposto no banco de dados: a plataforma processa cada resposta individualmente apenas no servidor de agregação, sob k-anonimato, e ninguém na empresa vê dado individual. Só aparecem agregados com no mínimo cinco respondentes (n≥5).",
       },
       {
         q: "Isso é consultoria jurídica?",
@@ -1725,13 +1725,13 @@ export const NR1_LANDING = {
       },
       {
         q: "Por que quatro instrumentos e não só o COPSOQ?",
-        a: "Você começa só pelo COPSOQ II (a exigência NR-1). As outras três lentes entram ao longo do ano, opcionalmente, transformando a obrigação numa jornada de desenvolvimento e num Relatório ESG anual.",
+        a: "Você começa pela bateria estruturada nas dimensões do COPSOQ II, a porta de entrada mais direta para a exigência da NR-1. As outras três lentes entram ao longo do ano, opcionalmente, transformando a obrigação numa jornada de desenvolvimento e num Relatório ESG anual.",
       },
     ],
   },
   fechamento: {
     title: "A NR-1 já está valendo. A pergunta é se vai ser você a atender com método.",
-    text: "De um lado, montar cada diagnóstico do zero e ver os contratos passarem. Do outro, aplicar o COPSOQ II com anonimato garantido, entregar evidência auditável e começar a jornada anual de vitalidade.",
+    text: "De um lado, montar cada diagnóstico do zero e ver os contratos passarem. Do outro, usar uma bateria estruturada nas dimensões do COPSOQ II com anonimato operacional por token, entregar evidência auditável e começar a jornada anual de vitalidade.",
     cta: { label: "Agendar demonstração", action: { kind: "modal", modal: "executive" }, variant: "primary" } as Cta,
     reassurance: "Sem compromisso. Uma conversa para ver a plataforma aplicada ao seu contexto.",
   },
