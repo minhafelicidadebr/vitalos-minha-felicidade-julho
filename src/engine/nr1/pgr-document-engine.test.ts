@@ -123,6 +123,18 @@ describe("buildPgrDocument — honestidade", () => {
     // O texto da seção declara a precedência da fonte/organização.
     expect(med).toContain("organização do trabalho antes do");
   });
+
+  test("Onda T4: a matriz de risco é rotulada como transformação VitalOS, nunca como o COPSOQ II em si", () => {
+    const doc = buildPgrDocument(plan, meta);
+    const inv = doc.sections.find((s) => s.id === "inventario")!;
+    expect(inv.title).toContain("transformação VitalOS");
+    expect(inv.title).not.toMatch(/matriz NR-01\)$/); // não mais rotulada como se fosse o próprio instrumento
+    const text = inv.body.join("\n");
+    expect(text).toContain("CRITÉRIO DE GESTÃO DE RISCO NR-01");
+    expect(text).toMatch(/não uma métrica nativa nem parte oficial do instrumento COPSOQ II/);
+    // A exposição (camada do instrumento) segue distinta da classificação (camada de gestão).
+    expect(text).toContain("bateria estruturada nas dimensões do COPSOQ II");
+  });
 });
 
 // ─── Serialização Markdown ─────────────────────────────────────────────────────

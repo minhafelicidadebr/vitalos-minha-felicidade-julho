@@ -110,11 +110,13 @@ export function renderPgrDocumentPdf(doc: PgrDocument, plan: PgrPlan, reavaliaca
     { gapAfter: 4 },
   );
 
-  // ── 3. Inventário de riscos (matriz NR-01) ──────────────────────────────────
-  kit.addSectionTitle("3. Inventário de riscos psicossociais (matriz NR-01)");
+  // ── 3. Classificação de risco (critério de gestão NR-01 — transformação VitalOS) ────
+  kit.addSectionTitle("3. Classificação de risco (critério de gestão NR-01 — transformação VitalOS)");
   kit.addParagraph(
-    "Classificação por matriz probabilidade × severidade (Guia MTE 2026). Probabilidade derivada da " +
-      "exposição COPSOQ medida e agregada.",
+    "A exposição por dimensão vem da bateria estruturada nas dimensões do COPSOQ II (ver o manifesto " +
+      "do instrumento). A classificação abaixo — matriz probabilidade × severidade (Guia MTE 2026) — " +
+      "é um CRITÉRIO DE GESTÃO DE RISCO NR-01: uma transformação VitalOS sobre essa exposição, não " +
+      "uma métrica nativa nem parte oficial do instrumento COPSOQ II.",
     { gapAfter: 3 },
   );
   if (plan.risks.length === 0) {
