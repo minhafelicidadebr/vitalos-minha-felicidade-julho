@@ -16,6 +16,7 @@ import {
   SST_LISTENING,
   SST_CHECKLIST,
   COPSOQ_AGGREGATE,
+  COPSOQ_AGGREGATE_LABEL,
   type RiskCategory,
   type CopsoqDimension,
 } from "@/mocks/executivo-mock";
@@ -39,7 +40,7 @@ function CopsoqCard() {
       transition={{ duration: 0.45, delay: 0.12 }}
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
     >
-      <p className="font-medium text-card-foreground">COPSOQ II agregado (versão curta BR)</p>
+      <p className="font-medium text-card-foreground">{COPSOQ_AGGREGATE_LABEL}</p>
       <p className="text-xs text-muted-foreground">
         n = {COPSOQ_AGGREGATE.n} · {COPSOQ_AGGREGATE.appliedLabel} · escala 0–100
       </p>
