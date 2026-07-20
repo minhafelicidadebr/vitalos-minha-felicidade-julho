@@ -191,6 +191,8 @@ const LOG_KIND_LABEL: Record<ActionLogEvent["kind"], string> = {
   note: "Nota",
   maintenance_check: "Vigia",
   evidence_recorded: "Evidência",
+  // Consulta de orientação ≠ evidência — o label nunca pode sugerir prova.
+  orientation_consulted: "Consulta",
 };
 
 const inputCls =

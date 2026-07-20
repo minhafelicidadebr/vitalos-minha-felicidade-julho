@@ -130,37 +130,73 @@ describe("leituras derivadas — timeline, conclusão e o Vigia (I-E4)", () => {
   });
 });
 
-describe("evidence_recorded — rastro do copiloto (claim_ids como referência)", () => {
-  test("evidenceClaimIds sobrevive intacto ao registro no ledger", () => {
+describe("orientation_consulted — rastro do copiloto, separado de evidência (bloqueador 1 pré-§5)", () => {
+  test("evidenceClaimIds e nota sobrevivem intactos ao registro no ledger", () => {
     const result = recordActionEvent([], {
       id: "flor-1",
       actionKey: "a1",
-      kind: "evidence_recorded",
+      kind: "orientation_consulted",
       actorRole: "LIDER_EQUIPE",
       occurredOn: DAY,
       evidenceKind: "florencia_orientation",
       evidenceRef: "suggest-observation-v1",
       evidenceClaimIds: ["CLAIM-LDR007-VOICE-002"],
+      note: "requer revisão humana antes de uso real",
     });
     expect(result.reason).toBe("recorded");
     expect(result.events[0]?.evidenceClaimIds).toEqual(["CLAIM-LDR007-VOICE-002"]);
+    expect(result.events[0]?.note).toBe("requer revisão humana antes de uso real");
   });
 
-  test("orientações contam como evidência da ação no summarize (mesma régua das demais)", () => {
-    let events = recordActionEvent([], {
+  test("consulta de orientação NÃO conta como evidência da ação no summarize", () => {
+    const events = recordActionEvent([], {
       id: "flor-2",
       actionKey: "a1",
-      kind: "evidence_recorded",
+      kind: "orientation_consulted",
       actorRole: "LIDER_EQUIPE",
       occurredOn: DAY,
       evidenceKind: "florencia_orientation",
       evidenceRef: "organize-evidence-v1",
       evidenceClaimIds: ["CLAIM-EDMONDSON1999-VOICE-003"],
-      note: "requer revisão humana antes de uso real",
     }).events;
     const summary = summarizeActionLog(events, ["a1"]);
-    expect(summary.evidenceCountByAction["a1"]).toBe(1);
-    // A nota operacional preservada — o rastro carrega o aviso, não a aprovação.
-    expect(events[0]?.note).toBe("requer revisão humana antes de uso real");
+    // Abrir o drawer não é prova de nada — a régua de evidência fica intocada.
+    expect(summary.evidenceCountByAction["a1"]).toBeUndefined();
+  });
+
+  test("consulta e evidência real convivem na mesma ação sem se contaminar", () => {
+    let events = recordActionEvent([], {
+      id: "flor-3",
+      actionKey: "a1",
+      kind: "orientation_consulted",
+      actorRole: "LIDER_EQUIPE",
+      occurredOn: DAY,
+      evidenceKind: "florencia_orientation",
+      evidenceRef: "prepare-safe-conversation-v1",
+    }).events;
+    events = recordActionEvent(events, {
+      id: "evr-1",
+      actionKey: "a1",
+      kind: "evidence_recorded",
+      actorRole: "LIDER_EQUIPE",
+      occurredOn: DAY,
+      evidenceKind: "checkin_rodada",
+      evidenceRef: "rodada-001",
+    }).events;
+    const summary = summarizeActionLog(events, ["a1"]);
+    expect(summary.evidenceCountByAction["a1"]).toBe(1); // só a rodada conta
+  });
+
+  test("orientation_consulted sem evidenceRef é recusada — consulta sem referência não é rastro auditável", () => {
+    const result = recordActionEvent([], {
+      id: "flor-4",
+      actionKey: "a1",
+      kind: "orientation_consulted",
+      actorRole: "LIDER_EQUIPE",
+      occurredOn: DAY,
+      evidenceKind: "florencia_orientation",
+    });
+    expect(result.reason).toBe("invalid_request");
+    expect(result.events).toHaveLength(0);
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildPassport,
   checkActivityBudget,
+  findClaimForContext,
   findClaimForStudy,
   resolveStudy,
   trustGate,
@@ -266,5 +267,99 @@ describe("consistência do domínio congelado", () => {
     expect(REGISTRY.studies.length).toBe(46);
     expect(resolveStudy(REGISTRY, "APP-004")).toBeNull();
     expect(REGISTRY.excluded.some((e) => e.study_id === "APP-004")).toBe(true);
+  });
+});
+
+// ─── findClaimForContext (bloqueador 2 pré-§5 — seleção com contexto completo) ─
+
+describe("findClaimForContext", () => {
+  const edmondson = resolveStudy(REGISTRY, "TRU-006")!;
+  const PASSPORT_CONTEXT = {
+    intendedUse: "explain_mechanism",
+    role: "lider",
+    segment: "enterprise",
+    targetContext: "evidencia-passaporte",
+  };
+
+  test("contexto totalmente compatível seleciona o claim oficial", () => {
+    const claim = findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, PASSPORT_CONTEXT);
+    expect(claim?.claim_id).toBe("CLAIM-EDMONDSON1999-VOICE-001");
+  });
+
+  test("estudo resolvido por alias seleciona o mesmo claim (nó canônico decide)", () => {
+    const viaAlias = resolveStudy(REGISTRY, "VOI-005")!;
+    const claim = findClaimForContext(REGISTRY, CLAIM_REGISTRY, viaAlias, PASSPORT_CONTEXT);
+    expect(claim?.claim_id).toBe("CLAIM-EDMONDSON1999-VOICE-001");
+  });
+
+  test("papel fora do claim → null já na SELEÇÃO (não só no trustGate depois)", () => {
+    expect(
+      findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, {
+        ...PASSPORT_CONTEXT,
+        role: "colaborador",
+      }),
+    ).toBeNull();
+  });
+
+  test("segmento fora do claim → null já na seleção", () => {
+    expect(
+      findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, {
+        ...PASSPORT_CONTEXT,
+        segment: "school",
+      }),
+    ).toBeNull();
+  });
+
+  test("contexto-alvo divergente → null já na seleção (nunca empresta claim de outro contexto)", () => {
+    expect(
+      findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, {
+        ...PASSPORT_CONTEXT,
+        targetContext: "missao-equipe",
+      }),
+    ).toBeNull();
+  });
+
+  test("uso pretendido divergente → null já na seleção", () => {
+    expect(
+      findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, {
+        ...PASSPORT_CONTEXT,
+        intendedUse: "create_team_mission",
+      }),
+    ).toBeNull();
+  });
+
+  test("claim dimensionalmente certo mas não confiável fica fora (trustGate embutido na seleção)", () => {
+    // Registro sintético: claim C3 SEM caveat — dimensões todas compatíveis,
+    // mas o trustGate recusa → a seleção devolve null (fail-closed).
+    const syntheticRegistry: ClaimRegistry = {
+      registry: "sintético",
+      version: "0.0.1",
+      frozen: true,
+      claims: [
+        {
+          claim_id: "CLAIM-SINTETICO-C3-SEM-CAVEAT",
+          study_id: "TRU-006",
+          intended_use: "explain_mechanism",
+          role: ["lider"],
+          segment: ["enterprise"],
+          target_context: "evidencia-passaporte",
+          claim_alignment: "C3",
+          safe_claim:
+            "Claim sintético de teste com comprimento suficiente para a validação mínima do registro.",
+          prohibited_claims: [],
+        },
+      ],
+    };
+    expect(
+      findClaimForContext(REGISTRY, syntheticRegistry, edmondson, PASSPORT_CONTEXT),
+    ).toBeNull();
+  });
+
+  test("paridade com o deprecated findClaimForStudy no caminho feliz da trilha real", () => {
+    // Para as combinações reais da trilha, a seleção nova e a antiga apontam
+    // para o MESMO claim — o contexto completo restringe, nunca troca.
+    const porUso = findClaimForStudy(REGISTRY, CLAIM_REGISTRY, edmondson, "explain_mechanism");
+    const porContexto = findClaimForContext(REGISTRY, CLAIM_REGISTRY, edmondson, PASSPORT_CONTEXT);
+    expect(porContexto?.claim_id).toBe(porUso?.claim_id ?? "");
   });
 });

@@ -48,7 +48,12 @@ export type ActionLogEventKind =
   | "checkin"
   | "note"
   | "maintenance_check"
-  | "evidence_recorded";
+  | "evidence_recorded"
+  /** Consulta de orientação (ex.: drawer da FlorêncIA aberto) — rastro de USO,
+   * nunca evidência de execução. Separado de evidence_recorded por semântica
+   * (bloqueador 1 pré-§5 do SAFE-VOICE-BRIDGE): consultar orientação não conta
+   * como prova de nada, e summarizeActionLog não o soma em evidenceCountByAction. */
+  | "orientation_consulted";
 
 export interface ActionLogEvent {
   id: string;
@@ -62,11 +67,13 @@ export interface ActionLogEvent {
   toStatus?: PlanActionStatus;
   /** maintenance_check: a medida segue em funcionamento? */
   maintained?: boolean;
-  /** evidence_recorded: tipo (vocabulário do pack) + referência, nunca conteúdo. */
+  /** evidence_recorded/orientation_consulted: tipo (vocabulário do pack) +
+   * referência, nunca conteúdo. Em orientation_consulted, evidenceRef é o
+   * templateId consultado e é OBRIGATÓRIO (validado no record). */
   evidenceKind?: string;
   evidenceRef?: string;
-  /** evidence_recorded: claim_ids do Claim Registry que sustentaram a evidência —
-   * referências, nunca o texto do claim (mesma disciplina do evidenceRef). */
+  /** evidence_recorded/orientation_consulted: claim_ids do Claim Registry que
+   * sustentaram — referências, nunca o texto do claim (mesma disciplina do evidenceRef). */
   evidenceClaimIds?: readonly string[];
   /** checkin/note — texto curto operacional (nunca dado de pessoa). */
   note?: string;
@@ -128,6 +135,9 @@ export function recordActionEvent(
   }
   if (event.kind === "maintenance_check" && typeof event.maintained !== "boolean") {
     return finish("invalid_request");
+  }
+  if (event.kind === "orientation_consulted" && !event.evidenceRef?.trim()) {
+    return finish("invalid_request"); // consulta sem referência do template não é rastro auditável
   }
 
   return finish("recorded", [...existing, event], event);
