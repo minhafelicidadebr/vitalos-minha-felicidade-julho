@@ -1,5 +1,7 @@
 // C-Level, SST/CIPA and Holding mock data — aggregates only, deterministic
 
+import { getCopsoqManifest } from "@/domain/survey/copsoq-instrument-manifest";
+
 // ─── C-Level ──────────────────────────────────────────────────────────────────
 
 export const CLEVEL_TREND = [
@@ -119,7 +121,7 @@ export const SST_CHECKLIST = [
   { id: "c5", label: "Trilha documental exportada para o profissional do PGR", done: false },
 ] as const;
 
-// COPSOQ II (versão curta BR) — dimensões agregadas, n=374, escala 0–100
+// Leitura agregada (demo) das dimensões do COPSOQ, n=374, escala 0–100.
 // Convenção: para dimensões de "demanda" (↓ melhor), valores altos = pior.
 export interface CopsoqDimension {
   id: string;
@@ -128,6 +130,10 @@ export interface CopsoqDimension {
   direction: "maior_melhor" | "menor_melhor";
   band: "favorável" | "intermediário" | "risco";
 }
+
+// Rótulo DERIVADO do manifesto canônico (Onda T3) — nunca hardcoded "COPSOQ II ..."
+// de novo. allowed_claims[0] é a forma curta autorizada pelo manifesto.
+export const COPSOQ_AGGREGATE_LABEL = `${getCopsoqManifest().allowed_claims[0]} · leitura agregada (demo)`;
 
 export const COPSOQ_AGGREGATE: { n: number; appliedLabel: string; dimensions: CopsoqDimension[] } =
   {
