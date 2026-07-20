@@ -6,6 +6,15 @@
 // Domínio A (florescimento/forças) e Domínio B (risco psicossocial) nunca se misturam.
 
 import type { InstrumentRegistryEntry } from "@/engine/survey/instrument-registry";
+import {
+  getCopsoqManifest,
+  isValidatedLanguageAllowed,
+} from "@/domain/survey/copsoq-instrument-manifest";
+
+// COPSOQ deriva do manifesto canônico (Onda T2) — identidade, versão, status,
+// fontes, contagens e escala têm UMA fonte: src/domain/survey/copsoq-instrument-manifest.json.
+// A paridade manifesto × bateria servida é imposta no gate (copsoq-instrument-manifest.test.ts).
+const COPSOQ_MANIFEST = getCopsoqManifest();
 
 export const INSTRUMENT_REGISTRY: InstrumentRegistryEntry[] = [
   // ─── Domínio A — Florescimento ──────────────────────────────────────────────
@@ -71,36 +80,31 @@ export const INSTRUMENT_REGISTRY: InstrumentRegistryEntry[] = [
       "48 itens (24 forças × 2), escala 0–10. ICUFT (10 itens) é o módulo de contexto organizacional " +
       "que acompanha a bateria. Exploratório: jamais 'VIA oficial', diagnóstico, ranking ou decisão de RH.",
   },
-  // ─── Domínio B — Risco psicossocial ───────────────────────────────────────────
+  // ─── Domínio B — Risco psicossocial (DERIVADO do manifesto canônico) ──────────
   {
-    id: "copsoq",
+    id: COPSOQ_MANIFEST.instrument_id,
     instrumentShort: "COPSOQ",
     label: "COPSOQ — Riscos psicossociais (cobertura integral, demonstrativo)",
-    version: "br-medio.estrutural.1",
-    validationStatus: "demonstrativo",
+    version: COPSOQ_MANIFEST.version,
+    validationStatus: COPSOQ_MANIFEST.validation_status,
     domain: "B",
-    sources: [
-      {
-        citation:
-          "COPSOQ II — Kristensen et al. (NRCWE, 2005); Manual PT (Silva et al., 2013). Estrutura de 12 dimensões + 2 desfechos.",
-      },
-      {
-        citation:
-          "Guia MTE/SIT — Fatores de Risco Psicossocial (2026); NR-1 e NR-17. Categorias de risco psicossocial obrigatórias.",
-      },
-    ],
-    servedItemCount: 41,
-    integralItemCount: 41,
-    scoreRange: { min: 1, max: 5 },
+    sources: COPSOQ_MANIFEST.sources.map((source) => ({ ...source })),
+    servedItemCount: COPSOQ_MANIFEST.item_count,
+    integralItemCount: COPSOQ_MANIFEST.item_count,
+    scoreRange: {
+      min: COPSOQ_MANIFEST.scoring.scale_min,
+      max: COPSOQ_MANIFEST.scoring.scale_max,
+    },
     isIntegralServed: true,
-    isValidatedNCOPSII: false,
+    // Fail-closed por construção: só vira true se o manifesto for descongelado para
+    // validado COM licença registrada (gate DEMONSTRATIVO→VALIDADO da licence.note).
+    isValidatedNCOPSII: isValidatedLanguageAllowed(COPSOQ_MANIFEST),
     notes:
-      "41 itens cobrindo as 12 dimensões de exposição psicossocial da NR-1 + 2 desfechos (burnout e " +
-      "comportamentos ofensivos). 'Integral' é cobertura ESTRUTURAL (todas as dimensões), não alegação " +
-      "de validação: a REDAÇÃO é demonstrativa/adaptada — isValidatedNCOPSII permanece false. Não é a " +
-      "NCOPSII licenciada e validada. Domínio B — nunca diagnóstico individual; cada item mapeia ao id de " +
-      "dimensão do NR1_CROSSWALK (alimenta rankDriversByExposure). Conclusão de GRO/PGR exige a versão " +
-      "licenciada e profissional habilitado.",
+      "DERIVADO do manifesto canônico (domain/survey/copsoq-instrument-manifest.json). " +
+      "'Integral' é cobertura ESTRUTURAL (todas as dimensões), não alegação de validação: a REDAÇÃO " +
+      "é demonstrativa/adaptada — não é a NCOPSII licenciada e validada. Domínio B — nunca diagnóstico " +
+      "individual; cada item mapeia ao id de dimensão do NR1_CROSSWALK (alimenta rankDriversByExposure). " +
+      "Conclusão de GRO/PGR exige a versão licenciada e profissional habilitado.",
   },
 ];
 
