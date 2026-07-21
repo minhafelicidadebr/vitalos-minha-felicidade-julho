@@ -5,7 +5,32 @@
 > Registro canônico: `src/domain/evidence/evidence-registry.json` (congelado, v1.0.0).
 > Claim Registry: `src/domain/evidence/claim-registry.json` (congelado, v1.1.0 — corpus completo).
 
-## Tarefa atual — Onda 5 (Truth Layer), 2 cortes entregues
+## Tarefa concluída — Auditoria COPSOQ II Product Truth & Commercial Readiness Gate (Ondas T1–T4)
+
+Executada em 2026-07-20 (sessão da conta agencia9.17, retomada aqui em
+2026-07-20 após reinstalação do Claude Code). As 4 ondas de CÓDIGO da
+auditoria estão mescladas na main:
+
+- **T1** (PR #6): landing para de fazer claims proibidos sobre o COPSOQ.
+- **T2** (PR #7): manifesto canônico do instrumento —
+  `src/domain/survey/copsoq-instrument-manifest.json` (frozen, fonte única
+  de identidade/licença/claims permitidos+proibidos; derivados regenerados
+  por `scripts/sync-copsoq-manifest.ts`, divergência quebra o gate).
+- **T3** (PR #8): Truth Layer pública — `landing-copy.copsoq-truth.test.ts`
+  varre TODO o landing-copy contra `forbidden_claims`; `/sst` consome
+  `COPSOQ_AGGREGATE_LABEL` derivado de `allowed_claims[0]`.
+- **T4** (PR #10): dossiê PGR (engine + PDF) rotula a matriz
+  probabilidade×severidade como "transformação VitalOS — critério de
+  gestão NR-01", nunca como parte oficial do instrumento.
+
+**Pendente — Onda T5 (trilho de licenciamento da versão validada):
+decisão COMERCIAL do founder, não código.** Requisitos de promoção a
+VALIDADO já estão registrados em `licence.note` do manifesto (licença
+escrita SaaS, itens verbatim com item_hashes 1:1, scoring da norma,
+atribuição renderizada, revisão científica, profissional habilitado
+nomeado, flip de `validation_status` com bump de versão).
+
+## Tarefa anterior — Onda 5 (Truth Layer), 2 cortes entregues
 
 Sequência do Plano de Elevação 180% autorizada pelo founder em 2026-07-18
 (após merge da Convergência de Evidências, do Claim Registry v1.1.0 e da
