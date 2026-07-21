@@ -11,6 +11,7 @@
 
 import type { BranchingScenario } from "@/engine/learning/trail-engine";
 import type { AdaptiveQuizBank, AdaptiveQuizItem } from "@/engine/learning/adaptive-quiz-engine";
+import type { MicroUnit } from "@/engine/learning/spaced-microlearning-engine";
 
 export const VOZ_SEGURA_TRAIL = {
   id: "trilha-voz-segura",
@@ -51,6 +52,58 @@ export const VOZ_SEGURA_MICROLEARNING = {
     },
   ],
 } as const;
+
+// ─── Evoluir · microlearning espaçado privado (LD-013) ───────────────────────
+//
+// Unidades curtas com active recall que voltam ao longo dos dias. Conteúdo
+// VERSIONADO (bump em VOZ_SEGURA_MICRO_PLAN_VERSION ao mudar) e ancorado só nas
+// fontes autorizadas (TRU-006, LDR-007). A orquestração temporal e a
+// persistência privada (opt-in) vivem no engine/store — aqui é só o conteúdo.
+
+export const VOZ_SEGURA_MICRO_PLAN_VERSION = "1.0.0";
+
+export const VOZ_SEGURA_MICRO_UNITS: readonly MicroUnit[] = [
+  {
+    id: "vs-mu-medo",
+    title: "O que cai, o que sobe",
+    prompt:
+      "Onde perguntar, discordar e admitir erro recebem resposta não punitiva, o medo interpessoal cai — e os comportamentos de aprendizagem sobem.",
+    recallQuestion: "Quando o medo interpessoal de uma equipe diminui, o que tende a aumentar?",
+    recallAnswer:
+      "Comportamentos de aprendizagem: perguntar mais cedo, admitir erro mais rápido, pedir ajuda antes do prazo.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-responsabilizacao",
+    title: "Segurança não é ausência de cobrança",
+    prompt:
+      "Alta segurança psicológica e alta exigência coexistem: a responsabilização continua; o que muda é a resposta ao erro reportado.",
+    recallQuestion: "Segurança psicológica significa que ninguém é mais cobrado por resultados?",
+    recallAnswer:
+      "Não. A responsabilização permanece — muda a resposta ao erro, que deixa de ser julgamento de pessoa e vira insumo de processo.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-primeira-resposta",
+    title: "A primeira resposta define o preço do próximo aviso",
+    prompt:
+      "A primeira reação do líder a um problema reportado ensina o time quanto custa avisar da próxima vez. Agradecer antes de investigar baixa esse preço.",
+    recallQuestion: "O que a primeira resposta do líder a um erro reportado define para a equipe?",
+    recallAnswer:
+      "O preço do próximo aviso. Contenção primeiro, aprendizado depois, processo antes de pessoa — e um 'obrigado por avisar' antes do 'como aconteceu?'.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-adesao",
+    title: "Apoio do líder é alavanca, não interruptor",
+    prompt:
+      "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos — mas o efeito depende da adesão do líder e do contexto.",
+    recallQuestion: "O efeito do apoio do supervisor sobre o bem-estar da equipe é garantido?",
+    recallAnswer:
+      "Não. É condicionado à adesão real do líder e ao contexto de implementação — comportamento de liderança é alavanca, não interruptor.",
+    sourceStudyId: "LDR-007",
+  },
+];
 
 // ─── Praticar · quiz de recuperação (adaptativo por dificuldade pedagógica) ──
 //

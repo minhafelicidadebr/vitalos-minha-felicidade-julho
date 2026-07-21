@@ -36,6 +36,7 @@ import {
 import type { AdaptiveSessionSummary } from "@/engine/learning/adaptive-quiz-engine";
 import { AdaptiveQuizCard } from "@/features/learning/components/AdaptiveQuizCard";
 import { ScenarioSimulator } from "@/features/learning/components/ScenarioSimulator";
+import { SpacedMicrolearningCard } from "@/features/learning/components/SpacedMicrolearningCard";
 import {
   foldActionStatus,
   recordActionEvent,
@@ -46,6 +47,8 @@ import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
   VOZ_SEGURA_MICROLEARNING,
+  VOZ_SEGURA_MICRO_PLAN_VERSION,
+  VOZ_SEGURA_MICRO_UNITS,
   VOZ_SEGURA_MISSION,
   VOZ_SEGURA_PROJECT_30D,
   VOZ_SEGURA_QUIZ_BANK,
@@ -530,6 +533,26 @@ function VozSeguraTrail({
               </details>
             </div>
           )}
+
+          {/* Evoluir · microlearning espaçado privado (LD-013) */}
+          <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Layers className="h-3.5 w-3.5 text-primary" aria-hidden />
+                Revisão espaçada privada · fixe o essencial ao longo dos dias
+              </p>
+              <StatusBadge status={dynamicStatus("LD-013")} title="Derivado do registro canônico LD-013 — motor SM-2 real, persistência privada opt-in neste aparelho" />
+            </div>
+            <div className="mt-3">
+              <SpacedMicrolearningCard
+                units={VOZ_SEGURA_MICRO_UNITS}
+                planVersion={VOZ_SEGURA_MICRO_PLAN_VERSION}
+                resolveSourceLabel={(studyId) =>
+                  resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+                }
+              />
+            </div>
+          </div>
         </Section>
 
         {/* ─── 3 · Praticar: quiz adaptativo (LD-002) ─── */}

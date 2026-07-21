@@ -16,6 +16,7 @@ import registryJson from "@/domain/evidence/evidence-registry.json";
 import claimRegistryJson from "@/domain/evidence/claim-registry.json";
 import {
   VOZ_SEGURA_ESG_TRACE,
+  VOZ_SEGURA_MICRO_UNITS,
   VOZ_SEGURA_PROJECT_30D,
   VOZ_SEGURA_QUIZ,
   VOZ_SEGURA_SCENARIOS,
@@ -31,6 +32,7 @@ function allReferencedStudyIds(): string[] {
     ...VOZ_SEGURA_TRAIL.budget.complementaryStudyIds,
     ...VOZ_SEGURA_QUIZ.map((item) => item.sourceStudyId),
     ...VOZ_SEGURA_SCENARIOS.flatMap((s) => s.choices.map((choice) => choice.sourceStudyId)),
+    ...VOZ_SEGURA_MICRO_UNITS.map((u) => u.sourceStudyId),
     ...VOZ_SEGURA_PROJECT_30D.studyIds,
     ...VOZ_SEGURA_ESG_TRACE.study_ids,
   ];
@@ -144,6 +146,17 @@ describe("voz-segura × evidence registry", () => {
     }
   });
 
+  test("microlearning: toda unidade tem recall completo, ids únicos e fonte autorizada", () => {
+    const ids = VOZ_SEGURA_MICRO_UNITS.map((u) => u.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const unit of VOZ_SEGURA_MICRO_UNITS) {
+      expect(unit.prompt.trim().length).toBeGreaterThan(20);
+      expect(unit.recallQuestion.trim().length).toBeGreaterThan(10);
+      expect(unit.recallAnswer.trim().length).toBeGreaterThan(20);
+      expect(["TRU-006", "LDR-007"]).toContain(unit.sourceStudyId);
+    }
+  });
+
   test("projeto 30d: hipótese, contexto elegível, stop rule e fronteira clínica presentes", () => {
     expect(VOZ_SEGURA_PROJECT_30D.hypothesis.length).toBeGreaterThan(40);
     expect(VOZ_SEGURA_PROJECT_30D.eligibleContext).toContain("NÃO elegível");
@@ -169,6 +182,7 @@ describe("voz-segura × evidence registry", () => {
       ...VOZ_SEGURA_SCENARIOS.flatMap((s) =>
         s.choices.map((c) => `${c.likelyConsequence} ${c.mechanismNote}`),
       ),
+      ...VOZ_SEGURA_MICRO_UNITS.map((u) => `${u.prompt} ${u.recallAnswer}`),
       VOZ_SEGURA_PROJECT_30D.hypothesis,
       VOZ_SEGURA_PROJECT_30D.justification,
     ].join(" ");
