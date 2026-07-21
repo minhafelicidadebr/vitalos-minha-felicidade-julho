@@ -9,7 +9,10 @@
 // Orçamento de evidência respeitado (learning-patterns.json):
 // 1 mecanismo + 1 estudo principal + 1 complementar + limites + aplicação.
 
-import type { BranchingScenario, QuizItem } from "@/engine/learning/trail-engine";
+import type { BranchingScenario } from "@/engine/learning/trail-engine";
+import type { AdaptiveQuizBank, AdaptiveQuizItem } from "@/engine/learning/adaptive-quiz-engine";
+import type { MicroUnit } from "@/engine/learning/spaced-microlearning-engine";
+import type { FarewellLetterBlocks } from "@/engine/learning/farewell-letter-engine";
 
 export const VOZ_SEGURA_TRAIL = {
   id: "trilha-voz-segura",
@@ -51,11 +54,91 @@ export const VOZ_SEGURA_MICROLEARNING = {
   ],
 } as const;
 
-// ─── Praticar · quiz de recuperação ──────────────────────────────────────────
+// ─── Evoluir · microlearning espaçado privado (LD-013) ───────────────────────
+//
+// Unidades curtas com active recall que voltam ao longo dos dias. Conteúdo
+// VERSIONADO (bump em VOZ_SEGURA_MICRO_PLAN_VERSION ao mudar) e ancorado só nas
+// fontes autorizadas (TRU-006, LDR-007). A orquestração temporal e a
+// persistência privada (opt-in) vivem no engine/store — aqui é só o conteúdo.
 
-export const VOZ_SEGURA_QUIZ: QuizItem[] = [
+export const VOZ_SEGURA_MICRO_PLAN_VERSION = "1.0.0";
+
+export const VOZ_SEGURA_MICRO_UNITS: readonly MicroUnit[] = [
+  {
+    id: "vs-mu-medo",
+    title: "O que cai, o que sobe",
+    prompt:
+      "Onde perguntar, discordar e admitir erro recebem resposta não punitiva, o medo interpessoal cai — e os comportamentos de aprendizagem sobem.",
+    recallQuestion: "Quando o medo interpessoal de uma equipe diminui, o que tende a aumentar?",
+    recallAnswer:
+      "Comportamentos de aprendizagem: perguntar mais cedo, admitir erro mais rápido, pedir ajuda antes do prazo.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-responsabilizacao",
+    title: "Segurança não é ausência de cobrança",
+    prompt:
+      "Alta segurança psicológica e alta exigência coexistem: a responsabilização continua; o que muda é a resposta ao erro reportado.",
+    recallQuestion: "Segurança psicológica significa que ninguém é mais cobrado por resultados?",
+    recallAnswer:
+      "Não. A responsabilização permanece — muda a resposta ao erro, que deixa de ser julgamento de pessoa e vira insumo de processo.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-primeira-resposta",
+    title: "A primeira resposta define o preço do próximo aviso",
+    prompt:
+      "A primeira reação do líder a um problema reportado ensina o time quanto custa avisar da próxima vez. Agradecer antes de investigar baixa esse preço.",
+    recallQuestion: "O que a primeira resposta do líder a um erro reportado define para a equipe?",
+    recallAnswer:
+      "O preço do próximo aviso. Contenção primeiro, aprendizado depois, processo antes de pessoa — e um 'obrigado por avisar' antes do 'como aconteceu?'.",
+    sourceStudyId: "TRU-006",
+  },
+  {
+    id: "vs-mu-adesao",
+    title: "Apoio do líder é alavanca, não interruptor",
+    prompt:
+      "Treinamento de apoio do supervisor, em intervenção controlada, associou-se a melhores desfechos — mas o efeito depende da adesão do líder e do contexto.",
+    recallQuestion: "O efeito do apoio do supervisor sobre o bem-estar da equipe é garantido?",
+    recallAnswer:
+      "Não. É condicionado à adesão real do líder e ao contexto de implementação — comportamento de liderança é alavanca, não interruptor.",
+    sourceStudyId: "LDR-007",
+  },
+];
+
+// ─── Evoluir · carta-poema pedagógica (LD-007) ───────────────────────────────
+//
+// Blocos AUTORAIS revisados. Expressão artístico-educacional — NÃO evidência,
+// sem citar estudo, sem claim científico. Composição determinística no engine
+// (sem IA, sem inferência); PDF gerado no cliente; nada persiste.
+
+export const VOZ_SEGURA_LETTER: FarewellLetterBlocks = {
+  title: "Carta a quem escolhe ouvir",
+  greetingWithName: "Para {nome}, que conduz um time —",
+  greetingNeutral: "Para você, que conduz um time —",
+  stanzas: [
+    "Houve um tempo em que o erro chegava tarde,\nvestido de sexta-feira e de susto.\nNão porque ninguém soubesse —\nmas porque avisar custava caro demais.",
+    "Você foi trocando a primeira pergunta:\nde “de quem é a culpa?”\npara “obrigado por trazer isso agora —\no que a gente contém primeiro?”.",
+    "Segurança nunca foi afrouxar a exigência.\nÉ trocar o julgamento da pessoa\npelo cuidado com o processo:\ncobrar e acolher cabem na mesma mesa.",
+    "Quando o medo diminui,\nnão é o rigor que vai embora —\né o silêncio.\nE o que estava escondido aparece enquanto ainda é barato.",
+  ],
+  closingLine:
+    "Que a sua próxima reunião tenha uma voz a mais do que teria ontem.\nÉ assim, devagar, que um time aprende a falar.",
+  signature: "— Trilha Voz Segura",
+  disclaimer:
+    "Esta carta é uma expressão artístico-educacional inspirada na sua jornada — não é avaliação, diagnóstico nem evidência científica. Foi composta de forma determinística, sem IA e sem qualquer inferência sobre você; nada aqui é gravado ou enviado a quem quer que seja.",
+};
+
+// ─── Praticar · quiz de recuperação (adaptativo por dificuldade pedagógica) ──
+//
+// LD-002: dificuldade é PEDAGÓGICA (fundamento → aplicação → transferência),
+// derivada da natureza cognitiva de cada pergunta — nunca perfil psicológico.
+// Mesmos 4 itens e mesmas fontes de sempre (orçamento de evidência intacto).
+
+export const VOZ_SEGURA_QUIZ: AdaptiveQuizItem[] = [
   {
     id: "vs-q1",
+    difficulty: "fundamento",
     question:
       "Um time com alta segurança psicológica se caracteriza, segundo a evidência fundacional, por…",
     options: [
@@ -70,6 +153,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q2",
+    difficulty: "aplicacao",
     question: "Segurança psicológica significa que ninguém é cobrado por resultados?",
     options: [
       { id: "a", label: "Sim — cobrança gera medo" },
@@ -82,6 +166,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q3",
+    difficulty: "transferencia",
     question: "O que a evidência fundacional (1999) PERMITE afirmar?",
     options: [
       { id: "a", label: "Segurança psicológica causa desempenho superior garantido" },
@@ -95,6 +180,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q4",
+    difficulty: "aplicacao",
     question: "Sobre o papel do líder, o que a evidência de treinamento de supervisores sugere?",
     options: [
       { id: "a", label: "Treinar o líder resolve o bem-estar da equipe" },
@@ -106,6 +192,14 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
     sourceStudyId: "LDR-007",
   },
 ];
+
+/** Banco versionado consumido pelo motor adaptativo (LD-002). Bump de versão
+ * sempre que itens mudarem — a versão viaja no estado da sessão. */
+export const VOZ_SEGURA_QUIZ_BANK: AdaptiveQuizBank = {
+  id: "voz-segura-quiz",
+  version: "1.0.0",
+  items: VOZ_SEGURA_QUIZ,
+};
 
 // ─── Praticar · cenário ramificado ───────────────────────────────────────────
 
@@ -153,6 +247,107 @@ export const VOZ_SEGURA_SCENARIO: BranchingScenario = {
     },
   ],
 };
+
+export const VOZ_SEGURA_SCENARIO_SILENCIO: BranchingScenario = {
+  id: "vs-cenario-silencio",
+  title: "O silêncio que passou por concordância",
+  setup:
+    "Reunião de planejamento. Você apresenta o plano do trimestre e vê acenos de cabeça na mesa. Mas a pessoa que quase sempre levanta objeções ficou calada, de braços cruzados. A reunião está acabando. O que você faz?",
+  bestChoiceId: "vs-s3",
+  choices: [
+    {
+      id: "vs-s1",
+      label: "“Todo mundo de acordo? Então está fechado.”",
+      likelyConsequence:
+        "O plano avança rápido hoje — mas o risco que aquela pessoa enxergou tende a reaparecer depois, quando já for caro consertar.",
+      mechanismNote:
+        "Silêncio não é concordância: onde a voz é baixa, os problemas ficam invisíveis até tarde. Ler acenos como alinhamento fecha a porta cedo demais.",
+      commonMistake: "Tratar ausência de objeção como se fosse adesão real.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Convidar a objeção mais forte ao grupo antes de fechar — sem apontar ninguém.",
+    },
+    {
+      id: "vs-s2",
+      label: "“Fulano, você está quieto — não concorda?”",
+      likelyConsequence:
+        "Talvez arranque uma resposta agora, mas expor uma pessoa na frente do time tende a elevar o custo de discordar para todos os outros.",
+      mechanismNote:
+        "Forçar exposição individual aumenta o medo interpessoal — o oposto do que sustenta comportamentos de aprendizagem numa equipe.",
+      commonMistake: "Confundir pressão pública com abertura ao contraditório.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Abrir a objeção para o grupo inteiro, tornando discordar uma norma, não um holofote.",
+    },
+    {
+      id: "vs-s3",
+      label: "“Antes de fechar: qual é a objeção mais forte contra esse plano?”",
+      likelyConsequence:
+        "O problema escondido tende a aparecer enquanto ainda é barato — e o time vê que discordar cedo é bem-vindo, não arriscado.",
+      mechanismNote:
+        "Normalizar a objeção para o grupo reduz o medo interpessoal sem expor ninguém: é o comportamento de liderança que a evidência associa a mais aprendizagem de equipe.",
+      commonMistake:
+        "Perguntar pela objeção e depois punir a primeira que aparecer destrói o efeito — a coerência vale mais que a pergunta.",
+      sourceStudyId: "TRU-006",
+    },
+  ],
+};
+
+export const VOZ_SEGURA_SCENARIO_FEEDBACK: BranchingScenario = {
+  id: "vs-cenario-feedback",
+  title: "Depois que pedi feedback",
+  setup:
+    "No mês passado você pediu feedback honesto sobre a sua liderança. Uma pessoa trouxe um ponto franco, desconfortável — e verdadeiro. Esta semana você decide o que fazer com isso. O time está reparando se pedir feedback foi pra valer.",
+  bestChoiceId: "vs-f3",
+  choices: [
+    {
+      id: "vs-f1",
+      label: "“Agradeço demais, anotado.” — e nada muda.",
+      likelyConsequence:
+        "O incômodo passa hoje, mas pedir feedback sem agir tende a ensinar o time que, da próxima, não vale a pena falar.",
+      mechanismNote:
+        "O comportamento do líder é alavanca, e o efeito depende de adesão: pedir é barato, agir é o sinal que de fato muda o ambiente.",
+      commonMistake: "Tratar “ouvir” como se já fosse “mudar”.",
+      sourceStudyId: "LDR-007",
+      betterAlternative:
+        "Nomear uma mudança concreta e voltar depois com o que mudou.",
+    },
+    {
+      id: "vs-f2",
+      label: "“Deixa eu te explicar por que não é bem assim…”",
+      likelyConsequence:
+        "Talvez você “ganhe” o argumento, mas rebater a franqueza tende a fechar o canal — a próxima pessoa pensa duas vezes antes de falar.",
+      mechanismNote:
+        "Responder à crítica com defesa eleva o medo de falar: é o custo do próximo aviso subindo, exatamente o que reduz a aprendizagem da equipe.",
+      commonMistake: "Transformar feedback recebido em debate a ser vencido.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Acolher primeiro, avaliar depois — sem transformar em defesa com plateia.",
+    },
+    {
+      id: "vs-f3",
+      label: "“Obrigado pela franqueza. Vou testar uma mudança e te conto o resultado em duas semanas.”",
+      likelyConsequence:
+        "Fechar o ciclo com uma ação concreta tende a mostrar que falar muda algo — e sinaliza ao time que a franqueza compensa.",
+      mechanismNote:
+        "A mudança visível do líder, sustentada e não só o pedido, é o que a evidência associa a melhores desfechos — condicionada à adesão real ao longo do tempo.",
+      commonMistake:
+        "Prometer a mudança e não voltar com o resultado desfaz o ganho — o ciclo precisa fechar.",
+      sourceStudyId: "LDR-007",
+    },
+  ],
+};
+
+/** Biblioteca de cenários determinísticos governados (LD-008). Todos ancorados
+ * apenas em TRU-006 e LDR-007 (fontes autorizadas do TASK.md); consequências
+ * sempre "prováveis", nunca garantidas; nenhuma opção humilhante; sem pontuar
+ * "bom líder". A consistência (ids + trust gate + linguagem) é verificada por
+ * teste sobre a lista inteira. */
+export const VOZ_SEGURA_SCENARIOS: readonly BranchingScenario[] = [
+  VOZ_SEGURA_SCENARIO,
+  VOZ_SEGURA_SCENARIO_SILENCIO,
+  VOZ_SEGURA_SCENARIO_FEEDBACK,
+];
 
 // ─── Aplicar · checklist de reunião + missão real ────────────────────────────
 

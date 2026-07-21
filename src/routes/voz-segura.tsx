@@ -29,12 +29,16 @@ import {
 import {
   computeEvolveIndicators,
   computeTrailProgress,
-  gradeQuiz,
-  resolveScenarioChoice,
   suggestCycleDecision,
   type CycleDecision,
   type MissionCheckin,
 } from "@/engine/learning/trail-engine";
+import type { AdaptiveSessionSummary } from "@/engine/learning/adaptive-quiz-engine";
+import { AdaptiveQuizCard } from "@/features/learning/components/AdaptiveQuizCard";
+import { ScenarioSimulator } from "@/features/learning/components/ScenarioSimulator";
+import { SpacedMicrolearningCard } from "@/features/learning/components/SpacedMicrolearningCard";
+import { TrailConclusionCard } from "@/features/learning/components/TrailConclusionCard";
+import type { TrailSynthesisInput } from "@/engine/learning/trail-synthesis-engine";
 import {
   foldActionStatus,
   recordActionEvent,
@@ -44,11 +48,14 @@ import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries"
 import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
+  VOZ_SEGURA_LETTER,
   VOZ_SEGURA_MICROLEARNING,
+  VOZ_SEGURA_MICRO_PLAN_VERSION,
+  VOZ_SEGURA_MICRO_UNITS,
   VOZ_SEGURA_MISSION,
   VOZ_SEGURA_PROJECT_30D,
-  VOZ_SEGURA_QUIZ,
-  VOZ_SEGURA_SCENARIO,
+  VOZ_SEGURA_QUIZ_BANK,
+  VOZ_SEGURA_SCENARIOS,
   VOZ_SEGURA_TRAIL,
 } from "@/mocks/voz-segura-mock";
 // ─── LDX-1: Learning Dynamics Registry (governança/descoberta contextual) ──
@@ -135,9 +142,12 @@ function VozSeguraTrail({
   complementary: NonNullable<ReturnType<typeof resolveStudy>>[];
 }) {
   // ─── Praticar ───────────────────────────────────────────────────────────────
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
-  const [quizRevealed, setQuizRevealed] = useState(false);
-  const [scenarioChoiceId, setScenarioChoiceId] = useState<string | null>(null);
+  // Quiz adaptativo (LD-002): estado vive no AdaptiveQuizCard (SESSION_ONLY);
+  // aqui só a síntese pedagógica, para o progresso da trilha.
+  const [quizSummary, setQuizSummary] = useState<AdaptiveSessionSummary | null>(null);
+  // Cenários (LD-008): o estado vive no ScenarioSimulator (SESSION_ONLY); aqui
+  // só a contagem de cenários explorados, para o marco de progresso da trilha.
+  const [scenariosExplored, setScenariosExplored] = useState(0);
 
   // ─── Aplicar / Registrar (ActionLog + rodadas) ──────────────────────────────
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -282,16 +292,31 @@ function VozSeguraTrail({
   ];
 
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
-  const quizGrade = gradeQuiz(VOZ_SEGURA_QUIZ, quizAnswers);
-  const scenarioResult = scenarioChoiceId
-    ? resolveScenarioChoice(VOZ_SEGURA_SCENARIO, scenarioChoiceId)
-    : null;
   const indicators = computeEvolveIndicators(checkins);
   const cycleSuggestion = suggestCycleDecision(indicators);
 
+  // Síntese técnica (LD-006): as fontes reproduzem o safe_claim CONGELADO de
+  // cada estudo-âncora (desenho + limite juntos) — nunca reescrito, nunca mais
+  // forte. Composição e disclaimers vivem no engine.
+  const synthesisInput: TrailSynthesisInput = {
+    trailTitle: `Trilha ${VOZ_SEGURA_TRAIL.title}`,
+    mechanismLabel: "Redução do medo interpessoal",
+    mechanismStatement:
+      "Ambientes em que perguntar, discordar e admitir erro recebem resposta não punitiva favorecem comportamentos de aprendizagem — e os problemas aparecem cedo, enquanto ainda são baratos de corrigir.",
+    sources: [primary, ...complementary].map((s) => ({
+      citation: s.canonical_citation,
+      note: s.safe_claim,
+    })),
+    practiced: [
+      "Quiz adaptativo por dificuldade pedagógica (fundamento → aplicação → transferência)",
+      "Simulador de decisões governado, com consequências prováveis e debriefing",
+      "Microlearning espaçado privado, com active recall no seu ritmo",
+    ],
+  };
+
   const progress = computeTrailProgress([
-    { id: "quiz", done: quizRevealed && quizGrade.allAnswered },
-    { id: "cenario", done: scenarioResult !== null },
+    { id: "quiz", done: quizSummary?.complete ?? false },
+    { id: "cenario", done: scenariosExplored > 0 },
     { id: "missao", done: missionStatus !== "planejada" },
     { id: "rodada", done: indicators.roundsHeld > 0 },
     { id: "decisao", done: decision !== null },
@@ -530,127 +555,56 @@ function VozSeguraTrail({
               </details>
             </div>
           )}
-        </Section>
 
-        {/* ─── 3 · Praticar: quiz ─── */}
-        <Section step="3" title="Quiz de recuperação" lead="Errar aqui ensina — a explicação aparece sempre.">
-          <div className="space-y-4">
-            {VOZ_SEGURA_QUIZ.map((item, index) => {
-              const answer = quizAnswers[item.id];
-              const showFeedback = quizRevealed && answer;
-              const correct = answer === item.correctOptionId;
-              return (
-                <div key={item.id} className="rounded-2xl border border-border/70 bg-card p-4">
-                  <p className="text-sm font-medium text-card-foreground">
-                    {index + 1}. {item.question}
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2">
-                    {item.options.map((option) => {
-                      const selected = answer === option.id;
-                      const isCorrectOption = quizRevealed && option.id === item.correctOptionId;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            setQuizAnswers((prev) => ({ ...prev, [item.id]: option.id }));
-                            setQuizRevealed(false);
-                          }}
-                          aria-pressed={selected}
-                          className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                            isCorrectOption
-                              ? "border-primary/50 bg-primary/10 text-foreground"
-                              : selected
-                                ? "border-primary/40 bg-primary/5 text-foreground"
-                                : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {showFeedback && (
-                    <div
-                      className={`mt-3 rounded-r-lg border-l-4 px-3 py-2 ${
-                        correct
-                          ? "border-primary bg-primary/5"
-                          : "border-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
-                      }`}
-                      role="note"
-                    >
-                      <p className="text-xs leading-relaxed text-card-foreground">
-                        <span className="font-semibold">{correct ? "Isso. " : "Ainda não. "}</span>
-                        {item.explanation}
-                      </p>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Fonte:{" "}
-                        {resolveStudy(REGISTRY, item.sourceStudyId)?.canonical_citation ??
-                          item.sourceStudyId}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQuizRevealed(true)}
-                disabled={quizGrade.answeredCount === 0}
-                className="min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-40"
-              >
-                Ver explicações
-              </button>
-              {quizRevealed && (
-                <span className="text-sm text-muted-foreground" aria-live="polite">
-                  {quizGrade.correctCount} de {quizGrade.total} — e as explicações valem mais que o
-                  placar.
-                </span>
-              )}
+          {/* Evoluir · microlearning espaçado privado (LD-013) */}
+          <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <Layers className="h-3.5 w-3.5 text-primary" aria-hidden />
+                Revisão espaçada privada · fixe o essencial ao longo dos dias
+              </p>
+              <StatusBadge status={dynamicStatus("LD-013")} title="Derivado do registro canônico LD-013 — motor SM-2 real, persistência privada opt-in neste aparelho" />
+            </div>
+            <div className="mt-3">
+              <SpacedMicrolearningCard
+                units={VOZ_SEGURA_MICRO_UNITS}
+                planVersion={VOZ_SEGURA_MICRO_PLAN_VERSION}
+                resolveSourceLabel={(studyId) =>
+                  resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+                }
+              />
             </div>
           </div>
         </Section>
 
-        {/* ─── 4 · Praticar: cenário ramificado ─── */}
-        <Section step="4" title={VOZ_SEGURA_SCENARIO.title} lead="Nenhuma escolha é ridícula — a errada é a tentadora do dia a dia.">
-          <p className="text-sm leading-relaxed text-muted-foreground">{VOZ_SEGURA_SCENARIO.setup}</p>
-          <div className="mt-4 flex flex-col gap-2">
-            {VOZ_SEGURA_SCENARIO.choices.map((choice) => (
-              <button
-                key={choice.id}
-                type="button"
-                onClick={() => setScenarioChoiceId(choice.id)}
-                aria-pressed={scenarioChoiceId === choice.id}
-                className={`min-h-11 rounded-xl border px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                  scenarioChoiceId === choice.id
-                    ? "border-primary/40 bg-primary/5 text-foreground"
-                    : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {choice.label}
-              </button>
-            ))}
-          </div>
-          {scenarioResult && (
-            <div className="mt-4 space-y-2 rounded-2xl border border-border/70 bg-card p-4" aria-live="polite">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                {scenarioResult.isBest
-                  ? "Escolha mais alinhada ao mecanismo"
-                  : "Escolha tentadora — veja o custo provável"}
-              </p>
-              <FeedbackLine label="Consequência provável" value={scenarioResult.choice.likelyConsequence} />
-              <FeedbackLine label="Mecanismo" value={scenarioResult.choice.mechanismNote} />
-              <FeedbackLine label="Erro comum" value={scenarioResult.choice.commonMistake} />
-              {scenarioResult.choice.betterAlternative && (
-                <FeedbackLine label="Alternativa melhor" value={scenarioResult.choice.betterAlternative} />
-              )}
-              <p className="pt-1 text-[11px] text-muted-foreground">
-                Fonte:{" "}
-                {resolveStudy(REGISTRY, scenarioResult.choice.sourceStudyId)?.canonical_citation}
-              </p>
-            </div>
-          )}
+        {/* ─── 3 · Praticar: quiz adaptativo (LD-002) ─── */}
+        <Section
+          step="3"
+          title="Quiz de recuperação"
+          lead="Errar aqui ensina — a explicação aparece sempre, e a dificuldade se ajusta ao seu momento."
+        >
+          <AdaptiveQuizCard
+            bank={VOZ_SEGURA_QUIZ_BANK}
+            resolveSourceLabel={(studyId) =>
+              resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+            }
+            onSummaryChange={setQuizSummary}
+          />
+        </Section>
+
+        {/* ─── 4 · Praticar: simulador de cenários (LD-008) ─── */}
+        <Section
+          step="4"
+          title="Simulador de decisões"
+          lead="Nenhuma escolha é ridícula — a errada é a tentadora do dia a dia. Explore mais de um cenário."
+        >
+          <ScenarioSimulator
+            scenarios={VOZ_SEGURA_SCENARIOS}
+            resolveSourceLabel={(studyId) =>
+              resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+            }
+            onExploredChange={setScenariosExplored}
+          />
 
           {vozSeguraFlashcards.length > 0 && (
             <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
@@ -980,6 +934,15 @@ function VozSeguraTrail({
               onInteraction={handleFlorenciaInteraction}
             />
           </div>
+        </Section>
+
+        {/* ─── 9 · Levar consigo: carta-poema (LD-007) + síntese técnica (LD-006) ─── */}
+        <Section
+          step="9"
+          title="Levar consigo"
+          lead="Uma carta para lembrar da jornada e uma síntese técnica para apoiar o programa."
+        >
+          <TrailConclusionCard letterBlocks={VOZ_SEGURA_LETTER} synthesisInput={synthesisInput} />
         </Section>
 
         <ComplementaryResources resources={complementaryResources} />

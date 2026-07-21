@@ -16,9 +16,10 @@ import registryJson from "@/domain/evidence/evidence-registry.json";
 import claimRegistryJson from "@/domain/evidence/claim-registry.json";
 import {
   VOZ_SEGURA_ESG_TRACE,
+  VOZ_SEGURA_MICRO_UNITS,
   VOZ_SEGURA_PROJECT_30D,
   VOZ_SEGURA_QUIZ,
-  VOZ_SEGURA_SCENARIO,
+  VOZ_SEGURA_SCENARIOS,
   VOZ_SEGURA_TRAIL,
 } from "./voz-segura-mock";
 
@@ -30,7 +31,8 @@ function allReferencedStudyIds(): string[] {
     VOZ_SEGURA_TRAIL.budget.primaryStudyId,
     ...VOZ_SEGURA_TRAIL.budget.complementaryStudyIds,
     ...VOZ_SEGURA_QUIZ.map((item) => item.sourceStudyId),
-    ...VOZ_SEGURA_SCENARIO.choices.map((choice) => choice.sourceStudyId),
+    ...VOZ_SEGURA_SCENARIOS.flatMap((s) => s.choices.map((choice) => choice.sourceStudyId)),
+    ...VOZ_SEGURA_MICRO_UNITS.map((u) => u.sourceStudyId),
     ...VOZ_SEGURA_PROJECT_30D.studyIds,
     ...VOZ_SEGURA_ESG_TRACE.study_ids,
   ];
@@ -122,12 +124,36 @@ describe("voz-segura × evidence registry", () => {
     }
   });
 
-  test("cenário: bestChoiceId existe e toda escolha tem consequência PROVÁVEL (nunca garantida)", () => {
-    expect(
-      VOZ_SEGURA_SCENARIO.choices.some((c) => c.id === VOZ_SEGURA_SCENARIO.bestChoiceId),
-    ).toBe(true);
-    for (const choice of VOZ_SEGURA_SCENARIO.choices) {
-      expect(choice.likelyConsequence).not.toMatch(/garantid|sempre acontece|com certeza/i);
+  test("todo cenário: bestChoiceId existe e toda escolha tem consequência PROVÁVEL (nunca garantida)", () => {
+    for (const scenario of VOZ_SEGURA_SCENARIOS) {
+      expect(scenario.choices.some((c) => c.id === scenario.bestChoiceId)).toBe(true);
+      for (const choice of scenario.choices) {
+        expect(choice.likelyConsequence).not.toMatch(/garantid|sempre acontece|com certeza/i);
+      }
+    }
+  });
+
+  test("todo cenário: ids de escolha únicos, e todo campo pedagógico está preenchido", () => {
+    for (const scenario of VOZ_SEGURA_SCENARIOS) {
+      const ids = scenario.choices.map((c) => c.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      for (const choice of scenario.choices) {
+        expect(choice.label.trim().length).toBeGreaterThan(0);
+        expect(choice.likelyConsequence.trim().length).toBeGreaterThan(20);
+        expect(choice.mechanismNote.trim().length).toBeGreaterThan(20);
+        expect(choice.commonMistake.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("microlearning: toda unidade tem recall completo, ids únicos e fonte autorizada", () => {
+    const ids = VOZ_SEGURA_MICRO_UNITS.map((u) => u.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const unit of VOZ_SEGURA_MICRO_UNITS) {
+      expect(unit.prompt.trim().length).toBeGreaterThan(20);
+      expect(unit.recallQuestion.trim().length).toBeGreaterThan(10);
+      expect(unit.recallAnswer.trim().length).toBeGreaterThan(20);
+      expect(["TRU-006", "LDR-007"]).toContain(unit.sourceStudyId);
     }
   });
 
@@ -153,7 +179,10 @@ describe("voz-segura × evidence registry", () => {
     // pode citar a proibição pedagogicamente no quiz, mas nunca AFIRMÁ-LA.
     const contentText = [
       ...VOZ_SEGURA_QUIZ.map((i) => i.explanation),
-      ...VOZ_SEGURA_SCENARIO.choices.map((c) => `${c.likelyConsequence} ${c.mechanismNote}`),
+      ...VOZ_SEGURA_SCENARIOS.flatMap((s) =>
+        s.choices.map((c) => `${c.likelyConsequence} ${c.mechanismNote}`),
+      ),
+      ...VOZ_SEGURA_MICRO_UNITS.map((u) => `${u.prompt} ${u.recallAnswer}`),
       VOZ_SEGURA_PROJECT_30D.hypothesis,
       VOZ_SEGURA_PROJECT_30D.justification,
     ].join(" ");
