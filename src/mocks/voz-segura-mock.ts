@@ -12,6 +12,7 @@
 import type { BranchingScenario } from "@/engine/learning/trail-engine";
 import type { AdaptiveQuizBank, AdaptiveQuizItem } from "@/engine/learning/adaptive-quiz-engine";
 import type { MicroUnit } from "@/engine/learning/spaced-microlearning-engine";
+import type { FarewellLetterBlocks } from "@/engine/learning/farewell-letter-engine";
 
 export const VOZ_SEGURA_TRAIL = {
   id: "trilha-voz-segura",
@@ -104,6 +105,29 @@ export const VOZ_SEGURA_MICRO_UNITS: readonly MicroUnit[] = [
     sourceStudyId: "LDR-007",
   },
 ];
+
+// ─── Evoluir · carta-poema pedagógica (LD-007) ───────────────────────────────
+//
+// Blocos AUTORAIS revisados. Expressão artístico-educacional — NÃO evidência,
+// sem citar estudo, sem claim científico. Composição determinística no engine
+// (sem IA, sem inferência); PDF gerado no cliente; nada persiste.
+
+export const VOZ_SEGURA_LETTER: FarewellLetterBlocks = {
+  title: "Carta a quem escolhe ouvir",
+  greetingWithName: "Para {nome}, que conduz um time —",
+  greetingNeutral: "Para você, que conduz um time —",
+  stanzas: [
+    "Houve um tempo em que o erro chegava tarde,\nvestido de sexta-feira e de susto.\nNão porque ninguém soubesse —\nmas porque avisar custava caro demais.",
+    "Você foi trocando a primeira pergunta:\nde “de quem é a culpa?”\npara “obrigado por trazer isso agora —\no que a gente contém primeiro?”.",
+    "Segurança nunca foi afrouxar a exigência.\nÉ trocar o julgamento da pessoa\npelo cuidado com o processo:\ncobrar e acolher cabem na mesma mesa.",
+    "Quando o medo diminui,\nnão é o rigor que vai embora —\né o silêncio.\nE o que estava escondido aparece enquanto ainda é barato.",
+  ],
+  closingLine:
+    "Que a sua próxima reunião tenha uma voz a mais do que teria ontem.\nÉ assim, devagar, que um time aprende a falar.",
+  signature: "— Trilha Voz Segura",
+  disclaimer:
+    "Esta carta é uma expressão artístico-educacional inspirada na sua jornada — não é avaliação, diagnóstico nem evidência científica. Foi composta de forma determinística, sem IA e sem qualquer inferência sobre você; nada aqui é gravado ou enviado a quem quer que seja.",
+};
 
 // ─── Praticar · quiz de recuperação (adaptativo por dificuldade pedagógica) ──
 //

@@ -37,6 +37,8 @@ import type { AdaptiveSessionSummary } from "@/engine/learning/adaptive-quiz-eng
 import { AdaptiveQuizCard } from "@/features/learning/components/AdaptiveQuizCard";
 import { ScenarioSimulator } from "@/features/learning/components/ScenarioSimulator";
 import { SpacedMicrolearningCard } from "@/features/learning/components/SpacedMicrolearningCard";
+import { TrailConclusionCard } from "@/features/learning/components/TrailConclusionCard";
+import type { TrailSynthesisInput } from "@/engine/learning/trail-synthesis-engine";
 import {
   foldActionStatus,
   recordActionEvent,
@@ -46,6 +48,7 @@ import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries"
 import {
   VOZ_SEGURA_CHECKLIST,
   VOZ_SEGURA_ESG_TRACE,
+  VOZ_SEGURA_LETTER,
   VOZ_SEGURA_MICROLEARNING,
   VOZ_SEGURA_MICRO_PLAN_VERSION,
   VOZ_SEGURA_MICRO_UNITS,
@@ -291,6 +294,25 @@ function VozSeguraTrail({
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
   const indicators = computeEvolveIndicators(checkins);
   const cycleSuggestion = suggestCycleDecision(indicators);
+
+  // Síntese técnica (LD-006): as fontes reproduzem o safe_claim CONGELADO de
+  // cada estudo-âncora (desenho + limite juntos) — nunca reescrito, nunca mais
+  // forte. Composição e disclaimers vivem no engine.
+  const synthesisInput: TrailSynthesisInput = {
+    trailTitle: `Trilha ${VOZ_SEGURA_TRAIL.title}`,
+    mechanismLabel: "Redução do medo interpessoal",
+    mechanismStatement:
+      "Ambientes em que perguntar, discordar e admitir erro recebem resposta não punitiva favorecem comportamentos de aprendizagem — e os problemas aparecem cedo, enquanto ainda são baratos de corrigir.",
+    sources: [primary, ...complementary].map((s) => ({
+      citation: s.canonical_citation,
+      note: s.safe_claim,
+    })),
+    practiced: [
+      "Quiz adaptativo por dificuldade pedagógica (fundamento → aplicação → transferência)",
+      "Simulador de decisões governado, com consequências prováveis e debriefing",
+      "Microlearning espaçado privado, com active recall no seu ritmo",
+    ],
+  };
 
   const progress = computeTrailProgress([
     { id: "quiz", done: quizSummary?.complete ?? false },
@@ -912,6 +934,15 @@ function VozSeguraTrail({
               onInteraction={handleFlorenciaInteraction}
             />
           </div>
+        </Section>
+
+        {/* ─── 9 · Levar consigo: carta-poema (LD-007) + síntese técnica (LD-006) ─── */}
+        <Section
+          step="9"
+          title="Levar consigo"
+          lead="Uma carta para lembrar da jornada e uma síntese técnica para apoiar o programa."
+        >
+          <TrailConclusionCard letterBlocks={VOZ_SEGURA_LETTER} synthesisInput={synthesisInput} />
         </Section>
 
         <ComplementaryResources resources={complementaryResources} />
