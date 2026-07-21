@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { PROTOCOLS, EXPERIMENTS } from "@/mocks/lab-mock";
 import type { ProtocolDef, Experiment } from "@/engine/lab/lab-types";
+import { resolveStudy } from "@/engine/evidence/passport-engine";
+import { EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
+import { AUTONOMIA_OU_DIRECAO_DILEMMA } from "@/mocks/socratic-arena-mock";
+import { SocraticArenaCard } from "@/features/learning/components/SocraticArenaCard";
+import { StatusBadge } from "@/components/StatusBadge";
+import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
+import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
 
 export const Route = createFileRoute("/lab")({
   head: () => ({
@@ -33,8 +40,46 @@ function LabPage() {
 
         <ExperimentsSection experiments={EXPERIMENTS} />
         <ProtocolLibrary protocols={PROTOCOLS} />
+        <SocraticArenaSection />
       </div>
     </AppShell>
+  );
+}
+
+// ─── Arena de Debate Socrático (LD-010, LDX-4 pull-forward) ──────────────────
+
+function SocraticArenaSection() {
+  const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
+  const ld010 = learningCatalog.find((d) => d.id === "LD-010");
+  const status = ld010 ? deriveProductStatus(ld010) : "DEMO";
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.15 }}
+      className="space-y-3"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="font-serif text-xl text-foreground">Arena de Debate Socrático</h2>
+          <p className="text-xs text-muted-foreground">
+            Argumente os dois lados de um dilema de gestão — sem IA generativa, sem ranking, sem
+            vencedor.
+          </p>
+        </div>
+        <StatusBadge
+          status={status}
+          title="Derivado do registro canônico LD-010 — motor real e conteúdo governado, badge honesto pendente de atualização do registro"
+        />
+      </div>
+      <SocraticArenaCard
+        dilemma={AUTONOMIA_OU_DIRECAO_DILEMMA}
+        resolveSourceLabel={(studyId) =>
+          resolveStudy(EVIDENCE_REGISTRY, studyId)?.canonical_citation ?? studyId
+        }
+      />
+    </motion.section>
   );
 }
 
