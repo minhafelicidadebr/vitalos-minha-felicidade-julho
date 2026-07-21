@@ -29,12 +29,13 @@ import {
 import {
   computeEvolveIndicators,
   computeTrailProgress,
-  gradeQuiz,
   resolveScenarioChoice,
   suggestCycleDecision,
   type CycleDecision,
   type MissionCheckin,
 } from "@/engine/learning/trail-engine";
+import type { AdaptiveSessionSummary } from "@/engine/learning/adaptive-quiz-engine";
+import { AdaptiveQuizCard } from "@/features/learning/components/AdaptiveQuizCard";
 import {
   foldActionStatus,
   recordActionEvent,
@@ -47,7 +48,7 @@ import {
   VOZ_SEGURA_MICROLEARNING,
   VOZ_SEGURA_MISSION,
   VOZ_SEGURA_PROJECT_30D,
-  VOZ_SEGURA_QUIZ,
+  VOZ_SEGURA_QUIZ_BANK,
   VOZ_SEGURA_SCENARIO,
   VOZ_SEGURA_TRAIL,
 } from "@/mocks/voz-segura-mock";
@@ -135,8 +136,9 @@ function VozSeguraTrail({
   complementary: NonNullable<ReturnType<typeof resolveStudy>>[];
 }) {
   // ─── Praticar ───────────────────────────────────────────────────────────────
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
-  const [quizRevealed, setQuizRevealed] = useState(false);
+  // Quiz adaptativo (LD-002): estado vive no AdaptiveQuizCard (SESSION_ONLY);
+  // aqui só a síntese pedagógica, para o progresso da trilha.
+  const [quizSummary, setQuizSummary] = useState<AdaptiveSessionSummary | null>(null);
   const [scenarioChoiceId, setScenarioChoiceId] = useState<string | null>(null);
 
   // ─── Aplicar / Registrar (ActionLog + rodadas) ──────────────────────────────
@@ -282,7 +284,6 @@ function VozSeguraTrail({
   ];
 
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
-  const quizGrade = gradeQuiz(VOZ_SEGURA_QUIZ, quizAnswers);
   const scenarioResult = scenarioChoiceId
     ? resolveScenarioChoice(VOZ_SEGURA_SCENARIO, scenarioChoiceId)
     : null;
@@ -290,7 +291,7 @@ function VozSeguraTrail({
   const cycleSuggestion = suggestCycleDecision(indicators);
 
   const progress = computeTrailProgress([
-    { id: "quiz", done: quizRevealed && quizGrade.allAnswered },
+    { id: "quiz", done: quizSummary?.complete ?? false },
     { id: "cenario", done: scenarioResult !== null },
     { id: "missao", done: missionStatus !== "planejada" },
     { id: "rodada", done: indicators.roundsHeld > 0 },
@@ -532,84 +533,19 @@ function VozSeguraTrail({
           )}
         </Section>
 
-        {/* ─── 3 · Praticar: quiz ─── */}
-        <Section step="3" title="Quiz de recuperação" lead="Errar aqui ensina — a explicação aparece sempre.">
-          <div className="space-y-4">
-            {VOZ_SEGURA_QUIZ.map((item, index) => {
-              const answer = quizAnswers[item.id];
-              const showFeedback = quizRevealed && answer;
-              const correct = answer === item.correctOptionId;
-              return (
-                <div key={item.id} className="rounded-2xl border border-border/70 bg-card p-4">
-                  <p className="text-sm font-medium text-card-foreground">
-                    {index + 1}. {item.question}
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2">
-                    {item.options.map((option) => {
-                      const selected = answer === option.id;
-                      const isCorrectOption = quizRevealed && option.id === item.correctOptionId;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            setQuizAnswers((prev) => ({ ...prev, [item.id]: option.id }));
-                            setQuizRevealed(false);
-                          }}
-                          aria-pressed={selected}
-                          className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                            isCorrectOption
-                              ? "border-primary/50 bg-primary/10 text-foreground"
-                              : selected
-                                ? "border-primary/40 bg-primary/5 text-foreground"
-                                : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {showFeedback && (
-                    <div
-                      className={`mt-3 rounded-r-lg border-l-4 px-3 py-2 ${
-                        correct
-                          ? "border-primary bg-primary/5"
-                          : "border-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
-                      }`}
-                      role="note"
-                    >
-                      <p className="text-xs leading-relaxed text-card-foreground">
-                        <span className="font-semibold">{correct ? "Isso. " : "Ainda não. "}</span>
-                        {item.explanation}
-                      </p>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Fonte:{" "}
-                        {resolveStudy(REGISTRY, item.sourceStudyId)?.canonical_citation ??
-                          item.sourceStudyId}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQuizRevealed(true)}
-                disabled={quizGrade.answeredCount === 0}
-                className="min-h-11 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-40"
-              >
-                Ver explicações
-              </button>
-              {quizRevealed && (
-                <span className="text-sm text-muted-foreground" aria-live="polite">
-                  {quizGrade.correctCount} de {quizGrade.total} — e as explicações valem mais que o
-                  placar.
-                </span>
-              )}
-            </div>
-          </div>
+        {/* ─── 3 · Praticar: quiz adaptativo (LD-002) ─── */}
+        <Section
+          step="3"
+          title="Quiz de recuperação"
+          lead="Errar aqui ensina — a explicação aparece sempre, e a dificuldade se ajusta ao seu momento."
+        >
+          <AdaptiveQuizCard
+            bank={VOZ_SEGURA_QUIZ_BANK}
+            resolveSourceLabel={(studyId) =>
+              resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+            }
+            onSummaryChange={setQuizSummary}
+          />
         </Section>
 
         {/* ─── 4 · Praticar: cenário ramificado ─── */}

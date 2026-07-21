@@ -9,7 +9,8 @@
 // Orçamento de evidência respeitado (learning-patterns.json):
 // 1 mecanismo + 1 estudo principal + 1 complementar + limites + aplicação.
 
-import type { BranchingScenario, QuizItem } from "@/engine/learning/trail-engine";
+import type { BranchingScenario } from "@/engine/learning/trail-engine";
+import type { AdaptiveQuizBank, AdaptiveQuizItem } from "@/engine/learning/adaptive-quiz-engine";
 
 export const VOZ_SEGURA_TRAIL = {
   id: "trilha-voz-segura",
@@ -51,11 +52,16 @@ export const VOZ_SEGURA_MICROLEARNING = {
   ],
 } as const;
 
-// ─── Praticar · quiz de recuperação ──────────────────────────────────────────
+// ─── Praticar · quiz de recuperação (adaptativo por dificuldade pedagógica) ──
+//
+// LD-002: dificuldade é PEDAGÓGICA (fundamento → aplicação → transferência),
+// derivada da natureza cognitiva de cada pergunta — nunca perfil psicológico.
+// Mesmos 4 itens e mesmas fontes de sempre (orçamento de evidência intacto).
 
-export const VOZ_SEGURA_QUIZ: QuizItem[] = [
+export const VOZ_SEGURA_QUIZ: AdaptiveQuizItem[] = [
   {
     id: "vs-q1",
+    difficulty: "fundamento",
     question:
       "Um time com alta segurança psicológica se caracteriza, segundo a evidência fundacional, por…",
     options: [
@@ -70,6 +76,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q2",
+    difficulty: "aplicacao",
     question: "Segurança psicológica significa que ninguém é cobrado por resultados?",
     options: [
       { id: "a", label: "Sim — cobrança gera medo" },
@@ -82,6 +89,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q3",
+    difficulty: "transferencia",
     question: "O que a evidência fundacional (1999) PERMITE afirmar?",
     options: [
       { id: "a", label: "Segurança psicológica causa desempenho superior garantido" },
@@ -95,6 +103,7 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
   },
   {
     id: "vs-q4",
+    difficulty: "aplicacao",
     question: "Sobre o papel do líder, o que a evidência de treinamento de supervisores sugere?",
     options: [
       { id: "a", label: "Treinar o líder resolve o bem-estar da equipe" },
@@ -106,6 +115,14 @@ export const VOZ_SEGURA_QUIZ: QuizItem[] = [
     sourceStudyId: "LDR-007",
   },
 ];
+
+/** Banco versionado consumido pelo motor adaptativo (LD-002). Bump de versão
+ * sempre que itens mudarem — a versão viaja no estado da sessão. */
+export const VOZ_SEGURA_QUIZ_BANK: AdaptiveQuizBank = {
+  id: "voz-segura-quiz",
+  version: "1.0.0",
+  items: VOZ_SEGURA_QUIZ,
+};
 
 // ─── Praticar · cenário ramificado ───────────────────────────────────────────
 
