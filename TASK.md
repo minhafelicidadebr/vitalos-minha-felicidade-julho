@@ -59,14 +59,31 @@ reusado do driver `confianca`, rails cross-link para `/revisar` e
 Branch `feat/ldx-1-learning-dynamics-registry`, 4 commits (Fatia A-D),
 sem push/PR até autorização do founder.
 
-## Próxima tarefa candidata — LDX-2 (não iniciada)
+## Tarefa concluída — Onda LDX-2 (Adaptive Learning), 5 fatias
 
-Conforme `docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md`
-§10: quiz adaptativo por dificuldade pedagógica, mais cenários
-determinísticos no simulador, microlearning espaçado privado
-(persistência real), Carta-poema determinística + PDF local, síntese
-técnica em PDF com disclaimers corretos. Aguardar autorização e
-super-prompt específico antes de iniciar.
+Conforme `docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md` §10.
+Branch `feat/ldx-2-adaptive-learning`, 5 commits, sem PR até autorização.
+
+- **Fatia A** — `adaptive-quiz-engine.ts` (LD-002): 3 níveis pedagógicos
+  (fundamento→aplicação→transferência), banco versionado, undo reversível,
+  síntese SEM score-para-empregador (travado por teste).
+- **Fatia B** — `AdaptiveQuizCard` ao vivo em `/voz-segura` (seção 3);
+  marco "quiz" deriva de `summary.complete`.
+- **Fatia C** — biblioteca `VOZ_SEGURA_SCENARIOS` (LD-008): +2 cenários
+  (silêncio, feedback), só TRU-006/LDR-007, consequências sempre prováveis;
+  `ScenarioSimulator` navegável; consistency test varre a lista inteira.
+- **Fatia D** — microlearning espaçado privado (LD-013): `spaced-
+  microlearning-engine` (compõe SM-2, datas YYYY-MM-DD, cadência = piso,
+  SEM streak) + `spaced-microlearning-store` (persistência PRIVADA opt-in,
+  "parar e apagar") + `SpacedMicrolearningCard` + 4 micro-unidades.
+- **Fatia E** — carta-poema (LD-007) + síntese técnica (LD-006) em PDF
+  local: `farewell-letter-engine` (determinístico, sem IA, nome opcional
+  não-persistido) + `trail-synthesis-engine` (disclaimers sempre anexos,
+  corpo sem claim proibida) + 2 renderizadores PremiumPdf + `Trail
+  ConclusionCard` (seção 9 "Levar consigo").
+
+Gate no fim: 2467 testes / 226 arquivos, 0 falhas; paridade OK; tsc limpo.
+Tudo verificado ao vivo no preview (localhost:8081).
 
 ## Restrições permanentes (todas as tarefas)
 
