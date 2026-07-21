@@ -171,6 +171,107 @@ export const VOZ_SEGURA_SCENARIO: BranchingScenario = {
   ],
 };
 
+export const VOZ_SEGURA_SCENARIO_SILENCIO: BranchingScenario = {
+  id: "vs-cenario-silencio",
+  title: "O silêncio que passou por concordância",
+  setup:
+    "Reunião de planejamento. Você apresenta o plano do trimestre e vê acenos de cabeça na mesa. Mas a pessoa que quase sempre levanta objeções ficou calada, de braços cruzados. A reunião está acabando. O que você faz?",
+  bestChoiceId: "vs-s3",
+  choices: [
+    {
+      id: "vs-s1",
+      label: "“Todo mundo de acordo? Então está fechado.”",
+      likelyConsequence:
+        "O plano avança rápido hoje — mas o risco que aquela pessoa enxergou tende a reaparecer depois, quando já for caro consertar.",
+      mechanismNote:
+        "Silêncio não é concordância: onde a voz é baixa, os problemas ficam invisíveis até tarde. Ler acenos como alinhamento fecha a porta cedo demais.",
+      commonMistake: "Tratar ausência de objeção como se fosse adesão real.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Convidar a objeção mais forte ao grupo antes de fechar — sem apontar ninguém.",
+    },
+    {
+      id: "vs-s2",
+      label: "“Fulano, você está quieto — não concorda?”",
+      likelyConsequence:
+        "Talvez arranque uma resposta agora, mas expor uma pessoa na frente do time tende a elevar o custo de discordar para todos os outros.",
+      mechanismNote:
+        "Forçar exposição individual aumenta o medo interpessoal — o oposto do que sustenta comportamentos de aprendizagem numa equipe.",
+      commonMistake: "Confundir pressão pública com abertura ao contraditório.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Abrir a objeção para o grupo inteiro, tornando discordar uma norma, não um holofote.",
+    },
+    {
+      id: "vs-s3",
+      label: "“Antes de fechar: qual é a objeção mais forte contra esse plano?”",
+      likelyConsequence:
+        "O problema escondido tende a aparecer enquanto ainda é barato — e o time vê que discordar cedo é bem-vindo, não arriscado.",
+      mechanismNote:
+        "Normalizar a objeção para o grupo reduz o medo interpessoal sem expor ninguém: é o comportamento de liderança que a evidência associa a mais aprendizagem de equipe.",
+      commonMistake:
+        "Perguntar pela objeção e depois punir a primeira que aparecer destrói o efeito — a coerência vale mais que a pergunta.",
+      sourceStudyId: "TRU-006",
+    },
+  ],
+};
+
+export const VOZ_SEGURA_SCENARIO_FEEDBACK: BranchingScenario = {
+  id: "vs-cenario-feedback",
+  title: "Depois que pedi feedback",
+  setup:
+    "No mês passado você pediu feedback honesto sobre a sua liderança. Uma pessoa trouxe um ponto franco, desconfortável — e verdadeiro. Esta semana você decide o que fazer com isso. O time está reparando se pedir feedback foi pra valer.",
+  bestChoiceId: "vs-f3",
+  choices: [
+    {
+      id: "vs-f1",
+      label: "“Agradeço demais, anotado.” — e nada muda.",
+      likelyConsequence:
+        "O incômodo passa hoje, mas pedir feedback sem agir tende a ensinar o time que, da próxima, não vale a pena falar.",
+      mechanismNote:
+        "O comportamento do líder é alavanca, e o efeito depende de adesão: pedir é barato, agir é o sinal que de fato muda o ambiente.",
+      commonMistake: "Tratar “ouvir” como se já fosse “mudar”.",
+      sourceStudyId: "LDR-007",
+      betterAlternative:
+        "Nomear uma mudança concreta e voltar depois com o que mudou.",
+    },
+    {
+      id: "vs-f2",
+      label: "“Deixa eu te explicar por que não é bem assim…”",
+      likelyConsequence:
+        "Talvez você “ganhe” o argumento, mas rebater a franqueza tende a fechar o canal — a próxima pessoa pensa duas vezes antes de falar.",
+      mechanismNote:
+        "Responder à crítica com defesa eleva o medo de falar: é o custo do próximo aviso subindo, exatamente o que reduz a aprendizagem da equipe.",
+      commonMistake: "Transformar feedback recebido em debate a ser vencido.",
+      sourceStudyId: "TRU-006",
+      betterAlternative:
+        "Acolher primeiro, avaliar depois — sem transformar em defesa com plateia.",
+    },
+    {
+      id: "vs-f3",
+      label: "“Obrigado pela franqueza. Vou testar uma mudança e te conto o resultado em duas semanas.”",
+      likelyConsequence:
+        "Fechar o ciclo com uma ação concreta tende a mostrar que falar muda algo — e sinaliza ao time que a franqueza compensa.",
+      mechanismNote:
+        "A mudança visível do líder, sustentada e não só o pedido, é o que a evidência associa a melhores desfechos — condicionada à adesão real ao longo do tempo.",
+      commonMistake:
+        "Prometer a mudança e não voltar com o resultado desfaz o ganho — o ciclo precisa fechar.",
+      sourceStudyId: "LDR-007",
+    },
+  ],
+};
+
+/** Biblioteca de cenários determinísticos governados (LD-008). Todos ancorados
+ * apenas em TRU-006 e LDR-007 (fontes autorizadas do TASK.md); consequências
+ * sempre "prováveis", nunca garantidas; nenhuma opção humilhante; sem pontuar
+ * "bom líder". A consistência (ids + trust gate + linguagem) é verificada por
+ * teste sobre a lista inteira. */
+export const VOZ_SEGURA_SCENARIOS: readonly BranchingScenario[] = [
+  VOZ_SEGURA_SCENARIO,
+  VOZ_SEGURA_SCENARIO_SILENCIO,
+  VOZ_SEGURA_SCENARIO_FEEDBACK,
+];
+
 // ─── Aplicar · checklist de reunião + missão real ────────────────────────────
 
 export const VOZ_SEGURA_CHECKLIST = {

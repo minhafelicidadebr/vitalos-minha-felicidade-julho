@@ -29,13 +29,13 @@ import {
 import {
   computeEvolveIndicators,
   computeTrailProgress,
-  resolveScenarioChoice,
   suggestCycleDecision,
   type CycleDecision,
   type MissionCheckin,
 } from "@/engine/learning/trail-engine";
 import type { AdaptiveSessionSummary } from "@/engine/learning/adaptive-quiz-engine";
 import { AdaptiveQuizCard } from "@/features/learning/components/AdaptiveQuizCard";
+import { ScenarioSimulator } from "@/features/learning/components/ScenarioSimulator";
 import {
   foldActionStatus,
   recordActionEvent,
@@ -49,7 +49,7 @@ import {
   VOZ_SEGURA_MISSION,
   VOZ_SEGURA_PROJECT_30D,
   VOZ_SEGURA_QUIZ_BANK,
-  VOZ_SEGURA_SCENARIO,
+  VOZ_SEGURA_SCENARIOS,
   VOZ_SEGURA_TRAIL,
 } from "@/mocks/voz-segura-mock";
 // ─── LDX-1: Learning Dynamics Registry (governança/descoberta contextual) ──
@@ -139,7 +139,9 @@ function VozSeguraTrail({
   // Quiz adaptativo (LD-002): estado vive no AdaptiveQuizCard (SESSION_ONLY);
   // aqui só a síntese pedagógica, para o progresso da trilha.
   const [quizSummary, setQuizSummary] = useState<AdaptiveSessionSummary | null>(null);
-  const [scenarioChoiceId, setScenarioChoiceId] = useState<string | null>(null);
+  // Cenários (LD-008): o estado vive no ScenarioSimulator (SESSION_ONLY); aqui
+  // só a contagem de cenários explorados, para o marco de progresso da trilha.
+  const [scenariosExplored, setScenariosExplored] = useState(0);
 
   // ─── Aplicar / Registrar (ActionLog + rodadas) ──────────────────────────────
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -284,15 +286,12 @@ function VozSeguraTrail({
   ];
 
   const missionStatus = foldActionStatus(logEvents, VOZ_SEGURA_MISSION.id);
-  const scenarioResult = scenarioChoiceId
-    ? resolveScenarioChoice(VOZ_SEGURA_SCENARIO, scenarioChoiceId)
-    : null;
   const indicators = computeEvolveIndicators(checkins);
   const cycleSuggestion = suggestCycleDecision(indicators);
 
   const progress = computeTrailProgress([
     { id: "quiz", done: quizSummary?.complete ?? false },
-    { id: "cenario", done: scenarioResult !== null },
+    { id: "cenario", done: scenariosExplored > 0 },
     { id: "missao", done: missionStatus !== "planejada" },
     { id: "rodada", done: indicators.roundsHeld > 0 },
     { id: "decisao", done: decision !== null },
@@ -548,45 +547,19 @@ function VozSeguraTrail({
           />
         </Section>
 
-        {/* ─── 4 · Praticar: cenário ramificado ─── */}
-        <Section step="4" title={VOZ_SEGURA_SCENARIO.title} lead="Nenhuma escolha é ridícula — a errada é a tentadora do dia a dia.">
-          <p className="text-sm leading-relaxed text-muted-foreground">{VOZ_SEGURA_SCENARIO.setup}</p>
-          <div className="mt-4 flex flex-col gap-2">
-            {VOZ_SEGURA_SCENARIO.choices.map((choice) => (
-              <button
-                key={choice.id}
-                type="button"
-                onClick={() => setScenarioChoiceId(choice.id)}
-                aria-pressed={scenarioChoiceId === choice.id}
-                className={`min-h-11 rounded-xl border px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                  scenarioChoiceId === choice.id
-                    ? "border-primary/40 bg-primary/5 text-foreground"
-                    : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {choice.label}
-              </button>
-            ))}
-          </div>
-          {scenarioResult && (
-            <div className="mt-4 space-y-2 rounded-2xl border border-border/70 bg-card p-4" aria-live="polite">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                {scenarioResult.isBest
-                  ? "Escolha mais alinhada ao mecanismo"
-                  : "Escolha tentadora — veja o custo provável"}
-              </p>
-              <FeedbackLine label="Consequência provável" value={scenarioResult.choice.likelyConsequence} />
-              <FeedbackLine label="Mecanismo" value={scenarioResult.choice.mechanismNote} />
-              <FeedbackLine label="Erro comum" value={scenarioResult.choice.commonMistake} />
-              {scenarioResult.choice.betterAlternative && (
-                <FeedbackLine label="Alternativa melhor" value={scenarioResult.choice.betterAlternative} />
-              )}
-              <p className="pt-1 text-[11px] text-muted-foreground">
-                Fonte:{" "}
-                {resolveStudy(REGISTRY, scenarioResult.choice.sourceStudyId)?.canonical_citation}
-              </p>
-            </div>
-          )}
+        {/* ─── 4 · Praticar: simulador de cenários (LD-008) ─── */}
+        <Section
+          step="4"
+          title="Simulador de decisões"
+          lead="Nenhuma escolha é ridícula — a errada é a tentadora do dia a dia. Explore mais de um cenário."
+        >
+          <ScenarioSimulator
+            scenarios={VOZ_SEGURA_SCENARIOS}
+            resolveSourceLabel={(studyId) =>
+              resolveStudy(REGISTRY, studyId)?.canonical_citation ?? studyId
+            }
+            onExploredChange={setScenariosExplored}
+          />
 
           {vozSeguraFlashcards.length > 0 && (
             <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
