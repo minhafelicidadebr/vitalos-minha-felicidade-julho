@@ -185,7 +185,7 @@
       "meteAxes": ["medir", "educar"],
       "primaryOutcome": "Ver a ciência por trás de cada recomendação, com a fonte aberta",
       "authorizedRoles": ["COLABORADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "SST_PROFISSIONAL"],
-      "enrichesRoutes": ["/academia", "/voz-segura"],
+      "enrichesRoutes": ["/academia", "/voz-segura", "/metodologia"],
       "runtimeStatus": "PARCIAL",
       "contentStatus": "VERIFIED",
       "persistenceStatus": "NOT_APPLICABLE",
@@ -197,9 +197,12 @@
       "runtimeEvidence": [
         "src/app/evidence/EvidencePassport.tsx",
         "src/engine/evidence/passport-engine.ts",
-        "src/domain/evidence/evidence-registry.json"
+        "src/domain/evidence/evidence-registry.json",
+        "src/engine/evidence/evidence-explorer-engine.ts",
+        "src/app/evidence/EvidenceExplorerCard.tsx",
+        "src/routes/metodologia.tsx"
       ],
-      "documentationEvidence": [],
+      "documentationEvidence": ["docs/learning/PLANO_EVIDENCE_EXPLORER_LD005_2026-07-22.md"],
       "dependencies": [],
       "forbiddenUses": ["inventar DOI ou fonte", "inferir força de evidência além do que o registro autoriza"],
       "accessibilityRequirements": ["busca e filtros por teclado", "contraste nas 3 abas de nível"],
