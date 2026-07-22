@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Shield, Split, Scale, Sigma, Lock, type LucideIcon } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
+import { EvidenceExplorerCard } from "@/app/evidence/EvidenceExplorerCard";
 import {
   CANONICAL_JOURNEY,
   JOURNEY_CAPSTONE,
   JOURNEY_SPINE,
   JOURNEY_RATIONALE,
 } from "@/domain/journey";
+import { EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 import { METE_GLOSSARY } from "@/mocks/season-mock";
 import { METHODOLOGY } from "@/mocks/esg-report-mock";
 import {
@@ -146,7 +148,12 @@ function MetodologiaPage() {
           </div>
         </Section>
 
-        {/* 4 · Compromissos éticos (GUARDRAILS — a doutrina como feature) */}
+        {/* 4 · Corpus de evidência (LD-005, Fatia B — compõe evidence-explorer-engine) */}
+        <Section title={SECTIONS.evidencias.title} lead={SECTIONS.evidencias.lead}>
+          <EvidenceExplorerCard registry={EVIDENCE_REGISTRY} />
+        </Section>
+
+        {/* 5 · Compromissos éticos (GUARDRAILS — a doutrina como feature) */}
         <Section title={SECTIONS.etica.title} lead={SECTIONS.etica.lead}>
           <div className="grid gap-3 sm:grid-cols-2">
             {GUARDRAILS.map((g) => {
