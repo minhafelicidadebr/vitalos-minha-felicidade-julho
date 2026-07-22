@@ -25,6 +25,10 @@ export const SECTIONS = {
     title: "A ciência por instrumento",
     lead: "Cada índice é rastreável à sua base científica. Nada é caixa-preta.",
   },
+  evidencias: {
+    title: "O corpus de evidência, aberto",
+    lead: "Cada mecanismo do VitalOS se apoia num estudo verificado — explore o corpus, filtre por eixo e escolha o nível de leitura. Nenhum estudo aparece aqui sem passar pelo mesmo portão de confiança.",
+  },
   etica: {
     title: "Compromissos inegociáveis",
     lead: "O que nos separa do teatro do bem-estar não é o dado — é o que recusamos fazer com ele.",
