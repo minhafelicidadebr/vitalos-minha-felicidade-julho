@@ -23,12 +23,15 @@ auditoria estão mescladas na main:
   probabilidade×severidade como "transformação VitalOS — critério de
   gestão NR-01", nunca como parte oficial do instrumento.
 
-**Pendente — Onda T5 (trilho de licenciamento da versão validada):
-decisão COMERCIAL do founder, não código.** Requisitos de promoção a
-VALIDADO já estão registrados em `licence.note` do manifesto (licença
-escrita SaaS, itens verbatim com item_hashes 1:1, scoring da norma,
-atribuição renderizada, revisão científica, profissional habilitado
-nomeado, flip de `validation_status` com bump de versão).
+**Onda T5 (trilho de licenciamento) — decidida em 2026-07-22: Opção B**
+(iniciar diligência de licenciamento). Checklist de campo aberto em
+`docs/DILIGENCIA_LICENCIAMENTO_PROTOCOLO_PSICOSSOCIAL_2026-07-22.md` —
+execução EXTERNA do founder (contatos institucionais + jurídico), não
+tarefa de implementação. Nenhum código, instrumento, landing, manifesto
+ou produção foi tocado por esta decisão. Mudança técnica só começa após
+diligência completa + avaliação jurídica + nova decisão formal + plano
+de migração + confirmação de paridade metodológica (ver
+`docs/DECISAO_T5_TRILHO_LICENCIAMENTO_COPSOQ_2026-07-20.md` §6–§8).
 
 ## Tarefa anterior — Onda 5 (Truth Layer), 2 cortes entregues
 
