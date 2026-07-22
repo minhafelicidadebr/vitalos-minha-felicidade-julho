@@ -3,6 +3,18 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
+import { usePersona } from "@/app/identity/persona-store";
+import { canSeeNavItem } from "@/engine/rbac/rbac";
+import { StatusBadge } from "@/components/StatusBadge";
+import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
+import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
+import {
+  getAdverseEffectsWatchlist,
+  getInterventionPatterns,
+  getPlan90dPhases,
+  getRequiredFieldKeys,
+} from "@/domain/evidence/intervention-patterns";
+import { CodesignStudioCard } from "@/features/learning/components/CodesignStudioCard";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import {
   evaluateEvidence,
@@ -141,6 +153,9 @@ function ExperimentosPage() {
           </section>
         )}
 
+        {/* Estúdio de Co-design (LD-009) */}
+        <CodesignStudioSection />
+
         {/* Honestidade */}
         <div
           className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-5 py-4 dark:bg-amber-950/20"
@@ -168,6 +183,92 @@ function ExperimentosPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+// ─── Estúdio de Co-design (LD-009, LDX-4 pull-forward) ───────────────────────
+
+function CodesignStudioSection() {
+  const { pack } = usePack();
+  const roleId = usePersona((s) => s.roleId);
+  const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
+  const ld009 = learningCatalog.find((d) => d.id === "LD-009");
+  const status = ld009 ? deriveProductStatus(ld009) : "DEMO";
+
+  // Papéis que podem ser DONOS de uma intervenção — o dono é escolhido de uma
+  // lista do pack, nunca digitado (elimina nome de pessoa por construção).
+  // Escopo "self" (colaborador) e "platform" ficam fora: não são donos de
+  // intervenção organizacional.
+  const ownerRoleOptions = useMemo(
+    () =>
+      (pack?.roles ?? [])
+        .filter((r) => r.scope === "organization" || r.scope === "team")
+        .map((r) => ({ id: r.id, label: r.label })),
+    [pack],
+  );
+
+  // LD-009 é R3_HIGH e exige revisão humana — quem REVISA precisa ser um papel
+  // que o próprio pack autoriza nesta rota. Não inventamos política: reusamos a
+  // declaração de navegação do pack (mesma fonte que esconde o link no menu).
+  // Sem isso, uma persona não autorizada que chegasse por URL direta poderia se
+  // carimbar como revisora de uma intervenção organizacional.
+  const navItem = useMemo(
+    () => (pack?.navigation ?? []).find((n) => n.id === "experiments"),
+    [pack],
+  );
+  const canReview = navItem
+    ? canSeeNavItem(navItem as Parameters<typeof canSeeNavItem>[0], roleId)
+    : false;
+
+  if (!canReview) {
+    return (
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.1 }}
+        className="space-y-3"
+      >
+        <h2 className="font-serif text-xl text-foreground">Estúdio de Co-design</h2>
+        <div className="rounded-2xl border border-border/70 bg-card p-4" role="note">
+          <p className="text-sm text-muted-foreground">
+            Compor uma intervenção exige um papel autorizado nesta rota — a composição precisa de
+            revisão humana responsável. Troque de persona para RH, CHRO ou liderança para usar o
+            estúdio.
+          </p>
+        </div>
+      </motion.section>
+    );
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.1 }}
+      className="space-y-3"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="font-serif text-xl text-foreground">Estúdio de Co-design</h2>
+          <p className="text-xs text-muted-foreground">
+            Componha uma intervenção a partir de blocos validados — sem IA, com guardrails e
+            revisão humana.
+          </p>
+        </div>
+        <StatusBadge
+          status={status}
+          title="Derivado do registro canônico LD-009 — motor e blocos reais; badge segue o registro"
+        />
+      </div>
+      <CodesignStudioCard
+        patterns={getInterventionPatterns()}
+        requiredFieldKeys={getRequiredFieldKeys()}
+        adverseEffectsWatchlist={getAdverseEffectsWatchlist()}
+        plan90dPhases={getPlan90dPhases()}
+        ownerRoleOptions={ownerRoleOptions}
+        reviewerRole={roleId}
+      />
+    </motion.section>
   );
 }
 

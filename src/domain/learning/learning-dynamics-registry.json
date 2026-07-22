@@ -320,23 +320,36 @@
       "kind": "builder",
       "meteAxes": ["transformar"],
       "primaryOutcome": "Compor uma intervenção validada em vez de partir de uma folha em branco",
-      "authorizedRoles": [],
-      "enrichesRoutes": ["/experimentos", "/plano-acao"],
-      "runtimeStatus": "PLANNED",
-      "contentStatus": "DRAFT",
+      "authorizedRoles": ["RH_ADMIN", "CHRO", "C_LEVEL", "LIDER_EQUIPE", "HOLDING_ADMIN"],
+      "enrichesRoutes": ["/experimentos"],
+      "runtimeStatus": "PARCIAL",
+      "contentStatus": "CURATED",
       "persistenceStatus": "NONE",
       "aiMode": "NONE",
-      "publicExposure": "PREPARATION",
+      "publicExposure": "PILOT",
       "riskTier": "R3_HIGH",
       "dataClasses": [],
       "evidenceRefs": [],
-      "runtimeEvidence": [],
-      "documentationEvidence": ["docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md"],
-      "dependencies": ["Intervention Pattern Registry", "NASCENTES_ATLAS mínimo", "ActionLog governado"],
+      "runtimeEvidence": [
+        "src/engine/learning/codesign-studio-engine.ts",
+        "src/domain/evidence/intervention-patterns.ts",
+        "src/features/learning/components/CodesignStudioCard.tsx",
+        "src/routes/experimentos.tsx"
+      ],
+      "documentationEvidence": [
+        "docs/learning/REGISTRO_CANONICO_DINAMICAS_APRENDIZAGEM_V1.md",
+        "docs/learning/PLANO_ESTUDIO_CODESIGN_LD009_2026-07-21.md"
+      ],
+      "dependencies": ["escrita do export no ActionLog (Fase 2 — hoje o export é entregue ao usuário, nunca gravado)"],
       "forbiddenUses": ["medida individualizante quando a causa é organizacional"],
-      "accessibilityRequirements": [],
+      "accessibilityRequirements": [
+        "navegação por teclado",
+        "grupos de escolha com aria-label próprio (escopo × alvo compartilham rótulos)",
+        "bloqueio do guardrail anunciado como alerta"
+      ],
       "acceptanceCriteria": ["validação de campos", "revisão humana", "export rastreável"],
-      "rolloutWave": "LDX-4"
+      "rolloutWave": "LDX-4",
+      "sequencingNote": "Onda originalmente planejada: LDX-4. Onda real de implementação: sessão de 2026-07-21, ANTES da LDX-3 (LD-004 VideoLab) — SEGUNDA antecipação de LDX-4, depois da LD-010. Decisão do founder, delegada via 'prossiga' sobre as opções recomendadas do plano. Justificativa: fecha o laço diagnóstico→ação com um builder governado, usando dependências que já existiam no repo. rolloutWave preservado como 'LDX-4' — nunca reescrito, para o histórico do registro não ser apagado. ADR: docs/learning/PLANO_ESTUDIO_CODESIGN_LD009_2026-07-21.md §0. Nota de escopo: /plano-acao segue como superfície PLANEJADA (não implementada) — por isso saiu de enrichesRoutes, que descreve onde a dinâmica de fato enriquece hoje."
     },
     {
       "id": "LD-010",
