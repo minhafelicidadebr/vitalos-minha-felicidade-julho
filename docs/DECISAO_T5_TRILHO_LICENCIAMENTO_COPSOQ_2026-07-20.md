@@ -1,9 +1,10 @@
 # DECISÃO — Onda T5 · Trilho de Licenciamento da Versão Validada do COPSOQ
 
-> Data: 2026-07-20 · Status: **AGUARDANDO DECISÃO COMERCIAL DO FOUNDER**
+> Data da decisão: 2026-07-22 · Status: **DECIDIDO — Opção B (diligência iniciada)**
 > Origem: auditoria "COPSOQ II Product Truth & Commercial Readiness Gate"
 > (Ondas T1–T4 de código fechadas — PRs #6, #7, #8, #10).
-> Natureza: decisão de negócio/licenciamento. **Nenhum código muda antes da decisão.**
+> Natureza: decisão de negócio/licenciamento. **Nenhum código muda antes da diligência
+> concluída e de nova decisão formal do founder** (ver §6 e §7).
 
 ---
 
@@ -110,13 +111,59 @@ Enquanto isso não acontece, **nada muda**: os `forbidden_claims` atuais
 ("COPSOQ II validado", "conformidade NR-1 garantida", etc.) continuam
 travados pelo gate.
 
-## 6. Decisão requerida
+## 6. Decisão tomada (2026-07-22)
 
-- [ ] **Opção A** — permanecer demonstrativo (nenhuma ação; revisitar quando
-      o funil sinalizar perda objetiva).
-- [ ] **Opção B** — iniciar diligência de licenciamento (founder executa o §4;
-      código só se move com licença escrita).
-- [ ] **Opção C** — registrar interesse de longo prazo (não iniciável com o
-      Trilho B pausado).
+- [ ] Opção A — permanecer demonstrativo
+- [x] **Opção B** — iniciar diligência de licenciamento
+- [ ] Opção C — registrar interesse de longo prazo
 
-Registrar a decisão neste arquivo (data + opção + racional) quando tomada.
+**Racional do founder (verbatim, condensado):** o VitalOS permanece, por
+enquanto, com o instrumento autoral atual em seu status demonstrativo — aqui
+referido pelo nome de trabalho **"Protocolo VitalOS de Mapeamento
+Psicossocial"** nesta decisão e no checklist de diligência (§7). Este nome é
+um rótulo de registro para esta decisão — **não** foi aplicado ao manifesto,
+à landing, ao instrumento ou a qualquer superfície do produto; nenhuma
+renomeação de runtime está autorizada por esta decisão.
+
+### 6.1 Esta decisão explicitamente NÃO autoriza
+
+- alterar itens da bateria;
+- mudar scoring ou escala;
+- renomear o protocolo/instrumento no produto como "COPSOQ";
+- ativar `validation_status: "validado"`;
+- modificar banco de dados ou runtime;
+- fazer qualquer integração técnica;
+- presumir autorização ou licença que não esteja documentada por escrito.
+
+Nenhum arquivo de código, instrumento, landing, manifesto ou produção foi
+tocado por esta decisão — só este registro e o checklist de diligência (§7).
+
+### 6.2 Registro do interesse de longo prazo (Opção C)
+
+Mantido como interesse estratégico — validação científica própria do
+Protocolo VitalOS via parceiro acadêmico. **Não iniciado nesta etapa**: seguem
+valendo as mesmas condições do §3 (Opção C) e a pausa vigente do Trilho B.
+
+## 7. Checklist de diligência (execução externa do founder)
+
+A diligência do §4 foi formalizada em documento próprio, para uso direto com
+contatos institucionais e assessoria jurídica:
+**`docs/DILIGENCIA_LICENCIAMENTO_PROTOCOLO_PSICOSSOCIAL_2026-07-22.md`**.
+
+Nenhum item desse checklist foi preenchido, pesquisado ou presumido por
+implementação — é levantamento externo do founder, conforme a regra
+científica permanente do projeto (Trilho B pausado, *trust once reuse many*).
+
+## 8. Gatilho de execução técnica — critérios adicionados
+
+A mudança técnica (descongelamento do manifesto, §5 original) só começa após
+**todos** os itens abaixo, nesta ordem:
+
+1. Checklist de diligência (§7) documentado e completo.
+2. Avaliação jurídica formal das condições de uso levantadas.
+3. Nova decisão formal do founder (registrada neste arquivo, com data).
+4. Plano de migração escrito (itens verbatim, scoring da norma, bump de versão).
+5. Confirmação de paridade metodológica antes do flip de `validation_status`.
+
+Até lá, os `forbidden_claims` atuais continuam travados pelo gate — nada muda
+no produto.
