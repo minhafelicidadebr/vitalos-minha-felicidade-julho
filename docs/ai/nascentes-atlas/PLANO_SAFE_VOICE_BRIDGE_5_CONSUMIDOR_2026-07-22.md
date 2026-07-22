@@ -439,4 +439,55 @@ mesma disciplina desta sessão inteira.
 
 ---
 
-*Fim do plano. Aguardando autorização do founder para iniciar a Fatia A.*
+## 18. Addendum (2026-07-22) — checkpoint arquitetural da Fatia A: vínculo `templateId → mechanismId`
+
+Autorização controlada da Fatia A exigiu decidir, antes de implementar, entre:
+
+- **A. Campo `mechanismId` na própria definição canônica do template**
+  (`TemplateSpec` em `response-templates.ts`).
+- **B. Projeção separada `templateId → mechanismId`** (o registry gerado
+  proposto no §12/§13 acima, mesmo padrão de
+  `skill-status-projection.json`/`copsoq-instrument-manifest.json`).
+- **C. Inferir por parsing de `entityRefs`** — proibida pelo founder.
+
+**Decisão: Opção A.**
+
+**Justificativa:** o mecanismo é propriedade intrínseca e estável do
+template, não um dado externo que evolui independentemente:
+
+1. O texto de `guidance`/`limitations` de cada template já é escrito **para
+   operacionalizar um mecanismo específico** — mudar o mecanismo sem mudar o
+   texto do template quebraria a coerência editorial; eles nascem e mudam
+   juntos, pela mesma pessoa, no mesmo commit. Isso é diferente do padrão
+   dos outros dois registries de projeção desta sessão (skill status e
+   manifesto COPSOQ), que espelham uma fonte **externa e maior** que muda
+   independentemente do código que a consome — não há fonte externa aqui:
+   a ligação template↔mecanismo nasce junto com a autoria do template.
+2. `TemplateSpec` já guarda `requiredClaimId` como string simples, sem
+   importar `domain/` — `mechanismId` segue exatamente a mesma convenção já
+   estabelecida no mesmo arquivo. Nenhuma fronteira de domínio é violada
+   (o engine continua recebendo os registries por parâmetro; só passa a
+   também expor uma segunda âncora de string, já do mesmo jeito que a
+   primeira).
+3. Evita um arquivo + schema + script de sync inteiros para uma relação
+   1-para-1 que hoje tem exatamente **uma linha** e cresce por extensão
+   deliberada (SAFE-VOICE-BRIDGE.md §7) — overhead de governança
+   desproporcional ao dado.
+
+**Consequência no escopo:** o item 2 do escopo original ("schema e loader
+readonly/deep-frozen, caso seja criado registry") não se aplica — nenhum
+registry novo é criado. `TEMPLATES` em `response-templates.ts` passa a ser
+deep-frozen no load do módulo (mesma disciplina de imutabilidade dos outros
+registries), e um novo acessor `getTemplateAnchors(templateId)` expõe o
+vínculo de forma explícita e testável — essa função, não uma string
+implícita em `entityRefs`, é o "vínculo canônico e explícito" pedido.
+
+A validação de integridade referencial (item 3 do escopo) migra para: (a) um
+teste de paridade que confirma que todo `mechanismId` declarado em
+`TEMPLATES` existe em `mechanism-registry.json`; (b) uma extensão pontual de
+`validateMechanisms()` (`passport-engine.ts`) para recusar `mechanism_id`
+duplicado — lacuna que já existia nesse validador antes desta onda.
+
+---
+
+*Fim do plano. Fatia A autorizada e em andamento.*

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildResponseTemplate,
+  getTemplateAnchors,
   type FlorenciaResponseTemplateInput,
 } from "./response-templates";
 import type { ResolvedFlorenciaContext, CtaResolution } from "./cta-resolution";
@@ -513,5 +514,37 @@ describe("buildResponseTemplate — requiresHumanReview repassado, nunca decidid
     const result = buildResponseTemplate(makeInput());
     if (result.status !== "allowed") throw new Error("esperado allowed");
     expect(result.requiresHumanReview).toBe(false);
+  });
+});
+
+describe("getTemplateAnchors — vínculo canônico templateId → mechanismId/requiredClaimId (SAFE-VOICE-BRIDGE §5, Fatia A)", () => {
+  test("as 4 templates ativas declaram âncoras — nenhuma existe sem mechanismId/requiredClaimId", () => {
+    const ids = [
+      "prepare-safe-conversation-v1",
+      "suggest-observation-v1",
+      "create-team-mission-v1",
+      "organize-evidence-v1",
+    ] as const;
+    for (const templateId of ids) {
+      const anchors = getTemplateAnchors(templateId);
+      expect(anchors, `templateId ${templateId} deveria ter âncoras`).not.toBeNull();
+      expect(anchors!.mechanismId.length).toBeGreaterThan(0);
+      expect(anchors!.requiredClaimId.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("prepare-safe-conversation-v1 aponta para MECH-VOICE-001 / CLAIM-EDMONDSON1999-VOICE-002", () => {
+    expect(getTemplateAnchors("prepare-safe-conversation-v1")).toEqual({
+      mechanismId: "MECH-VOICE-001",
+      requiredClaimId: "CLAIM-EDMONDSON1999-VOICE-002",
+    });
+  });
+
+  test("templateId inexistente devolve null (fail-closed para quem consome esta função)", () => {
+    expect(getTemplateAnchors("template-que-nao-existe")).toBeNull();
+  });
+
+  test("nunca devolve objeto parcial — string vazia também é null", () => {
+    expect(getTemplateAnchors("")).toBeNull();
   });
 });

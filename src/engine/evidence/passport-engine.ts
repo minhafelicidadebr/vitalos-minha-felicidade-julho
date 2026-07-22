@@ -460,13 +460,21 @@ export function checkActivityBudget(budget: ActivityEvidenceBudget): RegistryVal
 
 // ─── Consistência mecanismo × registro ───────────────────────────────────────
 
-/** Todo study_id citado por um mecanismo existe no registro e passa no gate. */
+/**
+ * Todo study_id citado por um mecanismo existe no registro e passa no gate.
+ * Também recusa mechanism_id duplicado (SAFE-VOICE-BRIDGE §5, Fatia A):
+ * um id repetido tornaria ambíguo qualquer vínculo templateId → mechanismId
+ * — nenhuma ocorrência de um id duplicado é confiável.
+ */
 export function validateMechanisms(
   registry: EvidenceRegistry,
   mechanisms: MechanismRecord[],
 ): RegistryValidation {
   const errors: string[] = [];
+  const seenIds = new Set<string>();
   for (const m of mechanisms) {
+    if (seenIds.has(m.mechanism_id)) errors.push(`${m.mechanism_id}: mechanism_id duplicado`);
+    seenIds.add(m.mechanism_id);
     if (!m.study_ids.includes(m.primary_study_id))
       errors.push(`${m.mechanism_id}: primary_study_id fora de study_ids`);
     for (const id of m.study_ids) {
