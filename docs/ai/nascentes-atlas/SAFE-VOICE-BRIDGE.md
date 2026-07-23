@@ -36,7 +36,7 @@ legitimamente parte do estado que o superprompt descrevia:
 
 | Item do superprompt (em 8de62b0) | Estado real em 71d9f77 |
 | --- | --- |
-| "ActionLog: não integrado" | Integrado para orientações da FlorêncIA: evento `evidence_recorded` com `evidenceRef` (templateId) + `evidenceClaimIds` (ver §6) |
+| "ActionLog: não integrado" | Integrado para orientações da FlorêncIA: evento `orientation_consulted` com `evidenceRef` (templateId) + `evidenceClaimIds` (ver §6) |
 | "conteúdo atual: DEMO" | Mantido DEMO — inalterado |
 | 1 CTA ativa (prepare) | 5 CTAs governadas ativas, 4 templates determinísticos (`explain_mechanism` segue sem template por design — superfície é o passaporte) |
 | Claim Registry "REAL para Voz Segura" | v1.1.0 **congelada** (frozen + validador): 6 claims uso-específicos do corte Voz Segura + 44 claims de passaporte derivados verbatim — corpus completo coberto (mergeada na main em 2026-07-18) |
@@ -163,7 +163,9 @@ deploy**, aguardando decisão do founder sobre publicar.
 ## 6 · ActionLog — estado atual e limites (era "futuro" no superprompt)
 
 A onda Convergência de Evidências integrou o rastro do copiloto ao
-ActionLog (evento `evidence_recorded`, `src/engine/action-plan/action-log-engine.ts`).
+ActionLog (evento `orientation_consulted`, `src/engine/action-plan/action-log-engine.ts`
+— separado de `evidence_recorded`, reservado para prova de execução real;
+ver o bloqueador 1 pré-§5 resolvido na Onda 5).
 O que É registrado hoje, por construção:
 
 - `evidenceRef` = templateId da orientação aberta (referência, nunca conteúdo);
