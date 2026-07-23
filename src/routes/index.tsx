@@ -11,7 +11,7 @@ import {
 import { LandingHero } from "@/features/landing/components/LandingHero";
 import { ProblemSection } from "@/features/landing/components/ProblemSection";
 import { WhyItMattersSection } from "@/features/landing/components/WhyItMattersSection";
-import { ImpactCalculatorSection } from "@/features/landing/components/ImpactCalculatorSection";
+import { EconomicBaselineSection } from "@/features/landing/components/EconomicBaselineSection";
 import { FourLensesSection } from "@/features/landing/components/FourLensesSection";
 import { GlobalEsgSection } from "@/features/landing/components/GlobalEsgSection";
 import { MethodologySection } from "@/features/landing/components/MethodologySection";
@@ -120,7 +120,7 @@ function LandingPage() {
         <LandingHero onAction={onAction} />
         <ProblemSection />
         <WhyItMattersSection onAction={onAction} />
-        <ImpactCalculatorSection />
+        <EconomicBaselineSection />
         <FourLensesSection onAction={onAction} />
         <GlobalEsgSection />
         <MethodologySection onAction={onAction} />

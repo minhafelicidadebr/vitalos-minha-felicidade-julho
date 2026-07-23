@@ -171,9 +171,8 @@ export function WhyItMattersSection({ onAction }: { onAction: (action: CtaAction
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
-          className="mt-8 grid items-center gap-6 rounded-3xl border border-border/70 bg-gradient-to-br from-card to-muted/40 p-6 shadow-sm sm:p-8 lg:grid-cols-[auto_1fr]"
+          className="mt-8 grid items-center gap-6 rounded-3xl border border-border/70 bg-gradient-to-br from-card to-muted/40 p-6 shadow-sm sm:p-8"
         >
-          <RoiDonut ratio={w.roi.ratio} unit={w.roi.unit} text={w.roi.text} source={w.roi.source} />
           <div>
             <h3 className="font-serif text-2xl text-foreground">{w.bridge.title}</h3>
             <p className="mt-2 text-base leading-relaxed text-muted-foreground">{w.bridge.text}</p>
@@ -193,68 +192,5 @@ export function WhyItMattersSection({ onAction }: { onAction: (action: CtaAction
         </p>
       </div>
     </section>
-  );
-}
-
-function RoiDonut({
-  ratio,
-  unit,
-  text,
-  source,
-}: {
-  ratio: string;
-  unit: string;
-  text: string;
-  source: string;
-}) {
-  // 4:1 → 80% do anel é "retorno".
-  const pct = 80;
-  const r = 52;
-  const c = 2 * Math.PI * r;
-  return (
-    <div className="flex flex-col items-center text-center">
-      <div className="relative h-32 w-32">
-        <svg
-          viewBox="0 0 120 120"
-          className="h-32 w-32 -rotate-90"
-          role="img"
-          aria-label={`Retorno sobre investimento ${ratio}`}
-        >
-          <circle
-            cx="60"
-            cy="60"
-            r={r}
-            fill="none"
-            stroke="currentColor"
-            strokeOpacity={0.12}
-            strokeWidth="12"
-          />
-          <circle
-            cx="60"
-            cy="60"
-            r={r}
-            fill="none"
-            stroke="url(#roigrad)"
-            strokeWidth="12"
-            strokeLinecap="round"
-            strokeDasharray={`${(pct / 100) * c} ${c}`}
-          />
-          <defs>
-            <linearGradient id="roigrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#10b981" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="font-serif text-3xl font-semibold text-foreground">{ratio}</p>
-          <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{unit}</p>
-        </div>
-      </div>
-      <p className="mt-3 max-w-[12rem] text-xs leading-relaxed text-card-foreground">{text}</p>
-      <p className="mt-1 max-w-[12rem] text-[10px] leading-relaxed text-muted-foreground/70">
-        {source}
-      </p>
-    </div>
   );
 }

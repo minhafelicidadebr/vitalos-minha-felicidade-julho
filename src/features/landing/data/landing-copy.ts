@@ -562,7 +562,7 @@ export const LENSES_DEEP = {
       instrument: "VIA-T v1 (exploratório, adaptado de Peterson & Seligman)",
       science: "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
       what: "Identifica forças, talentos, virtudes e diversidade de potência dentro de cada time.",
-      why: "Times que jogam com suas forças têm 6× mais engajamento e 3× mais qualidade de vida no trabalho.",
+      why: "O VIA-T oferece uma leitura exploratória das forças percebidas no trabalho, apoiando conversas de desenvolvimento coletivo. Não é diagnóstico, ranking nem previsão de engajamento ou desempenho.",
       tone: "violet",
     },
   ],
@@ -743,7 +743,7 @@ export const METHOD_DEEP = {
       n: "01",
       title: "Mensurar",
       science: "Psicometria · COPSOQ, FIB-T, PERMA+V, VIA-T",
-      what: "Diagnóstico científico aplicado por trimestre. Baseline rastreável ao instrumento, k-anonimato ≥ 5 garantido por construção.",
+      what: "Mapeamento psicossocial estruturado realizado por ciclo. Os resultados institucionais são apresentados de forma agregada para grupos com pelo menos cinco respostas, conforme os controles de privacidade do fluxo.",
       learning:
         "Princípio da consciência (Kolb): toda mudança duradoura começa com uma percepção honesta da realidade atual.",
       tone: "sky",
@@ -1161,11 +1161,11 @@ export const EDUCATIONAL_INNOVATIONS = {
       sourceUrl: "https://nr1-playbook.lovable.app/",
       q: "03",
       title: "NR-1 com Ciência do Bem-Estar Laboral",
-      subtitle: "3.000+ artigos científicos curados sob chancela da University of Oxford",
+      subtitle: "Playbook educacional com curadoria de pesquisa em bem-estar no trabalho",
       subtitleLines: [
-        "3.000+ artigos científicos",
-        "Curados sob chancela da",
-        "University of Oxford",
+        "Playbook educacional",
+        "com curadoria de pesquisa",
+        "em bem-estar no trabalho",
       ],
       text: "Playbook educacional que conecta NR-1, COPSOQ, ISO 45003, com 12 drivers, IA tutora e documentação para GRO/PGR.",
       signal:
@@ -1473,7 +1473,7 @@ export const EXECUTIVE_FORM = {
 export const WHY_IT_MATTERS = {
   eyebrow: "Por que isso importa",
   titleA: "De um custo silencioso a um",
-  titleB: "retorno mensurável",
+  titleB: "florescimento organizacional",
   lead: "O adoecimento mental tem um custo econômico gigante — mas florescer gera retorno comprovado. A Ciência da Felicidade transforma uma coisa na outra, com base em evidências.",
   costTitle: "O custo de não cuidar",
   costs: [
@@ -1512,15 +1512,9 @@ export const WHY_IT_MATTERS = {
     { value: "-59%", label: "Probabilidade de deixar a empresa", icon: "log-out", tone: "cyan" },
     { value: "4x menor", label: "Probabilidade de burnout", icon: "flame", tone: "amber" },
   ],
-  roi: {
-    ratio: "4:1",
-    unit: "ROI",
-    text: "Cada R$ 1 investido em bem-estar retorna ~R$ 4",
-    source: "Ordem de grandeza observada em revisões de programas de bem-estar corporativo · referência: Deloitte, 2022 (retorno varia por tipo de programa)",
-  },
   bridge: {
     title: "Bem-estar é investimento, não custo",
-    text: "Os números à esquerda mostram o preço de não agir; os da direita, o retorno de florescer. No meio está a decisão: investir em educação positiva e gestão de riscos psicossociais (alinhada à NR-1) converte sofrimento evitável em produtividade, criatividade e saúde — com retorno mensurável.",
+    text: "Os números à esquerda mostram o preço de não agir; os da direita, sinais de florescer. No meio está a decisão: investir em educação positiva e gestão de riscos psicossociais (alinhada à NR-1) converte sofrimento evitável em produtividade, criatividade e saúde.",
     cta: {
       label: "Transformar dor em florescimento",
       action: { kind: "modal", modal: "executive" },
@@ -1549,13 +1543,23 @@ export const CALCULATOR = {
     "Modelagem ilustrativa baseada em pesquisas públicas sobre bem-estar no trabalho (OMS, Gallup, Oxford) — parâmetros ajustáveis, não uma auditoria financeira nem previsão garantida.",
 };
 
+// ─── H2.1A — bloco não computacional que substitui a Calculadora de Impacto ───
+// Contenção emergencial de claims públicos (achado #9 da Matriz H2.1 v0.2):
+// a Calculadora de Impacto (CALCULATOR acima) saiu da renderização pública
+// nesta fatia — código preservado internamente, sem ponto de montagem público.
+// Texto abaixo é literal, conforme aprovação controlada do founder.
+export const ECONOMIC_BASELINE = {
+  title: "Construa um baseline econômico com dados verificáveis.",
+  text: "O VitalOS ajuda a organização a estruturar indicadores relevantes para acompanhar o ciclo, como absenteísmo, rotatividade, participação, implementação de medidas e evolução dos planos de ação. A atribuição financeira e o cálculo de retorno exigem metodologia específica, dados históricos e validação conjunta com as áreas responsáveis.",
+};
+
 // ─── Gestão NR-1 com Bem-Estar ────────────────────────────────────────────────
 export const NR1 = {
   eyebrow: "Prevenção que cuida",
   title: "Gestão NR-1 com Bem-Estar",
   text: "Mapeamento e mitigação de riscos psicossociais com bateria estruturada nas dimensões do COPSOQ II e um plano de ação educativo fundamentado em ciência aplicada — material auditável e apoio de IA.",
   bullets: [
-    { icon: "shield-check", text: "Bateria COPSOQ II + matriz NR-1 (referência MTE 2026)" },
+    { icon: "shield-check", text: "Mapeamento psicossocial estruturado + matriz NR-1 (referência MTE 2026)" },
     { icon: "scroll", text: "Ciência aplicada · educação baseada em evidências" },
     { icon: "file-bar-chart", text: "Relatório educativo em PDF auditável" },
     { icon: "sparkles", text: "Plano de ação com apoio do chatbot de IA" },
@@ -1586,7 +1590,7 @@ export const NR1_LANDING = {
     eyebrow: "Gestão de Riscos Psicossociais · NR-1",
     headline: "A NR-1 agora exige gerenciar riscos psicossociais.",
     headlineAccent: "Comece pela medição que dá base ao seu PGR.",
-    sub: "O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com anonimato operacional por token e agregação k≥5 (n≥5), e devolve a evidência agregada que fundamenta o seu Programa de Gerenciamento de Riscos. É o primeiro trimestre de uma jornada anual de vitalidade.",
+    sub: "O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com anonimato operacional por token e agregação k≥5 (n≥5), e devolve resultados agregados que podem subsidiar a AEP, o inventário de riscos e o PGR, mediante análise técnica e integração às demais evidências das condições e da organização do trabalho. É o primeiro trimestre de uma jornada anual de vitalidade.",
     disclaimer:
       "Instrumento educativo de mensuração e apoio à gestão. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade de profissional legalmente habilitado.",
     ctas: [
@@ -1625,16 +1629,13 @@ export const NR1_LANDING = {
   mudou: {
     eyebrow: "O que mudou na NR-1",
     title: "Do risco físico ao risco psicossocial — dentro do mesmo PGR",
-    text: "A NR-1 incorporou a gestão dos fatores psicossociais ao Gerenciamento de Riscos Ocupacionais. Os números abaixo são contexto de mercado, definidos pela legislação — não uma promessa nossa. Mostram por que a demanda virou universal.",
-    // ⚠️ VERIFICAR na fonte oficial (NR-01/NR-28 e Portaria MTE vigente) antes de publicar.
-    stats: [
-      { value: "Vigente", label: "Gestão de riscos psicossociais exigida na NR-1", flag: "confirmar cronograma" },
-      { value: "R$ 1.610", label: "Multa mínima por trabalhador exposto (referência ilustrativa)" },
-      { value: "R$ 6.708", label: "Multa máxima por trabalhador exposto (referência ilustrativa)" },
-      { value: "R$ 322 mil+", label: "Exposição potencial numa empresa de 200 pessoas (ilustrativo)" },
-    ],
+    text: "A NR-1 incorporou a gestão dos fatores psicossociais ao Gerenciamento de Riscos Ocupacionais.",
+    // H2.1A (contenção emergencial): valores de multa e fórmula "por trabalhador
+    // exposto" removidos — NR-28 depende do item infringido, classificação, grau
+    // e faixa de empregados; não há autorização para fórmula genérica publicada.
+    body: "O descumprimento das obrigações de identificação, avaliação e prevenção pode gerar atuação da inspeção do trabalho, incluindo notificações, autos de infração e exigências de adequação, conforme os itens infringidos e as circunstâncias do caso concreto.",
     source:
-      "Referências: NR-01 e NR-28 (tabela de gradação de multas), Portaria MTE. Valores ilustrativos — confirme prazos e valores vigentes na fonte oficial. O VitalOS não presta consultoria jurídica.",
+      "Referência: NR-01 e NR-28, Portaria MTE. Este conteúdo não constitui consultoria jurídica — confirme sempre na fonte oficial vigente.",
   },
   comoFunciona: {
     eyebrow: "Como funciona",
@@ -1669,7 +1670,7 @@ export const NR1_LANDING = {
     title: "A obrigação vira jornada. A jornada vira vantagem.",
     lead: "A NR-1 abre a porta. As 4 Lentes VitalOS™ transformam um relatório de compliance num sistema operacional de vitalidade — uma leitura científica por trimestre, culminando num Relatório Global ESG board-ready.",
     quarters: [
-      { q: "T1", instrument: "Bateria COPSOQ II", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
+      { q: "T1", instrument: "Mapeamento psicossocial estruturado", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
       { q: "T2", instrument: "FIB-T", theme: "Ecossistema & Governança", text: "Qualidade de vida no trabalho e ponte direta com ESG social.", tone: "emerald" },
       { q: "T3", instrument: "PERMA+V", theme: "Florescimento & Flow", text: "Energia, engajamento, sentido e realização que sustentam performance.", tone: "rose" },
       { q: "T4", instrument: "VIA-T", theme: "Cultura & Forças", text: "Forças e virtudes das equipes — leitura exploratória de desenvolvimento.", tone: "violet" },
@@ -1677,7 +1678,7 @@ export const NR1_LANDING = {
     finale: {
       badge: "Relatório Global ESG",
       title: "O ano inteiro, sintetizado em evidência",
-      text: "Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. É o que faz a NR-1 pagar por si mesma.",
+      text: "Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. O mesmo ciclo de evidências que apoia o GRO/PGR pode também organizar informações relevantes para a gestão e para o relato de sustentabilidade, respeitados os critérios de cada framework.",
     },
   },
   porQue: {
