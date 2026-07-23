@@ -253,22 +253,15 @@ function MomentoBlock({ momento }: { momento: typeof NR1_LANDING.momento }) {
 function MudouBlock({ mudou }: { mudou: typeof NR1_LANDING.mudou }) {
   return (
     <section className="bg-card/40 py-16 sm:py-20">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <Reveal>
           <SectionHead eyebrow={mudou.eyebrow} title={mudou.title} lead={mudou.text} />
         </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {mudou.stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.05}>
-              <div className="h-full rounded-2xl border border-border/70 bg-background p-6 text-center shadow-sm">
-                <p className="font-serif text-3xl font-semibold tabular-nums text-foreground">
-                  {s.value}
-                </p>
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{s.label}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={0.05}>
+          <p className="mt-6 text-center text-sm leading-relaxed text-muted-foreground">
+            {mudou.body}
+          </p>
+        </Reveal>
         <p className="mx-auto mt-6 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground/80">
           {mudou.source}
         </p>
