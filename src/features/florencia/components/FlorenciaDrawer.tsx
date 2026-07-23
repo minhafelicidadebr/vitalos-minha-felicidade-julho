@@ -13,17 +13,25 @@
 // controle clicável: esta onda não define para onde ele levaria.
 
 import type { FlorenciaResponseTemplateResult } from "@/engine/florencia/response-templates";
+import type { OrientationRationaleViewModel } from "@/engine/florencia/orientation-rationale-view-model";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { OrientationExplainDisclosure } from "./OrientationExplainDisclosure";
 
 export interface FlorenciaDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   result: FlorenciaResponseTemplateResult | null;
+  /**
+   * SAFE-VOICE-BRIDGE §5, Fatia C — projeção já computada pelo caller
+   * (nunca resolvida aqui: o drawer continua puramente apresentacional).
+   * Opcional/null por padrão — nenhum caller existente precisa mudar.
+   */
+  viewModel?: OrientationRationaleViewModel | null;
 }
 
-export function FlorenciaDrawer({ open, onOpenChange, result }: FlorenciaDrawerProps) {
+export function FlorenciaDrawer({ open, onOpenChange, result, viewModel = null }: FlorenciaDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -39,7 +47,7 @@ export function FlorenciaDrawer({ open, onOpenChange, result }: FlorenciaDrawerP
         <div className="flex-1 px-6 py-6">
           {result === null ? <EmptyState /> : null}
           {result?.status === "blocked" ? <BlockedState result={result} /> : null}
-          {result?.status === "allowed" ? <AllowedState result={result} /> : null}
+          {result?.status === "allowed" ? <AllowedState result={result} viewModel={viewModel} /> : null}
         </div>
       </SheetContent>
     </Sheet>
@@ -62,8 +70,10 @@ function BlockedState({
 
 function AllowedState({
   result,
+  viewModel,
 }: {
   result: Extract<FlorenciaResponseTemplateResult, { status: "allowed" }>;
+  viewModel: OrientationRationaleViewModel | null;
 }) {
   return (
     <div className="space-y-6">
@@ -118,6 +128,8 @@ function AllowedState({
         </h3>
         <p className="text-sm font-medium text-foreground">{result.nextActionLabel}</p>
       </div>
+
+      <OrientationExplainDisclosure viewModel={viewModel} />
     </div>
   );
 }

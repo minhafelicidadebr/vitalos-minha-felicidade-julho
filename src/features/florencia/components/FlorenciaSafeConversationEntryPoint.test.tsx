@@ -350,3 +350,74 @@ describe("FlorenciaSafeConversationEntryPoint — CTA-ORGANIZE-EVIDENCE (prévia
     expect(container.textContent?.includes("SKILL-")).toBe(false);
   });
 });
+
+describe("FlorenciaSafeConversationEntryPoint — OrientationExplainDisclosure (SAFE-VOICE-BRIDGE §5, Fatia C)", () => {
+  test("pipeline real produz um viewModel: o disclosure aparece fechado após o clique", () => {
+    render(<FlorenciaSafeConversationEntryPoint />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar uma conversa segura" }));
+    const trigger = screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ });
+    expect(trigger).toBeDefined();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("expandir o disclosure revela o mecanismo real (Redução do medo interpessoal) e a Skill (Facilitador Conversacional)", () => {
+    render(<FlorenciaSafeConversationEntryPoint />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar uma conversa segura" }));
+    fireEvent.click(screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ }));
+    expect(screen.getByText("Redução do medo interpessoal")).toBeDefined();
+    expect(screen.getByText(/Facilitador Conversacional/)).toBeDefined();
+  });
+
+  // O teste mais importante desta fatia: abrir/expandir a explicação é uma
+  // LEITURA sobre a consulta já registrada — nunca um evento novo. Sem este
+  // teste, uma futura refatoração poderia acidentalmente ligar o disclosure
+  // a um segundo appendEvent/onInteraction, inflando o ActionLog com
+  // "cliques de curiosidade" (SAFE-VOICE-BRIDGE §5 §7).
+  test("expandir o disclosure NÃO chama onInteraction de novo — nenhum evento novo no ActionLog", () => {
+    let interactionCount = 0;
+    render(<FlorenciaSafeConversationEntryPoint onInteraction={() => { interactionCount += 1; }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar uma conversa segura" }));
+    expect(interactionCount).toBe(1); // só a consulta da orientação em si
+
+    fireEvent.click(screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ }));
+    expect(interactionCount).toBe(1); // expandir a explicação não soma nada
+
+    fireEvent.click(screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ })); // recolher
+    expect(interactionCount).toBe(1);
+  });
+
+  test("bloqueio (rota errada) nunca mostra o disclosure — sem orientação, sem 'porquê' para explicar", () => {
+    render(<FlorenciaSafeConversationEntryPoint route="/rh" />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar uma conversa segura" }));
+    expect(screen.getByText("Esta orientação não está disponível neste contexto.")).toBeDefined();
+    expect(screen.queryByRole("button", { name: /Como esta orientação foi selecionada\?/ })).toBeNull();
+  });
+
+  test("disclosure nunca vaza id técnico nenhum, mesmo expandido (MECH-/CLAIM-/SKILL-/STUDY-)", () => {
+    const { container } = render(<FlorenciaSafeConversationEntryPoint />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar uma conversa segura" }));
+    fireEvent.click(screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ }));
+    for (const pattern of [/MECH-/, /CLAIM-/, /SKILL-/, /STUDY-/, /TRU-006/]) {
+      expect(container.textContent).not.toMatch(pattern);
+    }
+  });
+
+  test("as outras 3 CTAs reais (observação, missão, evidência) também produzem o disclosure", () => {
+    const cases = [
+      { ctaId: "CTA-SUGGEST-OBSERVATION", section: "observar-evoluir", entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"], label: "O que devemos observar?" },
+      { ctaId: "CTA-CREATE-TEAM-MISSION", section: "missao-equipe", entityRefs: ["mechanism:MECH-VOICE-001", "study:LDR-007"], label: "Transforme em missão de equipe" },
+      { ctaId: "CTA-ORGANIZE-EVIDENCE", section: "organizar-esg", entityRefs: ["mechanism:MECH-VOICE-001", "study:EDMONDSON-1999"], label: "Organize as evidências" },
+    ];
+    for (const c of cases) {
+      const { unmount } = render(
+        <FlorenciaSafeConversationEntryPoint ctaId={c.ctaId} section={c.section} entityRefs={c.entityRefs} />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: c.label }));
+      expect(
+        screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ }),
+        `CTA ${c.ctaId} deveria mostrar o disclosure`,
+      ).toBeDefined();
+      unmount();
+    }
+  });
+});

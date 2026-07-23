@@ -52,6 +52,9 @@ const PASSPORT_CTA_LABEL = "Ver a evidência científica completa";
 // texto público: fail-closed (ver projectOrientationRationaleViewModel).
 const SKILL_PUBLIC_NAME: Readonly<Record<string, string>> = {
   "SKILL-CONVERSATION-FACILITATOR": "Facilitador Conversacional",
+  "SKILL-INTERVENTION-PLANNER": "Planejador de Intervenções",
+  "SKILL-EVOLVE-MONITOR": "Monitor de Evolução",
+  "SKILL-ESG-TRACE-ARCHITECT": "Arquiteto de Rastreabilidade ESG",
 };
 
 // ─── Contrato de saída ──────────────────────────────────────────────────────

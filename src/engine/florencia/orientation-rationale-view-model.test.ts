@@ -261,4 +261,63 @@ describe("projectOrientationRationaleViewModel — integração ponta-a-ponta (F
       assertNoForbiddenLanguage(text);
     }
   });
+
+  // As 4 CTAs reais têm Skills principais DIFERENTES (cta-registry.json) —
+  // este teste prova que a curadoria de SKILL_PUBLIC_NAME (Fatia C) cobre
+  // todas as 4, não só prepare_conversation.
+  test("as outras 3 templates reais também produzem ViewModel completo, cada uma com sua Skill principal própria", () => {
+    const cases: Array<{
+      templateId: string;
+      intendedUse: string;
+      targetContext: string;
+      candidateSkillIds: string[];
+      expectedSkillPublicName: string;
+    }> = [
+      {
+        templateId: "suggest-observation-v1",
+        intendedUse: "suggest_observation",
+        targetContext: "observar-evoluir",
+        candidateSkillIds: ["SKILL-EVOLVE-MONITOR", "SKILL-EVIDENCE-CLAIM-GUARDIAN", "SKILL-PRIVACY-SAFETY-GUARDIAN"],
+        expectedSkillPublicName: "Monitor de Evolução",
+      },
+      {
+        templateId: "create-team-mission-v1",
+        intendedUse: "create_team_mission",
+        targetContext: "missao-equipe",
+        candidateSkillIds: ["SKILL-INTERVENTION-PLANNER", "SKILL-EVIDENCE-CLAIM-GUARDIAN", "SKILL-AGILE-PROJECT-ARCHITECT"],
+        expectedSkillPublicName: "Planejador de Intervenções",
+      },
+      {
+        templateId: "organize-evidence-v1",
+        intendedUse: "organize_evidence",
+        targetContext: "organizar-esg",
+        candidateSkillIds: ["SKILL-ESG-TRACE-ARCHITECT", "SKILL-EVIDENCE-CLAIM-GUARDIAN", "SKILL-CORE-GOVERNANCE"],
+        expectedSkillPublicName: "Arquiteto de Rastreabilidade ESG",
+      },
+    ];
+    for (const c of cases) {
+      const rationale = resolveOrientationRationale(
+        {
+          templateId: c.templateId,
+          requestContext: {
+            intendedUse: c.intendedUse,
+            role: "lider",
+            segment: "enterprise",
+            targetContext: c.targetContext,
+          },
+          candidateSkillIds: c.candidateSkillIds,
+        },
+        {
+          evidenceRegistry: EVIDENCE_REGISTRY,
+          claimRegistry: CLAIM_REGISTRY,
+          mechanisms: MECHANISM_REGISTRY,
+          skillStatusMap: resolveSkillStatusMap(),
+        },
+      );
+      const vm = projectOrientationRationaleViewModel(rationale);
+      expect(vm, `templateId ${c.templateId} deveria produzir ViewModel`).not.toBeNull();
+      expect(vm!.skillPublicName).toBe(c.expectedSkillPublicName);
+      expect(vm!.mechanismPublicName).toBe("Redução do medo interpessoal");
+    }
+  });
 });
