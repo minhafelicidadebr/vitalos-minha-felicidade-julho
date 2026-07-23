@@ -55,7 +55,7 @@ validação humana da 4B):
 | Caminho | Síntese | Veredito |
 | --- | --- | --- |
 | A. Taxonomia documental | Rastreabilidade sem runtime; risco: virar letra morta | **Adotado como forma desta subetapa** |
-| B. Registry operacional separado | JSON órfão sem consumidor real hoje; schema/paridade/versionamento sem benefício imediato | Adiado — gatilho na Onda 5 (§5) |
+| B. Registry operacional separado | JSON órfão sem consumidor real hoje; schema/paridade/versionamento sem benefício imediato | Adiado — gatilho na Onda 5 (§5). **Gatilho disparado em 2026-07-22: quando o consumidor real foi desenhado, a auditoria mostrou que só 1 de 9 elos precisava de um dado novo — a "ligação nomeada" virou um campo (`mechanismId`) na própria definição canônica do template, não um registry separado. Caminho B, tal como proposto aqui, não foi o que se construiu — ver §5.** |
 | C. Metadado dentro de Claims/Skills | Contamina registries congelados com conceito provisório; acoplamento errado | Rejeitado |
 | D. Camada de ligação Evidence↔Claim↔Skill↔M.E.T.E.↔intervenção | O modelo conceitual correto — é o que este documento expressa | **Adotado como conteúdo** (expresso via A) |
 | E. Ontologia extensa com RAG | Sobreengenharia; LLM/RAG nem existem no runtime | Rejeitado |
@@ -83,17 +83,19 @@ Cadeia completa, com o artefato real onde cada elo vive:
 | 11 | Intervenção possível | Missão "5 minutos para riscos" + rodadas registradas (projeto 30 dias) | `voz-segura-mock.ts` (`VOZ_SEGURA_MISSION`, `VOZ_SEGURA_PROJECT_30D`) | DEMO |
 | 12 | Indicadores | Indicadores de processo: rodadas realizadas, participação média, riscos levantados, decisões — **nunca** indicadores de saúde | `computeEvolveIndicators` em `src/engine/learning/trail-engine.ts` | REAL (engine) · dados de sessão |
 | 13 | Rastreabilidade ESG | `ESGT-VOZ-SEGURA-001` — projeto → mecanismo → evidência (via Evidence Passport) → execução (ActionLog) → limitações declaradas · linguagem "mudança observada", nunca impacto garantido | `VOZ_SEGURA_ESG_TRACE` + painel da seção 8 de `/voz-segura` | DEMO |
+| 14 | Explicação de roteamento (§5, Fatia A–C) | "Por que esta orientação foi selecionada?" — disclosure no `FlorenciaDrawer`, projeta só 7 campos seguros (nunca IDs, nunca a estrutura do Passport) | `orientation-rationale-engine.ts` (motor) + `orientation-rationale-view-model.ts` (projeção) + `OrientationExplainDisclosure.tsx` (UI) | REAL (engine + UI) · conteúdo DEMO — branch local `feat/safe-voice-bridge-5-consumer-first`, não mergeado |
 
 **Classificação do conteúdo em toda a cadeia: DEMO.** Nenhum elo desta
 tabela autoriza claim causal, clínico ou de ROI. O elo mais fraco governa a
 comunicação: a Skill principal é PARCIAL e o conteúdo é DEMO — a cadeia
 inteira se comunica como demonstração metodológica, nunca como resultado.
 
-## 5 · Contrato `NascentesBridgeEntry` — avaliado, NÃO implementado
+## 5 · Contrato `NascentesBridgeEntry` — gatilho disparado, IMPLEMENTADO (2026-07-22)
 
 O contrato proposto no superprompt foi auditado campo a campo contra o que
-já existe. Conclusão: **quase todos os campos já vivem em registries
-canônicos** — implementá-lo hoje duplicaria dados congelados:
+já existe. Conclusão original: **quase todos os campos já vivem em
+registries canônicos** — implementá-lo por inteiro duplicaria dados
+congelados:
 
 | Campo proposto | Onde o dado JÁ vive |
 | --- | --- |
@@ -108,16 +110,55 @@ canônicos** — implementá-lo hoje duplicaria dados congelados:
 | `indicatorIds` / `esgRefs` | `trail-engine.ts` + `VOZ_SEGURA_ESG_TRACE` |
 | `classification` / `status` / `limitations` | StatusBadge/doutrina + templates |
 
-O único dado que NÃO existe em lugar nenhum é a **ligação nomeada** entre
-tudo isso — exatamente o que a tabela do §4 registra documentalmente.
+O único dado que não existia em lugar nenhum era a **ligação nomeada**
+entre tudo isso — exatamente o que a tabela do §4 registrava só
+documentalmente.
 
-**Gatilho objetivo para operacionalizar (criar
-`src/domain/nascentes/nascentes-bridge-registry.json` + schema + paridade +
-testes):** existir um **consumidor de runtime real** — previsto na Onda 5
-(Truth Layer) do Plano de Elevação 180%, quando alguma superfície precisar
-LER a ponte (ex.: navegar de uma Nascente para todas as suas trilhas).
-Antes disso, JSON de ponte seria runtime órfão — proibido pelo critério de
-aceite 9.
+### Gatilho disparado
+
+O critério objetivo ("existir um consumidor de runtime real") disparou em
+2026-07-22: o founder autorizou um plano **consumer-first** — desenhar a
+superfície primeiro ("por que esta orientação foi recomendada?" em
+`/voz-segura`) e só depois derivar dela o menor contrato de dados
+necessário. Plano completo: `docs/ai/nascentes-atlas/
+PLANO_SAFE_VOICE_BRIDGE_5_CONSUMIDOR_2026-07-22.md`.
+
+**Achado que mudou a arquitetura proposta:** a auditoria da jornada real
+mostrou que 8 dos 9 elos necessários já existiam (mesma tabela acima); o
+único elo ausente — a ligação nomeada `templateId → mechanismId` — não
+precisou de um registry `nascentes-bridge-registry.json` separado. Um
+checkpoint arquitetural (autorizado pelo founder, Fatia A) decidiu por
+**campo direto na definição canônica do template**
+(`TemplateSpec.mechanismId` em `response-templates.ts`), não por uma
+projeção separada — o mecanismo é propriedade intrínseca e estável do
+template (nasce e muda junto com o texto de `guidance`), diferente das
+projeções de `skill-status`/`copsoq-manifest`, que espelham fontes
+*externas* maiores. ToT completo da decisão: §18 do plano acima.
+
+### O que foi construído (4 fatias, autorizadas uma a uma)
+
+- **Fatia A — motor puro:** `getTemplateAnchors()` (o vínculo canônico,
+  em `response-templates.ts`) + `resolveOrientationRationale()`
+  (`src/engine/florencia/orientation-rationale-engine.ts`) — resolve a
+  cadeia mínima (mecanismo → estudo → claim compatível com o contexto →
+  Skill principal disponível), fail-closed em qualquer elo ausente,
+  órfão, incompatível ou ambíguo.
+- **Fatia B — projeção governada:** `orientation-rationale-view-model.ts`
+  — transforma o rationale técnico em `OrientationRationaleViewModel`
+  seguro para apresentação (7 campos; nunca IDs internos, nunca a
+  Nascente como taxonomia definitiva; semântica de governança/roteamento,
+  nunca causalidade/personalização/eficácia).
+- **Fatia C — UI real:** `OrientationExplainDisclosure.tsx`, um
+  disclosure fechado por padrão dentro do `FlorenciaDrawer` já existente
+  em `/voz-segura`. Verificado ao vivo: abrir a explicação **não** gera
+  novo evento no ActionLog (§7 desta ponte, confirmado pelo contador real
+  da `TraceLine` da página).
+- **Fatia D — esta atualização de governança.**
+
+**Status no repositório:** implementado e testado (motor + projeção + UI,
+~130 testes dirigidos, gate/parity/tsc/build verdes), na branch local
+`feat/safe-voice-bridge-5-consumer-first` — **ainda sem push, PR, merge ou
+deploy**, aguardando decisão do founder sobre publicar.
 
 ## 6 · ActionLog — estado atual e limites (era "futuro" no superprompt)
 
@@ -169,5 +210,9 @@ proposta, mantida provisória e fora do runtime.
 ---
 
 *Documento da Onda 4C (Plano de Elevação 180%, primeiro passo da sequência).
-Próximo passo natural da onda: revisão/aceite do founder; depois, na Onda 5
-(Truth Layer), avaliar o gatilho do §5 para a versão operacional da ponte.*
+O gatilho do §5 disparou e foi resolvido em 2026-07-22 (Fatias A–D,
+consumer-first) — ver `docs/ai/nascentes-atlas/
+PLANO_SAFE_VOICE_BRIDGE_5_CONSUMIDOR_2026-07-22.md` para o plano completo.
+Próximo passo natural: decisão do founder sobre publicar a branch
+`feat/safe-voice-bridge-5-consumer-first` (push/PR/merge). A regra de
+extensão do §7 segue valendo para qualquer Nascente/mecanismo futuro.*
