@@ -31,8 +31,13 @@ import {
   buildResponseTemplate,
   type FlorenciaResponseTemplateResult,
 } from "@/engine/florencia/response-templates";
+import { resolveOrientationRationale } from "@/engine/florencia/orientation-rationale-engine";
+import {
+  projectOrientationRationaleViewModel,
+  type OrientationRationaleViewModel,
+} from "@/engine/florencia/orientation-rationale-view-model";
 import ctaRegistryJson from "@/domain/florencia/cta-registry.json";
-import { CLAIM_REGISTRY, EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
+import { CLAIM_REGISTRY, EVIDENCE_REGISTRY, MECHANISM_REGISTRY } from "@/domain/evidence/registries";
 import { resolveSkillStatusMap } from "@/domain/florencia/skill-status-projection";
 import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
 import { deriveProductStatus } from "@/engine/learning/learning-dynamics-resolution";
@@ -127,6 +132,12 @@ export function FlorenciaSafeConversationEntryPoint({
 }: FlorenciaSafeConversationEntryPointProps) {
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<FlorenciaResponseTemplateResult | null>(null);
+  // SAFE-VOICE-BRIDGE §5, Fatia C — projeção "por que esta orientação foi
+  // recomendada?" computada aqui (mesma camada que já monta context/policy
+  // gate/template), nunca dentro do FlorenciaDrawer (que continua puramente
+  // apresentacional). null sempre que result não for "allowed" — nenhum
+  // rationale é calculado para bloqueios.
+  const [viewModel, setViewModel] = useState<OrientationRationaleViewModel | null>(null);
 
   const isAuthorizedSurface = segment === "enterprise" && role === "lider";
   const registryCta = resolveCtaFromRegistry(ctaId);
@@ -158,6 +169,33 @@ export function FlorenciaSafeConversationEntryPoint({
 
     const templateResult = buildResponseTemplate({ context: outcome.context, cta, policyGate });
     setResult(templateResult);
+
+    // Fatia C: rationale só é resolvido quando allowed — um bloqueio não
+    // produziu orientação, não há "porquê" para explicar (mesmo princípio
+    // do bloqueador 1 pré-§5 para orientation_consulted).
+    const rationale =
+      templateResult.status === "allowed"
+        ? resolveOrientationRationale(
+            {
+              templateId: templateResult.templateId,
+              requestContext: {
+                intendedUse: outcome.context.intent,
+                role: outcome.context.role,
+                segment: outcome.context.segment,
+                targetContext: outcome.context.section,
+              },
+              candidateSkillIds: outcome.context.candidateSkillIds,
+            },
+            {
+              evidenceRegistry: EVIDENCE,
+              claimRegistry: CLAIM_REGISTRY,
+              mechanisms: MECHANISM_REGISTRY,
+              skillStatusMap: SKILL_STATUS,
+            },
+          )
+        : null;
+    setViewModel(projectOrientationRationaleViewModel(rationale));
+
     setOpen(true);
     onInteraction?.(templateResult);
   }
@@ -180,7 +218,7 @@ export function FlorenciaSafeConversationEntryPoint({
         <Icon className="h-4 w-4" aria-hidden />
         {registryCta.label}
       </button>
-      <FlorenciaDrawer open={open} onOpenChange={setOpen} result={result} />
+      <FlorenciaDrawer open={open} onOpenChange={setOpen} result={result} viewModel={viewModel} />
     </>
   );
 }

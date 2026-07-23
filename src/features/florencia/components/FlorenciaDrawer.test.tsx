@@ -17,6 +17,7 @@ import { useState } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { FlorenciaDrawer } from "./FlorenciaDrawer";
 import type { FlorenciaResponseTemplateResult } from "@/engine/florencia/response-templates";
+import type { OrientationRationaleViewModel } from "@/engine/florencia/orientation-rationale-view-model";
 
 const ALLOWED_RESULT: FlorenciaResponseTemplateResult = Object.freeze({
   status: "allowed",
@@ -56,6 +57,16 @@ function withClassification(
 ): FlorenciaResponseTemplateResult {
   return { ...ALLOWED_RESULT, classification } as FlorenciaResponseTemplateResult;
 }
+
+const VIEW_MODEL: OrientationRationaleViewModel = Object.freeze({
+  title: "Como esta orientação foi selecionada?",
+  selectionExplanation: "Esta orientação segue uma regra determinística de governança.",
+  mechanismPublicName: "Redução do medo interpessoal",
+  mechanismSafeExplanation: "Ambientes que respondem sem punição favorecem aprendizagem.",
+  evidenceSummary: "Claim seguro de teste.",
+  skillPublicName: "Facilitador Conversacional",
+  passportReference: null,
+}) as OrientationRationaleViewModel;
 
 function noop() {}
 
@@ -305,5 +316,35 @@ describe("FlorenciaDrawer — determinismo e imutabilidade", () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+});
+
+describe("FlorenciaDrawer — wiring do OrientationExplainDisclosure (SAFE-VOICE-BRIDGE §5, Fatia C)", () => {
+  test("sem prop viewModel (compatibilidade retroativa), disclosure não aparece", () => {
+    render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} />);
+    expect(screen.queryByRole("button", { name: /Como esta orientação foi selecionada\?/ })).toBeNull();
+  });
+
+  test("viewModel null explícito também não renderiza o disclosure", () => {
+    render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} viewModel={null} />);
+    expect(screen.queryByRole("button", { name: /Como esta orientação foi selecionada\?/ })).toBeNull();
+  });
+
+  test("viewModel presente no estado allowed mostra o gatilho do disclosure, fechado por padrão", () => {
+    render(<FlorenciaDrawer open result={ALLOWED_RESULT} onOpenChange={noop} viewModel={VIEW_MODEL} />);
+    const trigger = screen.getByRole("button", { name: /Como esta orientação foi selecionada\?/ });
+    expect(trigger).toBeDefined();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByText(VIEW_MODEL.mechanismPublicName)).toBeNull();
+  });
+
+  test("viewModel presente, mas result blocked: disclosure não aparece (AllowedState nunca monta)", () => {
+    render(<FlorenciaDrawer open result={BLOCKED_RESULT} onOpenChange={noop} viewModel={VIEW_MODEL} />);
+    expect(screen.queryByRole("button", { name: /Como esta orientação foi selecionada\?/ })).toBeNull();
+  });
+
+  test("viewModel presente, mas result null: disclosure não aparece", () => {
+    render(<FlorenciaDrawer open result={null} onOpenChange={noop} viewModel={VIEW_MODEL} />);
+    expect(screen.queryByRole("button", { name: /Como esta orientação foi selecionada\?/ })).toBeNull();
   });
 });

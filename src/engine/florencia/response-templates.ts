@@ -116,6 +116,16 @@ interface TemplateSpec {
   templateId: FlorenciaTemplateId;
   /** Claim que DEVE sobreviver ao Policy Gate para o template renderizar. */
   requiredClaimId: string;
+  /**
+   * Mecanismo (mechanism-registry.json) que este template operacionaliza —
+   * vínculo canônico e explícito, propriedade intrínseca e estável do
+   * template (SAFE-VOICE-BRIDGE §5, checkpoint arquitetural da Fatia A:
+   * decisão A, ver docs/ai/nascentes-atlas/
+   * PLANO_SAFE_VOICE_BRIDGE_5_CONSUMIDOR_2026-07-22.md §18). Mesma
+   * natureza de requiredClaimId — string de referência, nunca o registro
+   * importado aqui (Engine ≠ Domínio).
+   */
+  mechanismId: string;
   summary: string;
   guidance: readonly string[];
   limitations: readonly string[];
@@ -129,6 +139,7 @@ const TEMPLATES: Record<string, TemplateSpec> = {
   prepare_conversation: {
     templateId: "prepare-safe-conversation-v1",
     requiredClaimId: "CLAIM-EDMONDSON1999-VOICE-002",
+    mechanismId: "MECH-VOICE-001",
     summary:
       "Como preparar uma conversa para acolher o relato de um erro, risco ou preocupação, descrevendo fatos observáveis e evitando atribuição antecipada de culpa ou intenção.",
     guidance: [
@@ -151,6 +162,7 @@ const TEMPLATES: Record<string, TemplateSpec> = {
   suggest_observation: {
     templateId: "suggest-observation-v1",
     requiredClaimId: "CLAIM-LDR007-VOICE-002",
+    mechanismId: "MECH-VOICE-001",
     summary:
       "O que observar durante o piloto de rodadas: continuidade do ritual e indicadores de processo — sinais de funcionamento, sinais de alerta e o momento de parar.",
     guidance: [
@@ -173,6 +185,7 @@ const TEMPLATES: Record<string, TemplateSpec> = {
   create_team_mission: {
     templateId: "create-team-mission-v1",
     requiredClaimId: "CLAIM-LDR007-VOICE-001",
+    mechanismId: "MECH-VOICE-001",
     summary:
       "Como transformar a missão dos cinco minutos num compromisso de equipe: co-desenho, adesão voluntária e critério de feita combinado antes — sem promessa de resultado.",
     guidance: [
@@ -194,6 +207,7 @@ const TEMPLATES: Record<string, TemplateSpec> = {
   organize_evidence: {
     templateId: "organize-evidence-v1",
     requiredClaimId: "CLAIM-EDMONDSON1999-VOICE-003",
+    mechanismId: "MECH-VOICE-001",
     summary:
       "Como organizar o que a prévia ESG pode e não pode afirmar: o que a evidência fundamenta, o que só a execução real demonstra e quais limitações declarar.",
     guidance: [
@@ -213,6 +227,31 @@ const TEMPLATES: Record<string, TemplateSpec> = {
     nextActionLabel: "Rever a prévia de rastreabilidade",
   },
 };
+
+// Deep-freeze — TEMPLATES é a definição canônica (inclui o vínculo
+// mechanismId); nenhum caller pode mutar spec em runtime. Mesma disciplina
+// de imutabilidade dos demais registries/projeções desta onda.
+function deepFreezeTemplates(templates: Record<string, TemplateSpec>): Record<string, TemplateSpec> {
+  for (const spec of Object.values(templates)) {
+    Object.freeze(spec.guidance);
+    Object.freeze(spec.limitations);
+    Object.freeze(spec);
+  }
+  return Object.freeze(templates);
+}
+deepFreezeTemplates(TEMPLATES);
+
+/** As duas âncoras canônicas de um template — vínculo explícito e testável
+ * (SAFE-VOICE-BRIDGE §5, decisão A do checkpoint da Fatia A). `null` quando
+ * o templateId não corresponde a nenhum template ativo (fail-closed para
+ * quem consome esta função, ex.: orientation-rationale-engine). */
+export function getTemplateAnchors(
+  templateId: string,
+): { mechanismId: string; requiredClaimId: string } | null {
+  const spec = Object.values(TEMPLATES).find((t) => t.templateId === templateId);
+  if (!spec) return null;
+  return { mechanismId: spec.mechanismId, requiredClaimId: spec.requiredClaimId };
+}
 
 /**
  * Ordem dos guards é a ordem de checagem — cada um cobre exatamente um dos

@@ -10,11 +10,17 @@
 // continua onde sempre esteve: trustGate/buildPassport/evaluatePolicyGate
 // (engine); este módulo não decide nada.
 
-import type { ClaimRegistry, EvidenceRegistry } from "@/engine/evidence/passport-engine";
+import type { ClaimRegistry, EvidenceRegistry, MechanismRecord } from "@/engine/evidence/passport-engine";
 import evidenceRegistryJson from "./evidence-registry.json";
 import claimRegistryJson from "./claim-registry.json";
+import mechanismRegistryJson from "./mechanism-registry.json";
 
 export const EVIDENCE_REGISTRY = evidenceRegistryJson as unknown as EvidenceRegistry;
 export const CLAIM_REGISTRY = claimRegistryJson as unknown as ClaimRegistry;
+/** SAFE-VOICE-BRIDGE §5 (Fatia A): único ponto de carga do Mechanism
+ * Registry — mesma disciplina dos outros dois acima, nenhuma leitura
+ * paralela do JSON em nenhuma superfície nova. */
+export const MECHANISM_REGISTRY: readonly MechanismRecord[] =
+  (mechanismRegistryJson as unknown as { mechanisms: MechanismRecord[] }).mechanisms;
 
-export type { ClaimRegistry, EvidenceRegistry };
+export type { ClaimRegistry, EvidenceRegistry, MechanismRecord };

@@ -30,11 +30,16 @@
         "src/engine/florencia/cta-resolution.ts",
         "src/domain/florencia/cta-registry.json",
         "src/features/florencia/components/FlorenciaDrawer.tsx",
-        "src/features/florencia/components/FlorenciaSafeConversationEntryPoint.tsx"
+        "src/features/florencia/components/FlorenciaSafeConversationEntryPoint.tsx",
+        "src/engine/florencia/orientation-rationale-engine.ts",
+        "src/engine/florencia/orientation-rationale-view-model.ts",
+        "src/features/florencia/components/OrientationExplainDisclosure.tsx"
       ],
       "documentationEvidence": [
         "docs/ai/florencia-skills/FLORÊNCIA_CONSTITUTION.md",
-        "docs/ai/florencia/CAPABILITY-MAP.md"
+        "docs/ai/florencia/CAPABILITY-MAP.md",
+        "docs/ai/nascentes-atlas/SAFE-VOICE-BRIDGE.md",
+        "docs/ai/nascentes-atlas/PLANO_SAFE_VOICE_BRIDGE_5_CONSUMIDOR_2026-07-22.md"
       ],
       "dependencies": ["Onda 4C", "Truth Layer (Onda 5 do plano de elevação)", "binding governado de ActionLog"],
       "forbiddenUses": [

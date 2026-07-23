@@ -263,6 +263,20 @@ describe("consistência do domínio congelado", () => {
     expect(validateMechanisms(REGISTRY, [fake]).valid).toBe(false);
   });
 
+  // SAFE-VOICE-BRIDGE §5, Fatia A: mechanism_id duplicado tornaria ambíguo
+  // qualquer vínculo templateId → mechanismId — nenhuma ocorrência confiável.
+  test("mechanism_id duplicado é recusado (nenhuma ocorrência é confiável)", () => {
+    const duplicated: MechanismRecord[] = [MECHANISMS[0]!, { ...MECHANISMS[0]!, name: "Duplicata" }];
+    const result = validateMechanisms(REGISTRY, duplicated);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("mechanism_id duplicado"))).toBe(true);
+  });
+
+  test("registro real de mecanismos não tem mechanism_id duplicado", () => {
+    const ids = MECHANISMS.map((m) => m.mechanism_id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   test("registro congelado: reconciliação = 46 estudos únicos; APP-004 segue excluído", () => {
     expect(REGISTRY.studies.length).toBe(46);
     expect(resolveStudy(REGISTRY, "APP-004")).toBeNull();

@@ -70,8 +70,19 @@ cortes + critério de aceite + limitações remanescentes).
    teste-espelho migrados.
 
 Com os dois resolvidos, o §5 do SAFE-VOICE-BRIDGE (registry operacional da
-ponte NASCENTES) está DESBLOQUEADO — mas segue exigindo o gatilho objetivo
-do próprio §5 (consumidor real que LEIA a ponte) + autorização do founder.
+ponte NASCENTES) ficou DESBLOQUEADO — e o gatilho disparou em 2026-07-22:
+founder autorizou plano consumer-first ("por que esta orientação foi
+recomendada?" em `/voz-segura`), executado em 4 fatias (A motor, B
+projeção, C UI, D governança — ver
+`docs/ai/nascentes-atlas/PLANO_SAFE_VOICE_BRIDGE_5_CONSUMIDOR_2026-07-22.md`
+e o §5 atualizado de `docs/ai/nascentes-atlas/SAFE-VOICE-BRIDGE.md`).
+Achado: 8/9 elos já existiam; o único vínculo que faltava
+(`templateId → mechanismId`) virou campo direto no template canônico
+(`response-templates.ts`), não um registry separado. Implementado e
+testado (motor + projeção + UI, gate/parity/tsc/build verdes, verificado
+ao vivo). **Branch local `feat/safe-voice-bridge-5-consumer-first`, 4
+commits, sem push/PR/merge/deploy** — aguardando decisão do founder sobre
+publicar.
 
 ## Tarefa concluída — Onda LDX-1 (Learning Dynamics Registry)
 
