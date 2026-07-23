@@ -261,6 +261,26 @@ describe("resolveOrientationRationale — fail-closed", () => {
     expect(result).toBeNull();
   });
 
+  // Fatia B, checkpoint: candidateSkillIds[0] é a Skill principal canônica —
+  // índices posteriores NUNCA são fallback automático. Sem este teste, uma
+  // futura refatoração poderia "otimizar" a checagem para tentar o próximo
+  // índice disponível, degradando silenciosamente qual Skill governa a
+  // orientação exibida.
+  test("candidateSkillIds[1+] NUNCA vira fallback — Skill principal indisponível bloqueia mesmo com uma auxiliar disponível", () => {
+    const sources = validSources();
+    const result = resolveOrientationRationale(
+      { ...VALID_INPUT, candidateSkillIds: ["SKILL-PRINCIPAL-INDISPONIVEL", "SKILL-CONVERSATION-FACILITATOR"] },
+      {
+        ...sources,
+        skillStatusMap: {
+          "SKILL-PRINCIPAL-INDISPONIVEL": "ROADMAP",
+          "SKILL-CONVERSATION-FACILITATOR": "PARCIAL", // disponível, mas no índice 1 — não conta
+        },
+      },
+    );
+    expect(result).toBeNull();
+  });
+
   test("IDs duplicados — mechanism_id repetido no registry torna a entrada não confiável", () => {
     const sources = validSources();
     const result = resolveOrientationRationale(VALID_INPUT, {

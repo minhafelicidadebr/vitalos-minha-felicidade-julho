@@ -149,13 +149,20 @@ export function resolveOrientationRationale(
   const claim = matchedClaim;
   const studyId = matchedStudyId;
 
-  // 6. Skill — primeira candidata é a principal (convenção do cta-registry);
-  //    ausência de candidata, status desconhecido ou ROADMAP bloqueiam
-  //    (isSkillAvailable é o único predicado de disponibilidade do sistema).
-  const skillId = input.candidateSkillIds[0];
-  if (!skillId) return null;
-  const skillStatus = sources.skillStatusMap[skillId];
+  // 6. Skill — candidateSkillIds[0] é a Skill PRINCIPAL CANÔNICA da
+  //    orientação, formalizado aqui (checkpoint da Fatia B): índices
+  //    posteriores (candidateSkillIds[1+], ex.: SKILL-EVIDENCE-CLAIM-
+  //    GUARDIAN/SKILL-PRIVACY-SAFETY-GUARDIAN no cta-registry.json) são
+  //    Skills AUXILIARES da governança, nunca fallback automático da
+  //    principal. Se a principal estiver indisponível (ROADMAP/desconhecida),
+  //    o motor falha fechado — NUNCA degrada silenciosamente para a próxima
+  //    da lista (isSkillAvailable é o único predicado de disponibilidade do
+  //    sistema; travado por teste em orientation-rationale-engine.test.ts).
+  const principalSkillId = input.candidateSkillIds[0];
+  if (!principalSkillId) return null;
+  const skillStatus = sources.skillStatusMap[principalSkillId];
   if (!isSkillAvailable(skillStatus)) return null;
+  const skillId = principalSkillId;
 
   return deepFreeze({
     templateId: input.templateId as FlorenciaTemplateId,
