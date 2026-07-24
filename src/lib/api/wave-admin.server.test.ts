@@ -1,8 +1,20 @@
-import { describe, expect, test, mock, beforeEach } from "bun:test";
+import { describe, expect, test, mock, beforeEach, afterAll } from "bun:test";
 import type { AggregationTriggerResult } from "./capsule-aggregator.server";
 
 // ── Fake da agregação final (isola closeWaveAsAdmin da matemática de agregação,
 // já coberta em capsule-aggregator.server.test.ts e response-aggregation-engine.test.ts).
+//
+// mock.module() troca a resolução do módulo para TODO o processo de teste,
+// não só para este arquivo — sem restaurar, qualquer outro arquivo que
+// importe "./capsule-aggregator.server" depois (na mesma rodada de
+// `bun test src`) recebe este fake em vez da implementação real. Foi
+// exatamente isso que fez capsule-aggregator.server.test.ts falhar
+// deterministicamente no CI (sempre devolvendo capsule-1/12/triggered:true,
+// não importa o cenário) — passava isolado porque isolado nunca havia um
+// arquivo anterior contaminando o módulo. Captura o módulo real ANTES de
+// mockar e devolve no afterAll para nunca vazar para outros arquivos.
+const realCapsuleAggregatorModule = await import("./capsule-aggregator.server");
+
 let aggregationResult: AggregationTriggerResult = {
   triggered: true,
   capsuleId: "capsule-1",
@@ -15,6 +27,10 @@ mock.module("./capsule-aggregator.server", () => ({
     return aggregationResult;
   },
 }));
+
+afterAll(() => {
+  mock.module("./capsule-aggregator.server", () => realCapsuleAggregatorModule);
+});
 
 // ── Fake supabaseAdmin — waves de duas organizações distintas.
 const WAVES: Record<string, { org_id: string; instrument: string; status: string }> = {
