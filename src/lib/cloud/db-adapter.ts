@@ -143,8 +143,17 @@ export async function createWaveWithAdmin(
   return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links, inviteEmails: emails };
 }
 
-export async function listOrgWaves(orgId: string): Promise<WaveSummary[]> {
-  const { data } = await db
+export interface OrgScopedReadDeps {
+  /** Injeção de teste — nunca fornecida em produção. Ausente, usa o client real (db). */
+  client?: typeof db;
+}
+
+export async function listOrgWaves(
+  orgId: string,
+  deps: OrgScopedReadDeps = {},
+): Promise<WaveSummary[]> {
+  const client = deps.client ?? db;
+  const { data } = await client
     .from("waves")
     .select("id, instrument, label, status, invited_count, closes_at, created_at, sealed_at")
     .eq("org_id", orgId)
@@ -160,8 +169,12 @@ export async function listOrgWaves(orgId: string): Promise<WaveSummary[]> {
   }));
 }
 
-export async function listOrgCapsules(orgId: string): Promise<CapsuleSummary[]> {
-  const { data } = await db
+export async function listOrgCapsules(
+  orgId: string,
+  deps: OrgScopedReadDeps = {},
+): Promise<CapsuleSummary[]> {
+  const client = deps.client ?? db;
+  const { data } = await client
     .from("wave_capsules")
     .select("id, wave_id, instrument, participant_count, aggregated_at, dimensions, outcomes")
     .eq("org_id", orgId)
