@@ -7,7 +7,8 @@ import {
 import { getActiveWave } from "@/mocks/campaign-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import { readIdentityBoundaryStatus } from "../identity/identity-boundary.server";
-import { saveWaveResponse } from "../cloud/db-adapter";
+import { saveWaveResponse as saveWaveResponseReal } from "../cloud/db-adapter";
+import type { SubmitResponseInput, SubmitResponseResult } from "../cloud/db-adapter";
 import { dbInstrumentToSurveyKey } from "./instrument-mapping";
 import { emitOpsEvent } from "../telemetry/ops-events.server";
 
@@ -15,6 +16,20 @@ export interface ServerCaptureInput extends BlindSurveySubmission {
   packId: string;
   // Em modo cloud, inviteToken vem da URL (/responder/:token).
   inviteToken?: string;
+}
+
+export interface CaptureSurveySubmissionDeps {
+  /**
+   * Injeção de teste — nunca fornecida em produção. Ausente, usa a
+   * implementação real de saveWaveResponse (db-adapter.ts), mesmo caminho
+   * de sempre. Existe para que response-capture.server.test.ts passe um
+   * fake diretamente, sem mock.module("@/lib/cloud/db-adapter", ...) — que
+   * troca a resolução do especificador para TODO o processo `bun test` e já
+   * contaminou wave-admin.server.ts (que importa createWaveWithAdmin do
+   * mesmo módulo) em CI, quebrando wave-admin.server.test.ts inteiro com
+   * "Export named 'createWaveWithAdmin' not found".
+   */
+  saveWaveResponse?: (input: SubmitResponseInput) => Promise<SubmitResponseResult>;
 }
 
 // Trilha de observabilidade (P1-04): além do log estruturado, cada recusa
@@ -35,7 +50,9 @@ function logCloudRejection(reason: string, context: { waveId?: string; surveyId?
 export async function captureSurveySubmission(
   input: ServerCaptureInput,
   acceptedAt = new Date().toISOString(),
+  deps: CaptureSurveySubmissionDeps = {},
 ): Promise<CaptureResult> {
+  const saveWaveResponse = deps.saveWaveResponse ?? saveWaveResponseReal;
   const boundary = readIdentityBoundaryStatus();
 
   // Cloud mode sem token → recusa explícita (não silencia para demo).
