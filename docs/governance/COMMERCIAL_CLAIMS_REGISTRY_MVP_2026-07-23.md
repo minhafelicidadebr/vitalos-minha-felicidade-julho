@@ -77,24 +77,36 @@ Texto completo, fontes e limitações: `src/domain/commercial-claims/commercial-
 
 ```
 src/domain/commercial-claims/
-├── commercial-claim-types.ts           tipos (categoria, status, entry, resolved)
-├── commercial-claims-registry.schema.json   contrato Ajv (draft-07)
-├── commercial-claims-registry.json     dado congelado (frozen: true), os 8 claims
-├── commercial-claims-registry.ts       loader: valida, deep-freeze, getters
-├── commercial-claims-registry.test.ts  19 testes de integridade
-├── commercial-claims-resolver.ts       resolveCommercialClaim() puro, fail-closed
-├── commercial-claims-resolver.test.ts  14 testes (caminho feliz + 8 fail-closed + pureza)
-├── commercial-surface-ids.ts           inventário de IDs semânticos usados no MVP
-├── commercial-surface-ids.test.ts      paridade inventário × registry
-├── commercial-claims-scanner.ts        scanner auxiliar de uso órfão
-└── commercial-claims-scanner.test.ts   14 testes (classificação + gate real)
+├── commercial-claim-types.ts                tipos (categoria, status, entry, resolved)
+├── commercial-claims-registry.schema.json   contrato Ajv (draft-07) do registry COMPLETO
+├── commercial-claims-registry.json          dado congelado (frozen: true), os 8 claims
+├── commercial-claims-registry.ts            loader: valida, deep-freeze, getters
+├── commercial-claims-registry.test.ts       19 testes de integridade + gate de expiração
+├── commercial-claims-resolver.ts            resolveCommercialClaim() completo — SÓ server/build/teste
+├── commercial-claims-resolver.test.ts       14 testes (caminho feliz + 8 fail-closed + pureza)
+├── commercial-surface-ids.ts                inventário de IDs semânticos usados no MVP
+├── commercial-surface-ids.test.ts           paridade inventário × registry
+├── commercial-claims-public-bindings.ts     fonte única dos {claimId,variant,surfaceId} públicos
+├── commercial-claims-public-projection.schema.json   contrato da projeção mínima
+├── commercial-claims-public-projection.json          {claimId,variant,surfaceId,text} — SEM metadados
+├── commercial-claims-public-projection.test.ts       paridade projeção × registry+bindings
+├── commercial-claims-public-resolver.ts     resolvePublicCommercialClaim() — o ÚNICO client-reachable
+├── commercial-claims-public-resolver.test.ts  determinismo, ausência de Date(), fail-closed
+├── commercial-claims-scanner.ts             scanner auxiliar de uso órfão
+└── commercial-claims-scanner.test.ts        16 testes (classificação + gate real, zero órfãos)
 
-src/features/landing/data/landing-copy.ts   consome resolveCommercialClaim()
-                                             nos 7 pontos bindados
-src/features/landing/data/landing-copy.h2-1b-binding.test.ts  10 testes de binding
+scripts/generate-commercial-claims-public-projection.ts   gera a projeção (Node/Bun, nunca navegador)
+
+src/features/landing/data/landing-copy.ts   consome resolvePublicCommercialClaim()
+                                             nos 7 pontos bindados — NUNCA importa o registry completo
+src/features/landing/data/landing-copy.h2-1b-binding.test.ts  11 testes de binding
 ```
 
-### Fluxo de resolução
+### Duas camadas de resolução — por que existem as duas
+
+**Camada completa** (`commercial-claims-resolver.ts` + `commercial-claims-registry.ts`) — usada só em
+Node/Bun: scripts de build e arquivos de teste. Faz TODAS as checagens
+fail-closed, incluindo `isClaimExpired()` (que chama `Date.now()`).
 
 ```ts
 resolveCommercialClaim({
@@ -104,10 +116,20 @@ resolveCommercialClaim({
 }).text
 ```
 
-Fail-closed em cada etapa: claim inexistente, `status` diferente de
-`approved`, `review_due_at` vencida, `surfaceId` fora de
-`allowed_surface_ids`, ou `variant` inexistente — todos lançam
-`CommercialClaimResolutionError`. Nunca string vazia, nunca fallback.
+**Camada pública** (`commercial-claims-public-resolver.ts`) — a ÚNICA que
+`landing-copy.ts` importa, porque `landing-copy.ts` é bundlado tanto para o
+servidor quanto para o navegador. Lê só a projeção estática já resolvida —
+nenhum `Date()`, nenhum acesso a `limitations`/`source_refs`/`owner_role`/
+datas, nenhuma checagem de expiração em runtime.
+
+```ts
+resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.nr1InstrumentLabelT1).text
+```
+
+Fail-closed nas duas camadas: claim/surface/variant sem correspondência
+sempre lança (`CommercialClaimResolutionError` na completa,
+`PublicCommercialClaimNotFoundError` na pública). Nunca string vazia, nunca
+fallback, em nenhuma das duas.
 
 ### Decisão de design registrada: expiração não derruba o módulo inteiro
 
@@ -134,11 +156,17 @@ certo da pirâmide de falha.
    estruturais são verificados automaticamente.
 3. Revisão humana (fonte real, limitação, `owner_role`, datas) — só depois
    o `status` vira `"approved"`.
-4. Consumir via `resolveCommercialClaim()` na superfície pretendida —
-   adicionar o `surfaceId` a `commercial-surface-ids.ts` e a
+4. Adicionar o `surfaceId` a `commercial-surface-ids.ts` e a
    `allowed_surface_ids` do claim (os dois lados precisam bater, ou o
-   resolver lança em runtime).
-5. Adicionar teste de binding (mesmo padrão de
+   resolver lança).
+5. Adicionar o binding a `commercial-claims-public-bindings.ts` e rodar
+   `bun run scripts/generate-commercial-claims-public-projection.ts` —
+   isso resolve o claim contra o registry completo (com checagem de
+   expiração) e grava a entrada mínima na projeção pública.
+6. Consumir via `resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.<key>)`
+   na superfície pretendida — nunca importar o registry completo de
+   `landing-copy.ts` ou de qualquer arquivo client-reachable.
+7. Adicionar teste de binding (mesmo padrão de
    `landing-copy.h2-1b-binding.test.ts`).
 
 ## 7. Processo de revisão e expiração
@@ -192,52 +220,75 @@ varredura de teste — confirma exatamente o diagnóstico do founder de que
 regex sozinho não basta, mas também mostra que aplicar isso ao site inteiro
 é trabalho de uma onda maior (varredura site-wide), não desta fatia MVP.
 
-### Achado real, aceito e documentado (não maquiado)
+### Achado fechado (era 1 achado aceito; corrigido no fechamento H2.1B)
 
-O scanner encontra **1 achado nas 7 superfícies registradas**:
-a palavra "anonimato" no prefixo livre de `NR1_LANDING.hero.sub` ("...com
-anonimato operacional por token e agregação k≥5 (n≥5)."), escrito por mim
-na B4 para dar contexto antes do claim de GRO/PGR resolvido. Não é overclaim
-— é qualificado ("operacional por token", nunca "absoluto" ou "garantido",
-os dois termos que o próprio claim de privacidade já proíbe) — mas também
-não é rastreável a um `claim_id` ainda. Decisão de fundir isso a uma
-variante nova do claim de privacidade fica para o founder decidir (§2 do
-super prompt: "não invente claims" sem aprovação explícita). O teste
-(`commercial-claims-scanner.test.ts`) afirma esse achado exato — se ele
-mudar de forma ou quantidade, o teste quebra de propósito.
+A entrega original desta fatia relatava 1 achado aceito: "anonimato" no
+prefixo livre de `NR1_LANDING.hero.sub`. O founder rejeitou aceitar isso por
+exceção — "o scanner deve falhar para qualquer uso público livre de
+'anonimato' que não esteja ligado a um claim_id autorizado". Fechado
+trocando o texto (Opção B do pedido) por "acesso por token e publicação
+agregada com limiar mínimo de grupo" — mesma exatidão técnica, sem o termo
+que disparava o achado. `"anonimato"` **nunca** foi adicionado a
+`SAFE_EXCEPTIONS` — a trava é textual (`commercial-claims-scanner.test.ts`,
+"'anonimato' nunca é uma exceção estrutural do scanner"), não uma
+allowlist. O gate das 7 superfícies registradas agora afirma **zero**
+achados órfãos.
 
-## 11. Riscos residuais
+## 11. Riscos residuais (após o fechamento §13)
 
 1. **`CLAIM-COM-REGULATORY-SCOPE-001` sem consumidor** — registrado, mas o
-   §10 do super prompt não listou "escopo regulatório" entre as superfícies
-   a migrar nesta fatia. Fica disponível para quando um consumidor real
-   aparecer.
-2. **`NR1_LANDING.meta.description`** (a tag `<meta name="description">` da
-   página `/nr1`) contém uma paráfrase próxima aos claims 1/2/3, ainda como
-   texto livre — não migrada nesta fatia (SEO meta é uma superfície
-   diferente da prosa visível, não estava no §10).
-3. **Título da página `/nr1`** continua `"Gestão de Riscos Psicossociais
-   (NR-1) sem dor | VitalOS™"` — "sem dor" é vizinho semântico de
-   "conformidade sem dor" (já proibido no manifesto COPSOQ). Fora do escopo
-   autorizado desta fatia; já reportado como residual na entrega da H2.1A.
-4. **Achado do scanner "anonimato" em `hero.sub`** — ver §10 acima.
-5. **Varredura site-wide completa** (todas as rotas de marketing, PDFs,
+   §10 do super prompt original não listou "escopo regulatório" entre as
+   superfícies a migrar nesta fatia. Fica disponível para quando um
+   consumidor real aparecer.
+2. **Varredura site-wide completa** (todas as rotas de marketing, PDFs,
    e-mails) segue como trabalho futuro maior — o MVP prova o mecanismo em 7
-   superfícies reais, não substitui uma auditoria completa.
-6. **Build artifacts**: uma busca pós-build pelas 9 frases proibidas da
-   H2.1A encontrou 2 falsos positivos — "garantido por construção" e
-   "benchmark OMS 4:1" aparecem dentro do JSON do próprio registry, como
-   texto de `limitations` (ex.: `"Sem benchmark OMS 4:1."`) — é a
-   *proibição* sendo documentada, não a afirmação. Um terceiro achado
-   ("garantido por construção" em `copilota-*.mjs`) é um comentário de
-   código pré-existente e não relacionado (`copilot-engine.ts`, sobre
-   comportamento do capsule engine), fora do escopo desta onda.
+   superfícies reais, não substitui uma auditoria completa. O scanner
+   continua gerando ~40 falsos positivos se rodado contra `landing-copy.ts`
+   inteiro (usos legítimos de "diagnóstico"/"anonimato"/"benchmark" como
+   nome de feature real, ex. `/benchmark`) — precisa de uma allowlist de
+   features antes de ampliar o escopo do gate.
+3. **`copilota-*.mjs`** contém um comentário de código pré-existente e não
+   relacionado com a substring "garantido por construção" (sobre o capsule
+   engine) — confirmado inofensivo (comentário, não claim), fora do escopo
+   desta onda.
 
 ## 12. Decisões adiadas
 
-- Fundir "anonimato operacional por token e agregação k≥5" a uma variante
-  formal do claim de privacidade (ou criar um novo claim) — precisa de
-  aprovação explícita, não foi inventado aqui.
 - Ampliar o scanner para varredura site-wide com uma allowlist de features
   reais (`/benchmark`, etc.) que hoje geram falso positivo.
-- Decidir sobre `meta.description` e o título "sem dor" de `/nr1`.
+- Trazer `CLAIM-COM-REGULATORY-SCOPE-001` para um consumidor real quando
+  a superfície aparecer.
+
+## 13. Fechamento (mesma data, aprovação controlada "FECHAMENTO DA H2.1B")
+
+Quatro ajustes pedidos após a entrega original, antes de autorizar push:
+
+1. **"sem dor" removido de toda superfície pública NR-1** — `NR1_LANDING.meta.title`
+   e `.meta.description` trocados pelo texto aprovado ("Gestão Psicossocial
+   NR-1: da escuta à prevenção em ação" / "Estruture a gestão psicossocial
+   NR-1, da escuta agregada ao plano de prevenção e acompanhamento.").
+   Fecha o residual #3 da entrega H2.1A original. Regressão adicionada em
+   `landing-copy.h2-1a-containment.test.ts` para "sem dor", "conformidade
+   sem dor" e "compliance sem dor".
+2. **Uso livre de "anonimato" eliminado** (não aceito por exceção) — ver §10.
+3. **Fronteira dos artefatos e projeção pública mínima** — busca separada em
+   executáveis (`.js`/`.mjs`) vs. `.map` confirmou que `limitations`/
+   `source_refs`/`owner_role`/datas do registry completo vazavam para o
+   bundle do cliente (porque `landing-copy.ts` importava o resolver
+   completo, que importa o registry inteiro). Corrigido criando a **camada
+   pública** (§5): `commercial-claims-public-bindings.ts` (fonte única dos
+   bindings) → `scripts/generate-commercial-claims-public-projection.ts`
+   (roda o resolver completo em build-time, grava só
+   `{claimId,variant,surfaceId,text}`) → `commercial-claims-public-resolver.ts`
+   (o único que `landing-copy.ts` importa agora). Rebuild confirmou: zero
+   ocorrências de `owner_role`/`review_due_at`/`source_refs` em qualquer
+   artefato (o único hit residual era `p_owner_role_label`, um parâmetro de
+   RPC de Action Plan sem relação nenhuma).
+4. **Expiração é gate-time, nunca runtime** — `commercial-claims-public-resolver.ts`
+   não contém `new Date()` no código executável (testado por leitura
+   estática do próprio source, filtrando comentários) e devolve resultado
+   idêntico com o relógio do sistema mockado para datas diferentes. A
+   expiração real continua sendo verificada em
+   `commercial-claims-registry.test.ts` (roda em `bun test`, ambiente
+   Node/Bun) e na geração da projeção (mesmo ambiente) — nunca no código que
+   chega ao navegador.

@@ -6,12 +6,15 @@
 //
 // H2.1B: claims comerciais de alto risco (identidade do instrumento,
 // privacidade, papel no GRO/PGR, VIA-T, sustentabilidade, baseline
-// econômico, sanções) NÃO são mais texto livre — vêm do Commercial Claims
-// Registry via resolveCommercialClaim(). Editar o texto aprovado exige
-// mudar o registry (com revisão/fonte/data), não esta string. Ver
+// econômico, sanções) NÃO são mais texto livre — vêm da projeção PÚBLICA
+// do Commercial Claims Registry via resolvePublicCommercialClaim(). Editar
+// o texto aprovado exige mudar o registry completo (com revisão/fonte/
+// data) e regenerar a projeção — nunca esta string, e nunca importar o
+// registry completo aqui (ele carrega limitations/fontes/datas que não
+// devem ir ao bundle público — fechamento H2.1B §3). Ver
 // docs/governance/COMMERCIAL_CLAIMS_REGISTRY_MVP_2026-07-23.md.
-import { resolveCommercialClaim } from "@/domain/commercial-claims/commercial-claims-resolver";
-import { COMMERCIAL_SURFACE_IDS } from "@/domain/commercial-claims/commercial-surface-ids";
+import { resolvePublicCommercialClaim } from "@/domain/commercial-claims/commercial-claims-public-resolver";
+import { PUBLIC_COMMERCIAL_BINDINGS } from "@/domain/commercial-claims/commercial-claims-public-bindings";
 
 export type LandingModalType =
   | "journey"
@@ -571,11 +574,7 @@ export const LENSES_DEEP = {
       instrument: "VIA-T v1 (exploratório, adaptado de Peterson & Seligman)",
       science: "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
       what: "Identifica forças, talentos, virtudes e diversidade de potência dentro de cada time.",
-      why: resolveCommercialClaim({
-        claimId: "CLAIM-COM-VIAT-EXPLORATORY-001",
-        variant: "default",
-        surfaceId: COMMERCIAL_SURFACE_IDS.MODAL_LENSES_DEEP_Q4_VIAT_WHY,
-      }).text,
+      why: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.viatWhy).text,
       tone: "violet",
     },
   ],
@@ -756,11 +755,7 @@ export const METHOD_DEEP = {
       n: "01",
       title: "Mensurar",
       science: "Psicometria · COPSOQ, FIB-T, PERMA+V, VIA-T",
-      what: `Mapeamento psicossocial estruturado realizado por ciclo. ${resolveCommercialClaim({
-        claimId: "CLAIM-COM-PRIVACY-AGGREGATION-001",
-        variant: "default",
-        surfaceId: COMMERCIAL_SURFACE_IDS.MODAL_METHOD_DEEP_MENSURAR_PRIVACY_SUMMARY,
-      }).text}`,
+      what: `Mapeamento psicossocial estruturado realizado por ciclo. ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.privacySummary).text}`,
       learning:
         "Princípio da consciência (Kolb): toda mudança duradoura começa com uma percepção honesta da realidade atual.",
       tone: "sky",
@@ -1567,11 +1562,7 @@ export const CALCULATOR = {
 // Texto abaixo é literal, conforme aprovação controlada do founder.
 export const ECONOMIC_BASELINE = {
   title: "Construa um baseline econômico com dados verificáveis.",
-  text: resolveCommercialClaim({
-    claimId: "CLAIM-COM-ECONOMIC-BASELINE-001",
-    variant: "default",
-    surfaceId: COMMERCIAL_SURFACE_IDS.HOME_ECONOMIC_BASELINE,
-  }).text,
+  text: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.economicBaseline).text,
 };
 
 // ─── Gestão NR-1 com Bem-Estar ────────────────────────────────────────────────
@@ -1603,19 +1594,15 @@ export const NR1 = {
 // ⚠️ VALORES/DATAS: ilustrativos — CONFIRMAR na fonte oficial antes de publicar.
 export const NR1_LANDING = {
   meta: {
-    title: "Gestão de Riscos Psicossociais (NR-1) sem dor | VitalOS™",
+    title: "Gestão Psicossocial NR-1: da escuta à prevenção em ação | VitalOS™",
     description:
-      "A NR-1 passou a exigir a gestão de riscos psicossociais. O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II, com anonimato operacional por token e agregação k≥5, e entrega a evidência agregada que fundamenta o seu PGR — início de uma jornada anual de vitalidade.",
+      "Estruture a gestão psicossocial NR-1, da escuta agregada ao plano de prevenção e acompanhamento.",
   },
   hero: {
     eyebrow: "Gestão de Riscos Psicossociais · NR-1",
     headline: "A NR-1 agora exige gerenciar riscos psicossociais.",
     headlineAccent: "Comece pela medição que dá base ao seu PGR.",
-    sub: `O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com anonimato operacional por token e agregação k≥5 (n≥5). ${resolveCommercialClaim({
-      claimId: "CLAIM-COM-GRO-PGR-ROLE-001",
-      variant: "default",
-      surfaceId: COMMERCIAL_SURFACE_IDS.NR1_HERO_GRO_PGR_ROLE,
-    }).text} É o primeiro trimestre de uma jornada anual de vitalidade.`,
+    sub: `O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com acesso por token e publicação agregada com limiar mínimo de grupo (n≥5). ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.groPgrRole).text} É o primeiro trimestre de uma jornada anual de vitalidade.`,
     disclaimer:
       "Instrumento educativo de mensuração e apoio à gestão. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade de profissional legalmente habilitado.",
     ctas: [
@@ -1658,11 +1645,7 @@ export const NR1_LANDING = {
     // H2.1A (contenção emergencial): valores de multa e fórmula "por trabalhador
     // exposto" removidos — NR-28 depende do item infringido, classificação, grau
     // e faixa de empregados; não há autorização para fórmula genérica publicada.
-    body: resolveCommercialClaim({
-      claimId: "CLAIM-COM-SANCTIONS-ENFORCEMENT-001",
-      variant: "default",
-      surfaceId: COMMERCIAL_SURFACE_IDS.NR1_MUDOU_SANCTIONS_BODY,
-    }).text,
+    body: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.sanctionsBody).text,
     source:
       "Referência: NR-01 e NR-28, Portaria MTE. Este conteúdo não constitui consultoria jurídica — confirme sempre na fonte oficial vigente.",
   },
@@ -1701,11 +1684,8 @@ export const NR1_LANDING = {
     quarters: [
       {
         q: "T1",
-        instrument: resolveCommercialClaim({
-          claimId: "CLAIM-COM-INSTRUMENT-LABEL-001",
-          variant: "short",
-          surfaceId: COMMERCIAL_SURFACE_IDS.NR1_JOURNEY_T1_INSTRUMENT_LABEL,
-        }).text,
+        instrument: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.nr1InstrumentLabelT1)
+          .text,
         theme: "Risco & Prevenção",
         text: "A base NR-1: fatores psicossociais, prioridades de prevenção.",
         tone: "sky",
@@ -1717,11 +1697,7 @@ export const NR1_LANDING = {
     finale: {
       badge: "Relatório Global ESG",
       title: "O ano inteiro, sintetizado em evidência",
-      text: `Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. ${resolveCommercialClaim({
-        claimId: "CLAIM-COM-SUSTAINABILITY-REPORT-001",
-        variant: "default",
-        surfaceId: COMMERCIAL_SURFACE_IDS.NR1_JOURNEY_T4_SUSTAINABILITY,
-      }).text}`,
+      text: `Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.sustainability).text}`,
     },
   },
   porQue: {

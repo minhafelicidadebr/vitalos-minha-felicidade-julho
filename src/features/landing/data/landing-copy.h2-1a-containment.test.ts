@@ -61,6 +61,9 @@ const FORBIDDEN_SUBSTRINGS = [
   "retorno mensurável",
   "cada R$ 1 retorna R$ 4",
   "cada r$ 1 investido em bem-estar retorna",
+  "sem dor",
+  "conformidade sem dor",
+  "compliance sem dor",
 ];
 
 describe("H2.1A — ausência de claims contidos na superfície pública de landing-copy.ts", () => {

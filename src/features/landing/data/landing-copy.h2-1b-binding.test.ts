@@ -1,11 +1,19 @@
 // Testes de binding do H2.1B MVP (§14 "Binding") — prova que as 7
 // superfícies migradas realmente vêm do Commercial Claims Registry (não são
 // texto livre duplicado), que trocar a copy só é possível editando o
-// registry, e que nenhum claim resolve fora da superfície que autorizou.
+// registry (+ regenerar a projeção), e que nenhum claim resolve fora da
+// superfície que autorizou.
+//
+// Fechamento H2.1B: landing-copy.ts consome resolvePublicCommercialClaim()
+// (projeção mínima, sem Date()) — este arquivo de teste, rodando em
+// Node/Bun (não navegador), pode usar o resolver COMPLETO e o registry
+// diretamente para provar que a projeção pública não divergiu.
 
 import { describe, expect, test } from "bun:test";
 import * as LandingCopy from "./landing-copy";
 import { resolveCommercialClaim, CommercialClaimResolutionError } from "@/domain/commercial-claims/commercial-claims-resolver";
+import { resolvePublicCommercialClaim } from "@/domain/commercial-claims/commercial-claims-public-resolver";
+import { PUBLIC_COMMERCIAL_BINDINGS } from "@/domain/commercial-claims/commercial-claims-public-bindings";
 import { getCommercialClaimsRegistry } from "@/domain/commercial-claims/commercial-claims-registry";
 import { COMMERCIAL_SURFACE_IDS } from "@/domain/commercial-claims/commercial-surface-ids";
 
@@ -61,7 +69,7 @@ describe("H2.1B — as 7 superfícies migradas usam claim governado (não copy l
 });
 
 describe("H2.1B — mudar a copy só é possível editando o registry", () => {
-  test("todo texto bindado é idêntico ao que resolveCommercialClaim devolve para o mesmo claim+variant+surface", () => {
+  test("todo texto bindado é idêntico ao que resolveCommercialClaim (completo) devolve para o mesmo claim+variant+surface", () => {
     const t1 = LandingCopy.NR1_LANDING.jornada.quarters.find((r) => r.q === "T1")!;
     const resolved = resolveCommercialClaim({
       claimId: "CLAIM-COM-INSTRUMENT-LABEL-001",
@@ -69,6 +77,12 @@ describe("H2.1B — mudar a copy só é possível editando o registry", () => {
       surfaceId: COMMERCIAL_SURFACE_IDS.NR1_JOURNEY_T1_INSTRUMENT_LABEL,
     });
     expect(t1.instrument).toBe(resolved.text);
+  });
+
+  test("landing-copy.ts consome exatamente o que resolvePublicCommercialClaim (projeção) devolve, não o registry completo direto", () => {
+    const t1 = LandingCopy.NR1_LANDING.jornada.quarters.find((r) => r.q === "T1")!;
+    const viaPublic = resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.nr1InstrumentLabelT1);
+    expect(t1.instrument).toBe(viaPublic.text);
   });
 });
 

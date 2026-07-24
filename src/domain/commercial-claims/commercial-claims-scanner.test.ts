@@ -109,22 +109,26 @@ describe("commercial-claims-scanner — sem falso positivo nas exceções estrut
 describe("commercial-claims-scanner — gate real contra as superfícies registradas (§12, regressão)", () => {
   const registeredText = registeredSurfaceTexts().join(" \n ");
 
-  test("só um achado conhecido e aceito nas 7 superfícies bindadas — nenhum novo órfão", () => {
-    // Achado real, não maquiado: o prefixo livre de NR1_LANDING.hero.sub
-    // ("...com anonimato operacional por token e agregação k≥5 (n≥5)."),
-    // escrito por mim na B4 para dar contexto antes do claim de GRO/PGR
-    // resolvido, usa "anonimato" fora de qualquer span governado. NÃO é
-    // overclaim (é qualificado — "operacional por token", nunca "absoluto"
-    // ou "garantido" — os dois termos que o registry já proíbe explicitamente
-    // no claim de privacidade), mas também não é rastreável a um claim_id
-    // ainda. Decisão adiada para não inventar uma variante nova sem
-    // aprovação explícita do founder (§2 "não invente claims"). Documentado
-    // aqui e na entrega final — se este achado mudar de forma ou quantidade,
-    // este teste quebra de propósito para forçar revisão humana.
+  test("zero achados órfãos nas 7 superfícies bindadas", () => {
+    // Fechamento do achado da entrega anterior: o prefixo livre de
+    // NR1_LANDING.hero.sub usava "anonimato" fora de qualquer span
+    // governado. Corrigido (fechamento H2.1B) trocando por "acesso por
+    // token e publicação agregada com limiar mínimo de grupo" — mesma
+    // exatidão técnica, sem o termo que o scanner não pode aceitar como
+    // exceção. Nenhum uso público livre de "anonimato" sobrevive nas
+    // superfícies registradas.
     const orphans = orphanFindings(registeredText);
-    expect(orphans).toEqual([
-      expect.objectContaining({ term: "anonimato", match: "anonimato", classification: "orphan" }),
-    ]);
+    expect(orphans).toEqual([]);
+  });
+
+  test("'anonimato' nunca é uma exceção estrutural do scanner", () => {
+    // Trava explícita contra o risco apontado pelo founder: nenhuma versão
+    // futura deste arquivo pode "resolver" o achado acima adicionando
+    // "anonimato" à lista SAFE_EXCEPTIONS em vez de corrigir o texto.
+    const findings = scanCommercialSurfaceText("Dado tratado com anonimato garantido pela plataforma.");
+    const anonimatoFinding = findings.find((f) => f.term === "anonimato");
+    expect(anonimatoFinding?.classification).not.toBe("suspicious");
+    expect(anonimatoFinding?.classification).toBe("orphan");
   });
 
   test("regressão explícita: os termos já removidos na H2.1A continuam ausentes das superfícies registradas", () => {
