@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "generated_from_registry_version": "1.0.0",
+  "entries": [
+    {
+      "claimId": "CLAIM-COM-INSTRUMENT-LABEL-001",
+      "variant": "short",
+      "surfaceId": "marketing.nr1.journey.t1-instrument-label",
+      "text": "Mapeamento psicossocial estruturado"
+    },
+    {
+      "claimId": "CLAIM-COM-PRIVACY-AGGREGATION-001",
+      "variant": "default",
+      "surfaceId": "marketing.modal.method-deep.mensurar-privacy-summary",
+      "text": "Os resultados institucionais são apresentados de forma agregada para grupos com pelo menos cinco respostas, conforme os controles de privacidade do fluxo."
+    },
+    {
+      "claimId": "CLAIM-COM-GRO-PGR-ROLE-001",
+      "variant": "default",
+      "surfaceId": "marketing.nr1.hero.gro-pgr-role",
+      "text": "Resultados agregados que podem subsidiar a AEP, o inventário de riscos e o PGR, mediante análise técnica e integração às demais evidências das condições e da organização do trabalho."
+    },
+    {
+      "claimId": "CLAIM-COM-VIAT-EXPLORATORY-001",
+      "variant": "default",
+      "surfaceId": "marketing.modal.lenses-deep.q4-viat-why",
+      "text": "O VIA-T oferece uma leitura exploratória das forças percebidas no trabalho, apoiando conversas de desenvolvimento coletivo. Não é diagnóstico, ranking nem previsão de engajamento ou desempenho."
+    },
+    {
+      "claimId": "CLAIM-COM-SUSTAINABILITY-REPORT-001",
+      "variant": "default",
+      "surfaceId": "marketing.nr1.journey.t4-sustainability",
+      "text": "O mesmo ciclo de evidências que apoia o GRO/PGR pode também organizar informações relevantes para a gestão e para o relato de sustentabilidade, respeitados os critérios de cada framework."
+    },
+    {
+      "claimId": "CLAIM-COM-ECONOMIC-BASELINE-001",
+      "variant": "default",
+      "surfaceId": "marketing.home.economic-baseline",
+      "text": "O VitalOS ajuda a organização a estruturar indicadores relevantes para acompanhar o ciclo, como absenteísmo, rotatividade, participação, implementação de medidas e evolução dos planos de ação. A atribuição financeira e o cálculo de retorno exigem metodologia específica, dados históricos e validação conjunta com as áreas responsáveis."
+    },
+    {
+      "claimId": "CLAIM-COM-SANCTIONS-ENFORCEMENT-001",
+      "variant": "default",
+      "surfaceId": "marketing.nr1.mudou.sanctions-body",
+      "text": "O descumprimento das obrigações de identificação, avaliação e prevenção pode gerar atuação da inspeção do trabalho, incluindo notificações, autos de infração e exigências de adequação, conforme os itens infringidos e as circunstâncias do caso concreto."
+    }
+  ]
+}

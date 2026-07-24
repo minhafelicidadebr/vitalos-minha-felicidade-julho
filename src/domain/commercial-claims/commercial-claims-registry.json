@@ -1,0 +1,154 @@
+{
+  "$schema": "./commercial-claims-registry.schema.json",
+  "schema_version": "1.0.0",
+  "registry_version": "1.0.0",
+  "frozen": true,
+  "claims": [
+    {
+      "claim_id": "CLAIM-COM-INSTRUMENT-LABEL-001",
+      "category": "instrument_identity",
+      "status": "approved",
+      "variants": {
+        "short": "Mapeamento psicossocial estruturado",
+        "long": "Bateria autoral estruturada com referência a dimensões de exposição psicossocial contempladas pelo COPSOQ II."
+      },
+      "source_refs": ["COPSOQ-INSTRUMENT-MANIFEST", "FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": ["Não é uma versão licenciada ou validada do COPSOQ II."],
+      "allowed_surface_ids": [
+        "marketing.nr1.journey.t1-instrument-label",
+        "marketing.nr1.methodology.instrument-description"
+      ],
+      "owner_role": "scientific-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-PRIVACY-AGGREGATION-001",
+      "category": "privacy",
+      "status": "approved",
+      "variants": {
+        "default": "Os resultados institucionais são apresentados de forma agregada para grupos com pelo menos cinco respostas, conforme os controles de privacidade do fluxo."
+      },
+      "source_refs": ["CLAUDE-MD-INVARIANT-3-K-ANON", "FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Não afirmar anonimato absoluto.",
+        "Não afirmar que a plataforma nunca processa respostas individuais.",
+        "Não usar \"garantido por construção\"."
+      ],
+      "allowed_surface_ids": ["marketing.modal.method-deep.mensurar-privacy-summary"],
+      "owner_role": "privacy-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-GRO-PGR-ROLE-001",
+      "category": "methodological",
+      "status": "approved",
+      "variants": {
+        "default": "Resultados agregados que podem subsidiar a AEP, o inventário de riscos e o PGR, mediante análise técnica e integração às demais evidências das condições e da organização do trabalho."
+      },
+      "source_refs": ["FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Não afirmar que questionário isolado é suficiente.",
+        "Não afirmar conformidade automática.",
+        "Não substituir responsável técnico."
+      ],
+      "allowed_surface_ids": ["marketing.nr1.hero.gro-pgr-role"],
+      "owner_role": "regulatory-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-REGULATORY-SCOPE-001",
+      "category": "regulatory_scope",
+      "status": "approved",
+      "variants": {
+        "default": "O VitalOS estrutura e apoia participação, mapeamento, priorização, plano de ação, acompanhamento e evidências para o GRO/PGR."
+      },
+      "source_refs": ["FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "O VitalOS não substitui as responsabilidades da organização nem a atuação técnica aplicável."
+      ],
+      "allowed_surface_ids": ["marketing.nr1.regulatory-scope"],
+      "owner_role": "regulatory-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-VIAT-EXPLORATORY-001",
+      "category": "performance",
+      "status": "approved",
+      "variants": {
+        "default": "O VIA-T oferece uma leitura exploratória das forças percebidas no trabalho, apoiando conversas de desenvolvimento coletivo. Não é diagnóstico, ranking nem previsão de engajamento ou desempenho."
+      },
+      "source_refs": ["VIA-T-INSTRUMENT-DOC", "FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Não é diagnóstico.",
+        "Não é ranking.",
+        "Não prevê engajamento.",
+        "Não prevê desempenho."
+      ],
+      "allowed_surface_ids": ["marketing.modal.lenses-deep.q4-viat-why"],
+      "owner_role": "scientific-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-SUSTAINABILITY-REPORT-001",
+      "category": "regulatory_scope",
+      "status": "approved",
+      "variants": {
+        "default": "O mesmo ciclo de evidências que apoia o GRO/PGR pode também organizar informações relevantes para a gestão e para o relato de sustentabilidade, respeitados os critérios de cada framework."
+      },
+      "source_refs": ["FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Não prometer conformidade ESG.",
+        "Não prometer integração automática.",
+        "Não prometer retorno financeiro."
+      ],
+      "allowed_surface_ids": ["marketing.nr1.journey.t4-sustainability"],
+      "owner_role": "regulatory-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-ECONOMIC-BASELINE-001",
+      "category": "roi_causal",
+      "status": "approved",
+      "variants": {
+        "default": "O VitalOS ajuda a organização a estruturar indicadores relevantes para acompanhar o ciclo, como absenteísmo, rotatividade, participação, implementação de medidas e evolução dos planos de ação. A atribuição financeira e o cálculo de retorno exigem metodologia específica, dados históricos e validação conjunta com as áreas responsáveis."
+      },
+      "source_refs": ["FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Sem ROI.",
+        "Sem projeção causal.",
+        "Sem recuperação estimada.",
+        "Sem benchmark OMS 4:1.",
+        "Sem constantes financeiras."
+      ],
+      "allowed_surface_ids": ["marketing.home.economic-baseline"],
+      "owner_role": "commercial-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-SANCTIONS-ENFORCEMENT-001",
+      "category": "sanctions",
+      "status": "approved",
+      "variants": {
+        "default": "O descumprimento das obrigações de identificação, avaliação e prevenção pode gerar atuação da inspeção do trabalho, incluindo notificações, autos de infração e exigências de adequação, conforme os itens infringidos e as circunstâncias do caso concreto."
+      },
+      "source_refs": ["NR-01-NR-28-PORTARIA-MTE", "FOUNDER-APPROVAL-H2.1A-2026-07-23"],
+      "limitations": [
+        "Sem valores genéricos.",
+        "Sem multiplicação por trabalhador.",
+        "Sem garantia de penalidade.",
+        "Sem aconselhamento jurídico."
+      ],
+      "allowed_surface_ids": ["marketing.nr1.mudou.sanctions-body"],
+      "owner_role": "regulatory-governance",
+      "reviewed_at": "2026-07-23",
+      "review_due_at": "2027-01-23"
+    }
+  ]
+}

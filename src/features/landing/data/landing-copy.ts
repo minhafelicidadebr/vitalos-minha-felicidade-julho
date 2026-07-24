@@ -3,6 +3,18 @@
 // Tom: institucional, SaaS de alto valor. Os instrumentos aparecem com seus
 // qualificadores honestos (exploratório/educativo) — nunca como promessa clínica
 // ou jurídica.
+//
+// H2.1B: claims comerciais de alto risco (identidade do instrumento,
+// privacidade, papel no GRO/PGR, VIA-T, sustentabilidade, baseline
+// econômico, sanções) NÃO são mais texto livre — vêm da projeção PÚBLICA
+// do Commercial Claims Registry via resolvePublicCommercialClaim(). Editar
+// o texto aprovado exige mudar o registry completo (com revisão/fonte/
+// data) e regenerar a projeção — nunca esta string, e nunca importar o
+// registry completo aqui (ele carrega limitations/fontes/datas que não
+// devem ir ao bundle público — fechamento H2.1B §3). Ver
+// docs/governance/COMMERCIAL_CLAIMS_REGISTRY_MVP_2026-07-23.md.
+import { resolvePublicCommercialClaim } from "@/domain/commercial-claims/commercial-claims-public-resolver";
+import { PUBLIC_COMMERCIAL_BINDINGS } from "@/domain/commercial-claims/commercial-claims-public-bindings";
 
 export type LandingModalType =
   | "journey"
@@ -562,7 +574,7 @@ export const LENSES_DEEP = {
       instrument: "VIA-T v1 (exploratório, adaptado de Peterson & Seligman)",
       science: "24 forças de caráter, 6 virtudes universais — base do Values in Action Institute.",
       what: "Identifica forças, talentos, virtudes e diversidade de potência dentro de cada time.",
-      why: "O VIA-T oferece uma leitura exploratória das forças percebidas no trabalho, apoiando conversas de desenvolvimento coletivo. Não é diagnóstico, ranking nem previsão de engajamento ou desempenho.",
+      why: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.viatWhy).text,
       tone: "violet",
     },
   ],
@@ -743,7 +755,7 @@ export const METHOD_DEEP = {
       n: "01",
       title: "Mensurar",
       science: "Psicometria · COPSOQ, FIB-T, PERMA+V, VIA-T",
-      what: "Mapeamento psicossocial estruturado realizado por ciclo. Os resultados institucionais são apresentados de forma agregada para grupos com pelo menos cinco respostas, conforme os controles de privacidade do fluxo.",
+      what: `Mapeamento psicossocial estruturado realizado por ciclo. ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.privacySummary).text}`,
       learning:
         "Princípio da consciência (Kolb): toda mudança duradoura começa com uma percepção honesta da realidade atual.",
       tone: "sky",
@@ -1550,7 +1562,7 @@ export const CALCULATOR = {
 // Texto abaixo é literal, conforme aprovação controlada do founder.
 export const ECONOMIC_BASELINE = {
   title: "Construa um baseline econômico com dados verificáveis.",
-  text: "O VitalOS ajuda a organização a estruturar indicadores relevantes para acompanhar o ciclo, como absenteísmo, rotatividade, participação, implementação de medidas e evolução dos planos de ação. A atribuição financeira e o cálculo de retorno exigem metodologia específica, dados históricos e validação conjunta com as áreas responsáveis.",
+  text: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.economicBaseline).text,
 };
 
 // ─── Gestão NR-1 com Bem-Estar ────────────────────────────────────────────────
@@ -1582,15 +1594,15 @@ export const NR1 = {
 // ⚠️ VALORES/DATAS: ilustrativos — CONFIRMAR na fonte oficial antes de publicar.
 export const NR1_LANDING = {
   meta: {
-    title: "Gestão de Riscos Psicossociais (NR-1) sem dor | VitalOS™",
+    title: "Gestão Psicossocial NR-1: da escuta à prevenção em ação | VitalOS™",
     description:
-      "A NR-1 passou a exigir a gestão de riscos psicossociais. O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II, com anonimato operacional por token e agregação k≥5, e entrega a evidência agregada que fundamenta o seu PGR — início de uma jornada anual de vitalidade.",
+      "Estruture a gestão psicossocial NR-1, da escuta agregada ao plano de prevenção e acompanhamento.",
   },
   hero: {
     eyebrow: "Gestão de Riscos Psicossociais · NR-1",
     headline: "A NR-1 agora exige gerenciar riscos psicossociais.",
     headlineAccent: "Comece pela medição que dá base ao seu PGR.",
-    sub: "O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com anonimato operacional por token e agregação k≥5 (n≥5), e devolve resultados agregados que podem subsidiar a AEP, o inventário de riscos e o PGR, mediante análise técnica e integração às demais evidências das condições e da organização do trabalho. É o primeiro trimestre de uma jornada anual de vitalidade.",
+    sub: `O VitalOS™ usa uma bateria estruturada nas dimensões do COPSOQ II — referência internacional em fatores psicossociais — com acesso por token e publicação agregada com limiar mínimo de grupo (n≥5). ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.groPgrRole).text} É o primeiro trimestre de uma jornada anual de vitalidade.`,
     disclaimer:
       "Instrumento educativo de mensuração e apoio à gestão. A elaboração do PGR e a avaliação de riscos nos termos da NR-1 são de responsabilidade de profissional legalmente habilitado.",
     ctas: [
@@ -1633,7 +1645,7 @@ export const NR1_LANDING = {
     // H2.1A (contenção emergencial): valores de multa e fórmula "por trabalhador
     // exposto" removidos — NR-28 depende do item infringido, classificação, grau
     // e faixa de empregados; não há autorização para fórmula genérica publicada.
-    body: "O descumprimento das obrigações de identificação, avaliação e prevenção pode gerar atuação da inspeção do trabalho, incluindo notificações, autos de infração e exigências de adequação, conforme os itens infringidos e as circunstâncias do caso concreto.",
+    body: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.sanctionsBody).text,
     source:
       "Referência: NR-01 e NR-28, Portaria MTE. Este conteúdo não constitui consultoria jurídica — confirme sempre na fonte oficial vigente.",
   },
@@ -1670,7 +1682,14 @@ export const NR1_LANDING = {
     title: "A obrigação vira jornada. A jornada vira vantagem.",
     lead: "A NR-1 abre a porta. As 4 Lentes VitalOS™ transformam um relatório de compliance num sistema operacional de vitalidade — uma leitura científica por trimestre, culminando num Relatório Global ESG board-ready.",
     quarters: [
-      { q: "T1", instrument: "Mapeamento psicossocial estruturado", theme: "Risco & Prevenção", text: "A base NR-1: fatores psicossociais, prioridades de prevenção.", tone: "sky" },
+      {
+        q: "T1",
+        instrument: resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.nr1InstrumentLabelT1)
+          .text,
+        theme: "Risco & Prevenção",
+        text: "A base NR-1: fatores psicossociais, prioridades de prevenção.",
+        tone: "sky",
+      },
       { q: "T2", instrument: "FIB-T", theme: "Ecossistema & Governança", text: "Qualidade de vida no trabalho e ponte direta com ESG social.", tone: "emerald" },
       { q: "T3", instrument: "PERMA+V", theme: "Florescimento & Flow", text: "Energia, engajamento, sentido e realização que sustentam performance.", tone: "rose" },
       { q: "T4", instrument: "VIA-T", theme: "Cultura & Forças", text: "Forças e virtudes das equipes — leitura exploratória de desenvolvimento.", tone: "violet" },
@@ -1678,7 +1697,7 @@ export const NR1_LANDING = {
     finale: {
       badge: "Relatório Global ESG",
       title: "O ano inteiro, sintetizado em evidência",
-      text: "Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. O mesmo ciclo de evidências que apoia o GRO/PGR pode também organizar informações relevantes para a gestão e para o relato de sustentabilidade, respeitados os critérios de cada framework.",
+      text: `Evolução longitudinal, indicadores E/S/G rastreáveis ao instrumento e maturidade institucional — pronto para conselho e relato de sustentabilidade. ${resolvePublicCommercialClaim(PUBLIC_COMMERCIAL_BINDINGS.sustainability).text}`,
     },
   },
   porQue: {

@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "commercial-claims-registry.schema.json",
+  "title": "Commercial Claims Registry",
+  "description": "Contrato canônico do MVP de governança de claims comerciais de alto risco (H2.1B). Readonly, versionado, fail-closed: o loader recusa registry sem fonte, sem revisão, com datas incoerentes, IDs duplicados ou variante vazia. Só claims cobertos pela aprovação controlada H2.1A entram aqui — não é uma blacklist de toda a comunicação pública.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "registry_version", "frozen", "claims"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "type": "string", "minLength": 1 },
+    "registry_version": { "type": "string", "minLength": 1 },
+    "frozen": { "const": true },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "category",
+          "status",
+          "variants",
+          "source_refs",
+          "limitations",
+          "allowed_surface_ids",
+          "owner_role",
+          "reviewed_at",
+          "review_due_at"
+        ],
+        "properties": {
+          "claim_id": { "type": "string", "pattern": "^CLAIM-COM-[A-Z0-9-]+$" },
+          "category": {
+            "enum": [
+              "instrument_identity",
+              "regulatory_scope",
+              "privacy",
+              "scientific",
+              "institutional_affiliation",
+              "quantitative",
+              "performance",
+              "roi_causal",
+              "sanctions",
+              "methodological"
+            ]
+          },
+          "status": { "enum": ["approved", "expired", "retired", "draft"] },
+          "variants": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          },
+          "source_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "limitations": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "allowed_surface_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "owner_role": { "type": "string", "minLength": 1 },
+          "reviewed_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "review_due_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "commercial-claims-public-projection.schema.json",
+  "title": "Commercial Claims Public Projection",
+  "description": "Projeção mínima e derivada do Commercial Claims Registry, gerada por scripts/generate-commercial-claims-public-projection.ts. Só os campos necessários para renderização chegam ao cliente — nunca limitations, source_refs, owner_role ou datas de revisão. Gerado, nunca editado à mão.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_from_registry_version", "entries"],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "generated_from_registry_version": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claimId", "variant", "surfaceId", "text"],
+        "properties": {
+          "claimId": { "type": "string", "minLength": 1 },
+          "variant": { "type": "string", "minLength": 1 },
+          "surfaceId": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
