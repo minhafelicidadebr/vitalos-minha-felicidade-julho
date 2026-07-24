@@ -4,6 +4,14 @@
 # e PR na main. Nenhum segredo necessário: os testes mockam o Supabase e o
 # build funciona sem env (modo demo é o default quando VITE_* está ausente).
 #
+# bun-version FIXO (não "latest"): "latest" já causou um incidente real —
+# `bun test src` passava limpo localmente mas falhava deterministicamente
+# aqui, porque uma versão mais nova do bun tinha timing diferente de
+# mock.module()/afterAll entre arquivos de teste (achado e corrigido via
+# injeção de dependência em wave-admin.server.test.ts; ver PR #26). Fixar a
+# mesma versão usada localmente elimina essa classe inteira de divergência
+# CI-vs-local. Atualizar aqui só de propósito, testando localmente primeiro.
+#
 # Nota Lovable: os commits automáticos do bot (gpt-engineer-app[bot]) também
 # passam por aqui — se o Lovable quebrar o gate, o X vermelho aparece no
 # GitHub, que é exatamente a "falha visível" que queremos.
@@ -25,7 +33,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.3.14"
+
+      - name: Registrar versão do bun (rastreabilidade CI vs local)
+        run: bun --version
 
       - name: Instalar dependências
         run: bun install --frozen-lockfile
