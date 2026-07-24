@@ -10,6 +10,28 @@ import {
   describeLimitViolation,
 } from "@/engine/billing/plan-engine";
 import { emitOpsEvent } from "../telemetry/ops-events.server";
+import type { AggregationTriggerResult } from "./capsule-aggregator.server";
+
+/** Mesma assinatura de triggerCapsuleAggregation — só o tipo, sem importar o módulo. */
+type TriggerCapsuleAggregationFn = (
+  waveId: string,
+  instrument: string,
+  authorizedOrgId?: string,
+) => Promise<AggregationTriggerResult>;
+
+export interface CloseWaveAsAdminDeps {
+  /**
+   * Injeção de teste — nunca fornecida em produção. Quando ausente,
+   * closeWaveAsAdmin importa e usa a implementação real de
+   * capsule-aggregator.server (mesmo caminho de sempre). Existe para que
+   * wave-admin.server.test.ts possa passar um fake diretamente, sem
+   * mock.module("./capsule-aggregator.server", ...) — que troca a
+   * resolução do especificador para TODO o processo `bun test`, não só
+   * para este arquivo, e já causou vazamento real para
+   * capsule-aggregator.server.test.ts em CI.
+   */
+  triggerCapsuleAggregation?: TriggerCapsuleAggregationFn;
+}
 
 export type AdminCreateWaveResult = CreateWaveResult & { emailsSent: number; emailsAttempted: number };
 
@@ -113,6 +135,7 @@ export type CloseWaveOutcome =
 export async function closeWaveAsAdmin(
   orgId: string,
   waveId: string,
+  deps: CloseWaveAsAdminDeps = {},
 ): Promise<CloseWaveOutcome> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
@@ -130,7 +153,9 @@ export async function closeWaveAsAdmin(
     return { closed: false, error: "Esta onda já está selada." };
   }
 
-  const { triggerCapsuleAggregation } = await import("./capsule-aggregator.server");
+  const triggerCapsuleAggregation =
+    deps.triggerCapsuleAggregation ??
+    (await import("./capsule-aggregator.server")).triggerCapsuleAggregation;
   const aggregation = await triggerCapsuleAggregation(waveId, wave.instrument as string, orgId);
 
   emitOpsEvent("wave_closed", {
