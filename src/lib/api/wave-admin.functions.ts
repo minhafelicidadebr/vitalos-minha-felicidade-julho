@@ -7,10 +7,18 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { listOrgWaves, listOrgCapsules } from "../cloud/db-adapter";
+import { listOrgWaves, listOrgCapsules, type OrgScopedReadFailure } from "../cloud/db-adapter";
 import { isCloudReady } from "../cloud/supabase-client";
 import { getPlanLimits, type PlanId } from "@/engine/billing/plan-engine";
-import { requireOrgAdmin, describeAuthFailure } from "@/lib/auth/authorize.server";
+import { requireOrgAdmin, resolveOrgMembership, describeAuthFailure } from "@/lib/auth/authorize.server";
+
+/** org_mismatch nunca deveria surgir aqui (o orgId vem do mesmo requireOrgAdmin
+ * que acabou de rodar) — só existe como defesa em profundidade dentro de
+ * listOrgWaves/listOrgCapsules; mensagem honesta caso apareça mesmo assim. */
+function describeOrgReadFailure(reason: OrgScopedReadFailure): string {
+  if (reason === "org_mismatch") return "A sessão não corresponde a esta organização.";
+  return describeAuthFailure(reason);
+}
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
@@ -71,12 +79,16 @@ export const adminListWaves = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { waves: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
-    const waves = await listOrgWaves(auth.membership.orgId);
+    const result = await listOrgWaves(data.accessToken, auth.membership.orgId, {
+      resolveMembership: resolveOrgMembership,
+    });
+    if (!result.ok) return { waves: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };
+
     // Busca contagem de respostas para cada onda via RPC SECURITY DEFINER
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
     const withCounts = await Promise.all(
-      waves.map(async (w) => {
+      result.items.map(async (w) => {
         const { data: cnt } = await admin.rpc("count_wave_responses", { p_wave_id: w.id });
         return { ...w, responseCount: (cnt as number | null) ?? 0 };
       }),
@@ -94,10 +106,14 @@ export const adminListCapsules = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { capsules: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
-    const capsules = await listOrgCapsules(auth.membership.orgId);
+    const result = await listOrgCapsules(data.accessToken, auth.membership.orgId, {
+      resolveMembership: resolveOrgMembership,
+    });
+    if (!result.ok) return { capsules: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };
+
     return {
       cloudReady: true,
-      capsules: capsules.map((c) => ({
+      capsules: result.items.map((c) => ({
         id: c.id, waveId: c.waveId, instrument: c.instrument,
         participantCount: c.participantCount, aggregatedAt: c.aggregatedAt,
       })),

@@ -1,9 +1,12 @@
-// Prova cross-tenant de listagem (Q1.1, escopo item 3: "listagem" e "filtros").
+// Prova cross-tenant de listagem (Q1.1 + Q1.1B, escopo "listagem"/"filtros").
 // listOrgWaves/listOrgCapsules são o caminho de LEITURA usado por
-// adminListWaves/adminListCapsules (wave-admin.functions.ts) — o admin da
-// organização A nunca pode enxergar onda/cápsula da organização B.
+// adminListWaves/adminListCapsules (wave-admin.functions.ts) — a autorização
+// nunca pode depender só do orgId recebido: cada leitura reverifica de forma
+// autoritativa, a partir do access_token, a organização REAL do chamador
+// (resolveMembership) antes de tocar o banco (ver db-adapter.ts,
+// authorizeOrgRead). orgId nunca é aceito como prova de autorização por si.
 //
-// Usa injeção de dependência (2º parâmetro `deps.client`), não
+// Usa injeção de dependência (deps.client / deps.resolveMembership), não
 // mock.module("@/integrations/supabase/client", ...): esse especificador já
 // é mockado por 6 outros arquivos de teste neste repo (pair-invite-adapter,
 // practice-journal-adapter, learning-adapter, pair-directory-adapter,
@@ -13,10 +16,14 @@
 // wave-admin.server.test.ts/capsule-aggregator.server.test.ts nesta sessão.
 
 import { describe, expect, test } from "bun:test";
-import { listOrgWaves, listOrgCapsules } from "./db-adapter";
+import { listOrgWaves, listOrgCapsules, type ResolveOrgMembershipFn } from "./db-adapter";
 
 const TENANT_A = "org-tenant-a";
 const TENANT_B = "org-tenant-b";
+const TOKEN_MEMBER_A = "token-member-a";
+const TOKEN_MEMBER_B = "token-member-b";
+const TOKEN_NO_PROFILE = "token-no-profile";
+const TOKEN_INVALID = "token-invalid-session";
 
 const WAVE_ROWS = [
   {
@@ -44,64 +51,146 @@ const CAPSULE_ROWS = [
   },
 ];
 
-/** Fake mínimo: só entende .from(table).select().eq("org_id", v).order() — reflete o
- * uso real de listOrgWaves/listOrgCapsules, nada mais. Filtra pelo org_id pedido,
- * provando que a função só devolve o que pertence ao tenant solicitado. */
-function fakeClient(rows: Record<string, unknown>[]) {
+/** Fake de resolveOrgMembership — nunca confia em orgId de payload; mapeia
+ * SÓ o token para a membership real, como o resolveOrgMembership de
+ * verdade faz a partir da sessão (authorize.server.ts). */
+const fakeResolveMembership: ResolveOrgMembershipFn = async (accessToken) => {
+  if (accessToken === TOKEN_MEMBER_A) {
+    return { ok: true, membership: { userId: "user-a", orgId: TENANT_A, role: "RH_ADMIN" } };
+  }
+  if (accessToken === TOKEN_MEMBER_B) {
+    return { ok: true, membership: { userId: "user-b", orgId: TENANT_B, role: "RH_ADMIN" } };
+  }
+  if (accessToken === TOKEN_NO_PROFILE) {
+    return { ok: false, reason: "no_profile" };
+  }
+  return { ok: false, reason: "invalid_session" };
+};
+
+/** Fake mínimo: só entende .from(table).select().eq("org_id", v).order() —
+ * reflete o uso real de listOrgWaves/listOrgCapsules. Registra toda chamada
+ * a .from() para provar que a recusa de autorização acontece ANTES de
+ * qualquer leitura (a "leitura sensível" nunca é sequer tentada). */
+function fakeClient(rows: Record<string, unknown>[], calls: string[]) {
   return {
-    from: (_table: string) => ({
-      select: (_cols: string) => ({
-        eq: (col: string, value: string) => ({
-          order: async (_c: string, _o: unknown) => ({
-            data: col === "org_id" ? rows.filter((r) => r.org_id === value) : [],
-            error: null,
+    from: (table: string) => {
+      calls.push(table);
+      return {
+        select: (_cols: string) => ({
+          eq: (col: string, value: string) => ({
+            order: async (_c: string, _o: unknown) => ({
+              data: col === "org_id" ? rows.filter((r) => r.org_id === value) : [],
+              error: null,
+            }),
           }),
         }),
-      }),
-    }),
+      };
+    },
   };
 }
 
-describe("listOrgWaves — isolamento cross-tenant na listagem", () => {
-  test("org A só recebe ondas de org A, nunca as de org B", async () => {
-    const client = fakeClient(WAVE_ROWS) as never;
-    const wavesA = await listOrgWaves(TENANT_A, { client });
-    expect(wavesA).toHaveLength(1);
-    expect(wavesA[0]!.id).toBe("wave-a1");
+describe("listOrgWaves — autorização autoritativa antes da leitura", () => {
+  test("membro de A lista A", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(WAVE_ROWS, calls) as never;
+    const result = await listOrgWaves(TOKEN_MEMBER_A, TENANT_A, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.id).toBe("wave-a1");
+    }
+    expect(calls).toEqual(["waves"]);
   });
 
-  test("org B só recebe ondas de org B, nunca as de org A", async () => {
-    const client = fakeClient(WAVE_ROWS) as never;
-    const wavesB = await listOrgWaves(TENANT_B, { client });
-    expect(wavesB).toHaveLength(1);
-    expect(wavesB[0]!.id).toBe("wave-b1");
+  test("membro de A não lista B — orgId pedido não bate com a membership real do token", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(WAVE_ROWS, calls) as never;
+    // Mesmo que algo upstream erre e peça orgId=B com o token de A, a
+    // checagem autoritativa (não o filtro) é quem decide.
+    const result = await listOrgWaves(TOKEN_MEMBER_A, TENANT_B, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result).toEqual({ ok: false, reason: "org_mismatch" });
+    // "recusa ocorre antes da leitura sensível": .from() nunca foi chamado.
+    expect(calls).toEqual([]);
   });
 
-  test("tenant sem nenhuma onda recebe lista vazia, nunca um erro nem dado alheio", async () => {
-    const client = fakeClient(WAVE_ROWS) as never;
-    const wavesC = await listOrgWaves("org-tenant-sem-ondas", { client });
-    expect(wavesC).toEqual([]);
+  test("usuário sem membership é recusado, nunca recebe lista vazia disfarçada de sucesso", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(WAVE_ROWS, calls) as never;
+    const result = await listOrgWaves(TOKEN_NO_PROFILE, TENANT_A, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result).toEqual({ ok: false, reason: "no_profile" });
+    expect(calls).toEqual([]);
+  });
+
+  test("sessão inválida é recusada antes de qualquer leitura", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(WAVE_ROWS, calls) as never;
+    const result = await listOrgWaves(TOKEN_INVALID, TENANT_A, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result).toEqual({ ok: false, reason: "invalid_session" });
+    expect(calls).toEqual([]);
   });
 });
 
-describe("listOrgCapsules — isolamento cross-tenant na listagem", () => {
-  test("org A só recebe cápsulas de org A, nunca as de org B", async () => {
-    const client = fakeClient(CAPSULE_ROWS) as never;
-    const capsulesA = await listOrgCapsules(TENANT_A, { client });
-    expect(capsulesA).toHaveLength(1);
-    expect(capsulesA[0]!.id).toBe("capsule-a1");
+describe("listOrgCapsules — autorização autoritativa antes da leitura", () => {
+  test("membro de A lista cápsulas de A", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(CAPSULE_ROWS, calls) as never;
+    const result = await listOrgCapsules(TOKEN_MEMBER_A, TENANT_A, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.id).toBe("capsule-a1");
+    }
+    expect(calls).toEqual(["wave_capsules"]);
   });
 
-  test("org B só recebe cápsulas de org B, nunca as de org A", async () => {
-    const client = fakeClient(CAPSULE_ROWS) as never;
-    const capsulesB = await listOrgCapsules(TENANT_B, { client });
-    expect(capsulesB).toHaveLength(1);
-    expect(capsulesB[0]!.id).toBe("capsule-b1");
+  test("membro de A não lista cápsulas de B", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(CAPSULE_ROWS, calls) as never;
+    const result = await listOrgCapsules(TOKEN_MEMBER_A, TENANT_B, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result).toEqual({ ok: false, reason: "org_mismatch" });
+    expect(calls).toEqual([]);
   });
 
-  test("cápsula de org A nunca vaza participant_count/dimensions para org B", async () => {
-    const client = fakeClient(CAPSULE_ROWS) as never;
-    const capsulesB = await listOrgCapsules(TENANT_B, { client });
-    expect(capsulesB.find((c) => c.id === "capsule-a1")).toBeUndefined();
+  test("usuário sem membership nunca vê participant_count/dimensions de nenhuma org", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(CAPSULE_ROWS, calls) as never;
+    const result = await listOrgCapsules(TOKEN_NO_PROFILE, TENANT_B, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result).toEqual({ ok: false, reason: "no_profile" });
+    expect(calls).toEqual([]);
+  });
+
+  test("membro de B lista B, nunca A — confirma o par simétrico", async () => {
+    const calls: string[] = [];
+    const client = fakeClient(CAPSULE_ROWS, calls) as never;
+    const result = await listOrgCapsules(TOKEN_MEMBER_B, TENANT_B, {
+      client,
+      resolveMembership: fakeResolveMembership,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.items.find((c) => c.id === "capsule-a1")).toBeUndefined();
+      expect(result.items[0]!.id).toBe("capsule-b1");
+    }
   });
 });
