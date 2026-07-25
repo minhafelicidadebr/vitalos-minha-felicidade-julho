@@ -84,6 +84,22 @@ describe("wave_responses — resposta individual estruturalmente ilegível (k-an
     );
   });
 
+  // Achado da prova dinâmica em staging (2026-07-25, ver
+  // docs/handoff/Q1.1_SAAS_OPERATIONAL_PROOF_2026-07-24.md §11/§12):
+  // has_table_privilege('authenticated'/'anon', 'public.wave_responses',
+  // 'SELECT') voltava true contra um Postgres real, mesmo sem nenhum GRANT
+  // SELECT explícito em texto — vinha do default de privilégio da conta,
+  // porque wave_responses foi criada (20260630161949) antes da disciplina de
+  // REVOKE ALL explícito adotada a partir de 20260705100000, e a migration
+  // que depois endureceu a tabela só revogou INSERT/UPDATE/DELETE. A prova
+  // estática acima (linha 76) nunca pegaria isso — texto ausente ≠ privilégio
+  // ausente. Corrigido em 20260725120000_revoke_wave_responses_select_grant.sql.
+  test("SELECT em wave_responses foi revogado explicitamente de anon/authenticated (fecha o default de privilégio da conta)", () => {
+    expect(sql).toMatch(
+      /REVOKE SELECT ON public\.wave_responses FROM authenticated, anon/,
+    );
+  });
+
   test("service_role mantém acesso total (único caminho de leitura agregada é o service role)", () => {
     expect(sql).toMatch(/GRANT ALL ON public\.wave_responses TO service_role/);
   });
@@ -101,6 +117,24 @@ describe("count_wave_responses — RPC de contagem não vaza respostas nem schem
   test("EXECUTE foi revogado de PUBLIC antes de conceder a authenticated", () => {
     expect(sql).toMatch(/REVOKE EXECUTE ON FUNCTION public\.count_wave_responses\(uuid\) FROM PUBLIC/);
     expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.count_wave_responses\(uuid\) TO authenticated/);
+  });
+
+  // Achado da prova dinâmica em staging (2026-07-25, ver
+  // docs/handoff/Q1.1_SAAS_OPERATIONAL_PROOF_2026-07-24.md §11/§12): a
+  // definição original só contava por wave_id, sem checar organização —
+  // qualquer usuário autenticado de qualquer org podia descobrir a
+  // contagem de respostas de uma onda de OUTRA org, direto pelo endpoint
+  // REST (/rest/v1/rpc/count_wave_responses), sem passar pelo app.
+  // Confirmado ao vivo contra um Postgres real (staging isolado): usuário
+  // de tenant-demo obtinha a contagem real de uma onda do tenant-piloto.
+  // Corrigido em 20260725130000_scope_count_wave_responses_to_caller_org.sql
+  // — reintroduz o mesmo vínculo de organização que as RLS policies usam,
+  // preservando o bypass para service_role (único chamador interno hoje).
+  test("count_wave_responses verifica organização do chamador, com bypass só para service_role", () => {
+    expect(sql).toMatch(/auth\.role\(\) = 'service_role'/);
+    expect(sql).toMatch(
+      /count_wave_responses[\s\S]{0,400}?SELECT w\.id FROM public\.waves w\s*JOIN public\.profiles p ON p\.org_id = w\.org_id\s*WHERE p\.id = auth\.uid\(\)/,
+    );
   });
 });
 
