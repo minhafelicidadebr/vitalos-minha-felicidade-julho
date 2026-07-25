@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "bun test src",
     "parity": "bun run scripts/schema-parity-check.ts",
+    "secret-scan": "bun run scripts/build-secret-scan.ts",
     "gate": "bun test src && bun run parity && bunx tsc --noEmit"
   },
   "dependencies": {

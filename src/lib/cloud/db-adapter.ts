@@ -143,14 +143,77 @@ export async function createWaveWithAdmin(
   return { waveId: wave.id, inviteTokens: tokens, inviteLinks: links, inviteEmails: emails };
 }
 
-export async function listOrgWaves(orgId: string): Promise<WaveSummary[]> {
-  const { data } = await db
+// ─── Leitura org-scoped (Q1.1B) ────────────────────────────────────────────
+// Autorização nunca depende só do filtro .eq("org_id", orgId): orgId nunca é
+// aceito como prova de autorização por si — cada leitura reverifica de forma
+// autoritativa, a partir do PRÓPRIO access_token, qual é a org real do
+// chamador (resolveMembership), e só prossegue se ela bater com o orgId
+// pedido. Isso fecha a lacuna registrada em
+// docs/handoff/Q1.1_SAAS_OPERATIONAL_PROOF_2026-07-24.md §3: antes, o client
+// (`db`) rodava sem sessão anexada no servidor, então a policy de RLS
+// (`waves_org`/`capsule_org`, auth.uid()-based) nunca discriminava aqui — a
+// única proteção era o filtro de aplicação. Agora a checagem de membership é
+// refeita no próprio ponto de leitura, nunca só herdada de quem chamou antes.
+//
+// `resolveMembership` é OBRIGATÓRIO (sem default): db-adapter.ts não tem
+// sufixo .server.ts e não deve depender estaticamente de authorize.server.ts
+// (que resolve sessão real via service role). Quem chama em produção
+// (wave-admin.functions.ts) importa e passa resolveOrgMembership.
+
+/** Mesma forma de src/lib/auth/authorize.server.ts — import de TIPO apenas
+ * (erased em runtime), para não criar dependência estática real. */
+export type ResolveOrgMembershipFn = (accessToken: string) => Promise<
+  | { ok: true; membership: { userId: string; orgId: string; role: string } }
+  | { ok: false; reason: "invalid_session" | "no_profile" | "not_admin" }
+>;
+
+export interface OrgScopedReadDeps {
+  /** Injeção de teste — nunca fornecida em produção. Ausente, usa o client real (db). */
+  client?: typeof db;
+  /** Validação autoritativa de membership — sempre a real (resolveOrgMembership) em produção. */
+  resolveMembership: ResolveOrgMembershipFn;
+}
+
+export type OrgScopedReadFailure = "invalid_session" | "no_profile" | "org_mismatch";
+
+export type OrgScopedListResult<T> =
+  | { ok: true; items: T[] }
+  | { ok: false; reason: OrgScopedReadFailure };
+
+async function authorizeOrgRead(
+  accessToken: string,
+  orgId: string,
+  resolveMembership: ResolveOrgMembershipFn,
+): Promise<{ ok: true } | { ok: false; reason: OrgScopedReadFailure }> {
+  const membership = await resolveMembership(accessToken);
+  if (!membership.ok) {
+    // "not_admin" nunca se aplica a uma leitura (qualquer membro pode ler a
+    // própria org) — só pode surgir aqui se o chamador reusar um resolver de
+    // admin por engano; tratado como sessão sem perfil válido para leitura.
+    return { ok: false, reason: membership.reason === "not_admin" ? "no_profile" : membership.reason };
+  }
+  if (membership.membership.orgId !== orgId) {
+    return { ok: false, reason: "org_mismatch" };
+  }
+  return { ok: true };
+}
+
+export async function listOrgWaves(
+  accessToken: string,
+  orgId: string,
+  deps: OrgScopedReadDeps,
+): Promise<OrgScopedListResult<WaveSummary>> {
+  const authz = await authorizeOrgRead(accessToken, orgId, deps.resolveMembership);
+  if (!authz.ok) return authz;
+
+  const client = deps.client ?? db;
+  const { data } = await client
     .from("waves")
     .select("id, instrument, label, status, invited_count, closes_at, created_at, sealed_at")
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
 
-  return ((data ?? []) as Array<{
+  const items = ((data ?? []) as Array<{
     id: string; instrument: string; label: string | null; status: WaveStatus;
     invited_count: number; closes_at: string | null; created_at: string; sealed_at: string | null;
   }>).map((w) => ({
@@ -158,16 +221,25 @@ export async function listOrgWaves(orgId: string): Promise<WaveSummary[]> {
     invitedCount: w.invited_count, closesAt: w.closes_at,
     createdAt: w.created_at, sealedAt: w.sealed_at,
   }));
+  return { ok: true, items };
 }
 
-export async function listOrgCapsules(orgId: string): Promise<CapsuleSummary[]> {
-  const { data } = await db
+export async function listOrgCapsules(
+  accessToken: string,
+  orgId: string,
+  deps: OrgScopedReadDeps,
+): Promise<OrgScopedListResult<CapsuleSummary>> {
+  const authz = await authorizeOrgRead(accessToken, orgId, deps.resolveMembership);
+  if (!authz.ok) return authz;
+
+  const client = deps.client ?? db;
+  const { data } = await client
     .from("wave_capsules")
     .select("id, wave_id, instrument, participant_count, aggregated_at, dimensions, outcomes")
     .eq("org_id", orgId)
     .order("aggregated_at", { ascending: false });
 
-  return ((data ?? []) as Array<{
+  const items = ((data ?? []) as Array<{
     id: string; wave_id: string; instrument: string; participant_count: number;
     aggregated_at: string; dimensions: unknown; outcomes: unknown;
   }>).map((c) => ({
@@ -176,4 +248,5 @@ export async function listOrgCapsules(orgId: string): Promise<CapsuleSummary[]> 
     dimensions: (c.dimensions ?? {}) as DimMap,
     outcomes: (c.outcomes ?? null) as CapsuleSummary["outcomes"],
   }));
+  return { ok: true, items };
 }
