@@ -1,0 +1,30 @@
+-- Fecha lacuna de defesa em profundidade encontrada durante a prova dinâmica
+-- de staging (Q1.1 — docs/handoff/Q1.1_SAAS_OPERATIONAL_PROOF_2026-07-24.md).
+--
+-- ACHADO: public.wave_responses foi criada em 20260630161949 (antes da
+-- disciplina "REVOKE ALL explícito logo após o CREATE TABLE" adotada a
+-- partir de 20260705100000). A migration que depois endureceu esta tabela
+-- (20260705160043_9800f3be-...) revogou INSERT, UPDATE, DELETE de
+-- anon/authenticated, mas esqueceu SELECT — deixando o privilégio de
+-- SELECT concedido pelo default da conta (ALTER DEFAULT PRIVILEGES) em
+-- aberto até hoje. Confirmado ao vivo, contra um Postgres real (projeto de
+-- staging isolado), via has_table_privilege('authenticated'/'anon',
+-- 'public.wave_responses', 'SELECT') = true para os dois papéis.
+--
+-- POR QUE NÃO É UM VAZAMENTO ATIVO HOJE: não existe nenhuma policy de SELECT
+-- nesta tabela (RLS nega por padrão sem policy aplicável — ver comentário em
+-- 20260705160043: "Deliberately NO SELECT policy"). O único caminho de
+-- leitura é o service role, dentro de capsule-aggregator.server.ts.
+--
+-- POR QUE VALE CORRIGIR MESMO ASSIM (P2 — defesa em profundidade): o GRANT
+-- aberto é a única coisa que hoje impede uma policy de SELECT futura (por
+-- engano, ou pelo scanner automático do Lovable que já demonstrou adicionar
+-- GRANT sem aviso — ver 20260705160043 e 20260714130000) de expor resposta
+-- individual de pesquisa imediatamente. Revogar agora remove essa
+-- dependência de "ninguém adicionar uma policy solta depois".
+--
+-- Verificação pós-aplicação (rodar contra o banco vivo, não só citar):
+--   SELECT has_table_privilege('authenticated', 'public.wave_responses', 'SELECT'); -- esperado false
+--   SELECT has_table_privilege('anon', 'public.wave_responses', 'SELECT');          -- esperado false
+
+REVOKE SELECT ON public.wave_responses FROM authenticated, anon;

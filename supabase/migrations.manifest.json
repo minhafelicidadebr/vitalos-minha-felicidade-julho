@@ -1,0 +1,259 @@
+{
+  "generatedFor": "supabase/migrations",
+  "migrationCount": 42,
+  "rollupSha256": "496655c9bc6839609f0b5df009e5f5afcd007a07cffd3a5cb3de4b58afd9a504",
+  "migrations": [
+    {
+      "order": 1,
+      "name": "20260630161949_f66dfbc5-a7f1-4cea-94c3-0f7860edc50a.sql",
+      "sha256": "4ef98f0f861e6dd9e3b6aeda7ccf4ce3db4353e6582df8851cad8a4dc7a0187a",
+      "bytes": 4666
+    },
+    {
+      "order": 2,
+      "name": "20260701150019_25f40616-ea74-469f-87b7-21f5620b1f88.sql",
+      "sha256": "142335bb3f728a37438f7c1ae1641854025080f6c1f683bfda8ddf9c8d295e5e",
+      "bytes": 900
+    },
+    {
+      "order": 3,
+      "name": "20260701151433_63111577-d87c-4eba-ada6-6d31d1e295ad.sql",
+      "sha256": "d29196d731710255df081dea4160fa0f5aa8da8016e3b3f0d08bc40ca5281f5f",
+      "bytes": 203
+    },
+    {
+      "order": 4,
+      "name": "20260701190842_2b28078c-9500-4114-a690-86b3a8be5a8a.sql",
+      "sha256": "e114d1af0a77b0edb2578f74783e2dadd1a54c7c18a5ab386f34be732b75792a",
+      "bytes": 386
+    },
+    {
+      "order": 5,
+      "name": "20260703120000_reconcile_prod_drift.sql",
+      "sha256": "c1c8eec593f567faaf1679871814b6abefe93cfe90f0719eec00330de10c590c",
+      "bytes": 4306
+    },
+    {
+      "order": 6,
+      "name": "20260703130000_revoke_profile_self_elevation.sql",
+      "sha256": "ca3bcdb6beb69c77ffc099289088b4691c20d2965a25483a4a63bf9c70ffb3d6",
+      "bytes": 2641
+    },
+    {
+      "order": 7,
+      "name": "20260703140000_provision_organization_from_invite.sql",
+      "sha256": "e3f52642e8b80188ac3d5e7f2d2c72d47c92726837b54d1f85303ea8502f7485",
+      "bytes": 5351
+    },
+    {
+      "order": 8,
+      "name": "20260703150000_submit_wave_response_atomic.sql",
+      "sha256": "bc343422806c1a527f8a1b3427385ac80b364f183a2d436a936b4f6847aa1c7c",
+      "bytes": 4632
+    },
+    {
+      "order": 9,
+      "name": "20260703160000_wave_lifecycle_and_capsule_upsert.sql",
+      "sha256": "b046d03fc552f3537ac27228f9f11ac6c262e0ee98c1e6186588b0e9fab45406",
+      "bytes": 2144
+    },
+    {
+      "order": 10,
+      "name": "20260703170000_fix_profile_revoke_table_level_grant.sql",
+      "sha256": "a949e03344fd09dba35908d212387c0a1805f1f41b3c920cb10831a4a6399d91",
+      "bytes": 2306
+    },
+    {
+      "order": 11,
+      "name": "20260703203653_aef6adcc-60fe-4bc4-b9b6-0fbd11f276f5.sql",
+      "sha256": "6e1a72a3870ec6222f3b35c693b3c653d5b83aeeb80e3b117ad787c84803a5d9",
+      "bytes": 5210
+    },
+    {
+      "order": 12,
+      "name": "20260703203735_ba81502c-14bb-4b17-adef-5b669b24f5bd.sql",
+      "sha256": "c610334f6bbc5e29a502f7a8822ef2b0a032b981bc24aa04b2a60ffe90cd4262",
+      "bytes": 117
+    },
+    {
+      "order": 13,
+      "name": "20260703220000_learning_persistence.sql",
+      "sha256": "bfa0d36989e8ecdf3b50cbf0436b6409b26c0da077adf6fee6a4432e43084cc1",
+      "bytes": 4277
+    },
+    {
+      "order": 14,
+      "name": "20260703230000_revoke_learning_default_privileges.sql",
+      "sha256": "bbd001d0b5a9f8dfa5cf32bce3d5c86c6d85a0ee6dc6e13f9b25ef82282b5169",
+      "bytes": 2451
+    },
+    {
+      "order": 15,
+      "name": "20260704010715_59513b08-e81b-461c-8374-e4ba6208a1ac.sql",
+      "sha256": "e18435326301ca693d673b7104ce534c09258bbf088b5ea93453074b9fdb601f",
+      "bytes": 1748
+    },
+    {
+      "order": 16,
+      "name": "20260704011436_40dc7842-94e7-4a0e-8fc4-1181d42953d4.sql",
+      "sha256": "f2d9faba59a98e3eaf9e586c546e6dc22419998e09ed288389efecab7b2027ae",
+      "bytes": 143
+    },
+    {
+      "order": 17,
+      "name": "20260705100000_action_plan_ledger.sql",
+      "sha256": "6c44bebea3d12971b94208748d35ab96fc64090dde6a4b8d4d5a4fafb1ed582f",
+      "bytes": 21093
+    },
+    {
+      "order": 18,
+      "name": "20260705120000_devolutiva_sessions.sql",
+      "sha256": "4173cfc8a7b6dca84981e70a019d44392f58c171f4ebec00bda88abefeded148",
+      "bytes": 10113
+    },
+    {
+      "order": 19,
+      "name": "20260705130000_org_cycle_registry.sql",
+      "sha256": "d5e15de256d54312591c269e069d67c7a4eba58bee65a4ec7a1611d4aab2ef4b",
+      "bytes": 6080
+    },
+    {
+      "order": 20,
+      "name": "20260705160043_9800f3be-4083-4ea3-80d4-833731eeed31.sql",
+      "sha256": "5b6812e8fbae91a028d642427bdfe5733de82ba0680a3696b649e12dbdd0d819",
+      "bytes": 3729
+    },
+    {
+      "order": 21,
+      "name": "20260706100000_esg_report_snapshots.sql",
+      "sha256": "e3db1f9d31240306e59b02b16d25f753d27259cfd4f28d02fe4c4d4e6e12d06d",
+      "bytes": 4631
+    },
+    {
+      "order": 22,
+      "name": "20260706110000_personal_assessments.sql",
+      "sha256": "5c81dcf043b28ae7d8493c7b286a476b23ed876d5bb95b4e3a622018e6eb362c",
+      "bytes": 4611
+    },
+    {
+      "order": 23,
+      "name": "20260706120000_victory_records.sql",
+      "sha256": "9d9e2693bd1db0430015fdc201fc933a88d5349da3b57d8a81755e09e0c6d654",
+      "bytes": 5134
+    },
+    {
+      "order": 24,
+      "name": "20260706130000_item_funnel_events.sql",
+      "sha256": "5829f4b94f10a0218de75896feeef97bdcb430e0f857f61fb5b28839069c0724",
+      "bytes": 4900
+    },
+    {
+      "order": 25,
+      "name": "20260708120000_sector_links.sql",
+      "sha256": "856e0ffd08a9419e36c6ca2f2d0576185cb11e1f848811a975fbdb8742405cfb",
+      "bytes": 5684
+    },
+    {
+      "order": 26,
+      "name": "20260708130000_ops_events.sql",
+      "sha256": "7ceb4a31998fd71cc37aea524c013fbe4c56499acc13479585cbbd7d3baaa85d",
+      "bytes": 2723
+    },
+    {
+      "order": 27,
+      "name": "20260709135007_134c37d3-9731-494a-bb72-13990acb10fe.sql",
+      "sha256": "86cca1d00e5a7e8708cc786c6d45ae26a17d0f2972d74e9f835f07b6122ac3e7",
+      "bytes": 5180
+    },
+    {
+      "order": 28,
+      "name": "20260709135233_a1fc1bc5-b8d4-4066-8867-f14f1c610b4f.sql",
+      "sha256": "55741acf79bd9988da30ac8aba84dd18e95da2c4989206dac1cbd014cb325a18",
+      "bytes": 2434
+    },
+    {
+      "order": 29,
+      "name": "20260709140000_leads.sql",
+      "sha256": "b2cbab53056b429828e2ad7b66f2bfc874fdba6696670d1e6bbb1fb0be23ab78",
+      "bytes": 3081
+    },
+    {
+      "order": 30,
+      "name": "20260709150000_practice_entries.sql",
+      "sha256": "5501a904ed54e7608455e2093d9a3b3438f8ad35a742eb9a8dd3f652959fb997",
+      "bytes": 4018
+    },
+    {
+      "order": 31,
+      "name": "20260709160000_seed_events.sql",
+      "sha256": "7d5921007b2cb59d23ecf3ff3404a1d90d14074953a8973ab45f88150f4bbdb6",
+      "bytes": 3678
+    },
+    {
+      "order": 32,
+      "name": "20260710115614_463d3c6b-5ee1-439d-b1c6-d7b791d7a9e3.sql",
+      "sha256": "658276f66e8db99701dd0e5f62e3906df90c58bf09bab0fe40a3f81b264810ed",
+      "bytes": 889
+    },
+    {
+      "order": 33,
+      "name": "20260710121521_ac98d677-9213-43f8-91c3-d3b21c8c0faa.sql",
+      "sha256": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+      "bytes": 9
+    },
+    {
+      "order": 34,
+      "name": "20260710130000_pair_directory.sql",
+      "sha256": "df13c8c3f3fad21820cf0dfddd0dcc8f1d6b54675adf9fcd7ba8134afc993ac2",
+      "bytes": 4780
+    },
+    {
+      "order": 35,
+      "name": "20260710140000_bilateral_pairs.sql",
+      "sha256": "9ff67100ec04dc17d858404f4621ac24a0646029a2076c9c52fae4950e68ee28",
+      "bytes": 9385
+    },
+    {
+      "order": 36,
+      "name": "20260710150000_circle_sessions.sql",
+      "sha256": "c9b34cd18ef833fdf94193782bf3b5740dae51a66e0c71ba36378a86535ef4dd",
+      "bytes": 3901
+    },
+    {
+      "order": 37,
+      "name": "20260713210000_add_wave_invites_email.sql",
+      "sha256": "498cfd004f3a747fa01662c6e3b1337640abbd155f4f2919c8ec6f365248a349",
+      "bytes": 1057
+    },
+    {
+      "order": 38,
+      "name": "20260713234252_8e382d9e-49b9-4778-8602-79af16eb02f5.sql",
+      "sha256": "61eef91448d9538c0c2a9c03400122c7b80f42159d69199d076b9df00df9ee74",
+      "bytes": 68
+    },
+    {
+      "order": 39,
+      "name": "20260714120000_member_invites.sql",
+      "sha256": "3ccf4d7e10e26560abe516558d087e2c430592fead28ff8a9faac7cd46d7ce3a",
+      "bytes": 7804
+    },
+    {
+      "order": 40,
+      "name": "20260714130000_fix_accept_member_invite_execute_grant.sql",
+      "sha256": "516af41d068a75d89cd611193cb7aba740af24b89dfdead23e952bd467a160c6",
+      "bytes": 2824
+    },
+    {
+      "order": 41,
+      "name": "20260725120000_revoke_wave_responses_select_grant.sql",
+      "sha256": "7ce44ce646d99b7911ebbf4f44367f15af20c4b9a8dec55d46ff7b56dd63ddba",
+      "bytes": 1920
+    },
+    {
+      "order": 42,
+      "name": "20260725130000_scope_count_wave_responses_to_caller_org.sql",
+      "sha256": "682fe72a09696d5b86b2c97773248f35397e29dfadf3dbfdb766aab1e4339a62",
+      "bytes": 2535
+    }
+  ]
+}
