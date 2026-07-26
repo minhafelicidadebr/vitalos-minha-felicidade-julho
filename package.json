@@ -13,6 +13,9 @@
     "test": "bun test src",
     "parity": "bun run scripts/schema-parity-check.ts",
     "secret-scan": "bun run scripts/build-secret-scan.ts",
+    "manifest": "bun run scripts/migration-manifest.ts",
+    "manifest:write": "bun run scripts/migration-manifest.ts --write",
+    "staging:jwt-proof": "bun run scripts/staging-jwt-proof.ts",
     "gate": "bun test src && bun run parity && bunx tsc --noEmit"
   },
   "dependencies": {
