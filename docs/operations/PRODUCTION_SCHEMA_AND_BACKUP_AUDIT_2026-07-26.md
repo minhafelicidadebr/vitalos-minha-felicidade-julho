@@ -269,3 +269,240 @@ estrutural forte entre histórico e schema (§3), que precisa das queries de §5
 para virar fato.
 
 `Q1_1_BLOCKED` permanece. **Piloto real não autorizado.**
+
+---
+
+# PARTE II — Plano de remediação (PROD-REMEDIATION-PLAN-01)
+
+> Somente análise e documentação. **Nada foi executado.** Nenhum SQL remoto,
+> nenhuma migration, nenhum `db push`, nenhuma alteração no Lovable Cloud.
+
+## §9 — Fonte de verdade `MIGRATION_HISTORY_NON_CANONICAL`
+
+`supabase_migrations.schema_migrations` da produção **não pode** ser a fonte de
+verdade: ele registra `20260713234253` enquanto objetos de migrations bem
+anteriores estão ausentes (§3), e a base canônica desta tarefa confirma que
+`item_funnel_events` — criada em `20260706130000` — não existe.
+
+Fonte de verdade adotada, em ordem: **(1)** schema real observado; **(2)**
+migrations do repo `@65a554a`; **(3)** manifesto (`496655c9bc68…`); **(4)**
+staging comprovado; **(5)** inventário de objetos.
+
+O histórico **não será corrigido nesta tarefa**.
+
+### Correção de inferência anterior `FATO`
+
+A base canônica informa `item_funnel_events` **ausente**. Isso **refuta** a
+inferência do §3 de que as 19 tabelas seriam as 19 primeiras em ordem de
+criação (série que terminava justamente em `item_funnel_events`). A composição
+real das 19 é **desconhecida** e só a query §5 q2 resolve. Toda linha "produção"
+da matriz abaixo está marcada como não verificada por causa disso.
+
+## §10 — Matriz de drift
+
+Coluna "Produção" = `?` significa **não lido** (§0). Não é ausência presumida.
+
+| Objeto | Tipo | Esperado | Produção | Migration origem | Piloto? | Risco | Ação | Pré-check | Rollback |
+|---|---|---|---|---|---|---|---|---|---|
+| `wave_responses` ACL | grant | sem SELECT p/ anon+auth | **SELECT presente** | 41 (ausente) | **sim** | **P0** | aplicar 41 | q6 | `GRANT SELECT` de volta |
+| `count_wave_responses` | função | org-scoped + bypass service_role | **sem checagem** | 42 (ausente) | **sim** | **P0** | aplicar 42 | q8 | `CREATE OR REPLACE` versão anterior |
+| `provision_organization_from_invite` | função | validar `p_user_id = auth.uid()` | presente, **sem validação** | `20260703203653` | **sim** | **P0** (§12) | migration nova 43 | q4 | restaurar grant anterior |
+| `item_funnel_events` | tabela | existe | **ausente** (confirmado) | `20260706130000` | não (§13) | **P1** | aplicar isolada | q7 | `DROP TABLE` (vazia) |
+| `record_item_funnel_event` | função | existe | `?` | `20260706130000` | não | P1 | junto da tabela | q4 | `DROP FUNCTION` |
+| `sector_links`, `ops_events` | tabelas | existem | `?` | `20260708120000/130000` | parcial | P1 | reconciliar | q7 | `DROP TABLE` (vazias) |
+| `leads` | tabela | existe | `?` | `20260709140000` | não | P1 | reconciliar | q7 | `DROP TABLE` |
+| `practice_entries`, `seed_events` | tabelas | existem | `?` | `20260709150000/160000` | não | P2 | adiar | q7 | — |
+| `pair_*`, `circle_sessions` | tabelas | existem | `?` | `2026071013/14/15` | **não** | P2 | adiar | q7 | — |
+| RLS das 19 existentes | RLS | 100% | `?` | várias | **sim** | **P0 se <100%** | investigar | q3 | n/a |
+| Policies | policy | 35 vivas | **25** | várias | **sim** | **P0/P1** | mapear as 10 | q5 | `DROP POLICY` |
+| Funções | função | 25 | **11** | várias | parcial | P1 | mapear as 14 | q4 | `DROP FUNCTION` |
+| `search_path` | config | `public` em 25/25 | `?` | várias | **sim** | **P0 se ausente** | verificar | q4 | n/a |
+
+**Lacuna de policies é o dado mais preocupante depois dos P0 de segurança:** 25
+em produção contra 35 vivas esperadas. Se alguma das 10 faltantes for de tabela
+existente e sensível, há exposição **hoje** — não apenas funcionalidade
+ausente. A query §5 q5 é a de maior prioridade diagnóstica.
+
+## §11 — Migration 41 (isolada)
+
+Arquivo: `20260725120000_revoke_wave_responses_select_grant.sql` · 1920 bytes ·
+`7ce44ce646d9…` · statement único: `REVOKE SELECT ON public.wave_responses FROM authenticated, anon;`
+
+- **ACL atual (produção):** `authenticated` e `anon` **com** SELECT.
+- **Origem provável:** `ALTER DEFAULT PRIVILEGES` da conta. A tabela nasceu em
+  `20260630161949`, antes da disciplina de `REVOKE ALL` (adotada a partir de
+  `20260705100000`), e `20260705160043` revogou INSERT/UPDATE/DELETE mas
+  **esqueceu SELECT**. Não há `GRANT SELECT` explícito em nenhuma migration.
+- **Efeito:** remove o privilégio de tabela. Não altera dados, não altera RLS.
+- **Impacto PostgREST:** `GET /wave_responses` passa de 200-com-0-linhas (hoje
+  barrado só pela ausência de policy de SELECT) para **401/403**. Falha mais
+  cedo e mais alto — desejável.
+- **Impacto em funções:** **nenhum.** As leitoras são `SECURITY DEFINER`
+  (rodam como owner) ou usam `service_role`, que mantém `GRANT ALL`.
+- **Pré-check:** §5 q6 e q8. **Pós-check:** as duas asserções obrigatórias
+  (`has_table_privilege(...) = false` para ambos os papéis).
+- **Rollback:** `GRANT SELECT ON public.wave_responses TO authenticated, anon;`
+  — restaura exatamente o estado anterior. Reversível em um comando.
+- **Risco de aplicar:** baixo. **Risco de não aplicar:** alto — é a única
+  camada entre uma policy de SELECT criada por engano (ou pelo scanner
+  automático do Lovable, comportamento já documentado neste repo) e a exposição
+  de resposta individual de pesquisa.
+
+## §12 — Migration 42 (isolada) + achado novo
+
+Arquivo: `20260725130000_scope_count_wave_responses_to_caller_org.sql` · 2535 bytes ·
+`682fe72a0969…` · `CREATE OR REPLACE FUNCTION` (idempotente, sem DDL destrutivo).
+
+- **Definição atual (produção):** conta por `wave_id`, **sem vínculo de org**.
+- **Definição esperada:** mesma contagem + `auth.role() = 'service_role' OR
+  wave_id IN (SELECT w.id FROM waves w JOIN profiles p ON p.org_id = w.org_id
+  WHERE p.id = auth.uid())`.
+- **EXECUTE:** `authenticated` (necessário — o painel de ondas mostra contagem).
+- **Comportamentos esperados pós-correção** (todos já **comprovados em staging**,
+  §Q1.1 prova dinâmica): membro/onda própria → contagem real; membro/onda alheia
+  → `0`; sem membership → `0`; `service_role` → contagem real.
+- **`SECURITY DEFINER SET search_path = public`** preservado.
+- **Pré-check:** §5 q8. **Pós-check:** os 5 testes cross-tenant obrigatórios.
+- **Rollback:** `CREATE OR REPLACE` com a definição anterior (preservada em
+  `20260630161949`). Reversível sem perda.
+
+### `PROD-P0-NEW` — `provision_organization_from_invite` `FATO` + `INFERÊNCIA`
+
+**Descoberto nesta análise, ainda não corrigido em lugar nenhum** (nem repo, nem
+staging, nem produção).
+
+- **FATO.** A função tem `GRANT EXECUTE TO authenticated` e recebe `p_user_id`
+  por parâmetro. Ela valida a identidade **apenas** dentro de
+  `IF v_invite.email IS NOT NULL` (compara o e-mail do `p_user_id` com o do
+  convite). **Nunca** compara `p_user_id` com `auth.uid()`.
+- **FATO.** `org_invites.email` é nullable (`email TEXT`, sem `NOT NULL`), e o
+  app cria convites sem e-mail deliberadamente:
+  `src/lib/api/org-invite.server.ts:88` → `email: boundEmail?.trim() || null`
+  (fluxo de link genérico).
+- **INFERÊNCIA.** Com um token de convite sem e-mail, qualquer usuário
+  autenticado pode chamar a função passando o UUID de **outra pessoa** e
+  provisionar uma organização vinculada a ela, sem consentimento — criando
+  `profiles` alheio com papel administrativo.
+- **Precedente idêntico no repo:** `20260714130000` restringiu
+  `accept_member_invite` a `service_role` por **exatamente** este motivo
+  ("NUNCA confere se quem está chamando é o próprio p_user_id"). O comentário
+  daquela migration classifica `provision_organization_from_invite` como
+  "legitimamente chamada do cliente" — o que é verdade, mas a proteção assumida
+  (e-mail do convite) **não existe** no caminho de convite genérico.
+- **Ação recomendada:** migration nova (43) adicionando
+  `IF p_user_id <> auth.uid() THEN RETURN ... 'identity_mismatch'`. Correção de
+  uma linha, sem impacto no fluxo legítimo (o cliente sempre passa o próprio id).
+- **Não corrigir nesta tarefa** — exige revisão do founder e vai para a mesma
+  janela dos P0.
+
+## §13 — `item_funnel_events` `FATO`
+
+- **Criação:** `20260706130000_item_funnel_events.sql` (tabela + índice + RLS +
+  `record_item_funnel_event` SECURITY DEFINER + grants). **Idempotente**
+  (`CREATE TABLE IF NOT EXISTS`), **não destrutiva**, **sem dependência** de
+  outras tabelas ausentes → aplicável isoladamente.
+- **Consumidor único:** `src/lib/survey/survey-telemetry.server.ts`, chamado por
+  `survey-telemetry.functions.ts`, `routes/convite.$token.tsx` e
+  `routes/lupa-da-escuta.tsx`.
+- **Impacto da ausência:** a chamada retorna `{ accepted: false, reason:
+  "db_error" }` (linha 82) — **falha tolerada, não derruba a submissão**. É
+  telemetria de funil, não caminho crítico de resposta.
+- **Faz parte do piloto?** **Não.** Perde-se observabilidade do funil, não
+  funcionalidade de coleta.
+- **Classificação: P1** (não P0). **Pré-check:** §5 q7. **Pós-check:**
+  `to_regclass` não-nulo + RLS ativa + `has_function_privilege`. **Rollback:**
+  `DROP TABLE public.item_funnel_events CASCADE` — segura, a tabela estará vazia.
+
+## §14 — Funções `SECURITY DEFINER` (lado repositório) `FATO`
+
+Análise das **25 do repo**. Quais 11 existem em produção é **desconhecido**
+(§5 q4).
+
+| Eixo | Resultado |
+|---|---|
+| `SECURITY DEFINER` | 25/25 |
+| `SET search_path = public` | **25/25** — zero achados |
+| SQL dinâmico (`EXECUTE format`) | **0/25** — zero achados |
+| Sem `GRANT EXECUTE` explícito | **0/25** — nenhuma herda default da conta |
+
+**EXECUTE por papel:** 14 só `service_role`; 4 `authenticated`; 3 `anon +
+authenticated`; 1 `anon + service_role`; 3 `authenticated + service_role`.
+
+**Classificação das expostas a `anon`/`authenticated`:**
+
+| Função | EXECUTE | Validação | Sev |
+|---|---|---|---|
+| `provision_organization_from_invite` | authenticated | **falha se convite sem e-mail** | **P0** (§12) |
+| `count_wave_responses` | authenticated | org-scoped **após 42** | **P0 até aplicar 42** |
+| `submit_wave_response` | anon, authenticated | token + `FOR UPDATE` + vínculo | OK |
+| `submit_sector_response` | anon, service_role | token + vínculo | OK |
+| `is_invite_valid`, `is_invite_valid_for_wave` | anon, authenticated | só booleano, sem dado | OK |
+| `record_item_funnel_event` | anon, authenticated | telemetria agregada | P2 |
+| `erase_my_assessments` | authenticated | `auth.uid()` próprio | OK |
+| `accept_pair_invite`, `cancel_pair_invite`, `decline_pair_invite` | authenticated | `auth.uid()` | OK |
+
+Nenhuma vulnerabilidade declarada sem evidência: as marcadas OK têm o mecanismo
+de autorização nomeado.
+
+## §15 — Janela de mudança proposta `NÃO EXECUTAR`
+
+Pré-condições **bloqueantes** (nenhuma atendida hoje): owner nomeado; backup
+comprovado **e restauração testada**; snapshot obtido.
+
+1. Owner técnico + responsável operacional nomeados e cientes.
+2. Backup confirmado por escrito pelo Lovable **e restauração testada** (§16).
+3. Snapshot/export imediatamente antes da janela.
+4. Congelamento: sem edições no Lovable durante a janela.
+5. **Diagnóstico completo primeiro** — rodar §5 q1–q8 e fechar a matriz §10.
+6. **Migration 41 isolada** → pós-check ACL → observar.
+7. Validação RLS/ACL (as duas asserções `has_table_privilege = false`).
+8. **Migration 42 isolada** → pós-check → observar.
+9. Testes cross-tenant (os 5 casos), com usuários sintéticos, nunca reais.
+10. **Migration 43 (novo P0 §12)** — só após revisão do founder.
+11. Reconciliação P1 (`item_funnel_events`, `sector_links`, `ops_events`), uma
+    a uma, cada uma com pré/pós-check.
+12. Gate: `bun run gate` + `bun run manifest` verdes antes de cada aplicação.
+13. Observação pós-mudança: erros do app, `ops_events`, submissões reais.
+14. Rollback documentado por passo (§11, §12, §13).
+15. Registro das evidências neste documento.
+
+**Explicitamente rejeitado:** aplicar as 42 em bloco. O histórico não é
+confiável (§9), várias já estão aplicadas, e um `db push` decidiria o que rodar
+lendo justamente o registro que sabemos estar errado.
+
+**Ordem de prioridade se a janela for curta:** 41 → 42 → 43 → P1. Os três
+primeiros são segurança ativa; o resto é funcionalidade.
+
+## §16 — Backup e governança
+
+Sem alteração: `BLOCKER_OPS_BACKUP` · `BLOCKER_RESTORE_UNPROVEN` ·
+`BLOCKER_DATA_OWNERSHIP`. Solicitação ao Lovable redigida em **§6** —
+**não enviada**. Acrescentar ao enviá-la: *"restauração já foi testada alguma
+vez neste projeto? Se sim, quando e com que resultado?"* — backup não testado
+não é backup comprovado.
+
+## §17 — Histórico canônico a partir da próxima mudança
+
+1. Toda mudança de schema nasce como migration versionada no repo — **nunca**
+   SQL manual no painel.
+2. Revisão humana + CI verde (`bun run gate`, `bun run manifest`) antes de aplicar.
+3. Backup imediatamente antes.
+4. Aplicação controlada em janela, uma migration por vez.
+5. Registro verificável: versão aplicada + evidência de pós-check neste doc.
+6. Validação pós-migration obrigatória (contagem de objetos + `has_*_privilege`
+   + testes de RLS).
+7. **Proibido** SQL manual não documentado — se acontecer em emergência, vira
+   migration versionada na mesma semana.
+8. `schema_migrations` **não** é retroativamente corrigido nesta tarefa; a
+   reconciliação registro↔objetos é decisão própria, com o founder.
+
+## §18 — Veredito da Parte II
+
+`PROD_REMEDIATION_PLAN_READY` — drift mapeado (com as lacunas de leitura
+explicitamente marcadas), 41 e 42 com plano isolado e rollback, 25 funções
+classificadas, `item_funnel_events` classificada como P1, solicitação ao Lovable
+pronta, pré/pós-checks e rollback definidos.
+
+Um **P0 novo** foi descoberto no caminho (§12, `provision_organization_from_invite`).
+
+`Q1_1_BLOCKED` permanece. **Piloto real não autorizado.**
