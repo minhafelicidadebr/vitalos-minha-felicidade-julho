@@ -16,7 +16,8 @@
     "manifest": "bun run scripts/migration-manifest.ts",
     "manifest:write": "bun run scripts/migration-manifest.ts --write",
     "staging:jwt-proof": "bun run scripts/staging-jwt-proof.ts",
-    "gate": "bun test src && bun run parity && bunx tsc --noEmit"
+    "gate": "bun test src && bun run parity && bunx tsc --noEmit",
+    "staging:org-invite-proof": "bun run scripts/staging-org-invite-identity-proof.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
