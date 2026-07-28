@@ -14,8 +14,15 @@
 import { describe, expect, test } from "bun:test";
 import { collectSqlSources } from "@/lib/schema-parity/parity-io";
 
+// ORDENAÇÃO OBRIGATÓRIA: collectSqlSources() usa Glob.scanSync(), cuja ordem é
+// dependente do sistema de arquivos — no Windows veio ordenada, no Linux do CI
+// não. Como ultimaDefinicao() depende de qual definição vem por último, sem o
+// sort o teste passava localmente e falhava no CI, pegando uma migration antiga
+// como "última". O prefixo de timestamp faz ordem lexicográfica = cronológica.
 function allSql(): string {
   return collectSqlSources()
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
     .map((s) => s.content)
     .join("\n");
 }
