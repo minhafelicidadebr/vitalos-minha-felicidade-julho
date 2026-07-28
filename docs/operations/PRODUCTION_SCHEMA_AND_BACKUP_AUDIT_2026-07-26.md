@@ -318,10 +318,36 @@ Coluna "Produção" = `?` significa **não lido** (§0). Não é ausência presu
 | Funções | função | 25 | **11** | várias | parcial | P1 | mapear as 14 | q4 | `DROP FUNCTION` |
 | `search_path` | config | `public` em 25/25 | `?` | várias | **sim** | **P0 se ausente** | verificar | q4 | n/a |
 
-**Lacuna de policies é o dado mais preocupante depois dos P0 de segurança:** 25
-em produção contra 35 vivas esperadas. Se alguma das 10 faltantes for de tabela
-existente e sensível, há exposição **hoje** — não apenas funcionalidade
-ausente. A query §5 q5 é a de maior prioridade diagnóstica.
+**CORREÇÃO — a inferência anterior sobre policies estava errada.** Este
+documento afirmava que 25 policies contra 35 esperadas seria "o dado mais
+preocupante depois dos P0", sugerindo exposição. Isso não se sustenta:
+
+> **Menos policies com RLS ativa não prova exposição; pode significar default
+> deny.** Com RLS habilitada e nenhuma policy aplicável, o Postgres **nega** —
+> é o comportamento padrão, e este repo depende dele deliberadamente
+> (`wave_responses` não tem policy de SELECT *por desenho* — ver comentário em
+> `20260705160043`: *"Deliberately NO SELECT policy"*).
+>
+> Exposição exige uma destas quatro condições, nenhuma delas implicada por uma
+> contagem menor: **(1)** policy permissiva demais; **(2)** bypass (privilégio
+> de tabela concedido onde não deveria); **(3)** RLS desligada na tabela; ou
+> **(4)** função privilegiada sem autorização — que é exatamente a classe dos
+> P0 reais desta auditoria (`count_wave_responses`,
+> `provision_organization_from_invite`).
+
+A lacuna de 10 policies é, portanto, **P1 de funcionalidade** até prova em
+contrário, não P0 de exposição. O que a query §5 q5 responde é *quais* tabelas
+existentes ficaram sem policy — e o risco real dessas é de **funcionalidade
+quebrada** (usuário legítimo não lê o que deveria), com risco de exposição
+apenas se combinada com (2) ou (3) acima, que são as queries q3 e q6.
+
+Menos policies também pode representar simplesmente **drift** — policy que
+nunca chegou a ser aplicada porque a migration que a cria está entre as
+ausentes — ou **funcionalidade ausente** junto com a tabela que ela protegeria.
+Nenhuma dessas leituras é distinguível pela contagem: o achado permanece
+**inconclusivo sem teste efetivo**.
+
+Esta tarefa **não** amplia o escopo para revisar as 35 policies.
 
 ## §11 — Migration 41 (isolada)
 
