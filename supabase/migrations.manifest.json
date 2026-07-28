@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 42,
-  "rollupSha256": "496655c9bc6839609f0b5df009e5f5afcd007a07cffd3a5cb3de4b58afd9a504",
+  "migrationCount": 43,
+  "rollupSha256": "dab1244d360ff7a739afbfd15b8ffcf47fdfd86e20dd67e22f1d4f90970166ed",
   "migrations": [
     {
       "order": 1,
@@ -254,6 +254,12 @@
       "name": "20260725130000_scope_count_wave_responses_to_caller_org.sql",
       "sha256": "682fe72a09696d5b86b2c97773248f35397e29dfadf3dbfdb766aab1e4339a62",
       "bytes": 2535
+    },
+    {
+      "order": 43,
+      "name": "20260726120000_bind_org_provisioning_to_authenticated_user.sql",
+      "sha256": "cd1ba81917bd73543a5b6c8a2935bfa4960cd6797027a42049e1fc4fb72d99ad",
+      "bytes": 8162
     }
   ]
 }
