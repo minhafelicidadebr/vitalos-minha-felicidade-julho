@@ -115,15 +115,51 @@ O arquivo é ASCII puro (170 linhas) — uma tentativa anterior falhou com
 substituiu tipografia. **Copiar do arquivo em disco ou do blob do git, nunca de
 uma renderização.**
 
-### SHA-256 — atenção à terminação de linha
+### SHA-256 normativo
 
-| Variante | Hash |
+**Hash normativo — o único válido para a janela:**
+
+```
+cd1ba81917bd73543a5b6c8a2935bfa4960cd6797027a42049e1fc4fb72d99ad
+```
+
+É o SHA-256 do **blob do git em `main@061877c`** (terminações LF), e a mesma
+convenção usada pelo manifesto de migrations. Qualquer artefato que não bata
+com este hash **não está autorizado para produção**.
+
+| Hash | Classificação |
 |---|---|
-| **Canônico (blob git, LF)** | `cd1ba81917bd73543a5b6c8a2935bfa4960cd6797027a42049e1fc4fb72d99ad` |
-| Cópia de trabalho Windows (CRLF) | `885ec5a6c97455c0b8e9193df9143dcd93b1705459ffab5b7a43cff84d3ac806` |
+| `cd1ba81917bd7354...5fa363a7` (LF, blob git) | **NORMATIVO** — único autorizado |
+| `885ec5a6c97455c0...4d3ac806` | **Apenas hash de cópia local com CRLF.** Artefato de checkout no Windows (`core.autocrlf`). **Não é artefato autorizado para produção** e não deve ser usado como referência de verificação. |
 
-Use o **canônico**. Verificar com:
-`git show 061877c:supabase/migrations/20260726120000_bind_org_provisioning_to_authenticated_user.sql | sha256sum`
+### Procedimento de extração — obrigatório
+
+O SQL da janela **deve ser extraído diretamente do blob de `main@061877c`**, e
+**verificado novamente imediatamente antes de qualquer aplicação**. Não usar a
+cópia de trabalho, não usar conteúdo renderizado, não usar cópia de mensagem de
+chat ou de anexo — uma tentativa anterior falhou com
+`syntax error at or near "-"` justamente por substituição tipográfica no
+transporte.
+
+```bash
+# 1. Extrai do blob canonico para um arquivo limpo
+git show 061877c:supabase/migrations/20260726120000_bind_org_provisioning_to_authenticated_user.sql \
+  > /tmp/p0-window.sql
+
+# 2. Verifica o hash normativo ANTES de aplicar
+sha256sum /tmp/p0-window.sql
+# esperado: cd1ba81917bd73543a5b6c8a2935bfa4960cd6797027a42049e1fc4fb72d99ad
+
+# 3. Confirma que e ASCII puro (nenhum byte > 127)
+LC_ALL=C grep -n '[^\x00-\x7F]' /tmp/p0-window.sql && echo "FALHOU: nao-ASCII" || echo "OK: ASCII puro"
+
+# 4. Confirma que a primeira linha comeca com dois hifens ASCII (2d 2d)
+head -c 2 /tmp/p0-window.sql | od -A n -t x1   # esperado: 2d 2d
+```
+
+Se qualquer um dos quatro passos divergir, **abortar a janela** e investigar
+antes de prosseguir. A re-verificação do passo 2 é obrigatória mesmo que o
+arquivo tenha sido extraído minutos antes.
 
 ### Duração estimada
 
@@ -226,20 +262,73 @@ emitido, ainda não usado e não expirado. Ou seja, a exposição real **não é
 "qualquer um a qualquer momento"** — é limitada ao conjunto de convites
 genéricos em aberto. A query (d) do §3 mede exatamente isso.
 
-### Contenção proposta, por cenário
+### Limite da evidência sobre o caminho com e-mail
 
-| Resultado da query (d) | Contenção recomendada |
-|---|---|
-| **0 convites abertos** | Exposição atual **nula**. Contenção = disciplina operacional: **não emitir convite genérico** até a janela; emitir sempre com `email` vinculado (o caminho com e-mail já valida identidade e não é explorável). Custo zero, sem código, sem deploy. |
-| **≥ 1 convite aberto** | Expirar os pendentes: `UPDATE public.org_invites SET expires_at = NOW() WHERE email IS NULL AND used_at IS NULL AND (expires_at IS NULL OR expires_at > NOW());` — reversível, não destrói linha, e derruba a exposição a zero. **É escrita em produção: exige autorização explícita e não está autorizada aqui.** |
+O caminho com e-mail vinculado **não foi explorado com sucesso em nenhum dos
+cenários testados**: no harness de staging, `convite com e-mail (A) +
+p_user_id de B` retornou `email_mismatch`, sem escrita. Isso é o que a
+evidência sustenta.
 
-**Recomendação:** a disciplina de emitir convites **sempre com e-mail vinculado**
-neutraliza o vetor sem tocar em nada — o caminho com e-mail sempre validou
-identidade. Feature flag ou bloqueio de rota são desproporcionais: derrubariam
-o onboarding legítimo inteiro para mitigar um vetor que já está fechado na
-emissão.
+**Não é o mesmo que afirmar que esse caminho é inexplorável.** Ele não foi
+submetido a análise adversarial dedicada (colisão/normalização de e-mail,
+troca de e-mail no `auth.users` entre emissão e uso, e-mail reciclado, entre
+outros). Tratar "não observado nos testes" como "impossível" seria
+exatamente o erro que produziu este P0 — a proteção por e-mail foi **assumida**
+suficiente em `20260714130000` sem que o caminho sem e-mail tivesse sido
+verificado. A contenção abaixo reduz risco conhecido; ela **não** substitui a
+correção definitiva.
 
-**Nada implementado.** Nenhuma das opções foi executada.
+### Contenção por cenário — decidida pelo inventário (query (d) do §3)
+
+**A query de inventário NÃO foi executada por este agente.** O cenário
+aplicável só é conhecido depois que o founder a rodar.
+
+#### Cenário 1 — zero convites genéricos válidos
+
+- **Proibir temporariamente novas emissões genéricas** até a correção estar
+  aplicada em produção. Restrição operacional; não requer código nem deploy.
+- **Utilizar somente convites vinculados a e-mail** enquanto durar a pendência.
+- **Registrar explicitamente que a correção definitiva continua pendente** — a
+  ausência de convites abertos zera a exposição *no momento da medição*, e não
+  fecha a vulnerabilidade. Qualquer emissão genérica futura a reabre
+  imediatamente.
+- Custo zero. Nenhuma escrita em produção.
+
+#### Cenário 2 — um ou mais convites genéricos válidos
+
+- **Recomendar revogação/expiração controlada** dos pendentes:
+  ```sql
+  UPDATE public.org_invites
+     SET expires_at = NOW()
+   WHERE email IS NULL
+     AND used_at IS NULL
+     AND (expires_at IS NULL OR expires_at > NOW());
+  ```
+- **Substituir por convites vinculados a e-mail** para cada destinatário
+  legítimo que ainda precise entrar — o fluxo não fica interrompido.
+- **Preservar trilha de auditoria:** expirar via `expires_at`, **nunca**
+  `DELETE`. A linha permanece, com `created_by`, `created_at` e o novo
+  `expires_at`, mantendo o registro de que existiu e de quando foi contida.
+  Antes de executar, exportar a lista de tokens afetados (token, `created_by`,
+  `created_at`, `expires_at` anterior) para o registro da contenção.
+- **Não executar sem autorização.** É escrita em produção e **não está
+  autorizada** por esta tarefa.
+
+#### Cenário 3 — inventário indisponível
+
+- **Considerar o vetor ATIVO até prova em contrário.** Sem a medição, não há
+  base para afirmar exposição nula.
+- Aplicar as restrições do Cenário 1 **e** tratar a obtenção do inventário como
+  pré-requisito da janela, não como etapa opcional.
+
+**Sobre alternativas mais agressivas:** feature flag ou bloqueio de rota
+derrubariam o onboarding legítimo inteiro. Dado que a emissão já é restrita a
+administradores da plataforma (`verifyPlatformAdmin`), a restrição de emissão
+cobre o mesmo vetor a um custo muito menor. Se o founder preferir a via mais
+conservadora, a decisão é dele — registre-a aqui.
+
+**Nada implementado.** Nenhuma das opções foi executada, nenhum convite foi
+revogado, o inventário não foi consultado.
 
 ## 7. Prova pós-produção
 
@@ -290,5 +379,11 @@ uma substituição de função sem DDL de tabela, sem toque em dado, com rollbac
 de um comando. **O que bloqueia não é a mudança: é o ambiente.** Backup não
 comprovado, restauração nunca testada e responsável operacional indefinido.
 
-Enquanto isso, a contenção do §6 reduz a exposição a custo zero e **sem tocar
-em produção**: emitir convites sempre com e-mail vinculado.
+A contenção do §6 reduz o risco conhecido enquanto a janela não abre, mas o
+cenário aplicável **depende do inventário de convites, que não foi
+consultado**. Até que seja, vale o Cenário 3: **vetor considerado ativo até
+prova em contrário**.
+
+Nenhuma forma de contenção substitui a correção definitiva. Reduzir a
+superfície de emissão diminui a probabilidade de exploração; não remove a
+falha, que segue presente na função em produção.
