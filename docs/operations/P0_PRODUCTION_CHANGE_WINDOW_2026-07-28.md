@@ -161,6 +161,37 @@ Se qualquer um dos quatro passos divergir, **abortar a janela** e investigar
 antes de prosseguir. A re-verificação do passo 2 é obrigatória mesmo que o
 arquivo tenha sido extraído minutos antes.
 
+### Artefato canônico extraído e validado — 2026-07-28 `[VERIFICADO]`
+
+O founder extraiu o artefato de `main@061877c` e o disponibilizou localmente.
+**Verificação independente executada por este agente** (leitura apenas; a
+produção não foi acessada e o SQL não foi aplicado):
+
+| Item | Valor | Resultado |
+|---|---|---|
+| Caminho | `C:\Users\FIB2030\p0-production-migration.sql` | existe |
+| Tamanho | **8.162 bytes** | confere |
+| SHA-256 | `cd1ba81917bd73543a5b6c8a2935bfa4960cd6797027a42049e1fc4fb72d99ad` | **bate com o normativo** |
+| Passo 3 — ASCII puro | 0 bytes > 127 | OK |
+| Terminação de linha | LF puro (nenhum CRLF) | OK |
+| Linhas | 171 | consistente |
+| Passo 4 — dois primeiros bytes | `2d 2d` (`--`) | OK |
+| Identidade com o blob | `diff` contra `git show 061877c:...` | **byte a byte idêntico** |
+
+A diferença de 170 bytes para a cópia de trabalho (8.332) é exatamente o número
+de linhas, ou seja, os `\r` removidos — confirmando que este é o artefato LF
+canônico e não a cópia CRLF.
+
+**Este é o artefato autorizado para a janela.** Ainda assim, o passo 2
+(re-verificação do hash) continua **obrigatório imediatamente antes da
+aplicação**: esta validação atesta o arquivo em 2026-07-28, não o seu estado no
+momento futuro em que a janela for aberta.
+
+**Estado:** artefato pronto e verificado. **Não aplicado em produção**, nenhum
+deploy executado. Os bloqueadores da janela (§2 backup, §2 responsável
+operacional, §6 inventário de convites) **permanecem abertos** — ter o artefato
+válido não é autorização para aplicá-lo.
+
 ### Duração estimada
 
 Execução do SQL: **menos de 1 segundo** (substituição de função + grants; sem
