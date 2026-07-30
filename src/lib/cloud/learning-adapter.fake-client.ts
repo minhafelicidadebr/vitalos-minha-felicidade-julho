@@ -50,6 +50,30 @@ export const fakeSupabaseState: {
   nextInsertedId: "row-uuid-1",
 };
 
+// Notificação determinística do próximo insert (TEST-STAB-1) — usada por
+// quem precisa aguardar um efeito colateral assíncrono e "fire-and-forget"
+// (ex.: participation-store.ts dispara `import().then(saveParticipationEvent)`
+// sem devolver a promise ao chamador, de propósito, para nunca bloquear a UI
+// local). Esperar um número fixo de ticks para essa promise resolver é uma
+// aposta: sob carga (processo com centenas de outros arquivos de teste
+// competindo pelo event loop), o import dinâmico pode não ter terminado a
+// tempo, e a asserção lê `lastInsert` antes dele ser escrito — falha só sob
+// carga, nunca isolado. `waitForNextInsert()` resolve exatamente quando o
+// insert acontece, não antes nem "provavelmente depois".
+let insertListeners: Array<(payload: Record<string, unknown>) => void> = [];
+
+export function waitForNextInsert(): Promise<Record<string, unknown>> {
+  return new Promise((resolve) => {
+    insertListeners.push(resolve);
+  });
+}
+
+function notifyInsert(payload: Record<string, unknown>): void {
+  const listeners = insertListeners;
+  insertListeners = [];
+  for (const listener of listeners) listener(payload);
+}
+
 function rowsFor(table: string, filters: Array<[string, unknown]>): unknown[] {
   const firstValue = filters[0]?.[1] as string | undefined;
   if (table === "sm2_card_state") return fakeSupabaseState.cardRows[firstValue ?? ""] ?? [];
@@ -103,6 +127,7 @@ export const fakeSupabase = {
     },
     insert: (payload: Record<string, unknown>) => {
       fakeSupabaseState.lastInsert = payload;
+      notifyInsert(payload);
       const result = { data: null, error: fakeSupabaseState.insertError };
       // Awaitable direto (S5) E encadeável com .select().single() (I7 real).
       return Object.assign(Promise.resolve(result), {
