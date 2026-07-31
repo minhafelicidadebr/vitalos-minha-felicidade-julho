@@ -28,6 +28,103 @@ type Estado =
   | { t: "erro"; motivo: string }
   | { t: "ok"; coortes: CohortRef[]; relatorios: Record<string, FibtCohortReport> };
 
+// Componentes de estado exportados: a prova de renderizacao monta cada um
+// isoladamente, sem precisar de rede nem de roteador.
+
+export function EstadoCarregando() {
+  return (
+    <p role="status" className="text-sm text-muted-foreground">
+      Carregando resultado da onda...
+    </p>
+  );
+}
+
+export function EstadoVazio({ motivo }: { motivo: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-border p-6 text-center">
+      <p className="text-sm text-muted-foreground">{motivo}</p>
+    </div>
+  );
+}
+
+export function EstadoErro({ motivo }: { motivo: string }) {
+  return (
+    <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
+      <p className="text-sm font-medium text-destructive">Nao foi possivel carregar</p>
+      <p className="mt-1 text-xs text-muted-foreground">{motivo}</p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Nenhum dado de demonstracao foi exibido no lugar do resultado real.
+      </p>
+    </div>
+  );
+}
+
+export function CohortCard({
+  chave,
+  rotulo,
+  relatorio: r,
+}: {
+  chave: string;
+  rotulo: string;
+  relatorio: FibtCohortReport;
+}) {
+  return (
+    <section
+      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
+      data-testid={`coorte-${chave}`}
+    >
+      <h2 className="font-serif text-lg text-foreground">{rotulo}</h2>
+
+      {r.status === "suprimido" && (
+        <div className="mt-2 rounded-lg bg-muted/50 p-4">
+          <p className="text-xs text-muted-foreground">Respostas</p>
+          <p className="font-serif text-3xl text-foreground" data-testid="contagem-suprimida">
+            {r.countLabel}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground" data-testid="suprimido">
+            {r.motivo}
+          </p>
+        </div>
+      )}
+
+      {r.status === "nao_autorizado" && (
+        <div className="mt-2 rounded-lg bg-muted/50 p-4">
+          <p className="text-sm text-muted-foreground">{r.motivo}</p>
+        </div>
+      )}
+
+      {r.status === "incompleto" && (
+        <div className="mt-2 rounded-lg bg-muted/50 p-4">
+          <p className="text-sm text-muted-foreground">{r.motivo}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Itens sem valor valido: {r.itensAusentes.join(", ")}
+          </p>
+        </div>
+      )}
+
+      {r.status === "ok" && (
+        <div className="mt-2">
+          <p className="text-xs text-muted-foreground">
+            Escore bruto · <span data-testid="contagem-visivel">{r.n}</span> respostas
+          </p>
+          <p className="font-serif text-4xl text-foreground" data-testid="escore-bruto">
+            {r.resultado.escoreBruto}
+            <span className="text-base text-muted-foreground"> / 12</span>
+          </p>
+          <ul className="mt-3 space-y-1">
+            {r.resultado.factors.map((f) => (
+              <li key={f.id} className="flex flex-wrap justify-between gap-x-2 text-sm">
+                <span className="text-card-foreground">{f.name}</span>
+                <span className="text-muted-foreground">{f.mean} / 4</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function FibtPilotoPage() {
   const [waveId, setWaveId] = useState("");
   const [estado, setEstado] = useState<Estado>({ t: "vazio", motivo: "Informe a onda para carregar." });
@@ -112,78 +209,16 @@ function FibtPilotoPage() {
           </button>
         </form>
 
-        {estado.t === "carregando" && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Carregando resultado da onda...
-          </p>
-        )}
+        {estado.t === "carregando" && <EstadoCarregando />}
 
-        {estado.t === "vazio" && (
-          <div className="rounded-xl border border-dashed border-border p-6 text-center">
-            <p className="text-sm text-muted-foreground">{estado.motivo}</p>
-          </div>
-        )}
+        {estado.t === "vazio" && <EstadoVazio motivo={estado.motivo} />}
 
-        {estado.t === "erro" && (
-          <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
-            <p className="text-sm font-medium text-destructive">Nao foi possivel carregar</p>
-            <p className="mt-1 text-xs text-muted-foreground">{estado.motivo}</p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Nenhum dado de demonstracao foi exibido no lugar do resultado real.
-            </p>
-          </div>
-        )}
+        {estado.t === "erro" && <EstadoErro motivo={estado.motivo} />}
 
         {estado.t === "ok" &&
-          estado.coortes.map((c) => {
-            const r = estado.relatorios[c.id]!;
-            return (
-              <section
-                key={c.id}
-                className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
-                data-testid={`coorte-${c.key}`}
-              >
-                <h2 className="font-serif text-lg text-foreground">{c.label}</h2>
-
-                {r.status === "suprimido" && (
-                  <div className="mt-2 rounded-lg bg-muted/50 p-4">
-                    <p className="text-sm text-muted-foreground" data-testid="suprimido">
-                      {r.motivo}
-                    </p>
-                  </div>
-                )}
-
-                {r.status === "incompleto" && (
-                  <div className="mt-2 rounded-lg bg-muted/50 p-4">
-                    <p className="text-sm text-muted-foreground">{r.motivo}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Itens sem valor valido: {r.itensAusentes.join(", ")}
-                    </p>
-                  </div>
-                )}
-
-                {r.status === "ok" && (
-                  <div className="mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      Escore bruto · {r.n} respostas
-                    </p>
-                    <p className="font-serif text-4xl text-foreground">
-                      {r.resultado.escoreBruto}
-                      <span className="text-base text-muted-foreground"> / 12</span>
-                    </p>
-                    <ul className="mt-3 space-y-1">
-                      {r.resultado.factors.map((f) => (
-                        <li key={f.id} className="flex justify-between text-sm">
-                          <span className="text-card-foreground">{f.name}</span>
-                          <span className="text-muted-foreground">{f.mean} / 4</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </section>
-            );
-          })}
+          estado.coortes.map((c) => (
+            <CohortCard key={c.id} chave={c.key} rotulo={c.label} relatorio={estado.relatorios[c.id]!} />
+          ))}
 
         <div className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-5 py-4 dark:bg-amber-950/20" role="note">
           <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-300">

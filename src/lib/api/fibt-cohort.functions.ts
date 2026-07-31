@@ -66,8 +66,21 @@ export async function loadFibtCohortReport(
 
   if (error) return { estado: "erro", motivo: error.message };
 
+  // Dois contratos possiveis enquanto o privacy hardening nao esta aplicado
+  // em todos os ambientes: o antigo devolve `n`; o novo devolve
+  // `response_count` (NULL abaixo do limiar) mais `response_count_label`.
+  // Ler os dois evita que o painel quebre no meio da transicao — e a
+  // supressao da contagem exata acontece de qualquer forma no cliente.
   const row = (data as unknown as
-    { n: number; k_min: number; visible: boolean; item_means: Record<string, number> | null }[]
+    {
+      visible: boolean;
+      n?: number | null;
+      response_count?: number | null;
+      response_count_label?: string | null;
+      k_min: number;
+      item_means: Record<string, number> | null;
+      suppression_reason?: string | null;
+    }[]
   )?.[0];
 
   if (!row) {
@@ -75,11 +88,14 @@ export async function loadFibtCohortReport(
     return { estado: "erro", motivo: "A agregacao nao retornou resultado." };
   }
 
+  const contagem = row.response_count ?? row.n ?? null;
   const agg: CohortAggregate = {
-    n: row.n,
-    kMin: row.k_min,
     visible: row.visible,
+    n: row.visible ? contagem : null, // suprimido nunca carrega o numero exato
+    countLabel: row.response_count_label ?? (row.visible ? String(contagem ?? "") : null),
+    kMin: row.k_min,
     itemMeans: row.item_means,
+    suppressionReason: row.suppression_reason ?? null,
   };
 
   return { estado: "ok", relatorio: buildFibtCohortReport(agg) };

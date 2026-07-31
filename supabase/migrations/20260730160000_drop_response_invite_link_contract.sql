@@ -30,46 +30,58 @@
 
 DO $$
 DECLARE
-  v_afetadas       INTEGER;
-  v_nao_sinteticas INTEGER;
-  v_emails_reais   INTEGER;
-  v_policy_legada  INTEGER;
+  -- Lista fechada de organizacoes sinteticas autorizadas. UUID EXATO, nunca
+  -- padrao de texto: uma versao anterior usava LIKE '%(sint_tico)%', e '_' e
+  -- curinga no LIKE -- casaria "sintXtico" e qualquer outra coisa de mesmo
+  -- tamanho. Nome de organizacao e evidencia humana; nao decide destruicao.
+  ORGS_SINTETICAS CONSTANT UUID[] := ARRAY[
+    'a0000000-0000-0000-0000-000000000001'::UUID,
+    'a0000000-0000-0000-0000-000000000002'::UUID
+  ];
+  AFETADAS_ESPERADAS CONSTANT INTEGER := 16;
+
+  v_afetadas      INTEGER;
+  v_fora_da_lista INTEGER;
+  v_ondas_fora    INTEGER;
+  v_emails_reais  INTEGER;
+  v_policy_legada INTEGER;
+  v_dependentes   INTEGER;
 BEGIN
-  -- --- 1.1 Quantas linhas perdem valor ------------------------------------
+  -- --- 1.1 Quantidade afetada tem que ser EXATAMENTE a inventariada -------
+  -- Se mudou, o banco nao e mais o que foi inventariado e a autorizacao
+  -- humana nao cobre este estado.
   SELECT COUNT(*) INTO v_afetadas
     FROM public.wave_responses WHERE invite_token IS NOT NULL;
-  RAISE NOTICE 'Respostas com invite_token nao nulo: %', v_afetadas;
 
-  -- --- 1.2 Toda linha afetada pertence a tenant COMPROVADAMENTE sintetico --
-  -- Tres sinais independentes, nao apenas organization.name:
-  --   (a) UUID de organizacao na faixa semeada a0000000-...
-  --   (b) nome com marcador sintetico explicito
-  --   (c) prefixo controlado desta onda (fibt1-synth-)
-  SELECT COUNT(*) INTO v_nao_sinteticas
-    FROM public.wave_responses r
-    JOIN public.waves w ON w.id = r.wave_id
-    JOIN public.organizations o ON o.id = w.org_id
-   WHERE r.invite_token IS NOT NULL
-     AND NOT (
-          o.id::TEXT LIKE 'a0000000-0000-0000-0000-%'
-       -- '_' casa um caractere qualquer: pega "sintetico" e "sintetico"
-       -- acentuado sem precisar de byte nao-ASCII neste arquivo.
-       OR o.name LIKE '%(sint_tico)%'
-       OR o.name LIKE 'P0 Proof %'
-       OR o.name LIKE 'fibt1-synth-%'
-     );
-
-  IF v_nao_sinteticas > 0 THEN
-    RAISE EXCEPTION 'ABORTADO: % resposta(s) com invite_token pertencem a organizacao NAO comprovadamente sintetica.', v_nao_sinteticas;
+  IF v_afetadas <> AFETADAS_ESPERADAS THEN
+    RAISE EXCEPTION 'ABORTADO: esperadas % respostas com invite_token, encontradas %. O estado do banco divergiu do inventario aprovado.',
+      AFETADAS_ESPERADAS, v_afetadas;
   END IF;
 
-  -- --- 1.3 Nenhum email real nos convites das ondas afetadas --------------
-  -- Se houvesse email real, o dado nao seria sintetico -- e o snapshot
-  -- passaria a conter PII, o que nao e aceitavel.
+  -- --- 1.2 Toda resposta afetada pertence a uma das orgs autorizadas ------
+  SELECT COUNT(*) INTO v_fora_da_lista
+    FROM public.wave_responses r
+    JOIN public.waves w ON w.id = r.wave_id
+   WHERE r.invite_token IS NOT NULL
+     AND NOT (w.org_id = ANY (ORGS_SINTETICAS));
+
+  IF v_fora_da_lista > 0 THEN
+    RAISE EXCEPTION 'ABORTADO: % resposta(s) afetada(s) pertencem a organizacao fora da lista sintetica autorizada.', v_fora_da_lista;
+  END IF;
+
+  -- --- 1.3 Toda onda afetada pertence a uma das orgs autorizadas ----------
+  SELECT COUNT(DISTINCT w.id) INTO v_ondas_fora
+    FROM public.waves w
+   WHERE w.id IN (SELECT DISTINCT wave_id FROM public.wave_responses WHERE invite_token IS NOT NULL)
+     AND NOT (w.org_id = ANY (ORGS_SINTETICAS));
+
+  IF v_ondas_fora > 0 THEN
+    RAISE EXCEPTION 'ABORTADO: % onda(s) afetada(s) fora das organizacoes sinteticas autorizadas.', v_ondas_fora;
+  END IF;
+
+  -- --- 1.4 Nenhum email real em convite relacionado ----------------------
   SELECT COUNT(*) INTO v_emails_reais
     FROM public.wave_invites i
-    JOIN public.waves w ON w.id = i.wave_id
-    JOIN public.organizations o ON o.id = w.org_id
    WHERE i.email IS NOT NULL
      AND i.email NOT LIKE '%@example.invalid'
      AND i.email NOT LIKE '%@example.com';
@@ -78,7 +90,13 @@ BEGIN
     RAISE EXCEPTION 'ABORTADO: % convite(s) com email fora de example.invalid/example.com -- dado possivelmente real.', v_emails_reais;
   END IF;
 
-  -- --- 1.4 Nenhuma policy legada dependente da coluna ---------------------
+  -- --- 1.5 Fluxo novo nao pode estar gravando a coluna legada -------------
+  IF EXISTS (SELECT 1 FROM public.wave_responses
+              WHERE cohort_id IS NOT NULL AND invite_token IS NOT NULL) THEN
+    RAISE EXCEPTION 'ABORTADO: existe resposta com cohort_id E invite_token -- o fluxo novo ainda preenche a coluna legada.';
+  END IF;
+
+  -- --- 1.6 Nenhuma policy ou funcao SQL ainda depende da coluna -----------
   SELECT COUNT(*) INTO v_policy_legada
     FROM pg_policies
    WHERE schemaname = 'public' AND tablename = 'wave_responses' AND policyname = 'response_submit';
@@ -87,7 +105,22 @@ BEGIN
     RAISE EXCEPTION 'ABORTADO: policy legada response_submit ainda existe e depende de invite_token.';
   END IF;
 
-  -- --- 1.5 Migration A tem que estar aplicada -----------------------------
+  -- Varre o corpo de TODA funcao do schema public procurando referencia a
+  -- wave_responses.invite_token. submit_sector_response e reescrita mais
+  -- abaixo, nesta mesma transacao, entao e excluida da checagem.
+  SELECT COUNT(*) INTO v_dependentes
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+   WHERE n.nspname = 'public'
+     AND p.proname NOT IN ('submit_sector_response', 'submit_wave_response')
+     AND p.prosrc ILIKE '%invite_token%'
+     AND p.prosrc ILIKE '%wave_responses%';
+
+  IF v_dependentes > 0 THEN
+    RAISE EXCEPTION 'ABORTADO: % funcao(oes) SQL ainda referenciam wave_responses.invite_token.', v_dependentes;
+  END IF;
+
+  -- --- 1.7 Migration A E privacy hardening tem que estar aplicados --------
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                   WHERE table_schema='public' AND table_name='wave_responses' AND column_name='cohort_id') THEN
     RAISE EXCEPTION 'ABORTADO: Migration A nao aplicada (wave_responses.cohort_id ausente).';
@@ -96,15 +129,25 @@ BEGIN
                   WHERE table_schema='public' AND table_name='wave_cohorts') THEN
     RAISE EXCEPTION 'ABORTADO: Migration A nao aplicada (wave_cohorts ausente).';
   END IF;
-
-  -- --- 1.6 O fluxo novo nao pode estar gravando a coluna legada -----------
-  -- Toda resposta que JA tenha coorte precisa ter invite_token NULL. Se
-  -- alguma tiver os dois, o caminho novo ainda escreve no antigo.
-  IF EXISTS (SELECT 1 FROM public.wave_responses
-              WHERE cohort_id IS NOT NULL AND invite_token IS NOT NULL) THEN
-    RAISE EXCEPTION 'ABORTADO: existe resposta com cohort_id E invite_token -- o fluxo novo ainda preenche a coluna legada.';
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public' AND p.proname = 'aggregate_cohort_responses'
+       AND array_to_string(p.proargnames, ',') LIKE '%response_count_label%'
+  ) THEN
+    RAISE EXCEPTION 'ABORTADO: privacy hardening nao aplicado (aggregate_cohort_responses sem response_count_label).';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public' AND p.proname = 'count_cohort_participation'
+  ) THEN
+    RAISE EXCEPTION 'ABORTADO: privacy hardening nao aplicado (count_cohort_participation ausente).';
   END IF;
 
+  -- --- 1.8 Snapshot confirmado no runbook --------------------------------
+  -- O banco nao consegue verificar um arquivo no disco do operador. A
+  -- confirmacao e humana e fica registrada no runbook; esta linha existe
+  -- para que ninguem execute sem ter lido a exigencia.
+  RAISE NOTICE 'PRECONDITION 1.8 (humana): confirme no runbook que o snapshot existe, com SHA-256 conferido, ANTES de seguir.';
   RAISE NOTICE 'Preconditions OK. Removendo o vinculo de % resposta(s) sintetica(s).', v_afetadas;
 END $$;
 

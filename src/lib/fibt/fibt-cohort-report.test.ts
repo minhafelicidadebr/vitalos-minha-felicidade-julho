@@ -7,27 +7,54 @@ const todosItens = (v: number): Record<string, number> =>
   Object.fromEntries(m.items.map((i) => [i.id, v]));
 
 const agg = (over: Partial<CohortAggregate>): CohortAggregate => ({
-  n: 6, kMin: 5, visible: true, itemMeans: todosItens(2), ...over,
+  visible: true, n: 6, countLabel: "6", kMin: 5, itemMeans: todosItens(2), ...over,
 });
 
+/** Como o banco responde abaixo do limiar apos o privacy hardening. */
+const suprimido = (): CohortAggregate =>
+  agg({ visible: false, n: null, countLabel: "<5", itemMeans: null, suppressionReason: "privacy_threshold" });
+
 describe("privacy gate — supressão nunca vira número", () => {
-  test("n=4 abaixo de k=5: suprimido, sem resultado", () => {
-    const r = buildFibtCohortReport(agg({ n: 4, visible: false, itemMeans: null }));
+  test("abaixo de k=5: suprimido, sem resultado", () => {
+    const r = buildFibtCohortReport(suprimido());
     expect(r.status).toBe("suprimido");
     expect(r).not.toHaveProperty("resultado");
   });
 
-  test("a mensagem de supressão diz o n e o limiar, sem culpar ninguém", () => {
-    const r = buildFibtCohortReport(agg({ n: 4, visible: false, itemMeans: null }));
+  test("a mensagem NÃO revela a contagem exata — só a faixa e o limiar", () => {
+    const r = buildFibtCohortReport(suprimido());
     if (r.status !== "suprimido") throw new Error("esperado suprimido");
-    expect(r.motivo).toContain("4");
-    expect(r.motivo).toContain("5");
+    expect(r.countLabel).toBe("<5");
+    expect(r.motivo).toContain("<5");
     expect(r.motivo).toContain("proteger");
+    // Saber que sao exatamente 4 pessoas ja e informacao sobre o grupo.
+    expect(r.motivo).not.toMatch(/4/);
+  });
+
+  test("o objeto suprimido não carrega campo de contagem exata", () => {
+    const r = buildFibtCohortReport(suprimido());
+    expect(r).not.toHaveProperty("n");
+  });
+
+  test("mesmo que o banco vaze o n exato, o cliente não o propaga", () => {
+    // Contrato antigo (pre-hardening) devolvendo n=4 com visible=false.
+    const r = buildFibtCohortReport(agg({ visible: false, n: 4, countLabel: null, itemMeans: null }));
+    if (r.status !== "suprimido") throw new Error("esperado suprimido");
+    expect(r).not.toHaveProperty("n");
+    expect(r.countLabel).toBe("<5");
+    expect(r.motivo).not.toMatch(/4/);
   });
 
   test("visible=true mas conteúdo nulo ainda é suprimido — não confia num só sinal", () => {
     const r = buildFibtCohortReport(agg({ visible: true, itemMeans: null }));
     expect(r.status).toBe("suprimido");
+  });
+
+  test("chamador sem vínculo organizacional recebe 'nao_autorizado', não 'suprimido'", () => {
+    const r = buildFibtCohortReport(agg({
+      visible: false, n: null, countLabel: null, itemMeans: null, suppressionReason: "not_authorized",
+    }));
+    expect(r.status).toBe("nao_autorizado");
   });
 
   test("n=6 com cobertura completa: calcula", () => {

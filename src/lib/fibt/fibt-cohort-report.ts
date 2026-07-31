@@ -19,17 +19,30 @@ import {
   type FibtResult,
 } from "@/engine/fibt/fibt-engine";
 
-/** O que a RPC aggregate_cohort_responses devolve. */
+/**
+ * O que a RPC aggregate_cohort_responses devolve.
+ *
+ * `n` e null quando suprimido: abaixo do limiar o banco nao informa a
+ * contagem exata, so a faixa em `countLabel` ("<5"). Saber que uma coorte tem
+ * exatamente 4 pessoas ja e informacao sobre o grupo — combinada com
+ * conhecimento organizacional, aproxima a reidentificacao sem que nenhuma
+ * resposta tenha vazado.
+ */
 export interface CohortAggregate {
-  n: number;
-  kMin: number;
   visible: boolean;
+  /** Contagem exata. null quando suprimido. */
+  n: number | null;
+  /** Faixa segura para exibir ("<5") ou o proprio numero quando visivel. */
+  countLabel: string | null;
+  kMin: number;
   /** Media por item ("q1" -> 2.5). null quando suprimido. */
   itemMeans: Record<string, number> | null;
+  suppressionReason?: string | null;
 }
 
 export type FibtCohortReport =
-  | { status: "suprimido"; n: number; kMin: number; motivo: string }
+  | { status: "suprimido"; countLabel: string; kMin: number; motivo: string }
+  | { status: "nao_autorizado"; motivo: string }
   | { status: "incompleto"; n: number; itensAusentes: string[]; motivo: string }
   | { status: "ok"; n: number; resultado: FibtResult };
 
@@ -50,14 +63,25 @@ export function fibtInstrumentDef(): FibtInstrumentDef {
  * por k-anon, ausencia de conteudo e cobertura incompleta dos 32 itens.
  */
 export function buildFibtCohortReport(agg: CohortAggregate): FibtCohortReport {
+  if (agg.suppressionReason === "not_authorized") {
+    return {
+      status: "nao_autorizado",
+      motivo: "Esta onda nao pertence a sua organizacao, ou a sessao nao tem vinculo organizacional.",
+    };
+  }
+
   if (!agg.visible || agg.itemMeans === null) {
+    // Defesa em profundidade: mesmo que o banco devolva a contagem exata, ela
+    // NAO atravessa para a interface abaixo do limiar. O rotulo de faixa e a
+    // unica coisa que sai daqui.
+    const label = agg.countLabel ?? `<${agg.kMin}`;
     return {
       status: "suprimido",
-      n: agg.n,
+      countLabel: label,
       kMin: agg.kMin,
       motivo:
-        `Resultado oculto: ${agg.n} resposta(s), abaixo do minimo de ${agg.kMin} ` +
-        "exigido para proteger quem respondeu.",
+        `Resultado oculto: menos de ${agg.kMin} respostas (${label}). ` +
+        "A quantidade exata nao e informada, para proteger quem respondeu.",
     };
   }
 
@@ -72,7 +96,7 @@ export function buildFibtCohortReport(agg: CohortAggregate): FibtCohortReport {
   if (!check.complete) {
     return {
       status: "incompleto",
-      n: agg.n,
+      n: agg.n ?? 0,
       itensAusentes: [...check.missingItemIds, ...check.invalidItemIds],
       motivo:
         "O agregado nao cobre os 32 itens do instrumento com valores validos. " +
@@ -80,5 +104,5 @@ export function buildFibtCohortReport(agg: CohortAggregate): FibtCohortReport {
     };
   }
 
-  return { status: "ok", n: agg.n, resultado: scoreFibt(respostas, def) };
+  return { status: "ok", n: agg.n ?? 0, resultado: scoreFibt(respostas, def) };
 }

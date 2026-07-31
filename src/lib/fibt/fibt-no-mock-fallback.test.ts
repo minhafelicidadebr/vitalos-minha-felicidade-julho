@@ -26,6 +26,13 @@ const ROTA_REAL = "src/routes/fibt-piloto.tsx";
 const DATA_REAL = "src/lib/api/fibt-cohort.functions.ts";
 const PONTE = "src/lib/fibt/fibt-cohort-report.ts";
 
+/** SQL sem comentarios de linha -- pelo mesmo motivo de `codigo()` acima. */
+const semComentarios = (sql: string) =>
+  sql
+    .split("\n")
+    .filter((l) => !l.trim().startsWith("--"))
+    .join("\n");
+
 function migrations(): { nome: string; sql: string }[] {
   const dir = join(raiz, "supabase", "migrations");
   return [...new Glob("*.sql").scanSync({ cwd: dir })]
@@ -115,11 +122,69 @@ describe("vinculo resposta -> convite", () => {
     expect(b.sql).toContain("RAISE EXCEPTION");
   });
 
-  test("a precondition nao aceita organization.name como prova unica", () => {
+  test("a precondition usa UUID exato, nunca padrao de texto com curinga", () => {
     const b = migrations().find((m) => m.nome.includes("drop_response_invite_link_contract"))!;
-    expect(b.sql).toContain("o.id::TEXT LIKE 'a0000000");   // UUID semeado
-    expect(b.sql).toContain("example.invalid");              // email controlado
-    expect(b.sql).toContain("fibt1-synth-");                 // prefixo da onda
+    expect(b.sql).toContain("a0000000-0000-0000-0000-000000000001");
+    expect(b.sql).toContain("a0000000-0000-0000-0000-000000000002");
+    expect(b.sql).toContain("example.invalid");
+    // '_' e curinga no LIKE: casaria "sintXtico". Nao pode decidir destruicao.
+    // Comentarios sao removidos: o arquivo EXPLICA por que o padrao saiu.
+    expect(semComentarios(b.sql)).not.toContain("sint_tico");
+    // organization.name nao pode participar da decisao destrutiva.
+    expect(semComentarios(b.sql)).not.toMatch(/o\.name\s+LIKE/);
+  });
+
+  test("a precondition exige quantidade afetada exata", () => {
+    const b = migrations().find((m) => m.nome.includes("drop_response_invite_link_contract"))!;
+    expect(b.sql).toContain("AFETADAS_ESPERADAS");
+    expect(b.sql).toMatch(/v_afetadas\s*<>\s*AFETADAS_ESPERADAS/);
+  });
+
+  test("a precondition exige o privacy hardening aplicado", () => {
+    const b = migrations().find((m) => m.nome.includes("drop_response_invite_link_contract"))!;
+    expect(b.sql).toContain("response_count_label");
+    expect(b.sql).toContain("count_cohort_participation");
+  });
+
+  test("a precondition varre funcoes SQL dependentes da coluna", () => {
+    const b = migrations().find((m) => m.nome.includes("drop_response_invite_link_contract"))!;
+    expect(b.sql).toContain("p.prosrc ILIKE");
+  });
+});
+
+describe("privacy hardening -- contagem exata nao sai abaixo do limiar", () => {
+  const ph = () => migrations().find((m) => m.nome.includes("cohort_aggregate_privacy_hardening"))!;
+
+  test("a migration de hardening existe e e anterior a Migration B", () => {
+    const nomes = migrations().map((m) => m.nome);
+    const iPh = nomes.findIndex((n) => n.includes("cohort_aggregate_privacy_hardening"));
+    const iB = nomes.findIndex((n) => n.includes("drop_response_invite_link_contract"));
+    expect(iPh).toBeGreaterThan(-1);
+    expect(iB).toBeGreaterThan(-1);
+    // As migrations rodam em ordem de nome; o hardening tem que vir antes.
+    expect(nomes[iPh]! < nomes[iB]!).toBe(true);
+  });
+
+  test("o contrato devolve rotulo de faixa e motivo de supressao", () => {
+    expect(ph().sql).toContain("response_count_label");
+    expect(ph().sql).toContain("privacy_threshold");
+  });
+
+  test("abaixo do limiar devolve NULL no lugar da contagem exata", () => {
+    expect(ph().sql).toMatch(/RETURN QUERY SELECT FALSE, NULL::INTEGER, \('<' \|\| v_k\)/);
+  });
+
+  test("a contagem exata vive em funcao separada, com papel restrito", () => {
+    const sql = ph().sql;
+    expect(sql).toContain("count_cohort_participation");
+    expect(sql).toMatch(/RH_ADMIN/);
+    expect(sql).toMatch(/REVOKE EXECUTE ON FUNCTION public\.count_cohort_participation[\s\S]*?anon/);
+  });
+
+  test("a Migration A congelada nao foi alterada", () => {
+    const a = migrations().find((m) => m.nome.includes("generic_anonymous_submissions_expand"))!;
+    // O hardening substitui a funcao numa migration propria, posterior.
+    expect(a.sql).toContain("RETURNS TABLE(n INTEGER, k_min INTEGER, visible BOOLEAN, item_means JSONB)");
   });
 });
 
