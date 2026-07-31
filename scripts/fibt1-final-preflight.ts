@@ -4,7 +4,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { readFileSync, statSync } from "node:fs";
-import { requireStagingTarget } from "./staging-guard";
+import { requireStagingTarget } from "../src/lib/staging/staging-guard";
 
 const target = requireStagingTarget();
 const admin = createClient(target.url, target.secretKey, {

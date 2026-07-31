@@ -8,10 +8,19 @@
 // em vez de deixá-la dependendo de disciplina.
 //
 // O ref de produção NÃO é fixado aqui: ele é derivado, em tempo de execução,
-// das variáveis padrão do próprio ambiente (SUPABASE_URL / VITE_SUPABASE_URL).
-// Se o alvo de staging coincidir com o alvo padrão, o processo aborta antes de
-// qualquer I/O. Assim a guarda continua correta se o projeto mudar, e nenhum
-// identificador de produção entra no código versionado.
+// de SUPABASE_URL (sem prefixo VITE_). Se o alvo de staging coincidir com
+// esse alvo padrão, o processo aborta antes de qualquer I/O. Assim a guarda
+// continua correta se o projeto mudar, e nenhum identificador de produção
+// entra no código versionado.
+//
+// Por que SOMENTE SUPABASE_URL, e não VITE_SUPABASE_URL também: a validação
+// visual da FIBT-1 precisou apontar VITE_SUPABASE_URL para staging de
+// propósito (é a variável que o CLIENTE REAL do navegador lê) via
+// .env.local, gitignored. Nesse momento, checar VITE_SUPABASE_URL como
+// "sempre produção" vira falso positivo — recusaria o próprio staging que
+// acabou de ser apontado ali intencionalmente. SUPABASE_URL (sem VITE_) é
+// lido só no server/SSR e nunca foi sobrescrito por nenhum .env.local desta
+// onda, então continua sendo o indicador confiável de produção.
 
 export interface StagingTarget {
   url: string;
@@ -33,12 +42,15 @@ export function projectRefFromUrl(url: string): string {
   return m[1]!;
 }
 
-/** Refs que este harness nunca pode tocar: os apontados pelas variáveis padrão (produção). */
+/**
+ * Refs que este harness nunca pode tocar: o apontado por SUPABASE_URL (sem
+ * prefixo VITE_). Deliberadamente NÃO inclui VITE_SUPABASE_URL — ver o
+ * comentário no topo do arquivo sobre por quê.
+ */
 export function forbiddenRefs(env: Record<string, string | undefined>): Set<string> {
   const out = new Set<string>();
-  for (const key of ["SUPABASE_URL", "VITE_SUPABASE_URL"]) {
-    const url = env[key];
-    if (!url) continue;
+  const url = env.SUPABASE_URL;
+  if (url) {
     try {
       out.add(projectRefFromUrl(url));
     } catch {

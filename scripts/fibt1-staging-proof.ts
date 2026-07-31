@@ -16,7 +16,7 @@ import { randomBytes } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { requireStagingTarget, assertSynthetic, SYNTHETIC_PREFIX } from "./staging-guard";
+import { requireStagingTarget, assertSynthetic, SYNTHETIC_PREFIX } from "../src/lib/staging/staging-guard";
 import { getFibtManifest } from "../src/domain/instruments/fibt/fibt-instrument";
 
 const target = requireStagingTarget();
@@ -339,33 +339,86 @@ async function proof() {
 // ===========================================================================
 // cleanup
 // ===========================================================================
+/** UUIDs das duas organizacoes historicas que o cleanup nunca pode tocar. */
+const ORGS_HISTORICAS = new Set([
+  "a0000000-0000-0000-0000-000000000001",
+  "a0000000-0000-0000-0000-000000000002",
+]);
+
+/**
+ * Remove SOMENTE o que esta onda criou. Ordem exigida (FK-safe, mas tambem
+ * a ordem operacional pedida): respostas -> convites -> coortes -> onda ->
+ * profiles -> usuarios Auth -> organizacoes.
+ *
+ * Preconditions abortam ANTES de qualquer DELETE se o conjunto encontrado
+ * nao bater exatamente com o esperado -- mesma filosofia fail-closed da
+ * Migration B: nao presumir, conferir contra o banco.
+ */
 async function cleanup() {
-  const { data: orgs } = await admin.from("organizations").select("id, name").like("name", `${SYNTHETIC_PREFIX}%`);
+  const { data: orgs } = await admin
+    .from("organizations")
+    .select("id, name")
+    .like("name", `${SYNTHETIC_PREFIX}%`);
+
   if (!orgs?.length) return console.log("Nada sintetico desta onda para remover.");
 
-  // Usuarios sinteticos criados para a prova de JWT.
-  const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  for (const u of lista?.users ?? []) {
-    if (!u.email?.startsWith(SYNTHETIC_PREFIX)) continue;
-    assertSynthetic("usuario a remover", u.email);
-    await admin.from("profiles").delete().eq("id", u.id);
-    await admin.auth.admin.deleteUser(u.id);
-    console.log(`  removido usuario: ${u.email}`);
+  // --- Preconditions -------------------------------------------------------
+  if (orgs.length !== 2) {
+    throw new Error(`ABORTADO: esperadas exatamente 2 organizacoes sinteticas, encontradas ${orgs.length}.`);
   }
-
   for (const org of orgs) {
     assertSynthetic("organizacao a remover", org.name);
-    const { data: waves } = await admin.from("waves").select("id").eq("org_id", org.id);
-    for (const w of waves ?? []) {
-      await admin.from("wave_responses").delete().eq("wave_id", w.id);
-      await admin.from("wave_invites").delete().eq("wave_id", w.id);
-      await admin.from("wave_cohorts").delete().eq("wave_id", w.id);
-      await admin.from("waves").delete().eq("id", w.id);
+    if (ORGS_HISTORICAS.has(org.id)) {
+      throw new Error(`ABORTADO: organizacao historica ${org.id} apareceu no conjunto de remocao.`);
     }
-    await admin.from("organizations").delete().eq("id", org.id);
-    console.log(`  removido: ${org.name}`);
   }
-  console.log("Limpeza concluida -- somente dados com o prefixo sintetico foram tocados.");
+  const orgIds = orgs.map((o) => o.id);
+
+  const { data: waves } = await admin.from("waves").select("id, org_id").in("org_id", orgIds);
+  const waveIds = (waves ?? []).map((w) => w.id);
+  for (const w of waves ?? []) {
+    if (!orgIds.includes(w.org_id)) throw new Error(`ABORTADO: onda ${w.id} fora das orgs sinteticas.`);
+  }
+
+  const { count: respCount } = await admin
+    .from("wave_responses").select("*", { count: "exact", head: true }).in("wave_id", waveIds);
+  const { count: inviteCount } = await admin
+    .from("wave_invites").select("*", { count: "exact", head: true }).in("wave_id", waveIds);
+
+  const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const usuarios = (lista?.users ?? []).filter((u) => u.email?.startsWith(SYNTHETIC_PREFIX));
+  for (const u of usuarios) assertSynthetic("usuario a remover", u.email!);
+
+  console.log("Precondition check:");
+  console.log(`  organizacoes: ${orgs.length} (esperado 2)`);
+  console.log(`  ondas: ${waveIds.length}`);
+  console.log(`  respostas: ${respCount} | convites: ${inviteCount}`);
+  console.log(`  usuarios sinteticos: ${usuarios.length}`);
+  console.log("Preconditions OK -- nenhuma organizacao historica, todos os nomes/emails com o prefixo controlado.\n");
+
+  // --- Ordem: respostas -> convites -> coortes -> onda ---------------------
+  for (const w of waves ?? []) {
+    const { count: rc } = await admin.from("wave_responses").delete({ count: "exact" }).eq("wave_id", w.id);
+    const { count: ic } = await admin.from("wave_invites").delete({ count: "exact" }).eq("wave_id", w.id);
+    const { count: cc } = await admin.from("wave_cohorts").delete({ count: "exact" }).eq("wave_id", w.id);
+    await admin.from("waves").delete().eq("id", w.id);
+    console.log(`  onda ${w.id}: ${rc} resposta(s), ${ic} convite(s), ${cc} coorte(s) removidos`);
+  }
+
+  // --- profiles -> usuarios Auth ---------------------------------------
+  for (const u of usuarios) {
+    await admin.from("profiles").delete().eq("id", u.id);
+    await admin.auth.admin.deleteUser(u.id);
+    console.log(`  removido usuario + profile: ${u.email}`);
+  }
+
+  // --- organizacoes ---------------------------------------------------
+  for (const org of orgs) {
+    await admin.from("organizations").delete().eq("id", org.id);
+    console.log(`  removida organizacao: ${org.name}`);
+  }
+
+  console.log("\nLimpeza concluida -- somente dados com o prefixo sintetico foram tocados.");
 }
 
 const modo = process.argv[2];

@@ -10,7 +10,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
-import { requireStagingTarget } from "./staging-guard";
+import { requireStagingTarget } from "../src/lib/staging/staging-guard";
 
 const SNAPSHOT =
   process.env.FIBT1_SNAPSHOT ??

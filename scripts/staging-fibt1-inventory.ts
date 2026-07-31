@@ -3,7 +3,7 @@
 // pré-migration: o que existe hoje e o que poderia ser afetado.
 
 import { createClient } from "@supabase/supabase-js";
-import { requireStagingTarget } from "./staging-guard";
+import { requireStagingTarget } from "../src/lib/staging/staging-guard";
 
 const target = requireStagingTarget();
 const admin = createClient(target.url, target.secretKey, {

@@ -208,14 +208,14 @@ describe("guarda de ambiente", () => {
   });
 
   test("o guard exige STAGING_* e recusa o ref padrao do ambiente", () => {
-    const src = ler("scripts/staging-guard.ts");
+    const src = ler("src/lib/staging/staging-guard.ts");
     expect(src).toContain("STAGING_SUPABASE_URL");
     expect(src).toContain("forbiddenRefs");
     expect(src).toContain("RECUSADO");
   });
 
   test("nenhum ref, URL ou chave fica fixado no guard", () => {
-    const src = ler("scripts/staging-guard.ts");
+    const src = ler("src/lib/staging/staging-guard.ts");
     expect(src).not.toMatch(/https:\/\/[a-z0-9]{20}\.supabase\.co/);
     expect(src).not.toMatch(/\b[a-z]{20}\b/); // ref de projeto tem 20 chars
   });
