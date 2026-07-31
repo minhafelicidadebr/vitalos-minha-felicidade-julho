@@ -93,6 +93,15 @@ export function CohortCard({
         </div>
       )}
 
+      {r.status === "versao_incompativel" && (
+        <div className="mt-2 rounded-lg bg-muted/50 p-4" data-testid="versao-incompativel">
+          <p className="text-sm text-muted-foreground">{r.motivo}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Esperada {r.esperada} · recebida {r.recebida}
+          </p>
+        </div>
+      )}
+
       {r.status === "incompleto" && (
         <div className="mt-2 rounded-lg bg-muted/50 p-4">
           <p className="text-sm text-muted-foreground">{r.motivo}</p>

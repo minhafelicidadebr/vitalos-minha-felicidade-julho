@@ -80,3 +80,40 @@ quebra o build.
 Sem a regeneração, o projeto final depende permanentemente de `as any` na
 camada que fala com o banco — justamente onde um erro de nome vira falha
 silenciosa em runtime, e não erro de compilação.
+
+---
+
+# Camada de cálculo — decisão arquitetural
+
+`aggregate_cohort_responses` devolve `factor_scores` e `domain_means`
+**sempre nulos**, por desenho.
+
+| Camada | Responsabilidade |
+|---|---|
+| PostgreSQL | agrega `item_means`, aplica k-anon, escopo de tenant |
+| Engine canônico | 3 Fatores · 9 leituras de domínio · escore bruto 0–12 |
+
+A fonte metodológica única é o manifesto canônico + loader fail-closed +
+engine versionado. Duplicar as fórmulas em SQL criaria uma segunda definição
+do instrumento, fora do manifesto e fora dos testes canônicos — a divergência
+que a FIBT-0 existiu para eliminar.
+
+Os campos permanecem no contrato como nulos explícitos: reservados, não
+esquecidos.
+
+## Fail-closed da camada de relatório
+
+`buildFibtCohortReport` recusa produzir escore quando:
+
+1. o grupo está abaixo de k-anon (suprimido);
+2. o agregado não cobre os 32 itens com valores válidos (incompleto);
+3. a versão do instrumento gravada nas respostas difere da carregada
+   (`versao_incompativel`) — entre versões um item pode mudar de Fator, e
+   aplicar a definição de hoje sobre respostas de ontem produz um número que
+   parece certo e não é;
+4. o manifesto não carrega — `loadFibtCohortReport` captura a exceção do
+   loader e devolve `estado: "erro"`, nunca uma página em branco nem um
+   escore montado com definição parcial.
+
+A supressão por privacidade é avaliada **antes** da checagem de versão:
+proteger quem respondeu não pode depender de a versão bater.

@@ -116,3 +116,41 @@ describe("cálculo pelo manifesto canônico", () => {
     expect(conta("satisfacao_empresa")).toBe(8);
   });
 });
+
+describe("fail-closed de manifesto e versao do instrumento", () => {
+  test("versao diferente do manifesto NAO produz escore", () => {
+    const r = buildFibtCohortReport(agg({}), "0.9.0");
+    expect(r.status).toBe("versao_incompativel");
+    expect(r).not.toHaveProperty("resultado");
+  });
+
+  test("a mensagem diz qual versao veio e qual esta carregada", () => {
+    const r = buildFibtCohortReport(agg({}), "0.9.0");
+    if (r.status !== "versao_incompativel") throw new Error("esperado versao_incompativel");
+    expect(r.recebida).toBe("0.9.0");
+    expect(r.esperada).toBe(m.instrument_version);
+  });
+
+  test("versao igual a do manifesto calcula normalmente", () => {
+    const r = buildFibtCohortReport(agg({}), m.instrument_version);
+    expect(r.status).toBe("ok");
+  });
+
+  test("sem versao declarada, segue calculando (onda antiga sem o campo)", () => {
+    expect(buildFibtCohortReport(agg({}), null).status).toBe("ok");
+    expect(buildFibtCohortReport(agg({})).status).toBe("ok");
+  });
+
+  test("a supressao acontece ANTES da checagem de versao", () => {
+    // Proteger quem respondeu nao pode depender de a versao bater.
+    const r = buildFibtCohortReport(suprimido(), "0.9.0");
+    expect(r.status).toBe("suprimido");
+  });
+
+  test("factor_scores e domain_means sao derivados AQUI, nao no SQL", () => {
+    const r = buildFibtCohortReport(agg({}));
+    if (r.status !== "ok") throw new Error("esperado ok");
+    expect(r.resultado.factors).toHaveLength(3);
+    expect(r.resultado.domains).toHaveLength(9);
+  });
+});

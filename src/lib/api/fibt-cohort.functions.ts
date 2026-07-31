@@ -54,6 +54,7 @@ export type CohortReportLoad =
 export async function loadFibtCohortReport(
   waveId: string,
   cohortId: string,
+  instrumentVersion?: string | null,
 ): Promise<CohortReportLoad> {
   if (!isCloudReady()) {
     return { estado: "indisponivel", motivo: "Backend nao configurado neste ambiente." };
@@ -98,5 +99,18 @@ export async function loadFibtCohortReport(
     suppressionReason: row.suppression_reason ?? null,
   };
 
-  return { estado: "ok", relatorio: buildFibtCohortReport(agg) };
+  // Fail-closed na montagem do relatorio: se o manifesto canonico nao puder
+  // ser carregado (loader recusa o JSON, arquivo corrompido, invariante
+  // quebrada), a tela mostra erro. NUNCA um escore montado com definicao
+  // parcial, e nunca uma pagina em branco por excecao nao tratada.
+  try {
+    return { estado: "ok", relatorio: buildFibtCohortReport(agg, instrumentVersion) };
+  } catch (e) {
+    return {
+      estado: "erro",
+      motivo:
+        "Nao foi possivel carregar a definicao canonica do instrumento: " +
+        (e instanceof Error ? e.message : String(e)),
+    };
+  }
 }

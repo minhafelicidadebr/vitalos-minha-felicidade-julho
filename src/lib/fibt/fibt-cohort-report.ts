@@ -44,7 +44,23 @@ export type FibtCohortReport =
   | { status: "suprimido"; countLabel: string; kMin: number; motivo: string }
   | { status: "nao_autorizado"; motivo: string }
   | { status: "incompleto"; n: number; itensAusentes: string[]; motivo: string }
+  | { status: "versao_incompativel"; n: number; esperada: string; recebida: string; motivo: string }
   | { status: "ok"; n: number; resultado: FibtResult };
+
+/**
+ * DESENHO ARQUITETURAL -- por que a RPC devolve factor_scores e domain_means
+ * NULOS, sempre.
+ *
+ * A fonte metodologica unica e o manifesto canonico + loader fail-closed +
+ * engine versionado. O PostgreSQL entrega `item_means` agregado e protegido
+ * por k-anon; QUEM CALCULA os tres Fatores, as nove leituras descritivas de
+ * dominio e o escore bruto e o engine, aqui nesta camada.
+ *
+ * Duplicar as formulas em SQL criaria uma segunda definicao do instrumento,
+ * fora do manifesto e fora dos testes canonicos -- exatamente a divergencia
+ * que a FIBT-0 existiu para eliminar. Os campos permanecem no contrato da RPC
+ * como nulos explicitos: reservados, nao esquecidos.
+ */
 
 /** Adapta o manifesto canonico ao contrato do engine. */
 export function fibtInstrumentDef(): FibtInstrumentDef {
@@ -59,10 +75,19 @@ export function fibtInstrumentDef(): FibtInstrumentDef {
 }
 
 /**
- * Constroi o relatorio de uma coorte. Fail-closed em tres pontos: supressao
- * por k-anon, ausencia de conteudo e cobertura incompleta dos 32 itens.
+ * Constroi o relatorio de uma coorte. Fail-closed em quatro pontos: supressao
+ * por k-anon, ausencia de conteudo, cobertura incompleta dos 32 itens e
+ * versao de instrumento incompativel com o manifesto.
+ *
+ * `instrumentVersion` e a versao gravada na onda/resposta. Se ela nao bater
+ * com o manifesto carregado, NAO pontuamos: os itens podem ter mudado de
+ * Fator ou de Dominio entre versoes, e aplicar a definicao de hoje sobre
+ * respostas de ontem produz um numero que parece certo e nao e.
  */
-export function buildFibtCohortReport(agg: CohortAggregate): FibtCohortReport {
+export function buildFibtCohortReport(
+  agg: CohortAggregate,
+  instrumentVersion?: string | null,
+): FibtCohortReport {
   if (agg.suppressionReason === "not_authorized") {
     return {
       status: "nao_autorizado",
@@ -82,6 +107,23 @@ export function buildFibtCohortReport(agg: CohortAggregate): FibtCohortReport {
       motivo:
         `Resultado oculto: menos de ${agg.kMin} respostas (${label}). ` +
         "A quantidade exata nao e informada, para proteger quem respondeu.",
+    };
+  }
+
+  // Versao do instrumento: so pontua se a definicao carregada for a MESMA que
+  // gerou as respostas. Entre versoes um item pode mudar de Fator -- foi o que
+  // a FIBT-0 corrigiu -- e o escore sairia errado com aparencia de certo.
+  const manifest = getFibtManifest();
+  if (instrumentVersion && instrumentVersion !== manifest.instrument_version) {
+    return {
+      status: "versao_incompativel",
+      n: agg.n ?? 0,
+      esperada: manifest.instrument_version,
+      recebida: instrumentVersion,
+      motivo:
+        `Estas respostas foram coletadas com a versao ${instrumentVersion} do instrumento, ` +
+        `e a definicao carregada e a ${manifest.instrument_version}. ` +
+        "O resultado nao e calculado com uma definicao diferente da que foi aplicada.",
     };
   }
 
