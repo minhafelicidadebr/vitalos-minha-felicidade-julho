@@ -7,14 +7,10 @@
 
 /** Estado do contrato. Ampliar só com decisão metodológica humana registrada. */
 export type FibtInstrumentStatus =
-  /** Metodologia conferida contra o documento; licença de uso ainda não confirmada. */
-  | "METHODOLOGY_CONFIRMED_LICENSE_PENDING"
-  /** Metodologia conferida E licença formal confirmada. */
-  | "METHODOLOGY_CONFIRMED_LICENSE_CONFIRMED"
+  /** Metodologia conferida item a item contra o documento-fonte. */
+  | "METHODOLOGY_CONFIRMED"
   /** Divergência aberta contra a fonte — não pode gerar escore. */
   | "METHODOLOGY_DIVERGENT";
-
-export type FibtLicenseStatus = "NOT_CONFIRMED" | "CONFIRMED" | "DENIED";
 
 /**
  * Marcador de lacuna documental. Existe para tornar impossível confundir
@@ -133,10 +129,13 @@ export interface FibtInstrumentManifest {
   citation_reference: string;
   source_document: string;
   source_document_sha256: string;
-  license: string | null;
-  license_status: FibtLicenseStatus;
-  /** Gate duro: só true com licença confirmada E aprovação metodológica humana. */
-  authorized_for_real_collection: boolean;
+  /**
+   * Ponteiro para o registro de autorizacao de uso. Deliberadamente NAO um
+   * booleano aqui: direito de aplicar o instrumento e prontidao operacional
+   * da plataforma sao perguntas diferentes, com decisores diferentes.
+   */
+  usage_authorization_ref: string;
+  usage_authorization_note: string;
   population: string;
   anonymity_statement_source: string;
   response_scale: FibtResponseScale;

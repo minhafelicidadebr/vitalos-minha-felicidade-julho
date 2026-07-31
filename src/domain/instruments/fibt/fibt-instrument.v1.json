@@ -1,15 +1,14 @@
 {
   "instrument_id": "fib_t",
   "instrument_version": "1.0.0",
-  "status": "METHODOLOGY_CONFIRMED_LICENSE_PENDING",
+  "status": "METHODOLOGY_CONFIRMED",
   "name": "Escala de Felicidade Interna Bruta do Trabalhador (FIB-T)",
   "author": "FURTADO, C. A. (2020)",
   "citation_reference": "FURTADO, C. A. (2020). Escala de Felicidade Interna Bruta do Trabalhador (FIB-T).",
   "source_document": "docs/fibt-isg/references/FIB-T_Furtado_2020.pdf",
   "source_document_sha256": "9722cdf6ba9b81122e12a9a15b7a9fcf29352a7560573e6b115c2551972087c7",
-  "license": null,
-  "license_status": "NOT_CONFIRMED",
-  "authorized_for_real_collection": false,
+  "usage_authorization_ref": "src/domain/instruments/instrument-usage-authorization.json#fib_t",
+  "usage_authorization_note": "Autorizacao de uso e prontidao operacional vivem no registro de autorizacao, NAO aqui. Este manifesto descreve o que o instrumento mede; o direito de aplica-lo e a prontidao da plataforma mudam por motivos e decisores diferentes.",
   "population": "Trabalhadores. O documento nao delimita setor, porte, faixa etaria nem recorte geografico.",
   "anonymity_statement_source": "O questionario declara-se anonimo: a identificacao pessoal nao sera registrada.",
 
@@ -386,7 +385,6 @@
     "approved_by": null,
     "approval_status": "PENDING_HUMAN_METHODOLOGICAL_APPROVAL",
     "open_questions": [
-      "Autorizacao ou licenca formal de uso e digitalizacao da FIB-T.",
       "Manual complementar com regra de missing data e interpretacao.",
       "Confirmacao do item 5 no Fator 3 (Governanca).",
       "Confirmacao dos erros tipograficos nos itens 21 e 22.",

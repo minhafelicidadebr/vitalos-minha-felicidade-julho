@@ -15,7 +15,7 @@ import {
   itemsOfDomain,
   itemsOfFactor,
   validateFibtManifest,
-  isFibtAuthorizedForRealCollection,
+  fibtUsageAuthorizationRef,
   isFibtClaimAllowed,
   FibtManifestError,
 } from "./fibt-instrument";
@@ -203,9 +203,12 @@ describe("FIB-T — claims", () => {
 });
 
 describe("FIB-T — governança e privacidade", () => {
-  test("coleta com pessoas reais permanece bloqueada enquanto a licença não é confirmada", () => {
-    expect(isFibtAuthorizedForRealCollection()).toBe(false);
-    expect(m.license_status).toBe("NOT_CONFIRMED");
+  test("o manifesto metodológico NÃO decide direito de uso nem coleta real", () => {
+    // Separação deliberada: colapsar as duas coisas num booleano fazia um
+    // bloqueio de engenharia parecer pendência de licença.
+    expect(m).not.toHaveProperty("authorized_for_real_collection");
+    expect(m).not.toHaveProperty("license_status");
+    expect(fibtUsageAuthorizationRef()).toContain("instrument-usage-authorization");
   });
 
   test("k-anonimato mínimo 5 e escore individual proibido", () => {
@@ -258,9 +261,9 @@ describe("FIB-T — o loader recusa manifesto adulterado", () => {
     expect(() => validateFibtManifest(bad)).toThrow(FibtManifestError);
   });
 
-  test("recusa coleta real sem licença confirmada", () => {
+  test("recusa ponteiro de autorização que não aponta para o registro certo", () => {
     const bad = clone();
-    bad.authorized_for_real_collection = true;
+    bad.usage_authorization_ref = "algum-lugar-qualquer.json";
     expect(() => validateFibtManifest(bad)).toThrow(FibtManifestError);
   });
 

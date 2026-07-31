@@ -158,14 +158,9 @@ export function validateFibtManifest(m: FibtInstrumentManifest): void {
   if (m.privacy.k_anonymity_min < 5) fail("k-anonimato mínimo do VitalOS é 5");
   if (m.privacy.individual_score_allowed !== false) fail("escore individual é proibido");
 
-  // ─── Coleta real só com licença E aprovação humana ─────────────────────
-  if (m.authorized_for_real_collection) {
-    if (m.license_status !== "CONFIRMED") {
-      fail("coleta real exige licença CONFIRMED");
-    }
-    if (!m.governance.approved_by || !m.governance.approved_at) {
-      fail("coleta real exige aprovação metodológica humana registrada");
-    }
+  // ─── Autorizacao de uso vive em outro registro, por desenho ────────────
+  if (!m.usage_authorization_ref.includes("instrument-usage-authorization")) {
+    fail("usage_authorization_ref deve apontar para o registro de autorizacao de uso");
   }
 
   // ─── Claims ─────────────────────────────────────────────────────────────
@@ -209,7 +204,7 @@ export function isFibtClaimAllowed(claim: string): boolean {
   return manifest.allowed_claims.includes(claim);
 }
 
-/** true quando a coleta com pessoas reais está liberada (hoje: false). */
-export function isFibtAuthorizedForRealCollection(): boolean {
-  return manifest.authorized_for_real_collection;
+/** Onde consultar o direito de uso — nunca respondido por este manifesto. */
+export function fibtUsageAuthorizationRef(): string {
+  return manifest.usage_authorization_ref;
 }

@@ -1,0 +1,36 @@
+{
+  "registry_version": "1.0.0",
+  "note": "Autorizacao de USO de instrumento. Deliberadamente separado do manifesto metodologico: a versao do instrumento descreve o que ele mede; isto descreve se temos direito de aplica-lo. As duas coisas mudam por motivos diferentes, em tempos diferentes e por decisao de pessoas diferentes.",
+  "second_note": "Autorizacao de uso NAO e liberacao operacional. Ter direito de aplicar o instrumento nao significa que a plataforma esta pronta para coletar dado real: isso depende de gates de producao, privacidade, backup, restauracao, seguranca, release e operacao. Os dois campos existem separados para que um nunca seja lido como o outro.",
+
+  "authorizations": [
+    {
+      "instrument_id": "fib_t",
+      "instrument_label": "Escala de Felicidade Interna Bruta do Trabalhador (FIB-T)",
+
+      "instrument_usage_authorization": {
+        "status": "confirmed",
+        "source": "Instituto Feliciencia / formacao oficial FIB-T",
+        "confirmed_by": "project_owner",
+        "confirmed_at": "2026-07-30",
+        "digital_implementation": "allowed",
+        "institutional_application": "allowed",
+        "aggregated_reporting": "allowed",
+        "evidence_reference": null,
+        "evidence_reference_status": "optional_pending_attachment",
+        "evidence_note": "Certificado, declaracao ou contrato pode ser referenciado no futuro para governanca. A ausencia do arquivo no repositorio NAO reabre a autorizacao nem bloqueia o desenvolvimento."
+      },
+
+      "operational_real_collection_status": "blocked_until_release_gate",
+      "operational_gates_pending": [
+        "producao identificada e reconciliada",
+        "backup comprovado",
+        "restauracao testada",
+        "seguranca e RLS com JWT real",
+        "privacidade e LGPD",
+        "release e operacao"
+      ],
+      "operational_note": "Bloqueio OPERACIONAL, nunca de autorizacao. Nao tratar a licenca da FIB-T como pendencia."
+    }
+  ]
+}
