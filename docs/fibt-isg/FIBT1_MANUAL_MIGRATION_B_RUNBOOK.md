@@ -54,6 +54,16 @@ supabase/migrations/20260730160000_drop_response_invite_link_contract.sql
 
 ## 4. Preflight (somente leitura)
 
+Rode o preflight completo de 18 pontos — ele bloqueia sozinho se algo divergir:
+
+```bash
+bun run scripts/fibt1-final-preflight.ts
+```
+
+Esperado: **18/18 PASS**. Qualquer `FAIL` **impede a aplicação** — não siga.
+
+Se preferir conferir à mão no SQL Editor:
+
 ```sql
 select
   (select count(*) from public.wave_responses where invite_token is not null)   as afetadas,
@@ -147,6 +157,31 @@ select r.id, i.email
 3. Sucesso, `NOTICE`s ou erro completo.
 4. Saída do pós-aplicação.
 5. Confirmação de que o `join` da seção 7 falhou.
+
+## 9b. Prova dinâmica pós-B (executo eu, após seu retorno)
+
+```bash
+bun run scripts/fibt1-staging-proof.ts proof
+```
+
+Deve continuar 31/31 verde, agora com um cenário diferente: o teste de
+`invite_token` passa a reportar **"coluna não existe mais (pós-Migration B)"**
+em vez de "grava NULL" — as duas formas são aceitas, por motivos diferentes.
+
+Somado a isso, confirmo:
+
+- coorte Alfa: escore bruto calculado pelo engine canônico;
+- coorte Beta: `"<5"`, sem número exato;
+- `count_cohort_participation`: admin obtém 4, `anon` negado;
+- isolamento entre tenants intacto;
+- o `join` resposta → convite → e-mail **falha** por coluna inexistente.
+
+## 9c. NÃO limpar os dados sintéticos antes da prova final
+
+`bun run scripts/fibt1-staging-proof.ts cleanup` **não deve ser executado**
+antes da prova pós-B estar verde. Sem a organização, as coortes e as 10
+respostas sintéticas, não há o que provar depois da remoção da coluna — e
+recriar exigiria repetir o seed inteiro num schema já contraído.
 
 ## 10. Rollback
 
