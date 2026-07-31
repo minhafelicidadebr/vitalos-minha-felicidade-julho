@@ -217,28 +217,68 @@ async function proof() {
   const dono = await usuarioComJwt(`${SYNTHETIC_PREFIX}admin@example.invalid`, ids.orgId);
   const comoDono = comoUsuario(dono.token);
 
+  type Agg = {
+    visible: boolean;
+    response_count: number | null;
+    response_count_label: string | null;
+    k_min: number;
+    item_means: Record<string, number> | null;
+    factor_scores: unknown;
+    domain_means: unknown;
+    suppression_reason: string | null;
+  };
+
   const { data: aggAlfa } = await comoDono.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
   const { data: aggBeta } = await comoDono.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
-  const a = (aggAlfa as { n: number; visible: boolean; item_means: unknown }[])?.[0];
-  const b = (aggBeta as { n: number; visible: boolean; item_means: unknown }[])?.[0];
+  const a = (aggAlfa as Agg[])?.[0];
+  const b = (aggBeta as Agg[])?.[0];
 
-  // n tem que ser o numero REAL (6 e 4). Um n=0 "suprimido" seria falso PASS:
-  // provaria apenas que o chamador nao foi reconhecido.
-  checar("n=6 -> visivel COM conteudo", a?.n === 6 && a?.visible === true && a?.item_means !== null, `n=${a?.n}`);
-  checar("n=4 -> SUPRIMIDO sem conteudo, e n reportado corretamente",
-    b?.n === 4 && b?.visible === false && b?.item_means === null, `n=${b?.n} (k=${K_MIN})`);
+  console.log("  payload Alfa:", JSON.stringify({ ...a, item_means: a?.item_means ? `{${Object.keys(a.item_means).length} itens}` : null }));
+  console.log("  payload Beta:", JSON.stringify(b));
+
+  checar("Alfa: visible=true", a?.visible === true);
+  checar("Alfa: response_count=6", a?.response_count === 6, `${a?.response_count}`);
+  checar("Alfa: response_count_label='6'", a?.response_count_label === "6", `${a?.response_count_label}`);
+  checar("Alfa: item_means presentes (32 itens)", Object.keys(a?.item_means ?? {}).length === 32);
+  checar("Alfa: sem suppression_reason", a?.suppression_reason === null);
+
+  checar("Beta: visible=false", b?.visible === false);
+  checar("Beta: response_count = NULL (numero exato NAO sai)", b?.response_count === null, `${b?.response_count}`);
+  checar("Beta: response_count_label='<5'", b?.response_count_label === "<5", `${b?.response_count_label}`);
+  checar("Beta: item_means = NULL", b?.item_means === null);
+  checar("Beta: factor_scores = NULL", b?.factor_scores === null);
+  checar("Beta: domain_means = NULL", b?.domain_means === null);
+  checar("Beta: suppression_reason='privacy_threshold'", b?.suppression_reason === "privacy_threshold", `${b?.suppression_reason}`);
+  // O numero 4 nao pode aparecer em NENHUM lugar do payload organizacional.
+  checar("Beta: o numero exato 4 nao aparece no payload", !/4/.test(JSON.stringify(b)), JSON.stringify(b).slice(0, 60));
+
+  console.log("\n--- count_cohort_participation (finalidade operacional separada) ---");
+  const { data: cntDono, error: errDono } = await comoDono.rpc("count_cohort_participation", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
+  checar("RH_ADMIN da org obtem a contagem exata", cntDono === 4, `${cntDono}${errDono ? " err=" + errDono.message : ""}`);
+  checar("a funcao devolve so um numero, sem conteudo de resposta", typeof cntDono === "number");
+
+  const anonCli = createClient(target.url, target.publishableKey, { auth: { persistSession: false } });
+  const { error: errAnon } = await anonCli.rpc("count_cohort_participation", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
+  checar("anon e NEGADO por permissao", !!errAnon, errAnon ? errAnon.message.slice(0, 45) : "SEM ERRO -- falha");
 
   console.log("\n--- Escopo por identidade (a RPC nega quem nao e da org) ---");
   const { data: semIdent } = await admin.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
-  const si = (semIdent as { n: number; visible: boolean }[])?.[0];
-  checar("service_role sem auth.uid() nao recebe conteudo", si?.n === 0 && si?.visible === false);
+  const si = (semIdent as Agg[])?.[0];
+  checar("service_role sem auth.uid() nao recebe conteudo",
+    si?.visible === false && si?.item_means === null && si?.response_count === null,
+    `${si?.suppression_reason}`);
 
   const intruso = await usuarioComJwt(`${SYNTHETIC_PREFIX}intruso@example.invalid`, ids.orgOutroId);
   const { data: aggIntruso } = await comoUsuario(intruso.token)
     .rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
-  const ai = (aggIntruso as { n: number; visible: boolean; item_means: unknown }[])?.[0];
+  const ai = (aggIntruso as Agg[])?.[0];
   checar("usuario de OUTRO tenant nao le a coorte alheia",
-    ai?.n === 0 && ai?.visible === false && ai?.item_means === null, `n=${ai?.n}`);
+    ai?.visible === false && ai?.item_means === null && ai?.suppression_reason === "not_authorized",
+    `${ai?.suppression_reason}`);
+
+  const { data: cntIntruso } = await comoUsuario(intruso.token)
+    .rpc("count_cohort_participation", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
+  checar("outro tenant nao obtem nem a contagem", cntIntruso === null, `${cntIntruso}`);
 
   console.log("\n--- Admin da org nao alcanca resposta individual ---");
   const brutas = await comoDono.from("wave_responses").select("id, answers").eq("wave_id", ids.waveId);
