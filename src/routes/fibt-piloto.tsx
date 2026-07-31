@@ -114,17 +114,35 @@ export function CohortCard({
       {r.status === "ok" && (
         <div className="mt-2">
           <p className="text-xs text-muted-foreground">
-            Escore bruto · <span data-testid="contagem-visivel">{r.n}</span> respostas
+            Escore bruto (escala 0–12) · <span data-testid="contagem-visivel">{r.n}</span> respostas
           </p>
           <p className="font-serif text-4xl text-foreground" data-testid="escore-bruto">
             {r.resultado.escoreBruto}
             <span className="text-base text-muted-foreground"> / 12</span>
           </p>
-          <ul className="mt-3 space-y-1">
+
+          <h3 className="mt-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Fatores (escala 0–4)
+          </h3>
+          <ul className="mt-1 space-y-1" data-testid="lista-fatores">
             {r.resultado.factors.map((f) => (
               <li key={f.id} className="flex flex-wrap justify-between gap-x-2 text-sm">
                 <span className="text-card-foreground">{f.name}</span>
                 <span className="text-muted-foreground">{f.mean} / 4</span>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Domínios — leitura descritiva (escala 0–4)
+          </h3>
+          <ul className="mt-1 space-y-1" data-testid="lista-dominios">
+            {r.resultado.domains.map((d) => (
+              <li key={d.id} className="flex flex-wrap justify-between gap-x-2 text-sm">
+                <span className="text-card-foreground">{d.name}</span>
+                <span className="text-muted-foreground">
+                  {d.mean} / 4 · {d.itemCount} {d.itemCount === 1 ? "item" : "itens"}
+                </span>
               </li>
             ))}
           </ul>

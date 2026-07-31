@@ -36,9 +36,13 @@ describe("estado 2 — coorte visivel", () => {
   test("mostra escore bruto, os 3 Fatores e a contagem", () => {
     render(<CohortCard chave="alfa" rotulo="Coorte Alfa" relatorio={buildFibtCohortReport(visivel)} />);
     expect(screen.getByTestId("escore-bruto").textContent).toContain("9");
-    expect(screen.getByText("Padrao de Vida")).toBeTruthy();
-    expect(screen.getByText("Bem-Estar")).toBeTruthy();
-    expect(screen.getByText("Satisfacao com a Empresa")).toBeTruthy();
+    // "Padrao de Vida" e' Fator E Dominio -- escopo explicito na lista de
+    // Fatores, ja que agora o nome aparece duas vezes na tela (fator + dominio).
+    const fatores = screen.getByTestId("lista-fatores");
+    expect(fatores.textContent).toContain("Padrao de Vida");
+    expect(fatores.textContent).toContain("Bem-Estar");
+    expect(fatores.textContent).toContain("Satisfacao com a Empresa");
+    expect(fatores.querySelectorAll("li")).toHaveLength(3);
     expect(screen.getByTestId("contagem-visivel").textContent).toContain("6");
   });
 
@@ -50,6 +54,28 @@ describe("estado 2 — coorte visivel", () => {
     expect(texto).not.toContain("1000");
     expect(texto).not.toContain("florescente");
     expect(texto).not.toContain("saudavel");
+  });
+
+  // Regressao: a validacao visual da FIBT-1 encontrou que o card so mostrava
+  // os 3 Fatores -- as 9 leituras descritivas de Dominio nunca apareciam na
+  // tela, apesar de o engine ja calcula-las. buildFibtCohortReport sempre
+  // devolveu os 9 dominios; a lacuna era so na apresentacao.
+  test("mostra as 9 leituras descritivas de dominio, nao so os 3 fatores", () => {
+    render(<CohortCard chave="alfa" rotulo="Coorte Alfa" relatorio={buildFibtCohortReport(visivel)} />);
+    const lista = screen.getByTestId("lista-dominios");
+    const itens = lista.querySelectorAll("li");
+    expect(itens).toHaveLength(9);
+    for (const nome of ["Padrao de Vida", "Educacao", "Cultura", "Bem-Estar Emocional",
+      "Saude", "Uso do Tempo", "Vitalidade Comunitaria", "Meio Ambiente", "Governanca"]) {
+      expect(lista.textContent).toContain(nome);
+    }
+  });
+
+  test("cada dominio mostra media na escala 0-4 e contagem de itens", () => {
+    render(<CohortCard chave="alfa" rotulo="Coorte Alfa" relatorio={buildFibtCohortReport(visivel)} />);
+    const lista = screen.getByTestId("lista-dominios");
+    expect(lista.textContent).toMatch(/\/\s*4/);
+    expect(lista.textContent).toMatch(/item/);
   });
 });
 
