@@ -12,6 +12,7 @@
 // tocar dado de outra onda nem que alguem troque um id a mao.
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { randomBytes } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -42,6 +43,51 @@ function respostasSinteticas(semente: number): Record<string, number> {
     out[item.id] = x % 5; // 0..4, dentro da escala do instrumento
   }
   return out;
+}
+
+/**
+ * aggregate_cohort_responses faz escopo por auth.uid(). Chamada com a chave
+ * service_role, auth.uid() e NULL e a funcao devolve n=0 -- fail-closed
+ * correto, mas inutil como prova: n=0 "suprimido" nao demonstra que n=4 foi
+ * suprimido por k-anon. A prova exige JWT de um usuario REAL da organizacao.
+ */
+async function usuarioComJwt(email: string, orgId: string): Promise<{ id: string; token: string }> {
+  const password = `${randomBytes(24).toString("base64url")}Aa1!`; // so em memoria
+
+  const { data: criado, error } = await admin.auth.admin.createUser({
+    email, password, email_confirm: true,
+  });
+
+  let userId = criado?.user?.id;
+  if (error || !userId) {
+    const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const achado = lista?.users?.find((u) => u.email === email);
+    if (!achado) throw new Error(`nao criou nem achou ${email}: ${error?.message}`);
+    userId = achado.id;
+    const { error: upd } = await admin.auth.admin.updateUserById(userId, { password });
+    if (upd) throw new Error(`nao preparou ${email}: ${upd.message}`);
+  }
+
+  const { error: perr } = await admin
+    .from("profiles")
+    .upsert({ id: userId, org_id: orgId, role: "RH_ADMIN" }, { onConflict: "id" });
+  if (perr) throw new Error(`profile: ${perr.message}`);
+
+  const cliente = createClient(target.url, target.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: sess, error: serr } = await cliente.auth.signInWithPassword({ email, password });
+  if (serr || !sess.session?.access_token) throw new Error(`login ${email}: ${serr?.message}`);
+
+  return { id: userId, token: sess.session.access_token };
+}
+
+/** Cliente PostgREST autenticado como um usuario real (nao service_role). */
+function comoUsuario(token: string): SupabaseClient {
+  return createClient(target.url, target.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 }
 
 const ok = (b: boolean) => (b ? "PASS" : "FALHOU");
@@ -77,12 +123,13 @@ async function snapshot() {
 async function seed() {
   assertSynthetic("organizacao", ORG_NAME);
 
+  // organizations.slug e NOT NULL UNIQUE -- deriva do nome sintetico.
   const { data: org, error: e1 } = await admin
-    .from("organizations").insert({ name: ORG_NAME }).select("id").single();
+    .from("organizations").insert({ name: ORG_NAME, slug: ORG_NAME }).select("id").single();
   if (e1) throw new Error(`org: ${e1.message}`);
 
   const { data: orgB, error: e1b } = await admin
-    .from("organizations").insert({ name: ORG_OUTRO }).select("id").single();
+    .from("organizations").insert({ name: ORG_OUTRO, slug: ORG_OUTRO }).select("id").single();
   if (e1b) throw new Error(`org B: ${e1b.message}`);
 
   const { data: wave, error: e2 } = await admin
@@ -166,13 +213,37 @@ async function proof() {
   checar("coorte Alfa tem 6 respostas", alfaRows?.length === 6, `n=${alfaRows?.length}`);
   checar("coorte Beta tem 4 respostas", betaRows?.length === 4, `n=${betaRows?.length}`);
 
-  console.log("\n--- Privacy gate k_min=5 (aplicado no banco) ---");
-  const { data: aggAlfa } = await admin.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
-  const { data: aggBeta } = await admin.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
+  console.log("\n--- Privacy gate k_min=5 (aplicado no banco, com JWT real) ---");
+  const dono = await usuarioComJwt(`${SYNTHETIC_PREFIX}admin@example.invalid`, ids.orgId);
+  const comoDono = comoUsuario(dono.token);
+
+  const { data: aggAlfa } = await comoDono.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
+  const { data: aggBeta } = await comoDono.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.betaId });
   const a = (aggAlfa as { n: number; visible: boolean; item_means: unknown }[])?.[0];
   const b = (aggBeta as { n: number; visible: boolean; item_means: unknown }[])?.[0];
-  checar("n=6 -> visivel com conteudo", a?.visible === true && a?.item_means !== null, `n=${a?.n}`);
-  checar("n=4 -> SUPRIMIDO sem conteudo", b?.visible === false && b?.item_means === null, `n=${b?.n} (k=${K_MIN})`);
+
+  // n tem que ser o numero REAL (6 e 4). Um n=0 "suprimido" seria falso PASS:
+  // provaria apenas que o chamador nao foi reconhecido.
+  checar("n=6 -> visivel COM conteudo", a?.n === 6 && a?.visible === true && a?.item_means !== null, `n=${a?.n}`);
+  checar("n=4 -> SUPRIMIDO sem conteudo, e n reportado corretamente",
+    b?.n === 4 && b?.visible === false && b?.item_means === null, `n=${b?.n} (k=${K_MIN})`);
+
+  console.log("\n--- Escopo por identidade (a RPC nega quem nao e da org) ---");
+  const { data: semIdent } = await admin.rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
+  const si = (semIdent as { n: number; visible: boolean }[])?.[0];
+  checar("service_role sem auth.uid() nao recebe conteudo", si?.n === 0 && si?.visible === false);
+
+  const intruso = await usuarioComJwt(`${SYNTHETIC_PREFIX}intruso@example.invalid`, ids.orgOutroId);
+  const { data: aggIntruso } = await comoUsuario(intruso.token)
+    .rpc("aggregate_cohort_responses", { p_wave_id: ids.waveId, p_cohort_id: ids.alfaId });
+  const ai = (aggIntruso as { n: number; visible: boolean; item_means: unknown }[])?.[0];
+  checar("usuario de OUTRO tenant nao le a coorte alheia",
+    ai?.n === 0 && ai?.visible === false && ai?.item_means === null, `n=${ai?.n}`);
+
+  console.log("\n--- Admin da org nao alcanca resposta individual ---");
+  const brutas = await comoDono.from("wave_responses").select("id, answers").eq("wave_id", ids.waveId);
+  checar("SELECT direto em wave_responses nao devolve linha",
+    (brutas.data?.length ?? 0) === 0, brutas.error ? brutas.error.message.slice(0, 40) : `${brutas.data?.length} linhas`);
 
   console.log("\n--- Convite de uso unico ---");
   const replay = await admin.rpc("submit_wave_response", {
@@ -231,6 +302,16 @@ async function proof() {
 async function cleanup() {
   const { data: orgs } = await admin.from("organizations").select("id, name").like("name", `${SYNTHETIC_PREFIX}%`);
   if (!orgs?.length) return console.log("Nada sintetico desta onda para remover.");
+
+  // Usuarios sinteticos criados para a prova de JWT.
+  const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  for (const u of lista?.users ?? []) {
+    if (!u.email?.startsWith(SYNTHETIC_PREFIX)) continue;
+    assertSynthetic("usuario a remover", u.email);
+    await admin.from("profiles").delete().eq("id", u.id);
+    await admin.auth.admin.deleteUser(u.id);
+    console.log(`  removido usuario: ${u.email}`);
+  }
 
   for (const org of orgs) {
     assertSynthetic("organizacao a remover", org.name);
