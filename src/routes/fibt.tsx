@@ -6,11 +6,14 @@ import {
   FIBT_ORG_RESULT,
   FIBT_ORG_N,
   FIBT_INTRO,
-  FIBT_CLASS_COPY,
   FACTOR_COLOR,
   DOMAIN_TO_ESG,
   ESG_DIM_COPY,
 } from "@/mocks/fibt-mock";
+
+// Proporção visual da barra a partir da média 0–4. É escala de desenho, não
+// escore: o instrumento não define normalização (ver manifesto FIBT-0).
+const barWidth = (mean0to4: number) => `${(mean0to4 / 4) * 100}%`;
 
 export const Route = createFileRoute("/fibt")({
   head: () => ({ meta: [{ title: "FIB-T · Felicidade Interna Bruta — 4 Lentes VitalOS™" }] }),
@@ -19,24 +22,24 @@ export const Route = createFileRoute("/fibt")({
 
 function FibtPage() {
   const r = FIBT_ORG_RESULT;
-  const cls = FIBT_CLASS_COPY[r.classification]!;
 
-  // Ponte ESG: média dos domínios por dimensão E/S/G.
+  // Ponte ESG: média das leituras de domínio por dimensão E/S/G, na escala
+  // original 0–4 do instrumento.
   const esg = useMemo(() => {
     const acc: Record<string, number[]> = { E: [], S: [], G: [] };
-    for (const d of r.domains) acc[DOMAIN_TO_ESG[d.id] ?? "S"]!.push(d.normalized);
+    for (const d of r.domains) acc[DOMAIN_TO_ESG[d.id] ?? "S"]!.push(d.mean);
     return (["E", "S", "G"] as const).map((dim) => ({
       dim,
       label: ESG_DIM_COPY[dim]!.label,
       color: ESG_DIM_COPY[dim]!.color,
       value: acc[dim]!.length
-        ? Math.round(acc[dim]!.reduce((s, v) => s + v, 0) / acc[dim]!.length)
+        ? Math.round((acc[dim]!.reduce((s, v) => s + v, 0) / acc[dim]!.length) * 10) / 10
         : 0,
       domains: r.domains.filter((d) => (DOMAIN_TO_ESG[d.id] ?? "S") === dim),
     }));
   }, [r]);
 
-  const domainsSorted = [...r.domains].sort((a, b) => b.normalized - a.normalized);
+  const domainsSorted = [...r.domains].sort((a, b) => b.mean - a.mean);
 
   return (
     <AppShell>
@@ -56,7 +59,7 @@ function FibtPage() {
           </p>
         </motion.div>
 
-        {/* Hero — escore bruto + índice */}
+        {/* Hero — escore bruto (única métrica global documentada) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,17 +67,15 @@ function FibtPage() {
           className="flex flex-wrap items-end justify-between gap-6 rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
         >
           <div>
-            <p className="text-xs text-muted-foreground">Índice FIB-T (0–1000)</p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="font-serif text-5xl font-semibold text-foreground">{r.index}</span>
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-medium ${cls.bg} ${cls.color}`}
-              >
-                {cls.label}
+            <p className="text-xs text-muted-foreground">Escore bruto FIB-T</p>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="font-serif text-5xl font-semibold text-foreground">
+                {r.escoreBruto}
               </span>
+              <span className="text-lg text-muted-foreground">/ 12</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Escore bruto {r.escoreBruto}/12 · {FIBT_ORG_N} respondentes (anônimo)
+              Soma das médias dos 3 Fatores · {FIBT_ORG_N} respondentes (anônimo)
             </p>
           </div>
           <div className="flex gap-2">
@@ -88,7 +89,10 @@ function FibtPage() {
                   style={{ background: FACTOR_COLOR[f.id] }}
                   aria-hidden
                 />
-                <p className="font-serif text-2xl text-foreground">{f.normalized}</p>
+                <p className="font-serif text-2xl text-foreground">
+                  {f.mean}
+                  <span className="text-xs text-muted-foreground">/4</span>
+                </p>
                 <p className="max-w-[6rem] text-[9px] leading-tight text-muted-foreground">
                   {f.name}
                 </p>
@@ -118,7 +122,7 @@ function FibtPage() {
                   </p>
                 </div>
                 <p className="mt-1 font-serif text-3xl text-foreground">{e.value}</p>
-                <p className="text-xs text-muted-foreground">/ 100 médio dos domínios</p>
+                <p className="text-xs text-muted-foreground">/ 4 — média dos domínios</p>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {e.domains.map((d) => (
                     <span
@@ -143,7 +147,11 @@ function FibtPage() {
 
         {/* 9 Domínios FIB */}
         <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-          <h2 className="mb-4 font-serif text-lg text-foreground">Os 9 Domínios da Felicidade</h2>
+          <h2 className="mb-1 font-serif text-lg text-foreground">Os 9 Domínios da Felicidade</h2>
+          <p className="mb-4 text-xs text-muted-foreground">
+            Média dos itens de cada Domínio, na escala 0–4. Leitura descritiva: o instrumento
+            agrupa os itens por Domínio, mas não define subíndice de Domínio.
+          </p>
           <div className="space-y-3">
             {domainsSorted.map((d) => {
               const dim = DOMAIN_TO_ESG[d.id] ?? "S";
@@ -156,11 +164,11 @@ function FibtPage() {
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${d.normalized}%`, background: color }}
+                      style={{ width: barWidth(d.mean), background: color }}
                     />
                   </div>
                   <span className="w-20 shrink-0 text-right text-xs text-muted-foreground">
-                    {d.normalized}/100 · {d.mean}/4
+                    {d.mean}/4 · {d.itemCount} {d.itemCount === 1 ? "item" : "itens"}
                   </span>
                 </div>
               );

@@ -2,13 +2,15 @@ import { describe, expect, test } from "bun:test";
 import {
   scoreFibt,
   aggregateFibt,
-  classifyFibt,
+  validateFibtResponses,
+  FibtIncompleteResponseError,
   FIBT_K_MIN,
   type FibtInstrumentDef,
   type FibtItemResponse,
 } from "./fibt-engine";
+import { FIBT_INSTRUMENT } from "@/mocks/fibt-mock";
 
-// Instrumento mínimo: 3 fatores, 4 domínios, 6 itens (escala 0–4).
+// Instrumento mínimo: 3 fatores, 5 domínios, 6 itens (escala 0–4).
 const DEF: FibtInstrumentDef = {
   factors: [
     { id: "padrao", name: "Padrão de Vida", domainIds: ["padrao_vida", "cultura"] },
@@ -36,85 +38,152 @@ function resp(map: Record<string, number>): FibtItemResponse[] {
   return Object.entries(map).map(([itemId, value]) => ({ itemId, value }));
 }
 
-// ─── Classificação ────────────────────────────────────────────────────────────
+const TODOS = (v: number) => resp(Object.fromEntries(DEF.items.map((i) => [i.id, v])));
 
-describe("classifyFibt", () => {
-  test("faixas por normalizado 0–100", () => {
-    expect(classifyFibt(30)).toBe("fragil");
-    expect(classifyFibt(40)).toBe("em_desenvolvimento");
-    expect(classifyFibt(60)).toBe("saudavel");
-    expect(classifyFibt(80)).toBe("florescente");
-  });
-});
+// ─── Escore ───────────────────────────────────────────────────────────────────
 
-// ─── Scoring ──────────────────────────────────────────────────────────────────
-
-describe("scoreFibt", () => {
-  test("tudo no máximo (4) → escore bruto 12, index 1000, florescente", () => {
-    const r = scoreFibt(resp({ q1: 4, q2: 4, q3: 4, q4: 4, q5: 4, q6: 4 }), DEF);
+describe("scoreFibt — cálculo documentado (Furtado 2020)", () => {
+  test("tudo no máximo (4) → cada Fator 4, escore bruto 12", () => {
+    const r = scoreFibt(TODOS(4), DEF);
+    expect(r.factors.map((f) => f.mean)).toEqual([4, 4, 4]);
     expect(r.escoreBruto).toBe(12);
-    expect(r.index).toBe(1000);
-    expect(r.classification).toBe("florescente");
   });
 
-  test("tudo no mínimo (0) → escore 0, index 0, frágil", () => {
-    const r = scoreFibt(resp({}), DEF);
+  test("tudo no mínimo (0) → escore bruto 0", () => {
+    const r = scoreFibt(TODOS(0), DEF);
     expect(r.escoreBruto).toBe(0);
-    expect(r.index).toBe(0);
-    expect(r.classification).toBe("fragil");
   });
 
-  test("subíndice do Fator = média dos seus itens", () => {
-    // empresa: q5=2, q6=4 → média 3.0
-    const r = scoreFibt(resp({ q5: 2, q6: 4 }), DEF);
-    const empresa = r.factors.find((f) => f.id === "empresa")!;
-    expect(empresa.mean).toBe(3.0);
-    expect(empresa.normalized).toBe(75); // 3/4
+  test("subíndice do Fator = média dos itens DAQUELE Fator", () => {
+    const r = scoreFibt(resp({ q1: 4, q2: 2, q3: 3, q4: 3, q5: 1, q6: 1 }), DEF);
+    const by = Object.fromEntries(r.factors.map((f) => [f.id, f.mean]));
+    expect(by.padrao).toBe(3); // (4+2)/2
+    expect(by.bem_estar).toBe(3); // (3+3)/2
+    expect(by.empresa).toBe(1); // (1+1)/2
   });
 
-  test("escore bruto = soma das médias dos 3 fatores (peso igual)", () => {
-    // padrao: q1=4,q2=2 → 3.0 ; bem_estar: q3=2,q4=2 → 2.0 ; empresa: q5=4,q6=4 → 4.0
-    const r = scoreFibt(resp({ q1: 4, q2: 2, q3: 2, q4: 2, q5: 4, q6: 4 }), DEF);
-    expect(r.escoreBruto).toBe(9.0); // 3+2+4
-    expect(r.index).toBe(750); // 9/12
+  test("escore bruto = soma das médias dos Fatores, não média dos 32 itens", () => {
+    // Fatores com nº de itens diferente: a diferença entre os dois métodos
+    // aparece aqui. Empresa tem 2 itens, os outros 2 — desequilibro via valores.
+    const r = scoreFibt(resp({ q1: 4, q2: 4, q3: 0, q4: 0, q5: 2, q6: 2 }), DEF);
+    expect(r.factors.map((f) => f.mean)).toEqual([4, 0, 2]);
+    expect(r.escoreBruto).toBe(6); // 4 + 0 + 2
   });
 
-  test("score por domínio normalizado a 0–100", () => {
-    const r = scoreFibt(resp({ q3: 4 }), DEF); // saude=4 → 100
-    expect(r.domains.find((d) => d.id === "saude")!.normalized).toBe(100);
+  test("leitura de Domínio = média dos itens do Domínio, com a contagem", () => {
+    const r = scoreFibt(resp({ q1: 4, q2: 2, q3: 3, q4: 1, q5: 0, q6: 4 }), DEF);
+    const gov = r.domains.find((d) => d.id === "governanca")!;
+    expect(gov.mean).toBe(2); // (0+4)/2
+    expect(gov.itemCount).toBe(2);
   });
 
-  test("peso igual por fator: um fator de 1 item não domina um fator de 2 itens", () => {
-    // empresa tem 2 itens, saude 1 — mas cada FATOR pesa igual no bruto
-    const r = scoreFibt(resp({ q5: 4, q6: 4 }), DEF); // só empresa no máximo
-    // empresa mean 4, outros 0 → bruto = 4 → index round(4/12*1000)=333
-    expect(r.escoreBruto).toBe(4);
-    expect(r.index).toBe(333);
+  test("o resultado NÃO expõe índice 0–1000 nem classificação em faixas", () => {
+    const r = scoreFibt(TODOS(4), DEF);
+    // Regressão da FIBT-0: ambos existiam e não têm base no documento.
+    expect(r).not.toHaveProperty("index");
+    expect(r).not.toHaveProperty("classification");
+    expect(Object.keys(r).sort()).toEqual(["domains", "escoreBruto", "factors"]);
+  });
+
+  test("nem Fator nem Domínio expõem valor normalizado", () => {
+    const r = scoreFibt(TODOS(4), DEF);
+    expect(r.factors[0]).not.toHaveProperty("normalized");
+    expect(r.domains[0]).not.toHaveProperty("normalized");
   });
 });
 
-// ─── Agregação k-anonimato ────────────────────────────────────────────────────
+// ─── Fail-closed: resposta ausente ou fora da escala ──────────────────────────
 
-describe("aggregateFibt — k-anonimato", () => {
-  const person = (v: number) => resp({ q1: v, q2: v, q3: v, q4: v, q5: v, q6: v });
+describe("scoreFibt — missing data é recusado, nunca imputado", () => {
+  test("item faltando lança em vez de contar como 0 ('discordo totalmente')", () => {
+    expect(() => scoreFibt(resp({ q1: 4, q2: 4, q3: 4, q4: 4, q5: 4 }), DEF)).toThrow(
+      FibtIncompleteResponseError,
+    );
+  });
 
-  test("n < mínimo → oculto, sem resultado", () => {
-    const g = aggregateFibt([person(4)], DEF, FIBT_K_MIN);
+  test("o erro diz exatamente qual item faltou", () => {
+    try {
+      scoreFibt(resp({ q1: 4, q2: 4, q3: 4, q4: 4, q5: 4 }), DEF);
+      throw new Error("deveria ter lançado");
+    } catch (e) {
+      expect(e).toBeInstanceOf(FibtIncompleteResponseError);
+      expect((e as FibtIncompleteResponseError).missingItemIds).toEqual(["q6"]);
+    }
+  });
+
+  test("valor fora da escala 0–4 é recusado", () => {
+    expect(() => scoreFibt(resp({ q1: 7, q2: 4, q3: 4, q4: 4, q5: 4, q6: 4 }), DEF)).toThrow(
+      FibtIncompleteResponseError,
+    );
+    expect(() => scoreFibt(resp({ q1: -1, q2: 4, q3: 4, q4: 4, q5: 4, q6: 4 }), DEF)).toThrow(
+      FibtIncompleteResponseError,
+    );
+  });
+
+  test("validateFibtResponses relata sem lançar, para a UI checar antes", () => {
+    const v = validateFibtResponses(resp({ q1: 4, q2: 9 }), DEF);
+    expect(v.complete).toBe(false);
+    expect(v.missingItemIds).toEqual(["q3", "q4", "q5", "q6"]);
+    expect(v.invalidItemIds).toEqual(["q2"]);
+  });
+
+  test("conjunto completo e válido passa", () => {
+    expect(validateFibtResponses(TODOS(2), DEF).complete).toBe(true);
+  });
+});
+
+// ─── Agregação e k-anonimato ─────────────────────────────────────────────────
+
+describe("aggregateFibt — k-anonimato e integridade", () => {
+  test(`abaixo de n=${FIBT_K_MIN} o resultado é suprimido`, () => {
+    const g = aggregateFibt(Array.from({ length: FIBT_K_MIN - 1 }, () => TODOS(3)), DEF);
     expect(g.visible).toBe(false);
     expect(g.result).toBeNull();
   });
 
-  test("n >= mínimo → média dos respondentes pontuada", () => {
-    const people = [person(4), person(4), person(2), person(2), person(3)];
-    const g = aggregateFibt(people, DEF, FIBT_K_MIN);
+  test(`a partir de n=${FIBT_K_MIN} o resultado aparece`, () => {
+    const g = aggregateFibt(Array.from({ length: FIBT_K_MIN }, () => TODOS(3)), DEF);
     expect(g.visible).toBe(true);
-    // média por item = (4+4+2+2+3)/5 = 3.0 → todos fatores 3.0 → bruto 9 → index 750
-    expect(g.result!.escoreBruto).toBe(9);
-    expect(g.result!.index).toBe(750);
+    expect(g.result!.escoreBruto).toBe(9); // 3 + 3 + 3
   });
 
-  test("n exatamente no mínimo é visível", () => {
-    const people = Array.from({ length: FIBT_K_MIN }, () => person(3));
-    expect(aggregateFibt(people, DEF, FIBT_K_MIN).visible).toBe(true);
+  test("uma pessoa com resposta incompleta invalida a agregação", () => {
+    const pessoas = [TODOS(3), TODOS(3), TODOS(3), TODOS(3), resp({ q1: 3 })];
+    expect(() => aggregateFibt(pessoas, DEF)).toThrow(FibtIncompleteResponseError);
+  });
+
+  test("supressão vem antes da validação — grupo pequeno não vaza erro de conteúdo", () => {
+    const g = aggregateFibt([resp({ q1: 3 })], DEF);
+    expect(g.visible).toBe(false);
+  });
+});
+
+// ─── Instrumento real: 32 itens, 12/12/8 ─────────────────────────────────────
+
+describe("instrumento canônico ligado ao engine", () => {
+  test("o mock deriva os 32 itens do manifesto", () => {
+    expect(FIBT_INSTRUMENT.items).toHaveLength(32);
+    expect(FIBT_INSTRUMENT.factors).toHaveLength(3);
+    expect(FIBT_INSTRUMENT.domains).toHaveLength(9);
+  });
+
+  test("Fator 2 tem 12 itens e Fator 3 tem 8 — o item 5 no lugar certo", () => {
+    const count = (id: string) => FIBT_INSTRUMENT.items.filter((i) => i.factorId === id).length;
+    expect(count("padrao_de_vida")).toBe(12);
+    expect(count("bem_estar")).toBe(12);
+    expect(count("satisfacao_empresa")).toBe(8);
+  });
+
+  test("respostas máximas no instrumento real dão escore bruto 12", () => {
+    const todas = FIBT_INSTRUMENT.items.map((i) => ({ itemId: i.id, value: 4 }));
+    expect(scoreFibt(todas, FIBT_INSTRUMENT).escoreBruto).toBe(12);
+  });
+
+  test("o escore bruto real fica na faixa 0–12", () => {
+    const meio = FIBT_INSTRUMENT.items.map((i) => ({ itemId: i.id, value: 2 }));
+    const r = scoreFibt(meio, FIBT_INSTRUMENT);
+    expect(r.escoreBruto).toBeGreaterThanOrEqual(0);
+    expect(r.escoreBruto).toBeLessThanOrEqual(12);
+    expect(r.escoreBruto).toBe(6);
   });
 });

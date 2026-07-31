@@ -310,7 +310,9 @@ export const ANNUAL_PLAN: AnnualPlan = {
         mensurar: {
           objective: "Medir a Felicidade Interna Bruta em 9 domínios de vida (32 itens).",
           instruments: ["FIB-T", "Censo de bem-estar"],
-          deliverable: "Índice FIB-T + perfil dos 9 domínios (n≥5)",
+          // FIBT-0: não existe "índice" FIB-T — o instrumento entrega escore
+          // bruto 0–12 (soma das médias dos 3 Fatores).
+          deliverable: "Escore bruto FIB-T (0–12) + perfil dos 9 domínios (n≥5)",
         },
         educar: {
           objective: "Devolver os domínios frágeis como agenda coletiva, sem rótulo individual.",
