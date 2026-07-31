@@ -43,9 +43,17 @@ export const Route = createFileRoute("/relatorio-global")({
 
 const DIM_COLOR: Record<string, string> = { E: "#16A34A", S: "#2563EB", G: "#CA8A04" };
 
+// Média dos itens do Domínio, na escala real do instrumento (0–4).
+// FIBT-0: antes lia `.normalized` (0–100), escala que o instrumento não define.
+// O reescalonamento em `fibtNorm` permanece — mas é a escala interna de
+// agregação DESTE relatório, aplicada igualmente a IVO e VIA-T, nunca um
+// escore da FIB-T. O que a tela mostra é sempre a escala original (0–4).
 function fibtDomain(id: string): number {
-  return FIBT_ORG_RESULT.domains.find((d) => d.id === id)?.normalized ?? 0;
+  return FIBT_ORG_RESULT.domains.find((d) => d.id === id)?.mean ?? 0;
 }
+
+const fibtNorm = (id: string) => Math.round((fibtDomain(id) / 4) * 1000);
+const fibtDisplay = (id: string) => `${fibtDomain(id)} / 4`;
 
 // A organização não vem mais do cliente (P0-04) — o servidor resolve quem é
 // o admin de verdade a partir do access_token da própria sessão.
@@ -86,8 +94,8 @@ function RelatorioGlobalPage() {
       {
         id: "fibt-ambiente",
         label: "Responsabilidade ambiental (FIB-T)",
-        valueNorm: fibtDomain("meio_ambiente") * 10,
-        display: `${fibtDomain("meio_ambiente")} / 100`,
+        valueNorm: fibtNorm("meio_ambiente"),
+        display: fibtDisplay("meio_ambiente"),
         source: "FIB-T",
         dim: "E",
         ods: "ODS 13",
@@ -115,8 +123,8 @@ function RelatorioGlobalPage() {
       {
         id: "fibt-saude",
         label: "Saúde e vitalidade (FIB-T)",
-        valueNorm: fibtDomain("saude") * 10,
-        display: `${fibtDomain("saude")} / 100`,
+        valueNorm: fibtNorm("saude"),
+        display: fibtDisplay("saude"),
         source: "FIB-T",
         dim: "S",
         ods: "ODS 3",
@@ -124,8 +132,8 @@ function RelatorioGlobalPage() {
       {
         id: "fibt-padrao",
         label: "Padrão de vida digno (FIB-T)",
-        valueNorm: fibtDomain("padrao_vida") * 10,
-        display: `${fibtDomain("padrao_vida")} / 100`,
+        valueNorm: fibtNorm("padrao_vida"),
+        display: fibtDisplay("padrao_vida"),
         source: "FIB-T",
         dim: "S",
         ods: "ODS 8",
@@ -143,8 +151,8 @@ function RelatorioGlobalPage() {
       {
         id: "fibt-gov",
         label: "Governança percebida (FIB-T)",
-        valueNorm: fibtDomain("governanca") * 10,
-        display: `${fibtDomain("governanca")} / 100`,
+        valueNorm: fibtNorm("governanca"),
+        display: fibtDisplay("governanca"),
         source: "FIB-T",
         dim: "G",
         ods: "ODS 16",

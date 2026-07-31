@@ -56,6 +56,7 @@ import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as GovernoRouteImport } from './routes/governo'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
+import { Route as FibtPilotoRouteImport } from './routes/fibt-piloto'
 import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as FechamentoRouteImport } from './routes/fechamento'
 import { Route as ExperimentosRouteImport } from './routes/experimentos'
@@ -327,6 +328,11 @@ const FloresceriaRoute = FloresceriaRouteImport.update({
   path: '/floresceria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FibtPilotoRoute = FibtPilotoRouteImport.update({
+  id: '/fibt-piloto',
+  path: '/fibt-piloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FibtRoute = FibtRouteImport.update({
   id: '/fibt',
   path: '/fibt',
@@ -533,6 +539,7 @@ export interface FileRoutesByFullPath {
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
+  '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
@@ -617,6 +624,7 @@ export interface FileRoutesByTo {
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
+  '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
@@ -702,6 +710,7 @@ export interface FileRoutesById {
   '/experimentos': typeof ExperimentosRoute
   '/fechamento': typeof FechamentoRoute
   '/fibt': typeof FibtRoute
+  '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
   '/holding': typeof HoldingRoute
@@ -788,6 +797,7 @@ export interface FileRouteTypes {
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
+    | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
     | '/holding'
@@ -872,6 +882,7 @@ export interface FileRouteTypes {
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
+    | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
     | '/holding'
@@ -956,6 +967,7 @@ export interface FileRouteTypes {
     | '/experimentos'
     | '/fechamento'
     | '/fibt'
+    | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
     | '/holding'
@@ -1041,6 +1053,7 @@ export interface RootRouteChildren {
   ExperimentosRoute: typeof ExperimentosRoute
   FechamentoRoute: typeof FechamentoRoute
   FibtRoute: typeof FibtRoute
+  FibtPilotoRoute: typeof FibtPilotoRoute
   FloresceriaRoute: typeof FloresceriaRoute
   GovernoRoute: typeof GovernoRoute
   HoldingRoute: typeof HoldingRoute
@@ -1427,6 +1440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FloresceriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fibt-piloto': {
+      id: '/fibt-piloto'
+      path: '/fibt-piloto'
+      fullPath: '/fibt-piloto'
+      preLoaderRoute: typeof FibtPilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fibt': {
       id: '/fibt'
       path: '/fibt'
@@ -1705,6 +1725,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExperimentosRoute: ExperimentosRoute,
   FechamentoRoute: FechamentoRoute,
   FibtRoute: FibtRoute,
+  FibtPilotoRoute: FibtPilotoRoute,
   FloresceriaRoute: FloresceriaRoute,
   GovernoRoute: GovernoRoute,
   HoldingRoute: HoldingRoute,
