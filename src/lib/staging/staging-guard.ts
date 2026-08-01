@@ -7,9 +7,16 @@
 // não possa acontecer por acidente — este módulo torna a proteção explícita e
 // testável, em vez de deixá-la dependendo de disciplina.
 //
-// O `.env` já não é versionado, mas a guarda continua valendo: qualquer máquina
-// ainda pode ter um `.env` local apontando para produção, e o bun o carrega
-// automaticamente.
+// O `.env` VOLTOU a ser versionado (é requisito do build público do Lovable:
+// as variáveis VITE_* precisam estar no repositório para o Vite embuti-las no
+// bundle) — mas isso não reabre o incidente original, porque `.env` carrega
+// só configuração PÚBLICA allowlisted (URL do projeto, publishable key com
+// role anon), nunca `VITALOS_DB_TARGET` nem nada privilegiado. `.env.local`
+// continua ignorado, e é dele que vêm as credenciais reais de staging usadas
+// por este guard. Qualquer script de staging precisa validar o `project_ref`
+// exato do alvo (não basta "é uma URL remota" — ver identidade exata em
+// environment-contract.ts), e nenhuma variável privilegiada pode ser exposta
+// sob prefixo VITE_ — ver `recusarSecretExposta()` abaixo.
 //
 // O ref de produção NÃO é fixado aqui: ele é derivado, em tempo de execução, de
 // SUPABASE_URL (sem prefixo VITE_). Se o alvo de staging coincidir com esse
