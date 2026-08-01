@@ -70,28 +70,19 @@ function ambienteEfetivo(): Record<string, string | undefined> {
 
 const env = ambienteEfetivo();
 
-// Ambiente gerenciado Lovable (editor, preview e build do preview): não existe
-// .env.local ali, e o backend é sempre o Cloud gerenciado deste projeto — o
-// mesmo que o app publicado usa. Reconhecer esse ambiente explicitamente é
-// melhor que um default versionado: fora do Lovable nada muda, e dentro dele o
-// alvo fica nomeado no log em vez de resolvido por omissão.
-const lovableManaged = Boolean(env.LOVABLE_PROJECT_ID?.trim() || env.LOVABLE_SANDBOX?.trim());
-
 // O runtime é sempre do comando: é ele que sabe o que está executando.
-const runtime = lovableManaged ? "production" : (arg("runtime") ?? env.VITALOS_RUNTIME_ENV);
+const runtime = arg("runtime") ?? env.VITALOS_RUNTIME_ENV;
 
 // O alvo de banco pode ser fixo (--db) ou escolha da máquina (VITALOS_DB_TARGET
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
 // tolera — assim `dev` nunca aceita `production` mesmo que alguém o escreva.
-const dbFixo = lovableManaged ? "production" : arg("db");
+const dbFixo = arg("db");
 const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET;
 
-const permitidos = lovableManaged
-  ? undefined
-  : arg("allow-db")
-      ?.split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+const permitidos = arg("allow-db")
+  ?.split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 const erros: string[] = [];
 
@@ -109,8 +100,6 @@ if (!dbFixo && !env.VITALOS_DB_TARGET) {
       `Valores aceitos aqui: ${(permitidos ?? []).join(", ") || "ver docs/AMBIENTES_E_DEPLOY.md"}.`,
   );
 }
-
-
 
 const veredito =
   erros.length > 0

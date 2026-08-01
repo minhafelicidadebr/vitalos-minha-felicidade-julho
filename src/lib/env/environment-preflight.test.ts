@@ -57,8 +57,12 @@ interface Resultado {
  * Roda o preflight com ambiente CONTROLADO — não herdado. Herdar traria o
  * `.env` real da worktree pelo carregamento automático do bun, e o teste
  * passaria ou falharia pelo motivo errado.
+ *
+ * `extra` injeta variáveis de PROCESSO (não de arquivo) — é como simular o
+ * ambiente que o Lovable injeta em todo container do projeto (editor,
+ * preview, build gerenciado), sem depender do Lovable de verdade.
  */
-function preflight(args: string[], envLocal?: string): Resultado {
+function preflight(args: string[], envLocal?: string, extra?: Record<string, string>): Resultado {
   writeFileSync(join(dir, ".env"), ENV_PRODUTIVO, "utf8");
   writeFileSync(join(dir, ".env.local"), envLocal ?? "", "utf8");
 
@@ -72,6 +76,7 @@ function preflight(args: string[], envLocal?: string): Resultado {
       USERPROFILE: process.env.USERPROFILE,
       // Impede o bun de injetar o .env da worktree no processo filho.
       DOTENV_CONFIG_PATH: join(dir, ".env"),
+      ...extra,
     } as NodeJS.ProcessEnv,
   });
 
@@ -217,6 +222,155 @@ describe("contexto fixo dos comandos de build", () => {
       staging: true,
     });
     expect(r.saida).not.toContain("banco=production");
+  });
+});
+
+describe("regressão P0 — ambiente gerenciado nunca promove produção", () => {
+  // Um commit do workspace Lovable (528106c, gpt-engineer-app[bot]) introduziu
+  // `lovableManaged = Boolean(env.LOVABLE_PROJECT_ID || env.LOVABLE_SANDBOX)`
+  // que SOBRESCREVIA runtime/dbTarget/allow-db para production/production/
+  // undefined, ignorando os argumentos explícitos que dev/build:dev/preview
+  // declaram. Chegou a `main` sem PR e sem CI verde. Estes testes travam o
+  // EFEITO da regressão, não o nome das duas variáveis — mencioná-las em
+  // teste ou documentação continua permitido; o que não pode voltar é uma
+  // variável de ambiente, qualquer que seja, promovendo runtime/db por si só.
+
+  const localOk = "VITALOS_DB_TARGET=local\nSUPABASE_URL=http://localhost:9\nVITE_SUPABASE_URL=http://localhost:9\n";
+
+  test("1. LOVABLE_PROJECT_ID definido não altera runtime", () => {
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_PROJECT_ID: "algum-projeto-lovable",
+    });
+    expect(r.saida).toContain("runtime=local");
+    expect(r.saida).not.toContain("runtime=production");
+  });
+
+  test("2. LOVABLE_SANDBOX definido não altera runtime", () => {
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_SANDBOX: "1",
+    });
+    expect(r.saida).toContain("runtime=local");
+    expect(r.saida).not.toContain("runtime=production");
+  });
+
+  test("3. as duas variáveis juntas também não alteram runtime", () => {
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_PROJECT_ID: "algum-projeto-lovable",
+      LOVABLE_SANDBOX: "1",
+    });
+    expect(r.saida).toContain("runtime=local");
+    expect(r.saida).not.toContain("runtime=production");
+  });
+
+  test("4. build:dev (argumentos reais do package.json) continua local mesmo com LOVABLE_PROJECT_ID", () => {
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_PROJECT_ID: "algum-projeto-lovable",
+    });
+    expect({ code: r.code, runtime: r.saida.includes("runtime=local") }).toEqual({
+      code: 0,
+      runtime: true,
+    });
+  });
+
+  test("5. preview (argumentos reais do package.json) continua preview→staging mesmo com LOVABLE_SANDBOX", () => {
+    const r = preflight(
+      ["--runtime=preview", "--db=staging"],
+      [
+        `SUPABASE_URL=${URL_STAGING}`,
+        `VITE_SUPABASE_URL=${URL_STAGING}`,
+        `VITALOS_STAGING_PROJECT_REF=${REF_STAGING}`,
+        "",
+      ].join("\n"),
+      { LOVABLE_SANDBOX: "1" },
+    );
+    expect({ code: r.code, staging: r.saida.includes("banco=staging") }).toEqual({
+      code: 0,
+      staging: true,
+    });
+    expect(r.saida).not.toContain("banco=production");
+  });
+
+  test("6. LOVABLE_PROJECT_ID com URLs produtivas (herdadas do .env) não transforma build:dev em production", () => {
+    // Sem .env.local: só o .env produtivo (URL_PROD, sem VITALOS_DB_TARGET) —
+    // exatamente o cenário em que a regressão promovia silenciosamente para
+    // production. O comportamento correto é falhar do MESMO jeito que sem
+    // LOVABLE_PROJECT_ID: VITALOS_DB_TARGET ausente, nunca "banco=production".
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], undefined, {
+      LOVABLE_PROJECT_ID: "algum-projeto-lovable",
+    });
+    expect(r.code).toBe(1);
+    expect(r.saida).toContain("VITALOS_DB_TARGET ausente");
+    expect(r.saida).not.toContain("banco=production");
+  });
+
+  test("7. LOVABLE_SANDBOX com URLs produtivas não transforma build:dev em production", () => {
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], undefined, {
+      LOVABLE_SANDBOX: "1",
+    });
+    expect(r.code).toBe(1);
+    expect(r.saida).toContain("VITALOS_DB_TARGET ausente");
+    expect(r.saida).not.toContain("banco=production");
+  });
+
+  test("8. argumentos explícitos nunca são sobrescritos por variável LOVABLE_*", () => {
+    // --runtime=local é o argumento; LOVABLE_PROJECT_ID não pode vencê-lo.
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_PROJECT_ID: "x",
+    });
+    expect(r.saida).toContain("runtime=local");
+  });
+
+  test("9. produção só é aceita pelo comando produtivo explícito (--runtime=production --db=production)", () => {
+    const semLovable = preflight(["--runtime=production", "--db=production"]);
+    expect(semLovable.saida).toContain("runtime=production");
+
+    // build:dev e preview, mesmo com as duas variáveis LOVABLE_* juntas,
+    // nunca alcançam "runtime=production" — só o comando produtivo alcança.
+    const comLovableBuildDev = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_PROJECT_ID: "x",
+      LOVABLE_SANDBOX: "1",
+    });
+    expect(comLovableBuildDev.saida).not.toContain("runtime=production");
+  });
+
+  test("10. nenhuma variável de ambiente genérica (não só as duas nomeadas) promove production/production", () => {
+    // Prova mais ampla que 1-3: uma variável de nome PARECIDO, mas não
+    // reconhecida, também não pode ter efeito algum — não existe mecanismo
+    // genérico de "ambiente confiável" além de VITALOS_RUNTIME_ENV/
+    // VITALOS_DB_TARGET declarados explicitamente.
+    const r = preflight(["--runtime=local", "--allow-db=local,staging"], localOk, {
+      LOVABLE_MANAGED: "1",
+      LOVABLE_CLOUD: "1",
+      LOVABLE_WORKSPACE_ID: "x",
+    });
+    expect(r.saida).toContain("runtime=local");
+    expect(r.saida).not.toContain("runtime=production");
+  });
+});
+
+describe("proteção estática — o bypass não pode voltar ao preflight", () => {
+  // Escopo deliberadamente restrito ao COMPORTAMENTO do script, não ao nome
+  // das variáveis: documentação e os próprios testes acima mencionam
+  // LOVABLE_PROJECT_ID/LOVABLE_SANDBOX de propósito, para provar a rejeição.
+  // O que este teste proíbe é o script usá-las para DEFINIR ou SOBRESCREVER
+  // runtime, dbTarget ou allow-db.
+  const codigo = () => readFileSync(SCRIPT, "utf8");
+
+  test("environment-preflight.ts não lê LOVABLE_PROJECT_ID nem LOVABLE_SANDBOX", () => {
+    const src = codigo();
+    expect(src).not.toMatch(/env\.LOVABLE_PROJECT_ID/);
+    expect(src).not.toMatch(/env\.LOVABLE_SANDBOX/);
+  });
+
+  test("nenhuma variável de ambiente fora de VITALOS_RUNTIME_ENV/VITALOS_DB_TARGET define runtime ou dbTarget", () => {
+    const src = codigo();
+    // As únicas fontes de runtime/dbTarget além do argumento --runtime/--db
+    // têm que continuar sendo exatamente estas duas variáveis do contrato.
+    const fontesRuntime = [...src.matchAll(/const runtime = ([^;]+);/g)].map((m) => m[1]);
+    const fontesDbTarget = [...src.matchAll(/const dbTarget = ([^;]+);/g)].map((m) => m[1]);
+    expect(fontesRuntime.every((f) => f!.includes("env.VITALOS_RUNTIME_ENV"))).toBe(true);
+    expect(fontesDbTarget.every((f) => f!.includes("env.VITALOS_DB_TARGET") || f!.includes("dbFixo"))).toBe(true);
+    expect(src).not.toMatch(/lovableManaged/);
   });
 });
 
