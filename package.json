@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "preflight": "bun run scripts/environment-preflight.ts",
-    "dev": "bun run preflight --runtime=local --allow-db=local,staging --fallback-db=local && vite dev",
+    "dev": "bun run preflight --runtime=local --allow-db=local,staging && vite dev",
     "build": "bun run preflight --runtime=production --db=production && vite build",
     "build:ci": "bun run preflight --runtime=ci --db=test && vite build",
-    "build:dev": "bun run preflight --runtime=local --allow-db=local,staging --fallback-db=local && vite build --mode development",
+    "build:dev": "bun run preflight --runtime=local --allow-db=local,staging && vite build --mode development",
     "preview": "bun run preflight --runtime=preview --db=staging && vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
