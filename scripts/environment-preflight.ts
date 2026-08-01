@@ -70,22 +70,28 @@ function ambienteEfetivo(): Record<string, string | undefined> {
 
 const env = ambienteEfetivo();
 
+// Ambiente gerenciado Lovable (editor, preview e build do preview): não existe
+// .env.local ali, e o backend é sempre o Cloud gerenciado deste projeto — o
+// mesmo que o app publicado usa. Reconhecer esse ambiente explicitamente é
+// melhor que um default versionado: fora do Lovable nada muda, e dentro dele o
+// alvo fica nomeado no log em vez de resolvido por omissão.
+const lovableManaged = Boolean(env.LOVABLE_PROJECT_ID?.trim() || env.LOVABLE_SANDBOX?.trim());
+
 // O runtime é sempre do comando: é ele que sabe o que está executando.
-const runtime = arg("runtime") ?? env.VITALOS_RUNTIME_ENV;
+const runtime = lovableManaged ? "production" : (arg("runtime") ?? env.VITALOS_RUNTIME_ENV);
 
 // O alvo de banco pode ser fixo (--db) ou escolha da máquina (VITALOS_DB_TARGET
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
 // tolera — assim `dev` nunca aceita `production` mesmo que alguém o escreva.
-const dbFixo = arg("db");
-// Fallback SÓ para runtimes não-produtivos (dev/preview do Lovable, onde não
-// existe .env.local). Nunca vale para `build`/`build:ci`, que declaram --db.
-const dbFallback = arg("fallback-db");
-const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET ?? dbFallback;
+const dbFixo = lovableManaged ? "production" : arg("db");
+const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET;
 
-const permitidos = arg("allow-db")
-  ?.split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+const permitidos = lovableManaged
+  ? undefined
+  : arg("allow-db")
+      ?.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
 const erros: string[] = [];
 
@@ -96,13 +102,14 @@ if (permitidos && dbTarget && isDbTarget(dbTarget) && !permitidos.includes(dbTar
   );
 }
 
-if (!dbFixo && !env.VITALOS_DB_TARGET && !dbFallback) {
+if (!dbFixo && !env.VITALOS_DB_TARGET) {
   erros.push(
     "VITALOS_DB_TARGET ausente. Este comando exige que a máquina declare o alvo " +
       "em .env.local — não existe default versionado, de propósito. " +
       `Valores aceitos aqui: ${(permitidos ?? []).join(", ") || "ver docs/AMBIENTES_E_DEPLOY.md"}.`,
   );
 }
+
 
 
 const veredito =
