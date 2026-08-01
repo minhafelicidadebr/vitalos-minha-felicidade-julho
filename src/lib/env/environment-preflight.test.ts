@@ -22,13 +22,19 @@ const REF_STAGING = "ssssssssssssssssssss";
 const URL_PROD = `https://${REF_PROD}.supabase.co`;
 const URL_STAGING = `https://${REF_STAGING}.supabase.co`;
 
-/** `.env` versionado tal como o Lovable exige: público, sem VITALOS_*. */
+/**
+ * `.env` versionado tal como o Lovable exige: público, com identidade de
+ * PRODUÇÃO declarada (é o único ref que tem default versionado — de
+ * propósito, ver environment-contract.ts). Nunca VITALOS_RUNTIME_ENV,
+ * VITALOS_DB_TARGET nem VITALOS_STAGING_PROJECT_REF.
+ */
 const ENV_PRODUTIVO = [
   `SUPABASE_URL=${URL_PROD}`,
   "SUPABASE_PUBLISHABLE_KEY=chave-publica-ficticia",
   `VITE_SUPABASE_URL=${URL_PROD}`,
   "VITE_SUPABASE_PUBLISHABLE_KEY=chave-publica-ficticia",
   "VITE_FIBT_PILOT_ENABLED=false",
+  `VITALOS_PRODUCTION_PROJECT_REF=${REF_PROD}`,
   "",
 ].join("\n");
 
@@ -95,6 +101,7 @@ describe("12. dev com .env.local completo de staging", () => {
     "VITALOS_DB_TARGET=staging",
     `SUPABASE_URL=${URL_STAGING}`,
     `VITE_SUPABASE_URL=${URL_STAGING}`,
+    `VITALOS_STAGING_PROJECT_REF=${REF_STAGING}`,
     "",
   ].join("\n");
 
@@ -171,27 +178,45 @@ describe("contexto fixo dos comandos de build", () => {
     });
   });
 
-  test("preview é travado em staging — nunca resolve para production", () => {
+  test("preview sem VITALOS_STAGING_PROJECT_REF continua falhando", () => {
+    // Só o `.env` produtivo (com VITALOS_PRODUCTION_PROJECT_REF, sem o par de
+    // staging) e nenhum .env.local: preview exige staging, e a máquina não
+    // declarou identidade nenhuma para staging.
     const r = preflight(["--runtime=preview", "--db=staging"]);
-    expect(r.saida).not.toContain("banco=production");
+    expect(r.code).toBe(1);
+    expect(r.saida).toContain("exige VITALOS_STAGING_PROJECT_REF declarado");
   });
 
-  test("LIMITE CONHECIDO: o contrato não distingue staging de produção pela URL", () => {
-    // `preview → staging` aceita qualquer URL REMOTA, inclusive a de produção:
-    // staging e produção têm a mesma natureza de URL, e distingui-las exigiria
-    // um registro de refs conhecidos versionado no repo — exatamente o que se
-    // evita, porque transforma identificador de ambiente em constante que
-    // alguém copia. A proteção real aqui é operacional: quem roda `preview`
-    // aponta staging no seu .env.local.
-    //
-    // O teste fixa esse limite em vez de escondê-lo: se um dia o contrato
-    // passar a validar identidade de projeto, ele falha e a mudança fica
-    // visível.
-    const r = preflight(["--runtime=preview", "--db=staging"]);
+  test("LIMITE FECHADO: preview com URL de produção e VITALOS_STAGING_PROJECT_REF declarado não engana mais o contrato", () => {
+    // Esta é a vulnerabilidade que esta correção fecha: antes, `preview →
+    // staging` aceitava qualquer URL remota — inclusive a de produção —
+    // desde que cliente e servidor concordassem entre si. Agora, mesmo
+    // declarando VITALOS_STAGING_PROJECT_REF, se a URL efetiva continuar
+    // sendo a de PRODUÇÃO (herdada do .env versionado, sem override local
+    // das URLs), o preflight recusa por identidade não bater.
+    const r = preflight(
+      ["--runtime=preview", "--db=staging"],
+      `VITALOS_STAGING_PROJECT_REF=${REF_STAGING}\n`, // declara staging, mas não sobrescreve a URL
+    );
+    expect(r.code).toBe(1);
+    expect(r.saida).toContain("VITALOS_STAGING_PROJECT_REF declara");
+  });
+
+  test("preview com staging corretamente configurado → PASS", () => {
+    const r = preflight(
+      ["--runtime=preview", "--db=staging"],
+      [
+        `SUPABASE_URL=${URL_STAGING}`,
+        `VITE_SUPABASE_URL=${URL_STAGING}`,
+        `VITALOS_STAGING_PROJECT_REF=${REF_STAGING}`,
+        "",
+      ].join("\n"),
+    );
     expect({ code: r.code, staging: r.saida.includes("banco=staging") }).toEqual({
       code: 0,
       staging: true,
     });
+    expect(r.saida).not.toContain("banco=production");
   });
 });
 

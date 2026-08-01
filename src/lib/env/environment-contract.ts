@@ -86,6 +86,10 @@ export interface EnvInput {
   VITALOS_DB_TARGET?: string | undefined;
   SUPABASE_URL?: string | undefined;
   VITE_SUPABASE_URL?: string | undefined;
+  /** Ref público de produção. Versionado em `.env` — não é segredo. */
+  VITALOS_PRODUCTION_PROJECT_REF?: string | undefined;
+  /** Ref público de staging. NUNCA versionado — vive só em `.env.local`. */
+  VITALOS_STAGING_PROJECT_REF?: string | undefined;
 }
 
 export type EnvVerdict =
@@ -214,6 +218,51 @@ export function validateEnvironment(env: EnvInput): EnvVerdict {
         `Servidor e navegador apontam para projetos DIFERENTES: ` +
           `SUPABASE_URL=${maskRef(refServidor!)} vs VITE_SUPABASE_URL=${maskRef(refCliente!)}. ` +
           "Essa divergência produz um app que lê de um banco e escreve em outro.",
+      ],
+    };
+  }
+
+  // A partir daqui, dbTarget só pode ser "staging" ou "production": são os
+  // dois únicos alvos cuja natureza exigida é "remota" (local exige loopback,
+  // test exige .invalid). "É uma URL remota" nunca foi evidência suficiente
+  // de QUAL ambiente é — staging e produção são igualmente remotos. A
+  // identidade exige o ref declarado explicitamente para aquele alvo.
+  const prodRefDeclarado = env.VITALOS_PRODUCTION_PROJECT_REF?.trim().toLowerCase() || undefined;
+  const stagingRefDeclarado = env.VITALOS_STAGING_PROJECT_REF?.trim().toLowerCase() || undefined;
+
+  // Sanidade de configuração, independente de qual alvo está sendo validado
+  // agora: os dois refs, quando ambos declarados, nunca podem ser o mesmo
+  // projeto — senão "produção" e "staging" deixam de ser distinguíveis.
+  if (prodRefDeclarado && stagingRefDeclarado && prodRefDeclarado === stagingRefDeclarado) {
+    return {
+      ok: false,
+      erros: [
+        `VITALOS_PRODUCTION_PROJECT_REF e VITALOS_STAGING_PROJECT_REF declaram o mesmo ` +
+          `projeto (${maskRef(prodRefDeclarado)}). Produção e staging nunca podem ser o mesmo ref.`,
+      ],
+    };
+  }
+
+  const nomeVarEsperada =
+    dbTarget === "production" ? "VITALOS_PRODUCTION_PROJECT_REF" : "VITALOS_STAGING_PROJECT_REF";
+  const refDeclarado = dbTarget === "production" ? prodRefDeclarado : stagingRefDeclarado;
+
+  if (!refDeclarado) {
+    return {
+      ok: false,
+      erros: [
+        `VITALOS_DB_TARGET=${dbTarget} exige ${nomeVarEsperada} declarado — uma URL remota ` +
+          "sozinha não é evidência de qual ambiente é.",
+      ],
+    };
+  }
+
+  if (refDeclarado !== refServidor) {
+    return {
+      ok: false,
+      erros: [
+        `${nomeVarEsperada} declara ${maskRef(refDeclarado)}, mas SUPABASE_URL/VITE_SUPABASE_URL ` +
+          `apontam para ${maskRef(refServidor!)}.`,
       ],
     };
   }

@@ -41,7 +41,12 @@ function variaveis(conteudo: string): Map<string, string> {
  * diferença entre publicar uma e publicar a outra é a diferença entre
  * configuração e incidente.
  */
-type Natureza = "url-publica" | "publishable-jwt" | "publishable-opaca" | "flag-booleana";
+type Natureza =
+  | "url-publica"
+  | "publishable-jwt"
+  | "publishable-opaca"
+  | "flag-booleana"
+  | "project-ref-publico";
 
 const ALLOWLIST_ENV: Record<string, Natureza> = {
   SUPABASE_URL: "url-publica",
@@ -50,6 +55,11 @@ const ALLOWLIST_ENV: Record<string, Natureza> = {
   VITE_SUPABASE_PUBLISHABLE_KEY: "publishable-jwt",
   VITE_APP_URL: "url-publica",
   VITE_FIBT_PILOT_ENABLED: "flag-booleana",
+  // Identidade de produção: público por natureza (é o subdomínio da URL da
+  // API), sem prefixo VITE_ — não vai para o bundle, só serve ao preflight e
+  // aos guards. O par staging (VITALOS_STAGING_PROJECT_REF) NUNCA entra aqui
+  // — ver os testes de "7. não contém variável de staging" abaixo.
+  VITALOS_PRODUCTION_PROJECT_REF: "project-ref-publico",
 };
 
 /** Claim `role` de um JWT, sem verificar assinatura (só classificação). */
@@ -77,6 +87,9 @@ function conformeNatureza(valor: string, natureza: Natureza): boolean {
       return valor.startsWith("sb_publishable_");
     case "flag-booleana":
       return valor === "true" || valor === "false";
+    case "project-ref-publico":
+      // Mesmo formato que projectRefFromUrl extrai: 20 caracteres minúsculos.
+      return /^[a-z0-9]{20}$/.test(valor);
   }
 }
 
@@ -174,6 +187,14 @@ describe("4-7. conteúdo do .env versionado", () => {
     expect(semComentario).not.toMatch(/STAGING_/);
   });
 
+  test("VITALOS_STAGING_PROJECT_REF nunca entra no .env versionado", () => {
+    // O ref de produção é público E versionado; o de staging é público mas
+    // NUNCA versionado — a diferença não é sensibilidade do dado, é que só
+    // produção tem um valor único e estável que todo clone deve conhecer.
+    // Staging varia por pessoa/ambiente, então mora só em .env.local.
+    expect(env().has("VITALOS_STAGING_PROJECT_REF")).toBe(false);
+  });
+
   test("nenhuma variável VITE_ carrega dado privilegiado", () => {
     const vazadas = [...env().keys()].filter((k) => /^VITE_.*(SECRET|SERVICE_ROLE|PASSWORD)/i.test(k));
     expect({ vazadas }).toEqual({ vazadas: [] });
@@ -208,10 +229,12 @@ describe("8-10. defaults que não podem existir", () => {
 
 describe("outros arquivos de configuração versionados", () => {
   // O `.env` está fora desta lista porque legitimamente contém o ref público
-  // do projeto — a proteção dele é a allowlist acima, mais estrita que uma
-  // varredura por formato.
+  // de produção — a proteção dele é a allowlist acima, mais estrita que uma
+  // varredura por formato. `.env.example` fica fora pelo mesmo motivo do lado
+  // oposto: é DOCUMENTAÇÃO do contrato, cita os NOMES das variáveis de
+  // identidade (não valores reais) e é coberto por seu próprio describe
+  // abaixo, que verifica ausência de valor real por outro caminho.
   const ARQUIVOS = [
-    ".env.example",
     ".gitignore",
     ".lovable/project.json",
     ".github/workflows/gate.yml",

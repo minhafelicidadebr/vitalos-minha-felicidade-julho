@@ -102,6 +102,47 @@ para outro tipo de banco é impossível, não apenas desaconselhado:
 
 Misturar naturezas entre cliente e servidor também reprova.
 
+### Identidade exata: staging e produção nunca são intercambiáveis
+
+**Uma URL "remota" não é evidência de qual ambiente é.** `staging` e
+`production` exigem a mesma natureza de URL — os dois são projetos Supabase
+reais. Sem mais nada, `preview → staging` e `local → staging` aceitariam
+qualquer projeto remoto, inclusive o de produção, desde que cliente e servidor
+concordassem entre si. Essa era exatamente a lacuna: "é uma URL válida, de um
+projeto remoto" nunca provou que aquele projeto remoto era o staging certo.
+
+A correção é `project_ref` declarado explicitamente por ambiente:
+
+```
+VITALOS_PRODUCTION_PROJECT_REF   — no .env, VERSIONADO
+VITALOS_STAGING_PROJECT_REF      — no .env.local, NUNCA versionado
+```
+
+Um `project_ref` **é identificador público** (é o subdomínio da URL da API,
+visível em toda requisição do navegador) — não é segredo, e por isso pode
+viver em `.env`. Não leva prefixo `VITE_`: não é lido pelo bundle, só pelo
+preflight e pelos guards.
+
+- **Produção é identificada pelo ref versionado.** `VITALOS_DB_TARGET=production`
+  exige `VITALOS_PRODUCTION_PROJECT_REF`, extrai o ref de `SUPABASE_URL` e de
+  `VITE_SUPABASE_URL`, exige que os três sejam o mesmo projeto.
+- **Staging é identificado pelo ref local, não rastreado.**
+  `VITALOS_DB_TARGET=staging` exige `VITALOS_STAGING_PROJECT_REF` — e como essa
+  variável nunca entra no `.env` versionado (um teste do gate falha se
+  entrar), ela só pode vir de configuração local explícita de cada máquina.
+  **`target=staging` sem essa identidade explícita falha sempre**, mesmo com
+  uma URL remota perfeitamente válida.
+- **Produção e staging nunca podem declarar o mesmo `project_ref`** — se os
+  dois valores coincidirem, o preflight recusa, independente de qual alvo
+  está sendo validado no momento.
+- Nenhuma mensagem de erro imprime o ref inteiro, só a forma mascarada
+  (`abcd...wxyz`).
+
+Isso fecha a lacuna concreta: antes, `preview` com a URL de produção e alvo
+`staging` passava, se cliente e servidor concordassem. Agora falha — ou por
+`VITALOS_STAGING_PROJECT_REF` ausente, ou por ele declarar um projeto que não
+bate com a URL efetiva.
+
 Qualquer variável com prefixo `VITE_` **vai para o bundle do navegador**. Uma
 secret key sob esse prefixo não "corre risco de vazar" — ela já está publicada.
 O guard de staging recusa a execução se encontrar qualquer `VITE_*SECRET*` ou
@@ -145,16 +186,24 @@ separadas.
 ### Local
 
 Copie `.env.example` para **`.env.local`** (ignorado pelo git). Você declara só
-o alvo de banco e as credenciais que usa — o runtime vem do comando:
+o alvo de banco, a identidade de staging e as credenciais que usa — o runtime
+vem do comando:
 
 ```
 VITALOS_DB_TARGET=staging
+VITALOS_STAGING_PROJECT_REF=<ref-do-staging>
 SUPABASE_URL=https://<ref-do-staging>.supabase.co
 VITE_SUPABASE_URL=https://<ref-do-staging>.supabase.co
 ```
 
-Sem `.env.local`, `bun run dev` **falha** — o `.env` versionado sozinho nunca
-resolve um alvo de banco.
+**As quatro linhas são necessárias.** Sem `.env.local`, `bun run dev` falha por
+faltar `VITALOS_DB_TARGET`. Com o alvo declarado mas sem
+`VITALOS_STAGING_PROJECT_REF`, falha por faltar identidade. Com o ref
+declarado mas as URLs ainda apontando para produção (herdadas do `.env`
+versionado, por esquecimento de sobrescrever `SUPABASE_URL`/`VITE_SUPABASE_URL`
+também), falha por divergência entre o ref declarado e a URL efetiva — esse
+último caso é fácil de escorregar: sobrescrever só uma das duas URLs foi
+exatamente o que causou o modo de falha sutil da FIBT-1.
 
 ### Staging (scripts de prova)
 
@@ -196,11 +245,17 @@ bundle de CI sai contendo apenas `.invalid`, sem nenhum vestígio de produção.
 ### Produção
 
 `build` já é o caminho de produção: runtime `production`, alvo `production`,
-usando o `.env` público versionado — que é exatamente o que o Lovable executa
-ao publicar.
+usando o `.env` público versionado (que já inclui `VITALOS_PRODUCTION_PROJECT_REF`)
+— exatamente o que o Lovable executa ao publicar.
 
 Nada além da configuração pública vive ali. Service role e demais secrets
 continuam apenas no Secrets manager do Lovable, nunca em arquivo do repositório.
+
+**Cuidado ao rodar `build` localmente para testar:** se sua máquina tiver um
+`.env.local` apontando para staging (o caso comum de quem também roda `dev`),
+`build` herda essa sobrescrita e recusa — corretamente, porque a URL efetiva
+deixou de ser a de produção. O servidor de build do Lovable nunca tem
+`.env.local`, então lá `build` resolve limpo a partir só do `.env` versionado.
 
 ## Regras invioláveis do `.env`
 
@@ -211,9 +266,14 @@ continuam apenas no Secrets manager do Lovable, nunca em arquivo do repositório
    ou token privado.
 3. **Nunca** coloque `VITALOS_RUNTIME_ENV` ou `VITALOS_DB_TARGET` — são
    exatamente os defaults cuja ausência sustenta o contrato.
-4. Qualquer variável `VITE_*` é **publicada no bundle**. Se o valor não pode ser
-   lido por qualquer visitante do site, ele não pode ter esse prefixo.
-5. Nome novo só entra depois de adicionado à allowlist do teste, com a natureza
+4. **Nunca** coloque `VITALOS_STAGING_PROJECT_REF` — staging varia por pessoa e
+   ambiente; só `VITALOS_PRODUCTION_PROJECT_REF` tem valor único e estável o
+   bastante para ser versionado.
+5. Qualquer variável `VITE_*` é **publicada no bundle**. Se o valor não pode ser
+   lido por qualquer visitante do site, ele não pode ter esse prefixo — e por
+   isso `VITALOS_PRODUCTION_PROJECT_REF` nunca leva esse prefixo, mesmo sendo
+   público: ele serve ao preflight, não ao navegador.
+6. Nome novo só entra depois de adicionado à allowlist do teste, com a natureza
    pública declarada.
 
 ## Git sync ≠ Publish changes
