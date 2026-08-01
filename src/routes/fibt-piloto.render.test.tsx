@@ -8,7 +8,14 @@ import { describe, expect, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { buildFibtCohortReport, type CohortAggregate } from "@/lib/fibt/fibt-cohort-report";
 import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
-import { CohortCard, EstadoCarregando, EstadoVazio, EstadoErro } from "./fibt-piloto";
+import {
+  CohortCard,
+  EstadoCarregando,
+  EstadoDesabilitado,
+  EstadoVazio,
+  EstadoErro,
+} from "./fibt-piloto";
+import { FIBT_PILOT_DISABLED_REASON } from "@/lib/fibt/fibt-pilot-flag";
 
 const m = getFibtManifest();
 const todosItens = (v: number) => Object.fromEntries(m.items.map((i) => [i.id, v]));
@@ -29,6 +36,35 @@ describe("estado 1 — carregando", () => {
   test("anuncia progresso com role=status", () => {
     render(<EstadoCarregando />);
     expect(screen.getByRole("status").textContent).toContain("Carregando");
+  });
+});
+
+describe("estado 0 — piloto desabilitado pelo feature gate", () => {
+  test("diz que a funcionalidade esta indisponivel, com role=note", () => {
+    render(<EstadoDesabilitado />);
+    const bloco = screen.getByTestId("piloto-desabilitado");
+    expect(bloco.getAttribute("role")).toBe("note");
+    expect(bloco.textContent).toContain("indisponivel");
+  });
+
+  test("nao se apresenta como erro — nada falhou, a capacidade esta desligada", () => {
+    render(<EstadoDesabilitado />);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("declara explicitamente que nenhum dado de demonstracao substitui o real", () => {
+    render(<EstadoDesabilitado />);
+    expect(screen.getByTestId("piloto-desabilitado").textContent).toBe(
+      "Piloto indisponivel neste ambiente" + FIBT_PILOT_DISABLED_REASON,
+    );
+    expect(FIBT_PILOT_DISABLED_REASON).toContain("nenhum dado de demonstração");
+  });
+
+  test("nao mostra escore, fator nem contagem", () => {
+    render(<EstadoDesabilitado />);
+    expect(screen.queryByTestId("escore-bruto")).toBeNull();
+    expect(screen.queryByTestId("lista-fatores")).toBeNull();
+    expect(screen.queryByTestId("contagem-visivel")).toBeNull();
   });
 });
 
