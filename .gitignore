@@ -17,16 +17,16 @@ dist-ssr
 *.local
 
 # Segredos / variáveis de ambiente.
-# .env agora versiona só as chaves Supabase PUBLISHABLE/ANON (SUPABASE_URL,
-# SUPABASE_PUBLISHABLE_KEY, SUPABASE_PROJECT_ID e os espelhos VITE_*) —
-# client-safe por desenho, necessárias para o pipeline de publish do Lovable
-# injetar VITE_SUPABASE_* no bundle (sem isso, AuthGate.tsx crasha em toda
-# rota não-pública; ver docs/handoff/BASELINE_TECNICO_COPIA_VITALOS_2026-07-13.md §8).
-# SUPABASE_SERVICE_ROLE_KEY e PLATFORM_ADMIN_EMAILS NUNCA vão para .env nem
-# para o repo — só como secret de servidor no Lovable Cloud.
-# .env.local (e variantes) continuam ignorados — são overrides pessoais.
-.env.local
-.env.*.local
+# NENHUM arquivo .env é versionado. Antes desta regra, .env era rastreado e
+# apontava para o projeto de PRODUÇÃO: todo clone novo, worktree nova e job de
+# CI nascia com produção como default silencioso. Ver docs/AMBIENTES_E_DEPLOY.md.
+# Cada ambiente configura o seu .env.local, que nunca sai da máquina.
+# SUPABASE_SERVICE_ROLE_KEY e PLATFORM_ADMIN_EMAILS não vão para arquivo nenhum
+# do repo — só como secret de servidor no Lovable Cloud.
+# Só .env.example é versionado, e só com placeholders inertes (.invalid).
+.env
+.env.*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/
