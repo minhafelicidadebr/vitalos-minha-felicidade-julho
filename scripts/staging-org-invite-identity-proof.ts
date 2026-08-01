@@ -22,21 +22,10 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { requireStagingTarget } from "../src/lib/staging/staging-guard";
 
-const PRODUCTION_REF = "shlm";
 const USER_A = "p0-user-a@example.invalid";
 const USER_B = "p0-user-b@example.invalid";
-
-function loadEnvLocal(): void {
-  const p = join(process.cwd(), ".env.local");
-  if (!existsSync(p)) return;
-  for (const line of readFileSync(p, "utf8").split(/\r?\n/)) {
-    const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
-    if (m && !process.env[m[1]!]) process.env[m[1]!] = m[2]!.replace(/^["']|["']$/g, "");
-  }
-}
 
 function isOpaque(k: string): boolean {
   return k.startsWith("sb_publishable_") || k.startsWith("sb_secret_");
@@ -189,20 +178,11 @@ async function newInvite(admin: SupabaseClient, email: string | null, creator: s
 }
 
 async function main(): Promise<void> {
-  loadEnvLocal();
-  const url = process.env.STAGING_SUPABASE_URL?.trim();
-  const anonKey = (process.env.STAGING_SUPABASE_PUBLISHABLE_KEY ?? process.env.STAGING_SUPABASE_ANON_KEY)?.trim();
-  const secretKey = (process.env.STAGING_SUPABASE_SECRET_KEY ?? process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY)?.trim();
+  // Guard compartilhado — ver a nota equivalente em staging-jwt-proof.ts.
+  const target = requireStagingTarget();
+  const { url, publishableKey: anonKey, secretKey } = target;
 
-  if (!url || !anonKey || !secretKey) {
-    console.error("❌ Credenciais de staging ausentes em .env.local.");
-    process.exit(2);
-  }
-  if (url.includes(PRODUCTION_REF)) {
-    console.error("❌ ABORTADO: URL aponta para PRODUÇÃO. Este script só roda em staging.");
-    process.exit(3);
-  }
-  console.log(`Alvo: ${url.replace(/https:\/\/([a-z0-9]{6})[a-z0-9]*/i, "https://$1***")}\n`);
+  console.log(`Alvo: ${target.maskedRef}  (guarda de produção: ativa)\n`);
 
   const admin = makeClient(url, secretKey);
   const a = await ensureUser(admin, USER_A);

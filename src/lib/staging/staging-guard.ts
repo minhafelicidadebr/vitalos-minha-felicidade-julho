@@ -1,26 +1,36 @@
 // Guarda dura de ambiente para qualquer harness que toque um Supabase remoto.
 //
-// Por que isto existe: o `.env` VERSIONADO deste repositório aponta para o
-// projeto de PRODUÇÃO e está presente em toda worktree. Um script que leia
-// SUPABASE_URL acerta produção por padrão, em silêncio. As variáveis de
-// staging são deliberadamente namespaced (STAGING_*) para que isso não possa
-// acontecer por acidente — este módulo torna a proteção explícita e testável,
-// em vez de deixá-la dependendo de disciplina.
+// Por que isto existe: antes da onda de desacoplamento, o `.env` VERSIONADO
+// apontava para o projeto de PRODUÇÃO e estava presente em toda worktree. Um
+// script que lesse SUPABASE_URL acertava produção por padrão, em silêncio. As
+// variáveis de staging são deliberadamente namespaced (STAGING_*) para que isso
+// não possa acontecer por acidente — este módulo torna a proteção explícita e
+// testável, em vez de deixá-la dependendo de disciplina.
 //
-// O ref de produção NÃO é fixado aqui: ele é derivado, em tempo de execução,
-// de SUPABASE_URL (sem prefixo VITE_). Se o alvo de staging coincidir com
-// esse alvo padrão, o processo aborta antes de qualquer I/O. Assim a guarda
-// continua correta se o projeto mudar, e nenhum identificador de produção
-// entra no código versionado.
+// O `.env` já não é versionado, mas a guarda continua valendo: qualquer máquina
+// ainda pode ter um `.env` local apontando para produção, e o bun o carrega
+// automaticamente.
+//
+// O ref de produção NÃO é fixado aqui: ele é derivado, em tempo de execução, de
+// SUPABASE_URL (sem prefixo VITE_). Se o alvo de staging coincidir com esse
+// alvo padrão, o processo aborta antes de qualquer I/O. Assim a guarda continua
+// correta se o projeto mudar, e nenhum identificador de produção entra no
+// código versionado.
 //
 // Por que SOMENTE SUPABASE_URL, e não VITE_SUPABASE_URL também: a validação
-// visual da FIBT-1 precisou apontar VITE_SUPABASE_URL para staging de
-// propósito (é a variável que o CLIENTE REAL do navegador lê) via
-// .env.local, gitignored. Nesse momento, checar VITE_SUPABASE_URL como
-// "sempre produção" vira falso positivo — recusaria o próprio staging que
-// acabou de ser apontado ali intencionalmente. SUPABASE_URL (sem VITE_) é
-// lido só no server/SSR e nunca foi sobrescrito por nenhum .env.local desta
-// onda, então continua sendo o indicador confiável de produção.
+// visual da FIBT-1 precisou apontar VITE_SUPABASE_URL para staging de propósito
+// (é a variável que o CLIENTE REAL do navegador lê) via .env.local, gitignored.
+// Nesse momento, checar VITE_SUPABASE_URL como "sempre produção" vira falso
+// positivo — recusaria o próprio staging que acabou de ser apontado ali
+// intencionalmente. SUPABASE_URL (sem VITE_) é lido só no server/SSR e nunca é
+// sobrescrito por .env.local, então continua sendo o indicador confiável.
+//
+// As primitivas de ref (extração e mascaramento) vêm de environment-contract:
+// são a mesma regra que o preflight de build aplica, e duas cópias divergiriam.
+
+import { maskRef, projectRefFromUrl as refDaUrl } from "../env/environment-contract";
+
+export { maskRef };
 
 export interface StagingTarget {
   url: string;
@@ -31,15 +41,11 @@ export interface StagingTarget {
   secretKey: string;
 }
 
-export function maskRef(ref: string): string {
-  if (ref.length <= 8) return "****";
-  return `${ref.slice(0, 4)}...${ref.slice(-4)}`;
-}
-
+/** Variante que lança — dentro do harness, URL irreconhecível é sempre erro. */
 export function projectRefFromUrl(url: string): string {
-  const m = /^https:\/\/([a-z0-9]+)\.supabase\.co/.exec(url.trim());
-  if (!m) throw new Error(`URL Supabase irreconhecível: ${url.trim().slice(0, 24)}...`);
-  return m[1]!;
+  const ref = refDaUrl(url);
+  if (!ref) throw new Error(`URL Supabase irreconhecível: ${url.trim().slice(0, 24)}...`);
+  return ref;
 }
 
 /**
@@ -51,11 +57,9 @@ export function forbiddenRefs(env: Record<string, string | undefined>): Set<stri
   const out = new Set<string>();
   const url = env.SUPABASE_URL;
   if (url) {
-    try {
-      out.add(projectRefFromUrl(url));
-    } catch {
-      // URL malformada na env padrão não é problema deste guard.
-    }
+    const ref = refDaUrl(url);
+    // URL malformada na env padrão não é problema deste guard.
+    if (ref) out.add(ref);
   }
   for (const extra of (env.FORBIDDEN_PROJECT_REFS ?? "").split(",")) {
     const ref = extra.trim();
@@ -65,13 +69,34 @@ export function forbiddenRefs(env: Record<string, string | undefined>): Set<stri
 }
 
 /**
+ * Nenhuma chave privilegiada pode existir sob prefixo VITE_: tudo que começa
+ * com VITE_ é injetado no bundle do navegador em build time. Uma secret key
+ * assim exposta não vaza "se alguém errar" — ela já está publicada.
+ */
+function recusarSecretExposta(env: Record<string, string | undefined>): void {
+  const expostas = Object.keys(env).filter((k) => /^VITE_.*(SECRET|SERVICE_ROLE)/i.test(k));
+  if (expostas.length > 0) {
+    throw new Error(
+      `RECUSADO: variável privilegiada sob prefixo VITE_ (${expostas.join(", ")}). ` +
+        "Tudo que começa com VITE_ é embutido no bundle do navegador.",
+    );
+  }
+}
+
+/**
  * Resolve o alvo de staging a partir das variáveis STAGING_*, recusando
- * qualquer ref que o ambiente padrão aponte. Nunca lê SUPABASE_URL como
- * fonte de alvo — só como fonte de recusa.
+ * qualquer ref que o ambiente padrão aponte. Nunca lê SUPABASE_URL como fonte
+ * de alvo — só como fonte de recusa.
+ *
+ * Se STAGING_SUPABASE_PROJECT_REF estiver declarado, ele precisa bater com o
+ * ref real extraído da URL. Declarar um projeto e apontar para outro é o tipo
+ * de divergência que passa despercebida numa revisão de diff.
  */
 export function requireStagingTarget(
   env: Record<string, string | undefined> = process.env,
 ): StagingTarget {
+  recusarSecretExposta(env);
+
   const url = env.STAGING_SUPABASE_URL;
   const publishableKey = env.STAGING_SUPABASE_PUBLISHABLE_KEY;
   const secretKey = env.STAGING_SUPABASE_SECRET_KEY;
@@ -85,8 +110,16 @@ export function requireStagingTarget(
   if (!secretKey) throw new Error("STAGING_SUPABASE_SECRET_KEY ausente.");
 
   const projectRef = projectRefFromUrl(url);
-  const forbidden = forbiddenRefs(env);
 
+  const declarado = env.STAGING_SUPABASE_PROJECT_REF?.trim();
+  if (declarado && declarado !== projectRef) {
+    throw new Error(
+      `RECUSADO: STAGING_SUPABASE_PROJECT_REF declara ${maskRef(declarado)}, ` +
+        `mas STAGING_SUPABASE_URL aponta para ${maskRef(projectRef)}.`,
+    );
+  }
+
+  const forbidden = forbiddenRefs(env);
   if (forbidden.has(projectRef)) {
     throw new Error(
       `RECUSADO: o alvo de staging (${maskRef(projectRef)}) coincide com o projeto apontado ` +
