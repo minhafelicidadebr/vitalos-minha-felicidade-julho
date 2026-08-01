@@ -17,16 +17,26 @@ dist-ssr
 *.local
 
 # Segredos / variáveis de ambiente.
-# NENHUM arquivo .env é versionado. Antes desta regra, .env era rastreado e
-# apontava para o projeto de PRODUÇÃO: todo clone novo, worktree nova e job de
-# CI nascia com produção como default silencioso. Ver docs/AMBIENTES_E_DEPLOY.md.
-# Cada ambiente configura o seu .env.local, que nunca sai da máquina.
-# SUPABASE_SERVICE_ROLE_KEY e PLATFORM_ADMIN_EMAILS não vão para arquivo nenhum
-# do repo — só como secret de servidor no Lovable Cloud.
-# Só .env.example é versionado, e só com placeholders inertes (.invalid).
-.env
-.env.*
-!.env.example
+#
+# `.env` FICA VERSIONADO — e isso é um requisito do Lovable, não um descuido.
+# As variáveis VITE_* são lidas pelo Vite em build time e embutidas no bundle;
+# o Secrets manager do Lovable não as substitui (ele guarda secret de servidor,
+# e VITE_* não é secret). Ignorar `.env` quebra preview e publicação.
+#
+# O que impede o incidente que originou o contrato de ambiente não é esconder
+# o `.env`, é o que ele NÃO contém: VITALOS_RUNTIME_ENV e VITALOS_DB_TARGET não
+# têm default versionado, então nenhum comando resolve "produção" por omissão.
+# Ver docs/AMBIENTES_E_DEPLOY.md.
+#
+# `.env` carrega só configuração PÚBLICA de build (URL do projeto e publishable
+# key com role anon). SUPABASE_SERVICE_ROLE_KEY, STAGING_SUPABASE_SECRET_KEY e
+# PLATFORM_ADMIN_EMAILS nunca entram nele — um teste do gate falha se entrarem.
+#
+# Overrides pessoais continuam ignorados: é neles que vive a credencial real.
+.env.local
+.env.*.local
+.env.staging
+.env.production
 
 # Wrangler / Cloudflare
 .wrangler/

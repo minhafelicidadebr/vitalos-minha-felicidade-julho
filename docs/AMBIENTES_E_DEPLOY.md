@@ -5,7 +5,8 @@
 
 ## O problema que originou este documento
 
-O `.env` era versionado e apontava para o projeto Supabase de **produção**.
+O `.env` versionado apontava para o projeto Supabase de **produção** e trazia
+tudo junto: URL, chave e — implicitamente — a decisão de qual ambiente usar.
 Consequência: todo clone novo, toda worktree nova e todo job de CI nascia com
 produção como destino padrão, sem nada avisar. O modo de falha nunca foi
 "faltou variável" — foi "havia uma variável, e ela apontava para o lugar
@@ -16,6 +17,32 @@ Um segundo modo de falha, mais sutil, apareceu durante a validação visual da
 FIBT-1: o navegador foi apontado para staging (`VITE_SUPABASE_URL`) enquanto o
 lado servidor continuava lendo `SUPABASE_URL`, que seguia em produção. O app
 não quebra nesse estado — ele apenas lê de um banco e escreve em outro.
+
+### Por que a solução NÃO é remover o `.env` do git
+
+A primeira tentativa foi tirar o `.env` do versionamento. **Isso quebra o
+Lovable** e foi revertido:
+
+- as variáveis `VITE_*` são lidas pelo Vite em **build time** e embutidas no
+  bundle — precisam estar no repositório quando o Lovable builda;
+- o **Secrets manager do Lovable não as substitui**: ele guarda secret de
+  servidor, e `VITE_*` não é secret (vai para o bundle, é público por
+  definição);
+- sem `.env`, preview e publicação quebram.
+
+A separação correta não é *arquivo versionado × arquivo escondido*, é
+**configuração pública × decisão de ambiente**:
+
+| | onde vive | versionado? |
+| --- | --- | --- |
+| URL do projeto, publishable key, `VITE_APP_URL` | `.env` | **sim** — é configuração pública de build |
+| `VITALOS_RUNTIME_ENV` | argumento do comando (`package.json`) | sim, mas por comando |
+| `VITALOS_DB_TARGET` | `.env.local` de cada máquina | **não** |
+| service role, secret key, senha | Secrets manager / `.env.local` | **nunca** |
+
+O que impede o incidente original não é esconder o `.env` — é ele **não conter
+`VITALOS_RUNTIME_ENV` nem `VITALOS_DB_TARGET`**. Sem default versionado para
+"onde roda" e "que banco toca", nenhum comando resolve produção por omissão.
 
 ## O contrato: duas dimensões
 
@@ -82,33 +109,52 @@ O guard de staging recusa a execução se encontrar qualquer `VITE_*SECRET*` ou
 
 ## Comandos protegidos
 
-`dev`, `build`, `build:dev` e `preview` executam o preflight **antes** da
-ferramenta real:
+Cada comando declara o próprio contexto por **argumento**, e o preflight roda
+antes da ferramenta real:
 
-```
-dev → bun run preflight && vite dev
-```
+| comando | runtime | alvo de banco |
+| --- | --- | --- |
+| `dev` | `local` | do `.env.local`; só `local` ou `staging` |
+| `preview` | `preview` | `staging` (fixo) |
+| `build` | `production` | `production` (fixo) — **contrato do Lovable** |
+| `build:ci` | `ci` | `test` (fixo) |
+| `build:dev` | `local` | do `.env.local`; só `local` ou `staging` |
+
+Argumento em vez de variável de shell inline (`VAR=x cmd`): essa sintaxe não
+funciona no shell padrão do Windows, onde este projeto roda.
 
 Explícito no `package.json`, não via hook implícito: um hook `prebuild` é fácil
 de contornar sem perceber (`vite build` direto ainda funcionaria). O objetivo é
 que o caminho normal seja o caminho seguro.
 
+`build` é o script que o **Lovable executa** para publicar — por isso ele
+continua se chamando `build` e continua usando o `.env` público versionado.
+`build:ci` existe separado justamente para o CI nunca exercitar o caminho
+produtivo.
+
 O preflight **não faz I/O de rede**. Um preflight que consultasse o banco para
 "confirmar" o alvo já teria feito exatamente o que deveria impedir.
+
+**Alvo de build `production` não é autorização para nada.** Ele descreve qual
+configuração o bundle carrega — não libera acesso ao banco, aplicação de
+migration, deploy nem publicação. Essas continuam sendo decisões humanas
+separadas.
 
 ## Configuração por ambiente
 
 ### Local
 
-Copie `.env.example` para **`.env.local`** (nunca para `.env` — a família
-`.env` inteira é ignorada pelo git):
+Copie `.env.example` para **`.env.local`** (ignorado pelo git). Você declara só
+o alvo de banco e as credenciais que usa — o runtime vem do comando:
 
 ```
-VITALOS_RUNTIME_ENV=local
 VITALOS_DB_TARGET=staging
 SUPABASE_URL=https://<ref-do-staging>.supabase.co
 VITE_SUPABASE_URL=https://<ref-do-staging>.supabase.co
 ```
+
+Sem `.env.local`, `bun run dev` **falha** — o `.env` versionado sozinho nunca
+resolve um alvo de banco.
 
 ### Staging (scripts de prova)
 
@@ -128,24 +174,47 @@ falha se voltar.
 
 ### CI
 
-Definido em `.github/workflows/gate.yml`, sem nenhuma secret:
+Definido em `.github/workflows/gate.yml`, sem nenhuma secret. O job roda
+`build:ci`, **nunca** `build`:
 
 ```
 VITALOS_RUNTIME_ENV=ci
 VITALOS_DB_TARGET=test
 SUPABASE_URL=https://ci.invalid
 VITE_SUPABASE_URL=https://ci.invalid
+VITE_APP_URL=https://app.ci.invalid
 ```
 
 O domínio `.invalid` nunca resolve (RFC 2606) — o job não consegue fazer
 chamada de rede a banco nenhum. E o contrato recusa `ci` com qualquer alvo que
 não seja `test`, então adicionar uma secret por engano não muda nada.
 
-### Produção (futuro — ainda não configurado)
+Essas variáveis **sobrescrevem o `.env` versionado**: verificado
+empiricamente que `process.env` vence os arquivos `.env` no Vite, e que o
+bundle de CI sai contendo apenas `.invalid`, sem nenhum vestígio de produção.
 
-`VITALOS_RUNTIME_ENV=production` + `VITALOS_DB_TARGET=production`, com as URLs
-do projeto real definidas **como secret de servidor no painel do Lovable**,
-nunca em arquivo do repositório.
+### Produção
+
+`build` já é o caminho de produção: runtime `production`, alvo `production`,
+usando o `.env` público versionado — que é exatamente o que o Lovable executa
+ao publicar.
+
+Nada além da configuração pública vive ali. Service role e demais secrets
+continuam apenas no Secrets manager do Lovable, nunca em arquivo do repositório.
+
+## Regras invioláveis do `.env`
+
+1. **Nunca** remova `.env` do versionamento nem o adicione ao `.gitignore` —
+   quebra preview e publicação do Lovable.
+2. **Nunca** coloque nele: `SUPABASE_SERVICE_ROLE_KEY`,
+   `STAGING_SUPABASE_SECRET_KEY`, qualquer secret key, JWT privilegiado, senha
+   ou token privado.
+3. **Nunca** coloque `VITALOS_RUNTIME_ENV` ou `VITALOS_DB_TARGET` — são
+   exatamente os defaults cuja ausência sustenta o contrato.
+4. Qualquer variável `VITE_*` é **publicada no bundle**. Se o valor não pode ser
+   lido por qualquer visitante do site, ele não pode ter esse prefixo.
+5. Nome novo só entra depois de adicionado à allowlist do teste, com a natureza
+   pública declarada.
 
 ## Git sync ≠ Publish changes
 
@@ -241,6 +310,14 @@ prefixo de quatro caracteres casaria com projetos que não são produção.
 A detecção em configuração é por **formato**, nunca por valor conhecido:
 escrever o ref de produção no scanner para procurá-lo o colocaria no
 repositório, que é o que se quer impedir.
+
+O `.env` fica **fora** dessa varredura por formato — ele legitimamente contém
+o ref público do projeto. A proteção dele é mais estrita, não mais frouxa: uma
+**allowlist por nome de variável**, em que cada valor precisa comprovar
+natureza pública. A publishable key passa porque seu payload JWT traz
+`role: anon`; a mesma variável com `role: service_role` reprova. Nome fora da
+allowlist reprova. É a diferença entre publicar configuração e publicar
+incidente.
 
 Sem build, a superfície 1 é pulada com aviso (para o gate continuar útil
 localmente). No CI, `--require-artifact` transforma a ausência em falha, para

@@ -9,6 +9,12 @@
 # com qualquer alvo que não seja `test`, então este job não alcança staging
 # nem produção mesmo que alguém adicione uma secret por engano.
 #
+# O CI roda `build:ci`, NÃO o `build` — este último é o contrato de produção
+# do Lovable e usa o `.env` público versionado. As variáveis do job abaixo
+# sobrescrevem esse `.env`: verificado empiricamente que o `process.env` vence
+# os arquivos `.env` no Vite, então o bundle de CI sai com valor inerte e
+# nenhum vestígio de produção.
+#
 # O build vem ANTES do gate de propósito: a varredura de segredo inclui o
 # artefato servido ao navegador, e artefato só existe depois do build.
 #
@@ -37,10 +43,12 @@ env:
   VITALOS_RUNTIME_ENV: ci
   VITALOS_DB_TARGET: test
   # Alvos inertes: .invalid não resolve. Nenhuma chamada de rede é possível.
+  # Sobrescrevem o `.env` versionado (process.env vence arquivo no Vite).
   SUPABASE_URL: https://ci.invalid
   VITE_SUPABASE_URL: https://ci.invalid
   SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
   VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+  VITE_APP_URL: https://app.ci.invalid
   # Piloto FIB-T desligado: depende de migrations não aplicadas em produção.
   VITE_FIBT_PILOT_ENABLED: "false"
 
@@ -61,11 +69,8 @@ jobs:
       - name: Instalar dependências
         run: bun install --frozen-lockfile
 
-      - name: Preflight de ambiente (recusa alvo real no CI)
-        run: bun run preflight
-
-      - name: Build de produção
-        run: bun run build
+      - name: Build de CI (inerte — nunca o build produtivo do Lovable)
+        run: bun run build:ci
 
       - name: Gate (testes + paridade + typecheck + varredura de segredo)
         run: bun run gate

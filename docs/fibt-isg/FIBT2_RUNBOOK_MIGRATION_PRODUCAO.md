@@ -158,6 +158,17 @@ primeiro, publicação depois, nunca o contrário.
 Mesmo depois de tudo verde, publicar é decisão separada, com autorização
 separada.
 
+Antes de publicar, confirmar também que o `.env` continua **versionado e
+íntegro**: o Lovable builda com o script `build` do `package.json` e lê as
+`VITE_*` desse arquivo. Um `.env` ausente ou incompleto quebra a publicação
+por um motivo que não aparece em teste nenhum. Ver
+`docs/AMBIENTES_E_DEPLOY.md`.
+
+Que o comando de build declare `VITALOS_DB_TARGET=production` **não** é
+autorização para nada disto: ele só descreve qual configuração o bundle
+carrega. Acesso ao banco, migration, deploy e publicação seguem sendo atos
+humanos separados, cada um com autorização própria.
+
 ## O que este runbook não faz
 
 - Não libera coleta real: `operational_real_collection_status` permanece
