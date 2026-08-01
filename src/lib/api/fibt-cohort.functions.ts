@@ -14,15 +14,6 @@ import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
 import { buildFibtCohortReport, type CohortAggregate, type FibtCohortReport } from "@/lib/fibt/fibt-cohort-report";
 
-// `wave_cohorts` e a RPC `aggregate_cohort_responses` pertencem ao trilho
-// FIB-T, ainda não aplicado em todos os ambientes — logo não existem nos tipos
-// gerados. O acesso passa por um cliente sem tipagem de schema; a validação do
-// formato acontece abaixo, em runtime.
-const db = supabase as unknown as {
-  from: (table: string) => any;
-  rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
 export interface CohortRef {
   id: string;
   key: string;
@@ -43,7 +34,7 @@ export async function loadWaveCohorts(waveId: string): Promise<CohortLoad> {
   if (!isCloudReady()) {
     return { estado: "indisponivel", motivo: "Backend nao configurado neste ambiente." };
   }
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from("wave_cohorts")
     .select("id, key, label")
     .eq("wave_id", waveId)
@@ -52,7 +43,7 @@ export async function loadWaveCohorts(waveId: string): Promise<CohortLoad> {
   if (error) return { estado: "erro", motivo: error.message };
   return {
     estado: "ok",
-    coortes: (data ?? []) as unknown as CohortRef[],
+    coortes: (data ?? []) as CohortRef[],
   };
 }
 
@@ -75,7 +66,7 @@ export async function loadFibtCohortReport(
     return { estado: "indisponivel", motivo: "Backend nao configurado neste ambiente." };
   }
 
-  const { data, error } = await db.rpc("aggregate_cohort_responses", {
+  const { data, error } = await supabase.rpc("aggregate_cohort_responses", {
     p_wave_id: waveId,
     p_cohort_id: cohortId,
   });
