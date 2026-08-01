@@ -77,7 +77,10 @@ const runtime = arg("runtime") ?? env.VITALOS_RUNTIME_ENV;
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
 // tolera — assim `dev` nunca aceita `production` mesmo que alguém o escreva.
 const dbFixo = arg("db");
-const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET;
+// Fallback SÓ para runtimes não-produtivos (dev/preview do Lovable, onde não
+// existe .env.local). Nunca vale para `build`/`build:ci`, que declaram --db.
+const dbFallback = arg("fallback-db");
+const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET ?? dbFallback;
 
 const permitidos = arg("allow-db")
   ?.split(",")
@@ -93,13 +96,14 @@ if (permitidos && dbTarget && isDbTarget(dbTarget) && !permitidos.includes(dbTar
   );
 }
 
-if (!dbFixo && !env.VITALOS_DB_TARGET) {
+if (!dbFixo && !env.VITALOS_DB_TARGET && !dbFallback) {
   erros.push(
     "VITALOS_DB_TARGET ausente. Este comando exige que a máquina declare o alvo " +
       "em .env.local — não existe default versionado, de propósito. " +
       `Valores aceitos aqui: ${(permitidos ?? []).join(", ") || "ver docs/AMBIENTES_E_DEPLOY.md"}.`,
   );
 }
+
 
 const veredito =
   erros.length > 0
