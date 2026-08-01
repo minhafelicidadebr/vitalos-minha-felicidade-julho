@@ -11,6 +11,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
 import { buildFibtCohortReport, type CohortAggregate, type FibtCohortReport } from "@/lib/fibt/fibt-cohort-report";
 
 export interface CohortRef {
@@ -25,6 +26,11 @@ export type CohortLoad =
   | { estado: "ok"; coortes: CohortRef[] };
 
 export async function loadWaveCohorts(waveId: string): Promise<CohortLoad> {
+  // Gate antes de qualquer I/O — defesa em profundidade: a rota já checa, mas
+  // a camada de dados nao pode depender de quem a chama ter checado.
+  if (!isFibtPilotEnabled()) {
+    return { estado: "indisponivel", motivo: FIBT_PILOT_DISABLED_REASON };
+  }
   if (!isCloudReady()) {
     return { estado: "indisponivel", motivo: "Backend nao configurado neste ambiente." };
   }
@@ -51,6 +57,11 @@ export async function loadFibtCohortReport(
   cohortId: string,
   instrumentVersion?: string | null,
 ): Promise<CohortReportLoad> {
+  // Mesmo gate da funcao acima: nenhuma RPC FIB-T sai daqui com o piloto
+  // desligado, mesmo que alguem chame esta funcao diretamente.
+  if (!isFibtPilotEnabled()) {
+    return { estado: "indisponivel", motivo: FIBT_PILOT_DISABLED_REASON };
+  }
   if (!isCloudReady()) {
     return { estado: "indisponivel", motivo: "Backend nao configurado neste ambiente." };
   }

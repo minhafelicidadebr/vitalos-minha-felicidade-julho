@@ -12,28 +12,24 @@
 // pública, exatamente como no app.
 //
 // SEGURANÇA (regras da tarefa):
-//   - roda SOMENTE contra o staging; recusa-se a rodar se a URL for a de produção;
+//   - roda SOMENTE contra o staging, pelo guard compartilhado;
 //   - nunca imprime JWT, senha, service role ou qualquer chave;
 //   - senhas são aleatórias, vivem só em memória, nunca são gravadas;
-//   - credenciais vêm de .env.local (gitignored), nunca do .env versionado;
+//   - credenciais vêm de .env.local (gitignored), nunca de arquivo versionado;
 //   - limpa ao final tudo que criou.
 //
 // Uso:
 //   1) crie .env.local na raiz da worktree com:
 //        STAGING_SUPABASE_URL=https://<ref>.supabase.co
-//        STAGING_SUPABASE_ANON_KEY=<anon/publishable key do staging>
-//        STAGING_SUPABASE_SERVICE_ROLE_KEY=<service role key do staging>
+//        STAGING_SUPABASE_PUBLISHABLE_KEY=<publishable key do staging>
+//        STAGING_SUPABASE_SECRET_KEY=<secret key do staging>
 //   2) bun run staging:jwt-proof
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { requireStagingTarget } from "../src/lib/staging/staging-guard";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-/** Projeto de PRODUÇÃO — jamais pode ser alvo deste script. */
-const PRODUCTION_REF = "shlmzz";
 
 const TENANT_A = "a0000000-0000-0000-0000-000000000001";
 const TENANT_B = "a0000000-0000-0000-0000-000000000002";
@@ -73,17 +69,6 @@ function makeClient(url: string, key: string): SupabaseClient {
     auth: { persistSession: false },
     global: { fetch: apiKeyFetch(key) },
   });
-}
-
-function loadEnvLocal(): void {
-  const path = join(process.cwd(), ".env.local");
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-    const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/.exec(line);
-    if (!m) continue;
-    const value = m[2]!.replace(/^["']|["']$/g, "");
-    if (!process.env[m[1]!]) process.env[m[1]!] = value;
-  }
 }
 
 // ─── Registro de resultados (nunca guarda token) ──────────────────────────────
@@ -355,41 +340,15 @@ async function proveTenant(
 }
 
 async function main(): Promise<void> {
-  loadEnvLocal();
+  // Guard compartilhado: exige STAGING_*, deriva o ref de produção de
+  // SUPABASE_URL em runtime e aborta se coincidirem. Substituiu o guard
+  // próprio deste script, que comparava um prefixo de ref fixado no código —
+  // frágil (só o prefixo) e duplicado (outra cópia, com outro prefixo, no
+  // script vizinho).
+  const target = requireStagingTarget();
+  const { url, publishableKey: anonKey, secretKey: serviceKey } = target;
 
-  const url = process.env.STAGING_SUPABASE_URL?.trim();
-  // Aceita as duas convenções: a nomenclatura NOVA do painel
-  // (publishable/secret) e a LEGADA (anon/service_role). O papel é o mesmo:
-  // a primeira é a chave pública do cliente, a segunda a privilegiada.
-  const anonKey = (
-    process.env.STAGING_SUPABASE_PUBLISHABLE_KEY ?? process.env.STAGING_SUPABASE_ANON_KEY
-  )?.trim();
-  const serviceKey = (
-    process.env.STAGING_SUPABASE_SECRET_KEY ?? process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY
-  )?.trim();
-
-  if (!url || !anonKey || !serviceKey) {
-    console.error(
-      "❌ Credenciais de staging ausentes.\n\n" +
-        "Crie .env.local na raiz da worktree (já é gitignored) com:\n" +
-        "  STAGING_SUPABASE_URL=https://<ref>.supabase.co\n" +
-        "  STAGING_SUPABASE_PUBLISHABLE_KEY=<publishable (ou anon) key>\n" +
-        "  STAGING_SUPABASE_SECRET_KEY=<secret (ou service_role) key>\n\n" +
-        "Painel → Project Settings → API Keys. NUNCA use as chaves de produção.",
-    );
-    process.exit(2);
-  }
-
-  // Trava dura: nunca rodar contra produção.
-  if (url.includes(PRODUCTION_REF)) {
-    console.error(
-      `❌ ABORTADO: a URL informada aponta para o projeto de PRODUÇÃO (${PRODUCTION_REF}…).\n` +
-        "Este script só pode rodar contra o staging.",
-    );
-    process.exit(3);
-  }
-
-  console.log(`Alvo: ${url.replace(/https:\/\/([a-z0-9]{6})[a-z0-9]*/i, "https://$1***")}\n`);
+  console.log(`Alvo: ${target.maskedRef}  (guarda de produção: ativa)\n`);
 
   const admin = makeClient(url, serviceKey);
 

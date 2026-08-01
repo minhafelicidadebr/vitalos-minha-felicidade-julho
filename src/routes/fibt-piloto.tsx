@@ -16,6 +16,7 @@ import {
 import type { FibtCohortReport } from "@/lib/fibt/fibt-cohort-report";
 import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
 import { findInstrumentAuthorization } from "@/domain/instruments/instrument-usage-authorization";
+import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
 
 export const Route = createFileRoute("/fibt-piloto")({
   head: () => ({ meta: [{ title: "FIB-T · Piloto (dados reais) — 4 Lentes VitalOS™" }] }),
@@ -43,6 +44,26 @@ export function EstadoVazio({ motivo }: { motivo: string }) {
   return (
     <div className="rounded-xl border border-dashed border-border p-6 text-center">
       <p className="text-sm text-muted-foreground">{motivo}</p>
+    </div>
+  );
+}
+
+/**
+ * Estado de funcionalidade indisponivel. Nao e' erro (nada falhou) nem vazio
+ * (nao ha o que buscar): e' uma capacidade desligada de proposito neste
+ * ambiente, e a tela diz isso em vez de fingir que a busca nao trouxe nada.
+ */
+export function EstadoDesabilitado() {
+  return (
+    <div
+      role="note"
+      data-testid="piloto-desabilitado"
+      className="rounded-xl border border-border bg-muted/40 p-6"
+    >
+      <p className="text-sm font-medium text-foreground">Piloto indisponivel neste ambiente</p>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        {FIBT_PILOT_DISABLED_REASON}
+      </p>
     </div>
   );
 }
@@ -157,6 +178,9 @@ function FibtPilotoPage() {
   const [estado, setEstado] = useState<Estado>({ t: "vazio", motivo: "Informe a onda para carregar." });
   const manifest = getFibtManifest();
   const auth = findInstrumentAuthorization("fib_t");
+  // Lido uma vez: o valor e' embutido no bundle em build time, nao muda em
+  // runtime. `habilitado` gateia tanto a UI quanto o efeito de carga inicial.
+  const habilitado = isFibtPilotEnabled();
 
   const carregar = useCallback(async (id: string) => {
     if (!id.trim()) {
@@ -188,12 +212,15 @@ function FibtPilotoPage() {
   }, []);
 
   useEffect(() => {
+    // Com o piloto desligado, nem o parametro ?wave= da URL dispara carga:
+    // acesso direto nao pode virar um caminho de contorno do gate.
+    if (!habilitado) return;
     const q = new URLSearchParams(window.location.search).get("wave");
     if (q) {
       setWaveId(q);
       void carregar(q);
     }
-  }, [carregar]);
+  }, [carregar, habilitado]);
 
   return (
     <AppShell>
@@ -209,6 +236,9 @@ function FibtPilotoPage() {
           </p>
         </header>
 
+        {!habilitado && <EstadoDesabilitado />}
+
+        {habilitado && (
         <form
           className="flex flex-wrap items-end gap-2"
           onSubmit={(e) => {
@@ -235,14 +265,16 @@ function FibtPilotoPage() {
             Carregar
           </button>
         </form>
+        )}
 
-        {estado.t === "carregando" && <EstadoCarregando />}
+        {habilitado && estado.t === "carregando" && <EstadoCarregando />}
 
-        {estado.t === "vazio" && <EstadoVazio motivo={estado.motivo} />}
+        {habilitado && estado.t === "vazio" && <EstadoVazio motivo={estado.motivo} />}
 
-        {estado.t === "erro" && <EstadoErro motivo={estado.motivo} />}
+        {habilitado && estado.t === "erro" && <EstadoErro motivo={estado.motivo} />}
 
-        {estado.t === "ok" &&
+        {habilitado &&
+          estado.t === "ok" &&
           estado.coortes.map((c) => (
             <CohortCard key={c.id} chave={c.key} rotulo={c.label} relatorio={estado.relatorios[c.id]!} />
           ))}

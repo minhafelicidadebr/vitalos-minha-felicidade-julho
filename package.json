@@ -4,10 +4,12 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preflight": "bun run scripts/environment-preflight.ts",
+    "dev": "bun run preflight --runtime=local --allow-db=local,staging && vite dev",
+    "build": "bun run preflight --runtime=production --db=production && vite build",
+    "build:ci": "bun run preflight --runtime=ci --db=test && vite build",
+    "build:dev": "bun run preflight --runtime=local --allow-db=local,staging && vite build --mode development",
+    "preview": "bun run preflight --runtime=preview --db=staging && vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "bun test src",
@@ -15,9 +17,12 @@
     "secret-scan": "bun run scripts/build-secret-scan.ts",
     "manifest": "bun run scripts/migration-manifest.ts",
     "manifest:write": "bun run scripts/migration-manifest.ts --write",
+    "staging:inventory": "bun run scripts/staging-fibt1-inventory.ts",
     "staging:jwt-proof": "bun run scripts/staging-jwt-proof.ts",
-    "gate": "bun test src && bun run parity && bunx tsc --noEmit",
-    "staging:org-invite-proof": "bun run scripts/staging-org-invite-identity-proof.ts"
+    "staging:org-invite-proof": "bun run scripts/staging-org-invite-identity-proof.ts",
+    "staging:fibt1-proof": "bun run scripts/fibt1-staging-proof.ts",
+    "staging:fibt1-preflight": "bun run scripts/fibt1-final-preflight.ts",
+    "gate": "bun test src && bun run parity && bunx tsc --noEmit && bun run secret-scan"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

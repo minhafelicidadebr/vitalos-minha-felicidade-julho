@@ -1,8 +1,22 @@
 # Gate de qualidade no CI (P1-02, S8 · Confiança Comprovável).
 # Roda o MESMO ritual que o desenvolvimento local já usa (`bun run gate`:
-# testes + paridade de schema + typecheck) + build de produção, em cada push
-# e PR na main. Nenhum segredo necessário: os testes mockam o Supabase e o
-# build funciona sem env (modo demo é o default quando VITE_* está ausente).
+# testes + paridade de schema + typecheck + varredura de segredo) + build de
+# produção, em cada push e PR na main.
+#
+# NENHUMA credencial real, e agora por construção e não por convenção: o
+# ambiente do job é inerte (VITALOS_DB_TARGET=test com URLs sob .invalid, que
+# por RFC 2606 nunca resolvem). O contrato de ambiente recusa `ci` combinado
+# com qualquer alvo que não seja `test`, então este job não alcança staging
+# nem produção mesmo que alguém adicione uma secret por engano.
+#
+# O CI roda `build:ci`, NÃO o `build` — este último é o contrato de produção
+# do Lovable e usa o `.env` público versionado. As variáveis do job abaixo
+# sobrescrevem esse `.env`: verificado empiricamente que o `process.env` vence
+# os arquivos `.env` no Vite, então o bundle de CI sai com valor inerte e
+# nenhum vestígio de produção.
+#
+# O build vem ANTES do gate de propósito: a varredura de segredo inclui o
+# artefato servido ao navegador, e artefato só existe depois do build.
 #
 # bun-version FIXO (não "latest"): "latest" já causou um incidente real —
 # `bun test src` passava limpo localmente mas falhava deterministicamente
@@ -24,6 +38,20 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # Contrato de ambiente — a única combinação que o CI pode assumir.
+  VITALOS_RUNTIME_ENV: ci
+  VITALOS_DB_TARGET: test
+  # Alvos inertes: .invalid não resolve. Nenhuma chamada de rede é possível.
+  # Sobrescrevem o `.env` versionado (process.env vence arquivo no Vite).
+  SUPABASE_URL: https://ci.invalid
+  VITE_SUPABASE_URL: https://ci.invalid
+  SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+  VITE_APP_URL: https://app.ci.invalid
+  # Piloto FIB-T desligado: depende de migrations não aplicadas em produção.
+  VITE_FIBT_PILOT_ENABLED: "false"
+
 jobs:
   gate:
     runs-on: ubuntu-latest
@@ -41,8 +69,11 @@ jobs:
       - name: Instalar dependências
         run: bun install --frozen-lockfile
 
-      - name: Gate (testes + paridade de schema + typecheck)
+      - name: Build de CI (inerte — nunca o build produtivo do Lovable)
+        run: bun run build:ci
+
+      - name: Gate (testes + paridade + typecheck + varredura de segredo)
         run: bun run gate
 
-      - name: Build de produção
-        run: bun run build
+      - name: Varredura de segredo exigindo o artefato (não pode ser pulada)
+        run: bun run scripts/build-secret-scan.ts --require-artifact
