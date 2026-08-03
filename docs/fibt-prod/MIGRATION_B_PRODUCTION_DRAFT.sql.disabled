@@ -5,17 +5,30 @@
 --   *** ESTE ARQUIVO NAO E UMA MIGRATION. NAO EXECUTE. ***
 --
 -- Extensao `.sql.disabled` e localizacao fora de supabase/migrations/ sao
--- deliberadas: os dois motores que descobrem migrations neste repositorio
--- (src/lib/schema-parity/parity-io.ts e migration-manifest.ts) usam
--- `new Glob("*.sql")` restrito a supabase/migrations/. Este arquivo falha nos
--- dois criterios de forma independente -- nome e diretorio.
+-- deliberadas: os tres motores que descobrem migrations neste repositorio
+-- (src/lib/schema-parity/parity-io.ts, src/lib/schema-parity/
+-- migration-manifest.ts e scripts/fibt1-final-preflight.ts) usam
+-- `new Glob("*.sql")` restrito a supabase/migrations/. Provado empiricamente:
+-- num diretorio com `real.sql` e `draft.sql.disabled`, esse glob devolve
+-- apenas `["real.sql"]`. Este arquivo falha nos dois criterios de forma
+-- independente -- nome E diretorio.
 --
 -- Especificacao normativa: MIGRATION_B_PRODUCTION_SPEC.md (mesmo diretorio).
 -- Roteiro de execucao futura: MIGRATION_B_EXECUTION_CHECKLIST.md.
 --
--- Promover a migration executavel exige os seis pontos da secao H da SPEC,
--- incluindo autorizacao humana escrita. Ate la, este arquivo e material de
--- revisao -- nada mais.
+-- ---------------------------------------------------------------------------
+-- *** AVISO DE DESCOMENTACAO SELETIVA ***
+-- ---------------------------------------------------------------------------
+-- Todo o SQL abaixo esta comentado. Isso protege contra execucao acidental,
+-- mas cria um risco inverso: descomentar SELETIVAMENTE.
+--
+--   E PROIBIDO copiar apenas a secao 3 (o trecho destrutivo).
+--   E PROIBIDO executar o DDL sem o bloco de preconditions da secao 1.
+--   E PROIBIDO executar as secoes fora da ordem 0 -> 1 -> 2 -> 3 -> 4.
+--
+-- Este arquivo so vira migration por promocao INTEGRAL, com as precondicoes
+-- da secao H da SPEC satisfeitas e autorizacao humana escrita. Um trecho
+-- isolado daqui nao e uma migration -- e uma operacao destrutiva sem guarda.
 --
 -- ---------------------------------------------------------------------------
 -- ESTADO PRODUTIVO QUE ESTE RASCUNHO ASSUME (inventario PROD-0)
@@ -37,48 +50,113 @@
 -- ---------------------------------------------------------------------------
 -- DIFERENCA EM RELACAO A MIGRATION B DE STAGING (que permanece IMUTAVEL)
 -- ---------------------------------------------------------------------------
--- Removido:  lista fechada de UUIDs sinteticos de organizacao
---            (a0000000-...-0001 / -0002) -- nao existem em producao.
+-- Removido:  lista fechada de UUIDs sinteticos de organizacao -- nao existem
+--            em producao.
 -- Removido:  AFETADAS_ESPERADAS = 16 fixo -- em producao a invariante e ZERO.
--- Removido:  politica de e-mail por dominio (example.invalid/example.com) --
---            producao tem e-mail real; nao se consulta nem se valida e-mail.
--- Adicionado: LOCK explicito antes da recontagem (ver SPEC secao C).
--- Adicionado: recontagem DENTRO da transacao, sob lock.
+-- Removido:  politica de e-mail por dominio -- nao se consulta nem se valida
+--            e-mail em nenhum momento.
+-- Removido:  REVOKE / GRANT -- ver secao 2 e SPEC secao G. A trilha ACL e
+--            SEPARADA e nao entra nesta migration.
+-- Adicionado: SET LOCAL lock_timeout / statement_timeout.
+-- Adicionado: locks explicitos antes da recontagem.
+-- Adicionado: cinco contagens distintas com invariantes cruzadas.
+-- Adicionado: verificacao de assinatura por to_regprocedure().
 -- ===========================================================================
 
 
 -- ===========================================================================
--- 0. EXCLUSAO -- fecha a janela entre a recontagem e o DROP
+-- 0. TRANSACAO, TIMEOUTS E EXCLUSAO
 -- ===========================================================================
--- Ver SPEC secao C para a comparacao das tres alternativas e a justificativa.
--- Recomendacao registrada: LOCK TABLE (fecha a janela real) + advisory lock
--- (defesa barata contra dois operadores humanos simultaneos).
 --
--- O DROP COLUMN ja adquire ACCESS EXCLUSIVE implicitamente; adquiri-lo AQUI,
--- antes das rechecagens, e o que torna a contagem confiavel -- sem isso, a
--- precondition "nenhuma resposta criada entre preflight e execucao" seria uma
--- promessa, nao uma garantia.
+-- PRECONDITION HUMANA OBRIGATORIA -- LOVABLE_BATCH_TRANSACTION_CONFIRMED
+-- ---------------------------------------------------------------------------
+-- Todo o desenho abaixo (locks, atomicidade do DDL, "aborta a transacao
+-- inteira", SET LOCAL) depende de o bloco BEGIN; ... COMMIT; ser executado
+-- pelo Lovable como UMA UNICA transacao, sem autocommit entre statements.
+--
+-- Isso NAO esta comprovado. A Migration B de staging fez a mesma suposicao e
+-- funcionou -- o que e evidencia, nao prova.
+--
+-- Antes de promover, comprovar em ambiente NAO PRODUTIVO que:
+--   (a) SET LOCAL permanece valido ate COMMIT/ROLLBACK;
+--   (b) ACCESS EXCLUSIVE permanece adquirido durante rechecagens e DDL;
+--   (c) erro em qualquer precondition desfaz o bloco INTEIRO;
+--   (d) nenhuma alteracao parcial permanece apos o erro.
+--
+-- Se a propriedade nao puder ser comprovada:
+--   - NAO promover a migration;
+--   - NAO confiar no lock;
+--   - desenhar outro mecanismo de aplicacao controlada.
+--
+-- Este teste NAO faz parte desta autorizacao.
+
+-- BEGIN;
+
+-- --- Timeouts (PROPOSTA para revisao humana) --------------------------------
+-- O repositorio NAO possui valores canonicos de lock_timeout ou
+-- statement_timeout -- busca no repo nao encontrou nenhum precedente. Os
+-- valores abaixo sao propostos, nao herdados.
+--
+--   lock_timeout      = 5s   -> evita espera indefinida por ACCESS EXCLUSIVE
+--                              atras de uma transacao longa.
+--   statement_timeout = 2min -> impede uma sessao administrativa pendurada.
+--
+-- Qualquer timeout resulta em ROLLBACK e NO-GO.
+-- NAO repetir automaticamente: investigar QUEM estava segurando o lock antes
+-- de qualquer nova tentativa. Repeticao cega transforma um sinal em ruido.
+
+-- SET LOCAL lock_timeout = '5s';
+-- SET LOCAL statement_timeout = '2min';
+
+-- --- Exclusao ---------------------------------------------------------------
+-- Ver SPEC secao C para a comparacao completa das tres alternativas.
+-- Recomendacao PROVISORIA (exige aprovacao humana): advisory + ACCESS EXCLUSIVE.
+--
+--   advisory lock      -> serializa execucoes administrativas COOPERATIVAS
+--                         (dois operadores humanos ao mesmo tempo). Nao
+--                         impede escrita de aplicacao, que nao conhece a chave.
+--   ACCESS EXCLUSIVE   -> impede escrita concorrente NA TABELA. E o unico que
+--                         fecha a janela entre a recontagem e o DROP.
+--
+-- Nome logico da chave advisory: FIBT1_MIGRATION_B_PRODUCTION_LOCK
+-- Valor: 4200730160 -- excede int4 (2147483647), portanto resolve para a
+-- sobrecarga bigint de pg_advisory_xact_lock. Literal fixo: estavel entre
+-- sessoes. Documentado aqui para que ninguem o altere por engano.
+--
+-- ORDEM DE AQUISICAO -- sempre a mesma, nunca invertida:
+--   advisory -> ACCESS EXCLUSIVE -> recontagens -> DDL -> pos-checks -> COMMIT
+
+-- SELECT pg_advisory_xact_lock(4200730160);  -- FIBT1_MIGRATION_B_PRODUCTION_LOCK
+-- LOCK TABLE public.wave_responses IN ACCESS EXCLUSIVE MODE;
 --
 -- CONTRAINDICACAO: se houver coleta ativa no momento, ACCESS EXCLUSIVE derruba
--- a submissao enquanto durar. Nesse caso ADIAR a execucao para janela sem
--- trafego -- nunca trocar por um lock mais fraco.
-
--- SELECT pg_advisory_xact_lock(4200730160);   -- chave arbitraria, fixa
--- LOCK TABLE public.wave_responses IN ACCESS EXCLUSIVE MODE;
+-- a submissao enquanto durar. Nesse caso ADIAR para janela sem trafego --
+-- nunca trocar por um lock mais fraco.
 
 
 -- ===========================================================================
 -- 1. PRECONDITIONS FAIL-CLOSED
 -- ===========================================================================
--- Toda divergencia aborta a transacao inteira. Nenhuma checagem e "informativa".
+-- Toda divergencia aborta a transacao inteira. Nenhuma checagem e informativa.
 
 -- DO $$
 -- DECLARE
---   -- Em producao a invariante e ZERO -- nao uma lista de UUIDs autorizados.
---   AFETADAS_ESPERADAS CONSTANT INTEGER := 0;
+--   -- DOIS gates separados, com finalidades diferentes -----------------------
+--   -- Gate de DRIFT OPERACIONAL: o estado autorizado e "tabela vazia". Qualquer
+--   -- linha, mesmo compativel com o contrato novo, significa que o banco mudou
+--   -- desde o inventario PROD-0 e a autorizacao humana nao cobre este estado.
+--   EXPECTED_TOTAL_RESPONSES   CONSTANT INTEGER := 0;
+--   -- Gate de PERDA DE VINCULO LEGADO: linhas cujo invite_token seria destruido.
+--   EXPECTED_WITH_INVITE_TOKEN CONSTANT INTEGER := 0;
 --
---   v_afetadas     INTEGER;
---   v_orfaos       INTEGER;
+--   -- As cinco contagens, deliberadamente distintas. Total de respostas e
+--   -- total de vinculos legados NAO sao a mesma coisa.
+--   v_total_responses     INTEGER;  -- 1. todas as linhas
+--   v_with_invite_token   INTEGER;  -- 2. invite_token IS NOT NULL
+--   v_valid_invite_links  INTEGER;  -- 3. token nao nulo COM convite correspondente
+--   v_orphan_invite_links INTEGER;  -- 4. token nao nulo SEM convite correspondente
+--   v_snapshot_rows       INTEGER;  -- 5. linhas cujo vinculo se perde no DROP
+--
 --   v_duplicados   INTEGER;
 --   v_divergentes  INTEGER;
 --   v_org_invalida INTEGER;
@@ -111,10 +189,7 @@
 --   ) THEN
 --     RAISE EXCEPTION 'ABORTADO: hardening H nao aplicado (sem response_count_label).';
 --   END IF;
---   IF NOT EXISTS (
---     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
---      WHERE n.nspname='public' AND p.proname='count_cohort_participation'
---   ) THEN
+--   IF to_regprocedure('public.count_cohort_participation(uuid,uuid)') IS NULL THEN
 --     RAISE EXCEPTION 'ABORTADO: hardening H nao aplicado (count_cohort_participation ausente).';
 --   END IF;
 --
@@ -136,31 +211,78 @@
 --     RAISE EXCEPTION 'ABORTADO: FK legada ausente -- estado divergente do inventario.';
 --   END IF;
 --
---   -- --- 6 e 7. Recontagem SOB LOCK, comparada a invariante ZERO -------------
---   -- Esta e a checagem central. Roda DEPOIS do lock da secao 0: nada pode
---   -- inserir entre esta contagem e o DROP.
---   SELECT COUNT(*) INTO v_afetadas
+--   -- --- 6. AS CINCO CONTAGENS, SOB LOCK -------------------------------------
+--   -- Rodam DEPOIS dos locks da secao 0: nada pode inserir entre estas
+--   -- contagens e o DROP.
+--   SELECT COUNT(*) INTO v_total_responses
+--     FROM public.wave_responses;
+--
+--   SELECT COUNT(*) INTO v_with_invite_token
 --     FROM public.wave_responses WHERE invite_token IS NOT NULL;
 --
---   IF v_afetadas <> AFETADAS_ESPERADAS THEN
---     RAISE EXCEPTION
---       'ABORTADO: esperadas % respostas com invite_token, encontradas %. '
---       'O estado do banco divergiu do inventario PROD-0. EXIGE snapshot privado, '
---       'SHA-256 e NOVA autorizacao humana antes de qualquer DROP.',
---       AFETADAS_ESPERADAS, v_afetadas;
---   END IF;
+--   SELECT COUNT(*) INTO v_valid_invite_links
+--     FROM public.wave_responses r
+--    WHERE r.invite_token IS NOT NULL
+--      AND EXISTS (SELECT 1 FROM public.wave_invites i WHERE i.token = r.invite_token);
 --
---   -- --- 8. Zero token orfao -------------------------------------------------
---   SELECT COUNT(*) INTO v_orfaos
+--   SELECT COUNT(*) INTO v_orphan_invite_links
 --     FROM public.wave_responses r
 --    WHERE r.invite_token IS NOT NULL
 --      AND NOT EXISTS (SELECT 1 FROM public.wave_invites i WHERE i.token = r.invite_token);
 --
---   IF v_orfaos > 0 THEN
---     RAISE EXCEPTION 'ABORTADO: % resposta(s) com token orfao.', v_orfaos;
+--   -- Definicao: o que se perde no DROP e exatamente o conjunto de linhas com
+--   -- invite_token nao nulo -- validas ou orfas, o valor e destruido igual.
+--   v_snapshot_rows := v_with_invite_token;
+--
+--   -- --- 7. INVARIANTES CRUZADAS ---------------------------------------------
+--   -- Estas comparacoes existem para detectar contagem incoerente, nao apenas
+--   -- contagem alta. Divergencia entre elas indica leitura inconsistente ou
+--   -- escrita concorrente -- e motivo de abortar por si so.
+--   IF v_valid_invite_links + v_orphan_invite_links <> v_with_invite_token THEN
+--     RAISE EXCEPTION
+--       'ABORTADO: invariante quebrada -- validos(%) + orfaos(%) <> com_token(%). '
+--       'Leitura inconsistente ou escrita concorrente.',
+--       v_valid_invite_links, v_orphan_invite_links, v_with_invite_token;
 --   END IF;
 --
---   -- --- 9. Zero token duplicado ---------------------------------------------
+--   IF v_snapshot_rows <> v_with_invite_token THEN
+--     RAISE EXCEPTION 'ABORTADO: invariante quebrada -- snapshot_rows(%) <> com_token(%).',
+--       v_snapshot_rows, v_with_invite_token;
+--   END IF;
+--
+--   IF v_with_invite_token > v_total_responses THEN
+--     RAISE EXCEPTION 'ABORTADO: invariante quebrada -- com_token(%) > total(%).',
+--       v_with_invite_token, v_total_responses;
+--   END IF;
+--
+--   -- --- 8. GATE DE DRIFT OPERACIONAL ----------------------------------------
+--   -- Uma linha com invite_token NULL nao representa perda de vinculo -- mas
+--   -- ENQUANTO o estado autorizado for "total zero", qualquer linha significa
+--   -- que o banco divergiu do inventario e a autorizacao nao cobre este estado.
+--   IF v_total_responses <> EXPECTED_TOTAL_RESPONSES THEN
+--     RAISE EXCEPTION
+--       'ABORTADO (drift operacional): esperadas % respostas no total, encontradas %. '
+--       'NAO presumir que as linhas sao seguras. Refazer o inventario e solicitar '
+--       'NOVA autorizacao humana.',
+--       EXPECTED_TOTAL_RESPONSES, v_total_responses;
+--   END IF;
+--
+--   -- --- 9. GATE DE PERDA DE VINCULO LEGADO -----------------------------------
+--   IF v_with_invite_token <> EXPECTED_WITH_INVITE_TOKEN THEN
+--     RAISE EXCEPTION
+--       'ABORTADO (perda de vinculo legado): esperadas % linha(s) com invite_token, '
+--       'encontradas %. EXIGE: snapshot privado FORA do repositorio, SHA-256 '
+--       'calculado, revisao controlada de TODAS as linhas afetadas, e NOVA '
+--       'autorizacao humana antes de qualquer DROP.',
+--       EXPECTED_WITH_INVITE_TOKEN, v_with_invite_token;
+--   END IF;
+--
+--   -- --- 10. Zero token orfao -------------------------------------------------
+--   IF v_orphan_invite_links > 0 THEN
+--     RAISE EXCEPTION 'ABORTADO: % resposta(s) com token orfao.', v_orphan_invite_links;
+--   END IF;
+--
+--   -- --- 11. Zero token duplicado ---------------------------------------------
 --   SELECT COUNT(*) INTO v_duplicados FROM (
 --     SELECT invite_token FROM public.wave_responses
 --      WHERE invite_token IS NOT NULL
@@ -171,7 +293,7 @@
 --     RAISE EXCEPTION 'ABORTADO: % token(s) referenciado(s) por mais de uma resposta.', v_duplicados;
 --   END IF;
 --
---   -- --- 10. Zero divergencia resposta-convite-onda ---------------------------
+--   -- --- 12. Zero divergencia resposta-convite-onda ---------------------------
 --   SELECT COUNT(*) INTO v_divergentes
 --     FROM public.wave_responses r
 --     JOIN public.wave_invites i ON i.token = r.invite_token
@@ -181,34 +303,39 @@
 --     RAISE EXCEPTION 'ABORTADO: % resposta(s) cuja onda diverge da onda do convite.', v_divergentes;
 --   END IF;
 --
---   -- --- 11. Zero inconsistencia resposta-onda-organizacao --------------------
+--   -- --- 13. Zero inconsistencia resposta-onda-organizacao ---------------------
+--   -- ESCOPO: restrito as linhas AFETADAS (invite_token nao nulo). Uma resposta
+--   -- ja compativel com o contrato novo (token NULL) com onda orfa e um problema
+--   -- de integridade REAL, mas nao tem relacao com o vinculo que esta sendo
+--   -- removido -- bloquear a Migration B por causa dela seria falso positivo.
+--   -- O gate de drift (secao 8) ja cobre a existencia dessas linhas enquanto o
+--   -- estado autorizado for "total zero".
 --   SELECT COUNT(*) INTO v_org_invalida
 --     FROM public.wave_responses r
 --     LEFT JOIN public.waves w ON w.id = r.wave_id
---    WHERE w.id IS NULL OR w.org_id IS NULL;
+--    WHERE r.invite_token IS NOT NULL
+--      AND (w.id IS NULL OR w.org_id IS NULL);
 --
 --   IF v_org_invalida > 0 THEN
---     RAISE EXCEPTION 'ABORTADO: % resposta(s) sem onda ou sem organizacao valida.', v_org_invalida;
+--     RAISE EXCEPTION 'ABORTADO: % resposta(s) afetada(s) sem onda ou sem organizacao valida.', v_org_invalida;
 --   END IF;
 --
---   -- --- 13. Assinaturas esperadas presentes ----------------------------------
---   IF NOT EXISTS (
---     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
---      WHERE n.nspname='public' AND p.proname='submit_wave_response'
---        AND pg_get_function_identity_arguments(p.oid) = 'p_wave_id uuid, p_invite_token text, p_answers jsonb'
---   ) THEN
---     RAISE EXCEPTION 'ABORTADO: submit_wave_response com assinatura inesperada.';
+--   -- --- 14. Assinaturas resolvidas ------------------------------------------
+--   -- to_regprocedure() resolve a assinatura pelo catalogo e devolve NULL se
+--   -- nao existir. E mais robusto que comparar o texto devolvido por
+--   -- pg_get_function_identity_arguments(), cuja formatacao exata (nomes,
+--   -- espacamento, aliases de tipo) e detalhe de rendering do servidor.
+--   IF to_regprocedure('public.submit_wave_response(uuid,text,jsonb)') IS NULL THEN
+--     RAISE EXCEPTION 'ABORTADO: submit_wave_response(uuid,text,jsonb) nao encontrada.';
 --   END IF;
---   IF NOT EXISTS (
---     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
---      WHERE n.nspname='public' AND p.proname='submit_sector_response'
---        AND pg_get_function_identity_arguments(p.oid) = 'p_token_hash text, p_answers jsonb'
---   ) THEN
---     RAISE EXCEPTION 'ABORTADO: submit_sector_response com assinatura inesperada.';
+--   IF to_regprocedure('public.submit_sector_response(text,jsonb)') IS NULL THEN
+--     RAISE EXCEPTION 'ABORTADO: submit_sector_response(text,jsonb) nao encontrada.';
 --   END IF;
 --
---   -- --- Nenhuma outra funcao depende da coluna -------------------------------
---   -- As duas reescritas nesta mesma transacao sao excluidas por nome.
+--   -- --- 15. Nenhuma outra funcao depende da coluna ----------------------------
+--   -- LIMITACAO RESIDUAL: prosrc so ve o texto do corpo. Uma funcao que monte a
+--   -- referencia por SQL DINAMICO (EXECUTE format(...)) NAO e detectada aqui.
+--   -- Por isso esta checagem e UMA das cinco camadas -- ver SPEC secao D.
 --   SELECT COUNT(*) INTO v_dependentes
 --     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 --    WHERE n.nspname='public'
@@ -220,33 +347,57 @@
 --     RAISE EXCEPTION 'ABORTADO: % funcao(oes) SQL ainda referenciam wave_responses.invite_token.', v_dependentes;
 --   END IF;
 --
---   -- --- 1 e 14 (humanas, nao verificaveis pelo banco) -------------------------
---   RAISE NOTICE 'PRECONDITION 1 (humana): project_ref de producao confirmado no painel Lovable?';
---   RAISE NOTICE 'PRECONDITION 14 (humana): com % linha(s) afetada(s), snapshot % exigido.',
---     v_afetadas, CASE WHEN v_afetadas = 0 THEN 'NAO e' ELSE 'E OBRIGATORIAMENTE' END;
---   RAISE NOTICE 'Preconditions OK. Removendo o vinculo legado (% linha(s) afetada(s)).', v_afetadas;
+--   -- --- Preconditions humanas (o banco nao consegue verificar) ---------------
+--   RAISE NOTICE 'PRECONDITION humana: project_ref de producao confirmado no painel Lovable?';
+--   RAISE NOTICE 'PRECONDITION humana: LOVABLE_BATCH_TRANSACTION_CONFIRMED = true?';
+--   RAISE NOTICE 'PRECONDITION humana: matriz de ACL capturada ANTES desta execucao?';
+--   RAISE NOTICE 'Contagens -- total:% com_token:% validos:% orfaos:% snapshot:%',
+--     v_total_responses, v_with_invite_token, v_valid_invite_links,
+--     v_orphan_invite_links, v_snapshot_rows;
+--   RAISE NOTICE 'Preconditions OK. Removendo o vinculo legado.';
 -- END $$;
 
 
 -- ===========================================================================
 -- 2. Corrigir consumidores funcionais ANTES do DROP
 -- ===========================================================================
+--
+-- *** ESTA SECAO NAO CONTEM E NAO PODE CONTER REVOKE OU GRANT ***
+--
+-- CREATE OR REPLACE sera usado APENAS para atualizar o CORPO das funcoes
+-- dependentes do schema. A trilha ACL permanece SEPARADA (ver SPEC secao G).
+--
+-- Consequencia registrada, sem eufemismo: CREATE OR REPLACE preserva a ACL
+-- vigente da funcao. Como a Q19 constatou PUBLIC EXECUTE em producao para
+-- submit_sector_response, ela permanecera com PUBLIC EXECUTE depois desta
+-- migration. Isso e DELIBERADO -- corrigir ACL aqui misturaria duas trilhas
+-- que se decidiu separar. A correcao acontece na trilha ACL, com PR e
+-- autorizacao proprios, e DEVE estar concluida antes da ativacao da FIB-T.
+--
 -- submit_sector_response nomeia invite_token no INSERT (gravando NULL).
 -- Dropar a coluna sem corrigir a funcao quebraria o link setorial.
 --
--- O corpo a reaplicar e IDENTICO ao da secao 2 da Migration B de staging
--- (supabase/migrations/20260730160000_..., blob c0d35c06...) -- nao ha
--- diferenca de logica entre staging e producao para esta funcao, e duplicar o
--- corpo aqui criaria uma segunda fonte de verdade divergindo com o tempo.
+-- O corpo a reaplicar e o da secao 2 da Migration B de staging
+-- (supabase/migrations/20260730160000_..., blob c0d35c06), COPIANDO APENAS O
+-- CORPO -- as duas ultimas linhas daquele bloco (REVOKE + GRANT) ficam de
+-- fora, por decisao explicita.
 --
--- Na promocao a migration executavel, COPIAR o bloco integral daquele arquivo,
--- incluindo o REVOKE/GRANT que o acompanha -- que e parte da definicao da
--- funcao, nao uma mudanca de politica de ACL (ver SPEC secao G).
+-- Para revisao: o SQL integral daquela funcao esta reproduzido em
+-- MIGRATION_B_PRODUCTION_SPEC.md, secao I, para que este draft seja
+-- auto-contido sem criar uma segunda fonte de verdade executavel.
+--
+-- Depois do CREATE OR REPLACE, reconfirmar a assinatura:
+--   IF to_regprocedure('public.submit_sector_response(text,jsonb)') IS NULL THEN
+--     RAISE EXCEPTION 'FALHA: submit_sector_response perdeu a assinatura esperada.';
+--   END IF;
 
 
 -- ===========================================================================
 -- 3. CONTRACT -- remocao do vinculo
 -- ===========================================================================
+--
+-- *** NUNCA EXECUTAR ESTA SECAO ISOLADAMENTE. ***
+-- Sem a secao 1, isto e um DROP destrutivo sem nenhuma guarda.
 
 -- DROP POLICY    IF EXISTS "response_submit" ON public.wave_responses;
 -- ALTER TABLE public.wave_responses DROP CONSTRAINT IF EXISTS wave_responses_invite_token_fkey;
@@ -268,13 +419,22 @@
 -- ===========================================================================
 
 -- DO $$
+-- DECLARE
+--   v_total_pos INTEGER;
 -- BEGIN
+--   -- Registrar o total observado (o gate ja garantiu = 0, mas registrar o
+--   -- valor torna o log auditavel em vez de presumido).
+--   SELECT COUNT(*) INTO v_total_pos FROM public.wave_responses;
+--   RAISE NOTICE 'POS-CHECK: v_total_responses observado = %', v_total_pos;
+--
+--   -- Coluna removida
 --   IF EXISTS (SELECT 1 FROM information_schema.columns
 --               WHERE table_schema='public' AND table_name='wave_responses'
 --                 AND column_name='invite_token') THEN
 --     RAISE EXCEPTION 'FALHA: wave_responses.invite_token ainda existe';
 --   END IF;
 --
+--   -- FK legada e qualquer FK residual para wave_invites
 --   IF EXISTS (
 --     SELECT 1 FROM information_schema.table_constraints tc
 --       JOIN information_schema.constraint_column_usage ccu
@@ -285,7 +445,7 @@
 --     RAISE EXCEPTION 'FALHA: ainda existe FK de wave_responses para wave_invites';
 --   END IF;
 --
---   -- Nada de A/H pode ter sido removido por efeito colateral.
+--   -- Nada de A/H pode ter sido removido por efeito colateral
 --   IF NOT EXISTS (SELECT 1 FROM information_schema.columns
 --                   WHERE table_schema='public' AND table_name='wave_responses'
 --                     AND column_name='cohort_id') THEN
@@ -296,27 +456,70 @@
 --      WHERE n.nspname='public' AND p.proname='aggregate_cohort_responses'
 --        AND array_to_string(p.proargnames, ',') LIKE '%response_count_label%'
 --   ) THEN
---     RAISE EXCEPTION 'FALHA: contrato de agregacao do hardening foi perdido';
+--     RAISE EXCEPTION 'FALHA: contrato de 8 colunas da agregacao foi perdido';
 --   END IF;
---   IF NOT EXISTS (
---     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
---      WHERE n.nspname='public' AND p.proname='count_cohort_participation'
---   ) THEN
+--   IF to_regprocedure('public.count_cohort_participation(uuid,uuid)') IS NULL THEN
 --     RAISE EXCEPTION 'FALHA: count_cohort_participation sumiu';
+--   END IF;
+--
+--   -- Assinaturas resolvidas (mesma tecnica das preconditions)
+--   IF to_regprocedure('public.submit_wave_response(uuid,text,jsonb)') IS NULL THEN
+--     RAISE EXCEPTION 'FALHA: submit_wave_response perdeu a assinatura esperada.';
+--   END IF;
+--   IF to_regprocedure('public.submit_sector_response(text,jsonb)') IS NULL THEN
+--     RAISE EXCEPTION 'FALHA: submit_sector_response perdeu a assinatura esperada.';
+--   END IF;
+--
+--   -- Nenhuma referencia ESTATICA residual a coluna removida.
+--   -- LIMITACAO RESIDUAL registrada: nao detecta SQL dinamico.
+--   IF EXISTS (
+--     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--      WHERE n.nspname='public'
+--        AND p.prosrc ILIKE '%invite_token%'
+--        AND p.prosrc ILIKE '%wave_responses%'
+--   ) THEN
+--     RAISE EXCEPTION 'FALHA: ainda existe funcao referenciando wave_responses.invite_token.';
 --   END IF;
 --
 --   RAISE NOTICE 'CONTRACT concluido: nao existe caminho resposta -> convite -> email no schema.';
 -- END $$;
 
+-- COMMIT;
+
 
 -- ===========================================================================
--- 5. FORA DA TRANSACAO -- verificacoes da onda, nao do SQL
+-- 5. ACL -- LEITURA APENAS, NUNCA ALTERACAO
+-- ===========================================================================
+-- Estas consultas sao READ-ONLY e existem para a comparacao ANTES x DEPOIS
+-- exigida pelo checklist. Rodar a MESMA consulta nos dois momentos e comparar.
+-- Diferenca nao prevista = NO-GO, tratada na trilha ACL -- NUNCA dentro desta
+-- migration.
+--
+-- Precedente que justifica a paranoia: o scanner do Lovable ja reconcedeu
+-- EXECUTE por conta propria DUAS vezes neste projeto (ver
+-- docs/RUNBOOK_MIGRACOES_LOVABLE.md, "Achado real #3" e o achado de
+-- 2026-07-14 em accept_member_invite). ACL nao se presume -- se confere.
+
+-- SELECT p.proname,
+--        has_function_privilege('PUBLIC',        p.oid, 'EXECUTE') AS public_exec,
+--        has_function_privilege('anon',          p.oid, 'EXECUTE') AS anon_exec,
+--        has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_exec,
+--        has_function_privilege('service_role',  p.oid, 'EXECUTE') AS service_exec
+--   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--  WHERE n.nspname = 'public'
+--    AND p.proname IN ('submit_wave_response','submit_sector_response',
+--                      'aggregate_cohort_responses','count_cohort_participation');
+
+
+-- ===========================================================================
+-- 6. FORA DA TRANSACAO -- verificacoes da onda, nao do SQL
 -- ===========================================================================
 --   [ ] tipos TypeScript ainda NAO regenerados (regeneracao e a onda PROD-5)
 --   [ ] VITE_FIBT_PILOT_ENABLED ainda = false
 --   [ ] operational_real_collection_status ainda = blocked_until_release_gate
 --   [ ] nenhum Publish acionado
---   [ ] ACLs inalteradas (trilha ACL e separada -- ver SPEC secao G)
+--   [ ] matriz de ACL comparada antes x depois, sem presuncao
+--   [ ] nenhuma aplicacao parcial (transacao unica -- ver secao 0)
 -- ===========================================================================
 -- FIM DO RASCUNHO NAO EXECUTAVEL
 -- ===========================================================================
