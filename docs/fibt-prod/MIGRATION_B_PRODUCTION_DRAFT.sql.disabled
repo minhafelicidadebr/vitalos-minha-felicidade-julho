@@ -21,10 +21,16 @@
 --        (nome + tipo + ordem), nao mais oito LIKE sobre proargnames  ..... §2, §5.10
 --   P1-2 pg_depend com classid/refclassid e um ramo POR CATALOGO  ......... §3.4
 --   P1-3 trigger so bloqueia com evidencia de relacao com a coluna  ....... §3.4b
---   P2-1 inventario fail-closed de policies antes do DROP POLICY  ......... §3.3
+--   P2-1 inventario fail-closed de policies  .............................. §3.3
 --   P2-2 as oito contagens em UM UNICO SELECT (snapshot unico)  ........... §3.5
 --   P2-3 fingerprint reproduzivel da matriz de ACL  ....................... §6.2
 --   P2-4 limite declarado: comportamento abaixo de k nao e estatico  ...... §2
+--
+-- REVISAO 5 -- decisao humana PROD-0.5H sobre o contrato de policy:
+--   EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0. Baseline produtivo Q18 (RLS ativo,
+--   zero policies). QUALQUER policy aborta -- inclusive response_submit. Policy
+--   deixou de ser dependencia esperada; a UNICA esperada e a FK legada exata.
+--   O DROP POLICY foi REMOVIDO deste draft.  .................. §3.3, §3.4, §4
 --
 -- ---------------------------------------------------------------------------
 -- *** AVISO DE DESCOMENTACAO SELETIVA ***
@@ -454,18 +460,31 @@
 --       '-> public.wave_invites.token com nome wave_responses_invite_token_fkey.';
 --   END IF;
 --
---   -- --- 3.3 INVENTARIO DE POLICIES (P2-1) ------------------------------------
+--   -- --- 3.3 INVENTARIO DE POLICIES -- BASELINE ZERO (P2-1 / decisao 0.5H) ----
 --   -- ESTADO AUTORIZADO em public.wave_responses:
---   --   (a) nenhuma policy -- e o estado COMPROVADO em producao (Q18); ou
---   --   (b) somente a policy legada response_submit, cuja remocao faz parte do
---   --       contrato desta migration (secao 4).
---   -- Qualquer OUTRA policy: abortar, listar SO metadado, NAO remover, exigir
---   -- nova revisao. Sem este inventario, uma policy inesperada passaria sem
---   -- sinal -- ela nao seria removida (a secao 4 nomeia apenas response_submit),
---   -- mas tambem nao seria denunciada.
+--   --   EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0. So isso.
+--   --
+--   -- Fonte: inventario produtivo Q18 -- RLS ATIVO e ZERO policies. RLS ativo
+--   -- sem policy e default-deny total; nao ha nada a remover.
+--   --
+--   -- QUALQUER policy aborta -- INCLUSIVE response_submit. Nao ha policy
+--   -- tolerada por nome. Motivo (decisao humana PROD-0.5H): este draft e
+--   -- especifico do baseline produtivo ATUAL. A Migration B canonica de staging
+--   -- removia response_submit porque cobria um estado historico diferente; aqui
+--   -- o reaparecimento da policy nao e "o estado antigo de volta", e DRIFT --
+--   -- alguem ou algo recriou uma policy depois do inventario. Uma policy de
+--   -- MESMO NOME nao e presumida equivalente a historica: nome nao prova
+--   -- expressao, comando, papeis nem intencao.
+--   --
+--   -- Aborta para: response_submit, qualquer outro nome, permissiva,
+--   -- restritiva, e qualquer comando (SELECT, INSERT, UPDATE, DELETE, ALL).
+--   --
+--   -- Metadados registrados -- e SO estes: nome, comando, permissiva/restritiva,
+--   -- papeis, schema, tabela. Nenhuma expressao (polqual/polwithcheck) e
+--   -- impressa: expressao de policy pode conter literal de negocio.
 --   SELECT string_agg(
---            format('%I (cmd=%s permissive=%s roles=%s)',
---                   pol.polname, pol.polcmd, pol.polpermissive,
+--            format('%I.%I -> policy %I (cmd=%s permissive=%s roles=%s)',
+--                   pn.nspname, pt.relname, pol.polname, pol.polcmd, pol.polpermissive,
 --                   coalesce((SELECT string_agg(CASE WHEN r = 0 THEN 'PUBLIC'
 --                                                    ELSE pg_get_userbyid(r) END, '+' ORDER BY r)
 --                               FROM unnest(pol.polroles) r), '(nenhum)')),
@@ -475,16 +494,19 @@
 --     JOIN pg_class     pt ON pt.oid = pol.polrelid
 --     JOIN pg_namespace pn ON pn.oid = pt.relnamespace
 --    WHERE pn.nspname = 'public'
---      AND pt.relname = 'wave_responses'
---      AND pol.polname <> 'response_submit';
+--      AND pt.relname = 'wave_responses';
 --
 --   IF v_policies IS NOT NULL THEN
 --     RAISE EXCEPTION
---       'ABORTADO (inventario de policies): policy(s) NAO autorizada(s) em public.wave_responses: %. '
---       'Estado autorizado: nenhuma policy, ou somente a legada response_submit. '
---       'Listado apenas metadado. NAO remover -- solicitar nova revisao.',
+--       'ABORTADO (inventario de policies): esperadas ZERO policies em '
+--       'public.wave_responses, encontrada(s): %. Isto e DRIFT em relacao ao '
+--       'inventario Q18. Listado apenas metadado. NAO remover nenhuma policy '
+--       'automaticamente. Exige NOVO inventario, rederivacao deste draft e NOVA '
+--       'autorizacao humana.',
 --       v_policies;
 --   END IF;
+--
+--   RAISE NOTICE 'Inventario de policies: zero policies em public.wave_responses (baseline autorizado).';
 --
 --   -- --- 3.4 DEPENDENCIAS CATALOGAIS SOBRE A COLUNA (P1-2) --------------------
 --   -- CORRECAO (revisao 4). A versao anterior fazia
@@ -505,17 +527,17 @@
 --   -- refobjsubid); e cada ramo junta objid EXCLUSIVAMENTE ao catalogo do seu
 --   -- proprio classid. classid nao tratado = DEPENDENCIA DESCONHECIDA = aborta.
 --   --
---   -- DUAS dependencias sao deliberadamente ESPERADAS -- e apenas estas duas:
+--   -- UMA UNICA dependencia e deliberadamente ESPERADA (decisao 0.5H):
 --   --
---   --   1. a FK legada wave_responses_invite_token_fkey, aceita SOMENTE com
---   --      identidade integral: nome + contype='f' + tabela local + coluna local
---   --      + tabela referenciada + coluna referenciada. Uma FK de MESMO NOME
---   --      apontando para outro lugar BLOQUEIA.
---   --   2. a policy legada response_submit, aceita SOMENTE por nome exato sobre
---   --      esta tabela, porque a secao 4 a remove ANTES do DROP COLUMN, no mesmo
---   --      bloco transacional, e a secao 3.3 acabou de provar que nenhuma outra
---   --      policy existe. Em producao ela esta AUSENTE (Q18) -- este ramo tende
---   --      a nunca acionar.
+--   --   a FK legada wave_responses_invite_token_fkey, aceita SOMENTE com
+--   --   identidade integral: nome + contype='f' + tabela local + coluna local
+--   --   + tabela referenciada + coluna referenciada. Uma FK de MESMO NOME
+--   --   apontando para outro lugar BLOQUEIA.
+--   --
+--   -- POLICY NAO E EXCECAO. Nenhuma policy e excluida por nome -- nem
+--   -- response_submit. Toda dependencia com classid = pg_policy e BLOQUEADORA.
+--   -- Coerente com 3.3: o baseline autorizado e ZERO policies, entao este ramo
+--   -- so pode acionar em cenario de drift, e drift tem que parar a migration.
 --   --
 --   -- Nenhuma outra e excluida, por nome parcial ou por tipo amplo. Dependencia
 --   -- interna do catalogo NAO e filtrada por deptype: e classificada e exibida.
@@ -616,15 +638,14 @@
 --      WHERE dep.classid = 'pg_trigger'::regclass
 --
 --     UNION ALL
---     -- pg_policy: a legada response_submit e a unica excluida (ver acima)
+--     -- pg_policy: SEM excecao. Toda policy dependente da coluna bloqueia,
+--     -- inclusive response_submit. Baseline autorizado e zero policies (3.3).
 --     SELECT 'policy'::TEXT, sn.nspname::TEXT, pol.polname::TEXT, 'pg_policy'::TEXT, dep.*
 --       FROM dep
 --       JOIN pg_policy    pol ON pol.oid = dep.objid
 --       JOIN pg_class     st  ON st.oid  = pol.polrelid
 --       JOIN pg_namespace sn  ON sn.oid  = st.relnamespace
 --      WHERE dep.classid = 'pg_policy'::regclass
---        AND NOT (pol.polname = 'response_submit'
---                 AND pol.polrelid = (SELECT table_oid FROM alvo))
 --
 --     UNION ALL
 --     -- pg_class: indices, indices de expressao e outras relacoes
@@ -857,21 +878,26 @@
 -- transformaria um objeto obrigatorio ausente -- ou com nome divergente -- em
 -- no-op SILENCIOSO. Preferimos falha explicita.
 --
--- DROP POLICY mantem IF EXISTS por motivo diferente e legitimo: a ausencia da
--- policy e estado COMPROVADO em producao (Q18 retornou zero policies em
--- wave_responses). RLS ativo sem policy e default-deny total.
+-- *** NAO EXISTE DROP POLICY NESTE DRAFT (decisao humana PROD-0.5H) ***
+-- ---------------------------------------------------------------------------
+-- A Migration B canonica de STAGING removia a policy "response_submit" com um
+-- DROP POLICY condicional -- CITACAO HISTORICA, NAO COPIAR, nao reintroduzir --
+-- porque cobria um estado HISTORICO em que a policy existia. Producao hoje tem
+-- ZERO policies em wave_responses (Q18), com RLS ativo -- default-deny total.
+-- Nao ha nada a remover, e um DROP condicional seria uma autorizacao latente
+-- para apagar uma policy que ninguem revisou.
 --
--- IMPORTANTE (P2-1): este DROP so e legitimo porque a secao 3.3 ja executou o
--- INVENTARIO DE POLICIES e provou que nenhuma OUTRA policy existe na tabela.
--- Sem aquele inventario, uma policy inesperada nao seria removida (o DROP
--- nomeia apenas response_submit) mas tambem nao seria DENUNCIADA. A ordem
--- 3.3 -> 4 e obrigatoria.
+-- Consequencia deliberada: se uma policy REAPARECER, este draft NAO a remove --
+-- ele ABORTA na secao 3.3, antes do primeiro DDL. Reaparecimento e DRIFT, nao
+-- "o estado antigo de volta", e drift exige novo inventario, rederivacao deste
+-- draft e nova autorizacao humana. Uma policy de mesmo nome NAO e presumida
+-- equivalente a historica.
+--
+-- NAO inserir outro DROP POLICY aqui, nem com IF EXISTS.
 --
 -- NAO usar CASCADE em lugar nenhum: a secao 3.4 ja provou que nao ha
 -- dependencia catalogal, e CASCADE removeria objetos silenciosamente.
 
--- DROP POLICY IF EXISTS "response_submit" ON public.wave_responses;
---
 -- ALTER TABLE public.wave_responses
 --   DROP CONSTRAINT wave_responses_invite_token_fkey;
 --

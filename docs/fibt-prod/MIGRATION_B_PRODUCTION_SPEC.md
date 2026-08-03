@@ -11,6 +11,11 @@
 > (contrato de retorno estrutural · `pg_depend` por catálogo · triggers) e
 > quatro P2 (inventário de policies · snapshot único · fingerprint de ACL ·
 > limite declarado abaixo de *k*). Fixtures estáticas em §M.
+>
+> **Revisão 5** — decisão humana PROD-0.5H:
+> `EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0`. Qualquer policy aborta, inclusive
+> `response_submit`; policy deixou de ser dependência esperada; o `DROP POLICY`
+> foi **removido** do draft.
 
 ## Por que um arquivo novo, e não a Migration B de staging
 
@@ -24,6 +29,7 @@ preconditions são específicas do dataset sintético de staging:
 | `AFETADAS_ESPERADAS` | `16` | **0** |
 | `ORGS_SINTETICAS` | 2 UUIDs `a0000000-…` | não existem |
 | Política de e-mail | aborta fora de `example.invalid`/`example.com` | e-mails reais |
+| `DROP POLICY "response_submit"` | remove a policy do estado histórico | **não existe neste draft** — produção tem zero policies (§F) |
 
 Não é defeito — é o fail-closed recusando rodar num banco para o qual a
 autorização humana não foi dada.
@@ -210,10 +216,9 @@ BEGIN
   → pg_advisory_xact_lock(FIBT1_MIGRATION_B_PRODUCTION_LOCK)
   → LOCK TABLE wave_responses IN ACCESS EXCLUSIVE MODE
   → preconditions A (§C) · H (§D)
-  → coluna → FK exata → INVENTÁRIO DE POLICIES → dependências catalogais
+  → coluna → FK exata → INVENTÁRIO DE POLICIES (= 0) → dependências catalogais
     → triggers → as oito contagens em UM SELECT (§B) → invariantes → gates
   → CREATE OR REPLACE submit_sector_response   ← antes do DROP
-  → DROP POLICY IF EXISTS "response_submit"    ← só depois do inventário
   → DROP CONSTRAINT wave_responses_invite_token_fkey   ← sem IF EXISTS
   → DROP COLUMN invite_token                           ← sem IF EXISTS
   → pós-checks (§I)
@@ -301,26 +306,34 @@ as duas tabelas": schema `public` · tabela `wave_responses` · nome
 `invite_token` · tabela referenciada `wave_invites` · coluna referenciada
 `token` · chave de coluna única.
 
-`DROP POLICY IF EXISTS "response_submit"` **permanece** — e apenas essa —
-porque a ausência da policy é estado **legítimo e comprovado**: a Q18 retornou
-zero policies em `wave_responses` em produção. RLS ativo sem policy é
-default-deny total.
+### Policies — baseline zero, sem `DROP POLICY`
 
-### Inventário de policies — precondition fail-closed
+**Decisão humana PROD-0.5H.** `EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0`.
 
-O `DROP POLICY` acima só é legítimo porque, **antes dele**, uma precondition
-inventaria as policies de `public.wave_responses`.
+O inventário produtivo Q18 comprovou `public.wave_responses` com **RLS ativo** e
+**zero policies**. RLS ativo sem policy é default-deny total: não há nada a
+remover.
 
-**Estado autorizado:** nenhuma policy · **ou** somente a legada
-`response_submit`, cuja remoção faz parte do contrato desta migration.
+**Este draft não contém `DROP POLICY`.** A Migration B canônica de staging
+tinha `DROP POLICY IF EXISTS "response_submit"` porque cobria um **estado
+histórico diferente**, em que a policy existia. Manter aquele `DROP` aqui seria
+carregar uma autorização latente para apagar uma policy que ninguém revisou.
 
-**Qualquer outra policy** → abortar · listar **apenas metadados**
-(`polname`, `polcmd`, `polpermissive`, papéis) · **não remover** · solicitar
-nova revisão.
+**A precondition exige exatamente zero.** Qualquer policy aborta — incluindo
+`response_submit`, qualquer outro nome, permissiva, restritiva, e qualquer
+comando (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALL`).
 
-Sem esse inventário existia uma lacuna real: uma policy inesperada **não seria
-removida** (o `DROP` nomeia só `response_submit`) mas também **não seria
-denunciada** — passaria em silêncio. A ordem inventário → `DROP` é obrigatória.
+Ao abortar: **antes do primeiro DDL** · listar **apenas metadados** (nome ·
+comando · permissiva/restritiva · papéis · schema · tabela) · **não remover
+nenhuma policy** · exigir **novo inventário e nova autorização humana**.
+Nenhuma expressão de policy (`polqual`/`polwithcheck`) é impressa — expressão
+pode conter literal de negócio.
+
+**Reaparecimento é drift.** Uma policy que volte a existir não é "o estado
+antigo de volta": é sinal de que algo criou uma policy depois do inventário.
+Drift exige abortar e **rederivar o draft** — não contorná-lo. Uma policy de
+**mesmo nome não é presumida equivalente** à histórica: nome não prova
+expressão, comando, papéis nem intenção.
 
 **`CASCADE` não é usado em lugar nenhum.** A precondition de dependências (§I)
 já provou que não há dependente; `CASCADE` removeria objetos silenciosamente.
@@ -460,17 +473,19 @@ objeto. Dependência **interna** do catálogo é **classificada e exibida**, nã
 filtrada em silêncio por `deptype` — a revisão 3 descartava `deptype = 'i'`
 sem registrar nada.
 
-**Duas dependências são deliberadamente esperadas — e apenas estas duas:**
+**Uma única dependência é deliberadamente esperada** (decisão PROD-0.5H):
 
-1. **a FK legada `wave_responses_invite_token_fkey`**, aceita somente com
-   identidade integral: nome · `contype = 'f'` · tabela local · coluna local ·
-   tabela referenciada · coluna referenciada. Uma FK de **mesmo nome**
-   apontando para outro lugar **bloqueia**;
-2. **a policy legada `response_submit`**, aceita somente por nome exato sobre
-   esta tabela, porque §F a remove **antes** do `DROP COLUMN`, no mesmo bloco
-   transacional, e o inventário de policies acabou de provar que nenhuma outra
-   existe. Em produção ela está **ausente** (Q18) — este ramo tende a nunca
-   acionar.
+| Classificação | Objetos |
+| --- | --- |
+| `EXPECTED_DEPENDENCY` | **somente** `wave_responses_invite_token_fkey`, com identidade completa: nome · `contype = 'f'` · tabela local · coluna local · tabela referenciada · coluna referenciada |
+| `UNEXPECTED_DEPENDENCY` | **tudo o mais**, inclusive **qualquer policy** e inclusive `response_submit` |
+
+Uma FK de **mesmo nome** apontando para outro lugar **bloqueia**.
+
+**`pg_policy` não tem exceção por nome.** Toda dependência com
+`classid = pg_policy` é bloqueadora. É coerente com §F: o baseline autorizado
+é zero policies, logo este ramo só pode acionar em cenário de drift — e drift
+tem que parar a migration.
 
 Nenhuma outra é excluída, por nome parcial ou por tipo amplo. Qualquer
 dependência não reconhecida → **NO-GO antes do primeiro DDL**, listando
@@ -713,7 +728,7 @@ sintéticos. Prova a **lógica** de classificação e de comparação de contrat
 foi acessado. A prova de execução é a de PostgreSQL 17 não produtivo (§K),
 ainda não autorizada.
 
-**Resultado: 28 fixtures, 28 corretas, 0 divergências.**
+**Resultado: 37 fixtures, 37 corretas, 0 divergências.**
 
 ### Contrato de retorno (§D)
 
@@ -735,7 +750,7 @@ ainda não autorizada.
 | `pg_attrdef` dependente | bloqueia | ✅ bloqueia |
 | `pg_proc` dependente | bloqueia | ✅ bloqueia |
 | `pg_policy` inesperada | bloqueia | ✅ bloqueia |
-| `pg_policy` legada `response_submit` | esperada, não bloqueia | ✅ esperada |
+| `pg_policy` `response_submit` | **bloqueia** (0.5H) | ✅ bloqueia |
 | `pg_class`/índice dependente | bloqueia | ✅ bloqueia |
 | FK legada **exata** | esperada, não bloqueia | ✅ esperada |
 | FK de **mesmo nome**, identidade diferente | bloqueia | ✅ bloqueia |
@@ -747,9 +762,24 @@ ainda não autorizada.
 | **estado produtivo esperado** (só a FK) | lista bloqueadora vazia | ✅ vazia |
 
 A fixture de colisão é explícita: o OID `30000` existe **ao mesmo tempo** como
-regra em `pg_rewrite` e como tabela em `pg_class`. Com o filtro de `classid`,
-cada um resolve para o objeto certo; sem ele, a consulta antiga confundiria os
-dois.
+regra em `pg_rewrite`, como tabela em `pg_class` e como policy em `pg_policy`.
+Com o filtro de `classid`, cada um resolve para o objeto certo; sem ele, a
+consulta antiga confundiria os três.
+
+### Inventário de policies — baseline zero (§F)
+
+| Fixture | Esperado | Obtido |
+| --- | --- | --- |
+| zero policies | **PASS** | ✅ passa |
+| `response_submit` presente | **FAIL** | ✅ falha |
+| policy inesperada presente | **FAIL** | ✅ falha |
+| duas policies presentes | **FAIL** | ✅ falha |
+| policy **restritiva** presente | **FAIL** | ✅ falha |
+| metadados listados | nome · comando · permissiva · papéis · schema · tabela | ✅ sem expressão |
+| FK legada **exata** | `EXPECTED_DEPENDENCY` | ✅ esperada |
+| FK legada **+** `response_submit` | **FAIL** por policy inesperada | ✅ só a FK é esperada |
+| nenhuma policy como `EXPECTED_DEPENDENCY` | zero | ✅ zero |
+| `pg_policy` com OID colidente em outro catálogo | resolve por `classid` | ✅ resolve |
 
 ### Triggers (§I)
 

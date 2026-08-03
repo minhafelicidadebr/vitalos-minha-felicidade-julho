@@ -10,6 +10,9 @@
 > contrato de retorno estrutural · `pg_depend` por catálogo · triggers por
 > evidência · inventário de policies · snapshot único · fingerprint de ACL ·
 > limite declarado abaixo de *k*.
+>
+> **Revisão 5** — decisão humana PROD-0.5H:
+> `EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0`, sem `DROP POLICY`.
 
 ## Ordem das ondas — B é a quarta
 
@@ -34,6 +37,31 @@ Nenhuma onda encadeia automaticamente na seguinte.
 - [ ] Janela fora de horário de coleta.
 - [ ] Hash do arquivo executável conferido.
 
+## Policies de `wave_responses` — baseline zero
+
+`EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0` (decisão PROD-0.5H, inventário Q18:
+RLS ativo, zero policies).
+
+- [ ] **Antes da janela:** contar policies em `public.wave_responses`.
+      Resultado esperado: **0**.
+- [ ] **Dentro da transação:** a precondition reconfirma. `count ≠ 0` →
+      **aborta antes do primeiro DDL**.
+
+```sql
+SELECT pol.polname, pol.polcmd, pol.polpermissive
+  FROM pg_policy pol
+  JOIN pg_class pt ON pt.oid = pol.polrelid
+  JOIN pg_namespace pn ON pn.oid = pt.relnamespace
+ WHERE pn.nspname = 'public' AND pt.relname = 'wave_responses';
+```
+
+**Nunca remover uma policy inesperada automaticamente** — nem `response_submit`.
+Este draft **não contém `DROP POLICY`**. Qualquer policy encontrada é **drift**:
+registrar só metadados (nome · comando · permissiva/restritiva · papéis ·
+schema · tabela, **sem expressão**), abortar, refazer o inventário, **rederivar
+o draft** e obter nova autorização humana. Policy de mesmo nome **não** é
+presumida equivalente à histórica.
+
 ## Prova em ambiente NÃO produtivo — obrigatória antes da promoção
 
 ### Contrato transacional
@@ -51,7 +79,7 @@ promover, não confiar no lock, redesenhar o mecanismo.
 - [ ] View dependente da coluna → **detectada** (via `pg_rewrite`).
 - [ ] `CHECK` dependente → detectada. Default → detectado. Função → detectada.
 - [ ] Índice sobre a coluna → detectado.
-- [ ] Policy inesperada → inventário aborta.
+- [ ] **Qualquer** policy (inclusive `response_submit`) → inventário aborta.
 - [ ] Trigger de `updated_at` → **não bloqueia**.
 - [ ] Trigger `UPDATE OF invite_token` → bloqueia.
 - [ ] FK legada exata → reconhecida como esperada; FK de mesmo nome com outra
@@ -154,7 +182,7 @@ autorização humana.**
 
 Hash divergente · `total ≠ 0` ou `with_token ≠ 0` sem o bloco de snapshot ·
 invariantes não fecham · qualquer `RAISE EXCEPTION` (**investigar, nunca
-contornar**) · **policy não autorizada no inventário de `wave_responses`** ·
+contornar**) · **qualquer policy em `wave_responses` (esperado: zero)** ·
 dependência catalogal sobre a coluna · **`classid` de dependência não
 reconhecido** · trigger com referência real a `invite_token` · FK exata ausente
 ou com nome divergente · **contrato de retorno de `aggregate_cohort_responses`
@@ -243,7 +271,7 @@ trilha ACL, que **deve estar concluída antes da ativação da FIB-T**.
 | --- | --- |
 | Falha antes do primeiro DDL | `ROLLBACK` automático, banco intocado. |
 | Falha da precondition da FK exata | idem — nenhum DDL executado. |
-| Falha do inventário de policies | idem — nenhuma policy removida. |
+| Falha do inventário de policies (`count ≠ 0`) | idem — este draft não remove policy alguma. |
 | Falha de dependência catalogal | idem. |
 | Falha do contrato de retorno de H | idem. |
 | Falha após remover constraint ou coluna | `ROLLBACK` desfaz o DDL. |
