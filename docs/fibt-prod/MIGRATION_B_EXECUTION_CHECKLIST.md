@@ -6,7 +6,10 @@
 >
 > Este checklist **não autoriza** aplicação.
 >
-> **Revisão 3** — incorpora as correções da segunda revisão adversarial.
+> **Revisão 4** — incorpora as correções da revisão final adversarial:
+> contrato de retorno estrutural · `pg_depend` por catálogo · triggers por
+> evidência · inventário de policies · snapshot único · fingerprint de ACL ·
+> limite declarado abaixo de *k*.
 
 ## Ordem das ondas — B é a quarta
 
@@ -31,7 +34,9 @@ Nenhuma onda encadeia automaticamente na seguinte.
 - [ ] Janela fora de horário de coleta.
 - [ ] Hash do arquivo executável conferido.
 
-## Prova do contrato transacional — em ambiente NÃO produtivo
+## Prova em ambiente NÃO produtivo — obrigatória antes da promoção
+
+### Contrato transacional
 
 - [ ] `SET LOCAL` permanece válido até `COMMIT`/`ROLLBACK`.
 - [ ] `ACCESS EXCLUSIVE` permanece adquirido durante rechecagens **e** DDL.
@@ -41,13 +46,49 @@ Nenhuma onda encadeia automaticamente na seguinte.
 **Execução statement-a-statement com autocommit = NO-GO.** Sem a prova: não
 promover, não confiar no lock, redesenhar o mecanismo.
 
+### Consultas catalogais exercitadas contra objetos reais
+
+- [ ] View dependente da coluna → **detectada** (via `pg_rewrite`).
+- [ ] `CHECK` dependente → detectada. Default → detectado. Função → detectada.
+- [ ] Índice sobre a coluna → detectado.
+- [ ] Policy inesperada → inventário aborta.
+- [ ] Trigger de `updated_at` → **não bloqueia**.
+- [ ] Trigger `UPDATE OF invite_token` → bloqueia.
+- [ ] FK legada exata → reconhecida como esperada; FK de mesmo nome com outra
+      identidade → bloqueia.
+
+As fixtures de SPEC §M provam a **lógica** em modelo TypeScript. Isto prova a
+**execução em PostgreSQL**. Uma não substitui a outra.
+
+### Comportamento abaixo de *k* — não é verificável estaticamente
+
+A revisão estática comprova assinatura, contrato de retorno, `SECURITY
+DEFINER`, `search_path` e gate interno. **Não comprova**, sem execução:
+
+- [ ] `visible = false` abaixo de *k*;
+- [ ] `response_count = NULL`;
+- [ ] `response_count_label = '<5'`;
+- [ ] supressão de `item_means`, `factor_scores` e `domain_means`;
+- [ ] `suppression_reason` correto.
+
+**Os cinco são item obrigatório desta prova.** Não executar agora.
+
+### String literal do contrato
+
+- [ ] `pg_get_function_result(aggregate_cohort_responses)` **observado** e
+      conferido contra a tabela canônica de SPEC §D, e o valor registrado.
+
 ## Matriz de ACL — capturar ANTES
 
-- [ ] Consulta completa (SPEC §H · rascunho §6) executada e resultado salvo.
+- [ ] Consulta de linhas normalizadas (SPEC §H · rascunho §6.1) executada.
+- [ ] **`ACL_BEFORE_FINGERPRINT`** (rascunho §6.2) capturado e registrado.
+- [ ] Representação canônica arquivada **fora do repositório** ou no registro
+      operacional aprovado — sem credencial, sem dado de negócio.
 
 Captura `proacl` integral e **ACL expandida com todos os grantees** — não
-apenas quatro papéis. Também `proowner`, `prosecdef`, `proconfig` e
-`search_path` efetivo.
+apenas quatro papéis. Também `oid`, `proowner`, `prosecdef`, `proconfig` e
+`search_path` efetivo. `sha256` é função núcleo do PostgreSQL ≥ 11: **não
+exige `pgcrypto`**. O fingerprint só é comparável **no mesmo banco**.
 
 ## Timeouts — semântica antes de ajustar
 
@@ -61,7 +102,11 @@ apenas quatro papéis. Também `proowner`, `prosecdef`, `proconfig` e
 
 ## Recontagem imediatamente antes
 
-Executar **na hora**. As cinco contagens:
+Executar **na hora**, em **um único `SELECT`** — um só snapshot de statement.
+`wave_responses` está sob `ACCESS EXCLUSIVE`; `wave_invites` **não é
+bloqueada** (deliberado — ver locks). Statements separados sob `READ COMMITTED`
+poderiam observar snapshots diferentes e quebrar uma invariante por artefato de
+leitura. Qualquer divergência entre invariantes **continua abortando**.
 
 ```sql
 SELECT
@@ -74,8 +119,11 @@ SELECT
   (SELECT COUNT(*) FROM public.wave_responses r
      WHERE r.invite_token IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM public.wave_invites i WHERE i.token = r.invite_token))
-                                                                              AS orphan_invite_links;
+                                                                              AS orphan_invite_links,
+  (SELECT COUNT(*) FROM public.wave_responses WHERE invite_token IS NOT NULL) AS snapshot_rows;
 ```
+
+**Não adotar `REPEATABLE READ`** — desnecessário para isto.
 
 | Resultado | Caminho |
 | --- | --- |
@@ -106,10 +154,13 @@ autorização humana.**
 
 Hash divergente · `total ≠ 0` ou `with_token ≠ 0` sem o bloco de snapshot ·
 invariantes não fecham · qualquer `RAISE EXCEPTION` (**investigar, nunca
-contornar**) · dependência inesperada sobre a coluna · FK exata ausente ou com
-nome divergente · diff inesperado em função · `project_ref` diferente do
-confirmado · timeout de lock ou statement · `LOVABLE_BATCH_TRANSACTION_CONFIRMED`
-não comprovado · A ou H não confirmadas.
+contornar**) · **policy não autorizada no inventário de `wave_responses`** ·
+dependência catalogal sobre a coluna · **`classid` de dependência não
+reconhecido** · trigger com referência real a `invite_token` · FK exata ausente
+ou com nome divergente · **contrato de retorno de `aggregate_cohort_responses`
+divergente em nome, tipo ou ordem** · diff inesperado em função ·
+`project_ref` diferente do confirmado · timeout de lock ou statement ·
+`LOVABLE_BATCH_TRANSACTION_CONFIRMED` não comprovado · A ou H não confirmadas.
 
 ## Pós-check — dentro da transação (executado pelo banco)
 
@@ -130,16 +181,20 @@ não comprovado · A ou H não confirmadas.
 - [ ] 15. `wave_cohorts` preservada.
 - [ ] 16. `waves_id_org_uk` preservada.
 - [ ] 17. `aggregate_cohort_responses(uuid,uuid)` preservada.
-- [ ] 18. Contrato de oito colunas intacto.
-- [ ] 19. `response_count_label` presente.
-- [ ] 20. `count_cohort_participation` preservada.
+- [ ] 18. Contrato de oito colunas intacto — **nome, tipo e ordem**, via
+      `pg_proc` (`proallargtypes`/`proargmodes`/`proargnames`).
+- [ ] 19. `pg_get_function_result` idêntico ao contrato canônico.
+- [ ] 20. `count_cohort_participation` preservada e retornando `integer`.
 - [ ] 21. Nenhuma alteração parcial.
+
+Os itens 18–20 usam o **mesmo predicado** da precondition. Um pós-check mais
+fraco que a precondition não provaria preservação.
 
 ## Pós-check — externo, após o COMMIT
 
 - [ ] Junção `wave_responses ⋈ wave_invites ON invite_token` **falha** por
       coluna inexistente.
-- [ ] **Matriz de ACL capturada DEPOIS e comparada com a de antes.**
+- [ ] **`ACL_AFTER_FINGERPRINT` capturado e comparado com `ACL_BEFORE`.**
 - [ ] Fluxo de link setorial funcionando (caminho vivo em produção).
 - [ ] Tipos TypeScript **ainda não regenerados** (isso é PROD-5).
 - [ ] `VITE_FIBT_PILOT_ENABLED` ainda `false`.
@@ -160,10 +215,14 @@ acima rodam dentro da transação; os externos, humanos e de pipeline, não.
 
 ## Comparação de ACL — antes × depois
 
-1. Capturar **imediatamente antes**. 2. Capturar **imediatamente depois**.
-3. **Comparar.** 4. Alteração não prevista → **NO-GO**. 5. Tratar na **trilha
-ACL**, nunca dentro da Migration B. 6. **Repetir antes da ativação da FIB-T**,
-para detectar alteração posterior da plataforma.
+1. Capturar `ACL_BEFORE_FINGERPRINT` **imediatamente antes**.
+2. Capturar `ACL_AFTER_FINGERPRINT` **imediatamente depois**.
+3. **Comparar os dois fingerprints.** Iguais → seguir. Diferentes → diferenciar
+   a **representação canônica** linha a linha para achar o que mudou.
+4. Alteração não prevista → **NO-GO**.
+5. Tratar na **trilha ACL**, nunca dentro da Migration B.
+6. **Repetir antes da ativação da FIB-T**, para detectar alteração posterior da
+   plataforma.
 
 Deve detectar: papel adicionado/removido · privilégio adicionado/removido ·
 `PUBLIC` · `sandbox_exec` · `SECURITY DEFINER` · owner · `search_path` ·
@@ -184,7 +243,9 @@ trilha ACL, que **deve estar concluída antes da ativação da FIB-T**.
 | --- | --- |
 | Falha antes do primeiro DDL | `ROLLBACK` automático, banco intocado. |
 | Falha da precondition da FK exata | idem — nenhum DDL executado. |
-| Falha de dependência não funcional | idem. |
+| Falha do inventário de policies | idem — nenhuma policy removida. |
+| Falha de dependência catalogal | idem. |
+| Falha do contrato de retorno de H | idem. |
 | Falha após remover constraint ou coluna | `ROLLBACK` desfaz o DDL. |
 | Falha após `CREATE OR REPLACE` | `ROLLBACK` restaura corpo **e** ACL vigente. |
 | Falha do pós-check de referência residual | `ROLLBACK`. |

@@ -7,7 +7,10 @@
 >
 > Promover a migration executável é **decisão humana separada** (§K).
 >
-> **Revisão 3** — incorpora as correções da segunda revisão adversarial.
+> **Revisão 4** — incorpora as correções da revisão final adversarial: três P1
+> (contrato de retorno estrutural · `pg_depend` por catálogo · triggers) e
+> quatro P2 (inventário de policies · snapshot único · fingerprint de ACL ·
+> limite declarado abaixo de *k*). Fixtures estáticas em §M.
 
 ## Por que um arquivo novo, e não a Migration B de staging
 
@@ -52,6 +55,28 @@ Total de respostas e total de vínculos legados **não são a mesma coisa**.
 **Normativo:** `v_snapshot_rows = v_with_invite_token`. O valor é destruído
 tanto para vínculo válido quanto para órfão.
 
+### Um único `SELECT`, um único snapshot
+
+As cinco acima — mais `v_duplicados`, `v_divergentes` e `v_org_invalida` —
+são obtidas em **um só `SELECT … INTO`**, executado **depois** do
+`ACCESS EXCLUSIVE`.
+
+Antes eram statements separados. `wave_responses` está protegida pelo lock, mas
+`wave_invites` e `waves` **não são bloqueadas** (deliberadamente — §E, inversão
+de ordem e deadlock), e as contagens de válidos, órfãos, divergentes e
+organização as consultam. Sob `READ COMMITTED`, cada statement abre seu próprio
+snapshot: escrita concorrente naquelas duas tabelas poderia fazer as
+invariantes **não fecharem por artefato de leitura**, abortando uma execução
+correta. Um statement, um snapshot — o artefato desaparece.
+
+**`REPEATABLE READ` não é adotado:** desnecessário, e mudaria a semântica de
+isolamento do bloco inteiro para resolver algo que o snapshot único já resolve.
+
+**Registrado sem eufemismo:** com as duas expressões avaliadas no mesmo
+statement, a invariante `v_snapshot_rows = v_with_invite_token` passa a ser
+**definicional**, não um detector de concorrência. As demais continuam
+detectando incoerência real e continuam abortando.
+
 ### Invariantes cruzadas
 
 ```
@@ -94,7 +119,7 @@ com tipo quando o tipo faz parte do contrato.
 | 6 | `wave_responses.instrument` | existe · `text` |
 | 7 | `wave_responses.instrument_version` | existe · `text` |
 | 8 | `waves_id_org_uk` | existe · `contype = 'u'` na tabela `waves` |
-| 9 | `aggregate_cohort_responses` | `to_regprocedure('…(uuid,uuid)')` + contrato de retorno |
+| 9 | `aggregate_cohort_responses` | `to_regprocedure('…(uuid,uuid)')` + contrato de retorno **estrutural** (§D) |
 
 **Por que o #4 importa concretamente:** `submit_wave_response` (versão A) lê
 `v_invite.expires_at`. Com A parcialmente aplicada, a função quebraria em
@@ -107,18 +132,75 @@ Qualquer divergência → `RAISE EXCEPTION` **antes do primeiro DDL**.
 Presença nominal **não basta** — o que importa é o contrato de retorno e o
 gate interno.
 
-1. **Contrato de oito colunas**, nomeadas uma a uma: `visible`,
-   `response_count`, `response_count_label`, `k_min`, `item_means`,
-   `factor_scores`, `domain_means`, `suppression_reason`.
-2. `aggregate_cohort_responses`: `prosecdef = true` e `search_path=public` fixo.
-3. `count_cohort_participation(uuid,uuid)` resolvida por `to_regprocedure`.
-4. `count_cohort_participation`: `prosecdef = true` e `search_path` fixo.
-5. **Gate interno de papel/identidade no corpo** — `pg_get_functiondef` precisa
+### Por que a verificação anterior era insuficiente
+
+A revisão 3 comparava `array_to_string(proargnames, ',')` contra oito
+predicados `LIKE`. Isso conferia **nomes e nada mais**:
+
+- **ordem trocada passava** — a concatenação contém as mesmas substrings;
+- **tipo trocado passava** — `proargnames` não carrega tipo algum;
+- **nome divergente passava** se contivesse o esperado como substring:
+  `response_count_label_v2` satisfaz `'%response_count_label%'`.
+
+### A verificação estrutural — dois ângulos sobre o mesmo contrato
+
+**Contrato canônico**, fonte normativa
+`20260730155000_cohort_aggregate_privacy_hardening.sql`, `RETURNS TABLE(…)`:
+
+| # | Nome | Tipo |
+| --- | --- | --- |
+| 1 | `visible` | `boolean` |
+| 2 | `response_count` | `integer` |
+| 3 | `response_count_label` | `text` |
+| 4 | `k_min` | `integer` |
+| 5 | `item_means` | `jsonb` |
+| 6 | `factor_scores` | `jsonb` |
+| 7 | `domain_means` | `jsonb` |
+| 8 | `suppression_reason` | `text` |
+
+1. **Resolução pela assinatura exata de entrada** — `to_regprocedure`, nunca
+   comparação textual de `pg_get_function_identity_arguments`.
+2. **Ângulo estrutural (`pg_proc`)** — `proallargtypes` × `proargmodes` ×
+   `proargnames` desdobrados com `WITH ORDINALITY`, filtrados a `argmode IN
+   ('t','o')`, tipo resolvido por `format_type`, reagregados **na ordem do
+   catálogo**. Comparação por igualdade estrita. Se a função não declarar
+   `OUT`/`TABLE`, os arrays são `NULL`, o resultado é `NULL` e o
+   `IS DISTINCT FROM` **aborta** — fail-closed, nunca passa por omissão.
+3. **Ângulo canônico (`pg_get_function_result`)** — a forma que o próprio
+   PostgreSQL declara. Comparada **normalizada** (minúsculas, espaços
+   colapsados) contra `TABLE(<contrato>)`. Se 2 e 3 discordarem entre si, a
+   leitura de catálogo está errada e a migration não prossegue.
+4. `count_cohort_participation` — resolvida por `to_regprocedure` e com o
+   próprio contrato conferido: `pg_get_function_result` = `integer`.
+5. `prosecdef = true` e `search_path=public` fixo nas **duas** funções.
+6. **Gate interno de papel/identidade no corpo** — `pg_get_functiondef` precisa
    conter `auth.uid()`, `RH_ADMIN` e `DIRETOR`.
+
+**A string exata devolvida pelo PostgreSQL 17 é expectativa derivada da
+definição canônica, não fato medido.** Deve ser observada, conferida contra
+esta tabela e registrada na prova não produtiva **antes** da promoção (§K).
 
 **Nenhuma confiança exclusiva na ACL.** A restrição de papel vive no *código*
 da função; uma ACL permissiva não pode ser a única barreira. Esta migration
 **não altera ACL** (§H).
+
+### Limite declarado — o que a revisão estática *não* prova
+
+**Prova:** assinatura de entrada · contrato de retorno (nome, tipo, ordem) ·
+`SECURITY DEFINER` · `search_path` fixo · gate interno de papel.
+
+**Não prova, sem execução:**
+
+1. `visible = false` abaixo de *k*;
+2. `response_count = NULL` abaixo de *k*;
+3. `response_count_label = '<5'`;
+4. supressão efetiva de `item_means`, `factor_scores` e `domain_means`;
+5. `suppression_reason` correto.
+
+Os cinco são **comportamento**, não estrutura — nenhum predicado de catálogo os
+alcança. São item **obrigatório** da futura prova em PostgreSQL 17 **não
+produtivo**. Essa prova **não é executada agora** e não faz parte desta
+autorização.
 
 ## E. Ordem transacional, timeouts e locks
 
@@ -127,9 +209,11 @@ BEGIN
   → SET LOCAL lock_timeout / statement_timeout
   → pg_advisory_xact_lock(FIBT1_MIGRATION_B_PRODUCTION_LOCK)
   → LOCK TABLE wave_responses IN ACCESS EXCLUSIVE MODE
-  → preconditions A (§C) · H (§D) · coluna/FK/dependências/contagens (§B)
+  → preconditions A (§C) · H (§D)
+  → coluna → FK exata → INVENTÁRIO DE POLICIES → dependências catalogais
+    → triggers → as oito contagens em UM SELECT (§B) → invariantes → gates
   → CREATE OR REPLACE submit_sector_response   ← antes do DROP
-  → DROP POLICY IF EXISTS "response_submit"
+  → DROP POLICY IF EXISTS "response_submit"    ← só depois do inventário
   → DROP CONSTRAINT wave_responses_invite_token_fkey   ← sem IF EXISTS
   → DROP COLUMN invite_token                           ← sem IF EXISTS
   → pós-checks (§I)
@@ -222,6 +306,22 @@ porque a ausência da policy é estado **legítimo e comprovado**: a Q18 retorno
 zero policies em `wave_responses` em produção. RLS ativo sem policy é
 default-deny total.
 
+### Inventário de policies — precondition fail-closed
+
+O `DROP POLICY` acima só é legítimo porque, **antes dele**, uma precondition
+inventaria as policies de `public.wave_responses`.
+
+**Estado autorizado:** nenhuma policy · **ou** somente a legada
+`response_submit`, cuja remoção faz parte do contrato desta migration.
+
+**Qualquer outra policy** → abortar · listar **apenas metadados**
+(`polname`, `polcmd`, `polpermissive`, papéis) · **não remover** · solicitar
+nova revisão.
+
+Sem esse inventário existia uma lacuna real: uma policy inesperada **não seria
+removida** (o `DROP` nomeia só `response_submit`) mas também **não seria
+denunciada** — passaria em silêncio. A ordem inventário → `DROP` é obrigatória.
+
 **`CASCADE` não é usado em lugar nenhum.** A precondition de dependências (§I)
 já provou que não há dependente; `CASCADE` removeria objetos silenciosamente.
 
@@ -281,20 +381,131 @@ alteração de `search_path` · alteração de qualquer configuração da funç�
 **Qualquer diferença não prevista → NO-GO**, tratada na trilha ACL, nunca
 dentro desta migration. As consultas continuam **somente leitura**.
 
+### Fingerprint — a comparação precisa ser reproduzível
+
+Comparar duas listagens "no olho" não é reproduzível: ordem de linha,
+espaçamento e recorte de tela variam entre operadores. A captura passa a ter
+duas partes (rascunho §6.1 e §6.2):
+
+1. **linhas normalizadas**, com `ORDER BY` determinístico
+   (`proname` → assinatura → grantee → privilégio → grantor);
+2. **representação canônica** — uma linha `oid|nome|assinatura|owner|proacl|
+   prosecdef|proconfig|search_path|grantor|grantee|privilege_type|is_grantable`
+   por registro de ACL, agregada na mesma ordem;
+3. **fingerprint** da representação: `sha256` **e** `md5`.
+
+`sha256(bytea)` é função **núcleo** do PostgreSQL desde a 11 — **não exige
+`pgcrypto`** neste servidor. Em servidor anterior à 11 a alternativa seria
+`digest(…, 'sha256')` do `pgcrypto`, e aí sim a dependência existiria.
+
+O `oid` entra no fingerprint **deliberadamente**: `CREATE OR REPLACE` preserva
+o `oid`, então esta migration não o altera; um `DROP` + `CREATE` alteraria
+ambos — exatamente o sinal desejado. Consequência: o fingerprint **não é
+comparável entre bancos**, só antes × depois no mesmo banco.
+
+**Comparação normativa:** `ACL_BEFORE_FINGERPRINT` (imediatamente antes do
+`BEGIN`) × `ACL_AFTER_FINGERPRINT` (imediatamente após o `COMMIT`). Iguais →
+seguir. Diferentes → **NO-GO**; diferenciar a representação canônica linha a
+linha para achar o que mudou; **não corrigir dentro da Migration B** — trilha
+ACL.
+
+**Custódia:** salvar os dois resultados **fora do repositório** ou no registro
+operacional aprovado. A saída traz apenas metadado de catálogo e nomes de
+papel — **sem credencial e sem dado de negócio**.
+
 ## I. Dependências, referências residuais e pós-checks
 
-### Dependências não funcionais — precondition explícita
+### Dependências catalogais — a consulta corrigida
 
-Antes do DDL, varrer `pg_depend`, `pg_policy` e `pg_trigger` procurando
-dependentes de `wave_responses.invite_token`: **views · materialized views ·
-triggers · índices e expressões de índice · constraints CHECK · defaults ·
-regras · policies · funções**.
+**O defeito da revisão 3.** A consulta fazia
+`JOIN pg_class cl ON cl.oid = d.objid` **sem filtrar `d.classid`**, e não
+filtrava `d.refclassid` do lado referenciado. Em `pg_depend`, `objid` só é
+interpretável **junto com** `classid`: OIDs são únicos **dentro de cada
+catálogo**, nunca globalmente. Duas consequências:
 
-Se existir qualquer dependência inesperada: **abortar**, listar **apenas
-metadados** do objeto, **não remover automaticamente**, solicitar nova revisão.
+- **Falso negativo.** Views e materialized views dependem de coluna via
+  **`pg_rewrite`** (`classid = pg_rewrite`, `objid` = OID da *regra*, não da
+  relação). O join com `pg_class` nunca casava: **nenhuma view dependente era
+  detectada**. Idem `CHECK` (`pg_constraint`), default (`pg_attrdef`) e função
+  (`pg_proc`).
+- **Falso positivo cruzado.** Um OID de `pg_rewrite` pode coincidir com o OID
+  de um `pg_class` sem relação alguma, inventando um "dependente".
+
+**A consulta corrigida.** Uma CTE `alvo` resolve `table_oid` e `attnum` reais;
+uma CTE `dep` filtra a identidade completa do objeto referenciado:
+
+```sql
+d.refclassid  = 'pg_class'::regclass
+AND d.refobjid    = alvo.table_oid
+AND d.refobjsubid = alvo.col_attnum
+```
+
+E **cada ramo junta `objid` exclusivamente ao catálogo do seu próprio
+`classid`**:
+
+| `classid` | Catálogo unido | Objetos |
+| --- | --- | --- |
+| `pg_rewrite` | `pg_rewrite` → `pg_class` (`ev_class`) | views, matviews, regras |
+| `pg_constraint` | `pg_constraint` | FK, CHECK e demais constraints |
+| `pg_attrdef` | `pg_attrdef` | defaults de coluna |
+| `pg_proc` | `pg_proc` | funções |
+| `pg_trigger` | `pg_trigger` | triggers |
+| `pg_policy` | `pg_policy` | policies |
+| `pg_class` | `pg_class` | índices, índices de expressão, outras relações |
+| **qualquer outro** | — | **dependência desconhecida → aborta** |
+
+**Registrado por dependência:** `deptype` · `classid` · `objid` · `objsubid` ·
+`refclassid` · `refobjid` · `refobjsubid` · schema · tipo do objeto · nome do
+objeto. Dependência **interna** do catálogo é **classificada e exibida**, não
+filtrada em silêncio por `deptype` — a revisão 3 descartava `deptype = 'i'`
+sem registrar nada.
+
+**Duas dependências são deliberadamente esperadas — e apenas estas duas:**
+
+1. **a FK legada `wave_responses_invite_token_fkey`**, aceita somente com
+   identidade integral: nome · `contype = 'f'` · tabela local · coluna local ·
+   tabela referenciada · coluna referenciada. Uma FK de **mesmo nome**
+   apontando para outro lugar **bloqueia**;
+2. **a policy legada `response_submit`**, aceita somente por nome exato sobre
+   esta tabela, porque §F a remove **antes** do `DROP COLUMN`, no mesmo bloco
+   transacional, e o inventário de policies acabou de provar que nenhuma outra
+   existe. Em produção ela está **ausente** (Q18) — este ramo tende a nunca
+   acionar.
+
+Nenhuma outra é excluída, por nome parcial ou por tipo amplo. Qualquer
+dependência não reconhecida → **NO-GO antes do primeiro DDL**, listando
+**apenas metadados**, sem remover nada.
 
 `DROP COLUMN` sem `CASCADE` também é proteção fail-closed — mas uma
 precondition explícita produz **diagnóstico**, não um erro obscuro.
+
+### Triggers — evidência, não presença
+
+**O defeito da revisão 3.** O ramo de triggers listava **todos** os triggers
+não internos de `wave_responses`, sem nenhum filtro por `invite_token`.
+Qualquer trigger legítimo — um `updated_at`, uma auditoria — faria a migration
+**abortar sempre**, sem relação alguma com a coluna removida. Falso positivo
+permanente.
+
+**A regra corrigida.** Um trigger só bloqueia com **evidência de relação com a
+coluna**, em ordem de precedência:
+
+1. **`pg_depend` com `classid = 'pg_trigger'::regclass`** referenciando o
+   `attnum` de `invite_token` — fonte **primária** (é o caso de
+   `UPDATE OF invite_token`);
+2. **`pg_get_triggerdef(tg.oid)`** contendo referência real a `invite_token` —
+   defesa **suplementar**, que **não substitui** `pg_depend`;
+3. **`pg_get_functiondef(tg.tgfoid)`** — um trigger cuja definição não cita a
+   coluna pode acessá-la via `NEW.invite_token` **dentro da função**. Registrado
+   explicitamente: esse caso **exige inspeção da função dependente**, e é por
+   isso que a função chamada também é inspecionada.
+
+Nome de parâmetro não conta: `\minvite_token\M` não casa `p_invite_token`.
+Triggers internos continuam ignorados **somente** quando
+`tg.tgisinternal = true`.
+
+**Não bloqueiam:** trigger de `updated_at` · trigger de auditoria sem
+`invite_token` · trigger legítimo relacionado a outra coluna.
 
 ### Referência residual — o falso positivo corrigido
 
@@ -333,10 +544,11 @@ escapar — limitação residual registrada.
 
 ### Cinco camadas
 
-1. catálogo (`pg_depend`, FKs, policies, triggers);
+1. catálogo (`pg_depend` por `classid`, FKs, policies, triggers);
 2. corpos das funções (`pg_get_functiondef`);
-3. assinaturas (`to_regprocedure`);
-4. testes estáticos do repositório;
+3. assinaturas e contratos (`to_regprocedure`, `pg_get_function_result`,
+   `pg_proc`);
+4. fixtures estáticas documentais (§M) — modelo da lógica, não execução de SQL;
 5. revisão humana do SQL final e diff estático dos corpos.
 
 Nenhuma sozinha é suficiente.
@@ -353,9 +565,13 @@ coluna · 7. `submit_wave_response` na assinatura exata ·
 · 10. `wave_responses.instrument` · 11. `wave_responses.instrument_version` ·
 12. `wave_invites.cohort_id` · 13. `wave_invites.expires_at` ·
 14. `waves.instrument_version` · 15. `wave_cohorts` · 16. `waves_id_org_uk` ·
-17. `aggregate_cohort_responses(uuid,uuid)` · 18. contrato de 8 colunas ·
-19. `response_count_label` · 20. `count_cohort_participation` ·
-21. nenhuma alteração parcial.
+17. `aggregate_cohort_responses(uuid,uuid)` · 18. contrato de 8 colunas
+**estrutural** (nome + tipo + ordem, via `pg_proc`) · 19. `pg_get_function_result`
+idêntico ao contrato canônico · 20. `count_cohort_participation` presente e
+retornando `integer` · 21. nenhuma alteração parcial.
+
+Os pós-checks 18–20 usam **exatamente o mesmo predicado** da precondition §D.
+Um pós-check mais fraco que a precondition não provaria preservação.
 
 **Externos, após o `COMMIT`:** matriz de ACL comparada antes × depois · junção
 `wave_responses ⋈ wave_invites` falha por coluna inexistente · fluxo de link
@@ -448,7 +664,13 @@ referência legada.
 4. Migrations A e H **aplicadas e verificadas** em produção.
 5. **`LOVABLE_BATCH_TRANSACTION_CONFIRMED = true`** comprovado (§G).
 6. Decisão explícita sobre lock e timeouts (§E) — recomendação é provisória.
-7. Autorização escrita para criar o arquivo em `supabase/migrations/`, seguida
+7. **Prova em PostgreSQL 17 não produtivo**, obrigatoriamente cobrindo:
+   as consultas catalogais de §I exercitadas contra objetos reais (view, CHECK,
+   default, função, trigger, policy, índice) · a string literal de
+   `pg_get_function_result` observada e conferida contra §D · os **cinco
+   comportamentos abaixo de *k*** (§D) · o contrato transacional do Lovable
+   (§G).
+8. Autorização escrita para criar o arquivo em `supabase/migrations/`, seguida
    de PR, gate e autorização de aplicação separada.
 
 **Proibido copiar apenas o trecho destrutivo.** Um trecho isolado não é uma
@@ -481,3 +703,74 @@ Todos os cenários 1–9 resultam em **rollback antes do COMMIT**.
 **Critério para nunca executar rollback de dados:** se a restauração não for
 estritamente necessária para corrigir falha funcional comprovada, não
 restaurar. A perda dos tokens é o **objetivo**, não o dano.
+
+## M. Fixtures documentais e prova estática
+
+**O que isto é e o que não é.** As fixtures abaixo foram executadas contra um
+**modelo em TypeScript** dos mesmos predicados — catálogos simulados, OIDs
+sintéticos. Prova a **lógica** de classificação e de comparação de contrato.
+**Não prova execução em PostgreSQL**: nenhum SQL foi executado, nenhum banco
+foi acessado. A prova de execução é a de PostgreSQL 17 não produtivo (§K),
+ainda não autorizada.
+
+**Resultado: 28 fixtures, 28 corretas, 0 divergências.**
+
+### Contrato de retorno (§D)
+
+| Fixture | Esperado | Obtido |
+| --- | --- | --- |
+| oito colunas corretas, na ordem | passa | ✅ passa |
+| ordem trocada (`k_min` antes de `response_count_label`) | falha | ✅ falha |
+| tipo incorreto (`response_count bigint`) | falha | ✅ falha |
+| coluna ausente (sete colunas) | falha | ✅ falha |
+| nome incorreto (`response_count_label_v2`) | falha | ✅ falha |
+| `response_count_label_v2` passaria no `LIKE` antigo | falha agora | ✅ falha |
+
+### Dependências catalogais (§I)
+
+| Fixture | Esperado | Obtido |
+| --- | --- | --- |
+| `pg_rewrite` dependente | detecta como view | ✅ detecta |
+| `pg_constraint` CHECK dependente | bloqueia | ✅ bloqueia |
+| `pg_attrdef` dependente | bloqueia | ✅ bloqueia |
+| `pg_proc` dependente | bloqueia | ✅ bloqueia |
+| `pg_policy` inesperada | bloqueia | ✅ bloqueia |
+| `pg_policy` legada `response_submit` | esperada, não bloqueia | ✅ esperada |
+| `pg_class`/índice dependente | bloqueia | ✅ bloqueia |
+| FK legada **exata** | esperada, não bloqueia | ✅ esperada |
+| FK de **mesmo nome**, identidade diferente | bloqueia | ✅ bloqueia |
+| `classid` não tratado (`pg_statistic_ext`) | desconhecida → bloqueia | ✅ bloqueia |
+| **OIDs iguais em catálogos diferentes** | não confunde | ✅ resolve por `classid` |
+| mesmo `objid` via `pg_class` | resolve para a relação | ✅ relação |
+| dependência sobre **outra coluna** | ignorada | ✅ ignorada |
+| `refclassid` ≠ `pg_class` | ignorada | ✅ ignorada |
+| **estado produtivo esperado** (só a FK) | lista bloqueadora vazia | ✅ vazia |
+
+A fixture de colisão é explícita: o OID `30000` existe **ao mesmo tempo** como
+regra em `pg_rewrite` e como tabela em `pg_class`. Com o filtro de `classid`,
+cada um resolve para o objeto certo; sem ele, a consulta antiga confundiria os
+dois.
+
+### Triggers (§I)
+
+| Fixture | Esperado | Obtido |
+| --- | --- | --- |
+| trigger de `updated_at`, sem `invite_token` | não bloqueia | ✅ não bloqueia |
+| trigger de auditoria sem `invite_token` | não bloqueia | ✅ não bloqueia |
+| trigger cujo parâmetro é `p_invite_token` | não bloqueia | ✅ não bloqueia |
+| trigger com `NEW.invite_token` **na função** | bloqueia | ✅ via `pg_get_functiondef` |
+| trigger `UPDATE OF invite_token` | bloqueia | ✅ via `pg_depend` |
+| trigger interno (`tgisinternal`) | não bloqueia, classificado | ✅ classificado |
+
+### Limitações que nenhuma fixture remove
+
+1. **SQL dinâmico** (`EXECUTE format(…)`) escapa de qualquer regex sobre corpo
+   de função.
+2. A **string exata** de `pg_get_function_result` no PostgreSQL 17 é
+   expectativa derivada da definição canônica, não medida.
+3. **Comportamento abaixo de *k*** (§D) não é alcançável estaticamente.
+4. O modelo é uma **reprodução** dos predicados, não o planejador do
+   PostgreSQL: erro de sintaxe ou de semântica de SQL não é detectado por ele.
+
+As quatro dependem da prova em PostgreSQL 17 não produtivo — **não autorizada
+nesta etapa**.
