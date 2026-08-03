@@ -44,8 +44,11 @@ RLS ativo, zero policies).
 
 - [ ] **Antes da janela:** contar policies em `public.wave_responses`.
       Resultado esperado: **0**.
-- [ ] **Dentro da transação:** a precondition reconfirma. `count ≠ 0` →
-      **aborta antes do primeiro DDL**.
+- [ ] **Dentro da transação:** a precondition conta e compara numericamente —
+      `v_wave_responses_policy_count <> EXPECTED_WAVE_RESPONSES_POLICY_COUNT`
+      → **aborta antes do primeiro DDL**. Não é teste de string nula.
+- [ ] **Depois do `COMMIT`:** releitura externa (seção própria abaixo) —
+      `POLICY_COUNT_AFTER_COMMIT = 0`.
 
 ```sql
 SELECT pol.polname, pol.polcmd, pol.polpermissive
@@ -222,6 +225,7 @@ fraco que a precondition não provaria preservação.
 
 - [ ] Junção `wave_responses ⋈ wave_invites ON invite_token` **falha** por
       coluna inexistente.
+- [ ] **`POLICY_COUNT_AFTER_COMMIT = 0`** — releitura do inventário (abaixo).
 - [ ] **`ACL_AFTER_FINGERPRINT` capturado e comparado com `ACL_BEFORE`.**
 - [ ] Fluxo de link setorial funcionando (caminho vivo em produção).
 - [ ] Tipos TypeScript **ainda não regenerados** (isso é PROD-5).
@@ -229,10 +233,67 @@ fraco que a precondition não provaria preservação.
 - [ ] `operational_real_collection_status` ainda `blocked_until_release_gate`.
 - [ ] Nenhum Publish acionado.
 
+## Releitura do inventário de policies — externa, depois do `COMMIT`
+
+Consulta **somente leitura**. Reconfirma `schema = public` ·
+`tabela = wave_responses` · `policy_count = 0`.
+
+```sql
+SELECT pn.nspname AS schema_name,
+       pt.relname AS table_name,
+       COUNT(pol.oid)::INTEGER AS policy_count
+  FROM pg_class pt
+  JOIN pg_namespace pn ON pn.oid = pt.relnamespace
+  LEFT JOIN pg_policy pol ON pol.polrelid = pt.oid
+ WHERE pn.nspname = 'public' AND pt.relname = 'wave_responses'
+ GROUP BY pn.nspname, pt.relname;
+```
+
+Havendo drift, listar **apenas** schema · tabela · nome · comando ·
+permissiva/restritiva · papéis:
+
+```sql
+SELECT pn.nspname AS schema_name,
+       pt.relname AS table_name,
+       pol.polname AS policy_name,
+       pol.polcmd AS command,
+       pol.polpermissive AS permissive,
+       (SELECT string_agg(CASE WHEN r = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(r) END, '+' ORDER BY r)
+          FROM unnest(pol.polroles) r) AS roles
+  FROM pg_policy pol
+  JOIN pg_class pt ON pt.oid = pol.polrelid
+  JOIN pg_namespace pn ON pn.oid = pt.relnamespace
+ WHERE pn.nspname = 'public' AND pt.relname = 'wave_responses'
+ ORDER BY pol.polname;
+```
+
+**Não consultar nem exibir** `polqual`, `polwithcheck`, expressão alguma ou
+dado de negócio.
+
+- [ ] `POLICY_COUNT_AFTER_COMMIT = 0` → segue.
+- [ ] `≠ 0` → **NO-GO operacional**: não remover policy · não corrigir
+      automaticamente · registrar o drift · encaminhar para inventário e
+      autorização separados.
+
+**O que esta releitura é e não é** — a distinção importa para não criar
+falsa sensação de reversibilidade:
+
+- é **externa**, acontece **depois** do `COMMIT`;
+- **não participa do rollback transacional**;
+- **detecta** alteração inesperada, mas **não desfaz** a Migration B;
+- **não pertence à trilha de ACL de funções** — é governança de RLS/policies,
+  trilha distinta.
+
+**Por que existe:** controle geral de drift da plataforma. O precedente
+conhecido neste projeto é de alteração de privilégios `EXECUTE`, **não** de
+policy — a justificativa não é um episódio de policy que nunca ocorreu, e sim
+a ausência de garantia de que o estado permaneça o observado.
+
 ## Verificações humanas
 
 `project_ref` · `LOVABLE_BATCH_TRANSACTION_CONFIRMED` · captura de ACL antes e
-depois · decisão sobre lock e timeouts · revisão do SQL final.
+depois · releitura do inventário de policies depois do `COMMIT` · decisão sobre
+lock e timeouts · revisão do SQL final.
 
 ## Verificações do pipeline
 

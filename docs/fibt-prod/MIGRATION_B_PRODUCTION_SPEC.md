@@ -14,8 +14,12 @@
 >
 > **Revisão 5** — decisão humana PROD-0.5H:
 > `EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0`. Qualquer policy aborta, inclusive
-> `response_submit`; policy deixou de ser dependência esperada; o `DROP POLICY`
-> foi **removido** do draft.
+> a legada; policy deixou de ser dependência esperada; a operação de exclusão
+> de policy foi **removida** do draft.
+>
+> **Revisão 6** — o gate de policy passa a ser **numérico** (constante e
+> comparação com zero, não teste de string), e o inventário é **relido depois
+> do `COMMIT`** como verificação externa.
 
 ## Por que um arquivo novo, e não a Migration B de staging
 
@@ -29,7 +33,7 @@ preconditions são específicas do dataset sintético de staging:
 | `AFETADAS_ESPERADAS` | `16` | **0** |
 | `ORGS_SINTETICAS` | 2 UUIDs `a0000000-…` | não existem |
 | Política de e-mail | aborta fora de `example.invalid`/`example.com` | e-mails reais |
-| `DROP POLICY "response_submit"` | remove a policy do estado histórico | **não existe neste draft** — produção tem zero policies (§F) |
+| Exclusão da policy legada | remove uma policy do estado histórico | **não existe neste draft** — produção tem zero policies (§F) |
 
 Não é defeito — é o fail-closed recusando rodar num banco para o qual a
 autorização humana não foi dada.
@@ -306,7 +310,7 @@ as duas tabelas": schema `public` · tabela `wave_responses` · nome
 `invite_token` · tabela referenciada `wave_invites` · coluna referenciada
 `token` · chave de coluna única.
 
-### Policies — baseline zero, sem `DROP POLICY`
+### Policies — baseline zero, sem remoção automática
 
 **Decisão humana PROD-0.5H.** `EXPECTED_WAVE_RESPONSES_POLICY_COUNT = 0`.
 
@@ -314,20 +318,47 @@ O inventário produtivo Q18 comprovou `public.wave_responses` com **RLS ativo** 
 **zero policies**. RLS ativo sem policy é default-deny total: não há nada a
 remover.
 
-**Este draft não contém `DROP POLICY`.** A Migration B canônica de staging
-tinha `DROP POLICY IF EXISTS "response_submit"` porque cobria um **estado
-histórico diferente**, em que a policy existia. Manter aquele `DROP` aqui seria
-carregar uma autorização latente para apagar uma policy que ninguém revisou.
+**Este draft não executa nenhuma operação de exclusão de policy.** A Migration B
+canônica de staging removia a policy legada porque cobria um **estado histórico
+diferente**, em que ela existia. Carregar aquela operação para cá seria manter
+uma autorização latente para apagar uma policy que ninguém revisou.
 
-**A precondition exige exatamente zero.** Qualquer policy aborta — incluindo
-`response_submit`, qualquer outro nome, permissiva, restritiva, e qualquer
-comando (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALL`).
+**O gate é numérico** (revisão 6): a precondition conta as policies da tabela,
+atribui o total a `v_wave_responses_policy_count` e compara com
+`EXPECTED_WAVE_RESPONSES_POLICY_COUNT`. Não é teste de string nula. A variável
+textual existe apenas para compor a mensagem de erro — nunca decide nada.
 
-Ao abortar: **antes do primeiro DDL** · listar **apenas metadados** (nome ·
-comando · permissiva/restritiva · papéis · schema · tabela) · **não remover
+**Qualquer policy aborta** — incluindo a legada `response_submit`, qualquer
+outro nome, permissiva, restritiva, e qualquer comando (`SELECT`, `INSERT`,
+`UPDATE`, `DELETE`, `ALL`).
+
+Ao abortar: **antes do primeiro DDL** · listar **apenas metadados** (schema ·
+tabela · nome · comando · permissiva/restritiva · papéis) · **não remover
 nenhuma policy** · exigir **novo inventário e nova autorização humana**.
-Nenhuma expressão de policy (`polqual`/`polwithcheck`) é impressa — expressão
-pode conter literal de negócio.
+Nenhuma expressão de policy (`polqual`/`polwithcheck`) é **consultada** ou
+impressa — expressão pode conter literal de negócio.
+
+### Releitura externa depois do `COMMIT`
+
+O inventário é repetido **fora da transação**, após o `COMMIT`, e o resultado
+esperado é `POLICY_COUNT_AFTER_COMMIT = 0` (checklist).
+
+Registrado sem ambiguidade sobre o que essa releitura é e não é:
+
+- é **externa** e acontece **depois** do `COMMIT`;
+- **não participa do rollback transacional** — nada que ela detecte é desfeito;
+- **detecta** alteração inesperada, mas **não desfaz** a Migration B;
+- **não pertence à trilha de ACL de funções**, embora seja verificação de
+  governança de RLS/policies — são trilhas distintas.
+
+`≠ 0` → **NO-GO operacional**: não remover policy, não corrigir
+automaticamente, registrar o drift, encaminhar para inventário e autorização
+separados.
+
+**Por que existe:** controle geral de drift da plataforma. O precedente
+conhecido neste projeto é de alteração de privilégios `EXECUTE`, **não** de
+policy — a releitura não se justifica por um episódio de policy que não
+ocorreu, e sim por não haver garantia de que o estado permaneça o observado.
 
 **Reaparecimento é drift.** Uma policy que volte a existir não é "o estado
 antigo de volta": é sinal de que algo criou uma policy depois do inventário.
@@ -728,7 +759,7 @@ sintéticos. Prova a **lógica** de classificação e de comparação de contrat
 foi acessado. A prova de execução é a de PostgreSQL 17 não produtivo (§K),
 ainda não autorizada.
 
-**Resultado: 37 fixtures, 37 corretas, 0 divergências.**
+**Resultado: 44 fixtures, 44 corretas, 0 divergências.**
 
 ### Contrato de retorno (§D)
 
@@ -780,6 +811,22 @@ consulta antiga confundiria os três.
 | FK legada **+** `response_submit` | **FAIL** por policy inesperada | ✅ só a FK é esperada |
 | nenhuma policy como `EXPECTED_DEPENDENCY` | zero | ✅ zero |
 | `pg_policy` com OID colidente em outro catálogo | resolve por `classid` | ✅ resolve |
+
+### Gate numérico e releitura pós-`COMMIT` (revisão 6)
+
+| Fixture | Esperado | Obtido |
+| --- | --- | --- |
+| `policy_count = 0` | **PASS** | ✅ passa |
+| `policy_count = 1` | **FAIL** | ✅ falha |
+| `policy_count = 2` | **FAIL** | ✅ falha |
+| metadados `NULL` com `count = 0` | **PASS** | ✅ passa |
+| metadados preenchidos com `count > 0` | **FAIL** | ✅ falha |
+| releitura pós-`COMMIT` `count = 0` | **GO** | ✅ GO |
+| releitura pós-`COMMIT` `count > 0` | **NO-GO operacional** | ✅ NO-GO |
+
+As duas fixtures de metadados existem para provar que **quem decide é o
+número**: `string_agg` de zero linhas devolve `NULL`, e o gate passa por causa
+do `COUNT(*) = 0`, não por causa do `NULL`.
 
 ### Triggers (§I)
 

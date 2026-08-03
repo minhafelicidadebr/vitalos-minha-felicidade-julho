@@ -411,6 +411,7 @@
 -- DECLARE
 --   EXPECTED_TOTAL_RESPONSES   CONSTANT INTEGER := 0;  -- gate de drift operacional
 --   EXPECTED_WITH_INVITE_TOKEN CONSTANT INTEGER := 0;  -- gate de perda de vinculo
+--   EXPECTED_WAVE_RESPONSES_POLICY_COUNT CONSTANT INTEGER := 0;  -- gate de policy
 --
 --   v_total_responses     INTEGER;
 --   v_with_invite_token   INTEGER;
@@ -421,7 +422,8 @@
 --   v_duplicados   INTEGER;
 --   v_divergentes  INTEGER;
 --   v_org_invalida INTEGER;
---   v_policies     TEXT;
+--   v_wave_responses_policy_count INTEGER;   -- gate numerico (0.5J)
+--   v_policies     TEXT;                     -- metadados seguros, so para o erro
 --   v_deps         TEXT;
 --   v_trigs        TEXT;
 -- BEGIN
@@ -479,34 +481,43 @@
 --   -- Aborta para: response_submit, qualquer outro nome, permissiva,
 --   -- restritiva, e qualquer comando (SELECT, INSERT, UPDATE, DELETE, ALL).
 --   --
---   -- Metadados registrados -- e SO estes: nome, comando, permissiva/restritiva,
---   -- papeis, schema, tabela. Nenhuma expressao (polqual/polwithcheck) e
---   -- impressa: expressao de policy pode conter literal de negocio.
---   SELECT string_agg(
---            format('%I.%I -> policy %I (cmd=%s permissive=%s roles=%s)',
---                   pn.nspname, pt.relname, pol.polname, pol.polcmd, pol.polpermissive,
---                   coalesce((SELECT string_agg(CASE WHEN r = 0 THEN 'PUBLIC'
---                                                    ELSE pg_get_userbyid(r) END, '+' ORDER BY r)
---                               FROM unnest(pol.polroles) r), '(nenhum)')),
---            ', ' ORDER BY pol.polname)
---     INTO v_policies
+--   -- O GATE E NUMERICO (0.5J), nao teste de string:
+--   --   v_wave_responses_policy_count <> EXPECTED_WAVE_RESPONSES_POLICY_COUNT
+--   -- A variavel textual v_policies existe SO para compor a mensagem de erro
+--   -- com metadados seguros. Ela nunca decide nada.
+--   --
+--   -- Metadados registrados -- e SO estes: schema, tabela, nome, comando,
+--   -- permissiva/restritiva, papeis. Nenhuma expressao (polqual/polwithcheck) e
+--   -- CONSULTADA ou impressa: expressao de policy pode conter literal de negocio.
+--   SELECT
+--     COUNT(*)::INTEGER,
+--     string_agg(
+--       format('%I.%I -> policy %I (cmd=%s permissive=%s roles=%s)',
+--              pn.nspname, pt.relname, pol.polname, pol.polcmd, pol.polpermissive,
+--              coalesce((SELECT string_agg(CASE WHEN r = 0 THEN 'PUBLIC'
+--                                              ELSE pg_get_userbyid(r) END, '+' ORDER BY r)
+--                          FROM unnest(pol.polroles) r), '(nenhum)')),
+--       ', ' ORDER BY pol.polname)
+--   INTO v_wave_responses_policy_count, v_policies
 --     FROM pg_policy    pol
 --     JOIN pg_class     pt ON pt.oid = pol.polrelid
 --     JOIN pg_namespace pn ON pn.oid = pt.relnamespace
 --    WHERE pn.nspname = 'public'
 --      AND pt.relname = 'wave_responses';
 --
---   IF v_policies IS NOT NULL THEN
+--   IF v_wave_responses_policy_count <> EXPECTED_WAVE_RESPONSES_POLICY_COUNT THEN
 --     RAISE EXCEPTION
---       'ABORTADO (inventario de policies): esperadas ZERO policies em '
---       'public.wave_responses, encontrada(s): %. Isto e DRIFT em relacao ao '
+--       'ABORTADO (inventario de policies): esperadas % policies em '
+--       'public.wave_responses, encontradas % -- %. Isto e DRIFT em relacao ao '
 --       'inventario Q18. Listado apenas metadado. NAO remover nenhuma policy '
 --       'automaticamente. Exige NOVO inventario, rederivacao deste draft e NOVA '
 --       'autorizacao humana.',
---       v_policies;
+--       EXPECTED_WAVE_RESPONSES_POLICY_COUNT, v_wave_responses_policy_count,
+--       coalesce(v_policies, '(sem metadado)');
 --   END IF;
 --
---   RAISE NOTICE 'Inventario de policies: zero policies em public.wave_responses (baseline autorizado).';
+--   RAISE NOTICE 'Inventario de policies em public.wave_responses confirmado: % policies.',
+--     v_wave_responses_policy_count;
 --
 --   -- --- 3.4 DEPENDENCIAS CATALOGAIS SOBRE A COLUNA (P1-2) --------------------
 --   -- CORRECAO (revisao 4). A versao anterior fazia
@@ -834,7 +845,6 @@
 --     v_total_responses, v_with_invite_token, v_valid_invite_links,
 --     v_orphan_invite_links, v_snapshot_rows,
 --     v_duplicados, v_divergentes, v_org_invalida;
---   RAISE NOTICE 'Inventario de policies em wave_responses: nenhuma nao autorizada.';
 -- END $$;
 
 
