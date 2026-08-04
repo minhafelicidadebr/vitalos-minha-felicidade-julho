@@ -41,9 +41,10 @@
  */
 
 import { createHash, randomBytes } from "node:crypto";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { forbiddenRefs, maskRef } from "../../src/lib/staging/staging-guard";
+import { FORBIDDEN_HML_BASE_HOSTNAMES } from "../../src/lib/fibt-hml/hml-frontend-guard";
 
 /**
  * Ref de staging autorizado para esta campanha, SE declarado — lido de env a
@@ -62,8 +63,8 @@ import { forbiddenRefs, maskRef } from "../../src/lib/staging/staging-guard";
  * requireStagingTarget(), que compara contra a URL real (STAGING_SUPABASE_URL),
  * nunca contra um valor fixado em código.
  */
-function configuredStagingRef(): string | undefined {
-  return process.env.FIBT_HML_AUTHORIZED_STAGING_REF?.trim() || undefined;
+function configuredStagingRef(env: Record<string, string | undefined>): string | undefined {
+  return env.FIBT_HML_AUTHORIZED_STAGING_REF?.trim() || undefined;
 }
 
 // ============================================================================
@@ -100,9 +101,36 @@ const RECOGNIZED_FLAGS = new Set([
   "--beta-count",
   "--expires-in-days",
   "--confirm-synthetic-homologation",
+  "--accept-staging-raw-token-contract",
   "--dry-run",
   "--commit",
 ]);
+
+/**
+ * Decisão formal (FIBT-HML-1B, Fase 1): `wave_invites.token` é armazenado
+ * BRUTO pelo contrato pré-existente da tabela (DEFAULT
+ * encode(gen_random_bytes(24),'base64')), não hash — não alterado nesta
+ * onda, sem migration. A exceção só vale enquanto TODAS as condições abaixo
+ * forem verdadeiras; qualquer uma falsa e o lote não deveria ser criado.
+ */
+export const HML_RAW_TOKEN_STAGING_EXCEPTION = {
+  decision: "HML_RAW_TOKEN_STAGING_EXCEPTION",
+  conditions: [
+    "ambiente = staging",
+    "dados exclusivamente sintéticos",
+    "zero nome, e-mail, matrícula ou PII",
+    "uso único (wave_invites.used_at)",
+    "expiração máxima de sete dias",
+    "revogação disponível (UPDATE wave_invites SET expires_at = NOW() -- fora de escopo desta onda)",
+    "frontend em HTTPS",
+    "token nunca impresso no terminal",
+    "token nunca incluído no manifest técnico",
+    "links completos somente no CSV privado fora do Git",
+    "produção explicitamente bloqueada",
+    "lote identificado como homologação",
+    "coleta real proibida",
+  ],
+} as const;
 
 export class GeneratorError extends Error {
   constructor(public code: string, message: string) {
@@ -126,13 +154,17 @@ export interface ParsedArgs {
   expiresInDays: number;
   confirmed: true;
   commit: boolean;
+  acceptedRawTokenContract: boolean;
 }
 
 /** Nenhum e-mail, nome pessoal ou dado real é aceito por design: todo campo
  * de identidade da campanha é uma constante fixa (CAMPAIGN, acima) — não há
  * parâmetro de CLI para nome de organização, onda ou pessoa. Os únicos
  * parâmetros são contagens, ambiente, ref e confirmação. */
-export function parseArgs(argv: string[]): ParsedArgs {
+export function parseArgs(
+  argv: string[],
+  env: Record<string, string | undefined> = process.env,
+): ParsedArgs {
   const map = new Map<string, string | true>();
   for (const raw of argv) {
     if (!raw.startsWith("--")) continue;
@@ -161,7 +193,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   const expectedProjectRef = required("--expected-project-ref");
-  const forbidden = forbiddenRefs(process.env);
+  const forbidden = forbiddenRefs(env);
   if (forbidden.has(expectedProjectRef)) {
     fail(
       "INVALID_PROJECT_REF",
@@ -169,7 +201,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
         "apontado pelas variáveis padrão do ambiente (produção). Nenhuma operação permitida.",
     );
   }
-  const stagingRef = configuredStagingRef();
+  const stagingRef = configuredStagingRef(env);
   if (stagingRef && expectedProjectRef !== stagingRef) {
     fail(
       "INVALID_PROJECT_REF",
@@ -222,6 +254,19 @@ export function parseArgs(argv: string[]): ParsedArgs {
   // dry-run é o padrão: ausência de --commit é sempre dry-run, com ou sem a
   // flag --dry-run explícita.
 
+  const acceptedRawTokenContract = map.get("--accept-staging-raw-token-contract") === true;
+  // Só exigido em --commit (Fase 1) — dry-run nunca toca o banco, então a
+  // exceção de contrato de token bruto não se aplica a ele. O parâmetro
+  // NUNCA libera produção nem ref desconhecido: os dois já foram recusados
+  // acima, antes desta linha, independentemente dele.
+  if (commit && !acceptedRawTokenContract) {
+    fail(
+      "RAW_TOKEN_CONTRACT_NOT_ACKNOWLEDGED",
+      "--commit exige --accept-staging-raw-token-contract — wave_invites.token é armazenado bruto " +
+        "(contrato pré-existente da tabela); a exceção precisa ser reconhecida explicitamente. Ver HML_RAW_TOKEN_STAGING_EXCEPTION.",
+    );
+  }
+
   return {
     environment,
     expectedProjectRef,
@@ -231,6 +276,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     expiresInDays,
     confirmed: true,
     commit,
+    acceptedRawTokenContract,
   };
 }
 
@@ -309,18 +355,86 @@ export function planBatch(args: ParsedArgs): BatchPlan {
   };
 }
 
+// ─── Fase 5 — validação da base URL de frontend de homologação ────────────
+
+export type BaseUrlValidationFailure =
+  | "HML_FRONTEND_BASE_URL_NOT_READY_MISSING"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS"
+  | "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE";
+
+export type BaseUrlValidation =
+  | { valid: true; normalizedBaseUrl: string }
+  | { valid: false; failure: BaseUrlValidationFailure };
+
+/**
+ * Valida FIBT_HML_FRONTEND_BASE_URL (Fase 5): HTTPS, hostname não produtivo,
+ * sem query/fragment/credenciais embutidas, path normalizado (raiz). Pura —
+ * não faz I/O, não resolve DNS, não confirma que a URL está de fato no ar.
+ */
+export function validateFrontendBaseUrl(raw: string | undefined): BaseUrlValidation {
+  if (!raw || raw.trim() === "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_MISSING" };
+
+  let url: URL;
+  try {
+    url = new URL(raw.trim());
+  } catch {
+    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE" };
+  }
+
+  if (url.protocol !== "https:") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS" };
+  if ((FORBIDDEN_HML_BASE_HOSTNAMES as readonly string[]).includes(url.hostname.toLowerCase())) {
+    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" };
+  }
+  if (url.search !== "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY" };
+  if (url.hash !== "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT" };
+  if (url.username !== "" || url.password !== "") {
+    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS" };
+  }
+
+  const normalizedPath = url.pathname === "/" ? "" : url.pathname.replace(/\/+$/, "");
+  return { valid: true, normalizedBaseUrl: `${url.protocol}//${url.host}${normalizedPath}` };
+}
+
 // ─── Gates obrigatórios antes de qualquer escrita real ─────────────────────
 
 export type CommitGateFailure = "FRONTEND_BLOCKED" | "BANNER_MISSING";
 
-/** Portões que bloqueiam --commit independentemente de credenciais válidas.
- * Hoje ambos estão fechados (ver ENTREGA) — hardcoded, não uma checagem
- * dinâmica, porque a verificação é sobre o que existe no repositório NESTA
- * revisão, não sobre estado externo que este script possa consultar. */
-export function commitGateFailures(): CommitGateFailure[] {
+const CONVITE_ROUTE_PATH = join("src", "routes", "convite.$token.tsx");
+
+/**
+ * Portões reais e testáveis (Fase 6) — nada hardcoded. `BANNER_MISSING` lê o
+ * código-fonte real da rota /convite/:token (mesmo repositório, sem rede) e
+ * confirma que o banner e a confirmação de persona estão de fato integrados.
+ * `FRONTEND_BLOCKED` valida FIBT_HML_FRONTEND_BASE_URL (Fase 5). Nenhum dos
+ * dois confirma que uma instância REAL está no ar — isso exigiria acesso de
+ * rede, fora de escopo; ambos confirmam o que é observável localmente: que o
+ * código suporta o modo e que uma base URL válida foi declarada.
+ */
+export function commitGateFailures(
+  env: Record<string, string | undefined> = process.env,
+  routeSourcePath: string = CONVITE_ROUTE_PATH,
+): CommitGateFailure[] {
   const failures: CommitGateFailure[] = [];
-  failures.push("FRONTEND_BLOCKED"); // nenhuma URL de frontend segura confirmada
-  failures.push("BANNER_MISSING"); // /convite/:token não exibe o banner de homologação exigido
+
+  const baseUrl = validateFrontendBaseUrl(env.FIBT_HML_FRONTEND_BASE_URL);
+  if (!baseUrl.valid) failures.push("FRONTEND_BLOCKED");
+
+  let routeSource = "";
+  try {
+    routeSource = readFileSync(routeSourcePath, "utf8");
+  } catch {
+    failures.push("BANNER_MISSING"); // rota nem existe mais — fail-closed
+  }
+  if (routeSource) {
+    const hasBanner = routeSource.includes("HmlHomologationBanner");
+    const hasConfirmationGate = routeSource.includes("HmlPersonaConfirmationGate");
+    if (!hasBanner || !hasConfirmationGate) failures.push("BANNER_MISSING");
+  }
+
   return failures;
 }
 

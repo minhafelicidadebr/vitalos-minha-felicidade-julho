@@ -9,9 +9,19 @@ import {
   runCommit,
   tokenHashForManifest,
   commitGateFailures,
+  validateFrontendBaseUrl,
+  HML_RAW_TOKEN_STAGING_EXCEPTION,
   PRIVATE_OUTPUT_DIR,
   type AdminClientLike,
 } from "./create-synthetic-homologation-links";
+
+/**
+ * Ref sintético de 20 caracteres, no formato de um project_ref real, para
+ * simular "produção" nos testes sem versionar o ref de produção real — mesma
+ * convenção de staging-guard.test.ts (PROD_REF = "pppppppppppppppppppp").
+ */
+const FAKE_PRODUCTION_REF = "pppppppppppppppppppp";
+const FAKE_PRODUCTION_ENV = { SUPABASE_URL: `https://${FAKE_PRODUCTION_REF}.supabase.co` };
 
 /**
  * Testes estáticos do gerador de links de homologação sintética (FIBT-HML-1).
@@ -47,9 +57,9 @@ function withOverride(overrides: Record<string, string | null>, extra: string[] 
   return [...flags, ...extra];
 }
 
-function expectAbort(argv: string[]): GeneratorError {
+function expectAbort(argv: string[], env?: Record<string, string | undefined>): GeneratorError {
   try {
-    parseArgs(argv);
+    parseArgs(argv, env);
   } catch (e) {
     if (e instanceof GeneratorError) return e;
     throw e;
@@ -72,7 +82,7 @@ describe("parseArgs — caminho feliz", () => {
     const withBoth = withOverride({}, ["--commit"]);
     expect(expectAbort(withBoth).code).toBe("CONFLICTING_MODE");
 
-    const commitOnly = withOverride({ "--dry-run": null }, ["--commit"]);
+    const commitOnly = withOverride({ "--dry-run": null }, ["--commit", "--accept-staging-raw-token-contract"]);
     const args = parseArgs(commitOnly);
     expect(args.commit).toBe(true);
   });
@@ -84,9 +94,12 @@ describe("parseArgs — validação de ambiente e project ref", () => {
   });
 
   test("4. project ref produtivo falha", () => {
-    const err = expectAbort(withOverride({ "--expected-project-ref": "shlmzzchddohaytfakol" }));
+    const err = expectAbort(
+      withOverride({ "--expected-project-ref": FAKE_PRODUCTION_REF }),
+      FAKE_PRODUCTION_ENV,
+    );
     expect(err.code).toBe("INVALID_PROJECT_REF");
-    expect(err.message).not.toContain("shlmzzchddohaytfakol"); // só a forma mascarada
+    expect(err.message).not.toContain(FAKE_PRODUCTION_REF); // só a forma mascarada
   });
 
   test("5. ref desconhecido (não produção, mas diferente do declarado por FIBT_HML_AUTHORIZED_STAGING_REF) falha", () => {
@@ -203,13 +216,143 @@ describe("planBatch — modelo Alfa/Beta e identidade", () => {
     expect(hash).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  test("20. ausência de frontend seguro bloqueia commit", () => {
+  test("20. ausência de frontend seguro bloqueia commit (FIBT_HML_FRONTEND_BASE_URL não declarada)", () => {
     expect(plan.frontendBaseUrlStatus).toBe("HML_FRONTEND_MISSING");
-    expect(commitGateFailures()).toContain("FRONTEND_BLOCKED");
+    expect(commitGateFailures({})).toContain("FRONTEND_BLOCKED");
   });
 
-  test("21. banner ausente bloqueia commit", () => {
-    expect(commitGateFailures()).toContain("BANNER_MISSING");
+  test("1. banner aparece em modo HML — commitGateFailures não reporta BANNER_MISSING para a rota real (código já integra banner e confirmação)", () => {
+    expect(commitGateFailures({})).not.toContain("BANNER_MISSING");
+  });
+
+  test("21. banner ausente (rota sem os componentes) bloqueia commit — testado contra fonte real do repo que não tem os marcadores", () => {
+    // package.json existe de verdade e nunca vai conter os marcadores de HML
+    // — mais portável que apontar para um caminho específico do SO.
+    const failures = commitGateFailures({}, "package.json");
+    expect(failures).toContain("BANNER_MISSING");
+  });
+
+  test("rota inexistente também bloqueia por BANNER_MISSING (fail-closed)", () => {
+    const failures = commitGateFailures({}, "caminho/que/nao/existe.tsx");
+    expect(failures).toContain("BANNER_MISSING");
+  });
+});
+
+describe("validateFrontendBaseUrl — Fase 5", () => {
+  test("5. URL produtiva (vitalos.com.br) é rejeitada", () => {
+    const r = validateFrontendBaseUrl("https://vitalos.com.br");
+    expect(r.valid).toBe(false);
+  });
+
+  test("6. app.vitalos.com.br é rejeitado", () => {
+    const r = validateFrontendBaseUrl("https://app.vitalos.com.br");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" });
+  });
+
+  test("www.vitalos.com.br também é rejeitado (terceiro domínio proibido)", () => {
+    const r = validateFrontendBaseUrl("https://www.vitalos.com.br");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" });
+  });
+
+  test("7. HTTP remoto (não HTTPS) é rejeitado", () => {
+    const r = validateFrontendBaseUrl("http://fibt-hml-01.example-homolog.invalid");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS" });
+  });
+
+  test("8. HTTPS de homologação (hostname não produtivo) é aceito", () => {
+    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid");
+    expect(r.valid).toBe(true);
+  });
+
+  test("9. query string na base URL é rejeitada", () => {
+    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid?foo=bar");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY" });
+  });
+
+  test("fragment na base URL é rejeitado", () => {
+    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid#section");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT" });
+  });
+
+  test("10. credencial embutida na URL (user:pass@) é rejeitada", () => {
+    const r = validateFrontendBaseUrl("https://user:pass@fibt-hml-01.example-homolog.invalid");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS" });
+  });
+
+  test("11. ausência de base URL bloqueia commit", () => {
+    const r = validateFrontendBaseUrl(undefined);
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_MISSING" });
+    expect(commitGateFailures({})).toContain("FRONTEND_BLOCKED");
+  });
+
+  test("URL malformada é rejeitada, não lança", () => {
+    const r = validateFrontendBaseUrl("nao-e-uma-url");
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE" });
+  });
+
+  test("path normalizado: barra final é removida, raiz vira string vazia", () => {
+    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid/");
+    expect(r.valid).toBe(true);
+    if (r.valid) expect(r.normalizedBaseUrl).toBe("https://fibt-hml-01.example-homolog.invalid");
+  });
+
+  test("com base URL válida declarada, FRONTEND_BLOCKED não aparece mais", () => {
+    const failures = commitGateFailures({
+      FIBT_HML_FRONTEND_BASE_URL: "https://fibt-hml-01.example-homolog.invalid",
+    });
+    expect(failures).not.toContain("FRONTEND_BLOCKED");
+  });
+});
+
+describe("HML_RAW_TOKEN_STAGING_EXCEPTION e o gate de --commit — Fase 1", () => {
+  test("12. ausência de --accept-staging-raw-token-contract bloqueia --commit", () => {
+    const argvSemToken = withOverride(
+      { "--dry-run": null },
+      ["--commit"],
+    );
+    const err = expectAbort(argvSemToken);
+    expect(err.code).toBe("RAW_TOKEN_CONTRACT_NOT_ACKNOWLEDGED");
+  });
+
+  test("com --accept-staging-raw-token-contract, --commit é aceito (junto com todo o resto válido)", () => {
+    const argvComToken = withOverride(
+      { "--dry-run": null },
+      ["--commit", "--accept-staging-raw-token-contract"],
+    );
+    const args = parseArgs(argvComToken);
+    expect(args.commit).toBe(true);
+    expect(args.acceptedRawTokenContract).toBe(true);
+  });
+
+  test("13. a exceção de token bruto não libera produção nem ref desconhecido — checagens de ref continuam rodando antes", () => {
+    const err = expectAbort(
+      withOverride(
+        { "--expected-project-ref": FAKE_PRODUCTION_REF, "--dry-run": null },
+        ["--commit", "--accept-staging-raw-token-contract"],
+      ),
+      FAKE_PRODUCTION_ENV,
+    );
+    expect(err.code).toBe("INVALID_PROJECT_REF"); // não chega a RAW_TOKEN_CONTRACT_NOT_ACKNOWLEDGED
+  });
+
+  test("dry-run nunca exige a exceção de token (só se aplica a --commit)", () => {
+    const args = parseArgs(VALID_FLAGS); // sem --accept-staging-raw-token-contract, dry-run
+    expect(args.commit).toBe(false);
+    expect(args.acceptedRawTokenContract).toBe(false);
+  });
+
+  test("decisão documenta as 13 condições exigidas para a exceção valer", () => {
+    expect(HML_RAW_TOKEN_STAGING_EXCEPTION.decision).toBe("HML_RAW_TOKEN_STAGING_EXCEPTION");
+    expect(HML_RAW_TOKEN_STAGING_EXCEPTION.conditions.length).toBeGreaterThanOrEqual(13);
+  });
+});
+
+describe("22. campos livres para PII ficam indisponíveis em modo HML (por ausência estrutural)", () => {
+  test("a rota /convite/:token não tem nenhum campo de texto livre, e-mail ou textarea — só escala Likert fixa", () => {
+    const source = readFileSync("src/routes/convite.$token.tsx", "utf8");
+    expect(source).not.toMatch(/type="text"/);
+    expect(source).not.toMatch(/type="email"/);
+    expect(source).not.toMatch(/<textarea/);
   });
 });
 

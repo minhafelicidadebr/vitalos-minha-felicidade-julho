@@ -37,6 +37,28 @@ import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 import { recordSurveyFunnelSnapshot, loadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
+import {
+  resolveHmlMode,
+  HML_PRE_SUBMIT_REVIEW_TEXT,
+  type HmlModeResolution,
+} from "@/lib/fibt-hml/hml-frontend-guard";
+import { HmlHomologationBanner } from "@/app/fibt-hml/HmlHomologationBanner";
+import { HmlPersonaConfirmationGate } from "@/app/fibt-hml/HmlPersonaConfirmationGate";
+
+/**
+ * Resolve o modo de homologação (FIBT-HML-1B). `import.meta.env` já é
+ * estático em build time (Vite) — seguro em SSR. O hostname só existe no
+ * navegador; ausente em SSR, o que apenas significa que a checagem extra de
+ * hostname produtivo fica pendente até a hidratação (resolveHmlMode() é
+ * fail-closed: env sozinho já cobre o caso comum, hostname é defesa extra).
+ */
+function useHmlMode(): HmlModeResolution {
+  const [hostname, setHostname] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    setHostname(window.location.hostname);
+  }, []);
+  return resolveHmlMode(import.meta.env as unknown as Record<string, string | undefined>, hostname);
+}
 
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -55,6 +77,8 @@ const INVALID_TOKEN_MESSAGE: Record<string, string> = {
 function ResponderTokenPage() {
   const { token } = Route.useParams();
   const [resolution, setResolution] = useState<InviteResolution | "loading">("loading");
+  const hmlMode = useHmlMode();
+  const banner = hmlMode.active ? <HmlHomologationBanner batchId={hmlMode.batchId} /> : null;
 
   useEffect(() => {
     let active = true;
@@ -67,23 +91,45 @@ function ResponderTokenPage() {
   }, [token]);
 
   if (resolution === "loading") {
-    return <ResolvingScreen />;
+    return (
+      <>
+        {banner}
+        <ResolvingScreen />
+      </>
+    );
   }
 
   if (!resolution.valid) {
     return (
-      <TokenErrorScreen
-        message={INVALID_TOKEN_MESSAGE[resolution.reason] ?? "Esta pesquisa não está disponível no momento."}
-      />
+      <>
+        {banner}
+        <TokenErrorScreen
+          message={INVALID_TOKEN_MESSAGE[resolution.reason] ?? "Esta pesquisa não está disponível no momento."}
+        />
+      </>
     );
   }
 
   const survey = getWaveSurvey(PILOT_PACK_ID, resolution.instrument);
   if (!survey) {
-    return <TokenErrorScreen message="Esta pesquisa não está disponível no momento." />;
+    return (
+      <>
+        {banner}
+        <TokenErrorScreen message="Esta pesquisa não está disponível no momento." />
+      </>
+    );
   }
 
-  return <SurveyFlow survey={survey} token={token} waveId={resolution.waveId} />;
+  const surveyFlow = (
+    <SurveyFlow survey={survey} token={token} waveId={resolution.waveId} hmlActive={hmlMode.active} />
+  );
+
+  return (
+    <>
+      {banner}
+      {hmlMode.active ? <HmlPersonaConfirmationGate>{surveyFlow}</HmlPersonaConfirmationGate> : surveyFlow}
+    </>
+  );
 }
 
 // ─── Fluxo do formulário ──────────────────────────────────────────────────────
@@ -92,10 +138,12 @@ function SurveyFlow({
   survey,
   token,
   waveId,
+  hmlActive = false,
 }: {
   survey: SurveyDefinition;
   token: string;
   waveId: string;
+  hmlActive?: boolean;
 }) {
   const [responses, setResponses] = useState<SurveyResponses>({});
   const [submitted, setSubmitted] = useState(false);
@@ -363,6 +411,14 @@ function SurveyFlow({
 
         {/* Submit */}
         <div className="pb-12">
+          {hmlActive && (
+            <p
+              role="note"
+              className="mb-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200"
+            >
+              {HML_PRE_SUBMIT_REVIEW_TEXT}
+            </p>
+          )}
           <button
             onClick={handleSubmit}
             disabled={!allAnswered || submitting}
