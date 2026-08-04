@@ -17,14 +17,23 @@ PROD-0.6E prova do executor Lovable, em staging ⏸
 
 Nenhuma onda encadeia automaticamente na seguinte.
 
-## Bloqueador anterior à PROD-0.6C
+## Bloqueadores anteriores à PROD-0.6C
 
-- [ ] **Marcadores de extração introduzidos** em
-      `docs/fibt-prod/MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`.
+- [x] **Marcadores multibloco introduzidos** — agora 13 pares `B001`–`B013` em
+      `docs/fibt-prod/MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`, com
+      preservação byte a byte comprovada (Prova A e Prova B, ver plano).
+- [x] **`CREATE OR REPLACE submit_sector_response` acrescentado ao draft**
+      (PROD-0.6B-FUNCBODY). Bloco `B007`, byte-idêntico à SPEC §J e à Migration
+      B canônica de staging. `B007`–`B012` antigos renumerados para
+      `B008`–`B013`; conteúdo pré-existente inalterado (confirmado por hash).
+      O pós-check §5.6 (bloco `B010`) agora encontra a função já substituída —
+      o caminho feliz deixa de ser bloqueado por construção.
+- [ ] **Extrator adaptado ao contrato multibloco de 13 blocos** — o de
+      `69cca10` (PR #37) presume um único par de marcadores e ainda não conhece
+      `B001`–`B013`. Ver seção "Impacto no PR #37" no handoff.
 
-Eles **não existem hoje**. A introdução altera um arquivo já mergeado e exige
-**autorização documental separada**. Sem ela, o contrato de extração (§D do
-plano) não pode ser implementado, e a PROD-0.6C fica bloqueada.
+Enquanto o extrator do PR #37 não for adaptado, a PROD-0.6C fica bloqueada —
+mas o corpo da função deixou de ser um bloqueador.
 
 ## Pré-execução — PROD-0.6D
 
@@ -97,25 +106,45 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] `psql` em modo fail-fast (`ON_ERROR_STOP=1`).
 - [ ] Configuração pessoal de `psql` **não lida** (`--no-psqlrc`).
 
-## Extração do SQL — as quinze regras
+## Extração do SQL — `EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`
 
-- [ ] Bloco delimitado por **marcadores únicos**.
-- [ ] Exatamente **um** marcador inicial · exatamente **um** final · final
-      **posterior** ao inicial.
-- [ ] **Somente** linhas dentro do bloco processadas.
+- [ ] **`FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 13`** conferido.
+- [ ] Marcadores de formato exato `-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:Bnnn` /
+      `…_END:Bnnn`, ocupando a linha inteira.
+- [ ] Sequência `B001…B013` **sem lacuna** e **sem ID repetido**.
+- [ ] Um `BEGIN` e um `END` por ID · `END` depois do `BEGIN` · **sem
+      aninhamento** · **nenhum bloco vazio**.
+- [ ] **Somente** linhas dentro dos blocos processadas.
 - [ ] Removido **exatamente um** prefixo de comentário esperado.
 - [ ] Linha em formato inesperado → **rejeita**.
-- [ ] Conteúdo **não comentado** no arquivo-fonte → **rejeita**.
+- [ ] Blocos concatenados na **ordem física**, com newline determinístico.
 - [ ] SQL gerado **apenas** em **`RUNNER_TEMP`**.
-- [ ] **Nunca** gravar SQL descomentado no repositório **nem dentro do
+- [ ] **Nunca** gravar SQL descomentado no workspace **nem dentro do
       container** — o transporte é por stdin.
-- [ ] Registrados: SHA-256 do **arquivo-fonte** · do **bloco extraído** · do
-      **SQL executado**.
-- [ ] Provado que o executado corresponde **integralmente** ao documentado.
-- [ ] Temporário **apagado** no encerramento do job.
+- [ ] Registrados: **hash por bloco** e **hash agregado**.
+- [ ] `SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256` confere com o blob do
+      draft em `origin/main`.
+- [ ] `DRAFT_B007_FUNCTION_SHA256` confere com `SPEC_J_FUNCTION_SHA256` e com
+      `CANONICAL_B_FUNCTION_SHA256`.
+- [ ] Temporários **apagados** no encerramento.
 
-**Descomentação seletiva é proibida** — o extrator só aceita o bloco inteiro
-entre marcadores.
+**Proibido:** `BEGIN`/`COMMIT` como marcador · regex de palavra-chave para
+decidir executabilidade · remoção global de `--` · seleção manual de linhas
+durante a execução · **fallback** quando os marcadores falharem.
+
+Hashes sempre sobre o **conteúdo do blob Git (LF)**, nunca sobre o working
+tree — `core.autocrlf` faz os dois divergirem, e o runner Linux vê o primeiro.
+
+**Descomentação seletiva é proibida** — o extrator só aceita blocos inteiros
+entre marcadores declarados.
+
+> **✅ Resolvido (PROD-0.6B-FUNCBODY):** a §3b do draft **contém agora** o
+> `CREATE OR REPLACE FUNCTION public.submit_sector_response(...)`, como bloco
+> `B007`. A transação concatenada passa pela substituição da função antes do
+> `DROP CONSTRAINT`, e o pós-check §5.6 (bloco `B010`) encontra o corpo já sem
+> referência a `invite_token`. O caminho feliz deixa de estar bloqueado por
+> construção — falta apenas a execução real do Tier 1 para confirmação
+> empírica.
 
 ## Camadas
 
@@ -144,8 +173,9 @@ Se `PARTIAL` ou `FAILED`, **não promover como equivalência produtiva** — e
 
 ## Execução dos cenários
 
-- [ ] Os **55** cenários de L1/L2 executados (tabela canônica da
-      `PROD06_SCENARIO_MATRIX.md` §9).
+- [ ] Os **68** cenários de L1/L2 executados (tabela canônica da
+      `PROD06_SCENARIO_MATRIX.md` §9), incluindo `E18` —
+      `REQUIRED_FUNCTION_BODY_PRESENT`, específico do bloco `B007`.
 - [ ] Cada um classificado `PASS` · `FAIL` · `INCONCLUSIVE`.
 - [ ] Validação fail-closed da matriz: IDs únicos · nenhum cenário sem
       resultado esperado · nenhum sem evidência · `count_documented =

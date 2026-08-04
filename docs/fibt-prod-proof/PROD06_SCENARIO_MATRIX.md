@@ -13,10 +13,10 @@ posterior.
 
 | # | Cenário | Camada | Prova | Asserção |
 | --- | --- | --- | --- | --- |
-| E01 | `TARGETED_HARNESS` completo | L1 | o harness monta o schema mínimo, os stubs e o baseline sem erro | todos os objetos esperados existem; `SELECT version()` major = 17 |
-| E02 | `MIGRATION_LINEAGE` completo ou parcial | L2 | replay ordenado das migrations reais + A + H, **sem** a B de staging | lista, ordem e hashes registrados; classificação `INTEGRAL` ou `MIGRATION_LINEAGE_PROOF_PARTIAL` |
+| S01 | `TARGETED_HARNESS` completo | L1 | o harness monta o schema mínimo, os stubs e o baseline sem erro | todos os objetos esperados existem; `SELECT version()` major = 17 |
+| S02 | `MIGRATION_LINEAGE` completo ou parcial | L2 | replay ordenado das migrations reais + A + H, **sem** a B de staging | lista, ordem e hashes registrados; classificação `INTEGRAL` ou `MIGRATION_LINEAGE_PROOF_PARTIAL` |
 
-**E02 não pode ser reportado como equivalência produtiva** quando parcial.
+**S02 não pode ser reportado como equivalência produtiva** quando parcial.
 
 ## 1. Caminho feliz
 
@@ -218,22 +218,79 @@ hoje expectativa derivada, não medida.
 Requer H aplicado e os stubs de `auth.uid()`/`auth.role()`. É o item que a
 revisão estática declarou inalcançável sem execução.
 
-## 7. Falhas do próprio aparato de prova
+## 7. Extrator multibloco — E01 a E18
 
-Sete cenários que testam o harness, não a migration. Sem eles, um aparato
-defeituoso produziria verde falso.
+Cenários do **contrato de extração**
+(`EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`). Todos **fail-closed**: o extrator
+aborta antes de qualquer conexão com o banco, e **nunca** recorre a fallback.
+
+| # | Cenário | Resultado esperado | Evidência |
+| --- | --- | --- | --- |
+| E01 | todos os 13 blocos válidos | extrai e concatena na ordem física | `observed_block_count=13` · hashes por bloco · agregado |
+| E02 | marcador inicial ausente | **aborta** | ID sem par · log de extração |
+| E03 | marcador final ausente | **aborta** | ID sem par · log |
+| E04 | ID duplicado | **aborta** | `duplicate_ids > 0` |
+| E05 | lacuna de ID (`B003` faltando) | **aborta** | `sequence_gaps > 0` |
+| E06 | ordem invertida (`END` antes do `BEGIN`) | **aborta** | posição dos marcadores |
+| E07 | bloco aninhado | **aborta** | `nested_blocks > 0` |
+| E08 | bloco vazio | **aborta** | `empty_blocks > 0` |
+| E09 | prosa dentro de bloco | **aborta** | `prose_lines_detected > 0` |
+| E10 | linha SQL **fora** de qualquer bloco | não extraída; registrada | inventário de linhas órfãs |
+| E11 | hash **individual** divergente | **aborta** | `source_sha256` do bloco |
+| E12 | hash **agregado** divergente | **aborta** | `aggregate_transaction_sha256` |
+| E13 | primeiro token ≠ `BEGIN` | **aborta** | `first_statement_is_begin=false` |
+| E14 | último token ≠ `COMMIT` | **aborta** | `last_statement_is_commit=false` |
+| E15 | `COMMIT` intermediário | **aborta** | `no_intermediate_commit=false` |
+| E16 | normalização CRLF/LF alterando o hash | **aborta** | hash de blob × hash de working tree |
+| E17 | marcadores **e** bloco novo removidos, conteúdo **não** byte-idêntico à `main` | **aborta** | `source_without_markers_and_new_block_sha256` |
+| E18 | `REQUIRED_FUNCTION_BODY_PRESENT` — `B007` presente, um único `CREATE OR REPLACE` completo, corpo idêntico à SPEC §J/Migration B canônica, antes do `DROP CONSTRAINT` e do `DROP COLUMN`, pós-check reconhece o corpo novo como válido | **PASS** somente nessas condições | `draft_b007_function_sha256 = spec_j_function_sha256 = canonical_b_function_sha256` · posição relativa dos blocos · `no_executable_fragment_omitted=true` |
+
+**E16 não é hipotético.** Este repositório tem `core.autocrlf = true`: o SHA-256
+do arquivo em disco no Windows difere do SHA-256 do blob. O cenário existe para
+garantir que a normalização seja explícita e que Windows e Linux produzam o
+mesmo resultado.
+
+**E17 mudou de natureza na PROD-0.6B-FUNCBODY.** Antes: "removidos os 24
+marcadores, o draft volta a ser byte-idêntico à `main`". Agora, com o corpo da
+função incorporado, a prova correta é mais fraca — e o arquivo completo
+**não** é byte-idêntico à `main`.
+
+`BASE_DRAFT_BLOB_SHA256` (draft em `origin/main`, sem marcadores, sem função) =
+`acafcd5978d6546dd6332283f498613aee88f2c77434b8bb74742537fe68a04c`.
+
+`SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256` (draft atual menos os 26
+marcadores, menos o corpo novo de `B007`) =
+`5e2c8a5912c37316f2b42c4fbca450325d385aeee70a8b9a66a2631b433a66ce`.
+
+**Os dois hashes são diferentes por construção, não por erro.** A `§3b`
+recebeu uma atualização documental autorizada — a instrução de copiar o corpo
+manualmente foi substituída por uma referência ao pós-check real —, e essa
+prosa humana também desaparece na normalização de `E17`. Todo o SQL
+preexistente foi preservado; as únicas alterações de conteúdo nesta onda
+foram: (1) a inserção canônica do corpo da função; (2) a atualização
+documental autorizada da `§3b`; (3) a inserção e renumeração dos marcadores.
+Nenhuma linha SQL preexistente foi modificada. Só o corpo de `B007` é
+byte-idêntico à SPEC `§J` e à Migration B canônica (ver `E18`) — o arquivo
+como um todo não é, e não deve ser descrito como tal.
+
+**E18 é o cenário que fecha o P0.** Falhas obrigatórias: `B007` ausente; corpo
+incompleto; hash divergente do corpo; `B007` posicionado depois dos `DROP`;
+`INSERT` ainda nomeando `wave_responses.invite_token`; orientação textual
+("copiar o corpo") usada no lugar do SQL real. Validado estaticamente nesta
+onda — confirmação empírica depende da execução real do Tier 1.
+
+## 7b. Falhas do restante do aparato
 
 | # | Cenário | Resultado esperado |
 | --- | --- | --- |
-| X01 | extração com **marcador ausente** | aborta antes de qualquer conexão |
-| X02 | extração com **dois blocos** (marcador duplicado) | aborta |
-| X03 | **hash do SQL extraído divergente** do registrado | aborta |
-| X04 | linha em formato inesperado dentro do bloco | aborta (regra 7) |
-| X05 | conteúdo **não comentado** no arquivo-fonte | aborta (regra 8) |
 | X06 | variável de **host remoto** presente | aborta antes de inicializar o harness |
 | X07 | input de `workflow_dispatch` incorreto | aborta antes de inicializar o harness |
 | X08 | cliente PostgreSQL de **major incorreta** | aborta |
 | X09 | dump antes/depois com **chave de `restrict` não determinística** | detectado — a comparação é rejeitada, não interpretada |
+
+`X01`–`X05` foram **absorvidos** pelos cenários E: marcador ausente → `E02`/
+`E03`; marcador duplicado → `E04`; hash divergente → `E11`/`E12`; linha
+inesperada → `E09`; conteúdo não comentado → `E10`.
 
 ## 8. Prova do executor Lovable — L3, staging, autorização separada
 
@@ -259,8 +316,8 @@ rollback de queda de conexão.
 
 | `scenario_id` | Camada | Categoria | Resultado esperado | Evidência obrigatória |
 | --- | --- | --- | --- | --- |
-| `E01` | L1 | estrutural | harness monta sem erro | objetos criados · `postgres_version` |
-| `E02` | L2 | estrutural | replay do manifesto congelado | `LINEAGE_MANIFEST_*` · listas ordenadas · classificação |
+| `S01` | L1 | estrutural | harness monta sem erro | objetos criados · `postgres_version` |
+| `S02` | L2 | estrutural | replay do manifesto congelado | `LINEAGE_MANIFEST_*` · listas ordenadas · classificação |
 | `H01` | L1+L2 | caminho feliz | `COMMIT` conclui | 9 asserções da §1 · `schema_hash_*` · `acl_fingerprint_*` |
 | `P01` | L1 | precondition | aborta (drift operacional) | `sqlstate` · `schema_hash_*` |
 | `P02` | L1 | precondition | aborta (perda de vínculo) | `sqlstate` · `schema_hash_*` |
@@ -305,17 +362,31 @@ rollback de queda de conexão.
 | `K01` | L1 | abaixo de *k* | suprimido em n=4 | `k_behavior` |
 | `K02` | L1 | abaixo de *k* | visível em n=5 | `k_behavior` |
 | `K03` | L1 | abaixo de *k* | visível em n=7 | `k_behavior` |
-| `X01` | — | aparato | aborta (marcador ausente) | log de extração |
-| `X02` | — | aparato | aborta (marcador duplicado) | log de extração |
-| `X03` | — | aparato | aborta (hash divergente) | três SHA-256 |
-| `X04` | — | aparato | aborta (linha inesperada) | log de extração |
-| `X05` | — | aparato | aborta (conteúdo não comentado) | log de extração |
+| `E01` | — | extrator | 13 blocos válidos, concatenados em ordem | hashes por bloco · agregado |
+| `E02` | — | extrator | aborta (marcador inicial ausente) | ID sem par |
+| `E03` | — | extrator | aborta (marcador final ausente) | ID sem par |
+| `E04` | — | extrator | aborta (ID duplicado) | `duplicate_ids` |
+| `E05` | — | extrator | aborta (lacuna de ID) | `sequence_gaps` |
+| `E06` | — | extrator | aborta (ordem invertida) | posição dos marcadores |
+| `E07` | — | extrator | aborta (bloco aninhado) | `nested_blocks` |
+| `E08` | — | extrator | aborta (bloco vazio) | `empty_blocks` |
+| `E09` | — | extrator | aborta (prosa dentro de bloco) | `prose_lines_detected` |
+| `E10` | — | extrator | linha SQL fora de bloco registrada | inventário de órfãs |
+| `E11` | — | extrator | aborta (hash individual divergente) | `source_sha256` do bloco |
+| `E12` | — | extrator | aborta (hash agregado divergente) | `aggregate_transaction_sha256` |
+| `E13` | — | extrator | aborta (primeiro token ≠ BEGIN) | `first_statement_is_begin` |
+| `E14` | — | extrator | aborta (último token ≠ COMMIT) | `last_statement_is_commit` |
+| `E15` | — | extrator | aborta (COMMIT intermediário) | `no_intermediate_commit` |
+| `E16` | — | extrator | aborta (CRLF/LF alterando hash) | hash blob × working tree |
+| `E17` | — | extrator | aborta (conteúdo não byte-idêntico sem marcadores e sem o bloco novo) | `source_without_markers_and_new_block_sha256` |
+| `E18` | — | extrator | `PASS` só com `B007` presente, corpo completo e idêntico, posicionado antes dos `DROP`, pós-check reconhecendo o corpo novo | `draft_b007_function_sha256 = spec_j_function_sha256 = canonical_b_function_sha256` |
 | `X06` | — | aparato | aborta (host remoto) | variável detectada, **sem valor** |
 | `X07` | — | aparato | aborta (input incorreto) | inputs recebidos |
 | `X08` | — | aparato | aborta (cliente de major errada) | `client_version` |
 | `X09` | — | aparato | rejeita comparação | chave de `restrict` observada |
 
-**`count_documented = 55`** — 55 `scenario_id` únicos de L1/L2.
+**`count_documented = 68`** — 68 `scenario_id` únicos de L1/L2 (67 anteriores +
+`E18`, acrescentado na PROD-0.6B-FUNCBODY).
 
 Executor Lovable (L3), fora desta contagem: `V01`–`V05` (5 cenários), em onda e
 autorização próprias.
@@ -336,14 +407,14 @@ editorial.
 
 ## 10. Critério de conclusão
 
-A PROD-0.6D conclui quando os **55** cenários de L1/L2 tiverem sido executados
+A PROD-0.6D conclui quando os **68** cenários de L1/L2 tiverem sido executados
 e classificados `PASS` · `FAIL` · `INCONCLUSIVE`, com evidência conforme
 `PROD06_EVIDENCE_SCHEMA.md`.
 
 Um único `FAIL` em cenário de precondition ou de rollback é **NO-GO** para
 promoção. `INCONCLUSIVE` não conta como aprovação — conta como pendência.
 
-**Mesmo com 55/55 `PASS`**, a promoção continua bloqueada por
+**Mesmo com 68/68 `PASS`**, a promoção continua bloqueada por
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED`, pela aprovação humana de locks e
 timeouts, por A e H aplicadas e comprovadas, pelo inventário produtivo
 repetido, pelo `project_ref` reconfirmado e pela trilha ACL.

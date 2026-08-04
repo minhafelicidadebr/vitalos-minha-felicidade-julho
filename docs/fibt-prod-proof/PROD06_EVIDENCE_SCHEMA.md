@@ -35,23 +35,57 @@ entre execuções e auditável sem acesso ao runner.
 `client_server_major_match = false` → o run **aborta** e não produz registros
 de cenário.
 
-## 2. Bloco de extração — uma vez por bloco extraído
+## 2. Extração multibloco
+
+`EXTRACTION_CONTRACT = EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`.
+
+### Cabeçalho da extração — uma vez por execução
 
 | Campo | Descrição |
 | --- | --- |
 | `source_file` | caminho do arquivo-fonte no repositório |
-| `source_sha256` | SHA-256 do **arquivo-fonte inteiro** |
-| `marker_begin` / `marker_end` | marcadores usados |
-| `marker_begin_count` / `marker_end_count` | devem ser `1` e `1` |
-| `extracted_block_sha256` | SHA-256 do **bloco extraído**, antes do strip |
-| `executed_sql_sha256` | SHA-256 do **SQL efetivamente executado** |
-| `line_count_total` / `line_count_stripped` | contagens |
+| `source_sha256` | SHA-256 do **blob** do arquivo-fonte inteiro |
+| `expected_block_count` | `13` — recongelado após PROD-0.6B-FUNCBODY |
+| `observed_block_count` | contagem real de pares de marcador |
+| `block_ids_expected` / `block_ids_observed` | `B001…B013` |
+| `sequence_gaps` · `duplicate_ids` · `nested_blocks` · `empty_blocks` | devem ser `0` |
+| `source_without_markers_and_new_block_sha256` | igual ao blob do draft em `origin/main` **sem** os marcadores **e sem** o corpo novo de `B007` (prova mais fraca que a anterior — ver plano §"Prova de preservação") |
+| `aggregate_transaction_sha256` | SHA-256 da concatenação `B001`–`B011` |
+| `aggregate_acl_sha256` | um por bloco de ACL (`B012`, `B013`) |
+| `spec_j_function_sha256` / `canonical_b_function_sha256` / `draft_b007_function_sha256` | as três devem ser **idênticas** — corpo inserido em `B007` bate com a SPEC §J e com a Migration B canônica |
 | `rejected_lines` | linhas em formato inesperado — deve ser `0` |
-| `correspondence_proven` | `true` só se o executado corresponder integralmente ao documentado |
-| `temp_path_removed` | `true` no encerramento |
+| `temp_paths_removed` | `true` no encerramento, **inclusive em falha** |
 
-Qualquer contagem de marcador diferente de `1`, qualquer linha rejeitada, ou
-`correspondence_proven = false` → **aborta antes de conectar ao banco**.
+### Registro por bloco — um por `Bnnn`
+
+| Campo | Descrição |
+| --- | --- |
+| `block_id` | `B001` … `B013` |
+| `start_line` / `end_line` | posição no arquivo-fonte |
+| `line_count` | linhas do bloco |
+| `classification` | `TRANSACTION_OPEN` · `PRECONDITION` · `DDL` · `POSTCHECK` · `TRANSACTION_CLOSE` · `SUPPORTING_SQL` |
+| `first_token` / `last_token` | após o strip |
+| `source_sha256` | SHA-256 do conteúdo **comentado** |
+| `stripped_sha256` | SHA-256 do conteúdo **após o strip** |
+| `prose_lines_detected` | deve ser `0` |
+
+Divergência de contagem, lacuna de ID, ID repetido, aninhamento, bloco vazio,
+linha rejeitada, ou `source_without_markers_and_new_block_sha256` diferente do
+blob de `origin/main` → **aborta antes de conectar ao banco**.
+
+### Invariantes transacionais da concatenação
+
+Cada um registrado como booleano: `first_statement_is_begin` ·
+`last_statement_is_commit` · `begin_count = 1` · `commit_count = 1` ·
+`no_intermediate_commit` · `no_rollback_on_happy_path` ·
+`set_local_inside_transaction` · `preconditions_before_first_ddl` ·
+`postchecks_after_ddl` · **`no_executable_fragment_omitted`**.
+
+O último passou a **`true`** após a PROD-0.6B-FUNCBODY: o `CREATE OR REPLACE`
+de `submit_sector_response` foi incorporado como bloco `B007`, byte-idêntico à
+SPEC §J e à Migration B canônica. Validado estaticamente (sem executar
+PostgreSQL) — a confirmação empírica ainda depende da execução real do Tier 1,
+que segue não disparada.
 
 ## 3. Registro por cenário — um por cenário
 
@@ -91,13 +125,13 @@ Qualquer contagem de marcador diferente de `1`, qualquer linha rejeitada, ou
 | Cenário | Campo adicional |
 | --- | --- |
 | `C01` | `pg_get_function_result_literal` — a **string exata** devolvida pelo PostgreSQL 17, conferida contra o contrato canônico |
-| `E02` | `LINEAGE_MANIFEST_EXPECTED_COUNT` (45) e `LINEAGE_MANIFEST_OBSERVED_COUNT` |
-| `E02` | `ordered_path_list_hash` · `ordered_blob_hash_list` · `ordered_sha256_list` |
-| `E02` | `lineage_first_item` · `lineage_last_item` |
-| `E02` | `migration_a_present` · `hardening_h_present` · `staging_b_absent` — os três booleanos |
-| `E02` | `incompatible_migrations` — as que não rodam em PostgreSQL puro, com o motivo |
-| `E02` | `stubs_required` — stubs criados para viabilizar o replay |
-| `E02` | `supabase_deviations` — desvios conhecidos em relação ao ambiente real |
+| `S02` | `LINEAGE_MANIFEST_EXPECTED_COUNT` (45) e `LINEAGE_MANIFEST_OBSERVED_COUNT` |
+| `S02` | `ordered_path_list_hash` · `ordered_blob_hash_list` · `ordered_sha256_list` |
+| `S02` | `lineage_first_item` · `lineage_last_item` |
+| `S02` | `migration_a_present` · `hardening_h_present` · `staging_b_absent` — os três booleanos |
+| `S02` | `incompatible_migrations` — as que não rodam em PostgreSQL puro, com o motivo |
+| `S02` | `stubs_required` — stubs criados para viabilizar o replay |
+| `S02` | `supabase_deviations` — desvios conhecidos em relação ao ambiente real |
 | `K01`–`K03` | `k_behavior` — `visible`, `response_count`, `response_count_label`, presença/ausência dos agregados, `suppression_reason` |
 | `L02` | `lock_timeout_measured_ms` — tempo real até o erro |
 | `L03` | `attempt_count` (esperado **1**) · `psql_processes_started` · `backend_pids` · `single_attempt_timestamp` |
@@ -165,12 +199,12 @@ própria de teste (UUIDv5), e-mails em `example.invalid`, nomes marcados
 
 ## 8. Critério de conclusão
 
-A PROD-0.6D conclui quando os **55** cenários de L1/L2 tiverem registro
+A PROD-0.6D conclui quando os **68** cenários de L1/L2 tiverem registro
 completo e classificação. A contagem é **derivada da tabela canônica** da
 `PROD06_SCENARIO_MATRIX.md` §9, e a validação fail-closed exige
 `count_documented = count_parsed` e a **mesma contagem nos três documentos**.
 
-**55 `PASS` não autorizam promoção.** Continuam obrigatórios:
+**68 `PASS` não autorizam promoção.** Continuam obrigatórios:
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED` · aprovação humana de locks e timeouts ·
 A aplicada e comprovada · H aplicado e comprovado · inventário produtivo
 repetido · `project_ref` reconfirmado · trilha ACL concluída antes da ativação
