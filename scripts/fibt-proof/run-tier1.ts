@@ -89,7 +89,7 @@ async function schemaHash(): Promise<string> {
   return sha256(normalized);
 }
 
-const ACL_QUERY = readFileSync(`${RUNNER_TEMP}/acl-block.sql`, "utf8");
+const ACL_QUERY = readFileSync(`${RUNNER_TEMP}/migration-b-acl-evidence.sql`, "utf8");
 async function aclFingerprint(): Promise<string> {
   const r = await runSql(ACL_QUERY);
   if (r.code !== 0) return "UNAVAILABLE";
@@ -246,7 +246,7 @@ function rec(
 // Tier 1 Launch Gate — T01 a T17
 // ============================================================================
 
-const extraction = JSON.parse(readFileSync(`${RUNNER_TEMP}/extraction-sql.json`, "utf8"));
+const extraction = JSON.parse(readFileSync(`${RUNNER_TEMP}/extraction-transaction.json`, "utf8"));
 
 async function main(): Promise<void> {
   const version = await (async () => {
@@ -256,19 +256,31 @@ async function main(): Promise<void> {
   console.log(`PostgreSQL: ${version}`);
   if (!/PostgreSQL 17\./.test(version)) fatal("servidor não é PostgreSQL 17");
 
-  // T01 — extração integral e hashes (validada pelo extrator; registrada aqui)
+  // T01 — extração multibloco íntegra (13 blocos), hashes e E18 (validados
+  // pelo extrator; registrados aqui). B001–B013, corpo obrigatório de
+  // submit_sector_response em B007 — sem ele o caminho feliz não pode passar.
+  const e18Pass = extraction.e18?.result === "PASS";
   records.push({
     scenario_id: "T01", scenario_group: "extração",
-    expected_result: "bloco extraído integralmente, três hashes registrados, correspondência provada",
-    observed_result: `correspondence_proven=${extraction.correspondence_proven}, rejected_lines=${extraction.rejected_lines}`,
+    expected_result: "13 blocos extraídos integralmente, hashes congelados conferidos, E18 (REQUIRED_FUNCTION_BODY_PRESENT) = PASS",
+    observed_result: `correspondence_proven=${extraction.correspondence_proven}, rejected_lines=${extraction.rejected_lines}, observed_block_count=${extraction.observed_block_count}, e18=${extraction.e18?.result}`,
     sqlstate: "", schema_hash_before: "", schema_hash_after: "",
     acl_fingerprint_before: "", acl_fingerprint_after: "", elapsed_ms: 0,
     extra: {
       source_sha256: extraction.source_sha256,
-      extracted_block_sha256: extraction.extracted_block_sha256,
-      executed_sql_sha256: extraction.executed_sql_sha256,
+      aggregate_transaction_sha256: extraction.aggregate_transaction_sha256,
+      aggregate_all_blocks_sha256: extraction.aggregate_all_blocks_sha256,
+      b007_function_sha256: extraction.b007_function_sha256,
+      e18: extraction.e18,
+      invariants: extraction.invariants,
     },
-    classification: extraction.correspondence_proven && extraction.rejected_lines === 0 ? "PASS" : "FAIL",
+    classification:
+      extraction.correspondence_proven &&
+      extraction.rejected_lines === 0 &&
+      extraction.observed_block_count === 13 &&
+      e18Pass
+        ? "PASS"
+        : "FAIL",
   });
   console.log(`${records[0]!.classification} T01 — ${records[0]!.observed_result}`);
 

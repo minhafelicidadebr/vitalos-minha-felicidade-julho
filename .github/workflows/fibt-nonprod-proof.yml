@@ -91,23 +91,23 @@ jobs:
           docker exec -i "$PG_CONTAINER_ID" pg_dump --version
           docker inspect --format '{{index .RepoDigests 0}}' postgres:17 || echo "digest indisponível"
 
-      - name: Extrair o bloco transacional do draft
+      - name: Extrair a transação produtiva do draft (B001–B011)
         run: |
           set -euo pipefail
-          bun run scripts/fibt-proof/extract-block.ts SQL "$RUNNER_TEMP/migration-b-block.sql" \
-            | tee "$RUNNER_TEMP/extraction-sql.json"
+          bun run scripts/fibt-proof/extract-block.ts TRANSACTION "$RUNNER_TEMP/migration-b-transaction.sql" \
+            | tee "$RUNNER_TEMP/extraction-transaction.json"
 
-      - name: Extrair o bloco de ACL do draft
+      - name: Extrair a evidência/ACL do draft (B012–B013)
         run: |
           set -euo pipefail
-          bun run scripts/fibt-proof/extract-block.ts ACL "$RUNNER_TEMP/acl-block.sql" \
-            | tee "$RUNNER_TEMP/extraction-acl.json"
+          bun run scripts/fibt-proof/extract-block.ts ACL_EVIDENCE "$RUNNER_TEMP/migration-b-acl-evidence.sql" \
+            | tee "$RUNNER_TEMP/extraction-acl-evidence.json"
 
       - name: Tier 1 Launch Gate (T01–T17)
         run: |
           set -euo pipefail
           bun run scripts/fibt-proof/run-tier1.ts \
-            "$RUNNER_TEMP/migration-b-block.sql" \
+            "$RUNNER_TEMP/migration-b-transaction.sql" \
             "$RUNNER_TEMP/tier1-evidence.json"
 
       - name: Publicar evidência
@@ -117,8 +117,8 @@ jobs:
           name: fibt-tier1-evidence
           path: |
             ${{ runner.temp }}/tier1-evidence.json
-            ${{ runner.temp }}/extraction-sql.json
-            ${{ runner.temp }}/extraction-acl.json
+            ${{ runner.temp }}/extraction-transaction.json
+            ${{ runner.temp }}/extraction-acl-evidence.json
           retention-days: 30
 
       # RUNNER_TEMP é descartado com o runner efêmero, mas a remoção é
@@ -126,5 +126,5 @@ jobs:
       - name: Remover temporários
         if: always()
         run: |
-          rm -f "$RUNNER_TEMP/migration-b-block.sql" "$RUNNER_TEMP/acl-block.sql" || true
+          rm -f "$RUNNER_TEMP/migration-b-transaction.sql" "$RUNNER_TEMP/migration-b-acl-evidence.sql" || true
           ls -la "$RUNNER_TEMP" || true
