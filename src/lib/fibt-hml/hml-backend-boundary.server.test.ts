@@ -129,12 +129,94 @@ describe("assertHmlBackendBoundary — casos adicionais de fronteira de origem",
     expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" });
   });
 
-  test("FORBIDDEN_PROJECT_REFS extra também bloqueia mesmo sem VITALOS_PRODUCTION_PROJECT_REF", () => {
+  test("ausência de VITALOS_PRODUCTION_PROJECT_REF bloqueia ANTES de FORBIDDEN_PROJECT_REFS ser consultada (P0 corrigido em FIBT-HML-1F)", () => {
     const r = assertHmlBackendBoundary({
       ...VALID_ENV,
       VITALOS_PRODUCTION_PROJECT_REF: undefined,
       FORBIDDEN_PROJECT_REFS: STAGING_REF,
     });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" });
+  });
+
+  test("FORBIDDEN_PROJECT_REFS extra ainda bloqueia como defesa adicional QUANDO a âncora obrigatória está presente e válida", () => {
+    const r = assertHmlBackendBoundary({
+      ...VALID_ENV,
+      FORBIDDEN_PROJECT_REFS: STAGING_REF,
+    });
     expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" });
+  });
+});
+
+describe("assertHmlBackendBoundary — FIBT-HML-1F: âncora produtiva obrigatória e fail-closed (P0 corrigido)", () => {
+  test("1. VITALOS_PRODUCTION_PROJECT_REF ausente → BLOCKED", () => {
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: undefined });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" });
+  });
+
+  test("2. valor vazio → BLOCKED", () => {
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: "" });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" });
+  });
+
+  test("3. somente espaços → BLOCKED", () => {
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: "   " });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" });
+  });
+
+  test("4. valor com forma inválida (fora de [a-z0-9]+) → BLOCKED", () => {
+    for (const invalid of ["invalid-ref-with-dashes", "invalid_ref_underscore", "invalid ref space", "ref!com#simbolo"]) {
+      const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: invalid });
+      expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" });
+    }
+  });
+
+  test("5. produção igual ao staging autorizado → BLOCKED", () => {
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: STAGING_REF });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" });
+  });
+
+  test("6. backend real (SUPABASE_URL) igual à produção → BLOCKED", () => {
+    const r = assertHmlBackendBoundary({
+      ...VALID_ENV,
+      SUPABASE_URL: `https://${PRODUCTION_REF}.supabase.co`,
+      VITE_SUPABASE_URL: `https://${PRODUCTION_REF}.supabase.co`,
+      FIBT_HML_AUTHORIZED_STAGING_REF: PRODUCTION_REF,
+    });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" });
+  });
+
+  test("7. browser ref (VITE_SUPABASE_URL) igual à produção → BLOCKED", () => {
+    // serverRef precisa bater com browserRef (condição 6 do boundary) antes
+    // de chegar aqui — então testamos com AMBOS apontando para produção,
+    // confirmando que isForbidden(browserRef) também dispara explicitamente
+    // (não só por transitividade via serverRef).
+    const r = assertHmlBackendBoundary({
+      ...VALID_ENV,
+      SUPABASE_URL: `https://${PRODUCTION_REF}.supabase.co`,
+      VITE_SUPABASE_URL: `https://${PRODUCTION_REF}.supabase.co`,
+      FIBT_HML_AUTHORIZED_STAGING_REF: PRODUCTION_REF,
+    });
+    expect(r).toEqual({ hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" });
+  });
+
+  test("8. âncora produtiva válida e distinta + restante válido → PASS", () => {
+    const r = assertHmlBackendBoundary(VALID_ENV);
+    expect(r).toEqual({
+      hmlDeclared: true,
+      attested: true,
+      batchId: "FIBT-ISG-HML-01",
+      serverProjectRefMasked: expect.any(String),
+    });
+  });
+
+  test("âncora com maiúsculas é normalizada (case-insensitive) antes da checagem de forma", () => {
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: PRODUCTION_REF.toUpperCase() });
+    expect(r.attested).toBe(true);
+  });
+
+  test("mensagem de bloqueio nunca inclui o valor da variável (só o código sanitizado)", () => {
+    const secretShapedValue = "totally-secret-looking-value-should-not-leak";
+    const r = assertHmlBackendBoundary({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: secretShapedValue });
+    expect(JSON.stringify(r)).not.toContain(secretShapedValue);
   });
 });

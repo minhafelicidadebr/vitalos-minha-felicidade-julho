@@ -53,6 +53,7 @@ export type HmlBackendBoundaryFailureCode =
   | "HML_BROWSER_PROJECT_REF_MISSING"
   | "HML_PROJECT_REF_MISMATCH"
   | "HML_PROJECT_REF_NOT_AUTHORIZED"
+  | "HML_PRODUCTION_PROJECT_REF_MISSING"
   | "HML_PRODUCTION_TARGET_FORBIDDEN"
   | "HML_FRONTEND_ORIGIN_INVALID";
 
@@ -108,18 +109,32 @@ export function assertHmlBackendBoundary(env: HmlBackendBoundaryEnv): HmlBackend
     return { hmlDeclared: true, attested: false, code: "HML_PROJECT_REF_NOT_AUTHORIZED" };
   }
 
-  // 8. nenhum corresponde a forbiddenRefs() — âncora INDEPENDENTE
-  //    (VITALOS_PRODUCTION_PROJECT_REF, público e versionado), nunca derivada
-  //    de SUPABASE_URL: checar serverRef contra um ref também derivado de
-  //    SUPABASE_URL seria tautológico. Também cobre o próprio authorizedRef
-  //    declarado ser, por engano, o ref de produção.
+  // 8a. Âncora de produção — VITALOS_PRODUCTION_PROJECT_REF é OBRIGATÓRIA,
+  //     nunca opcional. P0 confirmado na revisão FIBT-HML-1E-LITE: a versão
+  //     anterior tratava a AUSÊNCIA da variável como "nada para comparar" e
+  //     deixava o boundary seguir adiante — fail-open disfarçado de
+  //     fail-closed. Ausente, vazia, só espaço ou com forma inválida
+  //     (qualquer coisa fora de [a-z0-9]+ depois de normalizar) bloqueiam
+  //     AQUI, antes de isForbidden() sequer rodar — nunca um PASS silencioso
+  //     por falta de âncora. Nunca derivada de SUPABASE_URL/VITE_SUPABASE_URL/
+  //     FIBT_HML_AUTHORIZED_STAGING_REF: precisa continuar sendo uma fonte
+  //     independente (comparar contra um ref derivado da própria variável sob
+  //     teste seria tautológico).
   const productionRef = env.VITALOS_PRODUCTION_PROJECT_REF?.trim().toLowerCase();
+  const PRODUCTION_REF_SHAPE = /^[a-z0-9]+$/;
+  if (!productionRef || !PRODUCTION_REF_SHAPE.test(productionRef)) {
+    return { hmlDeclared: true, attested: false, code: "HML_PRODUCTION_PROJECT_REF_MISSING" };
+  }
+
+  // 8b. nenhum ref em uso (staging autorizado, servidor, navegador) pode
+  //     coincidir com a âncora de produção — nem com a lista extra opcional
+  //     (mesma convenção de forbiddenRefs(), staging-guard.ts).
   const extraForbidden = (env.FORBIDDEN_PROJECT_REFS ?? "")
     .split(",")
     .map((r) => r.trim().toLowerCase())
     .filter(Boolean);
-  const isForbidden = (ref: string) => (productionRef !== undefined && ref === productionRef) || extraForbidden.includes(ref);
-  if (isForbidden(serverRef) || isForbidden(authorizedRef)) {
+  const isForbidden = (ref: string) => ref === productionRef || extraForbidden.includes(ref);
+  if (isForbidden(serverRef) || isForbidden(authorizedRef) || isForbidden(browserRef)) {
     return { hmlDeclared: true, attested: false, code: "HML_PRODUCTION_TARGET_FORBIDDEN" };
   }
 

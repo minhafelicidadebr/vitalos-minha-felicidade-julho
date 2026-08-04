@@ -57,4 +57,12 @@ describe("buildHmlAttestationPayload — endpoint /api/fibt-hml/attestation (Fas
     expect(serialized).not.toContain("supabase");
     expect(serialized).not.toContain(STAGING_REF);
   });
+
+  test("FIBT-HML-1F: âncora produtiva ausente → BLOCKED, 503, código específico (P0 corrigido)", () => {
+    const r = buildHmlAttestationPayload({ ...VALID_ENV, VITALOS_PRODUCTION_PROJECT_REF: undefined });
+    expect(r).toEqual({
+      httpStatus: 503,
+      body: { status: "BLOCKED", failure_code: "HML_PRODUCTION_PROJECT_REF_MISSING" },
+    });
+  });
 });
