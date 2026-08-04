@@ -37,6 +37,53 @@ import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 import { recordSurveyFunnelSnapshot, loadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
+import {
+  resolveHmlMode,
+  resolveHmlRouteDisplayState,
+  HML_PRE_SUBMIT_REVIEW_TEXT,
+  type HmlModeResolution,
+  type HmlAttestationPayload,
+} from "@/lib/fibt-hml/hml-frontend-guard";
+import { HmlHomologationBanner } from "@/app/fibt-hml/HmlHomologationBanner";
+import { HmlPersonaConfirmationGate } from "@/app/fibt-hml/HmlPersonaConfirmationGate";
+
+/**
+ * Resolve o modo de homologação (FIBT-HML-1B, endurecido em FIBT-HML-1D).
+ * `import.meta.env` já é estático em build time (Vite) — seguro em SSR. A
+ * origem atual e a atestação server-side só existem no navegador; ausentes
+ * em SSR, a resolução fica `blocked: true` até a hidratação preencher os
+ * dois (resolveHmlMode() é fail-closed — nunca `active: true` antes disso).
+ *
+ * A atestação só é consultada quando VITE_FIBT_HML_ENABLED="true" — em
+ * qualquer deployment normal (produção real), nenhuma requisição extra é
+ * feita a /api/fibt-hml/attestation.
+ */
+function useHmlMode(): HmlModeResolution {
+  const [currentOrigin, setCurrentOrigin] = useState<string | undefined>(undefined);
+  const [attestation, setAttestation] = useState<HmlAttestationPayload | undefined>(undefined);
+
+  useEffect(() => {
+    setCurrentOrigin(window.location.origin);
+  }, []);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_FIBT_HML_ENABLED !== "true") return;
+    let active = true;
+    fetch("/api/fibt-hml/attestation")
+      .then((r) => r.json())
+      .then((body) => {
+        if (active) setAttestation(body as HmlAttestationPayload);
+      })
+      .catch(() => {
+        if (active) setAttestation({ status: "BLOCKED", failure_code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return resolveHmlMode(import.meta.env as unknown as Record<string, string | undefined>, currentOrigin, attestation);
+}
 
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({ meta: [{ title: "Responder Pesquisa — 4 Lentes VitalOS™" }] }),
@@ -52,11 +99,43 @@ const INVALID_TOKEN_MESSAGE: Record<string, string> = {
   cloud_adapter_missing: "A coleta de respostas está temporariamente indisponível. Tente novamente em instantes.",
 };
 
+/**
+ * Envolve o conteúdo final (o formulário já resolvido) com a confirmação de
+ * persona quando HML está atestado — extraído para ser testável por
+ * RENDERIZAÇÃO (Fase 9.2), não por leitura de texto-fonte. `key={token}` +
+ * o reset interno do próprio gate (Fase 8) garantem que trocar de convite
+ * bloqueia de novo, mesmo sem remontagem completa da árvore.
+ */
+export function HmlGatedSurveyContent({
+  hmlMode,
+  token,
+  children,
+}: {
+  hmlMode: HmlModeResolution;
+  token: string;
+  children: React.ReactNode;
+}) {
+  if (!hmlMode.active) return <>{children}</>;
+  return (
+    <HmlPersonaConfirmationGate key={token} token={token}>
+      {children}
+    </HmlPersonaConfirmationGate>
+  );
+}
+
 function ResponderTokenPage() {
   const { token } = Route.useParams();
   const [resolution, setResolution] = useState<InviteResolution | "loading">("loading");
+  const hmlMode = useHmlMode();
+  const display = resolveHmlRouteDisplayState(hmlMode);
+  const banner = display.kind === "HML_ATTESTED" ? <HmlHomologationBanner batchId={display.batchId} /> : null;
 
   useEffect(() => {
+    // Fase 4: em modo HML bloqueado, nem consulta o convite — o servidor já
+    // recusaria (hml-backend-boundary.server.ts), mas não há motivo para
+    // gastar o round-trip nem mostrar "verificando seu link" para um estado
+    // que já se sabe bloqueado.
+    if (display.kind === "HML_BLOCKED") return;
     let active = true;
     checkInviteToken({ data: { token, packId: PILOT_PACK_ID } })
       .then((r) => active && setResolution(r))
@@ -64,26 +143,58 @@ function ResponderTokenPage() {
     return () => {
       active = false;
     };
-  }, [token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, display.kind]);
+
+  // Estado visual HML_BLOCKED (Fase 4/7): HML foi declarado para este
+  // deployment, mas a fronteira/atestação ainda não confirmou o backend —
+  // nunca mostra o formulário, nunca cai de volta para modo comum.
+  if (display.kind === "HML_BLOCKED") {
+    return <TokenErrorScreen message={display.message} />;
+  }
 
   if (resolution === "loading") {
-    return <ResolvingScreen />;
+    return (
+      <>
+        {banner}
+        <ResolvingScreen />
+      </>
+    );
   }
 
   if (!resolution.valid) {
     return (
-      <TokenErrorScreen
-        message={INVALID_TOKEN_MESSAGE[resolution.reason] ?? "Esta pesquisa não está disponível no momento."}
-      />
+      <>
+        {banner}
+        <TokenErrorScreen
+          message={INVALID_TOKEN_MESSAGE[resolution.reason] ?? "Esta pesquisa não está disponível no momento."}
+        />
+      </>
     );
   }
 
   const survey = getWaveSurvey(PILOT_PACK_ID, resolution.instrument);
   if (!survey) {
-    return <TokenErrorScreen message="Esta pesquisa não está disponível no momento." />;
+    return (
+      <>
+        {banner}
+        <TokenErrorScreen message="Esta pesquisa não está disponível no momento." />
+      </>
+    );
   }
 
-  return <SurveyFlow survey={survey} token={token} waveId={resolution.waveId} />;
+  const surveyFlow = (
+    <SurveyFlow survey={survey} token={token} waveId={resolution.waveId} hmlActive={hmlMode.active} />
+  );
+
+  return (
+    <>
+      {banner}
+      <HmlGatedSurveyContent hmlMode={hmlMode} token={token}>
+        {surveyFlow}
+      </HmlGatedSurveyContent>
+    </>
+  );
 }
 
 // ─── Fluxo do formulário ──────────────────────────────────────────────────────
@@ -92,10 +203,12 @@ function SurveyFlow({
   survey,
   token,
   waveId,
+  hmlActive = false,
 }: {
   survey: SurveyDefinition;
   token: string;
   waveId: string;
+  hmlActive?: boolean;
 }) {
   const [responses, setResponses] = useState<SurveyResponses>({});
   const [submitted, setSubmitted] = useState(false);
@@ -363,6 +476,14 @@ function SurveyFlow({
 
         {/* Submit */}
         <div className="pb-12">
+          {hmlActive && (
+            <p
+              role="note"
+              className="mb-4 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200"
+            >
+              {HML_PRE_SUBMIT_REVIEW_TEXT}
+            </p>
+          )}
           <button
             onClick={handleSubmit}
             disabled={!allAnswered || submitting}
