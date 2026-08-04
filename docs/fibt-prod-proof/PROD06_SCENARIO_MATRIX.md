@@ -76,6 +76,55 @@ Sem P13n, a matriz provaria que o predicado bloqueia, mas não que ele
 **discrimina**. Foi exatamente esse falso positivo permanente que a revisão
 PROD-0.5F encontrou.
 
+### P16 — `UNKNOWN_CATALOG_DEPENDENCY`
+
+**Fixture:** dependência sobre `invite_token` com `classid` **fora** dos sete
+catálogos reconhecidos — modelo sintético de `pg_statistic_ext` ou outro
+catálogo não tratado.
+
+**Resultado esperado:**
+
+- `classid` classificado como **desconhecido**;
+- precondition **aborta**;
+- metadados registrados (`classid`, `objid`, `objsubid`, `deptype`);
+- **nenhum DDL iniciado**;
+- schema preservado;
+- **dependência desconhecida nunca é ignorada**.
+
+O ramo "`classid` não tratado → aborta" é decisão de desenho da §3.4 do
+rascunho; sem cenário próprio, essa decisão ficaria sem prova.
+
+### P17 — `POLICY_RACE`
+
+Cenário **concorrente**, em dois subcenários.
+
+#### P17-A — policy criada antes da precondition
+
+Sessão concorrente cria uma policy **antes** do inventário transacional →
+`policy_count > 0` → a migration **aborta antes do DDL**.
+
+#### P17-B — tentativa depois do `ACCESS EXCLUSIVE`
+
+A migration adquire `ACCESS EXCLUSIVE`; uma terceira sessão tenta criar
+policy. Observar `pg_locks` e `pg_stat_activity`.
+
+**A operação concorrente não pode produzir um `PASS` silencioso.** Depois do
+`COMMIT` ou `ROLLBACK`, executar a **releitura externa** do inventário.
+
+| Resultado | Aceitável? |
+| --- | --- |
+| operação concorrente bloqueada até o fim da transação, **e depois detectada** pelo pós-check externo | ✅ |
+| migration aborta porque a policy ficou visível antes da precondition | ✅ |
+| migration classificada `PASS` **com** policy presente | ❌ |
+| releitura externa **não** detecta o drift | ❌ |
+
+Registrar `SQLSTATE`, timestamps, locks e `POLICY_COUNT_AFTER_COMMIT`.
+
+> **Não presumir** o modo de lock que `CREATE POLICY` adquire no PostgreSQL 17.
+> O cenário **mede** o comportamento real; qualquer afirmação prévia sobre
+> bloqueio seria especulação, e é justamente o que o cenário existe para
+> substituir.
+
 ## 3. Falhas injetadas depois do DDL
 
 Os três cenários que provam rollback **de DDL já executado** — o caso que
@@ -86,9 +135,27 @@ importa, e que "erro antes do primeiro DDL" não cobre.
 | D01 | depois do `CREATE OR REPLACE submit_sector_response` | corpo anterior restaurado · ACL vigente restaurada |
 | D02 | depois do `DROP CONSTRAINT` | FK restaurada com identidade integral |
 | D03 | **depois do `DROP COLUMN`** | coluna restaurada · FK restaurada · funções restauradas · schema antes ≡ depois · **nenhum lock ou transação órfã** |
+| D04 | **depois de um pós-check bem-sucedido**, antes do `COMMIT` | ver abaixo |
 
 D03 é **obrigatório**. A verificação de ausência de transação órfã usa
 `pg_stat_activity`; a de locks, `pg_locks`.
+
+### D04 — `FAILURE_AFTER_POSTCHECK`
+
+**Estado:** A e H presentes · preconditions passam · `CREATE OR REPLACE`
+executado · FK removida · coluna removida · **pós-checks normais passam** ·
+falha deliberada injetada **imediatamente após um pós-check e antes do
+`COMMIT`**.
+
+**Asserções:** a transação aborta · FK reaparece · coluna reaparece · a função
+volta ao corpo anterior quando aplicável · schema antes ≡ depois · nenhum lock
+permanece · nenhuma transação fica órfã · `SQLSTATE` registrado.
+
+**Por que é distinto de D03.** D03 prova que uma falha *no meio* desfaz o DDL
+anterior. D04 prova que uma falha **na etapa final** — depois de tudo ter dado
+certo, inclusive as verificações — ainda protege **todos** os DDLs anteriores.
+É o cenário que justifica os pós-checks viverem *dentro* do `BEGIN` em vez de
+depois do `COMMIT`.
 
 ## 4. Locks e concorrência
 
@@ -96,7 +163,7 @@ D03 é **obrigatório**. A verificação de ausência de transação órfã usa
 | --- | --- | --- |
 | L01 | sessão concorrente segurando `wave_responses` | a migration espera |
 | L02 | `lock_timeout` de 5s | erro `55P03` medido; tempo real registrado |
-| L03 | nenhuma repetição automática | uma única tentativa nos logs |
+| L03 | nenhuma repetição automática | `ATTEMPT_COUNT = 1` — ver abaixo |
 | L04 | advisory lock concorrente com a mesma chave | a segunda execução serializa |
 | L05 | duas execuções administrativas simultâneas | uma conclui, a outra espera ou falha por timeout — nunca ambas aplicam |
 | L06 | escrita **iniciada antes** do `ACCESS EXCLUSIVE` | a migration espera a escrita terminar |
@@ -108,6 +175,22 @@ D03 é **obrigatório**. A verificação de ausência de transação órfã usa
 **L08 não é opcional.** Sem uma sessão externa observando o catálogo de locks,
 "o `ACCESS EXCLUSIVE` permaneceu adquirido" seria inferido do sucesso da
 migration — raciocínio circular.
+
+### L03 — evidência de `ATTEMPT_COUNT = 1`
+
+Ausência textual de "retry" no log **não é prova**: prova a ausência de uma
+palavra, não a ausência de uma segunda tentativa. L03 registra:
+
+- número de **invocações do cenário**;
+- número de **processos `psql` iniciados**;
+- **backend PIDs** observados;
+- conexões relevantes em `pg_stat_activity`;
+- **timestamp da única tentativa**;
+- `SQLSTATE` da falha;
+- **ausência de segundo início do mesmo `scenario_id`**.
+
+**Resultado esperado: `ATTEMPT_COUNT = 1`.** Um segundo backend PID para o
+mesmo `scenario_id` é `FAIL`, ainda que o log não contenha a palavra "retry".
 
 ## 5. Contrato de retorno e referências residuais
 
@@ -169,29 +252,98 @@ rollback de queda de conexão.
 **Proibido tocar** `wave_responses` · `wave_invites` · `waves` ·
 `wave_cohorts` · qualquer tabela funcional da FIB-T.
 
-## 9. Contagem e critério de conclusão
+## 9. Tabela canônica de cenários
 
-| Grupo | Cenários |
-| --- | --- |
-| Estruturais | 2 |
-| Caminho feliz | 1 |
-| Preconditions | 15 + 1 controle negativo |
-| Falhas pós-DDL | 3 |
-| Locks | 10 |
-| Contrato e residuais | 7 |
-| Abaixo de *k* | 3 |
-| Aparato | 9 |
-| **L1 + L2 — total** | **51** |
-| Executor Lovable (L3) | 5 |
+**Esta tabela é a fonte única.** A contagem é **derivada da quantidade de
+`scenario_id` únicos** aqui — não mantida à mão em vários lugares.
 
-**Critério de conclusão da PROD-0.6D:** os 51 cenários de L1/L2 executados,
-cada um classificado `PASS` · `FAIL` · `INCONCLUSIVE`, com evidência conforme
+| `scenario_id` | Camada | Categoria | Resultado esperado | Evidência obrigatória |
+| --- | --- | --- | --- | --- |
+| `E01` | L1 | estrutural | harness monta sem erro | objetos criados · `postgres_version` |
+| `E02` | L2 | estrutural | replay do manifesto congelado | `LINEAGE_MANIFEST_*` · listas ordenadas · classificação |
+| `H01` | L1+L2 | caminho feliz | `COMMIT` conclui | 9 asserções da §1 · `schema_hash_*` · `acl_fingerprint_*` |
+| `P01` | L1 | precondition | aborta (drift operacional) | `sqlstate` · `schema_hash_*` |
+| `P02` | L1 | precondition | aborta (perda de vínculo) | `sqlstate` · `schema_hash_*` |
+| `P03` | L1 | precondition | aborta (token órfão) | `sqlstate` · `schema_hash_*` |
+| `P04` | L1 | precondition | aborta (token duplicado) | `sqlstate` · `schema_hash_*` |
+| `P05` | L1 | precondition | aborta (divergência onda–convite) | `sqlstate` · `schema_hash_*` |
+| `P06` | L1 | precondition | aborta (inconsistência organizacional) | `sqlstate` · `schema_hash_*` |
+| `P07` | L1 | precondition | aborta (policy presente) | `sqlstate` · metadados de policy |
+| `P08` | L1 | precondition | aborta (FK com nome errado) | `sqlstate` · `schema_hash_*` |
+| `P09` | L1 | precondition | aborta (FK com identidade errada) | `sqlstate` · `schema_hash_*` |
+| `P10` | L1 | precondition | aborta (objeto de A ausente) | `sqlstate` · `schema_hash_*` |
+| `P11` | L1 | precondition | aborta (contrato de H divergente) | `sqlstate` · contrato observado |
+| `P12` | L1 | precondition | aborta (view dependente) | `sqlstate` · metadados de dependência |
+| `P13` | L1 | precondition | aborta (trigger com `invite_token`) | `sqlstate` · metadados |
+| `P13n` | L1 | controle negativo | **não** bloqueia | `COMMIT` concluído |
+| `P14` | L1 | precondition | aborta (CHECK/default/índice) | `sqlstate` · metadados |
+| `P15` | L1 | precondition | aborta (assinatura errada) | `sqlstate` |
+| `P16` | L1 | precondition | aborta (`classid` desconhecido) | `sqlstate` · `classid`/`objid`/`deptype` |
+| `P17-A` | L1 | concorrência | aborta antes do DDL | `policy_count` · `sqlstate` · timestamps |
+| `P17-B` | L1 | concorrência | bloqueio + detecção externa | `pg_locks` · `pg_stat_activity` · `POLICY_COUNT_AFTER_COMMIT` |
+| `D01` | L1 | rollback pós-DDL | corpo e ACL restaurados | `schema_hash_*` · `acl_fingerprint_*` |
+| `D02` | L1 | rollback pós-DDL | FK restaurada | `schema_hash_*` |
+| `D03` | L1 | rollback pós-DDL | coluna e FK restauradas | `schema_hash_*` · `locks_observed` · `orphan_transactions` |
+| `D04` | L1 | rollback pós-DDL | tudo restaurado após pós-check | `schema_hash_*` · `sqlstate` · `locks_observed` |
+| `L01` | L1 | locks | migration espera | `pg_locks` · timestamps |
+| `L02` | L1 | locks | `55P03` em ~5s | `lock_timeout_measured_ms` |
+| `L03` | L1 | locks | `ATTEMPT_COUNT = 1` | PIDs · invocações · `pg_stat_activity` |
+| `L04` | L1 | locks | advisory serializa | timestamps |
+| `L05` | L1 | locks | nunca duas aplicações | `sqlstate` · timestamps |
+| `L06` | L1 | locks | migration espera escrita anterior | `pg_locks` |
+| `L07` | L1 | locks | escrita posterior bloqueada | `pg_locks` |
+| `L08` | L1 | locks | lock `granted` até o `COMMIT` | `access_exclusive_granted_window` |
+| `L09` | L1 | locks | `SET LOCAL` ativo no bloco | `current_setting` observado |
+| `L10` | L1 | locks | timeout por statement | `elapsed_ms` |
+| `C01` | L1 | contrato | retorno canônico | `pg_get_function_result_literal` |
+| `C02` | L1 | contrato | aborta (ordem trocada) | `sqlstate` |
+| `C03` | L1 | contrato | aborta (tipo trocado) | `sqlstate` |
+| `C04` | L1 | contrato | aborta (coluna ausente) | `sqlstate` |
+| `C05` | L1 | contrato | aborta (nome com sufixo) | `sqlstate` |
+| `R01` | L1 | residual | detecta referência qualificada | `sqlstate` |
+| `R02` | L1 | controle negativo | **não** detecta parâmetro | `COMMIT` concluído |
+| `K01` | L1 | abaixo de *k* | suprimido em n=4 | `k_behavior` |
+| `K02` | L1 | abaixo de *k* | visível em n=5 | `k_behavior` |
+| `K03` | L1 | abaixo de *k* | visível em n=7 | `k_behavior` |
+| `X01` | — | aparato | aborta (marcador ausente) | log de extração |
+| `X02` | — | aparato | aborta (marcador duplicado) | log de extração |
+| `X03` | — | aparato | aborta (hash divergente) | três SHA-256 |
+| `X04` | — | aparato | aborta (linha inesperada) | log de extração |
+| `X05` | — | aparato | aborta (conteúdo não comentado) | log de extração |
+| `X06` | — | aparato | aborta (host remoto) | variável detectada, **sem valor** |
+| `X07` | — | aparato | aborta (input incorreto) | inputs recebidos |
+| `X08` | — | aparato | aborta (cliente de major errada) | `client_version` |
+| `X09` | — | aparato | rejeita comparação | chave de `restrict` observada |
+
+**`count_documented = 55`** — 55 `scenario_id` únicos de L1/L2.
+
+Executor Lovable (L3), fora desta contagem: `V01`–`V05` (5 cenários), em onda e
+autorização próprias.
+
+### Validação fail-closed da própria matriz
+
+Antes da PROD-0.6D, verificar mecanicamente:
+
+- **IDs únicos** — nenhum `scenario_id` repetido;
+- **nenhum cenário sem resultado esperado**;
+- **nenhum cenário sem evidência obrigatória**;
+- **`count_documented = count_parsed`** — a contagem declarada bate com as
+  linhas efetivamente presentes nesta tabela;
+- **matriz, checklist e schema de evidência com a mesma contagem**.
+
+Divergência entre os três documentos é `FAIL` do aparato, não detalhe
+editorial.
+
+## 10. Critério de conclusão
+
+A PROD-0.6D conclui quando os **55** cenários de L1/L2 tiverem sido executados
+e classificados `PASS` · `FAIL` · `INCONCLUSIVE`, com evidência conforme
 `PROD06_EVIDENCE_SCHEMA.md`.
 
 Um único `FAIL` em cenário de precondition ou de rollback é **NO-GO** para
 promoção. `INCONCLUSIVE` não conta como aprovação — conta como pendência.
 
-**Mesmo com 51/51 `PASS`**, a promoção continua bloqueada por
+**Mesmo com 55/55 `PASS`**, a promoção continua bloqueada por
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED`, pela aprovação humana de locks e
 timeouts, por A e H aplicadas e comprovadas, pelo inventário produtivo
 repetido, pelo `project_ref` reconfirmado e pela trilha ACL.

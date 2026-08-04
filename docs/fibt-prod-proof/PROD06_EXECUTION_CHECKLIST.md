@@ -58,9 +58,12 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] Runner **Linux** (`ubuntu-latest`) — service containers exigem.
 - [ ] Permissões do job: preferencialmente `contents: read` e nada mais.
 - [ ] `persist-credentials: false` no checkout.
-- [ ] **Nenhum** GitHub Environment produtivo.
+- [ ] **Nenhum** GitHub Environment — nem produtivo **nem de staging**.
 - [ ] **Nenhum** token OIDC solicitado.
-- [ ] **Nenhum** secret de banco no job.
+- [ ] **Nenhum** secret de banco no job — nem produtivo, **nem de staging**.
+- [ ] Ausentes do job: `SUPABASE_URL` · `DATABASE_URL` remoto · service role
+      key · anon key · token Lovable. A presença de qualquer uma **aborta antes
+      do harness**.
 - [ ] Host de conexão **rigidamente** `127.0.0.1` ou `localhost`.
 - [ ] Denylist ativa: `shlmzzchddohaytfakol` · prefixo `shlm` · domínio
       produtivo · qualquer host que não seja local.
@@ -79,9 +82,18 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] Registrados: imagem · digest · retorno de `SELECT version()`.
 - [ ] Cliente `psql`/`pg_dump` da **mesma major** do servidor — **não presumir**
       que o runner já traz a versão correta.
-- [ ] Estratégia de cliente escolhida entre A (dentro do container), B (job
-      container) ou C (instalação versionada) — decisão da PROD-0.6C.
-- [ ] Múltiplas sessões concorrentes possíveis (cenários L01–L10).
+- [ ] **`CLIENT_STRATEGY = SERVICE_CONTAINER_EXEC_STDIN`** — `psql` e `pg_dump`
+      executados **dentro** do service container, via `docker exec`, com ID
+      obtido de `job.services.pg17.id`.
+- [ ] SQL enviado por **stdin**:
+      `docker exec -i "$PG_CONTAINER_ID" psql … < "$RUNNER_TEMP/…sql"`.
+- [ ] **Não usar `docker cp`** · **não presumir workspace montado** no service
+      container.
+- [ ] Registrados: container ID (mascarado quando necessário) ·
+      `psql --version` · `pg_dump --version` · `SELECT version()` · imagem ·
+      digest.
+- [ ] Múltiplas sessões concorrentes possíveis (cenários L01–L10) — cada
+      `docker exec` é uma sessão independente.
 - [ ] `psql` em modo fail-fast (`ON_ERROR_STOP=1`).
 - [ ] Configuração pessoal de `psql` **não lida** (`--no-psqlrc`).
 
@@ -94,8 +106,9 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] Removido **exatamente um** prefixo de comentário esperado.
 - [ ] Linha em formato inesperado → **rejeita**.
 - [ ] Conteúdo **não comentado** no arquivo-fonte → **rejeita**.
-- [ ] SQL gerado **apenas** em diretório temporário do runner.
-- [ ] **Nunca** gravar SQL descomentado no repositório.
+- [ ] SQL gerado **apenas** em **`RUNNER_TEMP`**.
+- [ ] **Nunca** gravar SQL descomentado no repositório **nem dentro do
+      container** — o transporte é por stdin.
 - [ ] Registrados: SHA-256 do **arquivo-fonte** · do **bloco extraído** · do
       **SQL executado**.
 - [ ] Provado que o executado corresponde **integralmente** ao documentado.
@@ -108,23 +121,45 @@ entre marcadores.
 
 - [ ] **L1 `TARGETED_HARNESS`** montado: schema mínimo · stubs de `auth` e
       papéis · estado pré-A · A canônica · H canônico · baseline zero.
-- [ ] **L2 `MIGRATION_LINEAGE`** por replay ordenado, com a Migration B de
-      staging **explicitamente excluída**.
-- [ ] Registrados: lista exata · ordem · hashes · incompatibilidades com
-      PostgreSQL puro · stubs necessários · desvios em relação ao Supabase.
-- [ ] Classificação declarada: **integral** ou
-      **`MIGRATION_LINEAGE_PROOF_PARTIAL`**.
+- [ ] **L2 `MIGRATION_LINEAGE`** por replay do **manifesto congelado** —
+      **45 itens**, ordinal 1 a 45, prefixo lexicográfico até o Hardening H
+      inclusive. O runtime **não recalcula** o conjunto a partir do diretório.
+- [ ] `LINEAGE_MANIFEST_OBSERVED_COUNT = 45`.
+- [ ] `ordered_path_list_hash` = `c5c8e2ae…` ·
+      `ordered_blob_hash_list` = `f0619f68…` ·
+      `ordered_sha256_list` = `cbea0c5b…`.
+- [ ] SHA-256 calculado sobre o **conteúdo do blob** (LF canônico), **não**
+      sobre os bytes do working tree — `core.autocrlf` altera o segundo.
+- [ ] Denylist da B de staging ativa por **caminho**, **blob**
+      (`c0d35c06…`) e **SHA-256** (`3f2a6750…`) — aborta se aparecer.
+- [ ] Aborta se: faltar arquivo · surgir arquivo adicional · caminho mudar ·
+      ordem mudar · blob mudar · SHA-256 mudar · contagem ≠ 45 · commit-fonte
+      divergir.
+- [ ] Registrados: incompatibilidades com PostgreSQL puro · stubs necessários ·
+      desvios em relação ao Supabase.
+- [ ] Classificação declarada: **`INTEGRAL`** · **`PARTIAL`** · **`FAILED`**.
 
-Se parcial, **não promover como equivalência produtiva**.
+Se `PARTIAL` ou `FAILED`, **não promover como equivalência produtiva** — e
+**nunca** selecionar outro subconjunto para conseguir passar.
 
 ## Execução dos cenários
 
-- [ ] Os **51** cenários de L1/L2 executados (`PROD06_SCENARIO_MATRIX.md`).
+- [ ] Os **55** cenários de L1/L2 executados (tabela canônica da
+      `PROD06_SCENARIO_MATRIX.md` §9).
 - [ ] Cada um classificado `PASS` · `FAIL` · `INCONCLUSIVE`.
-- [ ] Controle negativo P13n executado — trigger sem `invite_token` **não**
-      bloqueia.
+- [ ] Validação fail-closed da matriz: IDs únicos · nenhum cenário sem
+      resultado esperado · nenhum sem evidência · `count_documented =
+      count_parsed` · **mesma contagem nos três documentos**.
+- [ ] Controles negativos P13n e R02 executados — não bloqueiam.
+- [ ] L03 executado — **`ATTEMPT_COUNT = 1`**, provado por PIDs e
+      `pg_stat_activity`, não por ausência da palavra "retry" no log.
 - [ ] L08 executado — terceira sessão observando `pg_locks` durante o bloco.
 - [ ] D03 executado — falha deliberada **depois do `DROP COLUMN`**.
+- [ ] D04 executado — falha deliberada **depois de um pós-check**, antes do
+      `COMMIT`.
+- [ ] P16 executado — dependência de **catálogo desconhecido** aborta.
+- [ ] P17-A e P17-B executados — corrida de policy; **nenhum `PASS` silencioso
+      com policy presente**.
 - [ ] C01 executado — string literal de `pg_get_function_result` **observada e
       registrada**.
 - [ ] K01–K03 executados — comportamento abaixo de *k*.
@@ -149,9 +184,16 @@ aleatórias e metadados de cliente **eliminados** pela normalização · **sem
 dados**, apenas schema · o dump é **artefato de teste**, jamais backup
 produtivo.
 
-## Encerramento do job
+## Encerramento do job — inclusive em falha ou cancelamento
 
-- [ ] Temporário com o SQL descomentado **apagado**.
+Tudo sob **`RUNNER_TEMP`**: SQLs extraídos · dumps · fingerprints temporários ·
+arquivos de coordenação das sessões · logs intermediários sem dado sensível.
+**Nenhum temporário no workspace versionado.**
+
+- [ ] SQL descomentado **removido**.
+- [ ] Dumps temporários **removidos**.
+- [ ] Arquivos de sinalização **removidos**.
+- [ ] Mantidos apenas os artefatos explicitamente aprovados e sanitizados.
 - [ ] Container destruído (automático no fim do job).
 - [ ] Evidências emitidas conforme `PROD06_EVIDENCE_SCHEMA.md`.
 - [ ] Nenhuma credencial, token, e-mail real, `answers`, UUID real ou secret
@@ -160,11 +202,15 @@ produtivo.
 ## Critérios de NO-GO — qualquer um basta
 
 Marcadores ausentes ou duplicados · hash divergente em qualquer das três
-etapas de extração · host não local detectado · input de disparo incorreto ·
-`source_commit` divergente do checkout · cliente de major diferente do servidor
-· qualquer `FAIL` em cenário de precondition ou de rollback · dump antes ≠
-depois num cenário de falha · lock ou transação órfã · classificação
-`MIGRATION_LINEAGE_PROOF_PARTIAL` sendo apresentada como integral.
+etapas de extração · **manifesto congelado divergente em contagem, ordem,
+caminho, blob ou SHA-256** · **B de staging presente no conjunto** · host não
+local detectado · credencial de produção **ou de staging** presente · input de
+disparo incorreto · `source_commit` divergente do checkout · cliente de major
+diferente do servidor · qualquer `FAIL` em cenário de precondition ou de
+rollback · dump antes ≠ depois num cenário de falha · lock ou transação órfã ·
+`ATTEMPT_COUNT > 1` em L03 · `PASS` em P17-B com policy presente ·
+classificação `PARTIAL` ou `FAILED` sendo apresentada como integral ·
+contagem divergente entre os três documentos.
 
 ## Depois da PROD-0.6D — o que NÃO acontece automaticamente
 

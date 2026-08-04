@@ -21,11 +21,14 @@ entre execuções e auditável sem acesso ao runner.
 | `runner_os` | runner | `ubuntu-…` |
 | `container_image` | imagem do service container | `postgres:17-…` |
 | `image_digest` | digest imutável | `sha256:…` |
+| `container_id_masked` | `job.services.pg17.id`, mascarado | primeiros 12 caracteres |
+| `client_strategy` | fixo | `SERVICE_CONTAINER_EXEC_STDIN` |
 | `postgres_version` | retorno de `SELECT version()` | texto integral |
-| `client_version` | `psql --version` / `pg_dump --version` | texto |
+| `client_version_psql` | `psql --version` | texto |
+| `client_version_pg_dump` | `pg_dump --version` | texto |
 | `client_server_major_match` | comparação | `true` \| `false` |
 | `layer` | camada | `L1_TARGETED_HARNESS` \| `L2_MIGRATION_LINEAGE` |
-| `lineage_classification` | só em L2 | `INTEGRAL` \| `MIGRATION_LINEAGE_PROOF_PARTIAL` |
+| `lineage_classification` | só em L2 | `MIGRATION_LINEAGE_PROOF_INTEGRAL` \| `…_PARTIAL` \| `…_FAILED` |
 | `started_at` / `finished_at` | timestamps ISO-8601 UTC | |
 
 `source_commit_matches_checkout = false` ou
@@ -88,13 +91,30 @@ Qualquer contagem de marcador diferente de `1`, qualquer linha rejeitada, ou
 | Cenário | Campo adicional |
 | --- | --- |
 | `C01` | `pg_get_function_result_literal` — a **string exata** devolvida pelo PostgreSQL 17, conferida contra o contrato canônico |
-| `E02` | `lineage_migrations` — lista ordenada com nome e hash de cada migration aplicada, e a lista das **excluídas** com o motivo |
+| `E02` | `LINEAGE_MANIFEST_EXPECTED_COUNT` (45) e `LINEAGE_MANIFEST_OBSERVED_COUNT` |
+| `E02` | `ordered_path_list_hash` · `ordered_blob_hash_list` · `ordered_sha256_list` |
+| `E02` | `lineage_first_item` · `lineage_last_item` |
+| `E02` | `migration_a_present` · `hardening_h_present` · `staging_b_absent` — os três booleanos |
 | `E02` | `incompatible_migrations` — as que não rodam em PostgreSQL puro, com o motivo |
 | `E02` | `stubs_required` — stubs criados para viabilizar o replay |
 | `E02` | `supabase_deviations` — desvios conhecidos em relação ao ambiente real |
 | `K01`–`K03` | `k_behavior` — `visible`, `response_count`, `response_count_label`, presença/ausência dos agregados, `suppression_reason` |
 | `L02` | `lock_timeout_measured_ms` — tempo real até o erro |
+| `L03` | `attempt_count` (esperado **1**) · `psql_processes_started` · `backend_pids` · `single_attempt_timestamp` |
 | `L08` | `access_exclusive_granted_window` — início e fim da janela observada por terceira sessão |
+| `P16` | `unknown_classid` · `objid` · `objsubid` · `deptype` do dependente não reconhecido |
+| `P17-A` | `policy_count_at_precondition` · `sqlstate` · timestamps |
+| `P17-B` | `concurrent_operation_state` · `locks_observed` · `POLICY_COUNT_AFTER_COMMIT` · timestamps |
+| `D04` | `postcheck_passed_before_failure` · `sqlstate` · `schema_hash_before`/`after` |
+
+### Regra de derivação dos hashes de linhagem
+
+`ordered_sha256_list` é calculado sobre o **conteúdo do blob Git** de cada
+item, na ordem do manifesto — **não** sobre os bytes do working tree. Em
+checkout Windows com `core.autocrlf = true` os dois divergem (o Hardening H,
+por exemplo, tem 179 CRLF no disco e SHA-256 diferente do blob). O runner Linux
+observa o conteúdo canônico; congelar o hash do disco produziria aborto
+garantido.
 
 ## 5. Limitações declaradas — obrigatórias em todo relatório
 
@@ -134,17 +154,23 @@ própria de teste (UUIDv5), e-mails em `example.invalid`, nomes marcados
 - Um arquivo por execução, nomeado com `workflow_run` e data.
 - Os registros de cenário em formato tabular estável (uma linha por cenário),
   para permitir diff entre execuções.
-- Artefatos do run (dumps normalizados, diffs) anexados ao run do GitHub
-  Actions — **não** commitados no repositório.
+- Artefatos transitórios vivem sob **`RUNNER_TEMP`** e são removidos no
+  encerramento, **inclusive em falha ou cancelamento** — SQLs extraídos, dumps,
+  fingerprints temporários, arquivos de coordenação das sessões e logs
+  intermediários. Nenhum temporário no workspace versionado.
+- Artefatos do run que sobrevivem (dumps normalizados sanitizados, diffs) são
+  anexados ao run do GitHub Actions — **não** commitados no repositório.
 - O relatório consolidado pode ser versionado em `docs/fibt-prod-proof/`,
   desde que contenha apenas os campos deste schema e nenhuma proibição da §6.
 
 ## 8. Critério de conclusão
 
-A PROD-0.6D conclui quando os **51** cenários de L1/L2 tiverem registro
-completo e classificação.
+A PROD-0.6D conclui quando os **55** cenários de L1/L2 tiverem registro
+completo e classificação. A contagem é **derivada da tabela canônica** da
+`PROD06_SCENARIO_MATRIX.md` §9, e a validação fail-closed exige
+`count_documented = count_parsed` e a **mesma contagem nos três documentos**.
 
-**51 `PASS` não autorizam promoção.** Continuam obrigatórios:
+**55 `PASS` não autorizam promoção.** Continuam obrigatórios:
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED` · aprovação humana de locks e timeouts ·
 A aplicada e comprovada · H aplicado e comprovado · inventário produtivo
 repetido · `project_ref` reconfirmado · trilha ACL concluída antes da ativação
