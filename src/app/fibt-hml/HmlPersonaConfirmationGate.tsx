@@ -3,13 +3,32 @@
 // Bloqueia o início do formulário até o testador confirmar explicitamente
 // que vai usar a persona fictícia fornecida, não a própria experiência.
 // `children` só renderiza depois da confirmação — não há como pular.
+//
+// FIBT-HML-1D (Fase 8): a FIBT-HML-1C confirmou que, sem isso, a confirmação
+// persistia ao trocar de link (mesma aba, navegação client-side) — um
+// testador podia confirmar uma vez e depois abrir outro convite já
+// "confirmado". Defesa dupla: o chamador renderiza este componente com
+// `key={token}` (remonta o componente inteiro a cada convite novo) E, aqui
+// dentro, um efeito reseta o estado se `token` mudar sem remontagem — a
+// segunda camada cobre o caso de algum chamador futuro esquecer a `key`.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HML_PERSONA_CONFIRMATION_TEXT } from "@/lib/fibt-hml/hml-frontend-guard";
 
-export function HmlPersonaConfirmationGate({ children }: { children: React.ReactNode }) {
+export function HmlPersonaConfirmationGate({
+  children,
+  token,
+}: {
+  children: React.ReactNode;
+  token?: string;
+}) {
   const [checked, setChecked] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(() => {
+    setChecked(false);
+    setConfirmed(false);
+  }, [token]);
 
   if (confirmed) return <>{children}</>;
 

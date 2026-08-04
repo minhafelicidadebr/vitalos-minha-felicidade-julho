@@ -41,10 +41,21 @@
  */
 
 import { createHash, randomBytes } from "node:crypto";
-import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { forbiddenRefs, maskRef } from "../../src/lib/staging/staging-guard";
-import { FORBIDDEN_HML_BASE_HOSTNAMES } from "../../src/lib/fibt-hml/hml-frontend-guard";
+import {
+  HML_BATCH_ID,
+  HML_CONTRACT_VERSION,
+  HML_ENVIRONMENT,
+  HML_ORGANIZATION,
+  HML_WAVE,
+  HML_COHORTS,
+  HML_K_MIN,
+  HML_EXPIRES_IN_DAYS,
+  validateHmlOrigin,
+  type HmlOriginFailure,
+} from "../../src/lib/fibt-hml/hml-contract";
 
 /**
  * Ref de staging autorizado para esta campanha, SE declarado — lido de env a
@@ -73,19 +84,21 @@ function configuredStagingRef(env: Record<string, string | undefined>): string |
 // explícita de que o operador quer ESTA campanha, não um parâmetro livre.
 // ============================================================================
 
+// Fonte única (FIBT-HML-1D, Fase 2): todo identificador vem de hml-contract.ts
+// — nenhuma cópia independente do mesmo valor em mais de um arquivo.
 export const CAMPAIGN = {
-  batchId: "FIBT-ISG-HML-01",
-  organizationName: "ISG — Homologação Assistida FIB-T",
-  organizationSlug: "isg-homologacao-assistida-fibt-hml-01",
-  waveLabel: "FIB-T Pré-Teste Sintético 01",
-  instrument: "FIB_T" as const,
-  instrumentVersion: "fibt-1.0.0",
-  expiresInDays: 7,
+  batchId: HML_BATCH_ID,
+  organizationName: HML_ORGANIZATION.name,
+  organizationSlug: HML_ORGANIZATION.slug,
+  waveLabel: HML_WAVE.label,
+  instrument: HML_WAVE.instrument,
+  instrumentVersion: HML_WAVE.instrumentVersion,
+  expiresInDays: HML_EXPIRES_IN_DAYS,
   cohorts: {
-    alpha: { key: "ISG-HML-ALFA", label: "Coorte Alfa", count: 6, linkPrefix: "ALFA" },
-    beta: { key: "ISG-HML-BETA", label: "Coorte Beta", count: 4, linkPrefix: "BETA" },
+    alpha: HML_COHORTS.alpha,
+    beta: HML_COHORTS.beta,
   },
-  kMin: 5,
+  kMin: HML_K_MIN,
 } as const;
 
 export const EXPECTED_TEST_LINK_IDS = [
@@ -303,6 +316,10 @@ export interface BatchPlan {
   cohorts: { key: string; label: string; count: number }[];
   invites: PlannedInvite[];
   frontendBaseUrlStatus: "HML_FRONTEND_MISSING" | "HML_FRONTEND_READY";
+  /** Origem HTTPS validada (Fase 11/12) — null enquanto FIBT_HML_FRONTEND_BASE_URL
+   *  não estiver configurada/validada. Usada para montar URL completa no CSV
+   *  privado; nunca aparece no manifest técnico. */
+  frontendBaseUrl: string | null;
 }
 
 /** Placeholder de token para dry-run — NUNCA aceito pelo backend real: o
@@ -312,7 +329,7 @@ function dryRunPlaceholderToken(testLinkId: string): string {
   return `DRY_RUN_NOT_VALID_${testLinkId}_${randomBytes(6).toString("hex")}`;
 }
 
-export function planBatch(args: ParsedArgs): BatchPlan {
+export function planBatch(args: ParsedArgs, env: Record<string, string | undefined> = process.env): BatchPlan {
   const invites: PlannedInvite[] = [];
   for (let i = 1; i <= CAMPAIGN.cohorts.alpha.count; i++) {
     const testLinkId = `${CAMPAIGN.cohorts.alpha.linkPrefix}-${String(i).padStart(2, "0")}`;
@@ -333,6 +350,8 @@ export function planBatch(args: ParsedArgs): BatchPlan {
     });
   }
 
+  const baseUrl = validateFrontendBaseUrl(env);
+
   return {
     batchId: args.batchId,
     environment: args.environment,
@@ -349,93 +368,129 @@ export function planBatch(args: ParsedArgs): BatchPlan {
       { key: CAMPAIGN.cohorts.beta.key, label: CAMPAIGN.cohorts.beta.label, count: CAMPAIGN.cohorts.beta.count },
     ],
     invites,
-    // Nenhuma URL de frontend segura e verificável foi confirmada nesta
-    // rodada (ver ENTREGA da autorização) — o plano nunca calcula URL final.
-    frontendBaseUrlStatus: "HML_FRONTEND_MISSING",
+    frontendBaseUrlStatus: baseUrl.valid ? "HML_FRONTEND_READY" : "HML_FRONTEND_MISSING",
+    frontendBaseUrl: baseUrl.valid ? baseUrl.normalizedBaseUrl : null,
   };
 }
 
-// ─── Fase 5 — validação da base URL de frontend de homologação ────────────
-
-export type BaseUrlValidationFailure =
-  | "HML_FRONTEND_BASE_URL_NOT_READY_MISSING"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS"
-  | "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE";
+// ─── Fase 5/12 — validação da base URL de frontend de homologação ─────────
+//
+// FIBT-HML-1D substitui a validação antiga (blocklist de 3 hostnames
+// literais) pela allowlist por igualdade exata de origem (validateHmlOrigin,
+// hml-contract.ts) — a FIBT-HML-1C confirmou que a blocklist deixava passar
+// um sufixo-lookalike (`vitalos.com.br.attacker.test`) e um homóglifo
+// Unicode, porque nenhum dos dois é, literalmente, um dos 3 hostnames
+// proibidos. A candidata (FIBT_HML_FRONTEND_BASE_URL, o que o gerador vai
+// de fato usar para montar os links) é comparada contra a autorizada
+// (VITE_FIBT_HML_FRONTEND_BASE_URL — mesma relação de duas variáveis que
+// SUPABASE_URL/VITE_SUPABASE_URL já têm em environment-contract.ts): as
+// duas precisam concordar por igualdade de origem, nunca por "não está numa
+// lista de 3 nomes".
 
 export type BaseUrlValidation =
   | { valid: true; normalizedBaseUrl: string }
-  | { valid: false; failure: BaseUrlValidationFailure };
+  | { valid: false; failure: HmlOriginFailure };
 
-/**
- * Valida FIBT_HML_FRONTEND_BASE_URL (Fase 5): HTTPS, hostname não produtivo,
- * sem query/fragment/credenciais embutidas, path normalizado (raiz). Pura —
- * não faz I/O, não resolve DNS, não confirma que a URL está de fato no ar.
- */
-export function validateFrontendBaseUrl(raw: string | undefined): BaseUrlValidation {
-  if (!raw || raw.trim() === "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_MISSING" };
-
-  let url: URL;
-  try {
-    url = new URL(raw.trim());
-  } catch {
-    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE" };
-  }
-
-  if (url.protocol !== "https:") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS" };
-  if ((FORBIDDEN_HML_BASE_HOSTNAMES as readonly string[]).includes(url.hostname.toLowerCase())) {
-    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" };
-  }
-  if (url.search !== "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY" };
-  if (url.hash !== "") return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT" };
-  if (url.username !== "" || url.password !== "") {
-    return { valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS" };
-  }
-
-  const normalizedPath = url.pathname === "/" ? "" : url.pathname.replace(/\/+$/, "");
-  return { valid: true, normalizedBaseUrl: `${url.protocol}//${url.host}${normalizedPath}` };
+/** Pura — não faz I/O, não resolve DNS, não confirma que a URL está de fato no ar. */
+export function validateFrontendBaseUrl(env: Record<string, string | undefined>): BaseUrlValidation {
+  const result = validateHmlOrigin(env.FIBT_HML_FRONTEND_BASE_URL, env.VITE_FIBT_HML_FRONTEND_BASE_URL);
+  if (!result.valid) return { valid: false, failure: result.failure };
+  return { valid: true, normalizedBaseUrl: result.origin };
 }
 
 // ─── Gates obrigatórios antes de qualquer escrita real ─────────────────────
 
-export type CommitGateFailure = "FRONTEND_BLOCKED" | "BANNER_MISSING";
-
-const CONVITE_ROUTE_PATH = join("src", "routes", "convite.$token.tsx");
+export type CommitGateFailure = "FRONTEND_BLOCKED";
 
 /**
- * Portões reais e testáveis (Fase 6) — nada hardcoded. `BANNER_MISSING` lê o
- * código-fonte real da rota /convite/:token (mesmo repositório, sem rede) e
- * confirma que o banner e a confirmação de persona estão de fato integrados.
- * `FRONTEND_BLOCKED` valida FIBT_HML_FRONTEND_BASE_URL (Fase 5). Nenhum dos
- * dois confirma que uma instância REAL está no ar — isso exigiria acesso de
- * rede, fora de escopo; ambos confirmam o que é observável localmente: que o
- * código suporta o modo e que uma base URL válida foi declarada.
+ * FIBT-HML-1D (Fase 9) remove o antigo portão `BANNER_MISSING`: ele provava
+ * só substring/comentário no texto-fonte de convite.$token.tsx (a
+ * FIBT-HML-1C confirmou, na prática, que um arquivo com apenas um
+ * COMENTÁRIO mencionando os componentes satisfazia o portão sem os
+ * renderizar de verdade). Nenhum parser AST improvisado substitui isso —
+ * em vez disso, a integração real do banner/gate é provada por três camadas
+ * independentes: (9.1) contrato de versão compartilhado (hml-contract.ts,
+ * importado por gerador/guard/rota — divergência quebra o build, não uma
+ * checagem em runtime); (9.2) teste funcional de componente que renderiza a
+ * rota de verdade e confirma banner/gate por comportamento observado, não
+ * por texto (ver convite.$token.render.test.tsx); (9.3) atestação de
+ * deployment real (checkDeploymentAttestation, abaixo) — a única checagem
+ * que sobra AQUI é a validação local da base URL.
  */
-export function commitGateFailures(
-  env: Record<string, string | undefined> = process.env,
-  routeSourcePath: string = CONVITE_ROUTE_PATH,
-): CommitGateFailure[] {
+export function commitGateFailures(env: Record<string, string | undefined> = process.env): CommitGateFailure[] {
   const failures: CommitGateFailure[] = [];
 
-  const baseUrl = validateFrontendBaseUrl(env.FIBT_HML_FRONTEND_BASE_URL);
+  const baseUrl = validateFrontendBaseUrl(env);
   if (!baseUrl.valid) failures.push("FRONTEND_BLOCKED");
 
-  let routeSource = "";
+  return failures;
+}
+
+// ─── Fase 10 — gate de atestação de deployment (antes de qualquer cliente) ─
+
+export type DeploymentAttestationFailure =
+  | "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE"
+  | "HML_DEPLOYMENT_ATTESTATION_BLOCKED"
+  | "HML_DEPLOYMENT_CONTRACT_MISMATCH";
+
+export type DeploymentAttestationResult =
+  | { ok: true }
+  | { ok: false; code: DeploymentAttestationFailure; detail?: string };
+
+/** Forma mínima de fetch que este módulo precisa — injetável em teste com um fake, nunca rede real. */
+export type FetchLike = (url: string) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
+
+export const HML_ATTESTATION_PATH = "/api/fibt-hml/attestation";
+
+/**
+ * Consulta o endpoint de atestação do frontend ANTES de criar qualquer
+ * cliente Supabase — nunca chamado em dry-run (só existe no caminho
+ * --commit, depois de commitGateFailures()). `fetchImpl` é sempre
+ * injetado; testes usam um fake, nunca uma chamada real.
+ */
+export async function checkDeploymentAttestation(
+  normalizedBaseUrl: string,
+  fetchImpl: FetchLike,
+): Promise<DeploymentAttestationResult> {
+  let response: Awaited<ReturnType<FetchLike>>;
   try {
-    routeSource = readFileSync(routeSourcePath, "utf8");
+    response = await fetchImpl(new URL(HML_ATTESTATION_PATH, normalizedBaseUrl).toString());
   } catch {
-    failures.push("BANNER_MISSING"); // rota nem existe mais — fail-closed
-  }
-  if (routeSource) {
-    const hasBanner = routeSource.includes("HmlHomologationBanner");
-    const hasConfirmationGate = routeSource.includes("HmlPersonaConfirmationGate");
-    if (!hasBanner || !hasConfirmationGate) failures.push("BANNER_MISSING");
+    return { ok: false, code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" };
   }
 
-  return failures;
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return { ok: false, code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" };
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return { ok: false, code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" };
+  }
+  const body = payload as Record<string, unknown>;
+
+  if (body.status !== "READY") {
+    return {
+      ok: false,
+      code: "HML_DEPLOYMENT_ATTESTATION_BLOCKED",
+      detail: typeof body.failure_code === "string" ? body.failure_code : undefined,
+    };
+  }
+
+  const contractOk =
+    body.contract_version === HML_CONTRACT_VERSION &&
+    body.environment === HML_ENVIRONMENT &&
+    body.batch_id === CAMPAIGN.batchId &&
+    body.backend_attested === true &&
+    body.frontend_origin_attested === true;
+
+  if (!contractOk) {
+    return { ok: false, code: "HML_DEPLOYMENT_CONTRACT_MISMATCH" };
+  }
+
+  return { ok: true };
 }
 
 // ─── Caminho --commit — testável via injeção, nunca invocado nesta rodada ──
@@ -570,7 +625,14 @@ export async function runCommit(plan: BatchPlan, admin: AdminClientLike): Promis
       test_link_id: invite.testLinkId,
       cohort_code: invite.cohortKey,
       synthetic_persona_id: `PERSONA-${invite.testLinkId}`,
-      url: `/convite/${rawToken}`,
+      // Fase 11: URL completa quando a base foi validada (via URL API, nunca
+      // concatenação manual — token sempre encodeURIComponent). Sem base
+      // validada, cai para o caminho relativo (mesmo comportamento de antes)
+      // — só o CSV privado recebe a forma absoluta; o manifest nunca recebe
+      // nenhuma das duas com o token.
+      url: plan.frontendBaseUrl
+        ? new URL(`/convite/${encodeURIComponent(rawToken)}`, plan.frontendBaseUrl).toString()
+        : `/convite/${rawToken}`,
       expires_at: expiresAt,
       status: "active",
       instructions_code: "SEE_PERSONAS_MD",
@@ -673,8 +735,22 @@ if (import.meta.main) {
     process.exit(1);
   }
 
-  // Só chega aqui com os portões abertos. requireStagingTarget() exige
-  // credenciais reais (STAGING_SUPABASE_*) e nunca é chamado em dry-run.
+  // Fase 10: consulta o endpoint de atestação do frontend ANTES de criar
+  // qualquer cliente Supabase. plan.frontendBaseUrl só é null se
+  // commitGateFailures() já tivesse abortado acima (FRONTEND_BLOCKED) —
+  // aqui está sempre presente.
+  const attestation = await checkDeploymentAttestation(plan.frontendBaseUrl!, fetch);
+  if (!attestation.ok) {
+    console.error(
+      `GENERATOR_ABORTED (${attestation.code})` +
+        (attestation.detail ? `: ${attestation.detail}` : ": atestação de deployment não confirmada"),
+    );
+    process.exit(1);
+  }
+
+  // Só chega aqui com os portões abertos E a atestação de deployment
+  // confirmada. requireStagingTarget() exige credenciais reais
+  // (STAGING_SUPABASE_*) e nunca é chamado em dry-run.
   const { requireStagingTarget } = await import("../../src/lib/staging/staging-guard");
   const target = requireStagingTarget();
   if (target.projectRef !== args.expectedProjectRef) {

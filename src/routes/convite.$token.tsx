@@ -39,25 +39,50 @@ import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 import { recordSurveyFunnelSnapshot, loadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
 import {
   resolveHmlMode,
+  resolveHmlRouteDisplayState,
   HML_PRE_SUBMIT_REVIEW_TEXT,
   type HmlModeResolution,
+  type HmlAttestationPayload,
 } from "@/lib/fibt-hml/hml-frontend-guard";
 import { HmlHomologationBanner } from "@/app/fibt-hml/HmlHomologationBanner";
 import { HmlPersonaConfirmationGate } from "@/app/fibt-hml/HmlPersonaConfirmationGate";
 
 /**
- * Resolve o modo de homologação (FIBT-HML-1B). `import.meta.env` já é
- * estático em build time (Vite) — seguro em SSR. O hostname só existe no
- * navegador; ausente em SSR, o que apenas significa que a checagem extra de
- * hostname produtivo fica pendente até a hidratação (resolveHmlMode() é
- * fail-closed: env sozinho já cobre o caso comum, hostname é defesa extra).
+ * Resolve o modo de homologação (FIBT-HML-1B, endurecido em FIBT-HML-1D).
+ * `import.meta.env` já é estático em build time (Vite) — seguro em SSR. A
+ * origem atual e a atestação server-side só existem no navegador; ausentes
+ * em SSR, a resolução fica `blocked: true` até a hidratação preencher os
+ * dois (resolveHmlMode() é fail-closed — nunca `active: true` antes disso).
+ *
+ * A atestação só é consultada quando VITE_FIBT_HML_ENABLED="true" — em
+ * qualquer deployment normal (produção real), nenhuma requisição extra é
+ * feita a /api/fibt-hml/attestation.
  */
 function useHmlMode(): HmlModeResolution {
-  const [hostname, setHostname] = useState<string | undefined>(undefined);
+  const [currentOrigin, setCurrentOrigin] = useState<string | undefined>(undefined);
+  const [attestation, setAttestation] = useState<HmlAttestationPayload | undefined>(undefined);
+
   useEffect(() => {
-    setHostname(window.location.hostname);
+    setCurrentOrigin(window.location.origin);
   }, []);
-  return resolveHmlMode(import.meta.env as unknown as Record<string, string | undefined>, hostname);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_FIBT_HML_ENABLED !== "true") return;
+    let active = true;
+    fetch("/api/fibt-hml/attestation")
+      .then((r) => r.json())
+      .then((body) => {
+        if (active) setAttestation(body as HmlAttestationPayload);
+      })
+      .catch(() => {
+        if (active) setAttestation({ status: "BLOCKED", failure_code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return resolveHmlMode(import.meta.env as unknown as Record<string, string | undefined>, currentOrigin, attestation);
 }
 
 export const Route = createFileRoute("/convite/$token")({
@@ -74,13 +99,43 @@ const INVALID_TOKEN_MESSAGE: Record<string, string> = {
   cloud_adapter_missing: "A coleta de respostas está temporariamente indisponível. Tente novamente em instantes.",
 };
 
+/**
+ * Envolve o conteúdo final (o formulário já resolvido) com a confirmação de
+ * persona quando HML está atestado — extraído para ser testável por
+ * RENDERIZAÇÃO (Fase 9.2), não por leitura de texto-fonte. `key={token}` +
+ * o reset interno do próprio gate (Fase 8) garantem que trocar de convite
+ * bloqueia de novo, mesmo sem remontagem completa da árvore.
+ */
+export function HmlGatedSurveyContent({
+  hmlMode,
+  token,
+  children,
+}: {
+  hmlMode: HmlModeResolution;
+  token: string;
+  children: React.ReactNode;
+}) {
+  if (!hmlMode.active) return <>{children}</>;
+  return (
+    <HmlPersonaConfirmationGate key={token} token={token}>
+      {children}
+    </HmlPersonaConfirmationGate>
+  );
+}
+
 function ResponderTokenPage() {
   const { token } = Route.useParams();
   const [resolution, setResolution] = useState<InviteResolution | "loading">("loading");
   const hmlMode = useHmlMode();
-  const banner = hmlMode.active ? <HmlHomologationBanner batchId={hmlMode.batchId} /> : null;
+  const display = resolveHmlRouteDisplayState(hmlMode);
+  const banner = display.kind === "HML_ATTESTED" ? <HmlHomologationBanner batchId={display.batchId} /> : null;
 
   useEffect(() => {
+    // Fase 4: em modo HML bloqueado, nem consulta o convite — o servidor já
+    // recusaria (hml-backend-boundary.server.ts), mas não há motivo para
+    // gastar o round-trip nem mostrar "verificando seu link" para um estado
+    // que já se sabe bloqueado.
+    if (display.kind === "HML_BLOCKED") return;
     let active = true;
     checkInviteToken({ data: { token, packId: PILOT_PACK_ID } })
       .then((r) => active && setResolution(r))
@@ -88,7 +143,15 @@ function ResponderTokenPage() {
     return () => {
       active = false;
     };
-  }, [token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, display.kind]);
+
+  // Estado visual HML_BLOCKED (Fase 4/7): HML foi declarado para este
+  // deployment, mas a fronteira/atestação ainda não confirmou o backend —
+  // nunca mostra o formulário, nunca cai de volta para modo comum.
+  if (display.kind === "HML_BLOCKED") {
+    return <TokenErrorScreen message={display.message} />;
+  }
 
   if (resolution === "loading") {
     return (
@@ -127,7 +190,9 @@ function ResponderTokenPage() {
   return (
     <>
       {banner}
-      {hmlMode.active ? <HmlPersonaConfirmationGate>{surveyFlow}</HmlPersonaConfirmationGate> : surveyFlow}
+      <HmlGatedSurveyContent hmlMode={hmlMode} token={token}>
+        {surveyFlow}
+      </HmlGatedSurveyContent>
     </>
   );
 }

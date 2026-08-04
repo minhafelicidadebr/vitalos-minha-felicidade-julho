@@ -11,6 +11,11 @@ import { saveWaveResponse as saveWaveResponseReal } from "../cloud/db-adapter";
 import type { SubmitResponseInput, SubmitResponseResult } from "../cloud/db-adapter";
 import { dbInstrumentToSurveyKey } from "./instrument-mapping";
 import { emitOpsEvent } from "../telemetry/ops-events.server";
+import {
+  assertHmlBackendBoundary,
+  type HmlBackendBoundaryEnv,
+} from "../fibt-hml/hml-backend-boundary.server";
+import { assertInviteWithinAuthorizedHmlBatch } from "../fibt-hml/hml-contract";
 
 export interface ServerCaptureInput extends BlindSurveySubmission {
   packId: string;
@@ -61,6 +66,17 @@ export async function captureSurveySubmission(
   }
 
   if (boundary.state === "cloud" && input.inviteToken) {
+    // FIBT-HML-1D (Fase 5): reexecutada no servidor, imediatamente antes de
+    // qualquer query real — nunca confia em estado React, confirmação do
+    // cliente, query string ou resultado anterior do loader. Mesmo que o
+    // cliente burle toda a UI, a submissão HML falha aqui, antes de tocar o
+    // banco, quando a fronteira não estiver atestada.
+    const hmlBoundary = assertHmlBackendBoundary(process.env as HmlBackendBoundaryEnv);
+    if (hmlBoundary.hmlDeclared && !hmlBoundary.attested) {
+      logCloudRejection("hml_submission_backend_not_attested", { waveId: input.waveId });
+      return { accepted: false, reason: "cloud_adapter_missing" };
+    }
+
     emitOpsEvent("response_submit_attempted", { waveId: input.waveId });
     // ── Modo real: valida e persiste no Supabase ──────────────────────────
     // Resolve o instrumento REAL da onda NO MOMENTO DO ENVIO — nunca assume
@@ -71,9 +87,15 @@ export async function captureSurveySubmission(
     // checagem AUTORITATIVA (P0-07).
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
+    // Fase 6: em modo HML atestado, a mesma checagem de vínculo ao lote
+    // sintético roda de novo aqui — a resolução de tela (Fase 4) só cobre o
+    // carregamento; a submissão é um caminho de servidor independente.
+    const selectColumns = hmlBoundary.hmlDeclared
+      ? "wave_id, expires_at, waves(instrument, label, organizations(slug)), wave_cohorts(key)"
+      : "wave_id, waves(instrument)";
     const { data: inviteRow } = await admin
       .from("wave_invites")
-      .select("wave_id, waves(instrument)")
+      .select(selectColumns)
       .eq("token", input.inviteToken)
       .maybeSingle();
 
@@ -81,6 +103,21 @@ export async function captureSurveySubmission(
     if (!inviteRow || inviteRow.wave_id !== input.waveId || !dbInstrument) {
       logCloudRejection("unknown_wave", { waveId: input.waveId });
       return { accepted: false, reason: "unknown_wave" };
+    }
+
+    if (hmlBoundary.hmlDeclared) {
+      const waveJoin = inviteRow.waves as { organizations?: { slug?: string } | null; label?: string } | null;
+      const cohortJoin = inviteRow.wave_cohorts as { key?: string } | null;
+      const binding = assertInviteWithinAuthorizedHmlBatch({
+        organizationSlug: waveJoin?.organizations?.slug,
+        waveLabel: waveJoin?.label,
+        cohortKey: cohortJoin?.key,
+        expiresAt: inviteRow.expires_at as string | null,
+      });
+      if (!binding.ok) {
+        logCloudRejection("hml_invite_outside_authorized_batch", { waveId: input.waveId });
+        return { accepted: false, reason: "unknown_wave" };
+      }
     }
 
     const survey = getWaveSurvey(input.packId, dbInstrumentToSurveyKey(dbInstrument));

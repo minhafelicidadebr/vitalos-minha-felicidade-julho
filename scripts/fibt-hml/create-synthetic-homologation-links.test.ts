@@ -10,9 +10,12 @@ import {
   tokenHashForManifest,
   commitGateFailures,
   validateFrontendBaseUrl,
+  checkDeploymentAttestation,
+  HML_ATTESTATION_PATH,
   HML_RAW_TOKEN_STAGING_EXCEPTION,
   PRIVATE_OUTPUT_DIR,
   type AdminClientLike,
+  type FetchLike,
 } from "./create-synthetic-homologation-links";
 
 /**
@@ -221,86 +224,130 @@ describe("planBatch — modelo Alfa/Beta e identidade", () => {
     expect(commitGateFailures({})).toContain("FRONTEND_BLOCKED");
   });
 
-  test("1. banner aparece em modo HML — commitGateFailures não reporta BANNER_MISSING para a rota real (código já integra banner e confirmação)", () => {
-    expect(commitGateFailures({})).not.toContain("BANNER_MISSING");
-  });
-
-  test("21. banner ausente (rota sem os componentes) bloqueia commit — testado contra fonte real do repo que não tem os marcadores", () => {
-    // package.json existe de verdade e nunca vai conter os marcadores de HML
-    // — mais portável que apontar para um caminho específico do SO.
-    const failures = commitGateFailures({}, "package.json");
-    expect(failures).toContain("BANNER_MISSING");
-  });
-
-  test("rota inexistente também bloqueia por BANNER_MISSING (fail-closed)", () => {
-    const failures = commitGateFailures({}, "caminho/que/nao/existe.tsx");
-    expect(failures).toContain("BANNER_MISSING");
+  test("1. FIBT-HML-1D remove o portão textual BANNER_MISSING — commitGateFailures só reporta FRONTEND_BLOCKED", () => {
+    // A prova de que o banner/gate estão de fato integrados migrou para um
+    // teste de componente que renderiza a rota de verdade (Fase 9.2) e para
+    // a atestação de deployment (Fase 9.3) — não para leitura de texto-fonte.
+    const failures = commitGateFailures({});
+    expect(failures).not.toContain("BANNER_MISSING" as never);
   });
 });
 
-describe("validateFrontendBaseUrl — Fase 5", () => {
-  test("5. URL produtiva (vitalos.com.br) é rejeitada", () => {
-    const r = validateFrontendBaseUrl("https://vitalos.com.br");
+const AUTHORIZED_BASE_URL = "https://fibt-hml-01.example-homolog.invalid";
+const MATCHING_ENV = {
+  FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+  VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+};
+
+describe("validateFrontendBaseUrl — Fase 5/12 (allowlist por igualdade exata de origem)", () => {
+  test("5. URL produtiva (vitalos.com.br) é rejeitada mesmo declarada nas duas variáveis", () => {
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "https://vitalos.com.br",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: "https://vitalos.com.br",
+    });
     expect(r.valid).toBe(false);
   });
 
   test("6. app.vitalos.com.br é rejeitado", () => {
-    const r = validateFrontendBaseUrl("https://app.vitalos.com.br");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "https://app.vitalos.com.br",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: "https://app.vitalos.com.br",
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_FORBIDDEN_HOSTNAME" });
   });
 
   test("www.vitalos.com.br também é rejeitado (terceiro domínio proibido)", () => {
-    const r = validateFrontendBaseUrl("https://www.vitalos.com.br");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_FORBIDDEN_HOSTNAME" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "https://www.vitalos.com.br",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: "https://www.vitalos.com.br",
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_FORBIDDEN_HOSTNAME" });
   });
 
   test("7. HTTP remoto (não HTTPS) é rejeitado", () => {
-    const r = validateFrontendBaseUrl("http://fibt-hml-01.example-homolog.invalid");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_NOT_HTTPS" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "http://fibt-hml-01.example-homolog.invalid",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: "http://fibt-hml-01.example-homolog.invalid",
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_NOT_HTTPS" });
   });
 
-  test("8. HTTPS de homologação (hostname não produtivo) é aceito", () => {
-    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid");
+  test("8. HTTPS de homologação (hostname não produtivo), candidata igual à autorizada, é aceito", () => {
+    const r = validateFrontendBaseUrl(MATCHING_ENV);
     expect(r.valid).toBe(true);
   });
 
   test("9. query string na base URL é rejeitada", () => {
-    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid?foo=bar");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_QUERY" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: `${AUTHORIZED_BASE_URL}?foo=bar`,
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_HAS_QUERY" });
   });
 
   test("fragment na base URL é rejeitado", () => {
-    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid#section");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_FRAGMENT" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: `${AUTHORIZED_BASE_URL}#section`,
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_HAS_FRAGMENT" });
   });
 
   test("10. credencial embutida na URL (user:pass@) é rejeitada", () => {
-    const r = validateFrontendBaseUrl("https://user:pass@fibt-hml-01.example-homolog.invalid");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_HAS_CREDENTIALS" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "https://user:pass@fibt-hml-01.example-homolog.invalid",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_HAS_CREDENTIALS" });
   });
 
   test("11. ausência de base URL bloqueia commit", () => {
-    const r = validateFrontendBaseUrl(undefined);
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_MISSING" });
+    const r = validateFrontendBaseUrl({});
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_MISSING" });
     expect(commitGateFailures({})).toContain("FRONTEND_BLOCKED");
   });
 
   test("URL malformada é rejeitada, não lança", () => {
-    const r = validateFrontendBaseUrl("nao-e-uma-url");
-    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_BASE_URL_NOT_READY_UNPARSEABLE" });
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "nao-e-uma-url",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_UNPARSEABLE" });
   });
 
   test("path normalizado: barra final é removida, raiz vira string vazia", () => {
-    const r = validateFrontendBaseUrl("https://fibt-hml-01.example-homolog.invalid/");
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: `${AUTHORIZED_BASE_URL}/`,
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
     expect(r.valid).toBe(true);
-    if (r.valid) expect(r.normalizedBaseUrl).toBe("https://fibt-hml-01.example-homolog.invalid");
+    if (r.valid) expect(r.normalizedBaseUrl).toBe(AUTHORIZED_BASE_URL);
   });
 
-  test("com base URL válida declarada, FRONTEND_BLOCKED não aparece mais", () => {
-    const failures = commitGateFailures({
-      FIBT_HML_FRONTEND_BASE_URL: "https://fibt-hml-01.example-homolog.invalid",
-    });
+  test("com base URL válida declarada nas duas variáveis, FRONTEND_BLOCKED não aparece mais", () => {
+    const failures = commitGateFailures(MATCHING_ENV);
     expect(failures).not.toContain("FRONTEND_BLOCKED");
+  });
+
+  test("declarada só do lado servidor (VITE_ ausente) ainda bloqueia — as duas precisam concordar", () => {
+    const failures = commitGateFailures({ FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL });
+    expect(failures).toContain("FRONTEND_BLOCKED");
+  });
+
+  test("candidata e autorizada divergentes bloqueiam (P1 original: valor nunca usado para construir link real)", () => {
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+      VITE_FIBT_HML_FRONTEND_BASE_URL: "https://outra-origem.example-homolog.invalid",
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_MISMATCH" });
+  });
+
+  test("sufixo-lookalike de produção como candidata diverge da origem autorizada real (P2 original)", () => {
+    const r = validateFrontendBaseUrl({
+      FIBT_HML_FRONTEND_BASE_URL: "https://vitalos.com.br.attacker-controlled.test",
+      VITE_FIBT_HML_FRONTEND_BASE_URL: AUTHORIZED_BASE_URL,
+    });
+    expect(r).toEqual({ valid: false, failure: "HML_FRONTEND_ORIGIN_MISMATCH" });
   });
 });
 
@@ -430,6 +477,182 @@ describe("runCommit — idempotência (fake client, zero rede)", () => {
   test("13. pacote privado fica fora do repositório — só inspeção do caminho, sem chamar writePrivateOutputs (I/O)", () => {
     expect(PRIVATE_OUTPUT_DIR).not.toContain("vitalos-fibt-hml");
     expect(PRIVATE_OUTPUT_DIR.toLowerCase()).toContain("private");
+  });
+});
+
+describe("runCommit — Fase 11: URLs completas no CSV privado, nunca no manifest", () => {
+  const args = parseArgs(VALID_FLAGS);
+
+  function fakeClient(): AdminClientLike {
+    let tokenCounter = 0;
+    return {
+      from(table: string) {
+        return {
+          select() {
+            return { eq: () => ({ async maybeSingle() { return { data: null, error: null }; } }) };
+          },
+          insert(rows: unknown) {
+            return {
+              async select() {
+                if (table === "organizations") return { data: [{ id: "org-1" }], error: null };
+                if (table === "waves") return { data: [{ id: "wave-1" }], error: null };
+                if (table === "wave_cohorts") {
+                  const key = (rows as { key: string }).key;
+                  return { data: [{ id: `cohort-${key}` }], error: null };
+                }
+                tokenCounter += 1;
+                return { data: [{ token: `fake-raw-token-${tokenCounter}` }], error: null };
+              },
+            };
+          },
+        };
+      },
+    };
+  }
+
+  test("33. com FIBT_HML_FRONTEND_BASE_URL configurada (nas duas variáveis), o CSV recebe URL absoluta HTTPS", async () => {
+    const plan = planBatch(args, MATCHING_ENV);
+    expect(plan.frontendBaseUrl).toBe(AUTHORIZED_BASE_URL);
+    const outcome = await runCommit(plan, fakeClient());
+    if (outcome.status !== "CREATED") throw new Error("unreachable");
+    for (const row of outcome.csvRows) {
+      expect(row.url.startsWith(`${AUTHORIZED_BASE_URL}/convite/`)).toBe(true);
+      const parsed = new URL(row.url);
+      expect(parsed.hostname).toBe("fibt-hml-01.example-homolog.invalid");
+    }
+  });
+
+  test("34. manifest nunca recebe token, mesmo com base URL configurada", async () => {
+    const plan = planBatch(args, MATCHING_ENV);
+    const outcome = await runCommit(plan, fakeClient());
+    if (outcome.status !== "CREATED") throw new Error("unreachable");
+    for (const row of outcome.manifestRows) {
+      expect(row.relative_path).toBe("/convite/:token");
+      expect(JSON.stringify(row)).not.toContain("fake-raw-token-");
+    }
+  });
+
+  test("sem base URL configurada, CSV cai para caminho relativo (comportamento anterior preservado)", async () => {
+    const plan = planBatch(args, {});
+    expect(plan.frontendBaseUrl).toBeNull();
+    const outcome = await runCommit(plan, fakeClient());
+    if (outcome.status !== "CREATED") throw new Error("unreachable");
+    for (const row of outcome.csvRows) {
+      expect(row.url.startsWith("/convite/")).toBe(true);
+    }
+  });
+
+  test("token é sempre encodeURIComponent na URL absoluta (nunca concatenação manual crua)", async () => {
+    const plan = planBatch(args, MATCHING_ENV);
+    const outcome = await runCommit(plan, fakeClient());
+    if (outcome.status !== "CREATED") throw new Error("unreachable");
+    // new URL() já normaliza — confirmamos que o caminho é exatamente
+    // /convite/<token>, sem segmentos extras nem path traversal.
+    for (const row of outcome.csvRows) {
+      const parsed = new URL(row.url);
+      expect(parsed.pathname.startsWith("/convite/")).toBe(true);
+      expect(parsed.pathname.split("/").filter(Boolean).length).toBe(2);
+    }
+  });
+});
+
+describe("checkDeploymentAttestation — Fase 10 (fetch sempre fake, zero rede)", () => {
+  function fakeFetch(body: unknown, ok = true, status = 200): FetchLike {
+    return async () => ({ ok, status, async json() { return body; } });
+  }
+
+  const READY_BODY = {
+    status: "READY",
+    contract_version: "FIBT-HML-1",
+    environment: "staging",
+    batch_id: CAMPAIGN.batchId,
+    backend_attested: true,
+    frontend_origin_attested: true,
+  };
+
+  test("27. READY válido permite seguir (ok: true)", async () => {
+    const r = await checkDeploymentAttestation(AUTHORIZED_BASE_URL, fakeFetch(READY_BODY));
+    expect(r).toEqual({ ok: true });
+  });
+
+  test("28. BLOCKED impede seguir", async () => {
+    const r = await checkDeploymentAttestation(
+      AUTHORIZED_BASE_URL,
+      fakeFetch({ status: "BLOCKED", failure_code: "HML_PRODUCTION_TARGET_FORBIDDEN" }, false, 503),
+    );
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_ATTESTATION_BLOCKED", detail: "HML_PRODUCTION_TARGET_FORBIDDEN" });
+  });
+
+  test("29. contract_version divergente impede seguir", async () => {
+    const r = await checkDeploymentAttestation(
+      AUTHORIZED_BASE_URL,
+      fakeFetch({ ...READY_BODY, contract_version: "OUTRA-VERSAO" }),
+    );
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_CONTRACT_MISMATCH" });
+  });
+
+  test("30. batch_id divergente impede seguir", async () => {
+    const r = await checkDeploymentAttestation(AUTHORIZED_BASE_URL, fakeFetch({ ...READY_BODY, batch_id: "OUTRO" }));
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_CONTRACT_MISMATCH" });
+  });
+
+  test("31. fetch que lança (endpoint indisponível) impede seguir", async () => {
+    const throwingFetch: FetchLike = async () => {
+      throw new Error("network unreachable");
+    };
+    const r = await checkDeploymentAttestation(AUTHORIZED_BASE_URL, throwingFetch);
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" });
+  });
+
+  test("resposta não-JSON / corpo vazio também é tratada como indisponível", async () => {
+    const badJsonFetch: FetchLike = async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        throw new Error("invalid json");
+      },
+    });
+    const r = await checkDeploymentAttestation(AUTHORIZED_BASE_URL, badJsonFetch);
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_ATTESTATION_UNAVAILABLE" });
+  });
+
+  test("backend_attested false mesmo com status READY é tratado como contract mismatch (fail-closed)", async () => {
+    const r = await checkDeploymentAttestation(AUTHORIZED_BASE_URL, fakeFetch({ ...READY_BODY, backend_attested: false }));
+    expect(r).toEqual({ ok: false, code: "HML_DEPLOYMENT_CONTRACT_MISMATCH" });
+  });
+
+  test("consulta exatamente o path /api/fibt-hml/attestation relativo à base URL", async () => {
+    let calledUrl = "";
+    const capturingFetch: FetchLike = async (url) => {
+      calledUrl = url;
+      return { ok: true, status: 200, async json() { return READY_BODY; } };
+    };
+    await checkDeploymentAttestation(AUTHORIZED_BASE_URL, capturingFetch);
+    expect(calledUrl).toBe(`${AUTHORIZED_BASE_URL}${HML_ATTESTATION_PATH}`);
+  });
+});
+
+describe("32. dry-run nunca chama fetch nem qualquer rede", () => {
+  test("planBatch + ausência de --commit não invoca checkDeploymentAttestation em lugar nenhum do fluxo dry-run", () => {
+    // planBatch/parseArgs são funções puras — nenhuma delas importa fetch,
+    // node:http, node:net ou qualquer client de rede. A única chamada a
+    // checkDeploymentAttestation no módulo inteiro vive dentro do bloco
+    // `if (import.meta.main)`, após a checagem `if (!args.commit) { ...
+    // process.exit(0) }` — ou seja, estruturalmente inalcançável em dry-run.
+    const args = parseArgs(VALID_FLAGS);
+    expect(args.commit).toBe(false);
+    const plan = planBatch(args);
+    expect(plan).toBeDefined();
+  });
+
+  test("checkDeploymentAttestation só é referenciada dentro do bloco import.meta.main, depois do exit de dry-run", () => {
+    const source = readFileSync(new URL("./create-synthetic-homologation-links.ts", import.meta.url), "utf8");
+    const mainBlockStart = source.indexOf("if (import.meta.main)");
+    const dryRunExit = source.indexOf("process.exit(0)", mainBlockStart);
+    const attestationCall = source.indexOf("await checkDeploymentAttestation(", mainBlockStart);
+    expect(mainBlockStart).toBeGreaterThan(-1);
+    expect(dryRunExit).toBeGreaterThan(mainBlockStart);
+    expect(attestationCall).toBeGreaterThan(dryRunExit);
   });
 });
 
