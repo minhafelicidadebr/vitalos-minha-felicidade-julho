@@ -19,19 +19,21 @@ Nenhuma onda encadeia automaticamente na seguinte.
 
 ## Bloqueadores anteriores à PROD-0.6C
 
-- [x] **Marcadores multibloco introduzidos** — 12 pares `B001`–`B012` em
+- [x] **Marcadores multibloco introduzidos** — agora 13 pares `B001`–`B013` em
       `docs/fibt-prod/MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`, com
-      preservação byte a byte comprovada.
-- [ ] **⛔ `CREATE OR REPLACE submit_sector_response` acrescentado ao draft.**
-      A §3b hoje só remete o operador à SPEC §J; o statement não existe no
-      arquivo. Sem ele a transação concatenada pula da precondition direto para
-      o `DROP CONSTRAINT`, e o pós-check §5.6 acharia a função ainda
-      referenciando `invite_token` — o caminho feliz **não pode passar**.
-      Corrigir exige acrescentar conteúdo SQL ao draft, com autorização própria.
-- [ ] **Extrator adaptado ao contrato multibloco** — o de `69cca10` (PR #37)
-      presume um único par de marcadores.
+      preservação byte a byte comprovada (Prova A e Prova B, ver plano).
+- [x] **`CREATE OR REPLACE submit_sector_response` acrescentado ao draft**
+      (PROD-0.6B-FUNCBODY). Bloco `B007`, byte-idêntico à SPEC §J e à Migration
+      B canônica de staging. `B007`–`B012` antigos renumerados para
+      `B008`–`B013`; conteúdo pré-existente inalterado (confirmado por hash).
+      O pós-check §5.6 (bloco `B010`) agora encontra a função já substituída —
+      o caminho feliz deixa de ser bloqueado por construção.
+- [ ] **Extrator adaptado ao contrato multibloco de 13 blocos** — o de
+      `69cca10` (PR #37) presume um único par de marcadores e ainda não conhece
+      `B001`–`B013`. Ver seção "Impacto no PR #37" no handoff.
 
-Enquanto qualquer um dos dois pendentes existir, a PROD-0.6C fica bloqueada.
+Enquanto o extrator do PR #37 não for adaptado, a PROD-0.6C fica bloqueada —
+mas o corpo da função deixou de ser um bloqueador.
 
 ## Pré-execução — PROD-0.6D
 
@@ -106,10 +108,10 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 
 ## Extração do SQL — `EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`
 
-- [ ] **`FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 12`** conferido.
+- [ ] **`FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 13`** conferido.
 - [ ] Marcadores de formato exato `-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:Bnnn` /
       `…_END:Bnnn`, ocupando a linha inteira.
-- [ ] Sequência `B001…B012` **sem lacuna** e **sem ID repetido**.
+- [ ] Sequência `B001…B013` **sem lacuna** e **sem ID repetido**.
 - [ ] Um `BEGIN` e um `END` por ID · `END` depois do `BEGIN` · **sem
       aninhamento** · **nenhum bloco vazio**.
 - [ ] **Somente** linhas dentro dos blocos processadas.
@@ -120,7 +122,10 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] **Nunca** gravar SQL descomentado no workspace **nem dentro do
       container** — o transporte é por stdin.
 - [ ] Registrados: **hash por bloco** e **hash agregado**.
-- [ ] `SOURCE_WITH_MARKERS_REMOVED_SHA256` confere com o blob do draft.
+- [ ] `SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256` confere com o blob do
+      draft em `origin/main`.
+- [ ] `DRAFT_B007_FUNCTION_SHA256` confere com `SPEC_J_FUNCTION_SHA256` e com
+      `CANONICAL_B_FUNCTION_SHA256`.
 - [ ] Temporários **apagados** no encerramento.
 
 **Proibido:** `BEGIN`/`COMMIT` como marcador · regex de palavra-chave para
@@ -133,12 +138,13 @@ tree — `core.autocrlf` faz os dois divergirem, e o runner Linux vê o primeiro
 **Descomentação seletiva é proibida** — o extrator só aceita blocos inteiros
 entre marcadores declarados.
 
-> **⛔ Bloqueador da PROD-0.6C:** a §3b do draft **não contém** o
-> `CREATE OR REPLACE FUNCTION public.submit_sector_response(...)`. A transação
-> concatenada pula da precondition direto para o `DROP CONSTRAINT`, e o
-> pós-check §5.6 encontraria a função ainda referenciando `invite_token`. O
-> caminho feliz não pode passar até que o corpo da função seja acrescentado ao
-> draft — mudança de conteúdo, não de marcador, com autorização própria.
+> **✅ Resolvido (PROD-0.6B-FUNCBODY):** a §3b do draft **contém agora** o
+> `CREATE OR REPLACE FUNCTION public.submit_sector_response(...)`, como bloco
+> `B007`. A transação concatenada passa pela substituição da função antes do
+> `DROP CONSTRAINT`, e o pós-check §5.6 (bloco `B010`) encontra o corpo já sem
+> referência a `invite_token`. O caminho feliz deixa de estar bloqueado por
+> construção — falta apenas a execução real do Tier 1 para confirmação
+> empírica.
 
 ## Camadas
 
@@ -167,8 +173,9 @@ Se `PARTIAL` ou `FAILED`, **não promover como equivalência produtiva** — e
 
 ## Execução dos cenários
 
-- [ ] Os **67** cenários de L1/L2 executados (tabela canônica da
-      `PROD06_SCENARIO_MATRIX.md` §9).
+- [ ] Os **68** cenários de L1/L2 executados (tabela canônica da
+      `PROD06_SCENARIO_MATRIX.md` §9), incluindo `E18` —
+      `REQUIRED_FUNCTION_BODY_PRESENT`, específico do bloco `B007`.
 - [ ] Cada um classificado `PASS` · `FAIL` · `INCONCLUSIVE`.
 - [ ] Validação fail-closed da matriz: IDs únicos · nenhum cenário sem
       resultado esperado · nenhum sem evidência · `count_documented =

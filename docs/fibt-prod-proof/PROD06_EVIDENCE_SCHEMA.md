@@ -45,13 +45,14 @@ de cenário.
 | --- | --- |
 | `source_file` | caminho do arquivo-fonte no repositório |
 | `source_sha256` | SHA-256 do **blob** do arquivo-fonte inteiro |
-| `expected_block_count` | `12` — congelado no contrato |
+| `expected_block_count` | `13` — recongelado após PROD-0.6B-FUNCBODY |
 | `observed_block_count` | contagem real de pares de marcador |
-| `block_ids_expected` / `block_ids_observed` | `B001…B012` |
+| `block_ids_expected` / `block_ids_observed` | `B001…B013` |
 | `sequence_gaps` · `duplicate_ids` · `nested_blocks` · `empty_blocks` | devem ser `0` |
-| `source_with_markers_removed_sha256` | igual ao blob do draft **sem** os marcadores |
-| `aggregate_transaction_sha256` | SHA-256 da concatenação `B001`–`B010` |
-| `aggregate_acl_sha256` | um por bloco de ACL (`B011`, `B012`) |
+| `source_without_markers_and_new_block_sha256` | igual ao blob do draft em `origin/main` **sem** os marcadores **e sem** o corpo novo de `B007` (prova mais fraca que a anterior — ver plano §"Prova de preservação") |
+| `aggregate_transaction_sha256` | SHA-256 da concatenação `B001`–`B011` |
+| `aggregate_acl_sha256` | um por bloco de ACL (`B012`, `B013`) |
+| `spec_j_function_sha256` / `canonical_b_function_sha256` / `draft_b007_function_sha256` | as três devem ser **idênticas** — corpo inserido em `B007` bate com a SPEC §J e com a Migration B canônica |
 | `rejected_lines` | linhas em formato inesperado — deve ser `0` |
 | `temp_paths_removed` | `true` no encerramento, **inclusive em falha** |
 
@@ -59,7 +60,7 @@ de cenário.
 
 | Campo | Descrição |
 | --- | --- |
-| `block_id` | `B001` … `B012` |
+| `block_id` | `B001` … `B013` |
 | `start_line` / `end_line` | posição no arquivo-fonte |
 | `line_count` | linhas do bloco |
 | `classification` | `TRANSACTION_OPEN` · `PRECONDITION` · `DDL` · `POSTCHECK` · `TRANSACTION_CLOSE` · `SUPPORTING_SQL` |
@@ -69,8 +70,8 @@ de cenário.
 | `prose_lines_detected` | deve ser `0` |
 
 Divergência de contagem, lacuna de ID, ID repetido, aninhamento, bloco vazio,
-linha rejeitada, ou `source_with_markers_removed_sha256` diferente do blob →
-**aborta antes de conectar ao banco**.
+linha rejeitada, ou `source_without_markers_and_new_block_sha256` diferente do
+blob de `origin/main` → **aborta antes de conectar ao banco**.
 
 ### Invariantes transacionais da concatenação
 
@@ -80,9 +81,11 @@ Cada um registrado como booleano: `first_statement_is_begin` ·
 `set_local_inside_transaction` · `preconditions_before_first_ddl` ·
 `postchecks_after_ddl` · **`no_executable_fragment_omitted`**.
 
-O último é hoje **`false`**: o `CREATE OR REPLACE` de `submit_sector_response`
-não existe no draft. Enquanto for `false`, o caminho feliz **não pode** ser
-classificado `PASS`.
+O último passou a **`true`** após a PROD-0.6B-FUNCBODY: o `CREATE OR REPLACE`
+de `submit_sector_response` foi incorporado como bloco `B007`, byte-idêntico à
+SPEC §J e à Migration B canônica. Validado estaticamente (sem executar
+PostgreSQL) — a confirmação empírica ainda depende da execução real do Tier 1,
+que segue não disparada.
 
 ## 3. Registro por cenário — um por cenário
 
@@ -196,12 +199,12 @@ própria de teste (UUIDv5), e-mails em `example.invalid`, nomes marcados
 
 ## 8. Critério de conclusão
 
-A PROD-0.6D conclui quando os **67** cenários de L1/L2 tiverem registro
+A PROD-0.6D conclui quando os **68** cenários de L1/L2 tiverem registro
 completo e classificação. A contagem é **derivada da tabela canônica** da
 `PROD06_SCENARIO_MATRIX.md` §9, e a validação fail-closed exige
 `count_documented = count_parsed` e a **mesma contagem nos três documentos**.
 
-**67 `PASS` não autorizam promoção.** Continuam obrigatórios:
+**68 `PASS` não autorizam promoção.** Continuam obrigatórios:
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED` · aprovação humana de locks e timeouts ·
 A aplicada e comprovada · H aplicado e comprovado · inventário produtivo
 repetido · `project_ref` reconfirmado · trilha ACL concluída antes da ativação

@@ -290,26 +290,35 @@ SQL · blocos concatenados na **ordem física** do arquivo.
 para decidir executabilidade · remoção global de `--` · seleção manual de
 linhas durante a execução · **fallback** quando os marcadores falharem.
 
-### `FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 12`
+### `FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 13`
 
-Medido, não presumido. Inventário congelado, derivado do draft em `8d18ae7`:
+Medido, não presumido. Inventário recongelado após a inserção do corpo de
+`submit_sector_response` (PROD-0.6B-FUNCBODY), sobre o draft atual do PR #38:
 
-| ID | Linhas | Qtd | Primeiro token | Último token | Classificação |
+| ID | Linhas (conteúdo) | Qtd | Primeiro token | Último token | Classificação |
 | --- | --- | --- | --- | --- | --- |
-| `B001` | 86 | 1 | `BEGIN;` | `BEGIN;` | `TRANSACTION_OPEN` |
-| `B002` | 105–106 | 2 | `SET` | `'2min';` | `SUPPORTING_SQL` |
-| `B003` | 146–147 | 2 | `SELECT` | `MODE;` | `SUPPORTING_SQL` |
-| `B004` | 159–227 | 69 | `DO` | `$$;` | `PRECONDITION` |
-| `B005` | 279–391 | 113 | `DO` | `$$;` | `PRECONDITION` |
-| `B006` | 410–848 | 439 | `DO` | `$$;` | `PRECONDITION` |
-| `B007` | 911–915 | 5 | `ALTER` | `invite_token;` | `DDL` |
-| `B008` | 917–920 | 4 | `COMMENT` | `schema.';` | `DDL` |
-| `B009` | 948–1123 | 176 | `DO` | `$$;` | `POSTCHECK` |
-| `B010` | 1125 | 1 | `COMMIT;` | `COMMIT;` | `TRANSACTION_CLOSE` |
-| `B011` | 1149–1181 | 33 | `SELECT` | `'');` | `SUPPORTING_SQL` |
-| `B012` | 1212–1248 | 37 | `WITH` | `canonico;` | `SUPPORTING_SQL` |
+| `B001` | 87 | 1 | `BEGIN;` | `BEGIN;` | `TRANSACTION_OPEN` |
+| `B002` | 108–109 | 2 | `SET` | `'2min';` | `SUPPORTING_SQL` |
+| `B003` | 151–152 | 2 | `SELECT` | `MODE;` | `SUPPORTING_SQL` |
+| `B004` | 166–234 | 69 | `DO` | `$$;` | `PRECONDITION` |
+| `B005` | 288–400 | 113 | `DO` | `$$;` | `PRECONDITION` |
+| `B006` | 421–859 | 439 | `DO` | `$$;` | `PRECONDITION` |
+| `B007` | 924–973 | 50 | `CREATE` | `$$;` | `DDL` |
+| `B008` | 976–980 | 5 | `ALTER` | `invite_token;` | `DDL` |
+| `B009` | 984–987 | 4 | `COMMENT` | `schema.';` | `DDL` |
+| `B010` | 1017–1192 | 176 | `DO` | `$$;` | `POSTCHECK` |
+| `B011` | 1196 | 1 | `COMMIT;` | `COMMIT;` | `TRANSACTION_CLOSE` |
+| `B012` | 1222–1254 | 33 | `SELECT` | `'');` | `SUPPORTING_SQL` |
+| `B013` | 1287–1323 | 37 | `WITH` | `canonico;` | `SUPPORTING_SQL` |
 
-`B001`–`B010` formam a transação. `B011` e `B012` são as consultas de ACL,
+Novo bloco **`B007`** (DDL): `CREATE OR REPLACE FUNCTION
+public.submit_sector_response`, byte-idêntico (após normalização de prefixo e
+EOL) à SPEC §J e à Migration B canônica de staging (blob `c0d35c06…`).
+`B008`–`B013` são os antigos `B007`–`B012`, renumerados; nenhuma linha de
+conteúdo pré-existente foi alterada dentro deles (confirmado por hash — ver
+tabela abaixo).
+
+`B001`–`B011` formam a transação. `B012` e `B013` são as consultas de ACL,
 executadas **fora** da transação, antes e depois.
 
 Verificação manual de cada bloco: **zero linhas malformadas** e **zero
@@ -319,10 +328,13 @@ sentenças em prosa** dentro de qualquer bloco.
 
 | Item | Valor |
 | --- | --- |
-| `SOURCE_WITH_MARKERS_REMOVED_SHA256` | `acafcd5978d6546dd6332283f498613aee88f2c77434b8bb74742537fe68a04c` |
-| agregado da transação (`B001`–`B010`) | `944155964587945af2b1f36d145ca862d74337bb03cf8993bf5e0f3c755a0d17` |
-| agregado de `B011` | `c7757bf557ba6679ea763cc3e194b01d2802ebd8150e1422919c9e099403adbe` |
-| agregado de `B012` | `61ed5e7f15a8dc69abd13a5d2f4750073a2579f6de96e44ff8aa649f8b63ce14` |
+| `BASE_DRAFT_BLOB_SHA256` (draft em `origin/main`, sem markers, sem função) | `acafcd5978d6546dd6332283f498613aee88f2c77434b8bb74742537fe68a04c` |
+| `SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256` (draft atual menos 26 marcadores, menos o corpo novo de `B007`) | `5e2c8a5912c37316f2b42c4fbca450325d385aeee70a8b9a66a2631b433a66ce` |
+| `SPEC_J_FUNCTION_SHA256` / `CANONICAL_B_FUNCTION_SHA256` / `DRAFT_B007_FUNCTION_SHA256` (as três idênticas) | `1ef02de2aece306e7432d2c2d9d4a51bd88457043c2f3b5f3d9f3f960fced2c4` |
+| agregado da transação (`B001`–`B011`) | `127979ac95d2da9ffd4d7c4f792c4d13107a76a75f810f478badf851852a9075` |
+| agregado de `B012` (ACL 6.1 — conteúdo inalterado, só renumerado) | `c7757bf557ba6679ea763cc3e194b01d2802ebd8150e1422919c9e099403adbe` |
+| agregado de `B013` (ACL 6.2 — conteúdo inalterado, só renumerado) | `61ed5e7f15a8dc69abd13a5d2f4750073a2579f6de96e44ff8aa649f8b63ce14` |
+| agregado de todos os blocos, `B001`–`B013`, na ordem | `6ba7417cef647c6483269835095f07205b91cdbb84e3af9809aad657b2670d30` |
 
 **Todos os hashes são calculados sobre o conteúdo do blob Git (LF canônico),
 nunca sobre o working tree.** Este repositório tem `core.autocrlf = true`; ler
@@ -333,9 +345,27 @@ normalização para LF é parte do contrato, não detalhe de implementação.
 
 ### Prova de preservação
 
-`SOURCE_WITH_MARKERS_REMOVED_SHA256` é idêntico ao SHA-256 do blob do draft em
-`8d18ae7`: removendo **apenas** as 24 linhas de marcador, o arquivo volta a ser
-**byte-idêntico**. Nenhuma linha preexistente foi alterada.
+**A prova muda de natureza na PROD-0.6B-FUNCBODY.** Até aqui (PROD-0.6C), o
+draft só ganhava marcadores — "removidos os marcadores, o arquivo é
+byte-idêntico à `main`" era uma prova forte. Agora o draft ganha **conteúdo
+SQL novo** (o corpo de `submit_sector_response`, 50 linhas), então essa mesma
+formulação deixaria de valer por construção. A prova correta, **mais fraca**,
+é: "removidos os marcadores **e o bloco novo**, o arquivo é byte-idêntico à
+`main`" — `SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256`, que bate com
+`BASE_DRAFT_BLOB_SHA256` (tabela acima).
+
+Duas provas independentes, não uma:
+
+- **Prova A (nada mais foi tocado):** remover os 26 marcadores e as 50 linhas
+  do corpo novo do draft atual reproduz byte a byte o draft de `origin/main`.
+  Confirmado — única diferença residual é a atualização deliberada da prosa
+  humana da §3b (deixa de instruir "copiar o corpo manualmente" e passa a
+  apontar para o bloco `B007` e o pós-check 5.8), autorizada explicitamente
+  nesta mesma rodada.
+- **Prova B (o que entrou é o corpo certo):** o corpo extraído de `B007`
+  (removido exatamente um prefixo de comentário) é byte-idêntico à SPEC §J e à
+  Migration B canônica de staging — `DRAFT_B007_FUNCTION_SHA256 =
+  SPEC_J_FUNCTION_SHA256 = CANONICAL_B_FUNCTION_SHA256`.
 
 ### Formato do arquivo-fonte — medido, não presumido
 
@@ -359,7 +389,7 @@ comportamento desejado.
 
 ### Invariantes transacionais da concatenação
 
-Validação **estática** do resultado de `B001`–`B010`, sem executar PostgreSQL:
+Validação **estática** do resultado de `B001`–`B011`, sem executar PostgreSQL:
 
 | Invariante | Resultado |
 | --- | --- |
@@ -371,28 +401,36 @@ Validação **estática** do resultado de `B001`–`B010`, sem executar PostgreS
 | ausência de `ROLLBACK` no caminho feliz | ✅ (0) |
 | `SET LOCAL` dentro da transação | ✅ (`B002`, após `B001`) |
 | preconditions antes do primeiro DDL | ✅ (`B004`–`B006` antes de `B007`) |
-| pós-checks depois dos DDLs | ✅ (`B009` depois de `B007`/`B008`) |
-| **nenhum trecho executável omitido entre fases previstas** | ❌ **FALHA** |
+| `CREATE OR REPLACE` antes do `DROP CONSTRAINT` | ✅ (`B007` antes de `B008`) |
+| `CREATE OR REPLACE` antes do `DROP COLUMN` | ✅ (`B007` antes de `B008`) |
+| `DROP CONSTRAINT` antes do `DROP COLUMN` | ✅ (ambos em `B008`, nessa ordem) |
+| pós-checks depois dos DDLs | ✅ (`B010` depois de `B007`/`B008`/`B009`) |
+| função completa presente exatamente uma vez | ✅ (1 ocorrência de `CREATE OR REPLACE FUNCTION public.submit_sector_response`) |
+| função nova sem referência a `wave_responses.invite_token` | ✅ (zero ocorrências dentro do corpo de `B007`) |
+| SQL de ACL fora da transação | ✅ (`B012`/`B013` fora de `B001`–`B011`) |
+| zero `GRANT`/`REVOKE` introduzido | ✅ (0) |
+| **nenhum trecho executável omitido entre fases previstas** | ✅ **RESOLVIDO** |
 
-Números medidos: 822 linhas concatenadas, 567 statements, **zero linhas de
-prosa nua**. O contrato multibloco resolve integralmente o defeito anterior.
+Números medidos por extração direta (linhas cruas, incluindo linhas em
+branco preservadas): **862 linhas** na transação (`B001`–`B011`), **932
+linhas** no conjunto completo (`B001`–`B013`), **zero linhas de prosa nua**,
+**zero linhas malformadas**. Contagem de *statements* individuais não foi
+refeita com o extrator real (`scripts/fibt-proof/extract-block.ts` vive só no
+PR #37, ainda não adaptado para 13 blocos) — fica pendente da Fase 11/adaptação
+do extrator; a extração manual usada aqui replica as mesmas 24 regras de
+prefixo e foi cruzada com os hashes de `B012`/`B013`, que batem exatamente com
+os hashes já congelados dos antigos `B011`/`B012` — confirmando que a
+renumeração não alterou nenhum conteúdo pré-existente.
 
-> ### ⛔ P0 remanescente — `CREATE OR REPLACE` ausente do draft
->
-> A §3b do draft **não contém** o `CREATE OR REPLACE FUNCTION
-> public.submit_sector_response(...)`. Ela apenas remete o operador ao corpo
-> reproduzido na SPEC §J e instrui "copiar apenas o corpo".
->
-> Consequência: a transação concatenada vai das preconditions **direto** para
-> o `DROP CONSTRAINT`, sem substituir a função. E o pós-check §5.6 inspeciona
-> `submit_sector_response` procurando referência residual a `invite_token` —
-> que continuaria lá, porque a função nunca foi recriada. **O caminho feliz não
-> pode passar.**
->
-> Isto **não é corrigível com marcadores**: exige acrescentar ~50 linhas de SQL
-> ao draft, o que está fora do escopo desta autorização (Fase 2: "inserir
-> somente as linhas de marcadores"). Fica registrado como bloqueador da
-> PROD-0.6C, ao lado da adaptação do extrator.
+### ✅ P0 resolvido — corpo de `submit_sector_response` incorporado
+
+A §3b do draft **agora contém** o `CREATE OR REPLACE FUNCTION
+public.submit_sector_response(...)` completo, como bloco executável `B007`,
+byte-idêntico à SPEC §J e à Migration B canônica (ver hashes acima). O
+pós-check §5.6 (dentro de `B010`) passa a encontrar a função **já substituída**,
+sem referência residual a `invite_token` — o caminho feliz agora pode
+completar. `T02`/`H01` deixam de falhar por construção; permanecem sujeitos à
+execução real do Tier 1 (ainda não disparada) para confirmação empírica.
 
 **Descomentação seletiva permanece proibida**, agora também mecanicamente: o
 extrator só aceita blocos inteiros entre marcadores declarados.

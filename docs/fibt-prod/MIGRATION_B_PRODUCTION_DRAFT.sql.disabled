@@ -875,17 +875,17 @@
 -- submit_sector_response nomeia invite_token no INSERT (gravando NULL). Dropar
 -- a coluna sem corrigir a funcao quebraria o link setorial.
 --
--- Corpo integral reproduzido na SPEC secao J, para revisao. Copiar APENAS o
--- corpo -- as duas ultimas linhas daquele bloco (REVOKE + GRANT) ficam de fora.
+-- Corpo executavel abaixo, bloco B007. Byte-identico (apos normalizacao de
+-- prefixo de comentario e EOL) a SPEC secao J e a Migration B canonica de
+-- staging (blob c0d35c06...) -- REVOKE e GRANT permanecem de fora, por
+-- decisao de SPEC secao H.
 --
 -- submit_wave_response NAO e recriada aqui: ela ja foi corrigida pela
 -- Migration A, que removeu a gravacao do token. Recria-la seria duplicar
 -- responsabilidade da A e criar uma segunda fonte de verdade do corpo.
 --
--- Apos o CREATE OR REPLACE, reconfirmar a assinatura:
---   IF to_regprocedure('public.submit_sector_response(text,jsonb)') IS NULL THEN
---     RAISE EXCEPTION 'FALHA: submit_sector_response perdeu a assinatura esperada.';
---   END IF;
+-- A reconfirmacao da assinatura ocorre no pos-check 5.8 (bloco B010), dentro
+-- da mesma transacao, apos todos os DDLs.
 
 
 -- ===========================================================================
@@ -921,19 +921,71 @@
 -- dependencia catalogal, e CASCADE removeria objetos silenciosamente.
 
 -- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B007
+-- CREATE OR REPLACE FUNCTION public.submit_sector_response(
+--   p_token_hash TEXT,
+--   p_answers    JSONB
+-- )
+-- RETURNS TABLE(accepted BOOLEAN, reason TEXT, response_count INTEGER)
+-- LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE
+--   v_link      public.sector_links%ROWTYPE;
+--   v_wave      public.waves%ROWTYPE;
+--   v_cohort_id UUID;
+--   v_count     INTEGER;
+-- BEGIN
+--   SELECT * INTO v_link FROM public.sector_links WHERE token_hash = p_token_hash;
+--
+--   IF NOT FOUND THEN
+--     RETURN QUERY SELECT FALSE, 'invalid_token'::TEXT, 0;
+--     RETURN;
+--   END IF;
+--
+--   IF v_link.status <> 'active' OR v_link.revoked_at IS NOT NULL THEN
+--     RETURN QUERY SELECT FALSE, 'revoked'::TEXT, 0;
+--     RETURN;
+--   END IF;
+--
+--   IF v_link.expires_at <= NOW() THEN
+--     RETURN QUERY SELECT FALSE, 'expired'::TEXT, 0;
+--     RETURN;
+--   END IF;
+--
+--   SELECT * INTO v_wave FROM public.waves WHERE id = v_link.wave_id;
+--   IF v_wave.id IS NULL OR v_wave.status IN ('sealed', 'cancelled', 'archived') THEN
+--     RETURN QUERY SELECT FALSE, 'wave_not_open'::TEXT, 0;
+--     RETURN;
+--   END IF;
+--
+--   -- Coorte do setor, quando declarada para esta onda. NULL e aceitavel: link
+--   -- compartilhado sem coorte registrada agrega no nivel da onda.
+--   SELECT c.id INTO v_cohort_id
+--     FROM public.wave_cohorts c
+--    WHERE c.wave_id = v_link.wave_id AND c.key = v_link.sector_label;
+--
+--   -- Anonimo por schema: nenhuma referencia ao link, ao token ou ao hash.
+--   INSERT INTO public.wave_responses (wave_id, cohort_id, instrument, instrument_version, answers)
+--   VALUES (v_link.wave_id, v_cohort_id, v_wave.instrument, v_wave.instrument_version, p_answers);
+--
+--   SELECT COUNT(*) INTO v_count FROM public.wave_responses WHERE wave_id = v_link.wave_id;
+--
+--   RETURN QUERY SELECT TRUE, NULL::TEXT, v_count;
+-- END;
+-- $$;
+-- FIBT_PROD_B_EXEC_BLOCK_END:B007
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B008
 -- ALTER TABLE public.wave_responses
 --   DROP CONSTRAINT wave_responses_invite_token_fkey;
 --
 -- ALTER TABLE public.wave_responses
 --   DROP COLUMN invite_token;
--- FIBT_PROD_B_EXEC_BLOCK_END:B007
+-- FIBT_PROD_B_EXEC_BLOCK_END:B008
 
--- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B008
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B009
 -- COMMENT ON TABLE public.wave_responses IS
 --   'Conteudo anonimo de resposta. Sem policy de SELECT: nenhum papel cliente le '
 --   'resposta individual. Sem invite_token, sem email e sem FK para wave_invites '
 --   '-- a juncao resposta->participante NAO EXISTE no schema.';
--- FIBT_PROD_B_EXEC_BLOCK_END:B008
+-- FIBT_PROD_B_EXEC_BLOCK_END:B009
 
 
 -- ===========================================================================
@@ -961,7 +1013,7 @@
 --
 -- Nome de PARAMETRO nunca e referencia a coluna.
 
--- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B009
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B010
 -- DO $$
 -- DECLARE
 --   v_total_pos INTEGER;
@@ -1138,11 +1190,11 @@
 --
 --   RAISE NOTICE 'CONTRACT concluido: nao existe caminho resposta -> convite -> email no schema.';
 -- END $$;
--- FIBT_PROD_B_EXEC_BLOCK_END:B009
-
--- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B010
--- COMMIT;
 -- FIBT_PROD_B_EXEC_BLOCK_END:B010
+
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B011
+-- COMMIT;
+-- FIBT_PROD_B_EXEC_BLOCK_END:B011
 
 
 -- ===========================================================================
@@ -1166,7 +1218,7 @@
 -- ---------------------------------------------------------------------------
 -- 6.1 LINHAS NORMALIZADAS -- leitura humana, ordenacao determinista
 -- ---------------------------------------------------------------------------
--- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B011
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B012
 -- SELECT
 --   p.oid,
 --   p.proname,
@@ -1200,7 +1252,7 @@
 --          coalesce(acl.grantee_name, ''),
 --          coalesce(acl.privilege_type, ''),
 --          coalesce(acl.grantor_name, '');
--- FIBT_PROD_B_EXEC_BLOCK_END:B011
+-- FIBT_PROD_B_EXEC_BLOCK_END:B012
 
 -- ---------------------------------------------------------------------------
 -- 6.2 REPRESENTACAO CANONICA + FINGERPRINT (P2-3)
@@ -1231,7 +1283,7 @@
 -- operacional aprovado), sem credencial e sem dado de negocio -- a saida traz
 -- apenas metadado de catalogo e nomes de papel.
 
--- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B012
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B013
 -- WITH acl_rows AS (
 --   SELECT p.oid                                        AS f_oid,
 --          p.proname                                    AS f_nome,
@@ -1269,7 +1321,7 @@
 --   md5(representacao)                                               AS acl_fingerprint_md5,
 --   encode(sha256(convert_to(representacao, 'UTF8')), 'hex')         AS acl_fingerprint_sha256
 -- FROM canonico;
--- FIBT_PROD_B_EXEC_BLOCK_END:B012
+-- FIBT_PROD_B_EXEC_BLOCK_END:B013
 
 -- COMPARACAO OBRIGATORIA:
 --   ACL_BEFORE_FINGERPRINT  (capturado imediatamente ANTES do BEGIN)

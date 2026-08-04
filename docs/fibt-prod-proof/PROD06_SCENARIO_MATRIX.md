@@ -218,7 +218,7 @@ hoje expectativa derivada, não medida.
 Requer H aplicado e os stubs de `auth.uid()`/`auth.role()`. É o item que a
 revisão estática declarou inalcançável sem execução.
 
-## 7. Extrator multibloco — E01 a E17
+## 7. Extrator multibloco — E01 a E18
 
 Cenários do **contrato de extração**
 (`EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`). Todos **fail-closed**: o extrator
@@ -226,7 +226,7 @@ aborta antes de qualquer conexão com o banco, e **nunca** recorre a fallback.
 
 | # | Cenário | Resultado esperado | Evidência |
 | --- | --- | --- | --- |
-| E01 | todos os 12 blocos válidos | extrai e concatena na ordem física | `observed_block_count=12` · hashes por bloco · agregado |
+| E01 | todos os 13 blocos válidos | extrai e concatena na ordem física | `observed_block_count=13` · hashes por bloco · agregado |
 | E02 | marcador inicial ausente | **aborta** | ID sem par · log de extração |
 | E03 | marcador final ausente | **aborta** | ID sem par · log |
 | E04 | ID duplicado | **aborta** | `duplicate_ids > 0` |
@@ -242,16 +242,26 @@ aborta antes de qualquer conexão com o banco, e **nunca** recorre a fallback.
 | E14 | último token ≠ `COMMIT` | **aborta** | `last_statement_is_commit=false` |
 | E15 | `COMMIT` intermediário | **aborta** | `no_intermediate_commit=false` |
 | E16 | normalização CRLF/LF alterando o hash | **aborta** | hash de blob × hash de working tree |
-| E17 | marcadores removidos e conteúdo **não** byte-idêntico | **aborta** | `source_with_markers_removed_sha256` |
+| E17 | marcadores **e** bloco novo removidos, conteúdo **não** byte-idêntico à `main` | **aborta** | `source_without_markers_and_new_block_sha256` |
+| E18 | `REQUIRED_FUNCTION_BODY_PRESENT` — `B007` presente, um único `CREATE OR REPLACE` completo, corpo idêntico à SPEC §J/Migration B canônica, antes do `DROP CONSTRAINT` e do `DROP COLUMN`, pós-check reconhece o corpo novo como válido | **PASS** somente nessas condições | `draft_b007_function_sha256 = spec_j_function_sha256 = canonical_b_function_sha256` · posição relativa dos blocos · `no_executable_fragment_omitted=true` |
 
 **E16 não é hipotético.** Este repositório tem `core.autocrlf = true`: o SHA-256
 do arquivo em disco no Windows difere do SHA-256 do blob. O cenário existe para
 garantir que a normalização seja explícita e que Windows e Linux produzam o
 mesmo resultado.
 
-**E17 é a prova de não-adulteração:** removidas apenas as 24 linhas de
-marcador, o draft volta a ser byte-idêntico ao da `main`. Já verificado nesta
-onda — `acafcd5978d6546d…` em ambos os lados.
+**E17 mudou de natureza na PROD-0.6B-FUNCBODY.** Antes: "removidos os 24
+marcadores, o draft volta a ser byte-idêntico à `main`". Agora, com o corpo da
+função incorporado, a prova correta é mais fraca — "removidos os 26
+marcadores **e** o bloco novo de `B007`, o draft volta a ser byte-idêntico à
+`main`". Já verificado nesta onda — `acafcd5978d6546d…` em ambos os lados
+(`SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256`).
+
+**E18 é o cenário que fecha o P0.** Falhas obrigatórias: `B007` ausente; corpo
+incompleto; hash divergente do corpo; `B007` posicionado depois dos `DROP`;
+`INSERT` ainda nomeando `wave_responses.invite_token`; orientação textual
+("copiar o corpo") usada no lugar do SQL real. Validado estaticamente nesta
+onda — confirmação empírica depende da execução real do Tier 1.
 
 ## 7b. Falhas do restante do aparato
 
@@ -336,7 +346,7 @@ rollback de queda de conexão.
 | `K01` | L1 | abaixo de *k* | suprimido em n=4 | `k_behavior` |
 | `K02` | L1 | abaixo de *k* | visível em n=5 | `k_behavior` |
 | `K03` | L1 | abaixo de *k* | visível em n=7 | `k_behavior` |
-| `E01` | — | extrator | 12 blocos válidos, concatenados em ordem | hashes por bloco · agregado |
+| `E01` | — | extrator | 13 blocos válidos, concatenados em ordem | hashes por bloco · agregado |
 | `E02` | — | extrator | aborta (marcador inicial ausente) | ID sem par |
 | `E03` | — | extrator | aborta (marcador final ausente) | ID sem par |
 | `E04` | — | extrator | aborta (ID duplicado) | `duplicate_ids` |
@@ -352,13 +362,15 @@ rollback de queda de conexão.
 | `E14` | — | extrator | aborta (último token ≠ COMMIT) | `last_statement_is_commit` |
 | `E15` | — | extrator | aborta (COMMIT intermediário) | `no_intermediate_commit` |
 | `E16` | — | extrator | aborta (CRLF/LF alterando hash) | hash blob × working tree |
-| `E17` | — | extrator | aborta (conteúdo não byte-idêntico sem marcadores) | `source_with_markers_removed_sha256` |
+| `E17` | — | extrator | aborta (conteúdo não byte-idêntico sem marcadores e sem o bloco novo) | `source_without_markers_and_new_block_sha256` |
+| `E18` | — | extrator | `PASS` só com `B007` presente, corpo completo e idêntico, posicionado antes dos `DROP`, pós-check reconhecendo o corpo novo | `draft_b007_function_sha256 = spec_j_function_sha256 = canonical_b_function_sha256` |
 | `X06` | — | aparato | aborta (host remoto) | variável detectada, **sem valor** |
 | `X07` | — | aparato | aborta (input incorreto) | inputs recebidos |
 | `X08` | — | aparato | aborta (cliente de major errada) | `client_version` |
 | `X09` | — | aparato | rejeita comparação | chave de `restrict` observada |
 
-**`count_documented = 67`** — 67 `scenario_id` únicos de L1/L2.
+**`count_documented = 68`** — 68 `scenario_id` únicos de L1/L2 (67 anteriores +
+`E18`, acrescentado na PROD-0.6B-FUNCBODY).
 
 Executor Lovable (L3), fora desta contagem: `V01`–`V05` (5 cenários), em onda e
 autorização próprias.
@@ -379,14 +391,14 @@ editorial.
 
 ## 10. Critério de conclusão
 
-A PROD-0.6D conclui quando os **67** cenários de L1/L2 tiverem sido executados
+A PROD-0.6D conclui quando os **68** cenários de L1/L2 tiverem sido executados
 e classificados `PASS` · `FAIL` · `INCONCLUSIVE`, com evidência conforme
 `PROD06_EVIDENCE_SCHEMA.md`.
 
 Um único `FAIL` em cenário de precondition ou de rollback é **NO-GO** para
 promoção. `INCONCLUSIVE` não conta como aprovação — conta como pendência.
 
-**Mesmo com 67/67 `PASS`**, a promoção continua bloqueada por
+**Mesmo com 68/68 `PASS`**, a promoção continua bloqueada por
 `LOVABLE_BATCH_TRANSACTION_CONFIRMED`, pela aprovação humana de locks e
 timeouts, por A e H aplicadas e comprovadas, pelo inventário produtivo
 repetido, pelo `project_ref` reconfirmado e pela trilha ACL.
