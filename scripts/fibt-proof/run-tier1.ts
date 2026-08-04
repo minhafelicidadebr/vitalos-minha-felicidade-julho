@@ -15,21 +15,36 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const CONTAINER = process.env.PG_CONTAINER_ID;
-const RUNNER_TEMP = process.env.RUNNER_TEMP;
+// Versão do harness, registrada em toda evidência (normal e terminal).
+export const HARNESS_VERSION = "fibt-proof-harness/PROD-0.6C";
+
+// Declaradas aqui (module scope) para que as funções abaixo as capturem por
+// closure, mas só ATRIBUÍDAS dentro do guard `import.meta.main` — nenhuma
+// delas é lida/validada na importação do módulo. É o que torna seguro
+// importar este arquivo em teste (ex.: para `buildTerminalFailureEvidence`)
+// sem disparar `fatal()`/`process.exit` nem tentar abrir arquivos que só
+// existem em RUNNER_TEMP durante uma execução real do workflow.
+let CONTAINER: string | undefined;
+let RUNNER_TEMP: string | undefined;
+let evidenceOut: string | undefined;
+let ACL_QUERY: string;
+let BLOCK_SQL: string;
+let BASE: string;
+let SEED: string;
+let A_SQL: string;
+let H_SQL: string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let extraction: any;
+
 const DB = "vitalos_proof";
 const PGUSER = "postgres";
-
-if (!CONTAINER) fatal("PG_CONTAINER_ID ausente — sem fallback");
-if (!RUNNER_TEMP) fatal("RUNNER_TEMP ausente — sem fallback");
-
-const sqlBlockPath = process.argv[2];
-const evidenceOut = process.argv[3];
-if (!sqlBlockPath || !evidenceOut) fatal("uso: run-tier1.ts <SQL_BLOCK_PATH> <EVIDENCE_OUT>");
-if (!sqlBlockPath.startsWith(RUNNER_TEMP!)) fatal("bloco SQL fora de RUNNER_TEMP");
-
 const MIGRATION_A = "supabase/migrations/20260730150000_generic_anonymous_submissions_expand.sql";
 const MIGRATION_H = "supabase/migrations/20260730155000_cohort_aggregate_privacy_hardening.sql";
+
+/** Fase corrente, só para diagnóstico de falha terminal — atualizada em
+ * poucos pontos de checkpoint, não por cenário (granularidade suficiente
+ * para saber ONDE uma exceção não tratada interrompeu o harness). */
+let currentPhase = "STARTUP";
 
 function fatal(msg: string): never {
   console.error(`HARNESS_ABORT: ${msg}`);
@@ -37,6 +52,38 @@ function fatal(msg: string): never {
 }
 function sha256(s: string): string {
   return createHash("sha256").update(s, "utf8").digest("hex");
+}
+
+export interface TerminalFailureEvidence {
+  status: "FAIL" | "INCONCLUSIVE";
+  generated_at: string;
+  phase: string;
+  failure_code: string;
+  source_sha: string | null;
+  harness_version: string;
+}
+
+/**
+ * Constrói o registro de evidência para uma exceção NÃO TRATADA — o caso em
+ * que o harness quebra antes de `emit()` rodar e nenhuma evidência normal
+ * seria gravada. Pura: não lê env, não faz I/O, não recebe o objeto `Error`
+ * (só um `failureCode` textual) — por construção, nunca inclui stack trace,
+ * senha, connection string, token ou variável de ambiente.
+ */
+export function buildTerminalFailureEvidence(opts: {
+  phase: string;
+  failureCode: string;
+  sourceSha?: string | null;
+  status?: "FAIL" | "INCONCLUSIVE";
+}): TerminalFailureEvidence {
+  return {
+    status: opts.status ?? "FAIL",
+    generated_at: new Date().toISOString(),
+    phase: opts.phase,
+    failure_code: opts.failureCode,
+    source_sha: opts.sourceSha ?? null,
+    harness_version: HARNESS_VERSION,
+  };
 }
 
 interface ExecResult {
@@ -89,19 +136,12 @@ async function schemaHash(): Promise<string> {
   return sha256(normalized);
 }
 
-const ACL_QUERY = readFileSync(`${RUNNER_TEMP}/migration-b-acl-evidence.sql`, "utf8");
 async function aclFingerprint(): Promise<string> {
   const r = await runSql(ACL_QUERY);
   if (r.code !== 0) return "UNAVAILABLE";
   const last = r.stdout.trim().split("\n").pop() ?? "";
   return last.split("|").pop()?.trim() || "EMPTY";
 }
-
-const BLOCK_SQL = readFileSync(sqlBlockPath, "utf8");
-const BASE = readFileSync("scripts/fibt-proof/harness/00-base-schema.sql", "utf8");
-const SEED = readFileSync("scripts/fibt-proof/harness/01-seed.sql", "utf8");
-const A_SQL = readFileSync(MIGRATION_A, "utf8");
-const H_SQL = readFileSync(MIGRATION_H, "utf8");
 
 /** Recria o banco do zero e aplica base → seed → A → H. */
 async function resetDatabase(): Promise<void> {
@@ -246,9 +286,8 @@ function rec(
 // Tier 1 Launch Gate — T01 a T17
 // ============================================================================
 
-const extraction = JSON.parse(readFileSync(`${RUNNER_TEMP}/extraction-transaction.json`, "utf8"));
-
 async function main(): Promise<void> {
+  currentPhase = "VERSION_CHECK";
   const version = await (async () => {
     await runSql("SELECT 1;", "postgres");
     return scalar("SELECT version();", "postgres");
@@ -284,6 +323,7 @@ async function main(): Promise<void> {
   });
   console.log(`${records[0]!.classification} T01 — ${records[0]!.observed_result}`);
 
+  currentPhase = "TIER1_SCENARIOS";
   // T02 — caminho feliz A/H/B
   await scenario({
     id: "T02", group: "caminho feliz", expectAbort: false,
@@ -406,6 +446,7 @@ async function main(): Promise<void> {
 
 /** T10, T11, T12 — concorrência real com duas/três sessões. */
 async function lockScenarios(): Promise<void> {
+  currentPhase = "TIER1_LOCK_SCENARIOS";
   await resetDatabase();
   const before = await schemaHash();
 
@@ -501,6 +542,7 @@ async function lockScenarios(): Promise<void> {
 
 /** T14–T16 — comportamento abaixo de k, com stubs de auth. */
 async function kScenario(id: string, n: number): Promise<void> {
+  currentPhase = `TIER1_K_ANON_SCENARIOS:${id}`;
   await resetDatabase();
   const cohort = "md5('vitalos-proof-ns:cohort')::uuid";
   const wave = "md5('vitalos-proof-ns:wave')::uuid";
@@ -554,6 +596,7 @@ async function kScenario(id: string, n: number): Promise<void> {
 }
 
 function emit(): void {
+  currentPhase = "EMIT";
   const pass = records.filter((r) => r.classification === "PASS").length;
   const fail = records.filter((r) => r.classification === "FAIL").length;
   const incon = records.filter((r) => r.classification === "INCONCLUSIVE").length;
@@ -590,4 +633,51 @@ function emit(): void {
   console.log("TIER1_GATE_PASSED");
 }
 
-await main();
+// ============================================================================
+// Casca CLI — só roda quando o arquivo é executado diretamente, nunca em
+// import (evita I/O, validação de env e disparo do harness em teste).
+// ============================================================================
+if (import.meta.main) {
+  CONTAINER = process.env.PG_CONTAINER_ID;
+  RUNNER_TEMP = process.env.RUNNER_TEMP;
+  if (!CONTAINER) fatal("PG_CONTAINER_ID ausente — sem fallback");
+  if (!RUNNER_TEMP) fatal("RUNNER_TEMP ausente — sem fallback");
+
+  const sqlBlockPath = process.argv[2];
+  evidenceOut = process.argv[3];
+  if (!sqlBlockPath || !evidenceOut) fatal("uso: run-tier1.ts <SQL_BLOCK_PATH> <EVIDENCE_OUT>");
+  if (!sqlBlockPath.startsWith(RUNNER_TEMP)) fatal("bloco SQL fora de RUNNER_TEMP");
+
+  ACL_QUERY = readFileSync(`${RUNNER_TEMP}/migration-b-acl-evidence.sql`, "utf8");
+  BLOCK_SQL = readFileSync(sqlBlockPath, "utf8");
+  BASE = readFileSync("scripts/fibt-proof/harness/00-base-schema.sql", "utf8");
+  SEED = readFileSync("scripts/fibt-proof/harness/01-seed.sql", "utf8");
+  A_SQL = readFileSync(MIGRATION_A, "utf8");
+  H_SQL = readFileSync(MIGRATION_H, "utf8");
+  extraction = JSON.parse(readFileSync(`${RUNNER_TEMP}/extraction-transaction.json`, "utf8"));
+
+  main().catch(() => {
+    // Exceção NÃO TRATADA — os casos antecipados já chamam fatal() (exit
+    // imediato, sem chegar aqui). Isto é especificamente para o que NÃO foi
+    // previsto, e por isso é o caso em que perder a evidência seria pior:
+    // sem este boundary, o job terminaria sem nenhum artefato diagnosticável.
+    //
+    // Sanitizado por construção: buildTerminalFailureEvidence só recebe um
+    // failure_code textual fixo, nunca o objeto de erro em si — nenhuma
+    // stack, senha, connection string, token, variável de ambiente ou SQL
+    // descomentado chega à evidência ou ao stderr abaixo.
+    const evidence = buildTerminalFailureEvidence({
+      phase: currentPhase,
+      failureCode: "UNCAUGHT_EXCEPTION",
+      sourceSha: process.env.GITHUB_SHA ?? null,
+    });
+    try {
+      if (evidenceOut) writeFileSync(evidenceOut, JSON.stringify(evidence, null, 2), "utf8");
+    } catch {
+      console.error("HARNESS_ABORT: falha terminal e não foi possível gravar a evidência sanitizada.");
+      process.exit(1);
+    }
+    console.error(`HARNESS_ABORT: exceção não tratada na fase ${currentPhase} — evidência terminal registrada (sem stack trace).`);
+    process.exit(1);
+  });
+}

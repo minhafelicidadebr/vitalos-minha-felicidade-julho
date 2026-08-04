@@ -7,17 +7,25 @@ import {
   EXPECTED_B007_SHA256,
   EXPECTED_TRANSACTION_SHA256,
   EXPECTED_ALL_BLOCKS_SHA256,
+  TRANSACTION_BLOCK_IDS,
+  ACL_EVIDENCE_BLOCK_IDS,
+  ALL_BLOCK_IDS,
+  type RunExtractionOptions,
 } from "./extract-block";
 
 /**
  * Testes estáticos do extrator multibloco (PROD-0.6C). Nenhum inicia
  * PostgreSQL, Docker ou executa SQL — `runExtraction` só lê texto e valida.
  *
- * O corpo de B007 usado nas fixtures sintéticas é o texto público e já
- * incorporado à main (SPEC §J / bloco B007 do draft canônico) — byte a byte
- * idêntico, por isso os testes que usam a fixture "válida" inteira sem
- * mutação batem no hash congelado de B007 mas NÃO no hash agregado da
- * transação (os demais blocos são sintéticos, menores que os reais).
+ * MODO DE GARANTIA: o extrator não classifica linguisticamente SQL versus
+ * prosa. A defesa real contra qualquer conteúdo não canônico dentro de um
+ * bloco — inclusive prosa — é EXPECTED_BLOCK_SHA256: cada um dos 13 blocos é
+ * comparado, individualmente, contra o hash do conteúdo canônico congelado.
+ * Essa checagem roda PRIMEIRO, antes de E18 e dos invariantes. Por isso, testar
+ * E18/invariantes por mutação exige `{ skipBlockHashPin: true }` — sem isso,
+ * qualquer mutação de teste dispararia BLOCK_HASH_DIVERGENT antes de alcançar
+ * o comportamento que o teste quer isolar. A defesa por hash-pin em si é
+ * testada à parte, sempre com a opção default (produção nunca usa o escape).
  */
 
 const B007_CANONICAL_BODY = `CREATE OR REPLACE FUNCTION public.submit_sector_response(
@@ -86,7 +94,9 @@ function block(id: string, sql: string): string {
 
 /** Fixture sintética com os 13 blocos estruturalmente válidos. B007 é o
  * corpo canônico real; os demais são versões mínimas, mas com o mesmo papel
- * transacional (BEGIN/SET LOCAL/locks/preconditions/DDL/postcheck/COMMIT). */
+ * transacional (BEGIN/SET LOCAL/locks/preconditions/DDL/postcheck/COMMIT).
+ * Nenhum bloco além de B007 bate com EXPECTED_BLOCK_SHA256 -- é sintética,
+ * não uma cópia byte a byte do draft real. */
 function buildValidFixture(): string {
   const parts = [
     "-- Cabecalho de documentacao do draft, so prosa comentada.",
@@ -112,11 +122,13 @@ function buildValidFixture(): string {
 }
 
 const VALID_FIXTURE = buildValidFixture();
+const REAL_DRAFT = readFileSync(SOURCE_FILE, "utf8");
+const SKIP_PIN: RunExtractionOptions = { skipBlockHashPin: true };
 
 /** Roda a extração e devolve o ExtractionError, ou falha o teste se passar. */
-function expectAbort(source: string): ExtractionError {
+function expectAbort(source: string, opts?: RunExtractionOptions): ExtractionError {
   try {
-    runExtraction(source);
+    runExtraction(source, opts);
   } catch (e) {
     if (e instanceof ExtractionError) return e;
     throw e;
@@ -125,25 +137,17 @@ function expectAbort(source: string): ExtractionError {
 }
 
 describe("runExtraction — caminho feliz", () => {
-  test("13 blocos válidos, estrutura e invariantes corretos: só diverge no hash congelado (blocos sintéticos, não o draft real)", () => {
+  test("13 blocos sintéticos válidos, sem escape: aborta no bloco mais cedo que não bate o hash congelado (B003)", () => {
+    // Confirma que o pin por bloco realmente roda primeiro, antes de
+    // qualquer outra checagem — nenhum "falso PASS" por acaso.
     const err = expectAbort(VALID_FIXTURE);
-    // A fixture é estruturalmente válida (13 blocos, sequência, invariantes
-    // todos verdadeiros) — todas as checagens anteriores passam. Ela só
-    // aborta na comparação final contra os hashes congelados, porque é uma
-    // fixture sintética menor que o draft real, não uma cópia byte a byte.
-    // Prova que o extrator chega ate o fim da validação estrutural sem falso
-    // positivo antes de comparar contra o congelado.
-    expect(err.code).toBe("E18_HASH_DIVERGENT");
+    expect(err.code).toBe("BLOCK_HASH_DIVERGENT:B003");
   });
 
   test("arquivo real do draft canônico: 13 blocos, E18 PASS, hashes congelados batem", () => {
-    const real = readFileSync(SOURCE_FILE, "utf8");
-    const result = runExtraction(real);
+    const result = runExtraction(REAL_DRAFT);
     expect(result.observedBlockCount).toBe(13);
-    expect(result.observedBlockIds).toEqual([
-      "B001", "B002", "B003", "B004", "B005", "B006", "B007",
-      "B008", "B009", "B010", "B011", "B012", "B013",
-    ]);
+    expect(result.observedBlockIds).toEqual(ALL_BLOCK_IDS);
     expect(result.b007FunctionSha256).toBe(EXPECTED_B007_SHA256);
     expect(result.aggregateTransactionSha256).toBe(EXPECTED_TRANSACTION_SHA256);
     expect(result.aggregateAllBlocksSha256).toBe(EXPECTED_ALL_BLOCKS_SHA256);
@@ -154,6 +158,10 @@ describe("runExtraction — caminho feliz", () => {
 });
 
 describe("runExtraction — estrutura de marcadores", () => {
+  // Todos os testes desta seção quebram no estágio de validação de
+  // marcadores/sequência, que roda ANTES da extração de bloco — não
+  // precisam de skipBlockHashPin.
+
   test("marcador BEGIN ausente", () => {
     const mutated = VALID_FIXTURE.replace("-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B005\n", "");
     expect(expectAbort(mutated).code).toBe("MISSING_BEGIN");
@@ -190,8 +198,6 @@ describe("runExtraction — estrutura de marcadores", () => {
       "-- FIBT_PROD_B_EXEC_BLOCK_END:B004",
       "-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B005\n--\n-- FIBT_PROD_B_EXEC_BLOCK_END:B004",
     );
-    // Isso introduz um BEGIN:B005 extra antes do END:B004 original — resulta
-    // em marcador duplicado, que também é uma forma de contrato quebrado.
     const err = expectAbort(mutated);
     expect(["NESTED_OR_OUT_OF_ORDER", "DUPLICATE_BEGIN"]).toContain(err.code);
   });
@@ -208,9 +214,45 @@ describe("runExtraction — estrutura de marcadores", () => {
     const mutated = VALID_FIXTURE + "\n\n" + block("B014", "SELECT 1;") + "\n";
     expect(expectAbort(mutated).code).toBe("BLOCK_COUNT");
   });
+});
 
-  test("marcador do contrato legado (par único) presente", () => {
+describe("runExtraction — marcadores do contrato legado (par único)", () => {
+  test("marcador legado real (linha inteira) é rejeitado", () => {
     const mutated = VALID_FIXTURE + "\n\n-- FIBT_PROD_B_SQL_BLOCK_BEGIN\n--\n-- FIBT_PROD_B_SQL_BLOCK_END\n";
+    expect(expectAbort(mutated).code).toBe("LEGACY_MARKER_PRESENT");
+  });
+
+  test("marcador legado com espaço em volta (trim) ainda é rejeitado", () => {
+    const mutated = VALID_FIXTURE + "\n\n--  FIBT_PROD_B_ACL_BLOCK_BEGIN  \n--\n-- FIBT_PROD_B_ACL_BLOCK_END\n";
+    // A linha extra tem espaços ao redor do texto do marcador -- o trim()
+    // aplicado antes do teste deve normalizar isso.
+    const err = expectAbort(mutated.replace("--  FIBT_PROD_B_ACL_BLOCK_BEGIN  ", "-- FIBT_PROD_B_ACL_BLOCK_BEGIN "));
+    expect(err.code).toBe("LEGACY_MARKER_PRESENT");
+  });
+
+  test("menção histórica em frase NÃO é confundida com marcador ativo", () => {
+    const mutated = VALID_FIXTURE.replace(
+      "-- Cabecalho de documentacao do draft, so prosa comentada.",
+      "-- Cabecalho de documentacao do draft, so prosa comentada.\n-- Isto substituiu o antigo FIBT_PROD_B_SQL_BLOCK_BEGIN por marcadores B001-B013.",
+    );
+    const err = expectAbort(mutated);
+    expect(err.code).not.toBe("LEGACY_MARKER_PRESENT");
+  });
+
+  test("substring dentro de palavra maior NÃO é confundida com marcador ativo", () => {
+    const mutated = VALID_FIXTURE.replace(
+      "-- Cabecalho de documentacao do draft, so prosa comentada.",
+      "-- Cabecalho de documentacao do draft, so prosa comentada.\n-- FIBT_PROD_B_SQL_BLOCK_BEGINNING_OF_SOMETHING_ELSE",
+    );
+    const err = expectAbort(mutated);
+    expect(err.code).not.toBe("LEGACY_MARKER_PRESENT");
+  });
+
+  test("marcador legado real inserido DENTRO de um bloco também é rejeitado", () => {
+    const mutated = VALID_FIXTURE.replace(
+      "SELECT pg_advisory_xact_lock(1);",
+      "SELECT pg_advisory_xact_lock(1);\n-- FIBT_PROD_B_ACL_BLOCK_END",
+    );
     expect(expectAbort(mutated).code).toBe("LEGACY_MARKER_PRESENT");
   });
 });
@@ -225,16 +267,11 @@ describe("runExtraction — formato do arquivo-fonte", () => {
   });
 
   test("linha com prefixo malformado (\"---- \" em vez de \"-- \") é rejeitada já na varredura do arquivo inteiro", () => {
-    // A checagem de arquivo inteiro (UNCOMMENTED_SOURCE_LINE) usa o mesmo
-    // critério de formato que a checagem por bloco — por isso uma linha
-    // malformada é sempre pega na varredura inicial, nunca sobra para
-    // MALFORMED_LINE (defesa em profundidade, não morta: MALFORMED_LINE
-    // continua sendo o que protegeria se a varredura inicial um dia mudasse).
     const mutated = VALID_FIXTURE.replace("-- BEGIN;", "---- BEGIN;");
     expect(expectAbort(mutated).code).toBe("UNCOMMENTED_SOURCE_LINE");
   });
 
-  test("diferença CRLF vs LF não quebra a extração (normalização explícita)", () => {
+  test("diferença CRLF vs LF não muda o resultado (normalização explícita)", () => {
     const crlf = VALID_FIXTURE.replace(/\n/g, "\r\n");
     const lfResult = expectAbort(VALID_FIXTURE);
     const crlfResult = expectAbort(crlf);
@@ -242,64 +279,173 @@ describe("runExtraction — formato do arquivo-fonte", () => {
   });
 });
 
+describe("runExtraction — hash-pin por bloco (defesa contra prosa/qualquer alteração)", () => {
+  test("prosa bem formatada injetada em B002 é rejeitada em BLOCK_HASH_DIVERGENT:B002, antes de qualquer checagem agregada", () => {
+    // Usa o draft REAL, sem skip -- é exatamente o modo de produção. A
+    // prosa é sintaticamente um comentário válido (\"-- ...\"), então só o
+    // hash pego a diferença -- não há classificador de prosa.
+    const injected = REAL_DRAFT.replace(
+      "-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B002",
+      "-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B002\n-- Esta linha e pura prosa explicativa, nao e SQL de verdade.",
+    );
+    expect(expectAbort(injected).code).toBe("BLOCK_HASH_DIVERGENT:B002");
+  });
+
+  test("todos os 13 hashes individuais do draft real batem com EXPECTED_BLOCK_SHA256", () => {
+    // Não deve lançar -- confirma que o mapa congelado está correto para
+    // cada um dos 13 blocos, não só para B007.
+    expect(() => runExtraction(REAL_DRAFT)).not.toThrow();
+  });
+
+  test("com o pin desativado (cenário hipotético de bug no extrator), o hash agregado da transação ainda captura a mesma divergência", () => {
+    const mutated = REAL_DRAFT.replace("SET LOCAL lock_timeout = '5s';", "SET LOCAL lock_timeout = '6s';");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("TRANSACTION_HASH_DIVERGENT");
+  });
+
+  test("com o pin desativado, o hash agregado de todos os blocos captura divergência isolada em B012/B013 (fora da transação)", () => {
+    const marker = "pg_get_function_identity_arguments(p.oid)      AS assinatura,";
+    expect(REAL_DRAFT).toContain(marker);
+    const mutated = REAL_DRAFT.replace(marker, "pg_get_function_identity_arguments(p.oid)      AS assinatura_da_funcao,");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("AGGREGATE_HASH_DIVERGENT");
+  });
+});
+
 describe("runExtraction — E18 REQUIRED_FUNCTION_BODY_PRESENT", () => {
+  // Todos os testes usam skipBlockHashPin: o pin por bloco rodaria primeiro
+  // e mascararia o código de E18 que o teste quer isolar (ver cabeçalho).
+
   test("B007 ausente (removido do contrato de 13 blocos): falha antes mesmo de chegar a E18", () => {
     const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), "");
-    const err = expectAbort(mutated);
+    const err = expectAbort(mutated, SKIP_PIN);
     expect(["MISSING_BEGIN", "BLOCK_COUNT"]).toContain(err.code);
   });
 
   test("B007 com corpo incompleto (assinatura ausente)", () => {
     const incomplete = "-- placeholder: copiar o corpo da SPEC secao J aqui";
     const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", incomplete));
-    expect(expectAbort(mutated).code).toBe("E18_FUNCTION_BODY_MISSING");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_FUNCTION_BODY_MISSING");
   });
 
-  test("B007 com hash divergente (corpo presente, mas reescrito)", () => {
+  test("B007 com hash divergente (corpo presente, mas reescrito) -- E18_HASH_DIVERGENT ao final, depois de E18 semântico e invariantes passarem", () => {
     const rewritten = B007_CANONICAL_BODY.replace("v_count     INTEGER;", "v_count     INT;");
     const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", rewritten));
-    expect(expectAbort(mutated).code).toBe("E18_HASH_DIVERGENT");
-  });
-
-  test("B007 com INSERT ainda nomeando wave_responses.invite_token", () => {
-    const withToken = B007_CANONICAL_BODY.replace(
-      "INSERT INTO public.wave_responses (wave_id, cohort_id, instrument, instrument_version, answers)",
-      "INSERT INTO public.wave_responses (wave_id, cohort_id, invite_token, instrument, instrument_version, answers)",
-    );
-    const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", withToken));
-    expect(expectAbort(mutated).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
-  });
-
-  test("B007 com GRANT/REVOKE executável dentro do bloco", () => {
-    const withGrant = `${B007_CANONICAL_BODY}\n\nGRANT EXECUTE ON FUNCTION public.submit_sector_response(TEXT, JSONB) TO anon;`;
-    const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", withGrant));
-    expect(expectAbort(mutated).code).toBe("E18_GRANT_OR_REVOKE_PRESENT");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_HASH_DIVERGENT");
   });
 
   test("orientação textual no lugar da função (nunca chega a conter CREATE OR REPLACE)", () => {
     const textOnly = "-- Corpo integral reproduzido na SPEC secao J. Copiar APENAS o corpo.";
     const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", textOnly));
-    expect(expectAbort(mutated).code).toBe("E18_FUNCTION_BODY_MISSING");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_FUNCTION_BODY_MISSING");
   });
 
   test("dois CREATE OR REPLACE dentro do mesmo B007", () => {
     const doubled = `${B007_CANONICAL_BODY}\n\n${B007_CANONICAL_BODY}`;
     const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", doubled));
-    expect(expectAbort(mutated).code).toBe("E18_NOT_EXACTLY_ONE");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_NOT_EXACTLY_ONE");
+  });
+
+  test("B007 com GRANT executável dentro do bloco", () => {
+    const withGrant = `${B007_CANONICAL_BODY}\n\nGRANT EXECUTE ON FUNCTION public.submit_sector_response(TEXT, JSONB) TO anon;`;
+    const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", withGrant));
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_GRANT_OR_REVOKE_PRESENT");
+  });
+
+  test("B007 com REVOKE executável dentro do bloco", () => {
+    const withRevoke = `${B007_CANONICAL_BODY}\n\nREVOKE EXECUTE ON FUNCTION public.submit_sector_response(TEXT, JSONB) FROM PUBLIC;`;
+    const mutated = VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", withRevoke));
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("E18_GRANT_OR_REVOKE_PRESENT");
+  });
+
+  test("posição depois dos DROPs (B007 e B008 trocados de lugar no arquivo)", () => {
+    const b007Block = block("B007", B007_CANONICAL_BODY);
+    const b008Block = block(
+      "B008",
+      "ALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;\n\nALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;",
+    );
+    const mutated = VALID_FIXTURE.replace(b007Block, "__B007_PLACEHOLDER__").replace(b008Block, b007Block).replace("__B007_PLACEHOLDER__", b008Block);
+    const err = expectAbort(mutated, SKIP_PIN);
+    expect(["NESTED_OR_OUT_OF_ORDER", "INVARIANT_FAILED"]).toContain(err.code);
+  });
+
+  describe("invite_token — qualquer ocorrência lexical (fronteira de palavra, sem substring)", () => {
+    const withBody = (body: string) => VALID_FIXTURE.replace(block("B007", B007_CANONICAL_BODY), block("B007", body));
+
+    test("1. INSERT em wave_responses.invite_token", () => {
+      const body = B007_CANONICAL_BODY.replace(
+        "INSERT INTO public.wave_responses (wave_id, cohort_id, instrument, instrument_version, answers)",
+        "INSERT INTO public.wave_responses (wave_id, cohort_id, invite_token, instrument, instrument_version, answers)",
+      );
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("2. UPDATE SET invite_token", () => {
+      const body = `${B007_CANONICAL_BODY}\n  UPDATE public.wave_responses SET invite_token = NULL WHERE wave_id = v_link.wave_id;`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("3. SELECT invite_token", () => {
+      const body = `${B007_CANONICAL_BODY}\n  PERFORM invite_token FROM public.wave_responses LIMIT 1;`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("4. RETURNING invite_token", () => {
+      const body = `${B007_CANONICAL_BODY}\n  -- ... RETURNING invite_token;`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("5. referência qualificada wave_responses.invite_token", () => {
+      const body = `${B007_CANONICAL_BODY}\n  -- nota: wave_responses.invite_token nao deveria mais existir`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("6. referência por alias wr.invite_token", () => {
+      const body = `${B007_CANONICAL_BODY}\n  -- nota: wr.invite_token era o antigo padrao`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("7. ocorrência apenas em comentário", () => {
+      const body = `${B007_CANONICAL_BODY}\n  -- TODO: revisar se invite_token precisa voltar (nao precisa)`;
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("8. ocorrência dentro de string literal", () => {
+      const body = B007_CANONICAL_BODY.replace("'invalid_token'::TEXT", "'invite_token'::TEXT");
+      expect(expectAbort(withBody(body), SKIP_PIN).code).toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
+
+    test("fronteira de palavra: identificador maior que CONTÉM a substring mas não é a palavra isolada não dispara por si só (a checagem ainda vale por hash/estrutura)", () => {
+      // "convite_tokenizado" contém "invite_token"? Não -- escolhido de
+      // propósito para não conter a substring; o objetivo deste teste é
+      // documentar que \binvite_token\b não casa parcialmente dentro de um
+      // identificador MAIOR que apenas comece igual, ex.: "invite_token_id"
+      // MAS SEM underscore antes (fronteira à esquerda também importa).
+      const body = `${B007_CANONICAL_BODY}\n  -- nota: outroinvite_tokenoutro nao deveria casar isoladamente`;
+      // "outroinvite_tokenoutro" não tem fronteira de palavra em nenhum dos
+      // lados de "invite_token" (letras coladas antes e depois) -- \b exige
+      // transição entre caractere de palavra e não-palavra, então aqui NÃO
+      // deveria casar. Confirma que a regex é \b ancorada, não substring nu.
+      const result = (() => {
+        try {
+          runExtraction(withBody(body), SKIP_PIN);
+          return "PASS";
+        } catch (e) {
+          return (e as ExtractionError).code;
+        }
+      })();
+      expect(result).not.toBe("E18_INVITE_TOKEN_RESIDUAL");
+    });
   });
 });
 
 describe("runExtraction — invariantes transacionais", () => {
   test("primeiro statement diferente de BEGIN (B001 alterado)", () => {
     const mutated = VALID_FIXTURE.replace(block("B001", "BEGIN;"), block("B001", "SELECT 1;"));
-    // "BEGIN;" deixa de existir → exactly_one_begin também falha, mas o
-    // primeiro invariante avaliado (na ordem de inserção) é first_statement_is_begin.
-    expect(expectAbort(mutated).code).toBe("INVARIANT_FAILED");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("INVARIANT_FAILED");
   });
 
   test("último statement diferente de COMMIT (B011 alterado)", () => {
     const mutated = VALID_FIXTURE.replace(block("B011", "COMMIT;"), block("B011", "SELECT 1;"));
-    expect(expectAbort(mutated).code).toBe("INVARIANT_FAILED");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("INVARIANT_FAILED");
   });
 
   test("COMMIT intermediário (B008 ganha um COMMIT extra)", () => {
@@ -307,7 +453,12 @@ describe("runExtraction — invariantes transacionais", () => {
       block("B008", "ALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;\n\nALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;"),
       block("B008", "ALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;\nCOMMIT;\nALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;"),
     );
-    expect(expectAbort(mutated).code).toBe("INVARIANT_FAILED");
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("INVARIANT_FAILED");
+  });
+
+  test("ROLLBACK presente no caminho feliz", () => {
+    const mutated = VALID_FIXTURE.replace(block("B011", "COMMIT;"), block("B011", "ROLLBACK;"));
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("INVARIANT_FAILED");
   });
 
   test("DROP CONSTRAINT depois do DROP COLUMN dentro de B008 (ordem interna invertida)", () => {
@@ -315,42 +466,37 @@ describe("runExtraction — invariantes transacionais", () => {
       block("B008", "ALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;\n\nALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;"),
       block("B008", "ALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;\n\nALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;"),
     );
-    expect(expectAbort(mutated).code).toBe("INVARIANT_FAILED");
-  });
-
-  test("B007 posicionado depois dos DROPs (B007 e B008 trocados de lugar no arquivo)", () => {
-    const b007Block = block("B007", B007_CANONICAL_BODY);
-    const b008Block = block(
-      "B008",
-      "ALTER TABLE public.wave_responses\n  DROP CONSTRAINT wave_responses_invite_token_fkey;\n\nALTER TABLE public.wave_responses\n  DROP COLUMN invite_token;",
-    );
-    // Troca as posições textuais de B007 e B008 no arquivo — os IDs dos
-    // marcadores continuam corretos, mas B007 passa a aparecer DEPOIS de
-    // B008 na ordem do arquivo, violando a sequência B001..B013.
-    const mutated = VALID_FIXTURE.replace(b007Block, "__B007_PLACEHOLDER__").replace(b008Block, b007Block).replace("__B007_PLACEHOLDER__", b008Block);
-    const err = expectAbort(mutated);
-    expect(["NESTED_OR_OUT_OF_ORDER", "INVARIANT_FAILED"]).toContain(err.code);
+    expect(expectAbort(mutated, SKIP_PIN).code).toBe("INVARIANT_FAILED");
   });
 });
 
-describe("runExtraction — divergência de hash congelado (draft real, mutação mínima)", () => {
-  const REAL_DRAFT = readFileSync(SOURCE_FILE, "utf8");
-
-  test("hash da transação diverge quando um bloco B001–B011 muda (fora de B007)", () => {
-    // Muda um valor dentro de B002 (SET LOCAL) — não afeta estrutura,
-    // invariantes nem E18, só o conteúdo (e portanto o hash) da transação.
-    const mutated = REAL_DRAFT.replace("SET LOCAL lock_timeout = '5s';", "SET LOCAL lock_timeout = '6s';");
-    expect(expectAbort(mutated).code).toBe("TRANSACTION_HASH_DIVERGENT");
+describe("runExtraction — separação real dos grupos B001–B011 / B012–B013", () => {
+  test("as constantes de grupo são exatamente B001–B011 e B012–B013, disjuntas, e cobrem os 13 blocos", () => {
+    expect(TRANSACTION_BLOCK_IDS).toEqual(["B001", "B002", "B003", "B004", "B005", "B006", "B007", "B008", "B009", "B010", "B011"]);
+    expect(ACL_EVIDENCE_BLOCK_IDS).toEqual(["B012", "B013"]);
+    const intersection = TRANSACTION_BLOCK_IDS.filter((id) => ACL_EVIDENCE_BLOCK_IDS.includes(id));
+    expect(intersection).toEqual([]);
+    const union = [...TRANSACTION_BLOCK_IDS, ...ACL_EVIDENCE_BLOCK_IDS].sort();
+    expect(union).toEqual([...ALL_BLOCK_IDS].sort());
   });
 
-  test("hash agregado diverge quando só B012/B013 mudam (fora da transação)", () => {
-    // Muda um alias dentro do SELECT de B012 (entre os marcadores reais do
-    // bloco) — fora da transação (B001–B011), então o hash da transação
-    // continua batendo; só o agregado B001–B013 diverge.
-    const marker = "pg_get_function_identity_arguments(p.oid)      AS assinatura,";
-    expect(REAL_DRAFT).toContain(marker);
-    const mutated = REAL_DRAFT.replace(marker, "pg_get_function_identity_arguments(p.oid)      AS assinatura_da_funcao,");
-    const result = expectAbort(mutated);
-    expect(result.code).toBe("AGGREGATE_HASH_DIVERGENT");
+  test("TRANSACTION_SQL do draft real não contém o conteúdo de B012 nem B013; ACL_EVIDENCE_SQL não contém o conteúdo de B001–B011", () => {
+    const result = runExtraction(REAL_DRAFT);
+    // Marcador exclusivo de B013 (fingerprint ACL) não deve aparecer na
+    // transação; marcador exclusivo de B001 (BEGIN;) não deve aparecer na
+    // evidência ACL.
+    expect(result.transactionSql).not.toContain("acl_fingerprint_sha256");
+    expect(result.transactionSql.trim().startsWith("BEGIN;")).toBe(true);
+    expect(result.transactionSql.trim().endsWith("COMMIT;")).toBe(true);
+    expect(result.aclEvidenceSql).not.toContain("BEGIN;");
+    expect(result.aclEvidenceSql).not.toContain("CREATE OR REPLACE FUNCTION public.submit_sector_response");
+  });
+
+  test("B012 antecede B013 na saída de evidência/ACL", () => {
+    const result = runExtraction(REAL_DRAFT);
+    const idxB012Marker = result.aclEvidenceSql.indexOf("p.oid,");
+    const idxB013Marker = result.aclEvidenceSql.indexOf("acl_fingerprint_sha256");
+    expect(idxB012Marker).toBeGreaterThanOrEqual(0);
+    expect(idxB013Marker).toBeGreaterThan(idxB012Marker);
   });
 });

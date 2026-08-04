@@ -1,6 +1,8 @@
 # PROD-0.6 — Schema de evidência da prova não produtiva
 
-> **Status: PLANO. Nenhuma evidência foi coletada.**
+> **Status: PLANO. Nenhuma evidência foi coletada. O workflow
+> `fibt-nonprod-proof` nunca foi disparado — zero execução, zero PostgreSQL
+> iniciado, zero SQL aplicado.**
 > Plano: `PROD06_NONPROD_PROOF_PLAN.md` · Cenários:
 > `PROD06_SCENARIO_MATRIX.md` · Roteiro: `PROD06_EXECUTION_CHECKLIST.md`.
 
@@ -29,6 +31,8 @@ entre execuções e auditável sem acesso ao runner.
 | `client_server_major_match` | comparação | `true` \| `false` |
 | `layer` | camada | `L1_TARGETED_HARNESS` \| `L2_MIGRATION_LINEAGE` |
 | `lineage_classification` | só em L2 | `MIGRATION_LINEAGE_PROOF_INTEGRAL` \| `…_PARTIAL` \| `…_FAILED` |
+| `pgcrypto_extension_declared` | `CREATE EXTENSION IF NOT EXISTS pgcrypto;` presente no schema sintético (`PGCRYPTO_DEPENDENCY_DECLARED`) — necessário para `gen_random_bytes()`, usado no `DEFAULT` de `wave_invites.token`; instalado só no PostgreSQL 17 efêmero, sem rede | `true` |
+| `harness_version` | versão do orquestrador que gerou a evidência | `fibt-proof-harness/PROD-0.6C` |
 | `started_at` / `finished_at` | timestamps ISO-8601 UTC | |
 
 `source_commit_matches_checkout = false` ou
@@ -50,11 +54,34 @@ de cenário.
 | `block_ids_expected` / `block_ids_observed` | `B001…B013` |
 | `sequence_gaps` · `duplicate_ids` · `nested_blocks` · `empty_blocks` | devem ser `0` |
 | `source_without_markers_and_new_block_sha256` | igual ao blob do draft em `origin/main` **sem** os marcadores **e sem** o corpo novo de `B007` (prova mais fraca que a anterior — ver plano §"Prova de preservação") |
+| `expected_block_sha256` | mapa congelado `B001`…`B013` → SHA-256, incorporado ao extrator na PROD-0.6C-MICROFIX — ver §2.1 |
 | `aggregate_transaction_sha256` | SHA-256 da concatenação `B001`–`B011` |
-| `aggregate_acl_sha256` | um por bloco de ACL (`B012`, `B013`) |
+| `aggregate_acl_evidence_sha256` | SHA-256 da concatenação `B012`+`B013` (grupo `ACL_EVIDENCE`, fora da transação) |
+| `aggregate_all_blocks_sha256` | SHA-256 da concatenação `B001`…`B013` |
 | `spec_j_function_sha256` / `canonical_b_function_sha256` / `draft_b007_function_sha256` | as três devem ser **idênticas** — corpo inserido em `B007` bate com a SPEC §J e com a Migration B canônica |
 | `rejected_lines` | linhas em formato inesperado — deve ser `0` |
 | `temp_paths_removed` | `true` no encerramento, **inclusive em falha** |
+
+### 2.1 Modo de garantia — `CANONICAL_PER_BLOCK_HASH_PIN`
+
+**O harness não classifica linguisticamente SQL e prosa.** Construir um
+classificador real exigiria um parser SQL completo, fora de escopo. A garantia
+de conteúdo canônico — inclusive contra prosa nua inserida por engano dentro
+de um bloco — vem inteiramente de validação estrutural dos marcadores,
+reconstrução byte a byte, e **hashes SHA-256 congelados por bloco**
+(`expected_block_sha256`, um valor por `Bnnn`, verificado **antes** de
+qualquer outra checagem semântica). Qualquer alteração de conteúdo — uma
+palavra a mais, uma linha de prosa, um espaço — muda o hash daquele bloco
+especificamente e aborta a extração com `BLOCK_HASH_DIVERGENT:Bnnn`, antes de
+chegar a E18 ou aos invariantes.
+
+Isto é uma **limitação deliberada, declarada**, não uma deficiência silenciosa:
+o pin por bloco garante que o draft de hoje é byte-idêntico ao congelado no
+merge do PR #38; não é, e não pretende ser, uma prova de que uma revisão
+*futura* do draft (com um novo congelamento) estaria livre de prosa —
+isso continua exigindo revisão humana no momento em que o novo hash for
+congelado, exatamente como os commits anteriores já registravam
+("Verificação manual: zero linhas malformadas e zero sentenças em prosa").
 
 ### Registro por bloco — um por `Bnnn`
 
@@ -67,11 +94,33 @@ de cenário.
 | `first_token` / `last_token` | após o strip |
 | `source_sha256` | SHA-256 do conteúdo **comentado** |
 | `stripped_sha256` | SHA-256 do conteúdo **após o strip** |
-| `prose_lines_detected` | deve ser `0` |
+| `block_sha256_matches_canonical` | comparação de `stripped_sha256` contra `expected_block_sha256[block_id]` — deve ser `true` para os 13 blocos |
 
 Divergência de contagem, lacuna de ID, ID repetido, aninhamento, bloco vazio,
-linha rejeitada, ou `source_without_markers_and_new_block_sha256` diferente do
-blob de `origin/main` → **aborta antes de conectar ao banco**.
+linha rejeitada, hash individual de qualquer bloco divergente do congelado
+(`BLOCK_HASH_DIVERGENT:Bnnn`), ou `source_without_markers_and_new_block_sha256`
+diferente do blob de `origin/main` → **aborta antes de conectar ao banco**.
+
+### 2.2 Grupos de extração
+
+| Grupo | Blocos | Papel |
+| --- | --- | --- |
+| `TRANSACTION` | `B001`–`B011` | a transação produtiva completa — `BEGIN;` até `COMMIT;` |
+| `ACL_EVIDENCE` | `B012`–`B013` | consultas de leitura da matriz de ACL/fingerprint, **fora** da transação — nunca concatenadas dentro dela |
+
+Os dois grupos são disjuntos e sua união é exatamente `B001`…`B013` — não há
+bloco fora de ambos, nem bloco em ambos.
+
+### 2.3 E18 — `REQUIRED_FUNCTION_BODY_PRESENT` (ampliado na PROD-0.6C-MICROFIX)
+
+| Campo | Descrição |
+| --- | --- |
+| `function_body_present` | `B007` contém a assinatura `CREATE OR REPLACE FUNCTION public.submit_sector_response(` |
+| `exactly_one_create_or_replace` | exatamente uma ocorrência do `CREATE OR REPLACE FUNCTION` em `B007` |
+| `hash_matches_canonical` | hash de `B007` igual ao congelado |
+| `no_invite_token_residual` | **ampliado**: falha diante de **qualquer** ocorrência lexical de `invite_token` em `B007` (fronteira de palavra `\b`), não apenas no padrão de `INSERT` — cobre `UPDATE`, `SELECT`, `RETURNING`, referência qualificada, alias, comentário e string literal, porque o corpo canônico não contém essa palavra em nenhuma forma |
+| `no_grant_or_revoke` | zero `GRANT`/`REVOKE` executável dentro de `B007` |
+| `result` | `PASS` só quando os cinco campos acima são verdadeiros |
 
 ### Invariantes transacionais da concatenação
 
@@ -120,6 +169,31 @@ que segue não disparada.
   stub insuficiente, dump não comparável). **Não conta como aprovação.** Conta
   como pendência aberta.
 
+### 3.1 Evidência terminal — exceção não tratada (`TERMINAL_FAILURE_EVIDENCE`)
+
+Cenários já antecipados (falha de precondition, timeout, etc.) sempre chegam a
+um registro normal da §3, via `emit()`. Uma **exceção não tratada** — algo que
+não foi antecipado por nenhum cenário — antes rompia o processo sem gravar
+nenhum artefato; a PROD-0.6C-MICROFIX acrescentou um boundary de topo
+(`main().catch(...)`) que grava um registro terminal sanitizado nesse caso.
+
+| Campo | Descrição |
+| --- | --- |
+| `status` | `FAIL` (padrão) ou `INCONCLUSIVE` |
+| `generated_at` | timestamp ISO-8601 UTC |
+| `phase` | checkpoint grosso onde a exceção interrompeu — `STARTUP` \| `VERSION_CHECK` \| `TIER1_SCENARIOS` \| `TIER1_LOCK_SCENARIOS` \| `TIER1_K_ANON_SCENARIOS:Txx` \| `EMIT` |
+| `failure_code` | código textual fixo (`UNCAUGHT_EXCEPTION`) — nunca a mensagem/stack do erro original |
+| `source_sha` | `GITHUB_SHA` quando disponível, senão `null` |
+| `harness_version` | mesma versão do cabeçalho normal (§1) |
+
+**Nunca registrado neste caminho:** stack trace completa, senha, connection
+string, token, variável de ambiente, SQL descomentado ou dado do seed — o
+construtor (`buildTerminalFailureEvidence`) só aceita `phase`/`failure_code`/
+`source_sha`/`status` como entrada; não há parâmetro para passar o objeto de
+erro inteiro. Se a própria gravação da evidência terminal falhar, o processo
+sai com código não zero e uma mensagem genérica no stderr, sem tentar
+alternativa alguma.
+
 ## 4. Campos específicos de certos cenários
 
 | Cenário | Campo adicional |
@@ -165,6 +239,15 @@ O relatório final **abre** com estas, não as relega a rodapé:
    é apresentado como equivalência produtiva.
 5. **SQL dinâmico** (`EXECUTE format(…)`) escapa dos predicados de referência
    residual.
+6. **O extrator não tem classificador SQL-versus-prosa.** A garantia contra
+   prosa dentro de um bloco vem inteiramente de `CANONICAL_PER_BLOCK_HASH_PIN`
+   (§2.1) — hash congelado por bloco, contra o draft de hoje. Uma revisão
+   futura do draft, com um novo congelamento, continua exigindo revisão
+   humana no momento do recongelamento; o código não substitui essa revisão.
+7. **`workflow fibt-nonprod-proof` nunca foi disparado.** Todas as validações
+   deste schema — extração, E18, invariantes, hash-pin — foram exercitadas
+   estaticamente (sem PostgreSQL). A confirmação empírica via Tier 1
+   (T01–T17) depende de autorização própria (PROD-0.6D) e continua pendente.
 
 ## 6. Proibições de conteúdo — absolutas
 

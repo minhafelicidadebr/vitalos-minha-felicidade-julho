@@ -6,6 +6,15 @@
 -- Papéis e o schema `auth` são STUBS do Supabase: um PostgreSQL 17 baunilha
 -- não os traz. A limitação está declarada em PROD06_EVIDENCE_SCHEMA §5.
 
+-- ── Extensão declarada explicitamente ───────────────────────────────────────
+-- PGCRYPTO_DEPENDENCY_DECLARED: gen_random_bytes() (usado abaixo no DEFAULT
+-- de wave_invites.token) não é núcleo do PostgreSQL -- vem de pgcrypto,
+-- diferente de gen_random_uuid(), que é built-in desde a v13. Instalada só
+-- neste PostgreSQL 17 efêmero e local, via checksums do próprio pacote da
+-- imagem oficial `postgres:17` -- zero rede, zero extensão remota, nenhuma
+-- outra extensão introduzida, sem impacto em Supabase, staging ou produção.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- ── Papéis-stub ─────────────────────────────────────────────────────────────
 DO $$
 BEGIN

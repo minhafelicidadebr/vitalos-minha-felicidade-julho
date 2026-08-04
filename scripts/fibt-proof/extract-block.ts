@@ -36,14 +36,51 @@ const POSTCHECK_BLOCK_ID = "B010";
 // Hashes congelados do contrato canônico incorporado à main pelo merge do
 // PR #38 (commit 843f467). Divergência de qualquer um deles significa que o
 // draft mudou desde o congelamento — o harness aborta, não recalcula em silêncio.
-export const EXPECTED_B007_SHA256 = "1ef02de2aece306e7432d2c2d9d4a51bd88457043c2f3b5f3d9f3f960fced2c4";
+//
+// A garantia contra QUALQUER conteúdo não canônico dentro de um bloco —
+// incluindo prosa nua inserida por engano — não vem de um classificador
+// SQL-versus-prosa (este extrator não tem nenhum: distinguir linguisticamente
+// SQL de comentário explicativo exigiria um parser SQL completo, fora de
+// escopo). A garantia vem inteiramente de EXPECTED_BLOCK_SHA256: cada um dos
+// 13 blocos é comparado, individualmente, contra o hash do seu conteúdo
+// canônico no momento do congelamento. Qualquer alteração de conteúdo -- uma
+// palavra a mais, uma linha de prosa, um espaço -- muda o hash do bloco e
+// aborta a extração antes de qualquer outra checagem semântica.
+export const EXPECTED_BLOCK_SHA256: Readonly<Record<string, string>> = Object.freeze({
+  B001: "b3c34a6baecf4bc98f21f56f9f1fc003051b61aaec14fcd8d7e80b6341f2ecce",
+  B002: "a6089bd7ec86cc1f64f0fa7c28198b61c819b1d764ab549ed28875428df37eac",
+  B003: "5740bb6ae37fbc5e6c2a91965d2214e353d5002caff6de5f7aeb8eb408dc0aa7",
+  B004: "ba7855e48b49d4f71677992740228a6d3416e9fa26cdd01a0ac30b328b58c33d",
+  B005: "a5a893ed68aa05139a3bf22d51cb4854436db9d9a4f047ce7c6615979a986f03",
+  B006: "d012824f66c0322ca4527ee3f3cf94c77ffa53d8ccc4b57bc271bf66c842b2a1",
+  B007: "1ef02de2aece306e7432d2c2d9d4a51bd88457043c2f3b5f3d9f3f960fced2c4",
+  B008: "ba8db3de2c278be276bea292a042ffa6046d057919e7a627258cd4427c063ce7",
+  B009: "08604b6e23da37cc5769a8d8356d9dce89c587bb1c9356beb3fe3484f3be8927",
+  B010: "3559d92cbc7ad0f0f8e3e09e0bba26476e9abcdf2390a1299021e014a4000f96",
+  B011: "e83e8c1f4ad612a5bd92067c29bdb9b1597fd541ebed41026079aabd6a4a5bf3",
+  B012: "c7757bf557ba6679ea763cc3e194b01d2802ebd8150e1422919c9e099403adbe",
+  B013: "61ed5e7f15a8dc69abd13a5d2f4750073a2579f6de96e44ff8aa649f8b63ce14",
+});
+
+export const EXPECTED_B007_SHA256 = EXPECTED_BLOCK_SHA256.B007!;
 export const EXPECTED_TRANSACTION_SHA256 = "127979ac95d2da9ffd4d7c4f792c4d13107a76a75f810f478badf851852a9075";
 export const EXPECTED_ALL_BLOCKS_SHA256 = "6ba7417cef647c6483269835095f07205b91cdbb84e3af9809aad657b2670d30";
 
 const REQUIRED_FUNCTION_SIGNATURE = "CREATE OR REPLACE FUNCTION public.submit_sector_response(";
-const FORBIDDEN_INVITE_TOKEN_INSERT = /INSERT\s+INTO\s+(?:public\.)?wave_responses[^;]*\binvite_token\b/i;
+// invite_token não ocorre em NENHUMA forma no corpo canônico de B007 (nem
+// como parâmetro: a função usa p_token_hash/p_answers). Por isso a checagem
+// é fail-closed sobre qualquer ocorrência lexical -- INSERT, UPDATE, SELECT,
+// RETURNING, referência qualificada, alias, comentário ou string literal --
+// não apenas o padrão de INSERT que motivou o P0 original. Fronteira de
+// palavra (\b) evita casar substring dentro de identificador maior (ex.:
+// "wave_responses_invite_token_fkey" não deveria casar isoladamente aqui,
+// mas o hash de B007 já rejeitaria essa presença de qualquer forma).
+const INVITE_TOKEN_ANY_OCCURRENCE = /\binvite_token\b/i;
 const GRANT_OR_REVOKE = /\bGRANT\b|\bREVOKE\b/i;
-const LEGACY_MARKER = /FIBT_PROD_B_(?:SQL|ACL)_BLOCK_(?:BEGIN|END)/;
+// Ancorado à linha inteira (após trim) — não um substring solto. Uma menção
+// histórica em prosa ("isto substituiu o antigo FIBT_PROD_B_SQL_BLOCK_BEGIN")
+// não deve ser confundida com um marcador ativo do contrato legado.
+const LEGACY_MARKER_LINE = /^-- FIBT_PROD_B_(?:SQL|ACL)_BLOCK_(?:BEGIN|END)$/;
 const MARKER_RE = /^-- FIBT_PROD_B_EXEC_BLOCK_(BEGIN|END):(B\d+)$/;
 
 export class ExtractionError extends Error {
@@ -97,12 +134,30 @@ export interface ExtractionResult {
   correspondenceProven: true;
 }
 
+export interface RunExtractionOptions {
+  /**
+   * SOMENTE PARA TESTE. Pula a comparação de hash por bloco contra
+   * EXPECTED_BLOCK_SHA256, deixando E18 e os invariantes rodarem sobre
+   * conteúdo sintético/mutado que não é bit a bit igual ao draft canônico.
+   *
+   * Nunca usado pela casca CLI (produção sempre valida os 13 blocos contra o
+   * congelado). Existe porque, com o pin por bloco rodando primeiro, QUALQUER
+   * mutação de teste que vise E18 ou um invariante também muda o hash daquele
+   * bloco -- sem este escape, seria estruturalmente impossível testar E18/
+   * invariantes isoladamente por mutação, já que o pin por bloco sempre
+   * dispararia primeiro e mascararia o comportamento que o teste quer isolar.
+   * A defesa por hash-pin continua coberta por testes próprios, que usam o
+   * draft real com mutação mínima e NÃO passam esta opção.
+   */
+  skipBlockHashPin?: boolean;
+}
+
 /**
  * Valida e extrai o draft multibloco inteiro. Pura: recebe o texto-fonte
  * (working tree, pode ter CRLF) e devolve o resultado, ou lança
  * `ExtractionError` na primeira violação do contrato. Não faz I/O.
  */
-export function runExtraction(rawSource: string): ExtractionResult {
+export function runExtraction(rawSource: string, opts: RunExtractionOptions = {}): ExtractionResult {
   // --- normaliza CRLF -> LF ---------------------------------------------------
   // core.autocrlf=true torna o working tree Windows divergente do blob Git; o
   // runner Linux vê o blob (LF). Hashes sempre sobre o conteúdo normalizado.
@@ -120,8 +175,11 @@ export function runExtraction(rawSource: string): ExtractionResult {
   }
 
   // --- rejeitar qualquer resquício do contrato legado de par único ----------
+  // Ancorado à linha inteira (trimada) -- uma menção histórica em prosa, uma
+  // ocorrência dentro de palavra maior, ou texto ao redor do marcador não
+  // disparam falso positivo. Só uma linha que É o marcador legado conta.
   for (let i = 0; i < lines.length; i++) {
-    if (LEGACY_MARKER.test(lines[i]!)) {
+    if (LEGACY_MARKER_LINE.test(lines[i]!.trim())) {
       fail("LEGACY_MARKER_PRESENT", `marcador do contrato de par único encontrado na linha ${i + 1} — contrato atual é EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS (13 blocos), sem fallback`);
     }
   }
@@ -221,6 +279,22 @@ export function runExtraction(rawSource: string): ExtractionResult {
 
   const extracted = new Map(spans.map((span) => [span.id, extractBlock(span)]));
 
+  // --- hash individual de cada bloco, contra o congelado ----------------------
+  // Verificado PRIMEIRO, antes de qualquer concatenação, E18 ou invariante: é
+  // a checagem mais granular possível, e a única defesa real contra prosa (ou
+  // qualquer outra alteração de conteúdo) dentro de um bloco -- ver comentário
+  // em EXPECTED_BLOCK_SHA256 acima. `skipBlockHashPin` é só para teste (ver
+  // RunExtractionOptions) -- a casca CLI nunca a usa.
+  if (!opts.skipBlockHashPin) {
+    for (const id of ALL_BLOCK_IDS) {
+      const observed = extracted.get(id)!.extractedSha256;
+      const expected = EXPECTED_BLOCK_SHA256[id];
+      if (observed !== expected) {
+        fail(`BLOCK_HASH_DIVERGENT:${id}`, `hash de ${id} (${observed}) diverge do congelado (${expected})`);
+      }
+    }
+  }
+
   function concatGroup(ids: string[]): string {
     return ids.map((id) => extracted.get(id)!.strippedLines.join("\n") + "\n").join("");
   }
@@ -248,8 +322,8 @@ export function runExtraction(rawSource: string): ExtractionResult {
   if (createOrReplaceCount !== 1) {
     fail("E18_NOT_EXACTLY_ONE", `esperado exatamente um CREATE OR REPLACE em ${REQUIRED_FUNCTION_BLOCK_ID}, encontrado ${createOrReplaceCount}`);
   }
-  if (FORBIDDEN_INVITE_TOKEN_INSERT.test(b007Sql)) {
-    fail("E18_INVITE_TOKEN_RESIDUAL", `${REQUIRED_FUNCTION_BLOCK_ID} ainda insere wave_responses.invite_token`);
+  if (INVITE_TOKEN_ANY_OCCURRENCE.test(b007Sql)) {
+    fail("E18_INVITE_TOKEN_RESIDUAL", `${REQUIRED_FUNCTION_BLOCK_ID} contém "invite_token" -- o corpo canônico não contém essa palavra em nenhuma forma (nem parâmetro, nem comentário, nem string)`);
   }
   if (GRANT_OR_REVOKE.test(b007Sql)) {
     fail("E18_GRANT_OR_REVOKE_PRESENT", `${REQUIRED_FUNCTION_BLOCK_ID} contém GRANT ou REVOKE — a trilha ACL é separada por decisão de SPEC §H`);
@@ -324,7 +398,7 @@ export function runExtraction(rawSource: string): ExtractionResult {
       functionBodyPresent,
       exactlyOneCreateOrReplace: createOrReplaceCount === 1,
       hashMatchesCanonical: b007.extractedSha256 === EXPECTED_B007_SHA256,
-      noInviteTokenResidual: !FORBIDDEN_INVITE_TOKEN_INSERT.test(b007Sql),
+      noInviteTokenResidual: !INVITE_TOKEN_ANY_OCCURRENCE.test(b007Sql),
       noGrantOrRevoke: !GRANT_OR_REVOKE.test(b007Sql),
       result: "PASS",
     },
