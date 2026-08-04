@@ -17,14 +17,21 @@ PROD-0.6E prova do executor Lovable, em staging ⏸
 
 Nenhuma onda encadeia automaticamente na seguinte.
 
-## Bloqueador anterior à PROD-0.6C
+## Bloqueadores anteriores à PROD-0.6C
 
-- [ ] **Marcadores de extração introduzidos** em
-      `docs/fibt-prod/MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`.
+- [x] **Marcadores multibloco introduzidos** — 12 pares `B001`–`B012` em
+      `docs/fibt-prod/MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`, com
+      preservação byte a byte comprovada.
+- [ ] **⛔ `CREATE OR REPLACE submit_sector_response` acrescentado ao draft.**
+      A §3b hoje só remete o operador à SPEC §J; o statement não existe no
+      arquivo. Sem ele a transação concatenada pula da precondition direto para
+      o `DROP CONSTRAINT`, e o pós-check §5.6 acharia a função ainda
+      referenciando `invite_token` — o caminho feliz **não pode passar**.
+      Corrigir exige acrescentar conteúdo SQL ao draft, com autorização própria.
+- [ ] **Extrator adaptado ao contrato multibloco** — o de `69cca10` (PR #37)
+      presume um único par de marcadores.
 
-Eles **não existem hoje**. A introdução altera um arquivo já mergeado e exige
-**autorização documental separada**. Sem ela, o contrato de extração (§D do
-plano) não pode ser implementado, e a PROD-0.6C fica bloqueada.
+Enquanto qualquer um dos dois pendentes existir, a PROD-0.6C fica bloqueada.
 
 ## Pré-execução — PROD-0.6D
 
@@ -97,25 +104,41 @@ harness** se algum input faltar, divergir, ou se `source_commit` não bater.
 - [ ] `psql` em modo fail-fast (`ON_ERROR_STOP=1`).
 - [ ] Configuração pessoal de `psql` **não lida** (`--no-psqlrc`).
 
-## Extração do SQL — as quinze regras
+## Extração do SQL — `EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`
 
-- [ ] Bloco delimitado por **marcadores únicos**.
-- [ ] Exatamente **um** marcador inicial · exatamente **um** final · final
-      **posterior** ao inicial.
-- [ ] **Somente** linhas dentro do bloco processadas.
+- [ ] **`FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 12`** conferido.
+- [ ] Marcadores de formato exato `-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:Bnnn` /
+      `…_END:Bnnn`, ocupando a linha inteira.
+- [ ] Sequência `B001…B012` **sem lacuna** e **sem ID repetido**.
+- [ ] Um `BEGIN` e um `END` por ID · `END` depois do `BEGIN` · **sem
+      aninhamento** · **nenhum bloco vazio**.
+- [ ] **Somente** linhas dentro dos blocos processadas.
 - [ ] Removido **exatamente um** prefixo de comentário esperado.
 - [ ] Linha em formato inesperado → **rejeita**.
-- [ ] Conteúdo **não comentado** no arquivo-fonte → **rejeita**.
+- [ ] Blocos concatenados na **ordem física**, com newline determinístico.
 - [ ] SQL gerado **apenas** em **`RUNNER_TEMP`**.
-- [ ] **Nunca** gravar SQL descomentado no repositório **nem dentro do
+- [ ] **Nunca** gravar SQL descomentado no workspace **nem dentro do
       container** — o transporte é por stdin.
-- [ ] Registrados: SHA-256 do **arquivo-fonte** · do **bloco extraído** · do
-      **SQL executado**.
-- [ ] Provado que o executado corresponde **integralmente** ao documentado.
-- [ ] Temporário **apagado** no encerramento do job.
+- [ ] Registrados: **hash por bloco** e **hash agregado**.
+- [ ] `SOURCE_WITH_MARKERS_REMOVED_SHA256` confere com o blob do draft.
+- [ ] Temporários **apagados** no encerramento.
 
-**Descomentação seletiva é proibida** — o extrator só aceita o bloco inteiro
-entre marcadores.
+**Proibido:** `BEGIN`/`COMMIT` como marcador · regex de palavra-chave para
+decidir executabilidade · remoção global de `--` · seleção manual de linhas
+durante a execução · **fallback** quando os marcadores falharem.
+
+Hashes sempre sobre o **conteúdo do blob Git (LF)**, nunca sobre o working
+tree — `core.autocrlf` faz os dois divergirem, e o runner Linux vê o primeiro.
+
+**Descomentação seletiva é proibida** — o extrator só aceita blocos inteiros
+entre marcadores declarados.
+
+> **⛔ Bloqueador da PROD-0.6C:** a §3b do draft **não contém** o
+> `CREATE OR REPLACE FUNCTION public.submit_sector_response(...)`. A transação
+> concatenada pula da precondition direto para o `DROP CONSTRAINT`, e o
+> pós-check §5.6 encontraria a função ainda referenciando `invite_token`. O
+> caminho feliz não pode passar até que o corpo da função seja acrescentado ao
+> draft — mudança de conteúdo, não de marcador, com autorização própria.
 
 ## Camadas
 
@@ -144,7 +167,7 @@ Se `PARTIAL` ou `FAILED`, **não promover como equivalência produtiva** — e
 
 ## Execução dos cenários
 
-- [ ] Os **55** cenários de L1/L2 executados (tabela canônica da
+- [ ] Os **67** cenários de L1/L2 executados (tabela canônica da
       `PROD06_SCENARIO_MATRIX.md` §9).
 - [ ] Cada um classificado `PASS` · `FAIL` · `INCONCLUSIVE`.
 - [ ] Validação fail-closed da matriz: IDs únicos · nenhum cenário sem

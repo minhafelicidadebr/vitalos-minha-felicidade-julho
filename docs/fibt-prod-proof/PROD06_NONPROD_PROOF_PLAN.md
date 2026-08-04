@@ -220,27 +220,122 @@ vezes neste projeto. Sua ausência no container é a limitação mais relevante
 deste plano, e o relatório final precisa declará-la na abertura — não em nota
 de rodapé.
 
-## D. Contrato de extração determinística do SQL
+## D. Contrato de extração — `EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`
 
-**Descomentação indiscriminada do prefixo `--` não é autorizada.** O contrato
-tem quinze regras:
+**Descomentação indiscriminada do prefixo `--` não é autorizada.**
 
-1. bloco SQL delimitado por **marcadores únicos**;
-2. exatamente **um** marcador inicial;
-3. exatamente **um** marcador final;
-4. marcador final **posterior** ao inicial;
-5. **somente** linhas dentro do bloco podem ser processadas;
-6. remover **exatamente um** prefixo de comentário esperado;
-7. **rejeitar** linha com formato inesperado;
-8. **rejeitar** conteúdo não comentado no arquivo-fonte;
-9. gerar o SQL apenas em **`RUNNER_TEMP`**;
-10. **nunca** gravar SQL descomentado no repositório **nem dentro do
-    container** — o transporte é por stdin (§F);
-11. registrar SHA-256 do **arquivo-fonte**;
-12. registrar SHA-256 do **bloco extraído**;
-13. registrar SHA-256 do **SQL executado**;
-14. provar que o bloco executado corresponde **integralmente** ao documentado;
-15. apagar o temporário no encerramento do job.
+### Por que o contrato de par único foi substituído
+
+A revisão anterior fixou "exatamente um par de marcadores" envolvendo
+`BEGIN … COMMIT`. Ao exercitar esse contrato contra o arquivo real, o resultado
+foi **SQL inválido**: das 1042 linhas extraídas, **734 ficavam nuas**, e a
+esmagadora maioria era **prosa**, não statement. Exemplo do que o strip
+produzia:
+
+```
+DROP POLICY condicional -- CITACAO HISTORICA, NAO COPIAR, nao reintroduzir --
+```
+
+A causa é estrutural: o draft usa **o mesmo prefixo `-- `** para o SQL e para a
+prosa explicativa. Um strip de um nível não consegue distinguir os dois, e
+nenhuma heurística de palavra-chave poderia fazê-lo sem destruir o determinismo
+que o contrato exige.
+
+**Decisão humana:** `EXTRACTION_CONTRACT = EXPLICIT_MULTIPLE_EXECUTABLE_BLOCKS`.
+Cada sequência contígua de SQL executável é **declarada** por um par exclusivo
+de marcadores. O documento passa a dizer o que é executável, em vez de o
+extrator tentar adivinhar.
+
+### Marcadores
+
+```
+-- FIBT_PROD_B_EXEC_BLOCK_BEGIN:B001
+-- FIBT_PROD_B_EXEC_BLOCK_END:B001
+```
+
+Sequenciais: `B001`, `B002`, … `BNNN`. Regras de forma: ID único · sequência sem
+lacunas · exatamente um `BEGIN` e um `END` por ID · `END` depois do `BEGIN` ·
+sem aninhamento · bloco não vazio · marcador ocupa a linha inteira · marcador
+não entra no SQL extraído · marcador não existe dentro de prosa ou de corpo
+SQL · blocos concatenados na **ordem física** do arquivo.
+
+### As vinte e quatro regras do extrator
+
+1. ler o arquivo-fonte integral;
+2. localizar **somente** marcadores de formato exato;
+3. extrair todos os IDs;
+4. validar a contagem esperada `N`;
+5. validar a sequência `B001…BNNN`;
+6. rejeitar ID repetido;
+7. rejeitar lacuna;
+8. rejeitar aninhamento;
+9. rejeitar marcador ausente;
+10. rejeitar marcador excedente;
+11. rejeitar ordem invertida;
+12. rejeitar bloco vazio;
+13. processar **somente** linhas dentro dos blocos;
+14. remover **exatamente um** prefixo de comentário esperado;
+15. rejeitar linha com formato inesperado;
+16. concatenar os blocos **em ordem**;
+17. inserir somente **newline determinístico** entre blocos;
+18. gerar SQL apenas em **`RUNNER_TEMP`**;
+19. **nunca** gravar SQL no workspace;
+20. **nunca** copiar SQL descomentado para o container;
+21. registrar **hash por bloco**;
+22. registrar **hash agregado**;
+23. enviar o resultado ao `psql` por **stdin**;
+24. apagar temporários no encerramento.
+
+**Proibido:** usar `BEGIN` ou `COMMIT` como marcador · regex de palavra-chave
+para decidir executabilidade · remoção global de `--` · seleção manual de
+linhas durante a execução · **fallback** quando os marcadores falharem.
+
+### `FIBT_PROD_B_EXPECTED_BLOCK_COUNT = 12`
+
+Medido, não presumido. Inventário congelado, derivado do draft em `8d18ae7`:
+
+| ID | Linhas | Qtd | Primeiro token | Último token | Classificação |
+| --- | --- | --- | --- | --- | --- |
+| `B001` | 86 | 1 | `BEGIN;` | `BEGIN;` | `TRANSACTION_OPEN` |
+| `B002` | 105–106 | 2 | `SET` | `'2min';` | `SUPPORTING_SQL` |
+| `B003` | 146–147 | 2 | `SELECT` | `MODE;` | `SUPPORTING_SQL` |
+| `B004` | 159–227 | 69 | `DO` | `$$;` | `PRECONDITION` |
+| `B005` | 279–391 | 113 | `DO` | `$$;` | `PRECONDITION` |
+| `B006` | 410–848 | 439 | `DO` | `$$;` | `PRECONDITION` |
+| `B007` | 911–915 | 5 | `ALTER` | `invite_token;` | `DDL` |
+| `B008` | 917–920 | 4 | `COMMENT` | `schema.';` | `DDL` |
+| `B009` | 948–1123 | 176 | `DO` | `$$;` | `POSTCHECK` |
+| `B010` | 1125 | 1 | `COMMIT;` | `COMMIT;` | `TRANSACTION_CLOSE` |
+| `B011` | 1149–1181 | 33 | `SELECT` | `'');` | `SUPPORTING_SQL` |
+| `B012` | 1212–1248 | 37 | `WITH` | `canonico;` | `SUPPORTING_SQL` |
+
+`B001`–`B010` formam a transação. `B011` e `B012` são as consultas de ACL,
+executadas **fora** da transação, antes e depois.
+
+Verificação manual de cada bloco: **zero linhas malformadas** e **zero
+sentenças em prosa** dentro de qualquer bloco.
+
+### Hashes e tratamento de EOL
+
+| Item | Valor |
+| --- | --- |
+| `SOURCE_WITH_MARKERS_REMOVED_SHA256` | `acafcd5978d6546dd6332283f498613aee88f2c77434b8bb74742537fe68a04c` |
+| agregado da transação (`B001`–`B010`) | `944155964587945af2b1f36d145ca862d74337bb03cf8993bf5e0f3c755a0d17` |
+| agregado de `B011` | `c7757bf557ba6679ea763cc3e194b01d2802ebd8150e1422919c9e099403adbe` |
+| agregado de `B012` | `61ed5e7f15a8dc69abd13a5d2f4750073a2579f6de96e44ff8aa649f8b63ce14` |
+
+**Todos os hashes são calculados sobre o conteúdo do blob Git (LF canônico),
+nunca sobre o working tree.** Este repositório tem `core.autocrlf = true`; ler
+o arquivo do disco no Windows produz bytes diferentes dos que um runner Linux
+enxerga. Congelar o hash do working tree causaria aborto garantido no runner.
+**EOL não pode produzir resultado diferente entre Windows e Linux** — a
+normalização para LF é parte do contrato, não detalhe de implementação.
+
+### Prova de preservação
+
+`SOURCE_WITH_MARKERS_REMOVED_SHA256` é idêntico ao SHA-256 do blob do draft em
+`8d18ae7`: removendo **apenas** as 24 linhas de marcador, o arquivo volta a ser
+**byte-idêntico**. Nenhuma linha preexistente foi alterada.
 
 ### Formato do arquivo-fonte — medido, não presumido
 
@@ -262,32 +357,45 @@ Note que o strip remove **um** nível: uma linha `--   -- comentario` vira
 `  -- comentario`, que continua sendo comentário SQL legítimo. É o
 comportamento desejado.
 
-### Marcadores — ainda não existem
+### Invariantes transacionais da concatenação
 
-O arquivo **não possui** hoje um par de marcadores dedicados. `-- BEGIN;` e
-`-- COMMIT;` ocorrem **exatamente uma vez cada** (verificado), e por isso
-seriam tecnicamente utilizáveis — mas são palavras-chave SQL, e um segundo
-`BEGIN` futuro quebraria a unicidade em silêncio.
+Validação **estática** do resultado de `B001`–`B010`, sem executar PostgreSQL:
 
-> **Bloqueador registrado:**
+| Invariante | Resultado |
+| --- | --- |
+| primeiro statement transacional = `BEGIN` | ✅ |
+| último statement transacional = `COMMIT` | ✅ |
+| exatamente um `BEGIN` de abertura | ✅ (1) |
+| exatamente um `COMMIT` final | ✅ (1) |
+| ausência de `COMMIT` intermediário | ✅ |
+| ausência de `ROLLBACK` no caminho feliz | ✅ (0) |
+| `SET LOCAL` dentro da transação | ✅ (`B002`, após `B001`) |
+| preconditions antes do primeiro DDL | ✅ (`B004`–`B006` antes de `B007`) |
+| pós-checks depois dos DDLs | ✅ (`B009` depois de `B007`/`B008`) |
+| **nenhum trecho executável omitido entre fases previstas** | ❌ **FALHA** |
+
+Números medidos: 822 linhas concatenadas, 567 statements, **zero linhas de
+prosa nua**. O contrato multibloco resolve integralmente o defeito anterior.
+
+> ### ⛔ P0 remanescente — `CREATE OR REPLACE` ausente do draft
 >
-> - o **PR #36 não adiciona marcadores** — está fora do seu escopo;
-> - a introdução exige **micro-PR separado**, tocando
->   `MIGRATION_B_PRODUCTION_DRAFT.sql.disabled`, arquivo já mergeado;
-> - a **PROD-0.6C permanece bloqueada até o merge desse micro-PR**;
-> - **`-- BEGIN;` e `-- COMMIT;` não podem ser usados como delimitadores
->   definitivos**, mesmo sendo hoje únicos: são palavras-chave SQL, e um
->   segundo `BEGIN` futuro quebraria a unicidade em silêncio;
-> - o extrator futuro **deve falhar** se os marcadores exclusivos não
->   existirem — ausência de marcador nunca é interpretada como "usar o arquivo
->   inteiro".
-
-Blocos previstos, cada um com seu par de marcadores: **bloco transacional**
-(`BEGIN` … `COMMIT`) · **bloco de ACL antes** (§6.1/6.2, read-only) · **bloco
-de ACL depois** (o mesmo, executado após o `COMMIT`).
+> A §3b do draft **não contém** o `CREATE OR REPLACE FUNCTION
+> public.submit_sector_response(...)`. Ela apenas remete o operador ao corpo
+> reproduzido na SPEC §J e instrui "copiar apenas o corpo".
+>
+> Consequência: a transação concatenada vai das preconditions **direto** para
+> o `DROP CONSTRAINT`, sem substituir a função. E o pós-check §5.6 inspeciona
+> `submit_sector_response` procurando referência residual a `invite_token` —
+> que continuaria lá, porque a função nunca foi recriada. **O caminho feliz não
+> pode passar.**
+>
+> Isto **não é corrigível com marcadores**: exige acrescentar ~50 linhas de SQL
+> ao draft, o que está fora do escopo desta autorização (Fase 2: "inserir
+> somente as linhas de marcadores"). Fica registrado como bloqueador da
+> PROD-0.6C, ao lado da adaptação do extrator.
 
 **Descomentação seletiva permanece proibida**, agora também mecanicamente: o
-extrator só aceita o bloco inteiro entre marcadores.
+extrator só aceita blocos inteiros entre marcadores declarados.
 
 ## E. Controles anti-produção
 
