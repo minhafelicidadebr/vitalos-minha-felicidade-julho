@@ -252,10 +252,26 @@ mesmo resultado.
 
 **E17 mudou de natureza na PROD-0.6B-FUNCBODY.** Antes: "removidos os 24
 marcadores, o draft volta a ser byte-idêntico à `main`". Agora, com o corpo da
-função incorporado, a prova correta é mais fraca — "removidos os 26
-marcadores **e** o bloco novo de `B007`, o draft volta a ser byte-idêntico à
-`main`". Já verificado nesta onda — `acafcd5978d6546d…` em ambos os lados
-(`SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256`).
+função incorporado, a prova correta é mais fraca — e o arquivo completo
+**não** é byte-idêntico à `main`.
+
+`BASE_DRAFT_BLOB_SHA256` (draft em `origin/main`, sem marcadores, sem função) =
+`acafcd5978d6546dd6332283f498613aee88f2c77434b8bb74742537fe68a04c`.
+
+`SOURCE_WITHOUT_MARKERS_AND_NEW_BLOCK_SHA256` (draft atual menos os 26
+marcadores, menos o corpo novo de `B007`) =
+`5e2c8a5912c37316f2b42c4fbca450325d385aeee70a8b9a66a2631b433a66ce`.
+
+**Os dois hashes são diferentes por construção, não por erro.** A `§3b`
+recebeu uma atualização documental autorizada — a instrução de copiar o corpo
+manualmente foi substituída por uma referência ao pós-check real —, e essa
+prosa humana também desaparece na normalização de `E17`. Todo o SQL
+preexistente foi preservado; as únicas alterações de conteúdo nesta onda
+foram: (1) a inserção canônica do corpo da função; (2) a atualização
+documental autorizada da `§3b`; (3) a inserção e renumeração dos marcadores.
+Nenhuma linha SQL preexistente foi modificada. Só o corpo de `B007` é
+byte-idêntico à SPEC `§J` e à Migration B canônica (ver `E18`) — o arquivo
+como um todo não é, e não deve ser descrito como tal.
 
 **E18 é o cenário que fecha o P0.** Falhas obrigatórias: `B007` ausente; corpo
 incompleto; hash divergente do corpo; `B007` posicionado depois dos `DROP`;
