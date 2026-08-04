@@ -83,6 +83,21 @@
 -- Execucao statement-a-statement com autocommit = NO-GO.
 -- Este teste NAO faz parte da autorizacao atual.
 
+-- ---------------------------------------------------------------------------
+-- MARCADOR DE EXTRACAO -- NAO REMOVER, NAO DUPLICAR, NAO EDITAR
+-- ---------------------------------------------------------------------------
+-- As linhas FIBT_PROD_B_SQL_BLOCK_BEGIN e FIBT_PROD_B_SQL_BLOCK_END delimitam
+-- o bloco transacional para extracao automatizada (PROD-0.6C). O extrator
+-- processa APENAS as linhas ESTRITAMENTE ENTRE elas, remove um unico prefixo
+-- de comentario por linha, e ABORTA se encontrar zero ou mais de um marcador
+-- de cada tipo, ordem invertida, ou linha em formato inesperado. As proprias
+-- linhas de marcador NAO entram no SQL extraido.
+--
+-- Estes marcadores NAO tornam o arquivo executavel: ele continua integralmente
+-- comentado, com extensao .sql.disabled e fora de supabase/migrations/.
+-- ---------------------------------------------------------------------------
+-- FIBT_PROD_B_SQL_BLOCK_BEGIN
+
 -- BEGIN;
 
 -- --- Timeouts (PROPOSTA humana, nao parametro canonico do projeto) ----------
@@ -1124,6 +1139,8 @@
 
 -- COMMIT;
 
+-- FIBT_PROD_B_SQL_BLOCK_END
+
 
 -- ===========================================================================
 -- 6. MATRIZ DE ACL -- LEITURA APENAS, NUNCA ALTERACAO
@@ -1209,6 +1226,10 @@
 -- operacional aprovado), sem credencial e sem dado de negocio -- a saida traz
 -- apenas metadado de catalogo e nomes de papel.
 
+-- Segundo par de marcadores de extracao -- mesmas regras do bloco transacional.
+-- Delimita a consulta de fingerprint, executada ANTES e DEPOIS do bloco.
+-- FIBT_PROD_B_ACL_BLOCK_BEGIN
+
 -- WITH acl_rows AS (
 --   SELECT p.oid                                        AS f_oid,
 --          p.proname                                    AS f_nome,
@@ -1246,6 +1267,8 @@
 --   md5(representacao)                                               AS acl_fingerprint_md5,
 --   encode(sha256(convert_to(representacao, 'UTF8')), 'hex')         AS acl_fingerprint_sha256
 -- FROM canonico;
+
+-- FIBT_PROD_B_ACL_BLOCK_END
 
 -- COMPARACAO OBRIGATORIA:
 --   ACL_BEFORE_FINGERPRINT  (capturado imediatamente ANTES do BEGIN)
