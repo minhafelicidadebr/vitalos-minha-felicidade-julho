@@ -5,8 +5,14 @@
 >
 > Preparação técnica (FIBT-HML-2B): configuração e build sintético local.
 > **Nenhum deployment remoto foi executado.** O comando de deploy real
-> (Fase 7 abaixo) permanece documentado, não executado — exige autorização
-> própria.
+> (seção "Sequência segura do primeiro deployment real" abaixo) permanece
+> documentado, não executado — exige autorização própria.
+>
+> Hardening adicional (FIBT-HML-3A): Preview URLs desabilitadas por
+> configuração; `wrangler secret put` isolado removido do fluxo padrão em
+> favor de uma estratégia de secrets via arquivo privado; sequência de
+> deployment reordenada em três etapas (bootstrap selado → Access →
+> versão HML) para que o secret nunca exista numa versão sem proteção.
 
 ## Worker
 
@@ -20,7 +26,7 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 
 | Variável | O que é |
 | --- | --- |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave de service role do projeto Supabase de **staging** — bypassa RLS. Configurar via `bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.hml.jsonc` (comando documentado, não executado nesta preparação). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave de service role do projeto Supabase de **staging** — bypassa RLS. **Nunca configurada via `wrangler secret put` isolado no bootstrap** — ver "Estratégia segura de secrets" abaixo para o motivo e o contrato real. |
 
 ### Variáveis server-side (não secretas por si só, mas nunca versionadas nem expostas ao cliente)
 
@@ -82,10 +88,12 @@ Comparação mecânica (FIBT-HML-2C), a partir de um build sintético local
 | `assets.run_worker_first` | ausente | `true` | ALTERADO_INTENCIONALMENTE — ver Fase 6 abaixo; não estritamente necessário hoje (nenhum HTML estático existe em `.output/public/`), ligado como defesa em profundidade. |
 | `assets.not_found_handling` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — não há HTML de fallback (SPA ou 404 customizado) no artefato; nada para configurar. |
 | `workers_dev` | ausente (Nitro não declara) | `true` | ALTERADO_INTENCIONALMENTE — permitido explicitamente; garante `*.workers.dev`, nunca domínio próprio nesta fase. |
+| `preview_urls` | ausente (Nitro não declara) | `false` | ALTERADO_INTENCIONALMENTE (FIBT-HML-3A) — confirmado campo reconhecido pelo parser real do Wrangler 4.118.0 (teste de controle: um campo genuinamente desconhecido gera "Unexpected fields found in top-level field", este não gera nenhum aviso); reconfirmado por `wrangler deploy --dry-run` limpo contra o artefato real do build sintético desta preparação. Evita que cada `versions upload` gere uma URL de preview adicional fora do perímetro do Cloudflare Access. |
 | `observability` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — recurso opcional (logs), não necessário para correção ou contenção; pode ser adicionado depois sem quebrar paridade. |
 | `placement` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — "Smart Placement" é opcional, sem relação com segurança/roteamento. |
 | `migrations` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — refere-se a migrações de Durable Objects (conceito do Workers), não a migrations de banco; o app não usa Durable Objects. |
 | bindings adicionais (KV/D1/R2/DO) | nenhum | nenhum | AUSENTE_COM_JUSTIFICATIVA — nenhuma variável server-side é declarada como binding em texto plano neste arquivo; todas são configuradas via secret/env do Worker, nunca versionadas aqui. |
+| `rules` (glob ESModule) | `[{"type":"ESModule","globs":["**/*.mjs","**/*.js"]}]` | ausente | AUSENTE_COM_JUSTIFICATIVA (observado em FIBT-HML-3A, reconfirmado por build sintético) — `rules` só afeta o bundling que o próprio Wrangler faria; com `no_bundle: true` (presente e IGUAL nos dois arquivos), o Wrangler não bundla o artefato, então este campo é inerte. Nenhuma divergência de segurança ou de comportamento de deploy. |
 
 **Nenhum campo técnico do Nitro foi removido sem justificativa** — `no_bundle`,
 `compatibility_flags` e `assets.binding` são preservados exatamente.
@@ -171,70 +179,160 @@ requisições não autenticadas alcançarem o Worker DE FORMA NENHUMA,
 enquanto o boundary de aplicação é a segunda camada (defesa em
 profundidade), não a única.
 
-## Deploy (documentado, não executado nesta preparação — Fase 7)
+## Estratégia segura de secrets (FIBT-HML-3A)
 
-```
-bunx wrangler deploy --config wrangler.hml.jsonc
-```
+**`bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY` isolado no bootstrap
+foi retirado do fluxo padrão.** Motivo: `secret put` provoca a implantação
+imediata de uma nova versão do Worker — se executado antes de o Worker ter
+Cloudflare Access validado, essa nova versão (com o secret já presente) fica
+exposta na URL `workers.dev` sem proteção, ainda que por uma janela curta.
 
-Configurar o secret antes do primeiro deploy:
+Contrato operacional (substitui o comando isolado):
 
-```
-bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.hml.jsonc
-```
+1. **Nunca** configurar o secret antes de existir uma proteção Access
+   validada no Worker (ver "Etapa A/B/C" abaixo — o secret só entra na
+   Etapa C, depois do Access da Etapa B estar confirmado);
+2. **Nunca** usar `secret put` isoladamente no bootstrap;
+3. Preparar o valor do secret em um **arquivo privado fora do repositório**
+   (ex.: fora de qualquer worktree deste projeto, num diretório de
+   credenciais controlado pelo operador) — nunca em `.env`, `.env.local`
+   nem em qualquer arquivo versionado ou versionável;
+4. **Não imprimir o valor** em nenhum terminal, log, relatório ou saída de
+   comando;
+5. **Não colocar o valor em `.env` versionado** — mesmo `.env.local`
+   (gitignored) é desaconselhado para o valor real; preferir um arquivo
+   fora da árvore do repositório;
+6. Incluir o secret **somente na versão final já autorizada** para
+   deployment real (Etapa C), nunca numa versão de bootstrap ou de teste;
+7. Preferir uma destas duas estratégias — confirmado contra o Wrangler
+   real instalado nesta preparação (**4.118.0**; ambas as flags existem e
+   foram confirmadas via `--help`, não presumidas):
 
-Nenhum destes comandos foi executado como parte desta preparação.
+   **a)** `wrangler deploy --config wrangler.hml.jsonc --secrets-file <arquivo-privado>`
+   — aplica o secret junto com o deploy, numa única operação; ou
 
-## Cloudflare Access — obrigatório antes da entrega ao RH (Fase 7)
+   **b)** `wrangler versions upload --config wrangler.hml.jsonc --secrets-file <arquivo-privado>`
+   seguido de `wrangler versions deploy --version-id <id-retornado> --percentage 100`
+   — separa "criar a versão com o secret" de "rotear tráfego para ela",
+   permitindo confirmar a versão (ex.: via preview interno, quando
+   aplicável) antes de promovê-la. Preferível quando se quer um ponto de
+   verificação explícito entre preparar e expor.
 
-**Não configurado nesta rodada.** Registrado aqui como requisito bloqueante
-do primeiro deployment real, não como algo já feito:
+   Nenhum dos dois comandos foi executado nesta preparação.
 
-- o subdomínio `workers.dev` deste Worker deve ficar protegido por
-  Cloudflare Access antes de qualquer pessoa fora da equipe técnica receber
-  o link;
-- a allowlist do Access deve conter só as pessoas autorizadas a participar
-  da homologação (o time do RH/ISG testando o fluxo), nunca "qualquer um
-  com o link";
-- o acesso deve ser removível ao final do teste — Access não é uma
-  configuração permanente deste Worker;
-- Access é uma **defesa adicional**, não um substituto do boundary da
-  aplicação (`hml-deployment-boundary.server.ts`) — nunca justifica abrir
-  `/_serverFn/*` de forma ampla: mesmo com Access habilitado, o boundary
-  continua allowlistando por identidade real de função
-  (`serverFnMeta.name`/`filename`), não por prefixo. As duas camadas
-  cobrem preocupações diferentes: Access impede que QUALQUER requisição
-  não autenticada chegue ao Worker; o boundary de aplicação impede que uma
-  sessão autenticada pelo Access (ou uma eventual falha de configuração do
-  Access) ainda consiga navegar para dashboards/admin/relatórios ou invocar
-  uma server function fora das 5 permitidas;
-- **o endpoint de atestação (`/api/fibt-hml/attestation`) também deve
-  ficar atrás do Access durante a homologação**, salvo necessidade
-  operacional explicitamente aprovada (ex.: um monitor externo de saúde que
-  precise consultá-lo sem autenticação interativa) — não é um endpoint
-  "público por natureza" só porque não expõe segredo; ele confirma o
-  estado do deployment, e não há motivo para deixá-lo fora do perímetro por
-  padrão.
+8. O arquivo privado com o secret:
+   - deve ficar **fora do repositório** (nenhum caminho dentro de
+     `vitalos-fibt-hml-deployment-safety/` nem de qualquer worktree
+     versionado deste projeto);
+   - seu caminho **não pode aparecer em nenhum commit**, PR, comentário ou
+     documentação;
+   - deve ser **apagado após uso**, ou preservado apenas num diretório
+     privado controlado pelo operador (fora do controle de versão),
+     nunca deixado num diretório temporário compartilhado;
+   - o valor do secret **nunca pode aparecer em stdout, relatório ou
+     manifest** de nenhum comando gerado por esta preparação;
+9. **Somente `SUPABASE_SERVICE_ROLE_KEY` é secret.** As demais variáveis
+   server-side (`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`,
+   `FIBT_HML_AUTHORIZED_STAGING_REF`, `VITALOS_PRODUCTION_PROJECT_REF`,
+   `FIBT_HML_FRONTEND_BASE_URL`, `VITALOS_RUNTIME_ENV`, `VITALOS_DB_TARGET`,
+   `VITALOS_STAGING_PROJECT_REF`, `FORBIDDEN_PROJECT_REFS`,
+   `FIBT_HML_DEPLOYMENT_ENABLED`) não são secretas e seguem o contrato
+   separado descrito na tabela de variáveis acima — configuráveis como
+   `vars` normais do Worker, nunca como `wrangler secret put`.
 
-**O deployment não poderá ser entregue ao RH enquanto o Cloudflare Access
-não estiver habilitado e validado.**
+## Sequência seguro do primeiro deployment real (futuro — exige autorização própria)
 
-## Checklist do primeiro deployment real (futuro — exige autorização própria)
+Nenhuma das três etapas abaixo foi executada nesta preparação — documentadas
+para a autorização de deployment futura, não para execução imediata.
 
-1. Autenticar na conta Cloudflare correta (`bunx wrangler login` ou token dedicado);
-2. Confirmar o nome do Worker (`vitalos-fibt-hml-isg`) antes de confirmar o deploy;
-3. Confirmar que a URL resultante é `*.workers.dev` (`workers_dev: true`, nenhuma rota customizada declarada);
-4. Configurar as variáveis públicas de build (lista acima) antes do build;
-5. Configurar as variáveis server-side não secretas (lista acima), incluindo `FIBT_HML_DEPLOYMENT_ENABLED=true`, no ambiente do Worker;
-6. Configurar `SUPABASE_SERVICE_ROLE_KEY` como **secret** (nunca como variável de texto plano);
-7. Executar `bun run build:hml:staging`;
-8. Executar `bunx wrangler deploy --config wrangler.hml.jsonc`;
-9. Registrar a URL resultante (só depois de existir);
-10. **Habilitar Cloudflare Access no subdomínio `workers.dev` antes de compartilhar a URL com qualquer pessoa fora da equipe técnica** (ver seção "Cloudflare Access" acima) — bloqueante, não opcional;
-11. Abrir `/api/fibt-hml/attestation` na URL resultante;
-12. Exigir `status:"READY"` antes de considerar o deployment válido — qualquer `BLOCKED` interrompe a validação;
-13. Testar `/convite/<token-inexistente>` e confirmar banner + estado `HML_ATTESTED`, nunca um formulário;
-14. Confirmar que rotas fora da allowlist (`/admin`, `/rh`, `/relatorios`, etc.) retornam 404 sanitizado — o boundary já está conectado (`src/start.ts`), confirmar apenas que `FIBT_HML_DEPLOYMENT_ENABLED=true` foi de fato configurado no Worker (sem essa variável, o boundary fica inativo por design);
-15. Comprovar, pela resposta do endpoint e pela ausência de qualquer chamada de rede visível ao domínio Supabase de produção, que zero tráfego chega à produção;
-16. **Não** executar o gerador (`create-synthetic-homologation-links.ts`) em modo `--commit`;
-17. **Não** criar nenhum link ou registro real nesta fase — isso permanece uma autorização separada e futura.
+### Etapa A — bootstrap selado
+
+Uma versão **temporária, sem backend e sem dados** — nunca a versão que
+importa o aplicativo VitalOS inteiro.
+
+1. Autenticar na conta Cloudflare correta (`bunx wrangler login` ou token
+   dedicado);
+2. Criar o Worker (`vitalos-fibt-hml-isg`) com uma versão **selada**: sem
+   nenhuma variável Supabase, sem `SUPABASE_SERVICE_ROLE_KEY`, sem nenhum
+   secret configurado;
+3. Essa versão selada deve responder apenas `403`/indisponível a qualquer
+   requisição — nunca uma página, dashboard ou rota funcional do app;
+4. **Nenhum código VitalOS funcional deve ser exposto** nessa versão —
+   não é o artefato de `bun run build:hml:staging`, é um worker mínimo
+   dedicado só a provar que o nome/domínio existe e está fechado;
+5. `preview_urls: false` já garantido por `wrangler.hml.jsonc` (Correção 1
+   desta preparação) — confirmar que nenhuma URL de preview adicional foi
+   gerada para essa versão selada.
+
+### Etapa B — Cloudflare Access
+
+6. Habilitar Cloudflare Access na URL `workers.dev` do Worker criado na
+   Etapa A;
+7. Allowlist do Access contendo **somente** os e-mails explicitamente
+   autorizados a participar da homologação — nunca "qualquer um com o
+   link";
+8. **`/api/fibt-hml/attestation` também deve ficar atrás do Access** —
+   não é um endpoint "público por natureza" só por não expor segredo; ele
+   confirma o estado do deployment e não há motivo para deixá-lo fora do
+   perímetro por padrão, salvo necessidade operacional explicitamente
+   aprovada à parte;
+9. Validar em **sessão anônima** (sem login Access) que o acesso é negado;
+10. Validar com um **usuário autorizado** que o bootstrap selado da Etapa A
+    é alcançável (ainda que só devolva 403/indisponível — o que se testa
+    aqui é que o Access deixa passar quem deve, não que o app funciona).
+
+Access é uma **defesa adicional**, não um substituto do boundary da
+aplicação (`hml-deployment-boundary.server.ts`) — nunca justifica abrir
+`/_serverFn/*` de forma ampla: mesmo com Access habilitado, o boundary
+continua allowlistando por identidade real de função
+(`serverFnMeta.name`/`filename`), não por prefixo. As duas camadas cobrem
+preocupações diferentes: Access impede que qualquer requisição não
+autenticada chegue ao Worker; o boundary de aplicação impede que uma sessão
+autenticada pelo Access (ou uma eventual falha de configuração do Access)
+ainda consiga navegar para dashboards/admin/relatórios ou invocar uma
+server function fora das 5 permitidas.
+
+### Etapa C — versão HML real
+
+Só depois de A e B confirmados.
+
+11. Build limpo a partir de `origin/main` (`bun install --frozen-lockfile`
+    seguido de `bun run build:hml:staging`);
+12. Usar as `VITE_*` **definitivas de staging** durante o build (lista de
+    variáveis públicas acima) — embutidas estaticamente, exigem rebuild se
+    mudarem depois;
+13. Incluir as variáveis runtime de staging não secretas (lista acima),
+    incluindo `FIBT_HML_DEPLOYMENT_ENABLED=true`, como `vars` do Worker;
+14. Incluir `SUPABASE_SERVICE_ROLE_KEY` **somente como secret** — via
+    `--secrets-file` (estratégia "a" ou "b" acima), nunca `secret put`
+    isolado nem variável de texto plano;
+15. Realizar **um único deploy controlado** da versão HML (estratégia "a"),
+    ou promover explicitamente a versão preparada (estratégia "b" — passo
+    de `versions deploy` separado);
+16. Exigir **`status:"READY"`** em `/api/fibt-hml/attestation` antes de
+    considerar o deployment válido — qualquer `BLOCKED` interrompe a
+    validação;
+17. Verificar, pela resposta do endpoint e pela ausência de qualquer
+    chamada de rede visível ao domínio Supabase de **produção**, que zero
+    tráfego chega à produção;
+18. **Não** executar o gerador (`create-synthetic-homologation-links.ts`)
+    em modo `--commit`;
+19. **Não** criar nenhum convite ou registro real nesta fase — isso
+    permanece uma autorização separada e futura.
+
+Confirmações adicionais, herdadas da preparação anterior:
+
+- Confirmar o nome do Worker (`vitalos-fibt-hml-isg`) antes de confirmar
+  qualquer deploy;
+- Confirmar que a URL resultante é `*.workers.dev` (`workers_dev: true`,
+  nenhuma rota customizada declarada, `preview_urls: false`);
+- Testar `/convite/<token-inexistente>` e confirmar banner + estado
+  `HML_ATTESTED`, nunca um formulário;
+- Confirmar que rotas fora da allowlist (`/admin`, `/rh`, `/relatorios`,
+  etc.) retornam 404 sanitizado — o boundary já está conectado
+  (`src/start.ts`); confirmar apenas que `FIBT_HML_DEPLOYMENT_ENABLED=true`
+  foi de fato configurado no Worker (sem essa variável, o boundary fica
+  inativo por design).
+
+**O deployment não poderá ser entregue ao RH enquanto as Etapas A, B e C
+não estiverem completas, nessa ordem — nunca C antes de B.**

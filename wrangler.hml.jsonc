@@ -38,6 +38,19 @@
   // domínio produtivo, e nenhuma rota é declarada abaixo.
   "workers_dev": true,
 
+  // FIBT-HML-3A: Preview URLs desabilitadas. Cada `wrangler versions upload`
+  // geraria, por padrão, uma URL de preview própria e imprevisível
+  // (ex.: <hash>-vitalos-fibt-hml-isg.<subdomínio>.workers.dev) — uma
+  // superfície de acesso adicional, sem Cloudflare Access configurado nela
+  // por padrão, fora do controle documentado nesta preparação. Só a URL
+  // principal `*.workers.dev` (a mesma que recebe Cloudflare Access, ver
+  // CLOUDFLARE_HML_DEPLOYMENT.md) deve existir. Reabilitar Preview URLs
+  // exige autorização própria E Cloudflare Access cobrindo também o
+  // subdomínio de preview — confirmado como campo reconhecido pelo parser
+  // do Wrangler (testado: um campo genuinamente desconhecido gera
+  // "Unexpected fields found in top-level field", este não gera nenhum aviso).
+  "preview_urls": false,
+
   // Caminhos relativos à raiz do repo (onde este arquivo vive) — apontam
   // para o artefato já produzido por `bun run build:hml:staging`.
   "main": ".output/server/index.mjs",
