@@ -35,6 +35,7 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 | `VITALOS_DB_TARGET` | Idem — valor esperado: `staging`. |
 | `VITALOS_STAGING_PROJECT_REF` | Exigida pelo preflight quando `VITALOS_DB_TARGET=staging`; conferida contra o ref real extraído de `SUPABASE_URL`. |
 | `FORBIDDEN_PROJECT_REFS` | Opcional — lista extra de refs proibidos, mesma convenção de `forbiddenRefs()` (`staging-guard.ts`). |
+| `FIBT_HML_DEPLOYMENT_ENABLED` | **Nova (FIBT-HML-2D).** Gatilho dedicado, server-side, da contenção de rotas (`hml-deployment-boundary.server.ts`) — deliberadamente independente de `VITE_FIBT_HML_ENABLED` (que só liga o banner no cliente). Valor esperado: exatamente `true`. Ausente = comportamento normal; qualquer valor presente que não seja exatamente `true` (vazio, `"1"`, `" true"`, etc.) bloqueia TODAS as rotas — nunca cai de volta ao modo comum em silêncio. |
 
 ### Variáveis públicas de build (`VITE_*` — embutidas no bundle do navegador, precisam existir **antes** do build)
 
@@ -105,46 +106,70 @@ Comparação mecânica (FIBT-HML-2C), a partir de um build sintético local
 - confirmado por leitura do código-fonte: `hml-backend-boundary.server.ts` **nunca** lê `process.env` diretamente (recebe o ambiente como parâmetro, puro); as únicas 3 leituras reais de `process.env.*` no caminho HML (`invite-resolve.server.ts:29`, `response-capture.server.ts:74`, `api.fibt-hml.attestation.ts:69`) acontecem **dentro do corpo de uma função de request/handler**, nunca em escopo de módulo compartilhado — importante em runtime Workers, onde uma leitura em escopo de módulo rodaria só uma vez no cold start, potencialmente antes do binding de env estar disponível;
 - ausência de qualquer variável obrigatória (`VITALOS_PRODUCTION_PROJECT_REF`, `FIBT_HML_AUTHORIZED_STAGING_REF`, etc.) mantém `assertHmlBackendBoundary()` em `BLOCKED` — comportamento herdado do PR #39, não alterado nesta fase.
 
-## Superfície de rotas e contenção (Fase 4/5)
+## Superfície de rotas e contenção (Fase 4/5 — conectada, FIBT-HML-2D)
 
 O artefato contém o **aplicativo inteiro** — dezenas de rotas (`/admin`,
 `/rh`, `/clevel`, `/painel`, `/relatorios`, etc.), confirmado por inspeção
 de `routeTree.gen.ts`. Estritamente necessário para a homologação:
 
-- `/convite/:token` (página);
-- `/api/fibt-hml/attestation` (atestação);
-- `/assets/*` (JS/CSS/ícones content-hashed usados pelas duas rotas acima);
-- `/favicon.ico`;
-- `/_serverFn/*` — base das server functions internas do TanStack Start
-  (confirmado por build: `TSS_SERVER_FN_BASE:"/_serverFn/"`); as 4 usadas
-  pelo fluxo de convite são `checkInviteToken`, `submitSurveyResponses`,
-  `checkAndAggregateByToken`, `recordSurveyFunnelSnapshot`/`loadSurveyFunnelResult`
-  — mas o id de cada uma é um hash `sha256(arquivo--nomeDaFunção)` opaco,
-  não distinguível de forma estável fora do compilador (ver limitação
-  abaixo).
+- `/convite/:token` (página, GET/HEAD);
+- `/api/fibt-hml/attestation` (atestação, GET/HEAD);
+- as 5 server functions que o fluxo de convite usa: `checkInviteToken`,
+  `submitSurveyResponses`, `checkAndAggregateByToken`,
+  `recordSurveyFunnelSnapshot`, `loadSurveyFunnelResult`.
+
+**Assets estáticos (`/assets/*`, `/favicon.ico`) não precisam de entrada na
+allowlist** — confirmado por inspeção direta do artefato gerado
+(`.output/server/index.mjs`): o próprio runtime do preset nitro
+`cloudflare-module` resolve esses caminhos via `isPublicAssetURL()`, um
+**lookup exato** contra o manifesto de arquivos realmente gerados pelo
+build, ANTES de qualquer requisição alcançar o handler do TanStack Start.
+Um caminho como `/assets/../admin` não corresponde a nenhum arquivo real
+gerado, então nunca casa nesse lookup — cai (corretamente) no boundary da
+aplicação, que o recusa por não estar na allowlist de página/API/server-fn.
+
+### Conectado ao request path real
 
 `src/lib/fibt-hml/hml-deployment-boundary.server.ts` implementa a decisão
-pura de allowlist por PATH (`assertHmlDeploymentRouteAllowed`), testada
-isoladamente (16 testes). **Este módulo ainda não está conectado ao
-caminho real de requisição** — fazer isso exige um `beforeLoad` na rota
-raiz (`src/routes/__root.tsx`) ou um hook no entrypoint SSR
-(`src/server.ts`), nenhum dos dois no escopo de arquivos autorizado para
-esta rodada (FIBT-HML-2C limita alterações a `wrangler.hml.jsonc`, esta
-documentação, `package.json` e um novo módulo de boundary + testes). A
-conexão real é uma microcorreção pequena e específica, pendente de
-autorização explícita para tocar `__root.tsx`/`src/server.ts`.
+(`assertHmlDeploymentRequestAllowed`) e está **conectada** como o PRIMEIRO
+`requestMiddleware` global em `src/start.ts`
+(`hmlDeploymentBoundaryMiddleware`, antes até do `errorMiddleware`).
+Request middleware do TanStack Start roda em **toda** requisição
+server-side — SSR, rotas de API e server functions — não apenas páginas
+(documentação oficial: "Runs on ALL server requests (SSR, routes,
+functions)"), o que resolve a limitação anterior de usar `__root.tsx` (que
+só protegeria navegação de página, não server functions/APIs).
 
-### Limitação registrada, não escondida
+### Server functions — identidade real, não hash cru (fecha a lacuna anterior)
 
-`assertHmlDeploymentRouteAllowed` cobre com certeza toda **navegação de
-página** (todo caminho desce da rota raiz do TanStack Router). Ele **não
-distingue**, por hash, uma chamada a `/_serverFn/<hash-de-checkInviteToken>`
-de uma chamada direta ao hash de qualquer outra função do app — os ids são
-determinísticos mas opacos fora do compilador, e hardcodar um mapa de
-hashes seria frágil (quebra em silêncio a cada mudança de arquivo/nome em
-QUALQUER lugar do app). A contenção completa deste caminho específico é o
-**Cloudflare Access** na frente do Worker inteiro (seção seguinte) — por
-isso o deployment real não pode ser entregue sem Access habilitado.
+O id de cada server function na URL (`/_serverFn/<id>`) é
+`sha256(arquivo--nomeDaFunção)` — confirmado por leitura do compilador do
+TanStack Start (`start-plugin-core/start-compiler/compiler.js`) e
+reconfirmado empiricamente: o mesmo hash de `checkInviteToken`
+(`fae0711708444afdfe5b4a21062ea2ee5db64e44435e7e9f7e9e25cdab442b63`)
+apareceu idêntico em três builds sintéticos distintos, com nomes de chunk
+diferentes — a função é pura (dois fatos de código-fonte, sem
+timestamp/salt), então o hash é estável entre rebuilds.
+
+Em vez de allowlistar por esse hash (frágil de ler, fácil de errar), o
+boundary usa o mecanismo OFICIAL do framework: `RequestServerOptions`
+(`@tanstack/start-client-core`) entrega, a cada request middleware,
+`serverFnMeta?: { name, filename }` — "metadata about the server function
+being invoked... embedded at compile time by the TanStack Start compiler"
+— já RESOLVIDA pelo framework a partir do hash da URL, ANTES do handler
+rodar. O cliente não pode forjar esse valor: ele reflete a função que o
+dispatch já determinou, nunca o contrário. O boundary allowlista por
+`{filename, name}` exatos para as 5 funções acima — qualquer outra função
+do app (ou uma requisição `/_serverFn/*` sem `serverFnMeta` resolvido,
+estado anômalo) é recusada.
+
+**Isso fecha, para o caso normal, a lacuna registrada na revisão anterior**
+("não distingue por hash uma função de outra"). O residual que ainda
+justifica Cloudflare Access como obrigatório (seção seguinte) não é mais
+"o boundary não sabe distinguir" — é que o Access protege contra
+requisições não autenticadas alcançarem o Worker DE FORMA NENHUMA,
+enquanto o boundary de aplicação é a segunda camada (defesa em
+profundidade), não a única.
 
 ## Deploy (documentado, não executado nesta preparação — Fase 7)
 
@@ -174,13 +199,22 @@ do primeiro deployment real, não como algo já feito:
 - o acesso deve ser removível ao final do teste — Access não é uma
   configuração permanente deste Worker;
 - Access é uma **defesa adicional**, não um substituto do boundary da
-  aplicação (`hml-deployment-boundary.server.ts`) — as duas camadas
-  cobrem lacunas diferentes: Access impede que QUALQUER requisição não
-  autenticada chegue ao Worker (inclusive chamadas diretas a
-  `/_serverFn/<hash>`, a lacuna que o boundary de aplicação sozinho não
-  fecha — ver seção anterior); o boundary de aplicação impede que uma
+  aplicação (`hml-deployment-boundary.server.ts`) — nunca justifica abrir
+  `/_serverFn/*` de forma ampla: mesmo com Access habilitado, o boundary
+  continua allowlistando por identidade real de função
+  (`serverFnMeta.name`/`filename`), não por prefixo. As duas camadas
+  cobrem preocupações diferentes: Access impede que QUALQUER requisição
+  não autenticada chegue ao Worker; o boundary de aplicação impede que uma
   sessão autenticada pelo Access (ou uma eventual falha de configuração do
-  Access) ainda consiga navegar para dashboards/admin/relatórios.
+  Access) ainda consiga navegar para dashboards/admin/relatórios ou invocar
+  uma server function fora das 5 permitidas;
+- **o endpoint de atestação (`/api/fibt-hml/attestation`) também deve
+  ficar atrás do Access durante a homologação**, salvo necessidade
+  operacional explicitamente aprovada (ex.: um monitor externo de saúde que
+  precise consultá-lo sem autenticação interativa) — não é um endpoint
+  "público por natureza" só porque não expõe segredo; ele confirma o
+  estado do deployment, e não há motivo para deixá-lo fora do perímetro por
+  padrão.
 
 **O deployment não poderá ser entregue ao RH enquanto o Cloudflare Access
 não estiver habilitado e validado.**
@@ -191,7 +225,7 @@ não estiver habilitado e validado.**
 2. Confirmar o nome do Worker (`vitalos-fibt-hml-isg`) antes de confirmar o deploy;
 3. Confirmar que a URL resultante é `*.workers.dev` (`workers_dev: true`, nenhuma rota customizada declarada);
 4. Configurar as variáveis públicas de build (lista acima) antes do build;
-5. Configurar as variáveis server-side não secretas (lista acima) no ambiente do Worker;
+5. Configurar as variáveis server-side não secretas (lista acima), incluindo `FIBT_HML_DEPLOYMENT_ENABLED=true`, no ambiente do Worker;
 6. Configurar `SUPABASE_SERVICE_ROLE_KEY` como **secret** (nunca como variável de texto plano);
 7. Executar `bun run build:hml:staging`;
 8. Executar `bunx wrangler deploy --config wrangler.hml.jsonc`;
@@ -200,7 +234,7 @@ não estiver habilitado e validado.**
 11. Abrir `/api/fibt-hml/attestation` na URL resultante;
 12. Exigir `status:"READY"` antes de considerar o deployment válido — qualquer `BLOCKED` interrompe a validação;
 13. Testar `/convite/<token-inexistente>` e confirmar banner + estado `HML_ATTESTED`, nunca um formulário;
-14. Confirmar que rotas fora da allowlist (`/admin`, `/rh`, `/relatorios`, etc.) retornam 404/403 sanitizado — depende do boundary de aplicação estar conectado (ver limitação registrada acima);
+14. Confirmar que rotas fora da allowlist (`/admin`, `/rh`, `/relatorios`, etc.) retornam 404 sanitizado — o boundary já está conectado (`src/start.ts`), confirmar apenas que `FIBT_HML_DEPLOYMENT_ENABLED=true` foi de fato configurado no Worker (sem essa variável, o boundary fica inativo por design);
 15. Comprovar, pela resposta do endpoint e pela ausência de qualquer chamada de rede visível ao domínio Supabase de produção, que zero tráfego chega à produção;
 16. **Não** executar o gerador (`create-synthetic-homologation-links.ts`) em modo `--commit`;
 17. **Não** criar nenhum link ou registro real nesta fase — isso permanece uma autorização separada e futura.
