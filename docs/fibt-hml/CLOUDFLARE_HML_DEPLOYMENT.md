@@ -47,7 +47,7 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 | `VITALOS_STAGING_PROJECT_REF` | Exigida pelo preflight quando `VITALOS_DB_TARGET=staging`; conferida contra o ref real extraído de `SUPABASE_URL`. |
 | `FORBIDDEN_PROJECT_REFS` | Opcional — lista extra de refs proibidos, mesma convenção de `forbiddenRefs()` (`staging-guard.ts`). |
 | `FIBT_HML_DEPLOYMENT_ENABLED` | **Nova (FIBT-HML-2D).** Gatilho dedicado, server-side, da contenção de rotas (`hml-deployment-boundary.server.ts`) — deliberadamente independente de `VITE_FIBT_HML_ENABLED` (que só liga o banner no cliente). Valor esperado: exatamente `true`. Ausente = comportamento normal; qualquer valor presente que não seja exatamente `true` (vazio, `"1"`, `" true"`, etc.) bloqueia TODAS as rotas — nunca cai de volta ao modo comum em silêncio. |
-| `CLOUDFLARE_ACCESS_TEAM_DOMAIN` | **Nova (FIBT-HML-3E).** Origem HTTPS do team domain do Access (`https://<time>.cloudflareaccess.com`). Usada como **issuer exato** do JWT e para derivar o JWKS em `<TEAM_DOMAIN>/cdn-cgi/access/certs`. Recusada se não for HTTPS, tiver path/query/fragment/credenciais, ou se o hostname não terminar exatamente em `.cloudflareaccess.com`. |
+| `CLOUDFLARE_ACCESS_TEAM_DOMAIN` | **Nova (FIBT-HML-3E).** Origem HTTPS do team domain do Access (`https://<time>.cloudflareaccess.com`). Usada como **issuer exato** do JWT e para derivar o JWKS em `<TEAM_DOMAIN>/cdn-cgi/access/certs`. Recusada se não for HTTPS, tiver path/query/fragment/credenciais/**porta explícita** (FIBT-HML-3F), ou se o hostname não terminar exatamente em `.cloudflareaccess.com`. A URL do JWKS só é derivada **depois** dessa validação. |
 | `CLOUDFLARE_ACCESS_AUD` | **Nova (FIBT-HML-3E).** Tag de audiência da aplicação Access. Comparada por igualdade exata com a claim `aud` — é o que impede que um token válido de OUTRA aplicação Access da mesma conta seja aceito aqui. Nunca aparece em resposta nem em log. |
 | `CLOUDFLARE_ACCESS_ALLOWED_EMAILS` | **Nova (FIBT-HML-3E).** Lista separada por vírgulas de e-mails **explicitamente autorizados**. Normalizada com trim e comparação case-insensitive. Recusa wildcard (`*@x`), domínio amplo (`@x.com`, `x.com`) e lista vazia — a allowlist nomeia pessoas, nunca uma organização inteira. Na primeira implantação conterá apenas o proprietário autorizado. |
 
@@ -228,6 +228,16 @@ Implementado em `src/lib/fibt-hml/cloudflare-access-jwt.server.ts`
   `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, sem CORS.
   Nunca são devolvidos token, payload, e-mail, issuer, AUD, URL do JWKS,
   mensagem do `jose`, stack ou nome de arquivo.
+- **Falha de JWKS é fail-closed**: rede fora, timeout, 5xx ou conjunto de
+  chaves vazio recusam a requisição — nunca a liberam. O erro de rede
+  (que pode conter host/IP interno) nunca chega à resposta.
+- **Validação do team domain vem antes de qualquer fetch**: HTTPS, origem
+  única, sem path/query/fragment/credenciais/porta, hostname terminando
+  exatamente em `.cloudflareaccess.com`. Formas hostis testadas e
+  recusadas: `cloudflareaccess.com.attacker.invalid`, userinfo
+  (`…@attacker.invalid`), sufixo no path/fragment, FQDN com ponto final,
+  homógrafo Unicode dentro de "access", punycode parecido, porta
+  arbitrária, `file://` e o endpoint de metadados `169.254.169.254`.
 
 **Nenhum valor real de team domain, AUD ou e-mail pode ser versionado** —
 todos são variáveis de runtime do Worker (tabela acima). **O JWT nunca pode

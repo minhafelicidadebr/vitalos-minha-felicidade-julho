@@ -116,6 +116,37 @@ describe("configuração — fail-closed", () => {
     }
   });
 
+  test("FIBT-HML-3F — SSRF/spoofing: nenhuma dessas formas produz fetch para origem arbitrária", () => {
+    const hostile = [
+      "https://cloudflareaccess.com.attacker.invalid", // sufixo como prefixo de outro domínio
+      "https://synthetic-team.cloudflareaccess.com@attacker.invalid", // userinfo sequestrando o host
+      "https://attacker.invalid#.cloudflareaccess.com", // sufixo no fragment
+      "https://attacker.invalid/.cloudflareaccess.com", // sufixo no path
+      "https://synthetic-team.cloudflareaccess.com.", // FQDN com ponto final
+      "https://evil.cloudflareaccеss.com", // homógrafo cirílico DENTRO de "access"
+      "https://xn--cloudflareaccess-abc.invalid", // punycode parecido
+      "https://synthetic-team.cloudflareaccess.com:8443", // porta arbitrária
+      "file:///etc/passwd",
+      "http://169.254.169.254", // metadata endpoint
+    ];
+    for (const raw of hostile) {
+      expect(parseCloudflareAccessConfig({ ...ENV, CLOUDFLARE_ACCESS_TEAM_DOMAIN: raw })).toEqual({
+        ok: false,
+        code: "ACCESS_TEAM_DOMAIN_INVALID",
+      });
+    }
+  });
+
+  test("FIBT-HML-3F — porta padrão explícita (:443) continua aceita; o JWKS sai da origem validada", () => {
+    const r = parseCloudflareAccessConfig({
+      ...ENV,
+      CLOUDFLARE_ACCESS_TEAM_DOMAIN: "https://synthetic-team.cloudflareaccess.com:443",
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) throw new Error("unreachable");
+    expect(r.config.jwksUrl).toBe("https://synthetic-team.cloudflareaccess.com/cdn-cgi/access/certs");
+  });
+
   test("team domain válido deriva issuer exato e JWKS oficial", () => {
     const r = parseCloudflareAccessConfig(ENV);
     expect(r.ok).toBe(true);
@@ -148,6 +179,32 @@ describe("configuração — fail-closed", () => {
     expect(r.ok).toBe(true);
     if (!r.ok) throw new Error("unreachable");
     expect(r.config.allowedEmails).toEqual(["a@synthetic.invalid", "b@synthetic.invalid"]);
+  });
+
+  test("FIBT-HML-3F — vírgula final e entradas vazias intercaladas não invalidam a lista", () => {
+    const r = parseCloudflareAccessConfig({
+      ...ENV,
+      CLOUDFLARE_ACCESS_ALLOWED_EMAILS: "a@synthetic.invalid, ,b@synthetic.invalid,",
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) throw new Error("unreachable");
+    expect(r.config.allowedEmails).toEqual(["a@synthetic.invalid", "b@synthetic.invalid"]);
+  });
+
+  test("FIBT-HML-3F — e-mails duplicados (inclusive com caixa diferente) são aceitos e não quebram a checagem", async () => {
+    const env = {
+      ...ENV,
+      CLOUDFLARE_ACCESS_ALLOWED_EMAILS: `${ALLOWED_EMAIL}, ${ALLOWED_EMAIL.toUpperCase()}`,
+    };
+    const parsed = parseCloudflareAccessConfig(env);
+    expect(parsed.ok).toBe(true);
+    const r = await verifyCloudflareAccessRequest(requestWith(await makeToken()), env, {
+      jwksResolver: jwks,
+    });
+    expect(r).toEqual({
+      valid: true,
+      identity: { email: ALLOWED_EMAIL, subject: "synthetic-subject-1" },
+    });
   });
 });
 
@@ -261,6 +318,71 @@ describe("validação criptográfica", () => {
       .setExpirationTime("1h")
       .sign(otherRsaPrivate);
     expect(await verify(requestWith(token))).toEqual({ valid: false, code: "ACCESS_JWT_INVALID" });
+  });
+});
+
+describe("FIBT-HML-3F — falha do JWKS é fail-closed", () => {
+  test("resolvedor que lança (rede fora, timeout, 5xx) → recusa, nunca libera", async () => {
+    const boom = (async () => {
+      throw new Error("ECONNREFUSED 10.0.0.1:443 host-interno-sensivel");
+    }) as unknown as AccessJwksResolver;
+    const r = await verifyCloudflareAccessRequest(requestWith(await makeToken()), ENV, {
+      jwksResolver: boom,
+    });
+    expect(r).toEqual({ valid: false, code: "ACCESS_JWT_INVALID" });
+  });
+
+  test("o erro de rede/JWKS nunca aparece no resultado devolvido", async () => {
+    const boom = (async () => {
+      throw new Error("ECONNREFUSED 10.0.0.1:443 host-interno-sensivel");
+    }) as unknown as AccessJwksResolver;
+    const r = await verifyCloudflareAccessRequest(requestWith(await makeToken()), ENV, {
+      jwksResolver: boom,
+    });
+    const s = JSON.stringify(r);
+    expect(s).not.toContain("ECONNREFUSED");
+    expect(s).not.toContain("host-interno-sensivel");
+    expect(s).not.toContain("10.0.0.1");
+  });
+
+  test("JWKS vazio (nenhuma chave publicada) → recusa", async () => {
+    const empty = createLocalJWKSet({ keys: [] }) as AccessJwksResolver;
+    const r = await verifyCloudflareAccessRequest(requestWith(await makeToken()), ENV, {
+      jwksResolver: empty,
+    });
+    expect(r.valid).toBe(false);
+  });
+});
+
+describe("FIBT-HML-3F — audience em array", () => {
+  test("token com aud em array contendo o AUD esperado é aceito (comportamento da biblioteca, confirmado)", async () => {
+    const token = await new SignJWT({ email: ALLOWED_EMAIL })
+      .setProtectedHeader({ alg: "RS256", kid: "synthetic-kid-1" })
+      .setIssuer(ISSUER)
+      .setAudience([AUD, "outra-aplicacao-access-0000000000"])
+      .setSubject("synthetic-subject-1")
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(rsaPrivate);
+    expect(await verify(requestWith(token))).toEqual({
+      valid: true,
+      identity: { email: ALLOWED_EMAIL, subject: "synthetic-subject-1" },
+    });
+  });
+
+  test("token com aud em array SEM o AUD esperado → ACCESS_AUDIENCE_MISMATCH", async () => {
+    const token = await new SignJWT({ email: ALLOWED_EMAIL })
+      .setProtectedHeader({ alg: "RS256", kid: "synthetic-kid-1" })
+      .setIssuer(ISSUER)
+      .setAudience(["app-a-0000000000000000", "app-b-0000000000000000"])
+      .setSubject("synthetic-subject-1")
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(rsaPrivate);
+    expect(await verify(requestWith(token))).toEqual({
+      valid: false,
+      code: "ACCESS_AUDIENCE_MISMATCH",
+    });
   });
 });
 

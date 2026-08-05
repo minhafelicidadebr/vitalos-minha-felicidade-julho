@@ -94,6 +94,16 @@ function parseTeamDomain(raw: string): { issuer: string; jwksUrl: string } | nul
   if (url.search !== "" || url.hash !== "") return null;
   if (url.pathname !== "/" && url.pathname !== "") return null;
 
+  // Porta arbitrária recusada (FIBT-HML-3F). Não era SSRF — o issuer é
+  // remontado a partir de `url.hostname`, que já exclui a porta, então o
+  // fetch do JWKS nunca sairia da 443 da Cloudflare de qualquer forma. O
+  // problema é outro: aceitar `…:8443` e descartar a porta em silêncio
+  // deixa um operador convencido de que configurou uma coisa enquanto o
+  // sistema faz outra — exatamente o modo de falha que este projeto recusa
+  // ("um default que funciona é pior que um erro"). `new URL` normaliza a
+  // porta padrão, então `:443` explícito continua aceito (vira "").
+  if (url.port !== "") return null;
+
   const host = url.hostname.toLowerCase();
   if (!host.endsWith(CLOUDFLARE_ACCESS_HOST_SUFFIX)) return null;
   if (host.length <= CLOUDFLARE_ACCESS_HOST_SUFFIX.length) return null;
