@@ -1,0 +1,52 @@
+// Configuração explícita do Worker de homologação sintética FIB-T (ISG),
+// separada do wrangler.json que o preset nitro "cloudflare-module" gera
+// automaticamente dentro de .output/server/ a cada build.
+//
+// Por que este arquivo existe: o auto-gerado usa um nome derivado do
+// diretório do worktree/pasta local (ex.: "tanstack-start-ts-<pasta>"), o
+// que muda a cada worktree e nunca é "vitalos-fibt-hml-isg". Este arquivo
+// fixa a identidade do Worker; os caminhos de main/assets abaixo apontam
+// para o artefato de build (.output/), relativos à raiz do repositório
+// (onde este arquivo vive), não relativos a .output/server/ como no gerado.
+//
+// Uso pretendido (NÃO executado por esta preparação):
+//   bunx wrangler deploy --config wrangler.hml.jsonc
+//
+// Este arquivo NUNCA deve conter: SUPABASE_URL, chaves, project ref (staging
+// ou produção), account_id ou zone_id reais. Todas essas variáveis são
+// configuradas no ambiente do Worker (Cloudflare dashboard/CLI secrets),
+// nunca aqui — ver docs/fibt-hml/CLOUDFLARE_HML_DEPLOYMENT.md.
+{
+  "name": "vitalos-fibt-hml-isg",
+
+  // Pinado explicitamente (não deixado para o nitro auto-derivar por build) —
+  // mudar esta data é uma decisão deliberada, não um efeito colateral do build.
+  "compatibility_date": "2026-08-01",
+
+  // Necessário: process.env.* é lido em tempo de execução por
+  // hml-backend-boundary.server.ts, client.server.ts e identity-boundary
+  // .server.ts (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FIBT_HML_*,
+  // VITALOS_PRODUCTION_PROJECT_REF) — sem nodejs_compat, o runtime Workers
+  // não expõe process.env do jeito que este código espera. O próprio preset
+  // nitro já inclui esta flag automaticamente no wrangler.json auto-gerado
+  // (confirmado por build local sintético) — declarada aqui explicitamente
+  // pelo mesmo motivo técnico, não por precaução vaga.
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Subdomínio workers.dev, nunca um domínio próprio nesta fase — a
+  // autorização proíbe registrar rota para vitalos.com.br ou qualquer
+  // domínio produtivo, e nenhuma rota é declarada abaixo.
+  "workers_dev": true,
+
+  // Caminhos relativos à raiz do repo (onde este arquivo vive) — apontam
+  // para o artefato já produzido por `bun run build:hml:staging`.
+  "main": ".output/server/index.mjs",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".output/public"
+  },
+
+  // O artefato do nitro já vem totalmente empacotado — instrui o Wrangler a
+  // não tentar rebundlar (mesmo valor do wrangler.json auto-gerado).
+  "no_bundle": true,
+}
