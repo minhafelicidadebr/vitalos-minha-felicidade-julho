@@ -38,6 +38,8 @@
 // gerado, então nunca casa nesse lookup e cai (corretamente) neste boundary,
 // que o rejeita por não estar na allowlist de página/API/server-fn.
 
+import { accessDeniedResponse } from "./cloudflare-access-jwt.server";
+
 export interface HmlDeploymentEnvLike {
   FIBT_HML_DEPLOYMENT_ENABLED?: string;
 }
@@ -206,19 +208,59 @@ export function hmlDeploymentBlockedResponse(): Response {
   return new Response("Not found.", { status: 404 });
 }
 
+/** Identidade autenticada pelo Access, transportada só no servidor. */
+export interface HmlAccessIdentityLike {
+  email: string;
+  subject: string;
+}
+
+export type HmlAccessVerification =
+  | { valid: true; identity: HmlAccessIdentityLike }
+  | { valid: false };
+
+export interface HmlNextOptions {
+  context?: { hmlAccessIdentity: HmlAccessIdentityLike };
+}
+
 /**
  * Composição testável do middleware inteiro — o mesmo corpo que
- * src/start.ts liga ao requestMiddleware global, mas com `next` injetado
- * como parâmetro em vez de vir da máquina de middleware do TanStack Start.
- * Existe para que os testes provem, com um espião real em `next`, que uma
- * requisição bloqueada NUNCA invoca o restante da cadeia (router, loader,
- * server function, client Supabase) — não apenas que a função de decisão
- * pura devolve `allowed: false`.
+ * src/start.ts liga ao requestMiddleware global, mas com `next` e o
+ * verificador de Access injetados como parâmetros em vez de virem da máquina
+ * de middleware do TanStack Start e do `jose`. Existe para que os testes
+ * provem, com espiões reais, que uma requisição bloqueada NUNCA invoca o
+ * restante da cadeia (router, loader, server function, client Supabase) — não
+ * apenas que a função de decisão pura devolve `allowed: false`.
+ *
+ * ORDEM (FIBT-HML-3E), deliberada:
+ *
+ *   1. HML não declarado  → next() direto, sem exigir JWT algum. Um
+ *      deployment de produção comum não ganha nenhum requisito novo.
+ *   2. Rota/método/server function fora da allowlist → 404 ANTES de qualquer
+ *      JWT ou JWKS. Requisição proibida não deve provocar I/O nenhum, nem
+ *      sequer um fetch de chaves públicas — isso seria um amplificador de
+ *      tráfego trivial de acionar por quem já está barrado.
+ *   3. Só então o Access JWT é verificado criptograficamente.
+ *   4. next() só roda com JWT válido.
+ *
+ * `verifyAccess` é OBRIGATÓRIO no tipo, não opcional: um chamador que
+ * esquecesse de passá-lo desligaria a autenticação inteira em silêncio.
+ * Fail-closed por construção de tipo, não por convenção.
  */
 export async function runHmlDeploymentBoundary<TNextResult>(
-  input: HmlDeploymentRequestInput & { next: () => TNextResult | Promise<TNextResult> },
+  input: HmlDeploymentRequestInput & {
+    next: (options?: HmlNextOptions) => TNextResult | Promise<TNextResult>;
+    verifyAccess: () => Promise<HmlAccessVerification>;
+  },
 ): Promise<TNextResult | Response> {
+  const declaration = classifyHmlDeploymentDeclaration(input.env.FIBT_HML_DEPLOYMENT_ENABLED);
+
+  if (declaration === "not_declared") return input.next();
+
   const decision = assertHmlDeploymentRequestAllowed(input);
   if (!decision.allowed) return hmlDeploymentBlockedResponse();
-  return input.next();
+
+  const access = await input.verifyAccess();
+  if (!access.valid) return accessDeniedResponse();
+
+  return input.next({ context: { hmlAccessIdentity: access.identity } });
 }

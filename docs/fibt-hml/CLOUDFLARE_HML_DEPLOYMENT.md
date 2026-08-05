@@ -13,6 +13,11 @@
 > favor de uma estratégia de secrets via arquivo privado; sequência de
 > deployment reordenada em três etapas (bootstrap selado → Access →
 > versão HML) para que o secret nunca exista numa versão sem proteção.
+>
+> Autenticação (FIBT-HML-3E): validação criptográfica do JWT do Cloudflare
+> Access dentro do próprio Worker — ver seção dedicada abaixo. Ainda inerte:
+> nenhum deployment, nenhuma variável configurada, Worker remoto segue
+> selado.
 
 ## Worker
 
@@ -42,6 +47,9 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 | `VITALOS_STAGING_PROJECT_REF` | Exigida pelo preflight quando `VITALOS_DB_TARGET=staging`; conferida contra o ref real extraído de `SUPABASE_URL`. |
 | `FORBIDDEN_PROJECT_REFS` | Opcional — lista extra de refs proibidos, mesma convenção de `forbiddenRefs()` (`staging-guard.ts`). |
 | `FIBT_HML_DEPLOYMENT_ENABLED` | **Nova (FIBT-HML-2D).** Gatilho dedicado, server-side, da contenção de rotas (`hml-deployment-boundary.server.ts`) — deliberadamente independente de `VITE_FIBT_HML_ENABLED` (que só liga o banner no cliente). Valor esperado: exatamente `true`. Ausente = comportamento normal; qualquer valor presente que não seja exatamente `true` (vazio, `"1"`, `" true"`, etc.) bloqueia TODAS as rotas — nunca cai de volta ao modo comum em silêncio. |
+| `CLOUDFLARE_ACCESS_TEAM_DOMAIN` | **Nova (FIBT-HML-3E).** Origem HTTPS do team domain do Access (`https://<time>.cloudflareaccess.com`). Usada como **issuer exato** do JWT e para derivar o JWKS em `<TEAM_DOMAIN>/cdn-cgi/access/certs`. Recusada se não for HTTPS, tiver path/query/fragment/credenciais/**porta explícita** (FIBT-HML-3F), ou se o hostname não terminar exatamente em `.cloudflareaccess.com`. A URL do JWKS só é derivada **depois** dessa validação. |
+| `CLOUDFLARE_ACCESS_AUD` | **Nova (FIBT-HML-3E).** Tag de audiência da aplicação Access. Comparada por igualdade exata com a claim `aud` — é o que impede que um token válido de OUTRA aplicação Access da mesma conta seja aceito aqui. Nunca aparece em resposta nem em log. |
+| `CLOUDFLARE_ACCESS_ALLOWED_EMAILS` | **Nova (FIBT-HML-3E).** Lista separada por vírgulas de e-mails **explicitamente autorizados**. Normalizada com trim e comparação case-insensitive. Recusa wildcard (`*@x`), domínio amplo (`@x.com`, `x.com`) e lista vazia — a allowlist nomeia pessoas, nunca uma organização inteira. Na primeira implantação conterá apenas o proprietário autorizado. |
 
 ### Variáveis públicas de build (`VITE_*` — embutidas no bundle do navegador, precisam existir **antes** do build)
 
@@ -178,6 +186,72 @@ justifica Cloudflare Access como obrigatório (seção seguinte) não é mais
 requisições não autenticadas alcançarem o Worker DE FORMA NENHUMA,
 enquanto o boundary de aplicação é a segunda camada (defesa em
 profundidade), não a única.
+
+## Validação criptográfica do JWT do Cloudflare Access (FIBT-HML-3E)
+
+**O Access na borda NÃO substitui a validação do JWT dentro do Worker.**
+A borda protege o hostname público; o Worker continua alcançável por
+qualquer caminho que contorne essa borda (erro de configuração da política,
+service token esquecido, requisição chegando por outra rota da conta).
+"Protegido" sem verificação no código é uma afirmação sobre o painel, não
+sobre o que roda. O contrato do Access é: ele **injeta** um JWT assinado, e
+o destino **verifica** essa assinatura.
+
+Implementado em `src/lib/fibt-hml/cloudflare-access-jwt.server.ts`
+(server-only, usa `jose` — `createRemoteJWKSet` + `jwtVerify`):
+
+- **Cabeçalho aceito: `Cf-Access-Jwt-Assertion`, exclusivamente.** O cookie
+  `CF_Authorization` **não** é aceito nem como fallback (o navegador o envia
+  em condições cross-site que o header dedicado nunca satisfaz —
+  aceitá-lo reintroduziria uma superfície tipo CSRF). Token em query string
+  também não é aceito.
+- **O JWT de metadados do redirect anônimo** (`?meta=…`, com
+  `auth_status: "NONE"`) **nunca autentica ninguém** — é público por
+  construção e é recusado.
+- **Obrigatórios e verificados**: assinatura (algoritmo **exclusivamente
+  `RS256`** — bloqueia `alg: none` e HS256), **issuer exato** (o team
+  domain), **audience exata** (o AUD da aplicação), expiração, `nbf` quando
+  presente, `sub` não vazio, `email` presente, e `email` pertencente à
+  allowlist exata.
+- **Nada é decodificado-e-confiado**: o payload só é lido depois que
+  `jwtVerify` confirma tudo acima.
+- **Ordem dos controles**: (1) boundary de rota/método/server function →
+  (2) JWT do Access → (3) `next()`. Uma rota fora da allowlist é recusada
+  **antes** de qualquer JWT ou fetch de JWKS — requisição já barrada não
+  deve provocar I/O nenhum.
+- **Cache do JWKS**: guarda-se o *resolvedor* do `jose` (que mantém cooldown
+  e refaz o fetch quando um `kid` novo aparece), chaveado pelo team domain
+  já validado — nunca uma chave individual congelada, o que quebraria a
+  rotação de chaves da Cloudflare. Nenhum JWT, e-mail ou payload entra em
+  cache.
+- **Falha sempre devolve `403` com body genérico `ACCESS_DENIED`**,
+  `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, sem CORS.
+  Nunca são devolvidos token, payload, e-mail, issuer, AUD, URL do JWKS,
+  mensagem do `jose`, stack ou nome de arquivo.
+- **Falha de JWKS é fail-closed**: rede fora, timeout, 5xx ou conjunto de
+  chaves vazio recusam a requisição — nunca a liberam. O erro de rede
+  (que pode conter host/IP interno) nunca chega à resposta.
+- **Validação do team domain vem antes de qualquer fetch**: HTTPS, origem
+  única, sem path/query/fragment/credenciais/porta, hostname terminando
+  exatamente em `.cloudflareaccess.com`. Formas hostis testadas e
+  recusadas: `cloudflareaccess.com.attacker.invalid`, userinfo
+  (`…@attacker.invalid`), sufixo no path/fragment, FQDN com ponto final,
+  homógrafo Unicode dentro de "access", punycode parecido, porta
+  arbitrária, `file://` e o endpoint de metadados `169.254.169.254`.
+
+**Nenhum valor real de team domain, AUD ou e-mail pode ser versionado** —
+todos são variáveis de runtime do Worker (tabela acima). **O JWT nunca pode
+ser logado.**
+
+**O e-mail do Access não pode ser persistido junto com a resposta FIB-T.**
+O Access autentica quem está *testando a homologação*; ele não é o
+participante registrado na resposta. A coleta organizacional continua
+anônima e desvinculada dessa identidade — a identidade só trafega em
+contexto server-side (`hmlAccessIdentity`), nunca é serializada para o
+navegador nem vinculada a uma submissão.
+
+**O Worker selado (403 `SEALED`) permanece ativo** até haver autorização
+explícita para o deployment funcional — esta rodada não alterou nada remoto.
 
 ## Estratégia segura de secrets (FIBT-HML-3A)
 

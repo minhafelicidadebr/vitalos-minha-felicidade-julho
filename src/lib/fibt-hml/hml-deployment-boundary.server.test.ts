@@ -21,6 +21,12 @@ const SUBMIT_SURVEY: HmlServerFnMetaLike = {
   name: "submitSurveyResponses",
 };
 
+/** Verificador de Access sempre-válido — os testes de JWT em si vivem em cloudflare-access-jwt.server.test.ts. */
+const ACCESS_OK = async () => ({
+  valid: true as const,
+  identity: { email: "tester@synthetic.invalid", subject: "synthetic-subject-1" },
+});
+
 describe("1. HML não declarado → modo normal preservado", () => {
   test("qualquer rota passa quando FIBT_HML_DEPLOYMENT_ENABLED está ausente", () => {
     for (const path of ["/admin", "/rh", "/", "/relatorios", "/convite/abc", "/_serverFn/whatever"]) {
@@ -298,6 +304,7 @@ describe("22/23/24/25. o middleware composto nunca chama next() quando bloqueado
         nextCalled = true;
         return new Response("nunca deveria chegar aqui");
       },
+      verifyAccess: ACCESS_OK,
     });
     expect(nextCalled).toBe(false);
     expect(response).toBeInstanceOf(Response);
@@ -314,6 +321,7 @@ describe("22/23/24/25. o middleware composto nunca chama next() quando bloqueado
         nextCalled = true;
         return "resultado-original" as const;
       },
+      verifyAccess: ACCESS_OK,
     });
     expect(nextCalled).toBe(true);
     expect(response).toBe("resultado-original");
@@ -329,6 +337,7 @@ describe("22/23/24/25. o middleware composto nunca chama next() quando bloqueado
         nextCalled = true;
         return "handler-real" as const;
       },
+      verifyAccess: ACCESS_OK,
     });
     expect(nextCalled).toBe(true);
     expect(response).toBe("handler-real");
@@ -394,5 +403,202 @@ describe("FIBT-HML-2E-LITE — Risco 2: token Base64 com slash codificado, prese
       expect(r).toEqual({ allowed: true });
       expect(extractConviteTokenForTesting(url)).toBe(token);
     }
+  });
+});
+
+describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()", () => {
+  const ACCESS_FAIL = async () => ({ valid: false as const });
+
+  const ALLOWED_SERVER_FNS: readonly HmlServerFnMetaLike[] = [
+    { filename: "src/lib/api/invite-resolve.functions.ts", name: "checkInviteToken" },
+    { filename: "src/lib/api/survey.functions.ts", name: "submitSurveyResponses" },
+    { filename: "src/lib/api/capsule-aggregator.functions.ts", name: "checkAndAggregateByToken" },
+    { filename: "src/lib/api/survey-telemetry.functions.ts", name: "recordSurveyFunnelSnapshot" },
+    { filename: "src/lib/api/survey-telemetry.functions.ts", name: "loadSurveyFunnelResult" },
+  ];
+
+  test("1. HML ausente → next() sem NENHUMA verificação de JWT (verificador nunca é chamado)", async () => {
+    let verifierCalled = false;
+    let nextCalled = false;
+    const r = await runHmlDeploymentBoundary({
+      pathname: "/rh",
+      method: "GET",
+      env: HML_OFF,
+      next: async () => {
+        nextCalled = true;
+        return "producao-normal" as const;
+      },
+      verifyAccess: async () => {
+        verifierCalled = true;
+        return { valid: true as const, identity: { email: "x@y.invalid", subject: "s" } };
+      },
+    });
+    expect(verifierCalled).toBe(false);
+    expect(nextCalled).toBe(true);
+    expect(r).toBe("producao-normal");
+  });
+
+  test("2. configuração HML parcial → 404 antes de qualquer JWT", async () => {
+    let verifierCalled = false;
+    const r = await runHmlDeploymentBoundary({
+      pathname: "/convite/tok-1",
+      method: "GET",
+      env: { FIBT_HML_DEPLOYMENT_ENABLED: "1" },
+      next: async () => "nunca" as const,
+      verifyAccess: async () => {
+        verifierCalled = true;
+        return { valid: true as const, identity: { email: "x@y.invalid", subject: "s" } };
+      },
+    });
+    expect(verifierCalled).toBe(false);
+    expect((r as Response).status).toBe(404);
+  });
+
+  test("3/20. rota bloqueada → o verificador/JWKS NUNCA é acionado (sem I/O para quem já está barrado)", async () => {
+    for (const path of ["/admin", "/rh", "/relatorios", "/"]) {
+      let verifierCalled = false;
+      const r = await runHmlDeploymentBoundary({
+        pathname: path,
+        method: "GET",
+        env: HML_ON,
+        next: async () => "nunca" as const,
+        verifyAccess: async () => {
+          verifierCalled = true;
+          return { valid: true as const, identity: { email: "x@y.invalid", subject: "s" } };
+        },
+      });
+      expect(verifierCalled).toBe(false);
+      expect((r as Response).status).toBe(404);
+    }
+  });
+
+  test("4/21/22/23. rota permitida + JWT inválido → 403 ACCESS_DENIED e next() nunca roda", async () => {
+    let nextCalled = false;
+    const r = await runHmlDeploymentBoundary({
+      pathname: "/convite/tok-1",
+      method: "GET",
+      env: HML_ON,
+      next: async () => {
+        nextCalled = true;
+        return "router-loader-supabase" as const;
+      },
+      verifyAccess: ACCESS_FAIL,
+    });
+    expect(nextCalled).toBe(false);
+    const res = r as Response;
+    expect(res.status).toBe(403);
+    expect(await res.text()).toBe("ACCESS_DENIED");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+
+  test("17. JWT válido → next() executado exatamente uma vez, com a identidade no contexto server-side", async () => {
+    let calls = 0;
+    let seenContext: unknown = null;
+    const r = await runHmlDeploymentBoundary({
+      pathname: "/convite/tok-1",
+      method: "GET",
+      env: HML_ON,
+      next: async (options) => {
+        calls += 1;
+        seenContext = options?.context;
+        return "handler-real" as const;
+      },
+      verifyAccess: ACCESS_OK,
+    });
+    expect(calls).toBe(1);
+    expect(r).toBe("handler-real");
+    expect(seenContext).toEqual({
+      hmlAccessIdentity: { email: "tester@synthetic.invalid", subject: "synthetic-subject-1" },
+    });
+  });
+
+  test("24. endpoint de atestação exige JWT válido", async () => {
+    const blocked = await runHmlDeploymentBoundary({
+      pathname: "/api/fibt-hml/attestation",
+      method: "GET",
+      env: HML_ON,
+      next: async () => "nunca" as const,
+      verifyAccess: ACCESS_FAIL,
+    });
+    expect((blocked as Response).status).toBe(403);
+
+    const allowed = await runHmlDeploymentBoundary({
+      pathname: "/api/fibt-hml/attestation",
+      method: "GET",
+      env: HML_ON,
+      next: async () => "attestation" as const,
+      verifyAccess: ACCESS_OK,
+    });
+    expect(allowed).toBe("attestation");
+  });
+
+  test("25. rota de convite exige JWT válido", async () => {
+    const blocked = await runHmlDeploymentBoundary({
+      pathname: "/convite/tok-1",
+      method: "GET",
+      env: HML_ON,
+      next: async () => "nunca" as const,
+      verifyAccess: ACCESS_FAIL,
+    });
+    expect((blocked as Response).status).toBe(403);
+  });
+
+  test("26. as 5 server functions HML exigem JWT ANTES do dispatch", async () => {
+    for (const meta of ALLOWED_SERVER_FNS) {
+      let nextCalled = false;
+      const blocked = await runHmlDeploymentBoundary({
+        pathname: "/_serverFn/qualquer-hash",
+        method: "POST",
+        serverFnMeta: meta,
+        env: HML_ON,
+        next: async () => {
+          nextCalled = true;
+          return "dispatch" as const;
+        },
+        verifyAccess: ACCESS_FAIL,
+      });
+      expect(nextCalled).toBe(false);
+      expect((blocked as Response).status).toBe(403);
+
+      const allowed = await runHmlDeploymentBoundary({
+        pathname: "/_serverFn/qualquer-hash",
+        method: "POST",
+        serverFnMeta: meta,
+        env: HML_ON,
+        next: async () => "dispatch" as const,
+        verifyAccess: ACCESS_OK,
+      });
+      expect(allowed).toBe("dispatch");
+    }
+  });
+
+  test("27. modo normal segue sem regressão em todas as rotas do app", async () => {
+    for (const path of ["/", "/rh", "/admin", "/convite/x", "/_serverFn/h", "/api/fibt-hml/attestation"]) {
+      const r = await runHmlDeploymentBoundary({
+        pathname: path,
+        method: "GET",
+        env: HML_OFF,
+        next: async () => "normal" as const,
+        verifyAccess: ACCESS_FAIL, // mesmo com Access falhando, modo normal não exige JWT
+      });
+      expect(r).toBe("normal");
+    }
+  });
+
+  test("18/19. a resposta de negação nunca reflete token, erro do jose ou detalhe de configuração", async () => {
+    const r = await runHmlDeploymentBoundary({
+      pathname: "/convite/tok-1",
+      method: "GET",
+      env: HML_ON,
+      next: async () => "nunca" as const,
+      verifyAccess: ACCESS_FAIL,
+    });
+    const body = await (r as Response).text();
+    expect(body).toBe("ACCESS_DENIED");
+    expect(body.toLowerCase()).not.toContain("jwt");
+    expect(body.toLowerCase()).not.toContain("jose");
+    expect(body.toLowerCase()).not.toContain("cloudflareaccess");
   });
 });
