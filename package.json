@@ -23,7 +23,7 @@
     "staging:org-invite-proof": "bun run scripts/staging-org-invite-identity-proof.ts",
     "staging:fibt1-proof": "bun run scripts/fibt1-staging-proof.ts",
     "staging:fibt1-preflight": "bun run scripts/fibt1-final-preflight.ts",
-    "gate": "bun test src && bun run parity && bunx tsc --noEmit && bun run secret-scan"
+    "gate": "bun test src scripts && bun run parity && bunx tsc --noEmit && bun run secret-scan"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
