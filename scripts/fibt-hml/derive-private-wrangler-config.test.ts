@@ -23,9 +23,10 @@ const CANONICAL_PATH = join(process.cwd(), "wrangler.hml.jsonc");
 const canonical = JSON.parse(stripJsonComments(readFileSync(CANONICAL_PATH, "utf8")));
 
 /**
- * Converte um glob simples (só `**` e `*`) em RegExp — suficiente para os
- * globs do nitro. `**​/` casa zero ou mais diretórios, então `**​/*.mjs`
- * precisa casar tanto `index.mjs` (raiz) quanto `_ssr/a/b.mjs`.
+ * Converte um glob simples (só "**" e "*") em RegExp — suficiente para os
+ * globs do nitro. O padrão "**" seguido de barra casa zero ou mais
+ * diretórios, então "index.mjs" (na raiz) e "_ssr/a/b.mjs" (aninhado)
+ * precisam casar ambos.
  */
 function globToRegExp(glob: string): RegExp {
   // O token vira o grupo de diretórios por ÚLTIMO, de propósito: esse grupo
@@ -174,7 +175,13 @@ describe("FIBT-HML-4D — sanidade do artefato quando presente", () => {
       for (const entry of readdirSync(dir)) {
         const full = join(dir, entry);
         if (statSync(full).isDirectory()) walk(full, base, out);
-        else out.push(full.slice(base.length + 1).split("\\").join("/"));
+        else
+          out.push(
+            full
+              .slice(base.length + 1)
+              .split("\\")
+              .join("/"),
+          );
       }
       return out;
     };
@@ -199,7 +206,13 @@ describe("FIBT-HML-4D — sanidade do artefato quando presente", () => {
       for (const entry of readdirSync(dir)) {
         const full = join(dir, entry);
         if (statSync(full).isDirectory()) walk(full, base, out);
-        else out.push(full.slice(base.length + 1).split("\\").join("/"));
+        else
+          out.push(
+            full
+              .slice(base.length + 1)
+              .split("\\")
+              .join("/"),
+          );
       }
       return out;
     };
