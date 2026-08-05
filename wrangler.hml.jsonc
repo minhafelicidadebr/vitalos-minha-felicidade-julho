@@ -74,4 +74,34 @@
   // O artefato do nitro já vem totalmente empacotado — instrui o Wrangler a
   // não tentar rebundlar (mesmo valor do wrangler.json auto-gerado).
   "no_bundle": true,
+
+  // FIBT-HML-4D — OBRIGATÓRIO com no_bundle. Copiado literalmente do
+  // wrangler.json que o nitro gera em .output/server/ a cada build (1 regra,
+  // type "ESModule", estes dois globs, sem fallthrough).
+  //
+  // Por que existe: `no_bundle` e `rules` resolvem problemas DIFERENTES, e
+  // confundi-los custou uma tentativa de deploy inteira.
+  //   - `no_bundle` decide se o Wrangler reprocessa/empacota o entrypoint;
+  //   - `rules` decide como os DEMAIS arquivos do diretório são CLASSIFICADOS
+  //     (aqui: como módulos ES) para virarem módulos disponíveis ao runtime.
+  // Desligar o bundling não dispensa a classificação — pelo contrário: com
+  // no_bundle, ela é a única coisa que registra os ~375 arquivos .mjs
+  // adicionais como módulos carregáveis.
+  //
+  // Sem este bloco, o upload sobe os arquivos fisicamente e os imports são
+  // corretos, mas o workerd recusa em runtime com `No such module "..."`.
+  // Reproduzido localmente com `wrangler dev --local` (sem rede) e corrigido
+  // por adicionar EXCLUSIVAMENTE este bloco — nenhuma renomeação de chunk foi
+  // necessária, inclusive nos nomes que contêm "+" (a hipótese inicial de que
+  // o "+" era a causa foi testada e refutada).
+  //
+  // find_additional_modules e base_dir NÃO são declarados aqui de propósito:
+  // o nitro também não os declara, e o comportamento padrão do Wrangler já
+  // encontra os módulos corretamente (confirmado: 374 módulos carregados).
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.mjs", "**/*.js"],
+    },
+  ],
 }

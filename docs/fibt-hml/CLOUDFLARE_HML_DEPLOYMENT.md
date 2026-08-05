@@ -101,10 +101,54 @@ Comparação mecânica (FIBT-HML-2C), a partir de um build sintético local
 | `placement` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — "Smart Placement" é opcional, sem relação com segurança/roteamento. |
 | `migrations` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — refere-se a migrações de Durable Objects (conceito do Workers), não a migrations de banco; o app não usa Durable Objects. |
 | bindings adicionais (KV/D1/R2/DO) | nenhum | nenhum | AUSENTE_COM_JUSTIFICATIVA — nenhuma variável server-side é declarada como binding em texto plano neste arquivo; todas são configuradas via secret/env do Worker, nunca versionadas aqui. |
-| `rules` (glob ESModule) | `[{"type":"ESModule","globs":["**/*.mjs","**/*.js"]}]` | ausente | AUSENTE_COM_JUSTIFICATIVA (observado em FIBT-HML-3A, reconfirmado por build sintético) — `rules` só afeta o bundling que o próprio Wrangler faria; com `no_bundle: true` (presente e IGUAL nos dois arquivos), o Wrangler não bundla o artefato, então este campo é inerte. Nenhuma divergência de segurança ou de comportamento de deploy. |
+| `rules` (glob ESModule) | `[{"type":"ESModule","globs":["**/*.mjs","**/*.js"]}]` | **IGUAL** (copiado literalmente — FIBT-HML-4D) | IGUAL. **Correção de uma classificação anterior errada** — ver a seção seguinte. |
 
 **Nenhum campo técnico do Nitro foi removido sem justificativa** — `no_bundle`,
-`compatibility_flags` e `assets.binding` são preservados exatamente.
+`compatibility_flags`, `assets.binding` e `rules` são preservados exatamente.
+
+### `no_bundle` × `rules` — responsabilidades distintas (FIBT-HML-4D)
+
+Até FIBT-HML-3A, `rules` estava classificado aqui como
+`AUSENTE_COM_JUSTIFICATIVA`, sob o raciocínio de que "`rules` só afeta o
+bundling que o Wrangler faria, e `no_bundle: true` desliga o bundling, logo
+o campo é inerte". **Esse raciocínio estava errado** e custou uma tentativa
+de deploy inteira (FIBT-HML-4B-R2, `versions upload` exit 1).
+
+Os dois campos resolvem problemas diferentes:
+
+- **`no_bundle`** decide se o Wrangler reprocessa/empacota o entrypoint;
+- **`rules`** decide como os **demais** arquivos do diretório são
+  **classificados** — aqui, como módulos ES — para se tornarem módulos
+  carregáveis pelo runtime.
+
+Desligar o bundling não dispensa a classificação. Pelo contrário: com
+`no_bundle: true`, `rules` é a única coisa que registra os ~375 arquivos
+`.mjs` adicionais do artefato como módulos disponíveis.
+
+**Sintoma da ausência:** o upload sobe, os imports estão corretos, o
+multipart preserva os nomes — e o Worker falha em runtime com
+`Uncaught Error: No such module "…"`. A mensagem aponta o primeiro módulo
+importado, o que faz parecer um problema daquele arquivo específico.
+
+**Evidência mecânica** (FIBT-HML-4C/4D, tudo local, sem rede):
+
+- reproduzido com `wrangler dev --local` (workerd real) — não era um
+  problema da API da Cloudflare;
+- a hipótese inicial de que o caractere `+` no nome de um chunk
+  (`_libs/h3+rou3+srvx.mjs`) era a causa foi **testada e refutada**:
+  renomear para um nome ASCII simples manteve o erro idêntico;
+- adicionar **apenas** o bloco `rules`, sem renomear nada, fez o Worker
+  inicializar com os 374 módulos e os três boundaries respondendo
+  fail-closed;
+- o `Total Upload` do dry-run passou de **74 KiB** (praticamente só o
+  entrypoint) para **~8.8 MiB** (o artefato inteiro) — confirmando que,
+  sem `rules`, os módulos adicionais simplesmente não iam no payload.
+
+A regressão está travada por testes em
+`scripts/fibt-hml/derive-private-wrangler-config.test.ts`
+(`NITRO_WRANGLER_DEPLOYMENT_CONTRACT`), que falham se `no_bundle: true`
+aparecer sem `rules`, se os globs deixarem de cobrir os módulos emitidos, ou
+se o config do Nitro passar a trazer um campo crítico novo sem classificação.
 
 ### Confirmações específicas (Fase 2)
 
