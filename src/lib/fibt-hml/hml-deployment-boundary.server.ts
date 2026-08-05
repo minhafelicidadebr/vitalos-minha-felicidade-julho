@@ -84,38 +84,76 @@ export function classifyHmlDeploymentDeclaration(raw: string | undefined): HmlDe
 }
 
 /**
- * Normaliza um pathname bruto e rejeita formas perigosas ou ambíguas:
- * segmentos "..", barra invertida, URL absoluta embutida, codificação dupla
- * (sobra "%XX" depois de UMA decodificação — inclusive quando o valor
- * decodificado introduz uma barra "/" que tentaria escapar de um segmento).
- * Retorna null quando a forma é rejeitada — chamador trata como bloqueado.
+ * Decodifica UM segmento de path e rejeita formas perigosas ou ambíguas
+ * NESSE segmento: barra invertida (crua ou codificada — aparece após a
+ * decodificação), segmento igual a "." ou ".." (cru ou codificado — mesma
+ * checagem, feita DEPOIS de decodificar), e codificação dupla (sobra um
+ * "%XX" depois de UMA decodificação deste segmento). Retorna null quando a
+ * forma é rejeitada.
  */
-function normalizePathname(raw: string): string | null {
-  if (raw.includes("\\")) return null;
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) return null; // URL absoluta no pathname
-
+function decodeSegment(rawSegment: string): string | null {
   let decoded: string;
   try {
-    decoded = decodeURIComponent(raw);
+    decoded = decodeURIComponent(rawSegment);
   } catch {
     return null;
   }
-
-  // Sobrou um "%XX" depois de UMA decodificação e o valor mudou => o
-  // pathname já chegou codificado; uma segunda decodificação implícita em
-  // qualquer parser posterior revelaria outro caminho — tratamos como
-  // codificação dupla e recusamos.
-  if (decoded !== raw && /%[0-9a-f]{2}/i.test(decoded)) return null;
+  if (decoded !== rawSegment && /%[0-9a-f]{2}/i.test(decoded)) return null;
   if (decoded.includes("\\")) return null;
-  if (decoded.includes("..")) return null;
-
-  const collapsed = decoded.replace(/\/{2,}/g, "/");
-  return collapsed;
+  if (decoded === "." || decoded === "..") return null;
+  return decoded;
 }
 
-function isExactConviteRoute(pathname: string): boolean {
-  const segments = pathname.split("/").filter(Boolean);
+/**
+ * Divide o pathname em segmentos pela BARRA LITERAL do pathname BRUTO,
+ * decodificando cada segmento DEPOIS de dividir — a mesma ordem que o
+ * próprio TanStack Router usa internamente (confirmado por leitura de
+ * new-process-route-tree.js: `parts = path.split('/')` primeiro,
+ * `decodeURIComponent(part)` depois, por segmento).
+ *
+ * FIBT-HML-2E (Risco 2, P1 corrigido): a versão anterior decodificava o
+ * pathname INTEIRO antes de dividir por "/" — um token Base64 legítimo
+ * contendo "/" (ex.: "abc+/def==", codificado como
+ * "/convite/abc%2B%2Fdef%3D%3D") tinha sua barra decodificada ANTES da
+ * divisão, virando um separador de rota falso e quebrando o token em dois
+ * "segmentos" — o convite era rejeitado por engano. Dividir primeiro (na
+ * barra crua, nunca presente dentro de um %2F) e decodificar depois,
+ * por segmento, resolve isso: "%2F" nunca vira separador, só um caractere
+ * "/" dentro do VALOR de um segmento — exatamente como o próprio router
+ * trata. Retorna null quando qualquer segmento é rejeitado ou o pathname
+ * não começa com "/".
+ */
+function splitAndDecodePathname(raw: string): string[] | null {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) return null; // URL absoluta embutida no pathname
+
+  const rawSegments = raw.split("/");
+  if (rawSegments[0] !== "") return null; // pathname sempre começa com "/"
+
+  const segments: string[] = [];
+  for (const rawSegment of rawSegments.slice(1)) {
+    if (rawSegment === "") continue; // colapsa barras múltiplas/barra final
+    const decoded = decodeSegment(rawSegment);
+    if (decoded === null) return null;
+    segments.push(decoded);
+  }
+  return segments;
+}
+
+function isExactConviteRoute(segments: readonly string[]): boolean {
   return segments.length === 2 && segments[0] === "convite" && segments[1]!.length > 0;
+}
+
+/**
+ * Extrai o valor decodificado do parâmetro $token de um pathname
+ * /convite/:token já confirmado pela allowlist — usa a MESMA decodificação
+ * por segmento do resto deste módulo. Existe para que testes confirmem que
+ * o token entregue ao app é idêntico ao valor bruto original (Risco 2,
+ * FIBT-HML-2E) — não é usada pela decisão de allow/block em si.
+ */
+export function extractConviteTokenForTesting(pathname: string): string | null {
+  const segments = splitAndDecodePathname(pathname);
+  if (segments === null || !isExactConviteRoute(segments)) return null;
+  return segments[1]!;
 }
 
 function serverFnMetaAllowed(meta: HmlServerFnMetaLike | undefined): boolean {
@@ -140,12 +178,12 @@ export function assertHmlDeploymentRequestAllowed(input: HmlDeploymentRequestInp
 
   // declared_valid a partir daqui — aplica a allowlist completa, fail-closed.
   const method = input.method.toUpperCase();
-  const normalized = normalizePathname(input.pathname);
-  if (normalized === null) {
+  const segments = splitAndDecodePathname(input.pathname);
+  if (segments === null) {
     return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
   }
 
-  if (normalized.startsWith("/_serverFn/")) {
+  if (segments[0] === "_serverFn") {
     return serverFnMetaAllowed(input.serverFnMeta)
       ? { allowed: true }
       : { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
@@ -155,8 +193,10 @@ export function assertHmlDeploymentRequestAllowed(input: HmlDeploymentRequestInp
     return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
   }
 
-  if (normalized === "/api/fibt-hml/attestation") return { allowed: true };
-  if (isExactConviteRoute(normalized)) return { allowed: true };
+  if (segments.length === 3 && segments[0] === "api" && segments[1] === "fibt-hml" && segments[2] === "attestation") {
+    return { allowed: true };
+  }
+  if (isExactConviteRoute(segments)) return { allowed: true };
 
   return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
 }

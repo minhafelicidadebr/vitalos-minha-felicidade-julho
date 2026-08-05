@@ -4,6 +4,7 @@ import {
   runHmlDeploymentBoundary,
   classifyHmlDeploymentDeclaration,
   hmlDeploymentBlockedResponse,
+  extractConviteTokenForTesting,
   type HmlDeploymentEnvLike,
   type HmlServerFnMetaLike,
 } from "./hml-deployment-boundary.server";
@@ -123,14 +124,19 @@ describe("9/17/18. path traversal, codificação dupla e encoded slash bloqueado
     expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
-  test("18. encoded slash (%2F) usado para injetar segmento extra não contorna a allowlist", () => {
-    // decodifica para "/convite/x/admin" — 3 segmentos, não é a rota exata de convite.
+  test("18. encoded slash (%2F) dentro do TOKEN não escapa para outra rota — vira parte do valor de UM segmento, nunca um separador (FIBT-HML-2E: dividir antes de decodificar, nunca depois)", () => {
+    // "/convite/x%2Fadmin" tem barra crua só entre "convite" e "x%2Fadmin" —
+    // dividido ALI, o segundo segmento inteiro é "x%2Fadmin", que decodifica
+    // para o VALOR "x/admin" (uma string com uma barra dentro, não dois
+    // segmentos). Continua sendo /convite/:token com token="x/admin" — nunca
+    // alcança /admin de verdade (ver Risco 2 do FIBT-HML-2E-LITE).
     const r = assertHmlDeploymentRequestAllowed({
       pathname: "/convite/x%2Fadmin",
       method: "GET",
       env: HML_ON,
     });
-    expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+    expect(r).toEqual({ allowed: true });
+    expect(extractConviteTokenForTesting("/convite/x%2Fadmin")).toBe("x/admin");
   });
 
   test("barra invertida bloqueada", () => {
@@ -331,5 +337,62 @@ describe("22/23/24/25. o middleware composto nunca chama next() quando bloqueado
   test("resposta de bloqueio nunca revela pathname, motivo ou detalhes internos", () => {
     const response = hmlDeploymentBlockedResponse();
     expect(response.status).toBe(404);
+  });
+});
+
+describe("FIBT-HML-2E-LITE — Risco 2: token Base64 com slash codificado, preservado ponta a ponta", () => {
+  const RAW_TOKEN = "abc+/def==";
+  const TOKEN_URL = `/convite/${encodeURIComponent(RAW_TOKEN)}`;
+
+  test("a URL do token é exatamente /convite/abc%2B%2Fdef%3D%3D", () => {
+    expect(TOKEN_URL).toBe("/convite/abc%2B%2Fdef%3D%3D");
+  });
+
+  test("1. a rota é permitida", () => {
+    const r = assertHmlDeploymentRequestAllowed({ pathname: TOKEN_URL, method: "GET", env: HML_ON });
+    expect(r).toEqual({ allowed: true });
+  });
+
+  test("2. o pathname continua sendo reconhecido como exatamente UM parâmetro token (2 segmentos, não 3)", () => {
+    // Prova negativa: se a barra do token virasse separador, isso teria 3
+    // segmentos e a rota seria recusada pelo teste anterior — aqui
+    // confirmamos positivamente que o token extraído é um valor ÚNICO.
+    expect(extractConviteTokenForTesting(TOKEN_URL)).not.toBeNull();
+  });
+
+  test("3. o token final entregue a checkInviteToken é exatamente 'abc+/def=='", () => {
+    expect(extractConviteTokenForTesting(TOKEN_URL)).toBe(RAW_TOKEN);
+  });
+
+  test("4. /convite/abc%252Fadmin (codificação dupla) é bloqueado", () => {
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: "/convite/abc%252Fadmin",
+      method: "GET",
+      env: HML_ON,
+    });
+    expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+  });
+
+  test("5. /convite/../admin é bloqueado", () => {
+    const r = assertHmlDeploymentRequestAllowed({ pathname: "/convite/../admin", method: "GET", env: HML_ON });
+    expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+  });
+
+  test("6. /convite/%2Fadmin não permite escapar para outra rota — permanece /convite/:token com token='/admin', nunca alcança /admin de verdade", () => {
+    const r = assertHmlDeploymentRequestAllowed({ pathname: "/convite/%2Fadmin", method: "GET", env: HML_ON });
+    expect(r).toEqual({ allowed: true });
+    expect(extractConviteTokenForTesting("/convite/%2Fadmin")).toBe("/admin");
+    // Confirma que isso NUNCA é confundido com uma requisição a /admin em si:
+    const adminDirect = assertHmlDeploymentRequestAllowed({ pathname: "/admin", method: "GET", env: HML_ON });
+    expect(adminDirect).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+  });
+
+  test("regra 'todo %2F é proibido' NÃO foi adotada — múltiplos tokens com barra codificada continuam permitidos", () => {
+    for (const token of ["a/b", "a/b/c", "//", "abc+/def==", "x/"]) {
+      const url = `/convite/${encodeURIComponent(token)}`;
+      const r = assertHmlDeploymentRequestAllowed({ pathname: url, method: "GET", env: HML_ON });
+      expect(r).toEqual({ allowed: true });
+      expect(extractConviteTokenForTesting(url)).toBe(token);
+    }
   });
 });

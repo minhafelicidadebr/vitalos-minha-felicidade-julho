@@ -11,6 +11,10 @@
 
 import { buildSurveyTelemetry, type SurveyTelemetryResult } from "@/engine/survey/survey-telemetry-engine";
 import { getWaveSurvey } from "@/mocks/survey-mock";
+import {
+  assertHmlBackendBoundary,
+  type HmlBackendBoundaryEnv,
+} from "@/lib/fibt-hml/hml-backend-boundary.server";
 
 const RECENT_SESSIONS_LIMIT = 5000;
 
@@ -23,6 +27,15 @@ export async function loadSurveyFunnel(packId: string, instrument: string): Prom
   const survey = getWaveSurvey(packId, instrument);
   const itemIds = survey ? survey.items.map((i) => i.id) : [];
   if (itemIds.length === 0) return { ok: false, totalSessions: 0, kAnonymityMin: 5 };
+
+  // FIBT-HML-2E (P0): esta função toca banco (SELECT em item_funnel_events)
+  // e é uma das server functions permitidas pelo request boundary da
+  // instância HML (loadSurveyFunnelResult) — o request boundary só
+  // confirma QUAL função está sendo chamada, nunca se o backend é seguro.
+  const hmlBoundary = assertHmlBackendBoundary(process.env as HmlBackendBoundaryEnv);
+  if (hmlBoundary.hmlDeclared && !hmlBoundary.attested) {
+    return { ok: false, totalSessions: 0, kAnonymityMin: 5 };
+  }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
@@ -69,6 +82,14 @@ export interface RecordFunnelSnapshotResult {
 export async function recordFunnelSnapshot(
   input: RecordFunnelSnapshotInput,
 ): Promise<RecordFunnelSnapshotResult> {
+  // FIBT-HML-2E (P0): mesma checagem — esta função grava no banco (RPC
+  // record_item_funnel_event) e é permitida pelo request boundary da
+  // instância HML (recordSurveyFunnelSnapshot).
+  const hmlBoundary = assertHmlBackendBoundary(process.env as HmlBackendBoundaryEnv);
+  if (hmlBoundary.hmlDeclared && !hmlBoundary.attested) {
+    return { accepted: false, reason: "hml_backend_not_attested" };
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
   const { data, error } = await admin.rpc("record_item_funnel_event", {

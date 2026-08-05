@@ -11,6 +11,11 @@ import {
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import { dbInstrumentToSurveyKey } from "@/lib/survey/instrument-mapping";
 import { emitOpsEvent } from "@/lib/telemetry/ops-events.server";
+import {
+  assertHmlBackendBoundary,
+  type HmlBackendBoundaryEnv,
+} from "@/lib/fibt-hml/hml-backend-boundary.server";
+import { assertInviteWithinAuthorizedHmlBatch } from "@/lib/fibt-hml/hml-contract";
 
 const K_ANONYMITY_MIN = 5;
 // Desfechos Domínio B: não são dimensões de exposição; ficam em coluna separada.
@@ -36,6 +41,18 @@ export async function triggerCapsuleAggregation(
   instrument: string,
   authorizedOrgId?: string,
 ): Promise<AggregationTriggerResult> {
+  // FIBT-HML-2E (P0): esta função toca banco (lê wave_responses, grava
+  // wave_capsules) e é uma das server functions permitidas pelo request
+  // boundary da instância HML (checkAndAggregateByToken chama até aqui) —
+  // o request boundary só confirma QUAL função está sendo chamada, nunca
+  // se o backend é seguro. Sem esta checagem, uma instância HML declarada
+  // mas não atestada (ex.: apontando sem querer para produção) executaria
+  // esta agregação normalmente.
+  const hmlBoundary = assertHmlBackendBoundary(process.env as HmlBackendBoundaryEnv);
+  if (hmlBoundary.hmlDeclared && !hmlBoundary.attested) {
+    return { triggered: false, count: 0, reason: "hml_backend_not_attested" };
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
@@ -232,17 +249,48 @@ export async function triggerCapsuleAggregation(
 export async function triggerCapsuleAggregationByToken(
   token: string,
 ): Promise<AggregationTriggerResult> {
+  // FIBT-HML-2E (P0): mesma checagem de triggerCapsuleAggregation, mas
+  // ANTES da própria query de wave_invites desta função — o backend
+  // precisa estar atestado antes de qualquer I/O, não só antes do repasse
+  // para triggerCapsuleAggregation.
+  const hmlBoundary = assertHmlBackendBoundary(process.env as HmlBackendBoundaryEnv);
+  if (hmlBoundary.hmlDeclared && !hmlBoundary.attested) {
+    return { triggered: false, count: 0, reason: "hml_backend_not_attested" };
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
+  // Em modo HML atestado, a query já traz a cadeia
+  // invite→cohort→wave→organization para o vínculo de lote — mesmo padrão
+  // de invite-resolve.server.ts/response-capture.server.ts. Fora do modo
+  // HML, a query permanece exatamente a de sempre.
+  const selectColumns = hmlBoundary.hmlDeclared
+    ? "wave_id, expires_at, waves(instrument, org_id, label, organizations(slug)), wave_cohorts(key)"
+    : "wave_id, waves(instrument, org_id)";
+
   const { data: invite } = await admin
     .from("wave_invites")
-    .select("wave_id, waves(instrument, org_id)")
+    .select(selectColumns)
     .eq("token", token)
     .maybeSingle();
 
   if (!invite?.wave_id) {
     return { triggered: false, count: 0, reason: "invalid_token" };
+  }
+
+  if (hmlBoundary.hmlDeclared) {
+    const waveJoin = invite.waves as { organizations?: { slug?: string } | null; label?: string } | null;
+    const cohortJoin = invite.wave_cohorts as { key?: string } | null;
+    const binding = assertInviteWithinAuthorizedHmlBatch({
+      organizationSlug: waveJoin?.organizations?.slug,
+      waveLabel: waveJoin?.label,
+      cohortKey: cohortJoin?.key,
+      expiresAt: invite.expires_at as string | null,
+    });
+    if (!binding.ok) {
+      return { triggered: false, count: 0, reason: "invalid_token" };
+    }
   }
 
   const instrument: string = (invite.waves as { instrument?: string } | null)?.instrument ?? "COPSOQ";
