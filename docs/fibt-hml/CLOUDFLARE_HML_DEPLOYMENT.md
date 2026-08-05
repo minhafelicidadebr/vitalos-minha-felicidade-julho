@@ -64,6 +64,88 @@ bun run build:hml:staging
 Produz `.output/public/` (assets do navegador) e `.output/server/` (bundle
 SSR/Worker, `index.mjs`).
 
+## Paridade entre o wrangler.json gerado pelo Nitro e wrangler.hml.jsonc
+
+Comparação mecânica (FIBT-HML-2C), a partir de um build sintético local
+(`.invalid`, sem rede):
+
+| Campo | Nitro gera | `wrangler.hml.jsonc` | Classificação |
+| --- | --- | --- | --- |
+| `main` | `index.mjs` (relativo a `.output/server/`) | `.output/server/index.mjs` (relativo à raiz do repo) | ALTERADO_INTENCIONALMENTE — mesmo arquivo físico, caminho reescrito porque este config vive na raiz do repo, não em `.output/server/`. |
+| `name` | `tanstack-start-ts-<pasta-do-worktree>` (muda por worktree) | `vitalos-fibt-hml-isg` (fixo) | ALTERADO_INTENCIONALMENTE — permitido explicitamente; o auto-gerado nunca é o nome desejado. |
+| `compatibility_date` | Data do dia do build (ex.: `2026-08-02`) | `2026-08-01` (pinada) | ALTERADO_INTENCIONALMENTE — compatível (≥ 2025-04-01, ver seção seguinte); pinar é decisão deliberada de reprodutibilidade, não um efeito colateral. |
+| `compatibility_flags` | `["nodejs_compat"]` | `["nodejs_compat"]` | IGUAL |
+| `no_bundle` | `true` | `true` | IGUAL — confirmado necessário: o artefato do nitro já vem empacotado. |
+| `assets.directory` | `..\public` (relativo a `.output/server/`) | `.output/public` (relativo à raiz do repo) | ALTERADO_INTENCIONALMENTE — mesmo diretório físico, mesma razão do `main`. |
+| `assets.binding` | `ASSETS` | `ASSETS` | IGUAL |
+| `assets.run_worker_first` | ausente | `true` | ALTERADO_INTENCIONALMENTE — ver Fase 6 abaixo; não estritamente necessário hoje (nenhum HTML estático existe em `.output/public/`), ligado como defesa em profundidade. |
+| `assets.not_found_handling` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — não há HTML de fallback (SPA ou 404 customizado) no artefato; nada para configurar. |
+| `workers_dev` | ausente (Nitro não declara) | `true` | ALTERADO_INTENCIONALMENTE — permitido explicitamente; garante `*.workers.dev`, nunca domínio próprio nesta fase. |
+| `observability` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — recurso opcional (logs), não necessário para correção ou contenção; pode ser adicionado depois sem quebrar paridade. |
+| `placement` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — "Smart Placement" é opcional, sem relação com segurança/roteamento. |
+| `migrations` | ausente | ausente | AUSENTE_COM_JUSTIFICATIVA — refere-se a migrações de Durable Objects (conceito do Workers), não a migrations de banco; o app não usa Durable Objects. |
+| bindings adicionais (KV/D1/R2/DO) | nenhum | nenhum | AUSENTE_COM_JUSTIFICATIVA — nenhuma variável server-side é declarada como binding em texto plano neste arquivo; todas são configuradas via secret/env do Worker, nunca versionadas aqui. |
+
+**Nenhum campo técnico do Nitro foi removido sem justificativa** — `no_bundle`,
+`compatibility_flags` e `assets.binding` são preservados exatamente.
+
+### Confirmações específicas (Fase 2)
+
+1. `no_bundle` preservado — confirmado necessário (artefato já empacotado pelo nitro, reconfirmar com `no_bundle: false` quebraria o deploy tentando rebundlar um bundle já processado);
+2. `assets.directory` aponta para o diretório correto — `.output/public` a partir da raiz do repo resolve ao MESMO diretório físico que `..\public` resolve a partir de `.output/server/` (confirmado por inspeção de caminho, não suposição);
+3. `binding` exigido pelo entrypoint (`ASSETS`) está presente e idêntico nos dois arquivos;
+4. Nenhuma variável, URL ou secret está em `wrangler.hml.jsonc` — confirmado por leitura completa do arquivo;
+5. Deploy usando `--config wrangler.hml.jsonc` não deve provocar rebundle incompatível — `no_bundle: true` está preservado e os caminhos `main`/`assets.directory` resolvem corretamente relativos à localização real do arquivo (raiz do repo).
+
+## process.env no runtime Cloudflare (Fase 3)
+
+- `compatibility_flags` contém `nodejs_compat` — confirmado nos dois arquivos;
+- `compatibility_date` (`2026-08-01`) é posterior a `2025-04-01` — a margem é de mais de um ano, folgada;
+- `process.env` no Worker recebe as vars/secrets configuradas na conta Cloudflare do Worker (dashboard ou `wrangler secret put`/`wrangler.jsonc` `vars`) — o shim `nodejs_compat` é o que faz essa ponte;
+- confirmado por leitura do código-fonte: `hml-backend-boundary.server.ts` **nunca** lê `process.env` diretamente (recebe o ambiente como parâmetro, puro); as únicas 3 leituras reais de `process.env.*` no caminho HML (`invite-resolve.server.ts:29`, `response-capture.server.ts:74`, `api.fibt-hml.attestation.ts:69`) acontecem **dentro do corpo de uma função de request/handler**, nunca em escopo de módulo compartilhado — importante em runtime Workers, onde uma leitura em escopo de módulo rodaria só uma vez no cold start, potencialmente antes do binding de env estar disponível;
+- ausência de qualquer variável obrigatória (`VITALOS_PRODUCTION_PROJECT_REF`, `FIBT_HML_AUTHORIZED_STAGING_REF`, etc.) mantém `assertHmlBackendBoundary()` em `BLOCKED` — comportamento herdado do PR #39, não alterado nesta fase.
+
+## Superfície de rotas e contenção (Fase 4/5)
+
+O artefato contém o **aplicativo inteiro** — dezenas de rotas (`/admin`,
+`/rh`, `/clevel`, `/painel`, `/relatorios`, etc.), confirmado por inspeção
+de `routeTree.gen.ts`. Estritamente necessário para a homologação:
+
+- `/convite/:token` (página);
+- `/api/fibt-hml/attestation` (atestação);
+- `/assets/*` (JS/CSS/ícones content-hashed usados pelas duas rotas acima);
+- `/favicon.ico`;
+- `/_serverFn/*` — base das server functions internas do TanStack Start
+  (confirmado por build: `TSS_SERVER_FN_BASE:"/_serverFn/"`); as 4 usadas
+  pelo fluxo de convite são `checkInviteToken`, `submitSurveyResponses`,
+  `checkAndAggregateByToken`, `recordSurveyFunnelSnapshot`/`loadSurveyFunnelResult`
+  — mas o id de cada uma é um hash `sha256(arquivo--nomeDaFunção)` opaco,
+  não distinguível de forma estável fora do compilador (ver limitação
+  abaixo).
+
+`src/lib/fibt-hml/hml-deployment-boundary.server.ts` implementa a decisão
+pura de allowlist por PATH (`assertHmlDeploymentRouteAllowed`), testada
+isoladamente (16 testes). **Este módulo ainda não está conectado ao
+caminho real de requisição** — fazer isso exige um `beforeLoad` na rota
+raiz (`src/routes/__root.tsx`) ou um hook no entrypoint SSR
+(`src/server.ts`), nenhum dos dois no escopo de arquivos autorizado para
+esta rodada (FIBT-HML-2C limita alterações a `wrangler.hml.jsonc`, esta
+documentação, `package.json` e um novo módulo de boundary + testes). A
+conexão real é uma microcorreção pequena e específica, pendente de
+autorização explícita para tocar `__root.tsx`/`src/server.ts`.
+
+### Limitação registrada, não escondida
+
+`assertHmlDeploymentRouteAllowed` cobre com certeza toda **navegação de
+página** (todo caminho desce da rota raiz do TanStack Router). Ele **não
+distingue**, por hash, uma chamada a `/_serverFn/<hash-de-checkInviteToken>`
+de uma chamada direta ao hash de qualquer outra função do app — os ids são
+determinísticos mas opacos fora do compilador, e hardcodar um mapa de
+hashes seria frágil (quebra em silêncio a cada mudança de arquivo/nome em
+QUALQUER lugar do app). A contenção completa deste caminho específico é o
+**Cloudflare Access** na frente do Worker inteiro (seção seguinte) — por
+isso o deployment real não pode ser entregue sem Access habilitado.
+
 ## Deploy (documentado, não executado nesta preparação — Fase 7)
 
 ```
@@ -78,6 +160,31 @@ bunx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.hml.jsonc
 
 Nenhum destes comandos foi executado como parte desta preparação.
 
+## Cloudflare Access — obrigatório antes da entrega ao RH (Fase 7)
+
+**Não configurado nesta rodada.** Registrado aqui como requisito bloqueante
+do primeiro deployment real, não como algo já feito:
+
+- o subdomínio `workers.dev` deste Worker deve ficar protegido por
+  Cloudflare Access antes de qualquer pessoa fora da equipe técnica receber
+  o link;
+- a allowlist do Access deve conter só as pessoas autorizadas a participar
+  da homologação (o time do RH/ISG testando o fluxo), nunca "qualquer um
+  com o link";
+- o acesso deve ser removível ao final do teste — Access não é uma
+  configuração permanente deste Worker;
+- Access é uma **defesa adicional**, não um substituto do boundary da
+  aplicação (`hml-deployment-boundary.server.ts`) — as duas camadas
+  cobrem lacunas diferentes: Access impede que QUALQUER requisição não
+  autenticada chegue ao Worker (inclusive chamadas diretas a
+  `/_serverFn/<hash>`, a lacuna que o boundary de aplicação sozinho não
+  fecha — ver seção anterior); o boundary de aplicação impede que uma
+  sessão autenticada pelo Access (ou uma eventual falha de configuração do
+  Access) ainda consiga navegar para dashboards/admin/relatórios.
+
+**O deployment não poderá ser entregue ao RH enquanto o Cloudflare Access
+não estiver habilitado e validado.**
+
 ## Checklist do primeiro deployment real (futuro — exige autorização própria)
 
 1. Autenticar na conta Cloudflare correta (`bunx wrangler login` ou token dedicado);
@@ -89,9 +196,11 @@ Nenhum destes comandos foi executado como parte desta preparação.
 7. Executar `bun run build:hml:staging`;
 8. Executar `bunx wrangler deploy --config wrangler.hml.jsonc`;
 9. Registrar a URL resultante (só depois de existir);
-10. Abrir `/api/fibt-hml/attestation` na URL resultante;
-11. Exigir `status:"READY"` antes de considerar o deployment válido — qualquer `BLOCKED` interrompe a validação;
-12. Testar `/convite/<token-inexistente>` e confirmar banner + estado `HML_ATTESTED`, nunca um formulário;
-13. Comprovar, pela resposta do endpoint e pela ausência de qualquer chamada de rede visível ao domínio Supabase de produção, que zero tráfego chega à produção;
-14. **Não** executar o gerador (`create-synthetic-homologation-links.ts`) em modo `--commit`;
-15. **Não** criar nenhum link ou registro real nesta fase — isso permanece uma autorização separada e futura.
+10. **Habilitar Cloudflare Access no subdomínio `workers.dev` antes de compartilhar a URL com qualquer pessoa fora da equipe técnica** (ver seção "Cloudflare Access" acima) — bloqueante, não opcional;
+11. Abrir `/api/fibt-hml/attestation` na URL resultante;
+12. Exigir `status:"READY"` antes de considerar o deployment válido — qualquer `BLOCKED` interrompe a validação;
+13. Testar `/convite/<token-inexistente>` e confirmar banner + estado `HML_ATTESTED`, nunca um formulário;
+14. Confirmar que rotas fora da allowlist (`/admin`, `/rh`, `/relatorios`, etc.) retornam 404/403 sanitizado — depende do boundary de aplicação estar conectado (ver limitação registrada acima);
+15. Comprovar, pela resposta do endpoint e pela ausência de qualquer chamada de rede visível ao domínio Supabase de produção, que zero tráfego chega à produção;
+16. **Não** executar o gerador (`create-synthetic-homologation-links.ts`) em modo `--commit`;
+17. **Não** criar nenhum link ou registro real nesta fase — isso permanece uma autorização separada e futura.

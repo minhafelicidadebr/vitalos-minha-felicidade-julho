@@ -43,7 +43,19 @@
   "main": ".output/server/index.mjs",
   "assets": {
     "binding": "ASSETS",
-    "directory": ".output/public"
+    "directory": ".output/public",
+    // FIBT-HML-2C (Fase 6): o artefato atual não tem nenhum HTML estático
+    // que pudesse sombrear uma rota de página (.output/public/ só contém
+    // /assets/*.js|css e favicon.ico — confirmado por build sintético) — ou
+    // seja, hoje toda navegação de página já cai no Worker por padrão, sem
+    // precisar disso. Ligado mesmo assim como defesa em profundidade: se
+    // algum dia um HTML estático (ex.: página de manutenção, 404 customizado)
+    // for adicionado a .output/public/, run_worker_first garante que o
+    // Worker (e o boundary de rotas, hml-deployment-boundary.server.ts)
+    // continua sendo a primeira parada — nunca um fallback estático servido
+    // direto pela borda da Cloudflare. Custo (toda requisição de asset passa
+    // pelo Worker) é aceitável numa instância de homologação de baixo tráfego.
+    "run_worker_first": true
   },
 
   // O artefato do nitro já vem totalmente empacotado — instrui o Wrangler a
