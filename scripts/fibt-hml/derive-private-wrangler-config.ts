@@ -34,6 +34,56 @@ export const INHERITED_DEPLOYMENT_FIELDS = [
   "rules",
 ] as const;
 
+/**
+ * Runtime vars que o Worker HML precisa ter em `vars` no momento do upload —
+ * contrato completo, não só o que "parece" precisar.
+ *
+ * FIBT-HML-5D: `VITE_FIBT_HML_ENABLED` foi omitida daqui numa rodada anterior
+ * porque a documentação (antes desta correção) descrevia essa variável como
+ * "só liga o banner no cliente". Isso está incompleto: `hml-backend-boundary
+ * .server.ts` TAMBÉM a lê em runtime — o prefixo VITE_ não implica "só
+ * build-time" quando o código faz `process.env.VITE_X` (em vez de
+ * `import.meta.env.VITE_X`), porque só a segunda forma é substituída
+ * estaticamente pelo Vite. `VITE_SUPABASE_URL` tem exatamente o mesmo
+ * problema, pelo mesmo motivo, no mesmo arquivo — encontrada só ao escrever
+ * o teste de regressão desta correção (ver teste "8" no arquivo de teste),
+ * não fazia parte do diagnóstico original desta rodada. Sem ela, a versão
+ * teria travado no PRÓXIMO gate (`HML_BROWSER_PROJECT_REF_MISSING`) assim
+ * que `VITE_FIBT_HML_ENABLED` fosse corrigida — mesma classe de defeito,
+ * só que descoberta mais cedo por escrever o teste certo em vez de corrigir
+ * só o sintoma já visto. Versões já enviadas ao Cloudflare são imutáveis:
+ * uma var omitida aqui só é descoberta em runtime — daí esta lista existir
+ * como contrato fechado, não como convenção implícita.
+ */
+export const REQUIRED_RUNTIME_VARS = [
+  "SUPABASE_URL",
+  "SUPABASE_PUBLISHABLE_KEY",
+  "VITE_SUPABASE_URL",
+  "FIBT_HML_AUTHORIZED_STAGING_REF",
+  "VITALOS_PRODUCTION_PROJECT_REF",
+  "FIBT_HML_FRONTEND_BASE_URL",
+  "VITALOS_RUNTIME_ENV",
+  "VITALOS_DB_TARGET",
+  "VITALOS_STAGING_PROJECT_REF",
+  "FIBT_HML_DEPLOYMENT_ENABLED",
+  "VITE_FIBT_HML_ENABLED",
+  "VITE_FIBT_HML_ENVIRONMENT",
+  "VITE_FIBT_HML_BATCH_ID",
+  "VITE_FIBT_HML_FRONTEND_BASE_URL",
+  "CLOUDFLARE_ACCESS_TEAM_DOMAIN",
+  "CLOUDFLARE_ACCESS_AUD",
+  "CLOUDFLARE_ACCESS_ALLOWED_EMAILS",
+] as const;
+
+/**
+ * Runtime vars que os boundaries server-side leem mas que são genuinamente
+ * opcionais no próprio código (fallback explícito, nunca reprovação por
+ * ausência) — declaradas aqui para que o teste de varredura de
+ * `process.env` (que existe para achar a PRÓXIMA var esquecida) não as
+ * confunda com uma omissão real.
+ */
+export const OPTIONAL_RUNTIME_VARS = ["FORBIDDEN_PROJECT_REFS"] as const;
+
 /** Remove comentários de um JSONC para permitir JSON.parse. */
 export function stripJsonComments(source: string): string {
   let out = "";
@@ -106,6 +156,24 @@ export function deriveDeploymentConfig(input: DerivedConfigInput): Record<string
     throw new Error(
       `wrangler.hml.jsonc não declara campo(s) obrigatório(s): ${missing.join(", ")}. ` +
         "A config privada não pode ser derivada de uma canônica incompleta.",
+    );
+  }
+
+  const missingRuntimeVars = REQUIRED_RUNTIME_VARS.filter(
+    (k) => typeof runtimeVars[k] !== "string" || runtimeVars[k].trim() === "",
+  );
+  if (missingRuntimeVars.length > 0) {
+    throw new Error(
+      `runtime vars incompleto(s) — ausente(s) ou vazio(s): ${missingRuntimeVars.join(", ")}. ` +
+        "Uma versão Cloudflare já enviada é imutável: uma var faltando aqui só aparece " +
+        "como falha em runtime (ex.: HML_NOT_ENABLED), nunca no momento do upload.",
+    );
+  }
+  if (runtimeVars.VITE_FIBT_HML_ENABLED !== "true") {
+    throw new Error(
+      'VITE_FIBT_HML_ENABLED deve ser exatamente "true" para um pacote HML habilitado — ' +
+        "o backend (hml-backend-boundary.server.ts) lê esta MESMA variável em runtime, " +
+        "não só o cliente.",
     );
   }
 
