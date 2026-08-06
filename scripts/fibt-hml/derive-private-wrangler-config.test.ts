@@ -224,6 +224,23 @@ describe("FIBT-HML-5D — contrato de runtime vars (VITE_FIBT_HML_ENABLED també
     }
   });
 
+  test("4b. valor null (não apenas string vazia) falha fechado, sem crashar com TypeError", () => {
+    // Achado na revisão adversarial: `"chave" in obj` é true mesmo quando o
+    // valor é null (só falso quando a CHAVE não existe). Sem checar o tipo
+    // primeiro, `.trim()` num null lançaria TypeError em vez do erro
+    // fail-closed esperado — um JSON de runtime vars com `"X": null` (erro
+    // humano plausível ao editar à mão) crasharia de um jeito confuso.
+    const vars = { ...validSyntheticRuntimeVars() } as Record<string, unknown>;
+    vars.VITE_FIBT_HML_ENABLED = null;
+    expect(() =>
+      deriveDeploymentConfig({
+        canonical,
+        runtimeVars: vars as Record<string, string>,
+        artifactDir: "/tmp/x",
+      }),
+    ).toThrow(/VITE_FIBT_HML_ENABLED/);
+  });
+
   test("5. presente no build env mas ausente do runtime env ainda falha (build e runtime são objetos distintos)", () => {
     // Simula exatamente o bug real: build.hml.private.env tinha a variável,
     // mas o objeto que vira `vars` no upload (runtime.hml.private.json) não

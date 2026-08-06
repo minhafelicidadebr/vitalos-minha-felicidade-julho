@@ -160,7 +160,7 @@ export function deriveDeploymentConfig(input: DerivedConfigInput): Record<string
   }
 
   const missingRuntimeVars = REQUIRED_RUNTIME_VARS.filter(
-    (k) => !(k in runtimeVars) || runtimeVars[k].trim() === "",
+    (k) => typeof runtimeVars[k] !== "string" || runtimeVars[k].trim() === "",
   );
   if (missingRuntimeVars.length > 0) {
     throw new Error(
