@@ -17,10 +17,22 @@ import {
   stripJsonComments,
   deriveDeploymentConfig,
   INHERITED_DEPLOYMENT_FIELDS,
+  REQUIRED_RUNTIME_VARS,
+  OPTIONAL_RUNTIME_VARS,
 } from "./derive-private-wrangler-config";
 
 const CANONICAL_PATH = join(process.cwd(), "wrangler.hml.jsonc");
 const canonical = JSON.parse(stripJsonComments(readFileSync(CANONICAL_PATH, "utf8")));
+
+/** Um conjunto completo e válido de runtime vars sintéticas — usado como
+ *  ponto de partida nos testes que removem/corrompem exatamente uma
+ *  variável, em vez de reconstruir o objeto inteiro em cada teste. */
+function validSyntheticRuntimeVars(): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const name of REQUIRED_RUNTIME_VARS) vars[name] = "valor-sintetico";
+  vars.VITE_FIBT_HML_ENABLED = "true"; // única com valor exigido, não arbitrário
+  return vars;
+}
 
 /**
  * Converte um glob simples (só "**" e "*") em RegExp — suficiente para os
@@ -78,7 +90,7 @@ describe("FIBT-HML-4D — contrato de descoberta de módulos (no_bundle + rules)
   test("4. a config derivada preserva rules (não pode ser perdida na derivação)", () => {
     const derived = deriveDeploymentConfig({
       canonical,
-      runtimeVars: { EXEMPLO: "valor-sintetico" },
+      runtimeVars: validSyntheticRuntimeVars(),
       artifactDir: "/tmp/artefato-sintetico",
     });
     expect(derived.rules).toEqual(canonical.rules);
@@ -96,7 +108,7 @@ describe("FIBT-HML-4D — contrato de descoberta de módulos (no_bundle + rules)
   test("5. main fica dentro do escopo coberto pelos globs", () => {
     const derived = deriveDeploymentConfig({
       canonical,
-      runtimeVars: {},
+      runtimeVars: validSyntheticRuntimeVars(),
       artifactDir: "/tmp/artefato-sintetico",
     });
     const mainRelative = String(derived.main).split("/server/")[1]!;
@@ -106,7 +118,11 @@ describe("FIBT-HML-4D — contrato de descoberta de módulos (no_bundle + rules)
 
   test("6. preview_urls permanece false na canônica e na derivada", () => {
     expect(canonical.preview_urls).toBe(false);
-    const derived = deriveDeploymentConfig({ canonical, runtimeVars: {}, artifactDir: "/tmp/x" });
+    const derived = deriveDeploymentConfig({
+      canonical,
+      runtimeVars: validSyntheticRuntimeVars(),
+      artifactDir: "/tmp/x",
+    });
     expect(derived.preview_urls).toBe(false);
   });
 
@@ -126,7 +142,11 @@ describe("FIBT-HML-4D — contrato de descoberta de módulos (no_bundle + rules)
     ]) {
       expect(canonical).not.toHaveProperty(proibido);
     }
-    const derived = deriveDeploymentConfig({ canonical, runtimeVars: {}, artifactDir: "/tmp/x" });
+    const derived = deriveDeploymentConfig({
+      canonical,
+      runtimeVars: validSyntheticRuntimeVars(),
+      artifactDir: "/tmp/x",
+    });
     for (const proibido of ["routes", "custom_domains", "triggers"]) {
       expect(derived).not.toHaveProperty(proibido);
     }
@@ -161,6 +181,124 @@ describe("FIBT-HML-4D — contrato de descoberta de módulos (no_bundle + rules)
     ]);
     const naoClassificados = Object.keys(nitro).filter((k) => !CLASSIFICADOS.has(k));
     expect(naoClassificados).toEqual([]);
+  });
+});
+
+describe("FIBT-HML-5D — contrato de runtime vars (VITE_FIBT_HML_ENABLED também é server-side)", () => {
+  test("1. o contrato exige exatamente 17 runtime vars", () => {
+    // 17, não 16: o diagnóstico original desta rodada só nomeou
+    // VITE_FIBT_HML_ENABLED. Escrever o teste "8" abaixo (varredura de
+    // process.env nos boundaries .server.ts) encontrou uma segunda var
+    // com o mesmo defeito, VITE_SUPABASE_URL — não corrigi-la também
+    // deixaria a V3 travar no próximo gate (HML_BROWSER_PROJECT_REF_MISSING)
+    // assim que o primeiro fosse resolvido.
+    expect(REQUIRED_RUNTIME_VARS.length).toBe(17);
+    expect(REQUIRED_RUNTIME_VARS).toContain("VITE_FIBT_HML_ENABLED");
+    expect(REQUIRED_RUNTIME_VARS).toContain("VITE_SUPABASE_URL");
+  });
+
+  test("2. runtime vars completas e válidas derivam sem erro", () => {
+    expect(() =>
+      deriveDeploymentConfig({
+        canonical,
+        runtimeVars: validSyntheticRuntimeVars(),
+        artifactDir: "/tmp/artefato-sintetico",
+      }),
+    ).not.toThrow();
+  });
+
+  test("3. VITE_FIBT_HML_ENABLED ausente do runtime falha fechado (a falha real do FIBT-HML-5C)", () => {
+    const vars = validSyntheticRuntimeVars();
+    delete vars.VITE_FIBT_HML_ENABLED;
+    expect(() =>
+      deriveDeploymentConfig({ canonical, runtimeVars: vars, artifactDir: "/tmp/x" }),
+    ).toThrow(/VITE_FIBT_HML_ENABLED/);
+  });
+
+  test('4. VITE_FIBT_HML_ENABLED diferente de "true" falha fechado', () => {
+    for (const valorErrado of ["", "1", " true", "TRUE", "false", "0"]) {
+      const vars = { ...validSyntheticRuntimeVars(), VITE_FIBT_HML_ENABLED: valorErrado };
+      expect(() =>
+        deriveDeploymentConfig({ canonical, runtimeVars: vars, artifactDir: "/tmp/x" }),
+      ).toThrow(/VITE_FIBT_HML_ENABLED/);
+    }
+  });
+
+  test("5. presente no build env mas ausente do runtime env ainda falha (build e runtime são objetos distintos)", () => {
+    // Simula exatamente o bug real: build.hml.private.env tinha a variável,
+    // mas o objeto que vira `vars` no upload (runtime.hml.private.json) não
+    // — o derivador só enxerga o segundo, nunca o primeiro.
+    const buildEnv = { VITE_FIBT_HML_ENABLED: "true" };
+    const runtimeVarsSemAVariavel = validSyntheticRuntimeVars();
+    delete runtimeVarsSemAVariavel.VITE_FIBT_HML_ENABLED;
+    expect(buildEnv.VITE_FIBT_HML_ENABLED).toBe("true"); // build tinha, sim
+    expect(() =>
+      deriveDeploymentConfig({
+        canonical,
+        runtimeVars: runtimeVarsSemAVariavel,
+        artifactDir: "/tmp/x",
+      }),
+    ).toThrow(/VITE_FIBT_HML_ENABLED/);
+  });
+
+  test("6. cada uma das 16 vars obrigatórias, se ausente isoladamente, falha fechado", () => {
+    for (const nomeRemovido of REQUIRED_RUNTIME_VARS) {
+      const vars = validSyntheticRuntimeVars();
+      delete vars[nomeRemovido];
+      expect(() =>
+        deriveDeploymentConfig({ canonical, runtimeVars: vars, artifactDir: "/tmp/x" }),
+      ).toThrow(new RegExp(nomeRemovido));
+    }
+  });
+
+  test("7. a documentação não classifica mais VITE_FIBT_HML_ENABLED como só-cliente", () => {
+    const doc = readFileSync(
+      join(process.cwd(), "docs/fibt-hml/CLOUDFLARE_HML_DEPLOYMENT.md"),
+      "utf8",
+    );
+    expect(doc).not.toMatch(/VITE_FIBT_HML_ENABLED[\s\S]{0,80}só liga o banner no cliente/);
+    // E precisa dizer explicitamente que também é server-side.
+    expect(doc).toMatch(/VITE_FIBT_HML_ENABLED[\s\S]{0,400}server-side/);
+  });
+
+  test("8. toda variável lida via process.env pelos boundaries HML .server.ts está no contrato de runtime vars", () => {
+    // Escaneia os módulos SERVER-ONLY (sufixo .server.ts — a própria
+    // convenção deste repo para "seguro só em servidor, importável com
+    // process.env real") e confirma que cada nome lido está coberto por
+    // REQUIRED_RUNTIME_VARS, OPTIONAL_RUNTIME_VARS, ou é o único secret
+    // conhecido (entregue por --secrets-file, nunca por `vars`).
+    //
+    // hml-frontend-guard.ts é DELIBERADAMENTE excluído: não tem sufixo
+    // .server.ts, e seu único call site real (resolveHmlMode em
+    // convite.$token.tsx) passa `import.meta.env`, não `process.env` — o
+    // Vite substitui isso estaticamente no build, então os nomes que esse
+    // arquivo lê não precisam existir como runtime var do Worker. Incluí-lo
+    // aqui produziria falso positivo (confirmado: foi assim que
+    // VITE_FIBT_HML_PROJECT_REF apareceu na primeira versão deste teste).
+    const KNOWN_SECRET_NAMES = new Set(["SUPABASE_SERVICE_ROLE_KEY"]);
+    const boundaryFiles = [
+      "src/lib/fibt-hml/hml-backend-boundary.server.ts",
+      "src/lib/fibt-hml/hml-deployment-boundary.server.ts",
+      "src/lib/fibt-hml/cloudflare-access-jwt.server.ts",
+    ];
+    const ENV_READ_RE = /\benv\.([A-Z][A-Z0-9_]*)\b/g;
+    const naoDeclaradas: string[] = [];
+    for (const rel of boundaryFiles) {
+      const full = join(process.cwd(), rel);
+      if (!existsSync(full)) continue; // arquivo pode não existir nesta base ainda
+      const src = readFileSync(full, "utf8");
+      ENV_READ_RE.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = ENV_READ_RE.exec(src))) {
+        const name = m[1]!;
+        const declarada =
+          (REQUIRED_RUNTIME_VARS as readonly string[]).includes(name) ||
+          (OPTIONAL_RUNTIME_VARS as readonly string[]).includes(name) ||
+          KNOWN_SECRET_NAMES.has(name);
+        if (!declarada && !naoDeclaradas.includes(name)) naoDeclaradas.push(name);
+      }
+    }
+    expect(naoDeclaradas).toEqual([]);
   });
 });
 

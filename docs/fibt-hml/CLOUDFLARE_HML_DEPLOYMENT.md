@@ -46,7 +46,8 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 | `VITALOS_DB_TARGET` | Idem — valor esperado: `staging`. |
 | `VITALOS_STAGING_PROJECT_REF` | Exigida pelo preflight quando `VITALOS_DB_TARGET=staging`; conferida contra o ref real extraído de `SUPABASE_URL`. |
 | `FORBIDDEN_PROJECT_REFS` | Opcional — lista extra de refs proibidos, mesma convenção de `forbiddenRefs()` (`staging-guard.ts`). |
-| `FIBT_HML_DEPLOYMENT_ENABLED` | **Nova (FIBT-HML-2D).** Gatilho dedicado, server-side, da contenção de rotas (`hml-deployment-boundary.server.ts`) — deliberadamente independente de `VITE_FIBT_HML_ENABLED` (que só liga o banner no cliente). Valor esperado: exatamente `true`. Ausente = comportamento normal; qualquer valor presente que não seja exatamente `true` (vazio, `"1"`, `" true"`, etc.) bloqueia TODAS as rotas — nunca cai de volta ao modo comum em silêncio. |
+| `FIBT_HML_DEPLOYMENT_ENABLED` | **Nova (FIBT-HML-2D).** Gatilho dedicado, server-side, da contenção de rotas (`hml-deployment-boundary.server.ts`) — deliberadamente independente de `VITE_FIBT_HML_ENABLED` (ver linha abaixo — as duas são lidas em runtime, por motivos diferentes). Valor esperado: exatamente `true`. Ausente = comportamento normal; qualquer valor presente que não seja exatamente `true` (vazio, `"1"`, `" true"`, etc.) bloqueia TODAS as rotas — nunca cai de volta ao modo comum em silêncio. |
+| `VITE_FIBT_HML_ENABLED` | **Também server-side, apesar do prefixo (FIBT-HML-5D).** `assertHmlBackendBoundary()` (`hml-backend-boundary.server.ts`) e `hml-frontend-guard.ts` fazem `process.env.VITE_FIBT_HML_ENABLED` — uma leitura **viva** a cada requisição, confirmada por inspeção direta do bundle server compilado (a linha-fonte aparece literal, não substituída). O prefixo `VITE_` não implica "só build-time": só `import.meta.env.VITE_X` é substituído estaticamente pelo Vite; `process.env.VITE_X` continua sendo uma leitura de runtime igual a qualquer outra var server-side. **Precisa estar em `vars` no upload da versão Cloudflare — a mesma variável que controla o banner do cliente também precisa existir aqui, com o mesmo valor `true`.** Omiti-la aqui foi a causa exata de uma versão real (FIBT-HML-5C/5D) responder `HML_NOT_ENABLED` mesmo com o artefato correto — versões Cloudflare são imutáveis, então essa omissão só aparece em runtime, nunca no momento do upload. |
 | `CLOUDFLARE_ACCESS_TEAM_DOMAIN` | **Nova (FIBT-HML-3E).** Origem HTTPS do team domain do Access (`https://<time>.cloudflareaccess.com`). Usada como **issuer exato** do JWT e para derivar o JWKS em `<TEAM_DOMAIN>/cdn-cgi/access/certs`. Recusada se não for HTTPS, tiver path/query/fragment/credenciais/**porta explícita** (FIBT-HML-3F), ou se o hostname não terminar exatamente em `.cloudflareaccess.com`. A URL do JWKS só é derivada **depois** dessa validação. |
 | `CLOUDFLARE_ACCESS_AUD` | **Nova (FIBT-HML-3E).** Tag de audiência da aplicação Access. Comparada por igualdade exata com a claim `aud` — é o que impede que um token válido de OUTRA aplicação Access da mesma conta seja aceito aqui. Nunca aparece em resposta nem em log. |
 | `CLOUDFLARE_ACCESS_ALLOWED_EMAILS` | **Nova (FIBT-HML-3E).** Lista separada por vírgulas de e-mails **explicitamente autorizados**. Normalizada com trim e comparação case-insensitive. Recusa wildcard (`*@x`), domínio amplo (`@x.com`, `x.com`) e lista vazia — a allowlist nomeia pessoas, nunca uma organização inteira. Na primeira implantação conterá apenas o proprietário autorizado. |
@@ -57,17 +58,34 @@ Subdomínio: `workers.dev` — nunca `vitalos.com.br`, `www.vitalos.com.br` ou
 | --- | --- |
 | `VITE_SUPABASE_URL` | URL do mesmo projeto Supabase de staging (deve resolver ao MESMO ref de `SUPABASE_URL`). |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável (anon) — pública por design. |
-| `VITE_FIBT_HML_ENABLED` | `true` |
+| `VITE_FIBT_HML_ENABLED` | `true` — **também precisa existir em `vars` no runtime, com o mesmo valor** (ver tabela de variáveis server-side acima; não é só build-time apesar do prefixo). |
 | `VITE_FIBT_HML_ENVIRONMENT` | `staging` |
 | `VITE_FIBT_HML_BATCH_ID` | `FIBT-ISG-HML-01` |
 | `VITE_FIBT_HML_PROJECT_REF` | Mesmo valor de `FIBT_HML_AUTHORIZED_STAGING_REF` — o cliente se autoconfirma contra o ref derivado de `VITE_SUPABASE_URL`. |
 | `VITE_FIBT_HML_FRONTEND_BASE_URL` | Mesma origem de `FIBT_HML_FRONTEND_BASE_URL` — as duas são comparadas por igualdade exata em `assertHmlBackendBoundary()`. |
 
-**Importante:** as variáveis `VITE_*` são substituídas estaticamente pelo Vite
-no momento do build (inclusive no bundle SSR) — mudar uma delas depois do
-build não tem efeito; exige rebuild. As variáveis server-side (não
-`VITE_*`) são lidas via `process.env` a cada requisição — podem ser
+**Importante (corrigido em FIBT-HML-5D — a afirmação anterior aqui estava
+incompleta):** só `import.meta.env.VITE_X` é substituído estaticamente pelo
+Vite (client E SSR) — mudar essa forma depois do build não tem efeito, exige
+rebuild. Mas `process.env.VITE_X` **não** é substituído: continua sendo uma
+leitura viva a cada requisição, confirmada por inspeção direta do bundle
+compilado (`VITE_FIBT_HML_ENABLED`, acima, é lida assim). Então "prefixo
+VITE_" não é sinônimo de "só build-time" — depende de QUAL das duas formas o
+código usa. As demais variáveis server-side (não `VITE_*`) são lidas via
+`process.env` a cada requisição — podem ser
 alteradas na configuração do Worker sem rebuild.
+
+### Dívida arquitetural registrada (P2, futuro — não corrigida nesta rodada)
+
+`VITE_FIBT_HML_ENABLED` fazer dupla função (client no build, server em
+runtime) funciona, mas é uma fonte natural de confusão — o nome sugere
+"só cliente" quando não é. Uma refatoração futura poderia separar em duas
+variáveis distintas: `VITE_FIBT_HML_ENABLED` (só client, controla o banner)
+e `FIBT_HML_ENABLED` (server-only, lida por `assertHmlBackendBoundary()` e
+`hml-frontend-guard.ts`, no mesmo padrão de `FIBT_HML_DEPLOYMENT_ENABLED`).
+Não feito agora porque exigiria alterar código funcional dos boundaries e um
+novo build da aplicação — fora do escopo desta correção, que é só o contrato
+de runtime vars do deployment.
 
 ## Build
 
