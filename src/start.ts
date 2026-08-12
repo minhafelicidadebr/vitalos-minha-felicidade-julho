@@ -1,8 +1,10 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
+import { getServerFnById } from "#tanstack-start-server-fn-resolver";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 import {
+  resolveHmlServerFnMetaForRequest,
   runHmlDeploymentBoundary,
   type HmlDeploymentEnvLike,
 } from "@/lib/fibt-hml/hml-deployment-boundary.server";
@@ -34,16 +36,25 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 // deployment que não declare FIBT_HML_DEPLOYMENT_ENABLED — produção comum
 // nunca passa por nenhuma lógica nova aqui, nem exige JWT.
 const hmlDeploymentBoundaryMiddleware = createMiddleware().server(
-  async ({ next, request, pathname, serverFnMeta }) =>
-    runHmlDeploymentBoundary({
+  async ({ next, request, pathname, serverFnMeta }) => {
+    const env = process.env as HmlDeploymentEnvLike;
+    const resolvedServerFnMeta = await resolveHmlServerFnMetaForRequest({
+      pathname,
+      env,
+      serverFnMeta,
+      lookupServerFn: (id) => getServerFnById(id, { origin: "client" }),
+    });
+
+    return runHmlDeploymentBoundary({
       pathname,
       method: request.method,
-      serverFnMeta,
-      env: process.env as HmlDeploymentEnvLike,
+      serverFnMeta: resolvedServerFnMeta,
+      env,
       next,
       verifyAccess: () =>
         verifyCloudflareAccessRequest(request, process.env as CloudflareAccessEnvLike),
-    }),
+    });
+  },
 );
 
 export const startInstance = createStart(() => ({

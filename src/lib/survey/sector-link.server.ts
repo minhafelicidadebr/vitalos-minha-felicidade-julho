@@ -6,8 +6,8 @@
 // (token_hash SHA-256, nunca o token bruto; zero SELECT policy) + RPC
 // `submit_sector_response` (SECURITY DEFINER, anon) — migration
 // 20260708120000. Modalidade declarada: `shared_sector`, link MULTI-USO por
-// setor; a resposta entra em wave_responses com invite_token NULL (anônima
-// por schema) e passa pelo MESMO pipeline de agregação k-anon da onda.
+// setor; a resposta entra em wave_responses sem coluna ou vínculo de convite
+// (anônima por schema) e passa pelo MESMO pipeline de agregação k-anon da onda.
 // A validação de instrumento/itens/escala roda AQUI em TypeScript
 // (validateBlindSubmission — a MESMA função pura do modo demo, zero
 // duplicação de regra), ANTES de invocar a RPC (mesmo desenho do S3).
@@ -17,6 +17,7 @@
 // coluna de recorte em wave_responses + k-anon por recorte no aggregator).
 
 import { createHash } from "node:crypto";
+import { normalizeSectorResponseConsentVersion } from "@/domain/survey/sector-response-consent";
 import {
   resolveSectorLink,
   type SectorAccessGrant,
@@ -30,6 +31,8 @@ import {
 } from "@/engine/survey/response-capture-engine";
 import { getSectorLinkRecord } from "@/mocks/sector-link-mock";
 import { getWaveSurvey } from "@/mocks/survey-mock";
+import { assertSectorLinkWithinAuthorizedHmlSmoke } from "../fibt-hml/hml-contract";
+import { classifyHmlDeploymentDeclaration } from "../fibt-hml/hml-deployment-boundary.server";
 import { dbInstrumentToSurveyKey } from "./instrument-mapping";
 import { readIdentityBoundaryStatus } from "../identity/identity-boundary.server";
 import { emitOpsEvent } from "../telemetry/ops-events.server";
@@ -46,18 +49,21 @@ export type SectorTokenResolution =
 
 /** Linha de sector_links + onda + pack da org, via service role (nunca via cliente). */
 interface CloudLinkRow {
+  org_id: string;
   wave_id: string;
   sector_label: string;
   access_mode: string;
   status: string;
   expires_at: string;
   waves: {
+    org_id: string;
     instrument: string;
+    instrument_version: string | null;
     status: string;
     label: string | null;
     created_at: string;
     closes_at: string | null;
-    organizations: { pack_id: string | null } | null;
+    organizations: { name: string; pack_id: string | null } | null;
   } | null;
 }
 
@@ -67,12 +73,33 @@ async function loadCloudLink(token: string): Promise<CloudLinkRow | null> {
   const { data } = await admin
     .from("sector_links")
     .select(
-      "wave_id, sector_label, access_mode, status, expires_at, " +
-        "waves(instrument, status, label, created_at, closes_at, organizations(pack_id))",
+      "org_id, wave_id, sector_label, access_mode, status, expires_at, " +
+        "waves(org_id, instrument, instrument_version, status, label, created_at, closes_at, organizations(name, pack_id))",
     )
     .eq("token_hash", hashSectorToken(token))
     .maybeSingle();
   return (data as CloudLinkRow | null) ?? null;
+}
+
+/**
+ * Produção comum (variável ausente) mantém o comportamento existente. Quando
+ * o deployment se declara HML, só o lote sintético canônico passa; declaração
+ * malformada também falha fechada, mesmo se o middleware global for contornado.
+ */
+function cloudLinkAllowedForRuntime(row: CloudLinkRow): boolean {
+  const declaration = classifyHmlDeploymentDeclaration(process.env.FIBT_HML_DEPLOYMENT_ENABLED);
+  if (declaration === "not_declared") return true;
+  if (declaration !== "declared_valid" || !row.waves) return false;
+
+  return assertSectorLinkWithinAuthorizedHmlSmoke({
+    linkOrganizationId: row.org_id,
+    waveOrganizationId: row.waves.org_id,
+    organizationName: row.waves.organizations?.name,
+    waveLabel: row.waves.label,
+    instrument: row.waves.instrument,
+    instrumentVersion: row.waves.instrument_version,
+    sectorLabel: row.sector_label,
+  }).ok;
 }
 
 /**
@@ -88,7 +115,9 @@ export async function resolveToken(
 
   if (boundary.state === "cloud") {
     const row = await loadCloudLink(token);
-    if (!row || !row.waves) return { valid: false, reason: "not_found" };
+    if (!row || !row.waves || !cloudLinkAllowedForRuntime(row)) {
+      return { valid: false, reason: "not_found" };
+    }
     if (row.status === "revoked") return { valid: false, reason: "revoked" };
     if (row.status !== "active") return { valid: false, reason: "not_found" };
     if (row.expires_at <= nowIso) return { valid: false, reason: "expired" };
@@ -153,12 +182,17 @@ export interface SectorLinkSubmitInput {
  *
  * Demo:  valida e descarta (ephemeral_demo — declarado na UI, honesto por design).
  * Cloud: valida com a MESMA função pura e persiste via RPC atômica
- *        `submit_sector_response` (anônima por schema: invite_token NULL).
+ *        `submit_sector_response` (anônima por schema, sem vínculo de convite).
  */
 export async function captureSectorLinkResponse(
   input: SectorLinkSubmitInput,
   nowIso = new Date().toISOString(),
 ): Promise<CaptureResult> {
+  const consentVersion = normalizeSectorResponseConsentVersion(input.consentVersion);
+  if (!consentVersion) {
+    return { accepted: false, reason: "invalid_submission" };
+  }
+
   const boundary = readIdentityBoundaryStatus();
 
   if (boundary.state === "blocked") {
@@ -167,7 +201,13 @@ export async function captureSectorLinkResponse(
 
   if (boundary.state === "cloud") {
     const row = await loadCloudLink(input.token);
-    if (!row || !row.waves || row.status !== "active" || row.expires_at <= nowIso) {
+    if (
+      !row ||
+      !row.waves ||
+      !cloudLinkAllowedForRuntime(row) ||
+      row.status !== "active" ||
+      row.expires_at <= nowIso
+    ) {
       emitOpsEvent("sector_response_rejected", { reason: "unknown_wave" });
       return { accepted: false, reason: "unknown_wave" };
     }
@@ -199,11 +239,13 @@ export async function captureSectorLinkResponse(
     const { data, error } = await admin.rpc("submit_sector_response", {
       p_token_hash: hashSectorToken(input.token),
       p_answers: Object.fromEntries(input.answers.map((a) => [a.itemId, a.value])),
+      p_consent_version: consentVersion,
     });
 
-    const outcome = (Array.isArray(data) ? data[0] : data) as
-      | { accepted: boolean; reason: string | null }
-      | null;
+    const outcome = (Array.isArray(data) ? data[0] : data) as {
+      accepted: boolean;
+      reason: string | null;
+    } | null;
     if (error || !outcome?.accepted) {
       emitOpsEvent("sector_response_rejected", {
         waveId: row.wave_id,

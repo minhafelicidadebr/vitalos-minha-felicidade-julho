@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
 import {
   HML_BATCH_ID,
   HML_CONTRACT_VERSION,
   HML_ENVIRONMENT,
   HML_COHORT_KEYS,
   HML_ORGANIZATION,
+  HML_SECTOR_SMOKE,
   HML_WAVE,
   assertInviteWithinAuthorizedHmlBatch,
+  assertSectorLinkWithinAuthorizedHmlSmoke,
   validateHmlOrigin,
 } from "./hml-contract";
 
@@ -185,5 +188,49 @@ describe("assertInviteWithinAuthorizedHmlBatch — vínculo invite→cohort→wa
 
   test("expires_at nulo nunca expira", () => {
     expect(assertInviteWithinAuthorizedHmlBatch({ ...VALID_ROW, expiresAt: null })).toEqual({ ok: true });
+  });
+});
+
+const VALID_SECTOR_SMOKE_ROW = {
+  linkOrganizationId: "org-smoke-1",
+  waveOrganizationId: "org-smoke-1",
+  organizationName: HML_SECTOR_SMOKE.organizationName,
+  waveLabel: HML_SECTOR_SMOKE.waveLabel,
+  instrument: HML_SECTOR_SMOKE.instrument,
+  instrumentVersion: HML_SECTOR_SMOKE.instrumentVersion,
+  sectorLabel: HML_SECTOR_SMOKE.sectorLabels[0],
+};
+
+describe("assertSectorLinkWithinAuthorizedHmlSmoke — vínculo fail-closed do smoke ISG", () => {
+  test("a versão do boundary acompanha o manifesto canônico da FIB-T", () => {
+    expect(getFibtManifest().instrument_version).toBe(HML_SECTOR_SMOKE.instrumentVersion);
+  });
+
+  test("aceita somente os dois labels sintéticos autorizados", () => {
+    for (const sectorLabel of HML_SECTOR_SMOKE.sectorLabels) {
+      expect(assertSectorLinkWithinAuthorizedHmlSmoke({ ...VALID_SECTOR_SMOKE_ROW, sectorLabel })).toEqual({
+        ok: true,
+      });
+    }
+  });
+
+  test("rejeita qualquer divergência de link, organização, onda, instrumento, versão ou label", () => {
+    const invalidRows = [
+      { ...VALID_SECTOR_SMOKE_ROW, linkOrganizationId: "outra-org" },
+      { ...VALID_SECTOR_SMOKE_ROW, waveOrganizationId: "outra-org" },
+      { ...VALID_SECTOR_SMOKE_ROW, organizationName: "Outra organização" },
+      { ...VALID_SECTOR_SMOKE_ROW, waveLabel: "Outra onda" },
+      { ...VALID_SECTOR_SMOKE_ROW, instrument: "COPSOQ" },
+      { ...VALID_SECTOR_SMOKE_ROW, instrumentVersion: "fibt-1.0.0" },
+      { ...VALID_SECTOR_SMOKE_ROW, instrumentVersion: null },
+      { ...VALID_SECTOR_SMOKE_ROW, sectorLabel: "Operações" },
+    ];
+
+    for (const row of invalidRows) {
+      expect(assertSectorLinkWithinAuthorizedHmlSmoke(row)).toEqual({
+        ok: false,
+        code: "HML_SECTOR_LINK_OUTSIDE_AUTHORIZED_SMOKE",
+      });
+    }
   });
 });
