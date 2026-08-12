@@ -6,6 +6,10 @@ const migration = readFileSync(
   join(process.cwd(), "supabase/migrations/20260812120000_one_active_sector_link_per_cohort.sql"),
   "utf8",
 );
+const sectorLinkServer = readFileSync(
+  join(process.cwd(), "src/lib/survey/sector-link.server.ts"),
+  "utf8",
+);
 
 describe("one active sector link migration", () => {
   test("aborts if the current staging data already violates the invariant", () => {
@@ -37,5 +41,10 @@ describe("one active sector link migration", () => {
     expect(migration.match(/NOT VALID/g)).toHaveLength(2);
     expect(migration).not.toMatch(/DELETE\s+FROM\s+public\.sector_links/i);
     expect(migration).not.toMatch(/UPDATE\s+public\.sector_links/i);
+  });
+
+  test("resolves the wave through the new tenant-bound FK without an ambiguous embed", () => {
+    expect(sectorLinkServer).toContain("waves!sector_links_wave_org_fk(");
+    expect(sectorLinkServer).not.toContain('"waves(org_id, instrument');
   });
 });

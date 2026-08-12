@@ -69,12 +69,14 @@ interface CloudLinkRow {
 
 async function loadCloudLink(token: string): Promise<CloudLinkRow | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // Generated schema types do not include the sector-link relationships yet.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = supabaseAdmin as any;
   const { data } = await admin
     .from("sector_links")
     .select(
       "org_id, wave_id, sector_label, access_mode, status, expires_at, " +
-        "waves(org_id, instrument, instrument_version, status, label, created_at, closes_at, organizations(name, pack_id))",
+        "waves!sector_links_wave_org_fk(org_id, instrument, instrument_version, status, label, created_at, closes_at, organizations(name, pack_id))",
     )
     .eq("token_hash", hashSectorToken(token))
     .maybeSingle();
@@ -235,6 +237,8 @@ export async function captureSectorLinkResponse(
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Generated schema types do not include the sector-link RPC yet.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const admin = supabaseAdmin as any;
     const { data, error } = await admin.rpc("submit_sector_response", {
       p_token_hash: hashSectorToken(input.token),
