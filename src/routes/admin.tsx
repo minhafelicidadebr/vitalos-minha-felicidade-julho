@@ -13,8 +13,11 @@ import { AppShell } from "@/app/shell/AppShell";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
 import { adminCreateWave, adminListWaves, adminCloseWave } from "@/lib/api/wave-admin.functions";
 import { createMemberInviteLink } from "@/lib/api/member-invite.functions";
-import { adminCreateSectorLink, adminListOpsEvents } from "@/lib/api/sector-link.functions";
+import { adminListOpsEvents } from "@/lib/api/sector-link.functions";
 import { checkAndAggregateCapsule } from "@/lib/api/capsule-aggregator.functions";
+import { SectorOperationsPanel } from "@/components/admin/SectorOperationsPanel";
+import { protectSectorParticipation } from "@/lib/survey/sector-operations";
+import { isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { resolvePackBundle } from "@/domain/packs/registry";
@@ -50,6 +53,7 @@ interface CreatedWave {
   inviteLinks: string[];
   instrument: string;
   createdAt: string;
+  linkModel: "INDIVIDUAL" | "SECTOR";
 }
 
 interface WaveItem {
@@ -88,6 +92,7 @@ function buildWhatsAppMessage(links: string[], instrument: string): string {
 
 function AdminPage() {
   const cloudActive = isCloudReady();
+  const fibtPilotEnabled = isFibtPilotEnabled();
   const { loading: orgLoading, org: realOrg } = useRealOrgSession();
   const orgId = realOrg?.orgId;
   const [instrument, setInstrument] = useState<Instrument>("COPSOQ");
@@ -149,7 +154,13 @@ function AdminPage() {
         return;
       }
       const result = await adminCreateWave({
-        data: { accessToken, instrument, label: label.trim() || undefined, inviteCount },
+        data: {
+          accessToken,
+          instrument,
+          label: label.trim() || undefined,
+          inviteCount,
+          linkModel: instrument === "FIB_T" ? "SECTOR" : "INDIVIDUAL",
+        },
       });
 
       if ("error" in result && result.error) {
@@ -160,6 +171,7 @@ function AdminPage() {
           inviteLinks: result.inviteLinks!,
           instrument,
           createdAt: new Date().toISOString(),
+          linkModel: instrument === "FIB_T" ? "SECTOR" : "INDIVIDUAL",
         });
         setLabel("");
         fetchWaves();
@@ -382,6 +394,17 @@ function AdminPage() {
                   Recomendado para o piloto — cobre Domínio B (risco psicossocial, NR-1).
                 </p>
               )}
+              {instrument === "FIB_T" && fibtPilotEnabled && (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Modelo setorial: a campanha nasce sem convites individuais. Cadastre os setores
+                  na onda e emita um link compartilhado por setor.
+                </p>
+              )}
+              {instrument === "FIB_T" && !fibtPilotEnabled && (
+                <p className="mt-1.5 text-xs text-destructive">
+                  O piloto FIB-T está indisponível neste ambiente.
+                </p>
+              )}
             </div>
 
             {/* Label */}
@@ -401,7 +424,7 @@ function AdminPage() {
             {/* Número de convites */}
             <div>
               <label className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                <span>Número de convites</span>
+                <span>{instrument === "FIB_T" ? "Meta de participantes" : "Número de convites"}</span>
                 <span className="font-serif text-base font-semibold text-foreground tabular-nums">
                   {inviteCount}
                 </span>
@@ -432,11 +455,15 @@ function AdminPage() {
             {/* Botão */}
             <button
               onClick={handleCreate}
-              disabled={!cloudActive || !orgId || creating}
+              disabled={!cloudActive || !orgId || creating || (instrument === "FIB_T" && !fibtPilotEnabled)}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 font-serif text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Plus className="h-4 w-4" />
-              {creating ? "Criando…" : "Criar onda e gerar links"}
+              {creating
+                ? "Criando…"
+                : instrument === "FIB_T"
+                  ? "Criar campanha setorial"
+                  : "Criar onda e gerar links"}
             </button>
           </div>
         </motion.div>
@@ -452,16 +479,20 @@ function AdminPage() {
             <div className="mb-4 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-primary" />
               <p className="font-medium text-foreground">
-                {created.inviteLinks.length} links gerados · {instrumentLabel(created.instrument)}
+                {created.linkModel === "SECTOR"
+                  ? `Campanha setorial criada · ${instrumentLabel(created.instrument)}`
+                  : `${created.inviteLinks.length} links gerados · ${instrumentLabel(created.instrument)}`}
               </p>
             </div>
 
             <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
-              Envie cada link para um colaborador diferente via WhatsApp ou e-mail.
-              Cada link só pode ser usado uma vez. Os resultados aparecem quando 5+ pessoas responderem.
+              {created.linkModel === "SECTOR"
+                ? "Nenhum link individual foi gerado. Abra a onda abaixo, cadastre os setores e emita um link compartilhado por setor."
+                : "Envie cada link para um colaborador diferente via WhatsApp ou e-mail. Cada link só pode ser usado uma vez. Os resultados aparecem quando 5+ pessoas responderem."}
             </p>
 
             {/* Lista de links */}
+            {created.linkModel === "INDIVIDUAL" && (
             <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-border/50 bg-background p-3">
               {created.inviteLinks.slice(0, 10).map((link, idx) => (
                 <div
@@ -493,8 +524,10 @@ function AdminPage() {
                 </p>
               )}
             </div>
+            )}
 
             {/* Ações de cópia */}
+            {created.linkModel === "INDIVIDUAL" && (
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <button
                 onClick={() => copyAll(created.inviteLinks)}
@@ -511,6 +544,7 @@ function AdminPage() {
                 {copiedIdx === -2 ? "Copiado!" : "Copiar mensagem WhatsApp"}
               </button>
             </div>
+            )}
 
             <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
               ID da onda: <span className="font-mono">{created.waveId}</span>
@@ -576,6 +610,8 @@ const OPS_EVENT_LABELS: Record<string, string> = {
   sector_response_accepted: "Resposta de setor aceita",
   sector_response_rejected: "Resposta de setor recusada",
   sector_link_created: "Link de setor emitido",
+  sector_link_revoked: "Link de setor revogado",
+  wave_cohort_created: "Setor cadastrado",
   wave_created: "Onda criada",
   wave_closed: "Onda fechada",
   capsule_published: "Leitura protegida publicada",
@@ -668,17 +704,13 @@ function WaveCard({
   const [closing, setClosing] = useState(false);
   const [closeMsg, setCloseMsg] = useState<string | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
-  const [sectorOpen, setSectorOpen] = useState(false);
-  const [sectorLabel, setSectorLabel] = useState("");
-  const [sectorBusy, setSectorBusy] = useState(false);
-  const [sectorMsg, setSectorMsg] = useState<string | null>(null);
-  const [sectorUrl, setSectorUrl] = useState<string | null>(null);
 
-  const pct = wave.invitedCount > 0
+  const participation = protectSectorParticipation(wave.responseCount);
+  const hasEnough = participation.reportable;
+  const pct = hasEnough && wave.invitedCount > 0
     ? Math.min(100, Math.round((wave.responseCount / wave.invitedCount) * 100))
     : 0;
   const isSealed = wave.status === "sealed";
-  const hasEnough = wave.responseCount >= 5;
   // A leitura protegida pode ser regerada quantas vezes for preciso enquanto
   // a onda segue coletando (P0-08) — nunca mais "gera uma vez e recusa depois".
   const canAggregate = hasEnough && !isSealed;
@@ -706,34 +738,6 @@ function WaveCard({
       setAggMsg("Erro ao agregar — verifique o Cloud.");
     } finally {
       setAggregating(false);
-    }
-  }
-
-  async function handleCreateSectorLink() {
-    if (sectorBusy || !sectorLabel.trim()) return;
-    setSectorBusy(true);
-    setSectorMsg(null);
-    try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        setSectorMsg("Sessão expirada. Faça login novamente.");
-        return;
-      }
-      const result = await adminCreateSectorLink({
-        data: { accessToken, waveId: wave.id, sectorLabel: sectorLabel.trim() },
-      });
-      if (result.created) {
-        // O token só existe NESTA resposta — o banco guarda apenas o hash.
-        setSectorUrl(`${window.location.origin}/respond/s/${result.token}`);
-        setSectorMsg(null);
-        setSectorLabel("");
-      } else {
-        setSectorMsg(result.error);
-      }
-    } catch {
-      setSectorMsg("Erro ao gerar o link — verifique o Cloud.");
-    } finally {
-      setSectorBusy(false);
     }
   }
 
@@ -805,12 +809,16 @@ function WaveCard({
                 <Users className="h-3 w-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">
                   <span className={`font-semibold tabular-nums ${hasEnough ? "text-primary" : "text-foreground"}`}>
-                    {wave.responseCount}
+                    {participation.countLabel}
                   </span>
-                  <span className="text-muted-foreground">/{wave.invitedCount} respostas</span>
+                  <span className="text-muted-foreground">
+                    /{wave.invitedCount} {wave.instrument === "FIB_T" ? "da meta" : "respostas"}
+                  </span>
                 </span>
               </div>
-              <span className="text-[11px] tabular-nums text-muted-foreground">{pct}%</span>
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {hasEnough ? `${pct}%` : "Protegido"}
+              </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
@@ -820,8 +828,8 @@ function WaveCard({
             </div>
             {!isSealed && wave.responseCount < 5 && (
               <p className="mt-1 text-[10px] text-muted-foreground">
-                Faltam {5 - wave.responseCount} para o k-anonimato mínimo (n≥5) — a onda
-                continua coletando até você decidir fechá-la.
+                A participação permanece protegida até o limiar mínimo (n≥5). A onda continua
+                coletando até você decidir fechá-la.
               </p>
             )}
           </div>
@@ -861,69 +869,11 @@ function WaveCard({
               )}
             </div>
           )}
-          {/* Link de setor — coleta anônima multi-uso (modalidade shared_sector) */}
-          {!isSealed && (
-            <div className="mt-3">
-              {!sectorOpen && !sectorUrl && (
-                <button
-                  onClick={() => setSectorOpen(true)}
-                  className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
-                >
-                  + Gerar link de setor (coleta anônima compartilhada)
-                </button>
-              )}
-              {sectorOpen && !sectorUrl && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    value={sectorLabel}
-                    onChange={(e) => setSectorLabel(e.target.value)}
-                    placeholder="Nome do setor (ex.: Operações)"
-                    maxLength={80}
-                    className="min-h-9 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-xs text-foreground"
-                  />
-                  <button
-                    onClick={handleCreateSectorLink}
-                    disabled={sectorBusy || !sectorLabel.trim()}
-                    className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
-                  >
-                    {sectorBusy ? "Gerando…" : "Gerar link"}
-                  </button>
-                  <button
-                    onClick={() => { setSectorOpen(false); setSectorMsg(null); }}
-                    className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-              {sectorUrl && (
-                <div className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2">
-                  <p className="text-[11px] font-medium text-primary">
-                    Link de setor gerado — copie AGORA: por segurança, ele não pode ser
-                    exibido de novo (o sistema guarda só a impressão digital).
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <code className="max-w-full overflow-x-auto rounded bg-background px-2 py-1 text-[10px] text-foreground">
-                      {sectorUrl}
-                    </code>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(sectorUrl)}
-                      className="rounded-lg border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/40"
-                    >
-                      Copiar
-                    </button>
-                    <button
-                      onClick={() => { setSectorUrl(null); setSectorOpen(false); }}
-                      className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </div>
-              )}
-              {sectorMsg && <p className="mt-1.5 text-[11px] font-medium text-destructive">{sectorMsg}</p>}
-            </div>
-          )}
+          <SectorOperationsPanel
+            waveId={wave.id}
+            instrument={wave.instrument}
+            status={wave.status}
+          />
 
           {aggMsg && <p className="mt-2 text-[11px] font-medium text-primary">{aggMsg}</p>}
           {closeMsg && <p className="mt-2 text-[11px] font-medium text-foreground">{closeMsg}</p>}

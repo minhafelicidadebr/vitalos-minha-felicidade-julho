@@ -65,6 +65,9 @@ export async function createWaveAsAdmin(
   if (input.emails && input.emails.length !== input.inviteCount) {
     return { error: "Número de e-mails não corresponde ao número de convites." };
   }
+  if (input.distributionMode === "sector" && input.emails?.length) {
+    return { error: "Campanhas setoriais não geram ou enviam convites individuais." };
+  }
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -85,7 +88,11 @@ export async function createWaveAsAdmin(
   emitOpsEvent("wave_created", {
     orgId: input.orgId,
     waveId: result.waveId,
-    context: { instrument: input.instrument, inviteCount: input.inviteCount },
+    context: {
+      instrument: input.instrument,
+      inviteCount: input.inviteCount,
+      distributionMode: input.distributionMode ?? "individual",
+    },
   });
 
   // Dispara e-mails para os convites que têm endereço associado. Awaited (não

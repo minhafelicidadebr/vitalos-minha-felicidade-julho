@@ -9,7 +9,7 @@ import {
 
 const root = join(import.meta.dir, "..", "..", "..");
 const migrationName = "20260807120000_sector_response_consent_durability.sql";
-const read = (path: string) => readFileSync(join(root, path), "utf8");
+const read = (path: string) => readFileSync(join(root, path), "utf8").replace(/\r\n/g, "\n");
 const migration = read(`supabase/migrations/${migrationName}`);
 
 function functionBody(signature: string): string {

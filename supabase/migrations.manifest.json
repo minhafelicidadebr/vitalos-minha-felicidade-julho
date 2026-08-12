@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 50,
-  "rollupSha256": "e4a665dd01c7c8b19faf0f858db326bd17b9488981dbf8a4da676d4b07390091",
+  "migrationCount": 51,
+  "rollupSha256": "a6fb90e8af010f532e1d6352954a74c8fcd6a85d055b904a479632b7923ea953",
   "migrations": [
     {
       "order": 1,
@@ -302,6 +302,12 @@
       "name": "20260811120000_fail_closed_sector_response_cohort_binding.sql",
       "sha256": "536e641aa4f7ccfdb6742406bedf9a23c872c3e42bd6b92adabfb3df0216008e",
       "bytes": 10463
+    },
+    {
+      "order": 51,
+      "name": "20260812120000_one_active_sector_link_per_cohort.sql",
+      "sha256": "a83923a5ecf22a17eccb3c454ceebdfbb2a53f9faa43ea35da320b8850dbb6c3",
+      "bytes": 1744
     }
   ]
 }

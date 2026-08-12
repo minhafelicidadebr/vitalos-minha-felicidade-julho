@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..", "..", "..");
-const read = (path: string) => readFileSync(join(root, path), "utf8");
+const read = (path: string) => readFileSync(join(root, path), "utf8").replace(/\r\n/g, "\n");
 
 const migrationPath =
   "supabase/migrations/20260811120000_fail_closed_sector_response_cohort_binding.sql";
