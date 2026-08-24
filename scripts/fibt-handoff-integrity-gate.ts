@@ -17,12 +17,15 @@ const ROOT = join(import.meta.dir, "..");
 
 const EXPECTED = {
   head: "10b5fefb53b75e6d5b2281c52b9d16c44dd0a1f8",
-  files3A: "supabase/migrations/20260806205000_rewrite_submit_sector_response_without_invite_link.sql",
-  fileContract: "supabase/migrations/20260806210000_drop_response_invite_link_contract_production.sql",
+  files3A:
+    "supabase/migrations/20260806205000_rewrite_submit_sector_response_without_invite_link.sql",
+  fileContract:
+    "supabase/migrations/20260806210000_drop_response_invite_link_contract_production.sql",
   fileStagingB: "supabase/migrations/20260730160000_drop_response_invite_link_contract.sql",
   sha3A: "0e561ce1f7221fa4cbf4b696d585a9ace84d47e127b8403bb187598f19e2a805",
   shaContract: "c06ef41b875238e3d9b9dd54dd49d18ff1f1fe2353820ec1605351e9212b11c3",
-  bundlePath: "C:\\Users\\FIB2030\\Documents\\VitalOS-private-hml-deploy\\ops\\FIBT_D2B_3A_CONTRACT_PRODUCTION_BUNDLE.sql",
+  bundlePath:
+    "C:\\Users\\FIB2030\\Documents\\VitalOS-private-hml-deploy\\ops\\FIBT_D2B_3A_CONTRACT_PRODUCTION_BUNDLE.sql",
   shaBundle: "9c740dfca54f253de30fd21ef61d917b72dc45236cc22f17773d0339e36f035a",
   stagingBAnchor1: "AFETADAS_ESPERADAS CONSTANT INTEGER := 16",
   stagingBAnchor2: "a0000000-0000-0000-0000-000000000001",
@@ -40,6 +43,14 @@ const CRITICAL_FILES = [
 ];
 
 const sha256 = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
+// O manifesto de migrations normaliza CRLF→LF para manter o hash estável
+// entre Windows e Linux. O handoff precisa usar a mesma identidade textual;
+// hash bruto do arquivo fazia o gate reprovar corretamente versionado em
+// worktrees Windows sem qualquer mudança semântica no SQL.
+const sha256NormalizedText = (path: string) =>
+  createHash("sha256")
+    .update(readFileSync(path, "utf8").replace(/\r\n/g, "\n"), "utf8")
+    .digest("hex");
 
 const out: Record<string, unknown> = {};
 const problems: string[] = [];
@@ -53,17 +64,21 @@ if (missing.length > 0) problems.push(`arquivos ausentes: ${missing.join(", ")}`
 let sha3A: string | null = null;
 let shaContract: string | null = null;
 try {
-  sha3A = sha256(join(ROOT, EXPECTED.files3A));
+  sha3A = sha256NormalizedText(join(ROOT, EXPECTED.files3A));
   out.sha3A_match = sha3A === EXPECTED.sha3A;
-  if (!out.sha3A_match) problems.push(`SHA da 3A divergiu: esperado ${EXPECTED.sha3A}, observado ${sha3A}`);
+  if (!out.sha3A_match)
+    problems.push(`SHA da 3A divergiu: esperado ${EXPECTED.sha3A}, observado ${sha3A}`);
 } catch {
   out.sha3A_match = false;
   problems.push("não foi possível ler a migration 3A");
 }
 try {
-  shaContract = sha256(join(ROOT, EXPECTED.fileContract));
+  shaContract = sha256NormalizedText(join(ROOT, EXPECTED.fileContract));
   out.shaContract_match = shaContract === EXPECTED.shaContract;
-  if (!out.shaContract_match) problems.push(`SHA do CONTRACT divergiu: esperado ${EXPECTED.shaContract}, observado ${shaContract}`);
+  if (!out.shaContract_match)
+    problems.push(
+      `SHA do CONTRACT divergiu: esperado ${EXPECTED.shaContract}, observado ${shaContract}`,
+    );
 } catch {
   out.shaContract_match = false;
   problems.push("não foi possível ler o CONTRACT produtivo");
@@ -78,7 +93,8 @@ if (existsSync(EXPECTED.bundlePath)) {
   }
 } else {
   out.bundle_check = "SKIPPED";
-  out.bundle_check_reason = "bundle privado não acessível nesta máquina/sessão — não é falha de integridade do repositório";
+  out.bundle_check_reason =
+    "bundle privado não acessível nesta máquina/sessão — não é falha de integridade do repositório";
 }
 
 // ── 6. CONTRACT continua sem CASCADE ────────────────────────────────────
@@ -95,7 +111,8 @@ if (shaContract) {
 
 // ── 7. 3A vem antes do CONTRACT (por nome de arquivo = por timestamp) ──
 out.order_3a_before_contract = EXPECTED.files3A < EXPECTED.fileContract;
-if (!out.order_3a_before_contract) problems.push("3A não ordena antes do CONTRACT pelo nome do arquivo");
+if (!out.order_3a_before_contract)
+  problems.push("3A não ordena antes do CONTRACT pelo nome do arquivo");
 
 // ── 8. Nenhuma referência NOVA e inesperada a invite_token em runtime ──
 const RUNTIME_FILES = [
@@ -118,7 +135,8 @@ for (const f of RUNTIME_FILES) {
   if (referenciaColuna.test(semComentario)) runtimeOffenders.push(f);
 }
 out.runtime_invite_link_references = runtimeOffenders.length;
-if (runtimeOffenders.length > 0) problems.push(`referência inesperada a invite_token em: ${runtimeOffenders.join(", ")}`);
+if (runtimeOffenders.length > 0)
+  problems.push(`referência inesperada a invite_token em: ${runtimeOffenders.join(", ")}`);
 
 // ── 9. Migration B de staging permanece distinta e intocada ────────────
 const stagingBPath = join(ROOT, EXPECTED.fileStagingB);
@@ -126,7 +144,8 @@ if (existsSync(stagingBPath)) {
   const stagingSql = readFileSync(stagingBPath, "utf8");
   out.staging_migration_b_intact =
     stagingSql.includes(EXPECTED.stagingBAnchor1) && stagingSql.includes(EXPECTED.stagingBAnchor2);
-  if (!out.staging_migration_b_intact) problems.push("Migration B de staging perdeu seus valores fixos — pode ter sido editada");
+  if (!out.staging_migration_b_intact)
+    problems.push("Migration B de staging perdeu seus valores fixos — pode ter sido editada");
 } else {
   out.staging_migration_b_intact = false;
   problems.push("Migration B de staging não encontrada");
@@ -172,16 +191,22 @@ const gatePass =
   testRun.status === 0 &&
   tscRun.status === 0;
 
-console.log(JSON.stringify({
-  HANDOFF_INTEGRITY_GATE: gatePass ? "PASS" : "FAIL",
-  REPOSITORY_MATCH: out.repository_match,
-  CRITICAL_HASHES_MATCH: out.critical_hashes_match,
-  MANIFEST_OK: out.manifest_ok,
-  TARGETED_TESTS: out.targeted_tests,
-  TSC: out.tsc,
-  BUNDLE_CHECK: out.bundle_check,
-  details: out,
-  problems,
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      HANDOFF_INTEGRITY_GATE: gatePass ? "PASS" : "FAIL",
+      REPOSITORY_MATCH: out.repository_match,
+      CRITICAL_HASHES_MATCH: out.critical_hashes_match,
+      MANIFEST_OK: out.manifest_ok,
+      TARGETED_TESTS: out.targeted_tests,
+      TSC: out.tsc,
+      BUNDLE_CHECK: out.bundle_check,
+      details: out,
+      problems,
+    },
+    null,
+    2,
+  ),
+);
 
 process.exit(gatePass ? 0 : 1);
