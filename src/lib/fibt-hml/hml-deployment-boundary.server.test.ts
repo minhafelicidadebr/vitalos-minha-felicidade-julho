@@ -29,6 +29,18 @@ const SUBMIT_SECTOR_RESPONSE: HmlServerFnMetaLike = {
   filename: "src/lib/api/sector-link.functions.ts",
   name: "submitSectorLinkResponse",
 };
+const LOAD_MANAGER_CONTROL_CENTER: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "loadFibtManagerControlCenter",
+};
+const ISSUE_MANAGER_LINK: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "issueFibtManagerSectorLink",
+};
+const REVOKE_MANAGER_LINK: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "revokeFibtManagerSectorLink",
+};
 const SUBMIT_SECTOR_RESPONSE_ID = "a".repeat(64);
 
 /** Verificador de Access sempre-válido — os testes de JWT em si vivem em cloudflare-access-jwt.server.test.ts. */
@@ -119,6 +131,44 @@ describe("4/5/6. rotas necessárias permitidas", () => {
       expect(
         assertHmlDeploymentRequestAllowed({ pathname: "/respond/s/tok-123", method, env: HML_ON }),
       ).toEqual({ allowed: true });
+    }
+  });
+
+  test("6c. somente GET/HEAD da rota exata do centro de controle são permitidos", () => {
+    for (const method of ["GET", "HEAD"]) {
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: "/fibt-piloto", method, env: HML_ON }),
+      ).toEqual({ allowed: true });
+    }
+    expect(
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/fibt-piloto/admin",
+        method: "GET",
+        env: HML_ON,
+      }),
+    ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+  });
+
+  test("6d. somente GET/HEAD das rotas exatas de autenticação HML são permitidos", () => {
+    for (const pathname of ["/entrar", "/auth/callback"]) {
+      for (const method of ["GET", "HEAD"]) {
+        expect(assertHmlDeploymentRequestAllowed({ pathname, method, env: HML_ON })).toEqual({
+          allowed: true,
+        });
+      }
+      expect(assertHmlDeploymentRequestAllowed({ pathname, method: "POST", env: HML_ON })).toEqual({
+        allowed: false,
+        status: 404,
+        reason: "HML_ROUTE_NOT_ALLOWLISTED",
+      });
+    }
+
+    for (const pathname of ["/entrar/admin", "/auth/callback/extra", "/auth/callback%2Fextra"]) {
+      expect(assertHmlDeploymentRequestAllowed({ pathname, method: "GET", env: HML_ON })).toEqual({
+        allowed: false,
+        status: 404,
+        reason: "HML_ROUTE_NOT_ALLOWLISTED",
+      });
     }
   });
 });
@@ -337,6 +387,22 @@ describe("13/14. server functions — Caminho A (identidade real via serverFnMet
         env: HML_ON,
       });
       expect(r).toEqual({ allowed: true });
+    }
+  });
+
+  test("as três server functions do centro de controle são permitidas por identidade exata", () => {
+    for (const serverFnMeta of [
+      LOAD_MANAGER_CONTROL_CENTER,
+      ISSUE_MANAGER_LINK,
+      REVOKE_MANAGER_LINK,
+    ]) {
+      const result = assertHmlDeploymentRequestAllowed({
+        pathname: "/_serverFn/qualquer-hash-resolvido",
+        method: serverFnMeta === LOAD_MANAGER_CONTROL_CENTER ? "GET" : "POST",
+        serverFnMeta,
+        env: HML_ON,
+      });
+      expect(result).toEqual({ allowed: true });
     }
   });
 
@@ -724,6 +790,9 @@ describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()",
     { filename: "src/lib/api/survey-telemetry.functions.ts", name: "loadSurveyFunnelResult" },
     RESOLVE_SECTOR_TOKEN,
     SUBMIT_SECTOR_RESPONSE,
+    LOAD_MANAGER_CONTROL_CENTER,
+    ISSUE_MANAGER_LINK,
+    REVOKE_MANAGER_LINK,
   ];
 
   test("1. HML ausente → next() sem NENHUMA verificação de JWT (verificador nunca é chamado)", async () => {
@@ -854,7 +923,7 @@ describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()",
     expect((blocked as Response).status).toBe(403);
   });
 
-  test("26. as 7 server functions HML exigem JWT ANTES do dispatch", async () => {
+  test("26. todas as server functions HML exigem JWT ANTES do dispatch", async () => {
     for (const meta of ALLOWED_SERVER_FNS) {
       let nextCalled = false;
       const blocked = await runHmlDeploymentBoundary({

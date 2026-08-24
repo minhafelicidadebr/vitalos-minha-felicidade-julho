@@ -80,6 +80,18 @@ const HML_ALLOWED_SERVER_FUNCTIONS: readonly HmlServerFnMetaLike[] = [
   { filename: "src/lib/api/survey-telemetry.functions.ts", name: "loadSurveyFunnelResult" },
   { filename: "src/lib/api/sector-link.functions.ts", name: "resolveSectorToken" },
   { filename: "src/lib/api/sector-link.functions.ts", name: "submitSectorLinkResponse" },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "loadFibtManagerControlCenter",
+  },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "issueFibtManagerSectorLink",
+  },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "revokeFibtManagerSectorLink",
+  },
 ];
 
 const SAFE_METHODS = new Set(["GET", "HEAD"]);
@@ -222,6 +234,17 @@ function isExactSectorResponseRoute(segments: readonly string[]): boolean {
   );
 }
 
+function isExactManagerControlCenterRoute(segments: readonly string[]): boolean {
+  return segments.length === 1 && segments[0] === "fibt-piloto";
+}
+
+function isExactAuthRoute(segments: readonly string[]): boolean {
+  return (
+    (segments.length === 1 && segments[0] === "entrar") ||
+    (segments.length === 2 && segments[0] === "auth" && segments[1] === "callback")
+  );
+}
+
 /**
  * Extrai o valor decodificado do parâmetro $token de um pathname
  * /convite/:token já confirmado pela allowlist — usa a MESMA decodificação
@@ -286,6 +309,8 @@ export function assertHmlDeploymentRequestAllowed(
   }
   if (isExactConviteRoute(segments)) return { allowed: true };
   if (isExactSectorResponseRoute(segments)) return { allowed: true };
+  if (isExactManagerControlCenterRoute(segments)) return { allowed: true };
+  if (isExactAuthRoute(segments)) return { allowed: true };
 
   return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
 }

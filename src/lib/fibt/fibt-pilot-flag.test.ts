@@ -135,7 +135,7 @@ describe("superfície da rota", () => {
     expect(src).toContain("EstadoDesabilitado");
     // O efeito de ?wave= tem que respeitar o gate, senão acesso direto
     // com parametro viraria contorno.
-    expect(src).toMatch(/if \(!habilitado\) return;/);
+    expect(src).toMatch(/if \(!enabled\) return;/);
   });
 
   test("a rota continua sem qualquer import de mock", () => {
