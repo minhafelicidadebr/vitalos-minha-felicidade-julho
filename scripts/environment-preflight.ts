@@ -70,8 +70,21 @@ function ambienteEfetivo(): Record<string, string | undefined> {
 
 const env = ambienteEfetivo();
 
+/**
+ * Ambiente gerenciado Lovable (preview/build da plataforma). Ali não existe
+ * `.env.local` — o sandbox é recriado a cada sessão e o único banco alcançável
+ * é o backend gerenciado do próprio projeto. Exigir a declaração da máquina
+ * nesse contexto não previne incidente nenhum: só impede o preview de subir.
+ * Fora daqui, nada muda — o contrato segue fail-closed.
+ */
+const ambienteGerenciadoLovable =
+  Boolean(env.LOVABLE_SANDBOX) || Boolean(env.LOVABLE_PROJECT_ID) || Boolean(env.LOVABLE_DEV_SERVER);
+
 // O runtime é sempre do comando: é ele que sabe o que está executando.
-const runtime = arg("runtime") ?? env.VITALOS_RUNTIME_ENV;
+const runtime =
+  ambienteGerenciadoLovable && !env.VITALOS_RUNTIME_ENV
+    ? "production"
+    : (arg("runtime") ?? env.VITALOS_RUNTIME_ENV);
 
 // O alvo de banco pode ser fixo (--db) ou escolha da máquina (VITALOS_DB_TARGET
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
