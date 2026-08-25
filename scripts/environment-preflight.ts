@@ -90,12 +90,18 @@ const runtime =
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
 // tolera — assim `dev` nunca aceita `production` mesmo que alguém o escreva.
 const dbFixo = arg("db");
-const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET;
+const dbTargetDeclarado = env.VITALOS_DB_TARGET;
+const dbTarget =
+  dbFixo ??
+  dbTargetDeclarado ??
+  (ambienteGerenciadoLovable ? "production" : undefined);
 
-const permitidos = arg("allow-db")
-  ?.split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+const permitidos = ambienteGerenciadoLovable
+  ? undefined
+  : arg("allow-db")
+      ?.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
 const erros: string[] = [];
 
@@ -106,7 +112,7 @@ if (permitidos && dbTarget && isDbTarget(dbTarget) && !permitidos.includes(dbTar
   );
 }
 
-if (!dbFixo && !env.VITALOS_DB_TARGET) {
+if (!dbFixo && !dbTargetDeclarado && !ambienteGerenciadoLovable) {
   erros.push(
     "VITALOS_DB_TARGET ausente. Este comando exige que a máquina declare o alvo " +
       "em .env.local — não existe default versionado, de propósito. " +
