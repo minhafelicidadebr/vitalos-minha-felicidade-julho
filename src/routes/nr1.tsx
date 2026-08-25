@@ -16,6 +16,8 @@ import { useLandingModal } from "@/features/landing/hooks/useLandingModal";
 import { landingIcon, TONE_CLASS } from "@/features/landing/components/icons";
 import { NR1_LANDING, type CtaAction } from "@/features/landing/data/landing-copy";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import heroPeople from "@/assets/nr1-hero-people.jpg";
+import evidenceReport from "@/assets/nr1-evidence-report.jpg";
 
 export const Route = createFileRoute("/nr1")({
   head: () => ({
@@ -33,19 +35,13 @@ const VARIANT: Record<string, "default" | "outline" | "ghost"> = {
   ghost: "ghost",
 };
 
-function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
-      <g fill="currentColor" opacity="0.9">
-        <ellipse cx="20" cy="9" rx="4" ry="7" />
-        <ellipse cx="20" cy="31" rx="4" ry="7" />
-        <ellipse cx="9" cy="20" rx="7" ry="4" />
-        <ellipse cx="31" cy="20" rx="7" ry="4" />
-      </g>
-      <circle cx="20" cy="20" r="3.2" fill="var(--color-accent)" />
-    </svg>
-  );
-}
+// Provas de método (derivadas da metodologia, não de resultados prometidos).
+const METHOD_PROOFS = [
+  { k: "COPSOQ II", label: "Bateria estruturada nas dimensões do instrumento internacional" },
+  { k: "n ≥ 5", label: "K-anonimato imposto no banco — não apenas na tela" },
+  { k: "4 lentes", label: "Jornada anual: risco, bem-comum, florescimento e forças" },
+  { k: "13 semanas", label: "Ciclo M.E.T.E. — medir, educar, transformar, evoluir" },
+];
 
 function Nr1Page() {
   const navigate = useNavigate();
@@ -94,7 +90,18 @@ function Nr1Page() {
         <FechamentoBlock fechamento={c.fechamento} onAction={onAction} />
       </main>
 
-      <footer className="border-t border-border/50 py-8">
+      {/* Barra fixa de conversão — apenas mobile, sem cobrir o rodapé legal */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/92 px-4 py-3 backdrop-blur-xl sm:hidden">
+        <Button
+          className="w-full rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90"
+          onClick={() => onAction({ kind: "modal", modal: "executive" })}
+        >
+          Avaliar a prontidão para a NR-1
+          <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />
+        </Button>
+      </div>
+
+      <footer className="border-t border-border/50 pb-24 pt-8 sm:pb-8">
         <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-3 px-6 sm:flex-row sm:items-center">
           <p className="max-w-xl text-[11px] leading-relaxed text-muted-foreground">
             VitalOS™ · Instrumento educativo de mensuração e apoio à gestão de riscos psicossociais.
@@ -135,61 +142,112 @@ function HeroBlock({
         aria-hidden
         className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px] opacity-70 [mask-image:radial-gradient(circle_at_30%_30%,black,transparent_75%)]"
       />
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="max-w-3xl"
-        >
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/70 backdrop-blur sm:text-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            {hero.eyebrow}
-          </p>
-          <h1 className="mt-6 font-serif text-[clamp(2.25rem,8vw,3.5rem)] leading-[1.04] tracking-[-0.03em] text-white">
-            {hero.headline}{" "}
-            <span className="bg-gradient-to-r from-accent via-[#d9f66f] to-emerald-300 bg-clip-text text-transparent">
-              {hero.headlineAccent}
-            </span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/[0.72] sm:text-lg">
-            {hero.sub}
-          </p>
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:py-24">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/70 backdrop-blur sm:text-xs">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent motion-reduce:animate-none" aria-hidden />
+              {hero.eyebrow}
+            </p>
+            <h1 className="mt-6 font-serif text-[clamp(2.15rem,7vw,3.4rem)] leading-[1.05] tracking-[-0.03em] text-white">
+              {hero.headline}{" "}
+              <span className="bg-gradient-to-r from-accent via-[#d9f66f] to-emerald-300 bg-clip-text text-transparent">
+                {hero.headlineAccent}
+              </span>
+            </h1>
 
-          <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
-            {hero.ctas.map((cta) => (
-              <Button
-                key={cta.label}
-                size="lg"
-                onClick={() => onAction(cta.action)}
-                className={
-                  cta.variant === "primary"
-                    ? "w-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 sm:w-auto"
-                    : "w-full border-white/25 bg-white/[0.06] text-white hover:bg-white/[0.12] sm:w-auto"
-                }
-                variant={cta.variant === "primary" ? "default" : "outline"}
-              >
-                {cta.label}
-                {cta.variant !== "primary" && <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />}
-              </Button>
-            ))}
-          </div>
+            {/* Imagem primeiro no mobile — âncora visual antes do texto denso */}
+            <div className="mt-7 lg:hidden">
+              <HeroVisual priority />
+            </div>
 
-          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Garantias da plataforma">
-            {hero.signals.map((s) => (
-              <li
-                key={s}
-                className="rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs text-white/[0.66] backdrop-blur"
-              >
-                {s}
-              </li>
-            ))}
-          </ul>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/[0.72] sm:text-lg">
+              {hero.sub}
+            </p>
 
-          <p className="mt-6 max-w-2xl text-[11px] leading-relaxed text-white/45">{hero.disclaimer}</p>
-        </motion.div>
+            <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+              {hero.ctas.map((cta) => (
+                <Button
+                  key={cta.label}
+                  size="lg"
+                  onClick={() => onAction(cta.action)}
+                  className={
+                    cta.variant === "primary"
+                      ? "w-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 transition-transform hover:bg-accent/90 motion-safe:hover:-translate-y-0.5 sm:w-auto"
+                      : "w-full border-white/25 bg-white/[0.06] text-white hover:bg-white/[0.12] sm:w-auto"
+                  }
+                  variant={cta.variant === "primary" ? "default" : "outline"}
+                >
+                  {cta.label}
+                  {cta.variant !== "primary" && <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />}
+                </Button>
+              ))}
+            </div>
+
+            <ul className="mt-8 flex flex-wrap gap-2" aria-label="Garantias da plataforma">
+              {hero.signals.map((s) => (
+                <li
+                  key={s}
+                  className="rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs text-white/[0.66] backdrop-blur"
+                >
+                  {s}
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-6 max-w-2xl text-[11px] leading-relaxed text-white/45">
+              {hero.disclaimer}
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+            className="hidden lg:block"
+          >
+            <HeroVisual priority />
+          </motion.div>
+        </div>
+
+        {/* Faixa de prova de método — reduz custo cognitivo antes do scroll */}
+        <div className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 lg:grid-cols-4">
+          {METHOD_PROOFS.map((p) => (
+            <div key={p.k} className="bg-[#03100f]/90 px-4 py-5">
+              <p className="font-serif text-xl text-accent sm:text-2xl">{p.k}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/55">{p.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+function HeroVisual({ priority = false }: { priority?: boolean }) {
+  return (
+    <figure className="relative">
+      <div className="overflow-hidden rounded-3xl border border-white/12 shadow-2xl shadow-black/50 ring-1 ring-accent/15">
+        <img
+          src={heroPeople}
+          alt="Equipe de liderança em reunião de gestão de riscos psicossociais, com visualização de dados agregados"
+          width={1536}
+          height={1024}
+          loading={priority ? "eager" : "lazy"}
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <figcaption className="absolute bottom-3 left-3 right-3 flex items-center gap-2.5 rounded-2xl border border-white/12 bg-black/55 px-3.5 py-2.5 backdrop-blur-md">
+        <ShieldCheck className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+        <span className="text-[11px] leading-snug text-white/75">
+          Escuta anônima por token · publicação agregada apenas com n ≥ 5
+        </span>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -291,9 +349,34 @@ function ComoFuncionaBlock({ como }: { como: typeof NR1_LANDING.comoFunciona }) 
           ))}
         </div>
         <Reveal delay={0.1}>
-          <div className="mx-auto mt-6 flex max-w-3xl items-start gap-3 rounded-2xl border border-primary/25 bg-primary/[0.05] px-5 py-4">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <p className="text-xs leading-relaxed text-muted-foreground">{como.note}</p>
+          <div className="mt-10 grid items-center gap-8 rounded-3xl border border-border/70 bg-card/60 p-5 shadow-sm sm:p-8 lg:grid-cols-2">
+            <figure className="order-1 overflow-hidden rounded-2xl border border-border/60 shadow-lg lg:order-none">
+              <img
+                src={evidenceReport}
+                alt="Relatório educativo NR-1 impresso ao lado de um celular exibindo a escuta anônima da onda"
+                width={1280}
+                height={1024}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </figure>
+            <div className="order-2 lg:order-none">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                O que você recebe
+              </p>
+              <h3 className="mt-2 font-serif text-2xl leading-tight text-foreground">
+                A escuta vira documento — e o documento vira decisão
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                No fim do ciclo você não fica com um gráfico solto: fica com a matriz educativa por
+                dimensão, o histórico agregado e a trilha de ação — material que o profissional
+                habilitado interpreta e assina, e que o conselho entende em uma página.
+              </p>
+              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/[0.05] px-4 py-3.5">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                <p className="text-xs leading-relaxed text-muted-foreground">{como.note}</p>
+              </div>
+            </div>
           </div>
         </Reveal>
       </div>
