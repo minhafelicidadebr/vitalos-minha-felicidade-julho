@@ -16,6 +16,8 @@ import { useLandingModal } from "@/features/landing/hooks/useLandingModal";
 import { landingIcon, TONE_CLASS } from "@/features/landing/components/icons";
 import { NR1_LANDING, type CtaAction } from "@/features/landing/data/landing-copy";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import heroPeople from "@/assets/nr1-hero-people.jpg";
+import evidenceReport from "@/assets/nr1-evidence-report.jpg";
 
 export const Route = createFileRoute("/nr1")({
   head: () => ({
