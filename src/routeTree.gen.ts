@@ -9,464 +9,94 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AcademiaRouteImport } from './routes/academia'
-import { Route as AcessoRouteImport } from './routes/acesso'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AtlasRouteImport } from './routes/atlas'
-import { Route as BenchmarkRouteImport } from './routes/benchmark'
-import { Route as ClevelRouteImport } from './routes/clevel'
-import { Route as ColaboradorRouteImport } from './routes/colaborador'
-import { Route as CondominiosRouteImport } from './routes/condominios'
-import { Route as ConfiancaRouteImport } from './routes/confianca'
-import { Route as CopilotaRouteImport } from './routes/copilota'
-import { Route as CopilotoRouteImport } from './routes/copiloto'
-import { Route as DesignSystemRouteImport } from './routes/design-system'
-import { Route as DevolutivaRouteImport } from './routes/devolutiva'
-import { Route as DiarioRouteImport } from './routes/diario'
-import { Route as DiplomaRouteImport } from './routes/diploma'
-import { Route as DriversRouteImport } from './routes/drivers'
-import { Route as EmbaixadorRouteImport } from './routes/embaixador'
-import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
-import { Route as EntrarRouteImport } from './routes/entrar'
-import { Route as EscolaRouteImport } from './routes/escola'
-import { Route as EsgRouteImport } from './routes/esg'
-import { Route as EspelhoRouteImport } from './routes/espelho'
-import { Route as EvolucaoRouteImport } from './routes/evolucao'
-import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
-import { Route as ExpedicaoRouteImport } from './routes/expedicao'
-import { Route as ExperimentosRouteImport } from './routes/experimentos'
-import { Route as FechamentoRouteImport } from './routes/fechamento'
-import { Route as FibtRouteImport } from './routes/fibt'
-import { Route as FibtPilotoRouteImport } from './routes/fibt-piloto'
-import { Route as FloresceriaRouteImport } from './routes/floresceria'
-import { Route as GovernoRouteImport } from './routes/governo'
-import { Route as HoldingRouteImport } from './routes/holding'
-import { Route as ImpactoRouteImport } from './routes/impacto'
-import { Route as IvoRouteImport } from './routes/ivo'
-import { Route as LabRouteImport } from './routes/lab'
-import { Route as LandingRouteImport } from './routes/landing'
-import { Route as LiderRouteImport } from './routes/lider'
-import { Route as LivroDoCicloRouteImport } from './routes/livro-do-ciclo'
-import { Route as LoopVivoRouteImport } from './routes/loop-vivo'
-import { Route as LupaDaEscutaRouteImport } from './routes/lupa-da-escuta'
-import { Route as MatrizRouteImport } from './routes/matriz'
-import { Route as MetodologiaRouteImport } from './routes/metodologia'
-import { Route as MissoesRouteImport } from './routes/missoes'
-import { Route as Nr1RouteImport } from './routes/nr1'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as OndaRouteImport } from './routes/onda'
-import { Route as OndasRouteImport } from './routes/ondas'
-import { Route as PainelRouteImport } from './routes/painel'
-import { Route as PanoramaRouteImport } from './routes/panorama'
-import { Route as PipelineDadosRouteImport } from './routes/pipeline-dados'
-import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
-import { Route as PlanoNr1RouteImport } from './routes/plano-nr1'
-import { Route as PlataformaRouteImport } from './routes/plataforma'
-import { Route as PnlRouteImport } from './routes/pnl'
-import { Route as PrioridadesRouteImport } from './routes/prioridades'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as PrivacidadeComercialRouteImport } from './routes/privacidade-comercial'
-import { Route as ProgramaRouteImport } from './routes/programa'
-import { Route as PulseRouteImport } from './routes/pulse'
-import { Route as QuiosqueRouteImport } from './routes/quiosque'
-import { Route as ReconhecimentoRouteImport } from './routes/reconhecimento'
-import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
-import { Route as RelatoriosRouteImport } from './routes/relatorios'
-import { Route as ResponderRouteImport } from './routes/responder'
-import { Route as RevisarRouteImport } from './routes/revisar'
-import { Route as RhRouteImport } from './routes/rh'
-import { Route as SaudeRouteImport } from './routes/saude'
-import { Route as SeloRouteImport } from './routes/selo'
-import { Route as SetoresRouteImport } from './routes/setores'
-import { Route as SinaisRouteImport } from './routes/sinais'
-import { Route as SstRouteImport } from './routes/sst'
-import { Route as TemporadaRouteImport } from './routes/temporada'
-import { Route as TrajetoriaRouteImport } from './routes/trajetoria'
-import { Route as ViatRouteImport } from './routes/viat'
-import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as VozSeguraRouteImport } from './routes/voz-segura'
-import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
-import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
-import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
+import { Route as VitrineRouteImport } from './routes/vitrine'
+import { Route as ViatRouteImport } from './routes/viat'
+import { Route as TrajetoriaRouteImport } from './routes/trajetoria'
+import { Route as TemporadaRouteImport } from './routes/temporada'
+import { Route as SstRouteImport } from './routes/sst'
+import { Route as SinaisRouteImport } from './routes/sinais'
+import { Route as SetoresRouteImport } from './routes/setores'
+import { Route as SeloRouteImport } from './routes/selo'
+import { Route as SaudeRouteImport } from './routes/saude'
+import { Route as RhRouteImport } from './routes/rh'
+import { Route as RevisarRouteImport } from './routes/revisar'
+import { Route as ResponderRouteImport } from './routes/responder'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
+import { Route as ReconhecimentoRouteImport } from './routes/reconhecimento'
+import { Route as QuiosqueRouteImport } from './routes/quiosque'
+import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as ProgramaRouteImport } from './routes/programa'
+import { Route as PrivacidadeComercialRouteImport } from './routes/privacidade-comercial'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as PrioridadesRouteImport } from './routes/prioridades'
+import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as PlataformaRouteImport } from './routes/plataforma'
+import { Route as PlanoNr1RouteImport } from './routes/plano-nr1'
+import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
+import { Route as PipelineDadosRouteImport } from './routes/pipeline-dados'
+import { Route as PanoramaRouteImport } from './routes/panorama'
+import { Route as PainelRouteImport } from './routes/painel'
+import { Route as OndasRouteImport } from './routes/ondas'
+import { Route as OndaRouteImport } from './routes/onda'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as Nr1RouteImport } from './routes/nr1'
+import { Route as MissoesRouteImport } from './routes/missoes'
+import { Route as MetodologiaRouteImport } from './routes/metodologia'
+import { Route as MatrizRouteImport } from './routes/matriz'
+import { Route as LupaDaEscutaRouteImport } from './routes/lupa-da-escuta'
+import { Route as LoopVivoRouteImport } from './routes/loop-vivo'
+import { Route as LivroDoCicloRouteImport } from './routes/livro-do-ciclo'
+import { Route as LiderRouteImport } from './routes/lider'
+import { Route as LandingRouteImport } from './routes/landing'
+import { Route as LabRouteImport } from './routes/lab'
+import { Route as IvoRouteImport } from './routes/ivo'
+import { Route as ImpactoRouteImport } from './routes/impacto'
+import { Route as HoldingRouteImport } from './routes/holding'
+import { Route as GovernoRouteImport } from './routes/governo'
+import { Route as FloresceriaRouteImport } from './routes/floresceria'
+import { Route as FibtPilotoRouteImport } from './routes/fibt-piloto'
+import { Route as FibtRouteImport } from './routes/fibt'
+import { Route as FechamentoRouteImport } from './routes/fechamento'
+import { Route as ExperimentosRouteImport } from './routes/experimentos'
+import { Route as ExpedicaoRouteImport } from './routes/expedicao'
+import { Route as EvolucaoNr1RouteImport } from './routes/evolucao-nr1'
+import { Route as EvolucaoRouteImport } from './routes/evolucao'
+import { Route as EspelhoRouteImport } from './routes/espelho'
+import { Route as EsgRouteImport } from './routes/esg'
+import { Route as EscolaRouteImport } from './routes/escola'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EmbaixadoriasRouteImport } from './routes/embaixadorias'
+import { Route as EmbaixadorRouteImport } from './routes/embaixador'
+import { Route as DriversRouteImport } from './routes/drivers'
+import { Route as DiplomaRouteImport } from './routes/diploma'
+import { Route as DiarioRouteImport } from './routes/diario'
+import { Route as DevolutivaRouteImport } from './routes/devolutiva'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as CopilotoRouteImport } from './routes/copiloto'
+import { Route as CopilotaRouteImport } from './routes/copilota'
+import { Route as ConfiancaRouteImport } from './routes/confianca'
+import { Route as CondominiosRouteImport } from './routes/condominios'
+import { Route as ColaboradorRouteImport } from './routes/colaborador'
+import { Route as ClevelRouteImport } from './routes/clevel'
+import { Route as BenchmarkRouteImport } from './routes/benchmark'
+import { Route as AtlasRouteImport } from './routes/atlas'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AcessoRouteImport } from './routes/acesso'
+import { Route as AcademiaRouteImport } from './routes/academia'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
-import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
+import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
+import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcademiaRoute = AcademiaRouteImport.update({
-  id: '/academia',
-  path: '/academia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcessoRoute = AcessoRouteImport.update({
-  id: '/acesso',
-  path: '/acesso',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AtlasRoute = AtlasRouteImport.update({
-  id: '/atlas',
-  path: '/atlas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BenchmarkRoute = BenchmarkRouteImport.update({
-  id: '/benchmark',
-  path: '/benchmark',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClevelRoute = ClevelRouteImport.update({
-  id: '/clevel',
-  path: '/clevel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ColaboradorRoute = ColaboradorRouteImport.update({
-  id: '/colaborador',
-  path: '/colaborador',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CondominiosRoute = CondominiosRouteImport.update({
-  id: '/condominios',
-  path: '/condominios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiancaRoute = ConfiancaRouteImport.update({
-  id: '/confianca',
-  path: '/confianca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CopilotaRoute = CopilotaRouteImport.update({
-  id: '/copilota',
-  path: '/copilota',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CopilotoRoute = CopilotoRouteImport.update({
-  id: '/copiloto',
-  path: '/copiloto',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignSystemRoute = DesignSystemRouteImport.update({
-  id: '/design-system',
-  path: '/design-system',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevolutivaRoute = DevolutivaRouteImport.update({
-  id: '/devolutiva',
-  path: '/devolutiva',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiarioRoute = DiarioRouteImport.update({
-  id: '/diario',
-  path: '/diario',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiplomaRoute = DiplomaRouteImport.update({
-  id: '/diploma',
-  path: '/diploma',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DriversRoute = DriversRouteImport.update({
-  id: '/drivers',
-  path: '/drivers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmbaixadorRoute = EmbaixadorRouteImport.update({
-  id: '/embaixador',
-  path: '/embaixador',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
-  id: '/embaixadorias',
-  path: '/embaixadorias',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntrarRoute = EntrarRouteImport.update({
-  id: '/entrar',
-  path: '/entrar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EscolaRoute = EscolaRouteImport.update({
-  id: '/escola',
-  path: '/escola',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EsgRoute = EsgRouteImport.update({
-  id: '/esg',
-  path: '/esg',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EspelhoRoute = EspelhoRouteImport.update({
-  id: '/espelho',
-  path: '/espelho',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EvolucaoRoute = EvolucaoRouteImport.update({
-  id: '/evolucao',
-  path: '/evolucao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EvolucaoNr1Route = EvolucaoNr1RouteImport.update({
-  id: '/evolucao-nr1',
-  path: '/evolucao-nr1',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExpedicaoRoute = ExpedicaoRouteImport.update({
-  id: '/expedicao',
-  path: '/expedicao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExperimentosRoute = ExperimentosRouteImport.update({
-  id: '/experimentos',
-  path: '/experimentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FechamentoRoute = FechamentoRouteImport.update({
-  id: '/fechamento',
-  path: '/fechamento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FibtRoute = FibtRouteImport.update({
-  id: '/fibt',
-  path: '/fibt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FibtPilotoRoute = FibtPilotoRouteImport.update({
-  id: '/fibt-piloto',
-  path: '/fibt-piloto',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FloresceriaRoute = FloresceriaRouteImport.update({
-  id: '/floresceria',
-  path: '/floresceria',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GovernoRoute = GovernoRouteImport.update({
-  id: '/governo',
-  path: '/governo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HoldingRoute = HoldingRouteImport.update({
-  id: '/holding',
-  path: '/holding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImpactoRoute = ImpactoRouteImport.update({
-  id: '/impacto',
-  path: '/impacto',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IvoRoute = IvoRouteImport.update({
-  id: '/ivo',
-  path: '/ivo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LabRoute = LabRouteImport.update({
-  id: '/lab',
-  path: '/lab',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LandingRoute = LandingRouteImport.update({
-  id: '/landing',
-  path: '/landing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LiderRoute = LiderRouteImport.update({
-  id: '/lider',
-  path: '/lider',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LivroDoCicloRoute = LivroDoCicloRouteImport.update({
-  id: '/livro-do-ciclo',
-  path: '/livro-do-ciclo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoopVivoRoute = LoopVivoRouteImport.update({
-  id: '/loop-vivo',
-  path: '/loop-vivo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LupaDaEscutaRoute = LupaDaEscutaRouteImport.update({
-  id: '/lupa-da-escuta',
-  path: '/lupa-da-escuta',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatrizRoute = MatrizRouteImport.update({
-  id: '/matriz',
-  path: '/matriz',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MetodologiaRoute = MetodologiaRouteImport.update({
-  id: '/metodologia',
-  path: '/metodologia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MissoesRoute = MissoesRouteImport.update({
-  id: '/missoes',
-  path: '/missoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Nr1Route = Nr1RouteImport.update({
-  id: '/nr1',
-  path: '/nr1',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OndaRoute = OndaRouteImport.update({
-  id: '/onda',
-  path: '/onda',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OndasRoute = OndasRouteImport.update({
-  id: '/ondas',
-  path: '/ondas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PainelRoute = PainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PanoramaRoute = PanoramaRouteImport.update({
-  id: '/panorama',
-  path: '/panorama',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PipelineDadosRoute = PipelineDadosRouteImport.update({
-  id: '/pipeline-dados',
-  path: '/pipeline-dados',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanoAcaoRoute = PlanoAcaoRouteImport.update({
-  id: '/plano-acao',
-  path: '/plano-acao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanoNr1Route = PlanoNr1RouteImport.update({
-  id: '/plano-nr1',
-  path: '/plano-nr1',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlataformaRoute = PlataformaRouteImport.update({
-  id: '/plataforma',
-  path: '/plataforma',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PnlRoute = PnlRouteImport.update({
-  id: '/pnl',
-  path: '/pnl',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrioridadesRoute = PrioridadesRouteImport.update({
-  id: '/prioridades',
-  path: '/prioridades',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeComercialRoute = PrivacidadeComercialRouteImport.update({
-  id: '/privacidade-comercial',
-  path: '/privacidade-comercial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProgramaRoute = ProgramaRouteImport.update({
-  id: '/programa',
-  path: '/programa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PulseRoute = PulseRouteImport.update({
-  id: '/pulse',
-  path: '/pulse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuiosqueRoute = QuiosqueRouteImport.update({
-  id: '/quiosque',
-  path: '/quiosque',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReconhecimentoRoute = ReconhecimentoRouteImport.update({
-  id: '/reconhecimento',
-  path: '/reconhecimento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RelatorioGlobalRoute = RelatorioGlobalRouteImport.update({
-  id: '/relatorio-global',
-  path: '/relatorio-global',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RelatoriosRoute = RelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResponderRoute = ResponderRouteImport.update({
-  id: '/responder',
-  path: '/responder',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RevisarRoute = RevisarRouteImport.update({
-  id: '/revisar',
-  path: '/revisar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RhRoute = RhRouteImport.update({
-  id: '/rh',
-  path: '/rh',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SaudeRoute = SaudeRouteImport.update({
-  id: '/saude',
-  path: '/saude',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SeloRoute = SeloRouteImport.update({
-  id: '/selo',
-  path: '/selo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SetoresRoute = SetoresRouteImport.update({
-  id: '/setores',
-  path: '/setores',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SinaisRoute = SinaisRouteImport.update({
-  id: '/sinais',
-  path: '/sinais',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SstRoute = SstRouteImport.update({
-  id: '/sst',
-  path: '/sst',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TemporadaRoute = TemporadaRouteImport.update({
-  id: '/temporada',
-  path: '/temporada',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrajetoriaRoute = TrajetoriaRouteImport.update({
-  id: '/trajetoria',
-  path: '/trajetoria',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ViatRoute = ViatRouteImport.update({
-  id: '/viat',
-  path: '/viat',
+const VozSeguraRoute = VozSeguraRouteImport.update({
+  id: '/voz-segura',
+  path: '/voz-segura',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VitrineRoute = VitrineRouteImport.update({
@@ -474,29 +104,379 @@ const VitrineRoute = VitrineRouteImport.update({
   path: '/vitrine',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VozSeguraRoute = VozSeguraRouteImport.update({
-  id: '/voz-segura',
-  path: '/voz-segura',
+const ViatRoute = ViatRouteImport.update({
+  id: '/viat',
+  path: '/viat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AceitarConviteTokenRoute = AceitarConviteTokenRouteImport.update({
-  id: '/aceitar-convite/$token',
-  path: '/aceitar-convite/$token',
+const TrajetoriaRoute = TrajetoriaRouteImport.update({
+  id: '/trajetoria',
+  path: '/trajetoria',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AtivarTokenRoute = AtivarTokenRouteImport.update({
-  id: '/ativar/$token',
-  path: '/ativar/$token',
+const TemporadaRoute = TemporadaRouteImport.update({
+  id: '/temporada',
+  path: '/temporada',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
+const SstRoute = SstRouteImport.update({
+  id: '/sst',
+  path: '/sst',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConviteTokenRoute = ConviteTokenRouteImport.update({
-  id: '/convite/$token',
-  path: '/convite/$token',
+const SinaisRoute = SinaisRouteImport.update({
+  id: '/sinais',
+  path: '/sinais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetoresRoute = SetoresRouteImport.update({
+  id: '/setores',
+  path: '/setores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeloRoute = SeloRouteImport.update({
+  id: '/selo',
+  path: '/selo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaudeRoute = SaudeRouteImport.update({
+  id: '/saude',
+  path: '/saude',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RhRoute = RhRouteImport.update({
+  id: '/rh',
+  path: '/rh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RevisarRoute = RevisarRouteImport.update({
+  id: '/revisar',
+  path: '/revisar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResponderRoute = ResponderRouteImport.update({
+  id: '/responder',
+  path: '/responder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatorioGlobalRoute = RelatorioGlobalRouteImport.update({
+  id: '/relatorio-global',
+  path: '/relatorio-global',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReconhecimentoRoute = ReconhecimentoRouteImport.update({
+  id: '/reconhecimento',
+  path: '/reconhecimento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuiosqueRoute = QuiosqueRouteImport.update({
+  id: '/quiosque',
+  path: '/quiosque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PulseRoute = PulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramaRoute = ProgramaRouteImport.update({
+  id: '/programa',
+  path: '/programa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeComercialRoute = PrivacidadeComercialRouteImport.update({
+  id: '/privacidade-comercial',
+  path: '/privacidade-comercial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrioridadesRoute = PrioridadesRouteImport.update({
+  id: '/prioridades',
+  path: '/prioridades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlRoute = PnlRouteImport.update({
+  id: '/pnl',
+  path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlataformaRoute = PlataformaRouteImport.update({
+  id: '/plataforma',
+  path: '/plataforma',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoNr1Route = PlanoNr1RouteImport.update({
+  id: '/plano-nr1',
+  path: '/plano-nr1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoAcaoRoute = PlanoAcaoRouteImport.update({
+  id: '/plano-acao',
+  path: '/plano-acao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PipelineDadosRoute = PipelineDadosRouteImport.update({
+  id: '/pipeline-dados',
+  path: '/pipeline-dados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanoramaRoute = PanoramaRouteImport.update({
+  id: '/panorama',
+  path: '/panorama',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OndasRoute = OndasRouteImport.update({
+  id: '/ondas',
+  path: '/ondas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OndaRoute = OndaRouteImport.update({
+  id: '/onda',
+  path: '/onda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Nr1Route = Nr1RouteImport.update({
+  id: '/nr1',
+  path: '/nr1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissoesRoute = MissoesRouteImport.update({
+  id: '/missoes',
+  path: '/missoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetodologiaRoute = MetodologiaRouteImport.update({
+  id: '/metodologia',
+  path: '/metodologia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatrizRoute = MatrizRouteImport.update({
+  id: '/matriz',
+  path: '/matriz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LupaDaEscutaRoute = LupaDaEscutaRouteImport.update({
+  id: '/lupa-da-escuta',
+  path: '/lupa-da-escuta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoopVivoRoute = LoopVivoRouteImport.update({
+  id: '/loop-vivo',
+  path: '/loop-vivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LivroDoCicloRoute = LivroDoCicloRouteImport.update({
+  id: '/livro-do-ciclo',
+  path: '/livro-do-ciclo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiderRoute = LiderRouteImport.update({
+  id: '/lider',
+  path: '/lider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoRoute = IvoRouteImport.update({
+  id: '/ivo',
+  path: '/ivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpactoRoute = ImpactoRouteImport.update({
+  id: '/impacto',
+  path: '/impacto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HoldingRoute = HoldingRouteImport.update({
+  id: '/holding',
+  path: '/holding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernoRoute = GovernoRouteImport.update({
+  id: '/governo',
+  path: '/governo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FloresceriaRoute = FloresceriaRouteImport.update({
+  id: '/floresceria',
+  path: '/floresceria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FibtPilotoRoute = FibtPilotoRouteImport.update({
+  id: '/fibt-piloto',
+  path: '/fibt-piloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FibtRoute = FibtRouteImport.update({
+  id: '/fibt',
+  path: '/fibt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FechamentoRoute = FechamentoRouteImport.update({
+  id: '/fechamento',
+  path: '/fechamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExperimentosRoute = ExperimentosRouteImport.update({
+  id: '/experimentos',
+  path: '/experimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpedicaoRoute = ExpedicaoRouteImport.update({
+  id: '/expedicao',
+  path: '/expedicao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvolucaoNr1Route = EvolucaoNr1RouteImport.update({
+  id: '/evolucao-nr1',
+  path: '/evolucao-nr1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvolucaoRoute = EvolucaoRouteImport.update({
+  id: '/evolucao',
+  path: '/evolucao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspelhoRoute = EspelhoRouteImport.update({
+  id: '/espelho',
+  path: '/espelho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EsgRoute = EsgRouteImport.update({
+  id: '/esg',
+  path: '/esg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscolaRoute = EscolaRouteImport.update({
+  id: '/escola',
+  path: '/escola',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbaixadoriasRoute = EmbaixadoriasRouteImport.update({
+  id: '/embaixadorias',
+  path: '/embaixadorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbaixadorRoute = EmbaixadorRouteImport.update({
+  id: '/embaixador',
+  path: '/embaixador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriversRoute = DriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiplomaRoute = DiplomaRouteImport.update({
+  id: '/diploma',
+  path: '/diploma',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiarioRoute = DiarioRouteImport.update({
+  id: '/diario',
+  path: '/diario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevolutivaRoute = DevolutivaRouteImport.update({
+  id: '/devolutiva',
+  path: '/devolutiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopilotoRoute = CopilotoRouteImport.update({
+  id: '/copiloto',
+  path: '/copiloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopilotaRoute = CopilotaRouteImport.update({
+  id: '/copilota',
+  path: '/copilota',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiancaRoute = ConfiancaRouteImport.update({
+  id: '/confianca',
+  path: '/confianca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CondominiosRoute = CondominiosRouteImport.update({
+  id: '/condominios',
+  path: '/condominios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ColaboradorRoute = ColaboradorRouteImport.update({
+  id: '/colaborador',
+  path: '/colaborador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClevelRoute = ClevelRouteImport.update({
+  id: '/clevel',
+  path: '/clevel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BenchmarkRoute = BenchmarkRouteImport.update({
+  id: '/benchmark',
+  path: '/benchmark',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtlasRoute = AtlasRouteImport.update({
+  id: '/atlas',
+  path: '/atlas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcessoRoute = AcessoRouteImport.update({
+  id: '/acesso',
+  path: '/acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademiaRoute = AcademiaRouteImport.update({
+  id: '/academia',
+  path: '/academia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
@@ -504,14 +484,34 @@ const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   path: '/driver/$driverId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiFibtHmlAttestationRoute = ApiFibtHmlAttestationRouteImport.update({
-  id: '/api/fibt-hml/attestation',
-  path: '/api/fibt-hml/attestation',
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtivarTokenRoute = AtivarTokenRouteImport.update({
+  id: '/ativar/$token',
+  path: '/ativar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AceitarConviteTokenRoute = AceitarConviteTokenRouteImport.update({
+  id: '/aceitar-convite/$token',
+  path: '/aceitar-convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RespondSTokenRoute = RespondSTokenRouteImport.update({
   id: '/respond/s/$token',
   path: '/respond/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFibtHmlAttestationRoute = ApiFibtHmlAttestationRouteImport.update({
+  id: '/api/fibt-hml/attestation',
+  path: '/api/fibt-hml/attestation',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -1124,529 +1124,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/academia': {
-      id: '/academia'
-      path: '/academia'
-      fullPath: '/academia'
-      preLoaderRoute: typeof AcademiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/acesso': {
-      id: '/acesso'
-      path: '/acesso'
-      fullPath: '/acesso'
-      preLoaderRoute: typeof AcessoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/atlas': {
-      id: '/atlas'
-      path: '/atlas'
-      fullPath: '/atlas'
-      preLoaderRoute: typeof AtlasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/benchmark': {
-      id: '/benchmark'
-      path: '/benchmark'
-      fullPath: '/benchmark'
-      preLoaderRoute: typeof BenchmarkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clevel': {
-      id: '/clevel'
-      path: '/clevel'
-      fullPath: '/clevel'
-      preLoaderRoute: typeof ClevelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/colaborador': {
-      id: '/colaborador'
-      path: '/colaborador'
-      fullPath: '/colaborador'
-      preLoaderRoute: typeof ColaboradorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/condominios': {
-      id: '/condominios'
-      path: '/condominios'
-      fullPath: '/condominios'
-      preLoaderRoute: typeof CondominiosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/confianca': {
-      id: '/confianca'
-      path: '/confianca'
-      fullPath: '/confianca'
-      preLoaderRoute: typeof ConfiancaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/copilota': {
-      id: '/copilota'
-      path: '/copilota'
-      fullPath: '/copilota'
-      preLoaderRoute: typeof CopilotaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/copiloto': {
-      id: '/copiloto'
-      path: '/copiloto'
-      fullPath: '/copiloto'
-      preLoaderRoute: typeof CopilotoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design-system': {
-      id: '/design-system'
-      path: '/design-system'
-      fullPath: '/design-system'
-      preLoaderRoute: typeof DesignSystemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/devolutiva': {
-      id: '/devolutiva'
-      path: '/devolutiva'
-      fullPath: '/devolutiva'
-      preLoaderRoute: typeof DevolutivaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diario': {
-      id: '/diario'
-      path: '/diario'
-      fullPath: '/diario'
-      preLoaderRoute: typeof DiarioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diploma': {
-      id: '/diploma'
-      path: '/diploma'
-      fullPath: '/diploma'
-      preLoaderRoute: typeof DiplomaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/drivers': {
-      id: '/drivers'
-      path: '/drivers'
-      fullPath: '/drivers'
-      preLoaderRoute: typeof DriversRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/embaixador': {
-      id: '/embaixador'
-      path: '/embaixador'
-      fullPath: '/embaixador'
-      preLoaderRoute: typeof EmbaixadorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/embaixadorias': {
-      id: '/embaixadorias'
-      path: '/embaixadorias'
-      fullPath: '/embaixadorias'
-      preLoaderRoute: typeof EmbaixadoriasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/entrar': {
-      id: '/entrar'
-      path: '/entrar'
-      fullPath: '/entrar'
-      preLoaderRoute: typeof EntrarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/escola': {
-      id: '/escola'
-      path: '/escola'
-      fullPath: '/escola'
-      preLoaderRoute: typeof EscolaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/esg': {
-      id: '/esg'
-      path: '/esg'
-      fullPath: '/esg'
-      preLoaderRoute: typeof EsgRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/espelho': {
-      id: '/espelho'
-      path: '/espelho'
-      fullPath: '/espelho'
-      preLoaderRoute: typeof EspelhoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/evolucao': {
-      id: '/evolucao'
-      path: '/evolucao'
-      fullPath: '/evolucao'
-      preLoaderRoute: typeof EvolucaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/evolucao-nr1': {
-      id: '/evolucao-nr1'
-      path: '/evolucao-nr1'
-      fullPath: '/evolucao-nr1'
-      preLoaderRoute: typeof EvolucaoNr1RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/expedicao': {
-      id: '/expedicao'
-      path: '/expedicao'
-      fullPath: '/expedicao'
-      preLoaderRoute: typeof ExpedicaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/experimentos': {
-      id: '/experimentos'
-      path: '/experimentos'
-      fullPath: '/experimentos'
-      preLoaderRoute: typeof ExperimentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fechamento': {
-      id: '/fechamento'
-      path: '/fechamento'
-      fullPath: '/fechamento'
-      preLoaderRoute: typeof FechamentoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fibt': {
-      id: '/fibt'
-      path: '/fibt'
-      fullPath: '/fibt'
-      preLoaderRoute: typeof FibtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fibt-piloto': {
-      id: '/fibt-piloto'
-      path: '/fibt-piloto'
-      fullPath: '/fibt-piloto'
-      preLoaderRoute: typeof FibtPilotoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/floresceria': {
-      id: '/floresceria'
-      path: '/floresceria'
-      fullPath: '/floresceria'
-      preLoaderRoute: typeof FloresceriaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/governo': {
-      id: '/governo'
-      path: '/governo'
-      fullPath: '/governo'
-      preLoaderRoute: typeof GovernoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/holding': {
-      id: '/holding'
-      path: '/holding'
-      fullPath: '/holding'
-      preLoaderRoute: typeof HoldingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/impacto': {
-      id: '/impacto'
-      path: '/impacto'
-      fullPath: '/impacto'
-      preLoaderRoute: typeof ImpactoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ivo': {
-      id: '/ivo'
-      path: '/ivo'
-      fullPath: '/ivo'
-      preLoaderRoute: typeof IvoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lab': {
-      id: '/lab'
-      path: '/lab'
-      fullPath: '/lab'
-      preLoaderRoute: typeof LabRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/landing': {
-      id: '/landing'
-      path: '/landing'
-      fullPath: '/landing'
-      preLoaderRoute: typeof LandingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lider': {
-      id: '/lider'
-      path: '/lider'
-      fullPath: '/lider'
-      preLoaderRoute: typeof LiderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/livro-do-ciclo': {
-      id: '/livro-do-ciclo'
-      path: '/livro-do-ciclo'
-      fullPath: '/livro-do-ciclo'
-      preLoaderRoute: typeof LivroDoCicloRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loop-vivo': {
-      id: '/loop-vivo'
-      path: '/loop-vivo'
-      fullPath: '/loop-vivo'
-      preLoaderRoute: typeof LoopVivoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lupa-da-escuta': {
-      id: '/lupa-da-escuta'
-      path: '/lupa-da-escuta'
-      fullPath: '/lupa-da-escuta'
-      preLoaderRoute: typeof LupaDaEscutaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/matriz': {
-      id: '/matriz'
-      path: '/matriz'
-      fullPath: '/matriz'
-      preLoaderRoute: typeof MatrizRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/metodologia': {
-      id: '/metodologia'
-      path: '/metodologia'
-      fullPath: '/metodologia'
-      preLoaderRoute: typeof MetodologiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/missoes': {
-      id: '/missoes'
-      path: '/missoes'
-      fullPath: '/missoes'
-      preLoaderRoute: typeof MissoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nr1': {
-      id: '/nr1'
-      path: '/nr1'
-      fullPath: '/nr1'
-      preLoaderRoute: typeof Nr1RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onda': {
-      id: '/onda'
-      path: '/onda'
-      fullPath: '/onda'
-      preLoaderRoute: typeof OndaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ondas': {
-      id: '/ondas'
-      path: '/ondas'
-      fullPath: '/ondas'
-      preLoaderRoute: typeof OndasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/painel': {
-      id: '/painel'
-      path: '/painel'
-      fullPath: '/painel'
-      preLoaderRoute: typeof PainelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/panorama': {
-      id: '/panorama'
-      path: '/panorama'
-      fullPath: '/panorama'
-      preLoaderRoute: typeof PanoramaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pipeline-dados': {
-      id: '/pipeline-dados'
-      path: '/pipeline-dados'
-      fullPath: '/pipeline-dados'
-      preLoaderRoute: typeof PipelineDadosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plano-acao': {
-      id: '/plano-acao'
-      path: '/plano-acao'
-      fullPath: '/plano-acao'
-      preLoaderRoute: typeof PlanoAcaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plano-nr1': {
-      id: '/plano-nr1'
-      path: '/plano-nr1'
-      fullPath: '/plano-nr1'
-      preLoaderRoute: typeof PlanoNr1RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plataforma': {
-      id: '/plataforma'
-      path: '/plataforma'
-      fullPath: '/plataforma'
-      preLoaderRoute: typeof PlataformaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pnl': {
-      id: '/pnl'
-      path: '/pnl'
-      fullPath: '/pnl'
-      preLoaderRoute: typeof PnlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prioridades': {
-      id: '/prioridades'
-      path: '/prioridades'
-      fullPath: '/prioridades'
-      preLoaderRoute: typeof PrioridadesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade-comercial': {
-      id: '/privacidade-comercial'
-      path: '/privacidade-comercial'
-      fullPath: '/privacidade-comercial'
-      preLoaderRoute: typeof PrivacidadeComercialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/programa': {
-      id: '/programa'
-      path: '/programa'
-      fullPath: '/programa'
-      preLoaderRoute: typeof ProgramaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pulse': {
-      id: '/pulse'
-      path: '/pulse'
-      fullPath: '/pulse'
-      preLoaderRoute: typeof PulseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quiosque': {
-      id: '/quiosque'
-      path: '/quiosque'
-      fullPath: '/quiosque'
-      preLoaderRoute: typeof QuiosqueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reconhecimento': {
-      id: '/reconhecimento'
-      path: '/reconhecimento'
-      fullPath: '/reconhecimento'
-      preLoaderRoute: typeof ReconhecimentoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/relatorio-global': {
-      id: '/relatorio-global'
-      path: '/relatorio-global'
-      fullPath: '/relatorio-global'
-      preLoaderRoute: typeof RelatorioGlobalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/relatorios': {
-      id: '/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof RelatoriosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/responder': {
-      id: '/responder'
-      path: '/responder'
-      fullPath: '/responder'
-      preLoaderRoute: typeof ResponderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/revisar': {
-      id: '/revisar'
-      path: '/revisar'
-      fullPath: '/revisar'
-      preLoaderRoute: typeof RevisarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rh': {
-      id: '/rh'
-      path: '/rh'
-      fullPath: '/rh'
-      preLoaderRoute: typeof RhRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/saude': {
-      id: '/saude'
-      path: '/saude'
-      fullPath: '/saude'
-      preLoaderRoute: typeof SaudeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/selo': {
-      id: '/selo'
-      path: '/selo'
-      fullPath: '/selo'
-      preLoaderRoute: typeof SeloRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/setores': {
-      id: '/setores'
-      path: '/setores'
-      fullPath: '/setores'
-      preLoaderRoute: typeof SetoresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sinais': {
-      id: '/sinais'
-      path: '/sinais'
-      fullPath: '/sinais'
-      preLoaderRoute: typeof SinaisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sst': {
-      id: '/sst'
-      path: '/sst'
-      fullPath: '/sst'
-      preLoaderRoute: typeof SstRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/temporada': {
-      id: '/temporada'
-      path: '/temporada'
-      fullPath: '/temporada'
-      preLoaderRoute: typeof TemporadaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trajetoria': {
-      id: '/trajetoria'
-      path: '/trajetoria'
-      fullPath: '/trajetoria'
-      preLoaderRoute: typeof TrajetoriaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/viat': {
-      id: '/viat'
-      path: '/viat'
-      fullPath: '/viat'
-      preLoaderRoute: typeof ViatRouteImport
+    '/voz-segura': {
+      id: '/voz-segura'
+      path: '/voz-segura'
+      fullPath: '/voz-segura'
+      preLoaderRoute: typeof VozSeguraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vitrine': {
@@ -1656,39 +1138,529 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VitrineRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/voz-segura': {
-      id: '/voz-segura'
-      path: '/voz-segura'
-      fullPath: '/voz-segura'
-      preLoaderRoute: typeof VozSeguraRouteImport
+    '/viat': {
+      id: '/viat'
+      path: '/viat'
+      fullPath: '/viat'
+      preLoaderRoute: typeof ViatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/aceitar-convite/$token': {
-      id: '/aceitar-convite/$token'
-      path: '/aceitar-convite/$token'
-      fullPath: '/aceitar-convite/$token'
-      preLoaderRoute: typeof AceitarConviteTokenRouteImport
+    '/trajetoria': {
+      id: '/trajetoria'
+      path: '/trajetoria'
+      fullPath: '/trajetoria'
+      preLoaderRoute: typeof TrajetoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ativar/$token': {
-      id: '/ativar/$token'
-      path: '/ativar/$token'
-      fullPath: '/ativar/$token'
-      preLoaderRoute: typeof AtivarTokenRouteImport
+    '/temporada': {
+      id: '/temporada'
+      path: '/temporada'
+      fullPath: '/temporada'
+      preLoaderRoute: typeof TemporadaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
+    '/sst': {
+      id: '/sst'
+      path: '/sst'
+      fullPath: '/sst'
+      preLoaderRoute: typeof SstRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/convite/$token': {
-      id: '/convite/$token'
-      path: '/convite/$token'
-      fullPath: '/convite/$token'
-      preLoaderRoute: typeof ConviteTokenRouteImport
+    '/sinais': {
+      id: '/sinais'
+      path: '/sinais'
+      fullPath: '/sinais'
+      preLoaderRoute: typeof SinaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setores': {
+      id: '/setores'
+      path: '/setores'
+      fullPath: '/setores'
+      preLoaderRoute: typeof SetoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selo': {
+      id: '/selo'
+      path: '/selo'
+      fullPath: '/selo'
+      preLoaderRoute: typeof SeloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saude': {
+      id: '/saude'
+      path: '/saude'
+      fullPath: '/saude'
+      preLoaderRoute: typeof SaudeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rh': {
+      id: '/rh'
+      path: '/rh'
+      fullPath: '/rh'
+      preLoaderRoute: typeof RhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/revisar': {
+      id: '/revisar'
+      path: '/revisar'
+      fullPath: '/revisar'
+      preLoaderRoute: typeof RevisarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/responder': {
+      id: '/responder'
+      path: '/responder'
+      fullPath: '/responder'
+      preLoaderRoute: typeof ResponderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorio-global': {
+      id: '/relatorio-global'
+      path: '/relatorio-global'
+      fullPath: '/relatorio-global'
+      preLoaderRoute: typeof RelatorioGlobalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reconhecimento': {
+      id: '/reconhecimento'
+      path: '/reconhecimento'
+      fullPath: '/reconhecimento'
+      preLoaderRoute: typeof ReconhecimentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiosque': {
+      id: '/quiosque'
+      path: '/quiosque'
+      fullPath: '/quiosque'
+      preLoaderRoute: typeof QuiosqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pulse': {
+      id: '/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof PulseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programa': {
+      id: '/programa'
+      path: '/programa'
+      fullPath: '/programa'
+      preLoaderRoute: typeof ProgramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade-comercial': {
+      id: '/privacidade-comercial'
+      path: '/privacidade-comercial'
+      fullPath: '/privacidade-comercial'
+      preLoaderRoute: typeof PrivacidadeComercialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prioridades': {
+      id: '/prioridades'
+      path: '/prioridades'
+      fullPath: '/prioridades'
+      preLoaderRoute: typeof PrioridadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl': {
+      id: '/pnl'
+      path: '/pnl'
+      fullPath: '/pnl'
+      preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plataforma': {
+      id: '/plataforma'
+      path: '/plataforma'
+      fullPath: '/plataforma'
+      preLoaderRoute: typeof PlataformaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano-nr1': {
+      id: '/plano-nr1'
+      path: '/plano-nr1'
+      fullPath: '/plano-nr1'
+      preLoaderRoute: typeof PlanoNr1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano-acao': {
+      id: '/plano-acao'
+      path: '/plano-acao'
+      fullPath: '/plano-acao'
+      preLoaderRoute: typeof PlanoAcaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipeline-dados': {
+      id: '/pipeline-dados'
+      path: '/pipeline-dados'
+      fullPath: '/pipeline-dados'
+      preLoaderRoute: typeof PipelineDadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panorama': {
+      id: '/panorama'
+      path: '/panorama'
+      fullPath: '/panorama'
+      preLoaderRoute: typeof PanoramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ondas': {
+      id: '/ondas'
+      path: '/ondas'
+      fullPath: '/ondas'
+      preLoaderRoute: typeof OndasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onda': {
+      id: '/onda'
+      path: '/onda'
+      fullPath: '/onda'
+      preLoaderRoute: typeof OndaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nr1': {
+      id: '/nr1'
+      path: '/nr1'
+      fullPath: '/nr1'
+      preLoaderRoute: typeof Nr1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missoes': {
+      id: '/missoes'
+      path: '/missoes'
+      fullPath: '/missoes'
+      preLoaderRoute: typeof MissoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metodologia': {
+      id: '/metodologia'
+      path: '/metodologia'
+      fullPath: '/metodologia'
+      preLoaderRoute: typeof MetodologiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matriz': {
+      id: '/matriz'
+      path: '/matriz'
+      fullPath: '/matriz'
+      preLoaderRoute: typeof MatrizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lupa-da-escuta': {
+      id: '/lupa-da-escuta'
+      path: '/lupa-da-escuta'
+      fullPath: '/lupa-da-escuta'
+      preLoaderRoute: typeof LupaDaEscutaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loop-vivo': {
+      id: '/loop-vivo'
+      path: '/loop-vivo'
+      fullPath: '/loop-vivo'
+      preLoaderRoute: typeof LoopVivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/livro-do-ciclo': {
+      id: '/livro-do-ciclo'
+      path: '/livro-do-ciclo'
+      fullPath: '/livro-do-ciclo'
+      preLoaderRoute: typeof LivroDoCicloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lider': {
+      id: '/lider'
+      path: '/lider'
+      fullPath: '/lider'
+      preLoaderRoute: typeof LiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo': {
+      id: '/ivo'
+      path: '/ivo'
+      fullPath: '/ivo'
+      preLoaderRoute: typeof IvoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impacto': {
+      id: '/impacto'
+      path: '/impacto'
+      fullPath: '/impacto'
+      preLoaderRoute: typeof ImpactoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/holding': {
+      id: '/holding'
+      path: '/holding'
+      fullPath: '/holding'
+      preLoaderRoute: typeof HoldingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governo': {
+      id: '/governo'
+      path: '/governo'
+      fullPath: '/governo'
+      preLoaderRoute: typeof GovernoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/floresceria': {
+      id: '/floresceria'
+      path: '/floresceria'
+      fullPath: '/floresceria'
+      preLoaderRoute: typeof FloresceriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fibt-piloto': {
+      id: '/fibt-piloto'
+      path: '/fibt-piloto'
+      fullPath: '/fibt-piloto'
+      preLoaderRoute: typeof FibtPilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fibt': {
+      id: '/fibt'
+      path: '/fibt'
+      fullPath: '/fibt'
+      preLoaderRoute: typeof FibtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fechamento': {
+      id: '/fechamento'
+      path: '/fechamento'
+      fullPath: '/fechamento'
+      preLoaderRoute: typeof FechamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/experimentos': {
+      id: '/experimentos'
+      path: '/experimentos'
+      fullPath: '/experimentos'
+      preLoaderRoute: typeof ExperimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expedicao': {
+      id: '/expedicao'
+      path: '/expedicao'
+      fullPath: '/expedicao'
+      preLoaderRoute: typeof ExpedicaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evolucao-nr1': {
+      id: '/evolucao-nr1'
+      path: '/evolucao-nr1'
+      fullPath: '/evolucao-nr1'
+      preLoaderRoute: typeof EvolucaoNr1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evolucao': {
+      id: '/evolucao'
+      path: '/evolucao'
+      fullPath: '/evolucao'
+      preLoaderRoute: typeof EvolucaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/espelho': {
+      id: '/espelho'
+      path: '/espelho'
+      fullPath: '/espelho'
+      preLoaderRoute: typeof EspelhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esg': {
+      id: '/esg'
+      path: '/esg'
+      fullPath: '/esg'
+      preLoaderRoute: typeof EsgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escola': {
+      id: '/escola'
+      path: '/escola'
+      fullPath: '/escola'
+      preLoaderRoute: typeof EscolaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embaixadorias': {
+      id: '/embaixadorias'
+      path: '/embaixadorias'
+      fullPath: '/embaixadorias'
+      preLoaderRoute: typeof EmbaixadoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embaixador': {
+      id: '/embaixador'
+      path: '/embaixador'
+      fullPath: '/embaixador'
+      preLoaderRoute: typeof EmbaixadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers': {
+      id: '/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diploma': {
+      id: '/diploma'
+      path: '/diploma'
+      fullPath: '/diploma'
+      preLoaderRoute: typeof DiplomaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diario': {
+      id: '/diario'
+      path: '/diario'
+      fullPath: '/diario'
+      preLoaderRoute: typeof DiarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devolutiva': {
+      id: '/devolutiva'
+      path: '/devolutiva'
+      fullPath: '/devolutiva'
+      preLoaderRoute: typeof DevolutivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copiloto': {
+      id: '/copiloto'
+      path: '/copiloto'
+      fullPath: '/copiloto'
+      preLoaderRoute: typeof CopilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copilota': {
+      id: '/copilota'
+      path: '/copilota'
+      fullPath: '/copilota'
+      preLoaderRoute: typeof CopilotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confianca': {
+      id: '/confianca'
+      path: '/confianca'
+      fullPath: '/confianca'
+      preLoaderRoute: typeof ConfiancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/condominios': {
+      id: '/condominios'
+      path: '/condominios'
+      fullPath: '/condominios'
+      preLoaderRoute: typeof CondominiosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/colaborador': {
+      id: '/colaborador'
+      path: '/colaborador'
+      fullPath: '/colaborador'
+      preLoaderRoute: typeof ColaboradorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clevel': {
+      id: '/clevel'
+      path: '/clevel'
+      fullPath: '/clevel'
+      preLoaderRoute: typeof ClevelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/benchmark': {
+      id: '/benchmark'
+      path: '/benchmark'
+      fullPath: '/benchmark'
+      preLoaderRoute: typeof BenchmarkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atlas': {
+      id: '/atlas'
+      path: '/atlas'
+      fullPath: '/atlas'
+      preLoaderRoute: typeof AtlasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acesso': {
+      id: '/acesso'
+      path: '/acesso'
+      fullPath: '/acesso'
+      preLoaderRoute: typeof AcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academia': {
+      id: '/academia'
+      path: '/academia'
+      fullPath: '/academia'
+      preLoaderRoute: typeof AcademiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/driver/$driverId': {
@@ -1698,11 +1670,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriverDriverIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/fibt-hml/attestation': {
-      id: '/api/fibt-hml/attestation'
-      path: '/api/fibt-hml/attestation'
-      fullPath: '/api/fibt-hml/attestation'
-      preLoaderRoute: typeof ApiFibtHmlAttestationRouteImport
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ativar/$token': {
+      id: '/ativar/$token'
+      path: '/ativar/$token'
+      fullPath: '/ativar/$token'
+      preLoaderRoute: typeof AtivarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aceitar-convite/$token': {
+      id: '/aceitar-convite/$token'
+      path: '/aceitar-convite/$token'
+      fullPath: '/aceitar-convite/$token'
+      preLoaderRoute: typeof AceitarConviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/respond/s/$token': {
@@ -1710,6 +1703,13 @@ declare module '@tanstack/react-router' {
       path: '/respond/s/$token'
       fullPath: '/respond/s/$token'
       preLoaderRoute: typeof RespondSTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fibt-hml/attestation': {
+      id: '/api/fibt-hml/attestation'
+      path: '/api/fibt-hml/attestation'
+      fullPath: '/api/fibt-hml/attestation'
+      preLoaderRoute: typeof ApiFibtHmlAttestationRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
