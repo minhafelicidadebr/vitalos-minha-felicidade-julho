@@ -90,7 +90,18 @@ function Nr1Page() {
         <FechamentoBlock fechamento={c.fechamento} onAction={onAction} />
       </main>
 
-      <footer className="border-t border-border/50 py-8">
+      {/* Barra fixa de conversão — apenas mobile, sem cobrir o rodapé legal */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/92 px-4 py-3 backdrop-blur-xl sm:hidden">
+        <Button
+          className="w-full rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90"
+          onClick={() => onAction({ kind: "modal", modal: "executive" })}
+        >
+          Avaliar a prontidão para a NR-1
+          <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />
+        </Button>
+      </div>
+
+      <footer className="border-t border-border/50 pb-24 pt-8 sm:pb-8">
         <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-3 px-6 sm:flex-row sm:items-center">
           <p className="max-w-xl text-[11px] leading-relaxed text-muted-foreground">
             VitalOS™ · Instrumento educativo de mensuração e apoio à gestão de riscos psicossociais.
