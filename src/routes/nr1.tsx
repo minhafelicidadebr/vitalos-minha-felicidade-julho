@@ -338,9 +338,34 @@ function ComoFuncionaBlock({ como }: { como: typeof NR1_LANDING.comoFunciona }) 
           ))}
         </div>
         <Reveal delay={0.1}>
-          <div className="mx-auto mt-6 flex max-w-3xl items-start gap-3 rounded-2xl border border-primary/25 bg-primary/[0.05] px-5 py-4">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <p className="text-xs leading-relaxed text-muted-foreground">{como.note}</p>
+          <div className="mt-10 grid items-center gap-8 rounded-3xl border border-border/70 bg-card/60 p-5 shadow-sm sm:p-8 lg:grid-cols-2">
+            <figure className="order-1 overflow-hidden rounded-2xl border border-border/60 shadow-lg lg:order-none">
+              <img
+                src={evidenceReport}
+                alt="Relatório educativo NR-1 impresso ao lado de um celular exibindo a escuta anônima da onda"
+                width={1280}
+                height={1024}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </figure>
+            <div className="order-2 lg:order-none">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                O que você recebe
+              </p>
+              <h3 className="mt-2 font-serif text-2xl leading-tight text-foreground">
+                A escuta vira documento — e o documento vira decisão
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                No fim do ciclo você não fica com um gráfico solto: fica com a matriz educativa por
+                dimensão, o histórico agregado e a trilha de ação — material que o profissional
+                habilitado interpreta e assina, e que o conselho entende em uma página.
+              </p>
+              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/[0.05] px-4 py-3.5">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                <p className="text-xs leading-relaxed text-muted-foreground">{como.note}</p>
+              </div>
+            </div>
           </div>
         </Reveal>
       </div>
