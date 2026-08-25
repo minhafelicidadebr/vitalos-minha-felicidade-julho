@@ -129,61 +129,112 @@ function HeroBlock({
         aria-hidden
         className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px] opacity-70 [mask-image:radial-gradient(circle_at_30%_30%,black,transparent_75%)]"
       />
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="max-w-3xl"
-        >
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/70 backdrop-blur sm:text-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            {hero.eyebrow}
-          </p>
-          <h1 className="mt-6 font-serif text-[clamp(2.25rem,8vw,3.5rem)] leading-[1.04] tracking-[-0.03em] text-white">
-            {hero.headline}{" "}
-            <span className="bg-gradient-to-r from-accent via-[#d9f66f] to-emerald-300 bg-clip-text text-transparent">
-              {hero.headlineAccent}
-            </span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/[0.72] sm:text-lg">
-            {hero.sub}
-          </p>
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:py-24">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/70 backdrop-blur sm:text-xs">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent motion-reduce:animate-none" aria-hidden />
+              {hero.eyebrow}
+            </p>
+            <h1 className="mt-6 font-serif text-[clamp(2.15rem,7vw,3.4rem)] leading-[1.05] tracking-[-0.03em] text-white">
+              {hero.headline}{" "}
+              <span className="bg-gradient-to-r from-accent via-[#d9f66f] to-emerald-300 bg-clip-text text-transparent">
+                {hero.headlineAccent}
+              </span>
+            </h1>
 
-          <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
-            {hero.ctas.map((cta) => (
-              <Button
-                key={cta.label}
-                size="lg"
-                onClick={() => onAction(cta.action)}
-                className={
-                  cta.variant === "primary"
-                    ? "w-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 sm:w-auto"
-                    : "w-full border-white/25 bg-white/[0.06] text-white hover:bg-white/[0.12] sm:w-auto"
-                }
-                variant={cta.variant === "primary" ? "default" : "outline"}
-              >
-                {cta.label}
-                {cta.variant !== "primary" && <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />}
-              </Button>
-            ))}
-          </div>
+            {/* Imagem primeiro no mobile — âncora visual antes do texto denso */}
+            <div className="mt-7 lg:hidden">
+              <HeroVisual priority />
+            </div>
 
-          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Garantias da plataforma">
-            {hero.signals.map((s) => (
-              <li
-                key={s}
-                className="rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs text-white/[0.66] backdrop-blur"
-              >
-                {s}
-              </li>
-            ))}
-          </ul>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/[0.72] sm:text-lg">
+              {hero.sub}
+            </p>
 
-          <p className="mt-6 max-w-2xl text-[11px] leading-relaxed text-white/45">{hero.disclaimer}</p>
-        </motion.div>
+            <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+              {hero.ctas.map((cta) => (
+                <Button
+                  key={cta.label}
+                  size="lg"
+                  onClick={() => onAction(cta.action)}
+                  className={
+                    cta.variant === "primary"
+                      ? "w-full bg-accent text-accent-foreground shadow-lg shadow-accent/25 transition-transform hover:bg-accent/90 motion-safe:hover:-translate-y-0.5 sm:w-auto"
+                      : "w-full border-white/25 bg-white/[0.06] text-white hover:bg-white/[0.12] sm:w-auto"
+                  }
+                  variant={cta.variant === "primary" ? "default" : "outline"}
+                >
+                  {cta.label}
+                  {cta.variant !== "primary" && <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />}
+                </Button>
+              ))}
+            </div>
+
+            <ul className="mt-8 flex flex-wrap gap-2" aria-label="Garantias da plataforma">
+              {hero.signals.map((s) => (
+                <li
+                  key={s}
+                  className="rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs text-white/[0.66] backdrop-blur"
+                >
+                  {s}
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-6 max-w-2xl text-[11px] leading-relaxed text-white/45">
+              {hero.disclaimer}
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+            className="hidden lg:block"
+          >
+            <HeroVisual priority />
+          </motion.div>
+        </div>
+
+        {/* Faixa de prova de método — reduz custo cognitivo antes do scroll */}
+        <div className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 lg:grid-cols-4">
+          {METHOD_PROOFS.map((p) => (
+            <div key={p.k} className="bg-[#03100f]/90 px-4 py-5">
+              <p className="font-serif text-xl text-accent sm:text-2xl">{p.k}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/55">{p.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+function HeroVisual({ priority = false }: { priority?: boolean }) {
+  return (
+    <figure className="relative">
+      <div className="overflow-hidden rounded-3xl border border-white/12 shadow-2xl shadow-black/50 ring-1 ring-accent/15">
+        <img
+          src={heroPeople}
+          alt="Equipe de liderança em reunião de gestão de riscos psicossociais, com visualização de dados agregados"
+          width={1536}
+          height={1024}
+          loading={priority ? "eager" : "lazy"}
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <figcaption className="absolute bottom-3 left-3 right-3 flex items-center gap-2.5 rounded-2xl border border-white/12 bg-black/55 px-3.5 py-2.5 backdrop-blur-md">
+        <ShieldCheck className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+        <span className="text-[11px] leading-snug text-white/75">
+          Escuta anônima por token · publicação agregada apenas com n ≥ 5
+        </span>
+      </figcaption>
+    </figure>
   );
 }
 
