@@ -33,19 +33,13 @@ const VARIANT: Record<string, "default" | "outline" | "ghost"> = {
   ghost: "ghost",
 };
 
-function VitalOsMark({ className = "h-6 w-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" aria-hidden className={className} xmlns="http://www.w3.org/2000/svg">
-      <g fill="currentColor" opacity="0.9">
-        <ellipse cx="20" cy="9" rx="4" ry="7" />
-        <ellipse cx="20" cy="31" rx="4" ry="7" />
-        <ellipse cx="9" cy="20" rx="7" ry="4" />
-        <ellipse cx="31" cy="20" rx="7" ry="4" />
-      </g>
-      <circle cx="20" cy="20" r="3.2" fill="var(--color-accent)" />
-    </svg>
-  );
-}
+// Provas de método (derivadas da metodologia, não de resultados prometidos).
+const METHOD_PROOFS = [
+  { k: "COPSOQ II", label: "Bateria estruturada nas dimensões do instrumento internacional" },
+  { k: "n ≥ 5", label: "K-anonimato imposto no banco — não apenas na tela" },
+  { k: "4 lentes", label: "Jornada anual: risco, bem-comum, florescimento e forças" },
+  { k: "13 semanas", label: "Ciclo M.E.T.E. — medir, educar, transformar, evoluir" },
+];
 
 function Nr1Page() {
   const navigate = useNavigate();
