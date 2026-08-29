@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
   "migrationCount": 54,
-  "rollupSha256": "79a4d1f733229de5b092677676a889993691d5a2ffe110e937ee54da8acb8a99",
+  "rollupSha256": "096f6ad04a5349428dfd92f3031870086852bebd12f7ae1490379a9a88f5f8cd",
   "migrations": [
     {
       "order": 1,
@@ -318,8 +318,8 @@
     {
       "order": 53,
       "name": "20260828120000_profile_authority_boundary_hardening.sql",
-      "sha256": "dee30e87208a929f9f53d37e1063e95519dc57c2a526f95b7fc456aaa4ffcf80",
-      "bytes": 20260
+      "sha256": "8ca839b853653bf662d912f9ad6fe6a5acc361c6c275387dafd4388aad5a1b4b",
+      "bytes": 23536
     },
     {
       "order": 54,

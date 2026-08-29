@@ -18,7 +18,7 @@ voltar). Não há relatórios paralelos.
 | --- | --- |
 | Gate | **G1 — migration no banco de produção** |
 | Mudança | Fronteira de autoridade de `profiles` + reconciliação de EXECUTE + convergência do contrato FIB-T |
-| Arquivos | 6 migrations (`G1_PACKAGE_SHA256=9013c499a3273884`) |
+| Arquivos | 6 migrations (`G1_PACKAGE_SHA256=f89bd3f3407aece6`) |
 | Pré-condições | PASS (provadas em replay, ver §5) |
 | Compatibilidade com o dado vivo | PASS (read-only, favorável) |
 | Backup | PASS na existência · **PARCIAL** na recuperação (PITR e drill não provados) |
@@ -72,6 +72,38 @@ restringe `INSERT`. O resultado é idêntico ao `UPDATE` proibido, por uma porta
 que ninguém tinha olhado.
 
 Nenhuma exploração é afirmada — o que foi corrigido é a **capacidade**.
+
+### 2.1.1 Uma terceira correção parcial existe, e provavelmente já está em produção
+
+`20260825022411_81c55fc7-…`, do commit **"Fixed security issues"** na `main`
+(ausente desta branch), atacou o mesmo achado por conta própria. Migration
+gerada no chat do Lovable é aplicada no projeto conectado, então **o estado
+produtivo provável já a contém**.
+
+Ela dividiu `profile_own` em `profile_own_select` / `profile_own_update` e criou
+o trigger `profiles_prevent_privilege_escalation`. **E não fecha o achado:**
+
+| # | O que falta | Consequência |
+| --- | --- | --- |
+| 1 | trigger é `BEFORE UPDATE` **apenas** | o caminho `DELETE`-e-reinsere — o achado desta onda — continua **inteiramente aberto** |
+| 2 | nenhum `GRANT` revogado | `authenticated` segue com `INSERT` e `DELETE` de tabela em `profiles` |
+| 3 | trigger é **fail-OPEN** | começa com `IF current_setting('request.jwt.claims', true) IS NULL THEN RETURN NEW` — ausência de claim **concede** a alteração |
+| 4 | revoga `anon` de `submit_sector_response` | remove o contrato da **pesquisa anônima**, onde `anon` É a credencial porque o respondente nunca tem sessão |
+
+Por isso o pacote **substitui** em vez de complementar: o item 5 remove as duas
+policies e o trigger/função dela, para o estado final ter **uma** implementação.
+Manter as duas deixaria quatro policies permissivas equivalentes e dois triggers
+sobrepostos — sem ganho de segurança, e com o custo de ninguém conseguir dizer
+depois qual das duas está barrando o quê. O postflight (§8) passa a exigir
+**exatamente 2 policies e 1 trigger**, justamente para pegar essa sobra.
+
+O item 4 acima é o motivo de o pacote reafirmar `anon` em
+`submit_sector_response`: sem isso, a submissão anônima ficaria quebrada por uma
+revogação bem-intencionada.
+
+O modo `preprod` do replay **reproduz essa correção parcial** e prova que o
+pacote converge a partir dela (16/16). Sem isso, a primeira migration do pacote
+encontraria em produção policies e trigger que o replay nunca teria visto.
 
 ### 2.2 A correção: três camadas independentes
 
@@ -344,13 +376,13 @@ Editor, e confira os `NOTICE` antes de seguir.
 | 2 | `20260807120000_sector_response_consent_durability.sql` | `6e4cf5f34c403a9e` | colunas de consentimento + RPC de 3 argumentos |
 | 3 | `20260811120000_fail_closed_sector_response_cohort_binding.sql` | `536e641aa4f7ccfd` | vínculo de coorte fail-closed |
 | 4 | `20260812120000_one_active_sector_link_per_cohort.sql` | `a83923a5ecf22a17` | FKs compostas + um link ativo por coorte |
-| 5 | `20260828120000_profile_authority_boundary_hardening.sql` | `dee30e87208a929f` | fronteira de autoridade de `profiles` (3 camadas) |
+| 5 | `20260828120000_profile_authority_boundary_hardening.sql` | `8ca839b853653bf6` | fronteira de autoridade de `profiles` (3 camadas) |
 | 6 | `20260828121000_definer_surface_and_execute_grants.sql` | `4725c8c3e3ce8033` | reconciliação de EXECUTE + identidade em `accept_member_invite` |
 
 ```
 G1_PACKAGE_FILES=6
-G1_PACKAGE_SHA256=9013c499a32738840ff7c13322dc6e50da9b4dcc0969ad6f15fbcb59a84c74ec
-MANIFEST_ROLLUP=79a4d1f733229de5b092677676a889993691d5a2ffe110e937ee54da8acb8a99  (54 migrations)
+G1_PACKAGE_SHA256=f89bd3f3407aece6c19f5905a09faa63ebea6b2a0cf2e5acf0a5bd25060aca9b
+MANIFEST_ROLLUP=096f6ad04a5349428dfd92f3031870086852bebd12f7ae1490379a9a88f5f8cd  (54 migrations)
 ```
 
 **NÃO aplicar** `20260730160000` (exclusiva de staging) nem `20260806210000`
@@ -388,7 +420,7 @@ SELECT has_table_privilege ('authenticated','public.profiles','SELECT')         
        has_column_privilege('authenticated','public.profiles','display_name','UPDATE') AS edita_nome,
        has_table_privilege ('service_role','public.profiles','UPDATE')                 AS admin_ok;
 
--- As três camadas
+-- As três camadas, e nenhuma sobra da correção parcial (§2.1.1)
 SELECT (SELECT COUNT(*) FROM pg_policies
          WHERE tablename='profiles' AND cmd='ALL')                    AS policies_for_all,      -- 0
        (SELECT COUNT(*) FROM pg_policies
@@ -396,8 +428,11 @@ SELECT (SELECT COUNT(*) FROM pg_policies
        (SELECT COUNT(*) FROM pg_policies
          WHERE tablename='profiles')                                  AS policies_total,        -- 2
        (SELECT COUNT(*) FROM pg_trigger
-         WHERE tgrelid='public.profiles'::regclass AND NOT tgisinternal
-           AND tgname='profiles_authority_boundary')                   AS trigger_presente;     -- 1
+         WHERE tgrelid='public.profiles'::regclass AND NOT tgisinternal) AS triggers_total,     -- 1
+       (SELECT string_agg(tgname, ', ') FROM pg_trigger
+         WHERE tgrelid='public.profiles'::regclass AND NOT tgisinternal) AS trigger_nome,       -- profiles_authority_boundary
+       to_regprocedure('public.prevent_profile_privilege_escalation()')
+         IS NULL                                                       AS parcial_removida;     -- true
 
 -- EXECUTE reconciliado (as três primeiras FALSE, as três últimas TRUE)
 SELECT has_function_privilege('anon','public.mark_invite_used(text)','EXECUTE')                       AS anon_mark,
@@ -548,6 +583,7 @@ teste pré-existente que varre o sistema de arquivos, não regressão (**P3**).
 | --- | --- |
 | **P0** | nenhum |
 | **P1** | nenhum |
+| **P1 (coordenação, não código)** | esta branch **conflita com `main`** e `main` está **16 commits à frente**, com CI **vermelho** nas três últimas execuções (commits do assistente do Lovable: "Changes", "Work in progress", "Fixed security issues"). `main` **não tem** a linhagem FIB-T desta branch (`20260806205000` em diante) e **tem** a correção parcial da §2.1.1. O conflito é em `src/integrations/supabase/client.ts`. Não foi resolvido aqui de propósito: incorporar 16 commits não revisados — incluindo mudanças de aplicação e uma migration de segurança concorrente — dentro do pacote G1 mudaria o que o G1 aplica, e isso é decisão de coordenação humana, não de execução autônoma |
 | **P2** | drill de restauração / PITR provado — **pré-requisito do G3**, não do G1 |
 | **P2** | `js-yaml` (dev/build) |
 | **P2** | `supabase/config.toml` tem `project_id` do projeto **produtivo**: um `supabase db push` distraído apontaria para produção. Nenhum fluxo atual usa o CLI, mas é um pé de armadilha |

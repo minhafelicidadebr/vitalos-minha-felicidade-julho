@@ -166,6 +166,39 @@ DROP POLICY IF EXISTS "profile_own" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 
+-- ── Correção parcial anterior, gerada pelo assistente do Lovable ─────────────
+--
+-- `20260825022411_81c55fc7-…` (commit "Fixed security issues" na main, ausente
+-- desta branch) atacou o mesmo achado e ficou pela metade. Ela pode já estar
+-- aplicada no banco produtivo, porque migration gerada no chat é aplicada no
+-- projeto conectado. Então este pacote precisa convergir A PARTIR dela, não
+-- assumir que ela não existe.
+--
+-- O que ela fez: dividiu `profile_own` em `profile_own_select` /
+-- `profile_own_update` e criou o trigger `profiles_prevent_privilege_escalation`.
+--
+-- O que ela NÃO fez, e é por isso que é substituída e não complementada:
+--
+--   · o trigger é `BEFORE UPDATE` apenas — sem INSERT e sem DELETE. O caminho
+--     DELETE-e-reinsere, que é o achado desta onda, continua inteiramente
+--     aberto;
+--   · nenhum GRANT foi revogado: `authenticated` seguia com INSERT e DELETE de
+--     tabela em profiles;
+--   · o trigger é fail-OPEN. Ele começa com
+--     `IF current_setting('request.jwt.claims', true) IS NULL THEN RETURN NEW`,
+--     isto é, ausência de claim CONCEDE a alteração. A camada 3 deste pacote
+--     decide por `current_user` contra a lista fechada de papéis da borda
+--     pública, que é fail-closed: um caminho não previsto cai no lado do "não".
+--
+-- Objetos removidos para que o estado final tenha UMA implementação. Manter as
+-- duas deixaria quatro policies permissivas equivalentes e dois triggers
+-- fazendo trabalho sobreposto — sem ganho de segurança e com o custo de ninguém
+-- conseguir dizer, depois, qual das duas está de fato barrando o quê.
+DROP POLICY IF EXISTS "profile_own_select" ON public.profiles;
+DROP POLICY IF EXISTS "profile_own_update" ON public.profiles;
+DROP TRIGGER IF EXISTS profiles_prevent_privilege_escalation ON public.profiles;
+DROP FUNCTION IF EXISTS public.prevent_profile_privilege_escalation();
+
 CREATE POLICY "profiles_select_own" ON public.profiles
   FOR SELECT TO authenticated
   USING (id = auth.uid());
@@ -332,6 +365,32 @@ BEGIN
                     AND policyname = 'profiles_update_own' AND cmd = 'UPDATE'
                     AND with_check IS NOT NULL) THEN
     v_falhas := v_falhas || 'policy profiles_update_own ausente ou sem WITH CHECK';
+  END IF;
+
+  -- Exatamente duas: pega sobra da correção parcial anterior (ou de qualquer
+  -- outra) que uma checagem só por nome deixaria passar.
+  IF (SELECT COUNT(*) FROM pg_policies
+       WHERE schemaname = 'public' AND tablename = 'profiles') <> 2 THEN
+    v_falhas := v_falhas || format(
+      'profiles deveria ter exatamente 2 policies, tem %s: %s',
+      (SELECT COUNT(*) FROM pg_policies WHERE schemaname='public' AND tablename='profiles'),
+      (SELECT string_agg(policyname, ', ' ORDER BY policyname) FROM pg_policies
+        WHERE schemaname='public' AND tablename='profiles'));
+  END IF;
+
+  -- Um único trigger de autoridade, e nenhuma função órfã da versão parcial.
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger
+     WHERE tgrelid = 'public.profiles'::regclass AND NOT tgisinternal
+       AND tgname <> 'profiles_authority_boundary'
+  ) THEN
+    v_falhas := v_falhas || format('trigger extra em profiles: %s',
+      (SELECT string_agg(tgname, ', ') FROM pg_trigger
+        WHERE tgrelid = 'public.profiles'::regclass AND NOT tgisinternal
+          AND tgname <> 'profiles_authority_boundary'));
+  END IF;
+  IF to_regprocedure('public.prevent_profile_privilege_escalation()') IS NOT NULL THEN
+    v_falhas := v_falhas || 'prevent_profile_privilege_escalation() sobrou (correção parcial anterior)';
   END IF;
 
   -- Camada 3
