@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 51,
-  "rollupSha256": "a6fb90e8af010f532e1d6352954a74c8fcd6a85d055b904a479632b7923ea953",
+  "migrationCount": 54,
+  "rollupSha256": "79a4d1f733229de5b092677676a889993691d5a2ffe110e937ee54da8acb8a99",
   "migrations": [
     {
       "order": 1,
@@ -293,21 +293,39 @@
     },
     {
       "order": 49,
+      "name": "20260806211000_response_invite_link_contract_forward_fix.sql",
+      "sha256": "7f96dcb72c63e04ed57aacaaea7ee98b0cb82510ff2468b7e77e83b73aa1e633",
+      "bytes": 11683
+    },
+    {
+      "order": 50,
       "name": "20260807120000_sector_response_consent_durability.sql",
       "sha256": "6e4cf5f34c403a9eff67d5b88998e431bda53de0693de61f26f24a1f5c883e4e",
       "bytes": 12016
     },
     {
-      "order": 50,
+      "order": 51,
       "name": "20260811120000_fail_closed_sector_response_cohort_binding.sql",
       "sha256": "536e641aa4f7ccfdb6742406bedf9a23c872c3e42bd6b92adabfb3df0216008e",
       "bytes": 10463
     },
     {
-      "order": 51,
+      "order": 52,
       "name": "20260812120000_one_active_sector_link_per_cohort.sql",
       "sha256": "a83923a5ecf22a17eccb3c454ceebdfbb2a53f9faa43ea35da320b8850dbb6c3",
       "bytes": 1744
+    },
+    {
+      "order": 53,
+      "name": "20260828120000_profile_authority_boundary_hardening.sql",
+      "sha256": "dee30e87208a929f9f53d37e1063e95519dc57c2a526f95b7fc456aaa4ffcf80",
+      "bytes": 20260
+    },
+    {
+      "order": 54,
+      "name": "20260828121000_definer_surface_and_execute_grants.sql",
+      "sha256": "4725c8c3e3ce8033045e7613ed1eab49c5ef77628210ec74a43496fe46877371",
+      "bytes": 21811
     }
   ]
 }
