@@ -114,6 +114,41 @@ const STAGING_ONLY_MIGRATIONS = new Set([
  * interrompida no meio, o operador precisa poder rodar o pacote de novo sem
  * primeiro descobrir, sob pressão, exatamente onde parou.
  */
+/**
+ * SUPERSEDIDA — achado da reconciliação com `main` (Wave 5.2.1), não editável
+ * por esta onda.
+ *
+ * `20260825022411_81c55fc7-…` chegou de `main` (commit "Fixed security
+ * issues", fora desta branch) e cai, por timestamp, DENTRO da janela do pacote
+ * G1 — entre `20260812120000` e `20260828120000`. Ela ataca o MESMO achado
+ * CRITICAL por conta própria: cria `profile_own_select`/`profile_own_update` e
+ * o trigger `prevent_profile_privilege_escalation` (fail-open, só UPDATE — ver
+ * `20260828120000` para a análise completa de por que não fecha o achado).
+ *
+ * `20260828120000` a SUPERSEDE: remove essas policies e esse trigger como
+ * parte do próprio hardening, e é idempotente. A cadeia completa, aplicada em
+ * ORDEM, é sã — quem chega em `20260828120000` sempre encontra e neutraliza o
+ * estado que `20260825022411` deixou.
+ *
+ * O que NÃO é seguro, e é por isso que esta migration fica fora das duas
+ * checagens de reaplicação: reexecutar `20260825022411` ISOLADAMENTE depois
+ * que `20260828120000` já rodou RECRIA a policy e o trigger vulneráveis em
+ * silêncio (`CREATE POLICY` sem guarda, sucesso porque o objeto foi removido
+ * por quem veio depois). Não é o "one-shot fail-closed" dos arquivos desta
+ * onda (que abortam com diagnóstico), e não é "idempotente" no sentido seguro
+ * — é reaplicação silenciosamente destrutiva de um arquivo que este
+ * repositório não escreveu e não edita.
+ *
+ * Mitigação real: o runbook nunca reaplica um arquivo isolado fora de ordem;
+ * reaplica a CADEIA a partir do ponto de retomada. E o postflight do G1 (§8 do
+ * runbook) exige explicitamente "exatamente 2 policies, 1 trigger,
+ * prevent_profile_privilege_escalation() ausente" — qualquer recriação
+ * acidental é pega ali, não pelo replay automático desta suíte.
+ */
+const SUPERSEDIDAS_NAO_AUTORADAS = new Set([
+    "20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql",
+]);
+
 const IDEMPOTENTES = new Set([
     // Desta onda.
     "20260806211000_response_invite_link_contract_forward_fix.sql",
@@ -531,7 +566,9 @@ try {
     //     drift, por decisão de quem as escreveu. Reaplicar tem de RECUSAR, com
     //     diagnóstico. Uma recusa aqui é o comportamento correto; o que seria
     //     defeito é reaplicar em silêncio.
-    for (const nome of pacoteG1.filter((n) => IDEMPOTENTES.has(n))) {
+    for (const nome of pacoteG1.filter(
+        (n) => IDEMPOTENTES.has(n) && !SUPERSEDIDAS_NAO_AUTORADAS.has(n),
+    )) {
         const r = await psql(lerSql("supabase", "migrations", nome));
         registrar(
             `idempotente ao reaplicar: ${nome}`,
@@ -540,12 +577,43 @@ try {
         );
     }
 
+    // Verifica a SUPERSESSÃO em vez de reaplicar: prova que a cadeia completa,
+    // em ordem, deixa nenhum vestígio do estado que 20260825022411 introduziu
+    // — sem executar esse arquivo de novo, que é justamente o que não é seguro
+    // (ver SUPERSEDIDAS_NAO_AUTORADAS acima).
+    if (SUPERSEDIDAS_NAO_AUTORADAS.size > 0) {
+        const r = await scalar(`
+      SELECT
+        (SELECT COUNT(*) FROM pg_policies WHERE schemaname='public' AND tablename='profiles')::TEXT
+        || '|' ||
+        (to_regprocedure('public.prevent_profile_privilege_escalation()') IS NULL)::TEXT
+        || '|' ||
+        (SELECT COUNT(*) FROM pg_trigger
+          WHERE tgrelid='public.profiles'::regclass AND NOT tgisinternal
+            AND tgname <> 'profiles_authority_boundary')::TEXT;
+    `);
+        const [policiesTotal, funcaoAusente, triggersExtra] = r.split("|");
+        // Cast de BOOLEAN para TEXT no Postgres produz 'true'/'false' — é a
+        // saída de -tAq aqui, diferente do 't'/'f' que só existe na
+        // formatação de tupla do próprio psql para coluna boolean direta.
+        const ok = policiesTotal === "2" && funcaoAusente === "true" && triggersExtra === "0";
+        registrar(
+            "supersessão de 20260825022411 confirmada após a cadeia completa",
+            ok,
+            ok
+                ? undefined
+                : `policies=${policiesTotal} (esperado 2) · prevent_profile_privilege_escalation ausente=${funcaoAusente} (esperado true) · triggers extras=${triggersExtra} (esperado 0)`,
+        );
+    }
+
     await rodarProvas();
 
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria
     // transação, mas rodar isso antes das provas seria arriscar o estado do
     // banco de prova por um teste que não precisa dessa ordem.
-    for (const nome of pacoteG1.filter((n) => !IDEMPOTENTES.has(n))) {
+    for (const nome of pacoteG1.filter(
+        (n) => !IDEMPOTENTES.has(n) && !SUPERSEDIDAS_NAO_AUTORADAS.has(n),
+    )) {
         const r = await psql(lerSql("supabase", "migrations", nome));
         registrar(
             `one-shot recusa reaplicação (fail-closed): ${nome}`,

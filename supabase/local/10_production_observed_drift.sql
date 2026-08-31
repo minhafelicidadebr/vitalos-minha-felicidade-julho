@@ -36,97 +36,27 @@
 GRANT UPDATE ON public.profiles TO authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- CORREÇÃO PARCIAL DO ASSISTENTE DO LOVABLE (provavelmente já em produção)
+-- CORREÇÃO PARCIAL DO ASSISTENTE DO LOVABLE — AGORA É MIGRATION REAL
 -- ═══════════════════════════════════════════════════════════════════════════
 --
--- `20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql`, do commit
--- "Fixed security issues" na main, ATACOU O MESMO ACHADO por conta própria. Ela
--- não existe nesta branch, e migration gerada no chat do Lovable é aplicada no
--- projeto conectado — então o estado produtivo provável já a contém.
+-- Este arquivo já simulou manualmente aqui a correção parcial de
+-- `20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql` (commit "Fixed
+-- security issues" na main), na época em que ela só existia em `main` e não
+-- nesta branch. A reconciliação de Wave 5.2.1 trouxe esse arquivo de verdade
+-- para `supabase/migrations/` — ele agora faz parte de `pacoteG1` (o
+-- timestamp cai dentro da janela do G1) e é aplicado de verdade pelo replay,
+-- na posição real da cadeia.
 --
--- Reproduzida aqui (só as partes que mudam o estado de partida) para que o
--- pacote G1 seja provado convergindo A PARTIR dela, e não a partir de um banco
--- que finge que ela não aconteceu. Sem isto, a primeira migration do pacote
--- encontraria em produção policies e trigger que o replay nunca viu.
+-- Simular a correção parcial AQUI TAMBÉM duplicaria `CREATE POLICY
+-- profile_own_select` e faria a aplicação real da migration abortar por
+-- objeto já existente — não por divergência do alvo, por um erro do harness.
+-- Então este arquivo agora só injeta o que a migration real NÃO faz por
+-- conta própria: o `GRANT UPDATE` residual (achado independente desta onda,
+-- nunca fechado por nenhuma migration existente) e o inventário legado.
 --
--- Por que ela não fecha o achado, o que é exatamente o motivo de o pacote
--- substituí-la em vez de complementá-la:
---
---   1. o trigger é BEFORE UPDATE apenas. Sem INSERT e sem DELETE, o caminho
---      DELETE-e-reinsere continua aberto — e é ele o achado desta onda;
---   2. nenhum GRANT foi revogado: authenticated segue com INSERT e DELETE;
---   3. o trigger é fail-OPEN: começa concedendo quando não há claim de JWT.
---
--- E ela introduz um problema novo, que o bloco de prova abaixo registra:
---   4. revoga anon de submit_sector_response — a RPC da pesquisa anônima, onde
---      anon É o contrato, porque o respondente nunca tem sessão.
-
-DROP POLICY IF EXISTS profile_own ON public.profiles;
-
-CREATE POLICY profile_own_select ON public.profiles
-  FOR SELECT TO authenticated
-  USING (id = auth.uid());
-
-CREATE POLICY profile_own_update ON public.profiles
-  FOR UPDATE TO authenticated
-  USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
-
-CREATE OR REPLACE FUNCTION public.prevent_profile_privilege_escalation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF current_setting('request.jwt.claims', true) IS NULL
-     OR coalesce(current_setting('request.jwt.claim.role', true),
-                 (current_setting('request.jwt.claims', true)::jsonb ->> 'role')) = 'service_role' THEN
-    RETURN NEW;
-  END IF;
-
-  IF NEW.role IS DISTINCT FROM OLD.role THEN
-    RAISE EXCEPTION 'role changes are not allowed from client updates';
-  END IF;
-  IF NEW.org_id IS DISTINCT FROM OLD.org_id THEN
-    RAISE EXCEPTION 'org_id changes are not allowed from client updates';
-  END IF;
-  IF NEW.id IS DISTINCT FROM OLD.id THEN
-    RAISE EXCEPTION 'id changes are not allowed';
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS profiles_prevent_privilege_escalation ON public.profiles;
-CREATE TRIGGER profiles_prevent_privilege_escalation
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.prevent_profile_privilege_escalation();
-
-REVOKE ALL ON FUNCTION public.submit_sector_response(text, jsonb) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.submit_sector_response(text, jsonb) TO service_role;
-
--- Registra, no próprio replay, que o estado de partida continua vulnerável
--- apesar da correção parcial. Se um dia esta asserção falhar, é porque a
--- correção parcial passou a ser suficiente — e aí o pacote pode encolher.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_trigger
-     WHERE tgrelid = 'public.profiles'::regclass
-       AND tgname = 'profiles_prevent_privilege_escalation'
-       AND tgtype & 4 = 0   -- não cobre INSERT
-       AND tgtype & 8 = 0   -- não cobre DELETE
-  ) THEN
-    RAISE EXCEPTION 'ABORTED: a correção parcial deveria cobrir apenas UPDATE.';
-  END IF;
-  IF NOT has_table_privilege('authenticated', 'public.profiles', 'INSERT')
-     OR NOT has_table_privilege('authenticated', 'public.profiles', 'DELETE') THEN
-    RAISE EXCEPTION 'ABORTED: a correção parcial não deveria ter revogado INSERT/DELETE.';
-  END IF;
-  RAISE NOTICE 'PROVEN: correção parcial reproduzida — trigger só de UPDATE, INSERT/DELETE ainda concedidos, anon removido de submit_sector_response.';
-END $$;
+-- Ver `SUPERSEDIDAS_NAO_AUTORADAS` em scripts/db-replay-proof.ts para a
+-- análise completa de por que essa migration não fecha o achado e como o
+-- pacote a supersede.
 
 -- Confirma que o estado de partida do teste é o estado vulnerável observado.
 -- Se um dia a cadeia mudar e este arquivo deixar de reproduzir o alvo, é
@@ -155,7 +85,16 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'ABORTED: baseline inesperado — invite_token deveria existir antes do CONTRACT do pacote G1.';
   END IF;
-  RAISE NOTICE 'PROVEN: estado de partida reproduz o alvo produtivo (ACL drifted + contrato legado de 2 argumentos + invite_token presente).';
+  -- A correção parcial de 20260825022411 ainda NÃO foi aplicada neste ponto
+  -- (ela mora dentro do pacote G1, aplicada mais adiante pelo replay real) —
+  -- então a policy FOR ALL original precisa continuar aqui intacta.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname = 'public' AND tablename = 'profiles' AND cmd = 'ALL'
+  ) THEN
+    RAISE EXCEPTION 'ABORTED: baseline inesperado — a policy FOR ALL original deveria existir antes do pacote G1 (a correção parcial do Lovable ainda não rodou).';
+  END IF;
+  RAISE NOTICE 'PROVEN: estado de partida reproduz o alvo produtivo (ACL drifted + contrato legado de 2 argumentos + invite_token presente + correção parcial do Lovable ainda não aplicada).';
 END $$;
 
 -- ═══════════════════════════════════════════════════════════════════════════

@@ -2,6 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { resolveAuthFlowType } from "@/lib/auth/auth-redirect";
+import { brokeredPreviewStorage } from "./previewAuthStorage";
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
@@ -55,7 +56,13 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: typeof window !== "undefined" ? localStorage : undefined,
+      // brokeredPreviewStorage() é superset seguro do localStorage direto:
+      // devolve undefined em SSR (mesma guarda de window !== "undefined"),
+      // localStorage puro fora de uma zona de preview do Lovable, e só broca
+      // a sessão por postMessage quando embutido numa zona de preview
+      // validada — nunca em produção real (vitalos.com.br não é zona de
+      // preview) e nunca para um ancestor não confiável.
+      storage: brokeredPreviewStorage(),
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,

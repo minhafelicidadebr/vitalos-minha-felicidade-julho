@@ -73,7 +73,7 @@ export const HERO = {
   support: "Meça o invisível. Desenvolva pessoas. Proteja a organização. Evidencie a evolução.",
   ctas: [
     {
-      label: "Avaliar a prontidão da organização",
+      label: "Avaliar a prontidão da organização para a NR-1",
       action: { kind: "route", to: "/nr1" },
       variant: "primary",
     },

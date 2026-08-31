@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 54,
-  "rollupSha256": "096f6ad04a5349428dfd92f3031870086852bebd12f7ae1490379a9a88f5f8cd",
+  "migrationCount": 55,
+  "rollupSha256": "dd6b0b009f0bd771fed10aee3a4fa3bba8aaa2e5d57e62e0dcc67946cf857d72",
   "migrations": [
     {
       "order": 1,
@@ -317,12 +317,18 @@
     },
     {
       "order": 53,
+      "name": "20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql",
+      "sha256": "a19d205f76d03883b8a48103406c0ae626999377e0cbed4601d8b6dd8150f948",
+      "bytes": 3252
+    },
+    {
+      "order": 54,
       "name": "20260828120000_profile_authority_boundary_hardening.sql",
       "sha256": "8ca839b853653bf662d912f9ad6fe6a5acc361c6c275387dafd4388aad5a1b4b",
       "bytes": 23536
     },
     {
-      "order": 54,
+      "order": 55,
       "name": "20260828121000_definer_surface_and_execute_grants.sql",
       "sha256": "4725c8c3e3ce8033045e7613ed1eab49c5ef77628210ec74a43496fe46877371",
       "bytes": 21811
