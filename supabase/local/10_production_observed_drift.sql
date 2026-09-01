@@ -36,27 +36,28 @@
 GRANT UPDATE ON public.profiles TO authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- CORREÇÃO PARCIAL DO ASSISTENTE DO LOVABLE — AGORA É MIGRATION REAL
+-- CORREÇÃO PARCIAL DO ASSISTENTE DO LOVABLE — AGORA É MIGRATION REAL, E FICA
+-- NO BASELINE, NÃO NO PACOTE G1
 -- ═══════════════════════════════════════════════════════════════════════════
 --
--- Este arquivo já simulou manualmente aqui a correção parcial de
+-- A reconciliação de Wave 5.2.1 trouxe
 -- `20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql` (commit "Fixed
--- security issues" na main), na época em que ela só existia em `main` e não
--- nesta branch. A reconciliação de Wave 5.2.1 trouxe esse arquivo de verdade
--- para `supabase/migrations/` — ele agora faz parte de `pacoteG1` (o
--- timestamp cai dentro da janela do G1) e é aplicado de verdade pelo replay,
--- na posição real da cadeia.
+-- security issues" da `main`) de verdade para `supabase/migrations/`. Por
+-- timestamp ela cairia dentro da janela do pacote G1, mas
+-- `PACOTE_G1_EXCLUIDAS` em scripts/db-replay-proof.ts a força para a linhagem
+-- de BASELINE (`antes`): migration gerada no chat do Lovable é aplicada no
+-- projeto conectado, então o estado produtivo provável já a contém — incluir
+-- essa reaplicação no pacote G1 executável arriscaria abortar a janela de
+-- mudança por um objeto que já existe, sem ganho de segurança.
 --
--- Simular a correção parcial AQUI TAMBÉM duplicaria `CREATE POLICY
--- profile_own_select` e faria a aplicação real da migration abortar por
--- objeto já existente — não por divergência do alvo, por um erro do harness.
--- Então este arquivo agora só injeta o que a migration real NÃO faz por
--- conta própria: o `GRANT UPDATE` residual (achado independente desta onda,
--- nunca fechado por nenhuma migration existente) e o inventário legado.
+-- O replay real (não este arquivo) já aplica `20260825022411` como parte de
+-- `antes`. Este arquivo só injeta o que ELA NÃO FAZ por conta própria: o
+-- `GRANT UPDATE` residual (achado independente desta onda, nunca fechado por
+-- nenhuma migration existente) e o inventário legado.
 --
--- Ver `SUPERSEDIDAS_NAO_AUTORADAS` em scripts/db-replay-proof.ts para a
--- análise completa de por que essa migration não fecha o achado e como o
--- pacote a supersede.
+-- Ver `SUPERSEDIDAS_NAO_AUTORADAS` / `PACOTE_G1_EXCLUIDAS` em
+-- scripts/db-replay-proof.ts para a análise completa de por que essa
+-- migration não fecha o achado e como o pacote G1 a supersede.
 
 -- Confirma que o estado de partida do teste é o estado vulnerável observado.
 -- Se um dia a cadeia mudar e este arquivo deixar de reproduzir o alvo, é
@@ -85,16 +86,43 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'ABORTED: baseline inesperado — invite_token deveria existir antes do CONTRACT do pacote G1.';
   END IF;
-  -- A correção parcial de 20260825022411 ainda NÃO foi aplicada neste ponto
-  -- (ela mora dentro do pacote G1, aplicada mais adiante pelo replay real) —
-  -- então a policy FOR ALL original precisa continuar aqui intacta.
-  IF NOT EXISTS (
+  -- A correção parcial de 20260825022411 JÁ foi aplicada neste ponto — ela
+  -- mora em `antes` (baseline), não no pacote G1 (ver PACOTE_G1_EXCLUIDAS em
+  -- scripts/db-replay-proof.ts). É a leitura mais honesta do provável estado
+  -- produtivo: migration gerada no chat do Lovable é aplicada no projeto
+  -- conectado. Então a policy FOR ALL original já foi substituída pelas duas
+  -- policies por comando dela, e o trigger fail-open dela já existe.
+  IF EXISTS (
     SELECT 1 FROM pg_policies
      WHERE schemaname = 'public' AND tablename = 'profiles' AND cmd = 'ALL'
   ) THEN
-    RAISE EXCEPTION 'ABORTED: baseline inesperado — a policy FOR ALL original deveria existir antes do pacote G1 (a correção parcial do Lovable ainda não rodou).';
+    RAISE EXCEPTION 'ABORTED: baseline inesperado — a policy FOR ALL original ainda existe; a correção parcial de 20260825022411 deveria já ter substituído por profile_own_select/profile_own_update.';
   END IF;
-  RAISE NOTICE 'PROVEN: estado de partida reproduz o alvo produtivo (ACL drifted + contrato legado de 2 argumentos + invite_token presente + correção parcial do Lovable ainda não aplicada).';
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'profile_own_select'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'profile_own_update'
+  ) THEN
+    RAISE EXCEPTION 'ABORTED: baseline inesperado — profile_own_select/profile_own_update (correção parcial de 20260825022411) deveriam existir neste ponto.';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger
+     WHERE tgrelid = 'public.profiles'::regclass AND NOT tgisinternal
+       AND tgname = 'profiles_prevent_privilege_escalation'
+  ) THEN
+    RAISE EXCEPTION 'ABORTED: baseline inesperado — o trigger fail-open de 20260825022411 deveria existir neste ponto.';
+  END IF;
+  -- O achado desta onda sobrevive à correção parcial de qualquer forma: o
+  -- trigger dela é BEFORE UPDATE apenas, então INSERT/DELETE continuam sendo
+  -- o bypass — que é justamente o que os dois checks de INSERT/DELETE acima
+  -- já confirmam. O GRANT UPDATE injetado logo abaixo é um segundo caminho,
+  -- independente, que o trigger (fail-open só na ausência de claim) não
+  -- bloqueia para uma sessão SEM claim — mas bloqueia para uma sessão normal
+  -- autenticada, que é o que os testes deste replay simulam. Isso é esperado
+  -- e coerente: o achado principal (INSERT/DELETE) não depende dele.
+  RAISE NOTICE 'PROVEN: estado de partida reproduz o alvo produtivo (ACL drifted + contrato legado de 2 argumentos + invite_token presente + correção parcial de 20260825022411 já aplicada, e insuficiente).';
 END $$;
 
 -- ═══════════════════════════════════════════════════════════════════════════

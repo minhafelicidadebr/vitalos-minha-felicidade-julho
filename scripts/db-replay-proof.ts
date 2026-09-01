@@ -119,35 +119,50 @@ const STAGING_ONLY_MIGRATIONS = new Set([
  * por esta onda.
  *
  * `20260825022411_81c55fc7-…` chegou de `main` (commit "Fixed security
- * issues", fora desta branch) e cai, por timestamp, DENTRO da janela do pacote
- * G1 — entre `20260812120000` e `20260828120000`. Ela ataca o MESMO achado
- * CRITICAL por conta própria: cria `profile_own_select`/`profile_own_update` e
- * o trigger `prevent_profile_privilege_escalation` (fail-open, só UPDATE — ver
- * `20260828120000` para a análise completa de por que não fecha o achado).
+ * issues", fora desta branch, gerado no chat do Lovable). Ela ataca o MESMO
+ * achado CRITICAL por conta própria: cria `profile_own_select`/
+ * `profile_own_update` e o trigger `prevent_profile_privilege_escalation`
+ * (fail-open, só UPDATE — ver `20260828120000` para a análise completa de por
+ * que não fecha o achado).
  *
  * `20260828120000` a SUPERSEDE: remove essas policies e esse trigger como
- * parte do próprio hardening, e é idempotente. A cadeia completa, aplicada em
- * ORDEM, é sã — quem chega em `20260828120000` sempre encontra e neutraliza o
- * estado que `20260825022411` deixou.
+ * parte do próprio hardening (todos os DROP são `IF EXISTS`), e por isso é
+ * indiferente ao estado de partida — funciona igual se `20260825022411` já
+ * rodou ou não.
  *
- * O que NÃO é seguro, e é por isso que esta migration fica fora das duas
- * checagens de reaplicação: reexecutar `20260825022411` ISOLADAMENTE depois
- * que `20260828120000` já rodou RECRIA a policy e o trigger vulneráveis em
- * silêncio (`CREATE POLICY` sem guarda, sucesso porque o objeto foi removido
- * por quem veio depois). Não é o "one-shot fail-closed" dos arquivos desta
- * onda (que abortam com diagnóstico), e não é "idempotente" no sentido seguro
- * — é reaplicação silenciosamente destrutiva de um arquivo que este
- * repositório não escreveu e não edita.
+ * É exatamente essa indiferença que justifica excluí-la do PACOTE G1
+ * EXECUTÁVEL (ver `PACOTE_G1_EXCLUIDAS` abaixo), e não apenas das checagens de
+ * reaplicação: migration gerada no chat do Lovable é aplicada no projeto
+ * conectado, então o estado produtivo provável já a contém — e forçar sua
+ * reexecução no runbook arriscaria abortar a janela de mudança por nada.
+ * Confirmado empiricamente (Postgres 17 vazio, sem o hardening presente):
+ * reaplicar `20260825022411` uma segunda vez ANTES do hardening aborta com
+ * `policy "profile_own_select" for table "profiles" already exists` — ela não
+ * tem guarda própria. Reexecutá-la DEPOIS do hardening seria pior: sucede em
+ * silêncio e RECRIA a policy e o trigger fail-open ao lado da proteção de 3
+ * camadas. Nenhum dos dois cenários é aceitável dentro de uma migration que o
+ * runbook dispara sem intervenção humana por linha.
  *
- * Mitigação real: o runbook nunca reaplica um arquivo isolado fora de ordem;
- * reaplica a CADEIA a partir do ponto de retomada. E o postflight do G1 (§8 do
- * runbook) exige explicitamente "exatamente 2 policies, 1 trigger,
- * prevent_profile_privilege_escalation() ausente" — qualquer recriação
- * acidental é pega ali, não pelo replay automático desta suíte.
+ * Por isso ela vive na linhagem de BASELINE (replay: bucket "antes", não
+ * "pacoteG1") e fora das duas checagens de reaplicação. O runbook G1 nunca a
+ * inclui na lista de arquivos a aplicar em produção — o postflight (§8) prova
+ * a supersessão pelo ESTADO FINAL ("exatamente 2 policies, 1 trigger,
+ * prevent_profile_privilege_escalation() ausente"), que é verdadeiro
+ * independente de `20260825022411` ter rodado lá ou não.
  */
 const SUPERSEDIDAS_NAO_AUTORADAS = new Set([
     "20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql",
 ]);
+
+/**
+ * Fora do PACOTE G1 EXECUTÁVEL por decisão operacional, não por incapacidade
+ * técnica — ver o comentário de `SUPERSEDIDAS_NAO_AUTORADAS` acima para o
+ * raciocínio completo. Tratada como parte da linhagem de BASELINE
+ * independente de timestamp: mesmo caindo, por nome, dentro da janela G1 (é
+ * mais recente que `20260812120000`), ela não é entregável desta onda — é um
+ * commit de terceiro que a onda precisou reconciliar.
+ */
+const PACOTE_G1_EXCLUIDAS = SUPERSEDIDAS_NAO_AUTORADAS;
 
 const IDEMPOTENTES = new Set([
     // Desta onda.
@@ -515,8 +530,12 @@ try {
     }
 
     const todas = linhagemDeProducao();
-    const antes = todas.filter((n) => n < G1_BOUNDARY);
-    const pacoteG1 = todas.filter((n) => n >= G1_BOUNDARY);
+    // PACOTE_G1_EXCLUIDAS vai para "antes" mesmo quando o timestamp do nome
+    // cairia dentro da janela G1 — é baseline por decisão operacional
+    // (reconciliação com main), não por posição cronológica. Ver o comentário
+    // da constante.
+    const antes = todas.filter((n) => n < G1_BOUNDARY || PACOTE_G1_EXCLUIDAS.has(n));
+    const pacoteG1 = todas.filter((n) => n >= G1_BOUNDARY && !PACOTE_G1_EXCLUIDAS.has(n));
 
     registrar(
         `linhagem de produção resolvida (${todas.length} de ${migrationsOrdenadas().length} migrations)`,
@@ -566,9 +585,7 @@ try {
     //     drift, por decisão de quem as escreveu. Reaplicar tem de RECUSAR, com
     //     diagnóstico. Uma recusa aqui é o comportamento correto; o que seria
     //     defeito é reaplicar em silêncio.
-    for (const nome of pacoteG1.filter(
-        (n) => IDEMPOTENTES.has(n) && !SUPERSEDIDAS_NAO_AUTORADAS.has(n),
-    )) {
+    for (const nome of pacoteG1.filter((n) => IDEMPOTENTES.has(n))) {
         const r = await psql(lerSql("supabase", "migrations", nome));
         registrar(
             `idempotente ao reaplicar: ${nome}`,
@@ -577,10 +594,10 @@ try {
         );
     }
 
-    // Verifica a SUPERSESSÃO em vez de reaplicar: prova que a cadeia completa,
-    // em ordem, deixa nenhum vestígio do estado que 20260825022411 introduziu
-    // — sem executar esse arquivo de novo, que é justamente o que não é seguro
-    // (ver SUPERSEDIDAS_NAO_AUTORADAS acima).
+    // 20260825022411 já foi aplicada dentro de `antes` (linhagem de
+    // baseline), nunca dentro do pacote G1 — ver PACOTE_G1_EXCLUIDAS. Aqui só
+    // se VERIFICA a supersessão, sem reaplicar o arquivo, que é justamente o
+    // que não é seguro (ver SUPERSEDIDAS_NAO_AUTORADAS acima).
     if (SUPERSEDIDAS_NAO_AUTORADAS.size > 0) {
         const r = await scalar(`
       SELECT
@@ -611,9 +628,7 @@ try {
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria
     // transação, mas rodar isso antes das provas seria arriscar o estado do
     // banco de prova por um teste que não precisa dessa ordem.
-    for (const nome of pacoteG1.filter(
-        (n) => !IDEMPOTENTES.has(n) && !SUPERSEDIDAS_NAO_AUTORADAS.has(n),
-    )) {
+    for (const nome of pacoteG1.filter((n) => !IDEMPOTENTES.has(n))) {
         const r = await psql(lerSql("supabase", "migrations", nome));
         registrar(
             `one-shot recusa reaplicação (fail-closed): ${nome}`,

@@ -12,6 +12,37 @@ voltar). Não há relatórios paralelos.
 
 ---
 
+## 0. Reconciliação com `main` (Wave 5.2.1)
+
+`main` havia divergido 16 commits (todos de 2026-08-25, gerados no chat do
+Lovable) enquanto esta branch avançava. Mergeado com `main` como parent
+(histórico das duas linhagens preservado, sem rebase, sem force push):
+commit de merge `3dfb129`.
+
+Classificação do que veio de `main`:
+
+| Domínio | O que era | Decisão |
+| --- | --- | --- |
+| UI/landing | `nr1.tsx`, dois JPG, copy do CTA | aceito como está — presentational |
+| Cliente Supabase | `brokeredPreviewStorage()` — compartilha sessão via `postMessage` só dentro de zona de preview validada do Lovable, para origem de editor validada | mantido **junto com** `resolveAuthFlowType` desta branch — resolução semântica, não `ours`/`theirs` |
+| `.env` | ganhou `SUPABASE_PROJECT_ID`/`VITE_SUPABASE_PROJECT_ID` (nenhum código lê) | reconstruído a partir da versão desta branch (a de `main` veio com aspas corrompidas por um round-trip do editor de secrets do Lovable); as duas variáveis novas documentadas como decorativas |
+| **Segurança — preflight** | `environment-preflight.ts` de `main` promovia `runtime`/`dbTarget` para `"production"` em silêncio sempre que `LOVABLE_SANDBOX`/`LOVABLE_PROJECT_ID`/`LOVABLE_DEV_SERVER` estivesse definida — a classe exata de defeito que este contrato existe para impedir, e a **causa raiz documentada do próprio CI vermelho de `main`** | **revertido**, não mergeado. `src/lib/env/environment-preflight.test.ts` (só nesta branch) já tinha a suíte de regressão que pegou isso |
+| **Segurança — `profiles`** | migration `20260825022411` (§2.1.1) | trazida como está (histórico de `main`, não editada) e reclassificada como **baseline**, não como parte do pacote G1 executável — ver §2.1.1 e §7 |
+| Dependência | `@lovable.dev/vite-tanstack-config` 2.8.1→2.13.1 | aceito, benigno |
+
+Validação completa depois do merge: `bun test src scripts` (3700/3700),
+`bun run parity`, `bun run manifest` (55 migrations), `bunx tsc --noEmit`,
+`bun run build:ci`, `bun run scripts/build-secret-scan.ts --require-artifact`,
+`bun run db:replay` (15/15), `bun run db:replay:preprod` (17/17). PR #46:
+`mergeStateStatus=CLEAN`, CI real (`pull_request`, run `33450079168`) —
+**SUCCESS**.
+
+`G1_PACKAGE_SHA256` **não mudou** (`f89bd3f3407aece6…`): o merge trouxe uma
+migration de baseline nova, não alterou nenhum dos 6 arquivos do pacote G1.
+Confirmado recomputando o hash a partir do manifesto reconciliado — ver §7.
+
+---
+
 ## 1. Decisão pedida
 
 | Campo | Valor |
@@ -75,10 +106,11 @@ Nenhuma exploração é afirmada — o que foi corrigido é a **capacidade**.
 
 ### 2.1.1 Uma terceira correção parcial existe, e provavelmente já está em produção
 
-`20260825022411_81c55fc7-…`, do commit **"Fixed security issues"** na `main`
-(ausente desta branch), atacou o mesmo achado por conta própria. Migration
-gerada no chat do Lovable é aplicada no projeto conectado, então **o estado
-produtivo provável já a contém**.
+`20260825022411_81c55fc7-…`, do commit **"Fixed security issues"** na `main`,
+atacou o mesmo achado por conta própria. Migration gerada no chat do Lovable é
+aplicada no projeto conectado, então **o estado produtivo provável já a
+contém**. A reconciliação da Wave 5.2.1 (§0) trouxe esse arquivo — que só
+existia em `main` — de fato para `supabase/migrations/` desta branch.
 
 Ela dividiu `profile_own` em `profile_own_select` / `profile_own_update` e criou
 o trigger `profiles_prevent_privilege_escalation`. **E não fecha o achado:**
@@ -101,9 +133,22 @@ O item 4 acima é o motivo de o pacote reafirmar `anon` em
 `submit_sector_response`: sem isso, a submissão anônima ficaria quebrada por uma
 revogação bem-intencionada.
 
-O modo `preprod` do replay **reproduz essa correção parcial** e prova que o
-pacote converge a partir dela (16/16). Sem isso, a primeira migration do pacote
-encontraria em produção policies e trigger que o replay nunca teria visto.
+**Esta migration fica no BASELINE, não no pacote G1 executável.** Por
+timestamp ela cairia dentro da janela do G1 (é mais nova que
+`20260812120000`), mas o runbook não a inclui na lista de arquivos a aplicar em
+produção (§7): reexecutá-la é operacionalmente arriscado sem ganho de
+segurança — confirmado empiricamente que ela **não tem guarda própria**
+(`CREATE POLICY` sem `IF NOT EXISTS`) e, se já estiver aplicada, uma segunda
+execução **aborta** com `policy "profile_own_select" ... already exists`. O
+pacote G1 supersede o resultado dela **por estado final**, não por reexecução:
+o item 5 remove as policies e o trigger dela por nome, com `DROP ... IF
+EXISTS` — funciona igual se ela já rodou ou não.
+
+O modo `preprod` do replay **aplica esta migration de verdade** como parte da
+linhagem de baseline (não a simula mais) e prova que o pacote G1 converge a
+partir do estado real que ela deixa (17/17 — ver §5). Sem isso, a primeira
+migration do pacote encontraria em produção policies e trigger que o replay
+nunca teria visto.
 
 ### 2.2 A correção: três camadas independentes
 
@@ -272,8 +317,8 @@ verdade**, como `authenticated`, com JWT de sessão.
 
 | Modo | O que prova | Resultado |
 | --- | --- | --- |
-| `db:replay` | banco limpo → cadeia completa → provas | **14/14 passos** |
-| `db:replay:preprod` | banco limpo → estado pré-produção → **drift de ACL observado** → pacote G1 → provas | **16/16 passos** |
+| `db:replay` | banco limpo → cadeia completa (55 migrations, 53 replayáveis) → provas | **15/15 passos** |
+| `db:replay:preprod` | banco limpo → estado pré-produção (47 migrations, incluindo `20260825022411` real) → **drift de ACL observado** → pacote G1 (6 migrations) → provas | **17/17 passos** |
 
 O modo `preprod` existe porque validar só contra o replay limpo provaria pouco:
 lá o buraco de `UPDATE` já está fechado antes do pacote rodar. Ele injeta a
@@ -354,6 +399,12 @@ SELECT COUNT(*) FROM public.sector_links s
 -- 6. Pré-requisitos dos caminhos legítimos (fechar sem eles = onboarding indisponível)
 SELECT to_regprocedure('public.provision_organization_from_invite(text,uuid,text,text,text,text,text,text,text,text,text)') IS NOT NULL AS onboarding_ok,
        to_regprocedure('public.accept_member_invite(text,uuid)') IS NOT NULL                                               AS convite_ok;
+
+-- 7. Informativo apenas (§2.1.1) — NÃO decide se o item 5 é aplicado, ele
+-- supersede o resultado por DROP ... IF EXISTS de qualquer forma. Só confirma
+-- qual das duas leituras do estado produtivo é a real, para o registro.
+SELECT EXISTS (SELECT 1 FROM pg_policies
+                WHERE tablename='profiles' AND policyname='profile_own_select') AS correcao_parcial_lovable_presente;
 ```
 
 Fora do SQL, antes de abrir a janela:
@@ -385,8 +436,13 @@ G1_PACKAGE_SHA256=f89bd3f3407aece6c19f5905a09faa63ebea6b2a0cf2e5acf0a5bd25060aca
 MANIFEST_ROLLUP=096f6ad04a5349428dfd92f3031870086852bebd12f7ae1490379a9a88f5f8cd  (54 migrations)
 ```
 
-**NÃO aplicar** `20260730160000` (exclusiva de staging) nem `20260806210000`
-(comprovadamente não executável, substituída pelo item 1).
+**NÃO aplicar** `20260730160000` (exclusiva de staging), `20260806210000`
+(comprovadamente não executável, substituída pelo item 1), nem `20260825022411`
+(§2.1.1 — provavelmente já aplicada em produção pelo próprio Lovable; o item 5
+supersede o resultado dela por `DROP ... IF EXISTS`, funciona igual se ela já
+rodou ou não. Reexecutá-la sem verificar antes arrisca abortar a janela com
+`policy "profile_own_select" ... already exists`, sem nenhum ganho de
+segurança).
 
 **Downtime esperado: zero. Risco de lock: baixo**, e vale saber por quê:
 
@@ -554,8 +610,8 @@ Residual, todo **P2/P3**, nenhum em runtime de produção:
 `bunx tsc --noEmit` | **PASS** |
 `bun run secret-scan` (com artefato) | **PASS** — 6 config · 629 fontes · 277 arquivos de artefato |
 `bun run build:ci` | **PASS** |
-`bun run db:replay` | **PASS** — 14/14 |
-`bun run db:replay:preprod` | **PASS** — 16/16 |
+`bun run db:replay` | **PASS** — 15/15 |
+`bun run db:replay:preprod` | **PASS** — 17/17 |
 `bun run lint` | **FALHA ambiental** — ver abaixo |
 
 `lint` não é gate do CI (`.github/workflows/gate.yml` roda `build:ci` + `gate`).
@@ -583,7 +639,6 @@ teste pré-existente que varre o sistema de arquivos, não regressão (**P3**).
 | --- | --- |
 | **P0** | nenhum |
 | **P1** | nenhum |
-| **P1 (coordenação, não código)** | esta branch **conflita com `main`** e `main` está **16 commits à frente**, com CI **vermelho** nas três últimas execuções (commits do assistente do Lovable: "Changes", "Work in progress", "Fixed security issues"). `main` **não tem** a linhagem FIB-T desta branch (`20260806205000` em diante) e **tem** a correção parcial da §2.1.1. O conflito é em `src/integrations/supabase/client.ts`. Não foi resolvido aqui de propósito: incorporar 16 commits não revisados — incluindo mudanças de aplicação e uma migration de segurança concorrente — dentro do pacote G1 mudaria o que o G1 aplica, e isso é decisão de coordenação humana, não de execução autônoma |
 | **P2** | drill de restauração / PITR provado — **pré-requisito do G3**, não do G1 |
 | **P2** | `js-yaml` (dev/build) |
 | **P2** | `supabase/config.toml` tem `project_id` do projeto **produtivo**: um `supabase db push` distraído apontaria para produção. Nenhum fluxo atual usa o CLI, mas é um pé de armadilha |
