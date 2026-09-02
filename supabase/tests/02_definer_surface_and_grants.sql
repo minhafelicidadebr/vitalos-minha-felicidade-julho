@@ -61,17 +61,22 @@ BEGIN
     v_falhas := v_falhas || format('anon ainda invoca accept_member_invite (%s)', v_out);
   END IF;
 
-  v_out := _proof.attempt(
-    'SELECT public.record_item_funnel_event(''p'', ''i'', 1, TRUE, 1, ''{}''::JSONB)');
-  IF v_out <> 'raised:42501' THEN
-    v_falhas := v_falhas || format('anon ainda invoca record_item_funnel_event (%s)', v_out);
+  -- FUTURE_OPTIONAL: ausência é válida no baseline produtivo; presença exige
+  -- a mesma vedação de uma função service-only.
+  IF to_regprocedure('public.record_item_funnel_event(text,text,integer,boolean,integer,jsonb)') IS NOT NULL THEN
+    v_out := _proof.attempt(
+      'SELECT public.record_item_funnel_event(''p'', ''i'', 1, TRUE, 1, ''{}''::JSONB)');
+    IF v_out <> 'raised:42501' THEN
+      v_falhas := v_falhas || format('anon ainda invoca record_item_funnel_event (%s)', v_out);
+    END IF;
   END IF;
 
-  -- Escrita privilegiada de ledger.
-  v_out := _proof.attempt(
-    'SELECT * FROM public.create_action_plan(''00000000-0000-4000-8000-000000000000'', ''c'', ''s'', NULL, NULL, ''[]''::JSONB)');
-  IF v_out <> 'raised:42501' THEN
-    v_falhas := v_falhas || format('anon ainda invoca create_action_plan (%s)', v_out);
+  IF to_regprocedure('public.create_action_plan(uuid,text,text,uuid,uuid,jsonb)') IS NOT NULL THEN
+    v_out := _proof.attempt(
+      'SELECT * FROM public.create_action_plan(''00000000-0000-4000-8000-000000000000'', ''c'', ''s'', NULL, NULL, ''[]''::JSONB)');
+    IF v_out <> 'raised:42501' THEN
+      v_falhas := v_falhas || format('anon ainda invoca create_action_plan (%s)', v_out);
+    END IF;
   END IF;
 
   v_out := _proof.attempt(
@@ -101,10 +106,12 @@ BEGIN
     v_falhas := v_falhas || format('authenticated ainda invoca accept_member_invite (%s)', v_out);
   END IF;
 
-  v_out := _proof.attempt(
-    'SELECT * FROM public.seal_victory_record(''00000000-0000-4000-8000-000000000000'', ''c'', ''d'', ''{}''::JSONB, ''h'', NULL)');
-  IF v_out <> 'raised:42501' THEN
-    v_falhas := v_falhas || format('authenticated ainda invoca seal_victory_record (%s)', v_out);
+  IF to_regprocedure('public.seal_victory_record(uuid,text,text,jsonb,text,uuid)') IS NOT NULL THEN
+    v_out := _proof.attempt(
+      'SELECT * FROM public.seal_victory_record(''00000000-0000-4000-8000-000000000000'', ''c'', ''d'', ''{}''::JSONB, ''h'', NULL)');
+    IF v_out <> 'raised:42501' THEN
+      v_falhas := v_falhas || format('authenticated ainda invoca seal_victory_record (%s)', v_out);
+    END IF;
   END IF;
 
   EXECUTE 'RESET ROLE';
@@ -162,9 +169,11 @@ BEGIN
     v_falhas := v_falhas || 'authenticated perdeu aggregate_cohort_responses — o painel FIB-T pararia';
   END IF;
 
-  v_out := _proof.attempt('SELECT * FROM public.erase_my_assessments()');
-  IF v_out = 'raised:42501' THEN
-    v_falhas := v_falhas || 'authenticated perdeu erase_my_assessments — o Cofre Pessoal (LGPD art. 18) pararia';
+  IF to_regprocedure('public.erase_my_assessments()') IS NOT NULL THEN
+    v_out := _proof.attempt('SELECT * FROM public.erase_my_assessments()');
+    IF v_out = 'raised:42501' THEN
+      v_falhas := v_falhas || 'authenticated perdeu erase_my_assessments — o Cofre Pessoal (LGPD art. 18) pararia';
+    END IF;
   END IF;
 
   EXECUTE 'RESET ROLE';

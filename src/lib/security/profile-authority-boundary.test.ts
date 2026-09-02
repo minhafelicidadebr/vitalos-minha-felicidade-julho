@@ -18,6 +18,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { Glob } from "bun";
 
@@ -26,7 +27,9 @@ const DIR_MIGRATIONS = join(raiz, "supabase", "migrations");
 const DIR_PROVAS = join(raiz, "supabase", "tests");
 
 const HARDENING = "20260828120000_profile_authority_boundary_hardening.sql";
-const RECONCILIACAO = "20260828121000_definer_surface_and_execute_grants.sql";
+const M6_HISTORICA = "20260828121000_definer_surface_and_execute_grants.sql";
+const M6A = "20260901120000_current_production_definer_surface_security_closure.sql";
+const M6_HISTORICA_SHA256 = "4725c8c3e3ce8033045e7613ed1eab49c5ef77628210ec74a43496fe46877371";
 
 function migrations(): { nome: string; sql: string }[] {
     return [...new Glob("*.sql").scanSync({ cwd: DIR_MIGRATIONS })]
@@ -104,8 +107,9 @@ describe("nenhuma migration posterior reabre o caminho", () => {
     // uma aplicação, não o que a próxima migration do repositório vai fazer.
     const posteriores = migrations().filter((m) => m.nome > HARDENING);
 
-    test("existe pelo menos a reconciliação depois do hardening (o teste não é vácuo)", () => {
-        expect(posteriores.map((m) => m.nome)).toContain(RECONCILIACAO);
+    test("M6 histórica e M6A existem depois do hardening (o teste não é vácuo)", () => {
+        expect(posteriores.map((m) => m.nome)).toContain(M6_HISTORICA);
+        expect(posteriores.map((m) => m.nome)).toContain(M6A);
     });
 
     for (const { nome, sql } of posteriores) {
@@ -125,8 +129,17 @@ describe("nenhuma migration posterior reabre o caminho", () => {
     }
 });
 
-describe("a superfície SECURITY DEFINER tem inventário declarado", () => {
-    const sql = readFileSync(join(DIR_MIGRATIONS, RECONCILIACAO), "utf8");
+describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado", () => {
+    const sql = readFileSync(join(DIR_MIGRATIONS, M6A), "utf8");
+
+    test("M6 histórica permanece byte-for-byte na custódia canônica", () => {
+        const historica = readFileSync(join(DIR_MIGRATIONS, M6_HISTORICA), "utf8")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n");
+        expect(createHash("sha256").update(historica, "utf8").digest("hex")).toBe(
+            M6_HISTORICA_SHA256,
+        );
+    });
 
     test("toda RPC chamada pelo código está no inventário de EXECUTE", () => {
         // Uma RPC que o app chama mas o inventário não declara sairia da
@@ -146,10 +159,25 @@ describe("a superfície SECURITY DEFINER tem inventário declarado", () => {
         expect(ausentes).toEqual([]);
     });
 
-    test("a checagem de completude está presente e não é opcional", () => {
-        // Sem ela, o inventário protege só o que já existia hoje.
-        expect(sql).toContain("fora do inventario de EXECUTE");
+    test("a checagem de completude phase-aware é fail-closed", () => {
+        expect(sql).toContain("fora de REQUIRED_NOW + FUTURE_OPTIONAL");
         expect(sql).toMatch(/deptype\s*=\s*'e'/);
+        expect(sql).toContain("função(ões) REQUIRED_NOW ausente(s)");
+    });
+
+    test("declara exatamente 15 REQUIRED_NOW e 14 FUTURE_OPTIONAL", () => {
+        const required = sql.slice(
+            sql.indexOf("INSERT INTO _m6a_required_now"),
+            sql.indexOf("INSERT INTO _m6a_future_optional"),
+        );
+        const future = sql.slice(
+            sql.indexOf("INSERT INTO _m6a_future_optional"),
+            sql.indexOf("-- REQUIRED_NOW é fail-closed"),
+        );
+        expect([...required.matchAll(/\('public\./g)]).toHaveLength(15);
+        expect([...future.matchAll(/\('public\./g)]).toHaveLength(14);
+        expect(future).toContain("public.record_item_funnel_event");
+        expect(required).toContain("public.enforce_profile_authority_boundary()");
     });
 
     /**
@@ -159,13 +187,23 @@ describe("a superfície SECURITY DEFINER tem inventário declarado", () => {
      * acidente de posição no arquivo.
      */
     function grantees(assinatura: string): string {
-        const registro = sql.slice(
-            sql.indexOf("INSERT INTO _execute_pretendido"),
-            sql.indexOf("-- ── 2.1"),
-        );
+        const inicioRegistro = sql.indexOf("INSERT INTO _m6a_required_now");
+        const fimRegistro = sql.indexOf("-- REQUIRED_NOW é fail-closed");
+        expect(inicioRegistro).toBeGreaterThan(-1);
+        expect(fimRegistro).toBeGreaterThan(inicioRegistro);
+
+        const registro = sql.slice(inicioRegistro, fimRegistro);
         const i = registro.indexOf(`'${assinatura}'`);
         expect(i).toBeGreaterThan(-1);
-        return registro.slice(i, registro.indexOf("),", i));
+        const proximaVirgula = registro.indexOf("),", i);
+        const fimInsert = registro.indexOf(");", i);
+        const fimEntrada = proximaVirgula === -1
+            ? fimInsert
+            : fimInsert === -1
+                ? proximaVirgula
+                : Math.min(proximaVirgula, fimInsert);
+        expect(fimEntrada).toBeGreaterThan(i);
+        return registro.slice(i, fimEntrada);
     }
 
     test("as funções que estavam alcançáveis por herança ficam service_role", () => {
@@ -193,11 +231,12 @@ describe("a superfície SECURITY DEFINER tem inventário declarado", () => {
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as três suítes existem", () => {
+    test("as quatro suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
             "03_fibt_contract_convergence.sql",
+            "04_m6a_phase_aware_surface.sql",
         ]);
     });
 

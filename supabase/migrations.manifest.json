@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 55,
-  "rollupSha256": "dd6b0b009f0bd771fed10aee3a4fa3bba8aaa2e5d57e62e0dcc67946cf857d72",
+  "migrationCount": 56,
+  "rollupSha256": "9c9ce14e2a494ff7ef8241de1d02c8a108d9154070f92d2afada9491b35a89ba",
   "migrations": [
     {
       "order": 1,
@@ -332,6 +332,12 @@
       "name": "20260828121000_definer_surface_and_execute_grants.sql",
       "sha256": "4725c8c3e3ce8033045e7613ed1eab49c5ef77628210ec74a43496fe46877371",
       "bytes": 21811
+    },
+    {
+      "order": 56,
+      "name": "20260901120000_current_production_definer_surface_security_closure.sql",
+      "sha256": "ef682f4c641cf35531e36a4011a592b51343019a5500013bf007ac95ce902724",
+      "bytes": 14626
     }
   ]
 }

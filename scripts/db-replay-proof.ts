@@ -130,8 +130,8 @@ const STAGING_ONLY_MIGRATIONS = new Set([
  * indiferente ao estado de partida — funciona igual se `20260825022411` já
  * rodou ou não.
  *
- * É exatamente essa indiferença que justifica excluí-la do PACOTE G1
- * EXECUTÁVEL (ver `PACOTE_G1_EXCLUIDAS` abaixo), e não apenas das checagens de
+ * É exatamente essa indiferença que justifica excluí-la do PACOTE G1-v2
+ * EXECUTÁVEL, e não apenas das checagens de reaplicação: migration gerada no
  * reaplicação: migration gerada no chat do Lovable é aplicada no projeto
  * conectado, então o estado produtivo provável já a contém — e forçar sua
  * reexecução no runbook arriscaria abortar a janela de mudança por nada.
@@ -162,13 +162,30 @@ const SUPERSEDIDAS_NAO_AUTORADAS = new Set([
  * mais recente que `20260812120000`), ela não é entregável desta onda — é um
  * commit de terceiro que a onda precisou reconciliar.
  */
-const PACOTE_G1_EXCLUIDAS = SUPERSEDIDAS_NAO_AUTORADAS;
+const ORIGINAL_M6_HISTORICA = "20260828121000_definer_surface_and_execute_grants.sql";
+const M6A_ATUAL = "20260901120000_current_production_definer_surface_security_closure.sql";
+
+/**
+ * Pacote produtivo G1-v2: lista fechada, nunca inferida por timestamp/glob.
+ * O M6 histórico permanece na linhagem RC/clean, mas é incompatível com o
+ * baseline produtivo real porque exige 14 funções de módulos não promovidos.
+ */
+const PACOTE_G1_V2 = [
+    "20260806211000_response_invite_link_contract_forward_fix.sql",
+    "20260807120000_sector_response_consent_durability.sql",
+    "20260811120000_fail_closed_sector_response_cohort_binding.sql",
+    "20260812120000_one_active_sector_link_per_cohort.sql",
+    "20260828120000_profile_authority_boundary_hardening.sql",
+    M6A_ATUAL,
+] as const;
 
 const IDEMPOTENTES = new Set([
-    // Desta onda.
+    // G1-v2.
     "20260806211000_response_invite_link_contract_forward_fix.sql",
     "20260828120000_profile_authority_boundary_hardening.sql",
-    "20260828121000_definer_surface_and_execute_grants.sql",
+    M6A_ATUAL,
+    // M6 histórico continua verificável apenas na linhagem clean/RC.
+    ORIGINAL_M6_HISTORICA,
     // Pré-existentes, verificadas como reaplicáveis pelo próprio replay:
     // CREATE OR REPLACE da função, CREATE UNIQUE INDEX IF NOT EXISTS e
     // ADD CONSTRAINT guardado por pg_constraint. Reaplicar passa e não muda
@@ -254,7 +271,10 @@ async function docker(
  * Arquivos que já gerenciam a própria transação (BEGIN/COMMIT explícitos) rodam
  * como estão, para não aninhar e mudar o significado do COMMIT interno.
  */
-async function psql(sql: string): Promise<{ code: number; out: string; err: string }> {
+async function psql(
+    sql: string,
+    database = DB,
+): Promise<{ code: number; out: string; err: string }> {
     const gerenciaPropriaTransacao = /^\s*BEGIN\s*;/im.test(sql);
     return docker(
         [
@@ -272,7 +292,7 @@ async function psql(sql: string): Promise<{ code: number; out: string; err: stri
             "-U",
             PGUSER,
             "-d",
-            DB,
+            database,
             "-f",
             "-",
         ],
@@ -281,7 +301,7 @@ async function psql(sql: string): Promise<{ code: number; out: string; err: stri
 }
 
 /** Consulta de uma linha/uma coluna, sem alinhamento — para asserções. */
-async function scalar(sql: string): Promise<string> {
+async function scalar(sql: string, database = DB): Promise<string> {
     const r = await docker(
         [
             "exec",
@@ -297,7 +317,7 @@ async function scalar(sql: string): Promise<string> {
             "-U",
             PGUSER,
             "-d",
-            DB,
+            database,
             "-f",
             "-",
         ],
@@ -485,6 +505,118 @@ async function rodarProvas(): Promise<void> {
     }
 }
 
+async function comCloneLocal(
+    nome: string,
+    prova: (database: string) => Promise<void>,
+): Promise<void> {
+    await docker(["exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER, "dropdb", "--if-exists", "--force", "-U", PGUSER, nome]);
+    const clone = await docker([
+        "exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER,
+        "createdb", "-U", PGUSER, "-T", DB, nome,
+    ]);
+    if (clone.code !== 0) {
+        registrar(`clone local ${nome}`, false, clone.err.trim() || clone.out.trim());
+        return;
+    }
+    try {
+        await prova(nome);
+    } finally {
+        await docker(["exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER, "dropdb", "--if-exists", "--force", "-U", PGUSER, nome]);
+    }
+}
+
+async function rodarMatrizNegativaM6A(): Promise<void> {
+    const m6a = lerSql("supabase", "migrations", M6A_ATUAL);
+
+    await comCloneLocal("m6a_unknown_attack", async (database) => {
+        const setup = await psql(`
+CREATE FUNCTION public.m6a_unknown_probe() RETURNS INTEGER
+LANGUAGE sql AS $$ SELECT 1 $$;
+`, database);
+        if (setup.code !== 0) {
+            registrar("M6A unknown-function setup", false, setup.err.trim());
+            return;
+        }
+        const r = await psql(m6a, database);
+        registrar(
+            "M6A aborta função public desconhecida",
+            r.code !== 0 && r.err.includes("fora de REQUIRED_NOW + FUTURE_OPTIONAL"),
+            r.code === 0 ? "migration aceitou função desconhecida" : r.err.trim().split("\n").slice(0, 3).join(" | "),
+        );
+    });
+
+    await comCloneLocal("m6a_required_missing", async (database) => {
+        const setup = await psql("DROP FUNCTION public.mark_invite_used(TEXT);", database);
+        if (setup.code !== 0) {
+            registrar("M6A required-missing setup", false, setup.err.trim());
+            return;
+        }
+        const r = await psql(m6a, database);
+        registrar(
+            "M6A aborta REQUIRED_NOW ausente",
+            r.code !== 0 && r.err.includes("REQUIRED_NOW ausente"),
+            r.code === 0 ? "migration aceitou required ausente" : r.err.trim().split("\n").slice(0, 3).join(" | "),
+        );
+    });
+
+    await comCloneLocal("m6a_future_unsafe", async (database) => {
+        const setup = await psql(`
+DROP FUNCTION IF EXISTS public.record_item_funnel_event(
+  TEXT, TEXT, INTEGER, BOOLEAN, INTEGER, JSONB
+);
+CREATE FUNCTION public.record_item_funnel_event(
+  TEXT, TEXT, INTEGER, BOOLEAN, INTEGER, JSONB
+) RETURNS TABLE(accepted BOOLEAN, reason TEXT)
+LANGUAGE sql SECURITY DEFINER SET search_path = public
+AS $$ SELECT TRUE, NULL::TEXT $$;
+GRANT EXECUTE ON FUNCTION public.record_item_funnel_event(TEXT,TEXT,INTEGER,BOOLEAN,INTEGER,JSONB)
+  TO PUBLIC, anon, authenticated;
+`, database);
+        if (setup.code !== 0) {
+            registrar("M6A future-unsafe setup", false, setup.err.trim());
+            return;
+        }
+        const apply = await psql(m6a, database);
+        let estado = "apply_failed";
+        if (apply.code === 0) {
+            estado = await scalar(`
+SELECT
+  EXISTS (
+    SELECT 1 FROM pg_proc p,
+      aclexplode(COALESCE(p.proacl, acldefault('f',p.proowner))) a
+     WHERE p.oid=to_regprocedure('public.record_item_funnel_event(text,text,integer,boolean,integer,jsonb)')
+       AND a.grantee=0 AND a.privilege_type='EXECUTE'
+  )::TEXT || '|' ||
+  has_function_privilege('anon',to_regprocedure('public.record_item_funnel_event(text,text,integer,boolean,integer,jsonb)'),'EXECUTE')::TEXT || '|' ||
+  has_function_privilege('authenticated',to_regprocedure('public.record_item_funnel_event(text,text,integer,boolean,integer,jsonb)'),'EXECUTE')::TEXT || '|' ||
+  has_function_privilege('service_role',to_regprocedure('public.record_item_funnel_event(text,text,integer,boolean,integer,jsonb)'),'EXECUTE')::TEXT;
+`, database);
+        }
+        registrar(
+            "M6A reconcilia FUTURE_OPTIONAL presente com EXECUTE inseguro",
+            apply.code === 0 && estado === "false|false|false|true",
+            apply.code === 0 ? `ACL=${estado}` : apply.err.trim().split("\n").slice(0, 3).join(" | "),
+        );
+    });
+
+    await comCloneLocal("m6a_unsafe_search_path", async (database) => {
+        const setup = await psql(
+            "ALTER FUNCTION public.mark_invite_used(TEXT) RESET search_path;",
+            database,
+        );
+        if (setup.code !== 0) {
+            registrar("M6A unsafe-search-path setup", false, setup.err.trim());
+            return;
+        }
+        const r = await psql(m6a, database);
+        registrar(
+            "M6A aborta SECURITY DEFINER sem search_path fixo",
+            r.code !== 0 && r.err.includes("SECURITY DEFINER sem search_path fixo"),
+            r.code === 0 ? "migration aceitou search_path inseguro" : r.err.trim().split("\n").slice(0, 3).join(" | "),
+        );
+    });
+}
+
 async function dumpInventario(): Promise<void> {
     const sql = `
 SELECT p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')'
@@ -529,16 +661,37 @@ try {
         throw new Error("shim falhou");
     }
 
+    const todasOrdenadas = migrationsOrdenadas();
     const todas = linhagemDeProducao();
-    // PACOTE_G1_EXCLUIDAS vai para "antes" mesmo quando o timestamp do nome
-    // cairia dentro da janela G1 — é baseline por decisão operacional
-    // (reconciliação com main), não por posição cronológica. Ver o comentário
-    // da constante.
-    const antes = todas.filter((n) => n < G1_BOUNDARY || PACOTE_G1_EXCLUIDAS.has(n));
-    const pacoteG1 = todas.filter((n) => n >= G1_BOUNDARY && !PACOTE_G1_EXCLUIDAS.has(n));
+    const pacoteG1 = [...PACOTE_G1_V2];
+    const pacoteAusente = pacoteG1.filter((nome) => !todasOrdenadas.includes(nome));
+    const pacoteDuplicado = pacoteG1.filter((nome, indice) => pacoteG1.indexOf(nome) !== indice);
+    const pacoteForaDaLinhagem = pacoteG1.filter((nome) => !todas.includes(nome));
+    const pacoteValido = pacoteG1.length === 6
+        && pacoteAusente.length === 0
+        && pacoteDuplicado.length === 0
+        && pacoteForaDaLinhagem.length === 0
+        && !pacoteG1.includes(ORIGINAL_M6_HISTORICA as (typeof PACOTE_G1_V2)[number]);
 
     registrar(
-        `linhagem de produção resolvida (${todas.length} de ${migrationsOrdenadas().length} migrations)`,
+        "custódia do pacote G1-v2 explícito (M1-M5+M6A, 6 arquivos únicos)",
+        pacoteValido,
+        pacoteValido
+            ? undefined
+            : `quantidade=${pacoteG1.length} · ausentes=${pacoteAusente.join(",") || "0"} · duplicados=${pacoteDuplicado.join(",") || "0"} · fora_da_linhagem=${pacoteForaDaLinhagem.join(",") || "0"}`,
+    );
+    if (!pacoteValido) throw new Error("custódia do pacote G1-v2 inválida");
+
+    // Baseline preprod é deliberadamente assimétrico: tudo antes da fronteira
+    // produtiva mais a correção parcial do Lovable, que pode já estar aplicada
+    // apesar do timestamp posterior. O M6 histórico não entra no baseline nem
+    // no pacote produtivo; ele permanece exercitado somente na cadeia clean/RC.
+    const antes = todas.filter(
+        (nome) => nome < G1_BOUNDARY || SUPERSEDIDAS_NAO_AUTORADAS.has(nome),
+    );
+
+    registrar(
+        `linhagem de produção resolvida (${todas.length} de ${todasOrdenadas.length} migrations)`,
         true,
     );
     for (const n of STAGING_ONLY_MIGRATIONS) {
@@ -550,7 +703,9 @@ try {
     }
 
     if (modo === "clean") {
-        if (!(await aplicarCadeia(todas, "cadeia completa aplicada"))) throw new Error("cadeia falhou");
+        if (!(await aplicarCadeia(todas, "cadeia completa RC aplicada (M6 histórico + M6A)"))) {
+            throw new Error("cadeia falhou");
+        }
     } else {
         if (!(await aplicarCadeia(antes, "estado pré-produção reproduzido"))) {
             throw new Error("baseline falhou");
@@ -565,8 +720,30 @@ try {
         ) {
             throw new Error("drift falhou");
         }
-        if (!(await aplicarCadeia(pacoteG1, "pacote G1 aplicado sobre o estado real"))) {
-            throw new Error("pacote G1 falhou");
+
+        // A observação read-only de produção classificou M1 como já efetivo.
+        // Aplicá-lo uma vez estabelece esse prestate no clone; reaplicá-lo logo
+        // depois como primeiro item do pacote prova retomabilidade real.
+        if (
+            !(await aplicarCadeia(
+                [PACOTE_G1_V2[0]],
+                "prestate produtivo estabelecido (M1 já presente)",
+            ))
+        ) {
+            throw new Error("prestate M1 falhou");
+        }
+        if (
+            !(await aplicarArquivo(
+                "superfície production-like sem 14 funções futuras",
+                "supabase",
+                "local",
+                "20_production_absent_future_function_surface.sql",
+            ))
+        ) {
+            throw new Error("fixture de superfície futura ausente falhou");
+        }
+        if (!(await aplicarCadeia(pacoteG1, "pacote G1-v2 explícito aplicado sobre o estado real"))) {
+            throw new Error("pacote G1-v2 falhou");
         }
     }
 
@@ -595,7 +772,7 @@ try {
     }
 
     // 20260825022411 já foi aplicada dentro de `antes` (linhagem de
-    // baseline), nunca dentro do pacote G1 — ver PACOTE_G1_EXCLUIDAS. Aqui só
+    // baseline), nunca dentro do pacote G1-v2 explícito. Aqui só se VERIFICA a
     // se VERIFICA a supersessão, sem reaplicar o arquivo, que é justamente o
     // que não é seguro (ver SUPERSEDIDAS_NAO_AUTORADAS acima).
     if (SUPERSEDIDAS_NAO_AUTORADAS.size > 0) {
@@ -624,6 +801,7 @@ try {
     }
 
     await rodarProvas();
+    await rodarMatrizNegativaM6A();
 
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria
     // transação, mas rodar isso antes das provas seria arriscar o estado do
