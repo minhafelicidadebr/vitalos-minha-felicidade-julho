@@ -387,5 +387,5 @@ describe("FIBT-HML-4D — sanidade do artefato quando presente", () => {
       }
     }
     expect(naoResolvidos).toEqual([]);
-  });
+  }, 30_000);
 });

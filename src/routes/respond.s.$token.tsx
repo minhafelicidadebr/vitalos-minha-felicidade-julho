@@ -15,6 +15,7 @@ import {
   type SurveyValue,
 } from "@/engine/survey/survey-engine";
 import type { CaptureReceipt, CaptureResult } from "@/engine/survey/response-capture-engine";
+import { SECTOR_RESPONSE_CONSENT_VERSION } from "@/domain/survey/sector-response-consent";
 import { resolveSectorToken, submitSectorLinkResponse } from "@/lib/api/sector-link.functions";
 import { getWaveSurvey } from "@/mocks/survey-mock";
 import type { SectorTokenResolution } from "@/lib/survey/sector-link.server";
@@ -71,6 +72,9 @@ function SurveyFlow({
   const [submitting, setSubmitting] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<CaptureReceipt | null>(null);
+  const [acceptedConsentVersion, setAcceptedConsentVersion] = useState<
+    typeof SECTOR_RESPONSE_CONSENT_VERSION | null
+  >(null);
   const submitting$ = useRef(false);
 
   const progress = surveyProgress(survey.items, responses);
@@ -81,7 +85,7 @@ function SurveyFlow({
   }
 
   async function submit() {
-    if (!progress.isComplete || submitting$.current) return;
+    if (!progress.isComplete || !acceptedConsentVersion || submitting$.current) return;
     submitting$.current = true;
     setSubmitting(true);
     setCaptureError(null);
@@ -95,7 +99,7 @@ function SurveyFlow({
             itemId: item.id,
             value: responses[item.id]!,
           })),
-          consentVersion: "2026.1",
+          consentVersion: acceptedConsentVersion,
         },
       });
     } catch {
@@ -138,7 +142,14 @@ function SurveyFlow({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <ConsentScreen grant={grant} survey={survey} onAccept={() => setStage("survey")} />
+            <ConsentScreen
+              grant={grant}
+              survey={survey}
+              onAccept={() => {
+                setAcceptedConsentVersion(SECTOR_RESPONSE_CONSENT_VERSION);
+                setStage("survey");
+              }}
+            />
           </motion.div>
         )}
 
@@ -370,7 +381,8 @@ function SurveyScreen({
         </button>
 
         <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-          O servidor valida e descarta o conteúdo. Nenhuma resposta individual é armazenada.
+          O servidor valida e armazena a resposta sem vínculo com identidade no registro da
+          pesquisa. Gestores acessam somente agregados com no mínimo 5 participantes.
         </p>
 
         <div

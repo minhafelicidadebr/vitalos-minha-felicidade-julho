@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveAuthCallbackRedirect } from "@/lib/auth/auth-redirect";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -43,13 +44,21 @@ function EntrarPage() {
     if (!email.trim()) return;
     setStatus("sending");
     setErrorMsg(null);
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`
-        : undefined;
+    const authRedirect = resolveAuthCallbackRedirect(window.location.origin, redirect, {
+      VITE_FIBT_HML_ENABLED: import.meta.env.VITE_FIBT_HML_ENABLED,
+      VITE_FIBT_HML_FRONTEND_BASE_URL: import.meta.env.VITE_FIBT_HML_FRONTEND_BASE_URL,
+    });
+    if (!authRedirect.ok) {
+      setStatus("error");
+      setErrorMsg("Não foi possível iniciar o acesso neste ambiente.");
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
+      options: {
+        emailRedirectTo: authRedirect.callbackUrl,
+        shouldCreateUser: !authRedirect.existingAccountOnly,
+      },
     });
     if (error) {
       setStatus("error");
@@ -78,8 +87,9 @@ function EntrarPage() {
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center">
             <p className="font-serif text-xl text-foreground">Verifique seu e-mail</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Enviamos um link de acesso para <span className="font-medium text-foreground">{email}</span>.
-              Abra o e-mail no mesmo dispositivo para continuar.
+              Enviamos um link de acesso para{" "}
+              <span className="font-medium text-foreground">{email}</span>. Abra o e-mail no mesmo
+              dispositivo para continuar.
             </p>
             <button
               type="button"
@@ -109,9 +119,7 @@ function EntrarPage() {
                 className="mt-2 h-12 w-full rounded-md border border-input bg-background px-4 font-serif text-lg text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            {errorMsg ? (
-              <p className="text-sm text-destructive">{errorMsg}</p>
-            ) : null}
+            {errorMsg ? <p className="text-sm text-destructive">{errorMsg}</p> : null}
             <button
               type="submit"
               disabled={status === "sending"}

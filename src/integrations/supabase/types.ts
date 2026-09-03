@@ -805,6 +805,8 @@ export type Database = {
         Row: {
           answers: Json
           cohort_id: string | null
+          consent_accepted_at: string | null
+          consent_version: string | null
           id: string
           instrument: string | null
           instrument_version: string | null
@@ -814,6 +816,8 @@ export type Database = {
         Insert: {
           answers: Json
           cohort_id?: string | null
+          consent_accepted_at?: string | null
+          consent_version?: string | null
           id?: string
           instrument?: string | null
           instrument_version?: string | null
@@ -823,6 +827,8 @@ export type Database = {
         Update: {
           answers?: Json
           cohort_id?: string | null
+          consent_accepted_at?: string | null
+          consent_version?: string | null
           id?: string
           instrument?: string | null
           instrument_version?: string | null
@@ -965,7 +971,7 @@ export type Database = {
         }[]
       }
       submit_sector_response: {
-        Args: { p_answers: Json; p_token_hash: string }
+        Args: { p_answers: Json; p_consent_version: string; p_token_hash: string }
         Returns: {
           accepted: boolean
           reason: string

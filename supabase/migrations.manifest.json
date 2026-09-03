@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 46,
-  "rollupSha256": "ad3596cb15e86a0773b6852834ff3cc788ccf6bc0051af087b5ba8ea99e02731",
+  "migrationCount": 56,
+  "rollupSha256": "9c9ce14e2a494ff7ef8241de1d02c8a108d9154070f92d2afada9491b35a89ba",
   "migrations": [
     {
       "order": 1,
@@ -278,6 +278,66 @@
       "name": "20260730160000_drop_response_invite_link_contract.sql",
       "sha256": "3f2a67501cd6a208ab3e2fc349fae3a5822aea052636d9d77dcca452e6c26731",
       "bytes": 11812
+    },
+    {
+      "order": 47,
+      "name": "20260806205000_rewrite_submit_sector_response_without_invite_link.sql",
+      "sha256": "0e561ce1f7221fa4cbf4b696d585a9ace84d47e127b8403bb187598f19e2a805",
+      "bytes": 13135
+    },
+    {
+      "order": 48,
+      "name": "20260806210000_drop_response_invite_link_contract_production.sql",
+      "sha256": "c06ef41b875238e3d9b9dd54dd49d18ff1f1fe2353820ec1605351e9212b11c3",
+      "bytes": 14363
+    },
+    {
+      "order": 49,
+      "name": "20260806211000_response_invite_link_contract_forward_fix.sql",
+      "sha256": "7f96dcb72c63e04ed57aacaaea7ee98b0cb82510ff2468b7e77e83b73aa1e633",
+      "bytes": 11683
+    },
+    {
+      "order": 50,
+      "name": "20260807120000_sector_response_consent_durability.sql",
+      "sha256": "6e4cf5f34c403a9eff67d5b88998e431bda53de0693de61f26f24a1f5c883e4e",
+      "bytes": 12016
+    },
+    {
+      "order": 51,
+      "name": "20260811120000_fail_closed_sector_response_cohort_binding.sql",
+      "sha256": "536e641aa4f7ccfdb6742406bedf9a23c872c3e42bd6b92adabfb3df0216008e",
+      "bytes": 10463
+    },
+    {
+      "order": 52,
+      "name": "20260812120000_one_active_sector_link_per_cohort.sql",
+      "sha256": "a83923a5ecf22a17eccb3c454ceebdfbb2a53f9faa43ea35da320b8850dbb6c3",
+      "bytes": 1744
+    },
+    {
+      "order": 53,
+      "name": "20260825022411_81c55fc7-a2bd-4962-b11a-0e1945894d65.sql",
+      "sha256": "a19d205f76d03883b8a48103406c0ae626999377e0cbed4601d8b6dd8150f948",
+      "bytes": 3252
+    },
+    {
+      "order": 54,
+      "name": "20260828120000_profile_authority_boundary_hardening.sql",
+      "sha256": "8ca839b853653bf662d912f9ad6fe6a5acc361c6c275387dafd4388aad5a1b4b",
+      "bytes": 23536
+    },
+    {
+      "order": 55,
+      "name": "20260828121000_definer_surface_and_execute_grants.sql",
+      "sha256": "4725c8c3e3ce8033045e7613ed1eab49c5ef77628210ec74a43496fe46877371",
+      "bytes": 21811
+    },
+    {
+      "order": 56,
+      "name": "20260901120000_current_production_definer_surface_security_closure.sql",
+      "sha256": "ef682f4c641cf35531e36a4011a592b51343019a5500013bf007ac95ce902724",
+      "bytes": 14626
     }
   ]
 }

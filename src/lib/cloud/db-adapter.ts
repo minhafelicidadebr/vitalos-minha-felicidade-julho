@@ -24,6 +24,7 @@ export interface CreateWaveInput {
   instrument: "COPSOQ" | "PERMA" | "VIA_T" | "FIB_T";
   label?: string;
   inviteCount: number;
+  distributionMode?: "individual" | "sector";
   closesAt?: string;
   // Quando presente, deve ter exatamente inviteCount itens — um e-mail por convite,
   // na mesma ordem em que os tokens serão gerados (alinhamento garantido pelo
@@ -114,6 +115,15 @@ export async function createWaveWithAdmin(
 
   if (waveErr || !wave) {
     return { error: waveErr?.message ?? "Falha ao inserir onda — resposta vazia do banco." };
+  }
+
+  if (input.distributionMode === "sector") {
+    return {
+      waveId: wave.id,
+      inviteTokens: [],
+      inviteLinks: [],
+      inviteEmails: [],
+    };
   }
 
   // Só toca na coluna email quando há e-mails de fato: o fluxo majoritário

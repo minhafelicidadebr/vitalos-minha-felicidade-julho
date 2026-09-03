@@ -21,6 +21,8 @@ export type OpsEventName =
   | "sector_response_accepted"
   | "sector_response_rejected"
   | "sector_link_created"
+  | "sector_link_revoked"
+  | "wave_cohort_created"
   | "wave_created"
   | "wave_closed"
   | "capsule_published"

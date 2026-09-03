@@ -1,12 +1,15 @@
-import { describe, expect, test, mock, beforeEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { createHash } from "node:crypto";
 import type { IdentityBoundaryStatus } from "@/engine/identity/authorization-engine";
+import { SECTOR_RESPONSE_CONSENT_VERSION } from "@/domain/survey/sector-response-consent";
+import { HML_SECTOR_SMOKE } from "@/lib/fibt-hml/hml-contract";
 
 // Token demo real de src/mocks/sector-link-mock.ts (link ativo, dentro da janela).
 const VALID_DEMO_TOKEN = "vL9k3mPqR7wXnAy2sZcBdEfGhJtUiOp";
 // Token "real" do fake cloud — o banco só conhece o hash dele.
 const CLOUD_TOKEN = "a".repeat(48);
 const CLOUD_TOKEN_HASH = createHash("sha256").update(CLOUD_TOKEN).digest("hex");
+const ORIGINAL_HML_DEPLOYMENT_DECLARATION = process.env.FIBT_HML_DEPLOYMENT_ENABLED;
 
 const mockBoundary = mock<() => IdentityBoundaryStatus>(() => ({
   requestedMode: "demo",
@@ -35,6 +38,7 @@ const fakeAdmin = {
     return { data: [rpcOutcome], error: null };
   },
   from: (_table: string) => ({
+    insert: async (_row: Record<string, unknown>) => ({ error: null }),
     select: (_cols: string) => ({
       eq: (_c: string, v: string) => ({
         maybeSingle: async () => ({
@@ -47,9 +51,8 @@ const fakeAdmin = {
 
 mock.module("@/integrations/supabase/client.server", () => ({ supabaseAdmin: fakeAdmin }));
 
-const { captureSectorLinkResponse, resolveToken, hashSectorToken } = await import(
-  "./sector-link.server"
-);
+const { captureSectorLinkResponse, resolveToken, hashSectorToken } =
+  await import("./sector-link.server");
 
 function setBoundary(state: "demo" | "cloud" | "blocked") {
   mockBoundary.mockImplementation(() => ({
@@ -58,24 +61,47 @@ function setBoundary(state: "demo" | "cloud" | "blocked") {
     realAuthentication: state === "cloud",
     serverEnforced: state !== "demo",
     reason:
-      state === "demo" ? "demo_isolated" : state === "cloud" ? "cloud_ready" : "cloud_adapter_missing",
+      state === "demo"
+        ? "demo_isolated"
+        : state === "cloud"
+          ? "cloud_ready"
+          : "cloud_adapter_missing",
   }));
 }
 
 function activeCloudRow() {
   return {
+    org_id: "org-real-1",
     wave_id: "wave-real-1",
     sector_label: "Operações",
     access_mode: "shared_sector",
     status: "active",
     expires_at: "2099-01-01T00:00:00.000Z",
     waves: {
+      org_id: "org-real-1",
       instrument: "COPSOQ",
+      instrument_version: "1.0.0",
       status: "collecting",
       label: "T3-2026 Riscos Psicossociais",
       created_at: "2026-07-01T00:00:00.000Z",
       closes_at: "2026-09-30T00:00:00.000Z",
-      organizations: { pack_id: null },
+      organizations: { name: "Organização Real", pack_id: null },
+    },
+  };
+}
+
+function activeHmlSectorSmokeRow() {
+  return {
+    ...activeCloudRow(),
+    org_id: "org-hml-sector-smoke",
+    sector_label: HML_SECTOR_SMOKE.sectorLabels[0],
+    waves: {
+      ...activeCloudRow().waves,
+      org_id: "org-hml-sector-smoke",
+      instrument: HML_SECTOR_SMOKE.instrument,
+      instrument_version: HML_SECTOR_SMOKE.instrumentVersion,
+      label: HML_SECTOR_SMOKE.waveLabel,
+      organizations: { name: HML_SECTOR_SMOKE.organizationName, pack_id: null },
     },
   };
 }
@@ -84,16 +110,30 @@ function activeCloudRow() {
 // nunca ids inventados; se o catálogo mudar, o teste acompanha.
 const { getWaveSurvey } = await import("@/mocks/survey-mock");
 const COPSOQ_SURVEY = getWaveSurvey("enterprise", "COPSOQ")!;
+const FIBT_SURVEY = getWaveSurvey("enterprise", "FIB-T")!;
 
 function validAnswers() {
   return COPSOQ_SURVEY.items.map((item) => ({ itemId: item.id, value: 3 }));
 }
 
+function validFibtAnswers() {
+  return FIBT_SURVEY.items.map((item) => ({ itemId: item.id, value: 3 }));
+}
+
 beforeEach(() => {
+  delete process.env.FIBT_HML_DEPLOYMENT_ENABLED;
   setBoundary("demo");
   cloudLinkRow = activeCloudRow();
   rpcOutcome = { accepted: true, reason: null, response_count: 6 };
   rpcCalls.length = 0;
+});
+
+afterEach(() => {
+  if (ORIGINAL_HML_DEPLOYMENT_DECLARATION === undefined) {
+    delete process.env.FIBT_HML_DEPLOYMENT_ENABLED;
+  } else {
+    process.env.FIBT_HML_DEPLOYMENT_ENABLED = ORIGINAL_HML_DEPLOYMENT_DECLARATION;
+  }
 });
 
 describe("captureSectorLinkResponse — demo inalterado", () => {
@@ -143,8 +183,33 @@ describe("captureSectorLinkResponse — cloud REAL via RPC (fecha P0-01)", () =>
     expect(rpcCalls).toHaveLength(1);
     expect(rpcCalls[0]!.name).toBe("submit_sector_response");
     expect(rpcCalls[0]!.args.p_token_hash).toBe(CLOUD_TOKEN_HASH);
+    expect(rpcCalls[0]!.args.p_consent_version).toBe(SECTOR_RESPONSE_CONSENT_VERSION);
+    expect(rpcCalls[0]!.args).not.toHaveProperty("p_invite_token");
     // O token bruto NUNCA viaja para o banco.
     expect(JSON.stringify(rpcCalls[0]!.args)).not.toContain(CLOUD_TOKEN);
+  });
+
+  test("consentimento ausente/inválido falha antes da RPC; versão válida é normalizada", async () => {
+    setBoundary("cloud");
+
+    for (const consentVersion of [undefined, "", "   ", "2025.9", "x".repeat(21)]) {
+      const result = await captureSectorLinkResponse({
+        token: CLOUD_TOKEN,
+        answers: validAnswers(),
+        consentVersion: consentVersion as unknown as string,
+      });
+      expect(result).toMatchObject({ accepted: false, reason: "invalid_submission" });
+    }
+    expect(rpcCalls).toHaveLength(0);
+
+    const result = await captureSectorLinkResponse({
+      token: CLOUD_TOKEN,
+      answers: validAnswers(),
+      consentVersion: `  ${SECTOR_RESPONSE_CONSENT_VERSION}  `,
+    });
+    expect(result.accepted).toBe(true);
+    expect(rpcCalls).toHaveLength(1);
+    expect(rpcCalls[0]!.args.p_consent_version).toBe(SECTOR_RESPONSE_CONSENT_VERSION);
   });
 
   test("item inventado é recusado ANTES da RPC — a mesma validação pura do demo (P0-07)", async () => {
@@ -162,15 +227,27 @@ describe("captureSectorLinkResponse — cloud REAL via RPC (fecha P0-01)", () =>
     setBoundary("cloud");
 
     cloudLinkRow = null;
-    let r = await captureSectorLinkResponse({ token: CLOUD_TOKEN, answers: validAnswers(), consentVersion: "1" });
+    let r = await captureSectorLinkResponse({
+      token: CLOUD_TOKEN,
+      answers: validAnswers(),
+      consentVersion: "1",
+    });
     expect(r.accepted).toBe(false);
 
     cloudLinkRow = { ...activeCloudRow(), status: "revoked" };
-    r = await captureSectorLinkResponse({ token: CLOUD_TOKEN, answers: validAnswers(), consentVersion: "1" });
+    r = await captureSectorLinkResponse({
+      token: CLOUD_TOKEN,
+      answers: validAnswers(),
+      consentVersion: "1",
+    });
     expect(r.accepted).toBe(false);
 
     cloudLinkRow = { ...activeCloudRow(), expires_at: "2020-01-01T00:00:00.000Z" };
-    r = await captureSectorLinkResponse({ token: CLOUD_TOKEN, answers: validAnswers(), consentVersion: "1" });
+    r = await captureSectorLinkResponse({
+      token: CLOUD_TOKEN,
+      answers: validAnswers(),
+      consentVersion: "1",
+    });
     expect(r.accepted).toBe(false);
 
     expect(rpcCalls).toHaveLength(0);
@@ -222,6 +299,76 @@ describe("resolveToken — cloud", () => {
     const result = await resolveToken(VALID_DEMO_TOKEN);
     expect(result.valid).toBe(true);
     if (result.valid) expect(result.sectorLabel).toBe("Operações");
+  });
+});
+
+describe("HML sector smoke — vínculo server-side fail-closed", () => {
+  test("o lote sintético canônico resolve e submete FIB-T com consentimento", async () => {
+    process.env.FIBT_HML_DEPLOYMENT_ENABLED = "true";
+    setBoundary("cloud");
+    cloudLinkRow = activeHmlSectorSmokeRow();
+
+    const resolution = await resolveToken(CLOUD_TOKEN);
+    expect(resolution.valid).toBe(true);
+    if (resolution.valid) {
+      expect(resolution.instrumentShort).toBe("FIB-T");
+      expect(resolution.sectorLabel).toBe("TESTE-ISG-A");
+    }
+
+    const submission = await captureSectorLinkResponse({
+      token: CLOUD_TOKEN,
+      answers: validFibtAnswers(),
+      consentVersion: SECTOR_RESPONSE_CONSENT_VERSION,
+    });
+    expect(submission.accepted).toBe(true);
+    expect(rpcCalls).toHaveLength(1);
+  });
+
+  test("qualquer divergência do lote é not_found/unknown_wave e nunca alcança a RPC", async () => {
+    process.env.FIBT_HML_DEPLOYMENT_ENABLED = "true";
+    setBoundary("cloud");
+    const valid = activeHmlSectorSmokeRow();
+    const invalidRows = [
+      { ...valid, org_id: "outra-org" },
+      { ...valid, waves: { ...valid.waves, org_id: "outra-org" } },
+      {
+        ...valid,
+        waves: { ...valid.waves, organizations: { name: "Outra organização", pack_id: null } },
+      },
+      { ...valid, waves: { ...valid.waves, label: "Outra onda" } },
+      { ...valid, waves: { ...valid.waves, instrument: "COPSOQ" } },
+      { ...valid, waves: { ...valid.waves, instrument_version: "fibt-1.0.0" } },
+      { ...valid, sector_label: "Operações" },
+    ];
+
+    for (const row of invalidRows) {
+      cloudLinkRow = row;
+      expect(await resolveToken(CLOUD_TOKEN)).toEqual({ valid: false, reason: "not_found" });
+      expect(
+        await captureSectorLinkResponse({
+          token: CLOUD_TOKEN,
+          answers: validFibtAnswers(),
+          consentVersion: SECTOR_RESPONSE_CONSENT_VERSION,
+        }),
+      ).toMatchObject({ accepted: false, reason: "unknown_wave" });
+    }
+    expect(rpcCalls).toHaveLength(0);
+  });
+
+  test("declaração HML malformada também bloqueia antes da RPC", async () => {
+    process.env.FIBT_HML_DEPLOYMENT_ENABLED = "false";
+    setBoundary("cloud");
+    cloudLinkRow = activeHmlSectorSmokeRow();
+
+    expect(await resolveToken(CLOUD_TOKEN)).toEqual({ valid: false, reason: "not_found" });
+    expect(
+      await captureSectorLinkResponse({
+        token: CLOUD_TOKEN,
+        answers: validFibtAnswers(),
+        consentVersion: SECTOR_RESPONSE_CONSENT_VERSION,
+      }),
+    ).toMatchObject({ accepted: false, reason: "unknown_wave" });
+    expect(rpcCalls).toHaveLength(0);
   });
 });
 

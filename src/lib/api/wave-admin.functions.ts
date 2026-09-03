@@ -11,6 +11,7 @@ import { listOrgWaves, listOrgCapsules, type OrgScopedReadFailure } from "../clo
 import { isCloudReady } from "../cloud/supabase-client";
 import { getPlanLimits, type PlanId } from "@/engine/billing/plan-engine";
 import { requireOrgAdmin, resolveOrgMembership, describeAuthFailure } from "@/lib/auth/authorize.server";
+import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
 
 /** org_mismatch nunca deveria surgir aqui (o orgId vem do mesmo requireOrgAdmin
  * que acabou de rodar) — só existe como defesa em profundidade dentro de
@@ -27,14 +28,34 @@ const createWaveSchema = accessTokenSchema
     instrument: z.enum(["COPSOQ", "PERMA", "VIA_T", "FIB_T"]),
     label: z.string().max(200).optional(),
     inviteCount: z.number().int().min(5).max(500),
+    linkModel: z.enum(["INDIVIDUAL", "SECTOR"]).optional(),
     closesAt: z.string().datetime().optional(),
     // Opcional: um e-mail por convite, na mesma ordem. Se omitido, gera links
     // genéricos para o admin copiar manualmente (fluxo WhatsApp).
     emails: z.array(z.string().email()).max(500).optional(),
   })
-  .refine((v) => !v.emails || v.emails.length === v.inviteCount, {
-    message: "Número de e-mails deve ser igual ao número de convites.",
-    path: ["emails"],
+  .superRefine((value, context) => {
+    if (value.emails && value.emails.length !== value.inviteCount) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Número de e-mails deve ser igual ao número de convites.",
+        path: ["emails"],
+      });
+    }
+    if (value.linkModel === "SECTOR" && value.instrument !== "FIB_T") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "O modelo setorial está habilitado somente para o piloto FIB-T.",
+        path: ["linkModel"],
+      });
+    }
+    if (value.linkModel === "SECTOR" && value.emails?.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Campanhas setoriais não aceitam lista de e-mails.",
+        path: ["emails"],
+      });
+    }
   });
 
 type AdminCreateWaveOk = {
@@ -52,6 +73,9 @@ type AdminCreateWaveErr = { ok: false; error: string };
 export const adminCreateWave = createServerFn({ method: "POST" })
   .inputValidator(createWaveSchema)
   .handler(async ({ data }): Promise<AdminCreateWaveOk | AdminCreateWaveErr> => {
+    if (data.linkModel === "SECTOR" && !isFibtPilotEnabled()) {
+      return { ok: false, error: FIBT_PILOT_DISABLED_REASON };
+    }
     if (!isCloudReady()) {
       return { ok: false, error: "Cloud não ativado — execute o Prompt 1 do ADR-003." };
     }
@@ -59,8 +83,12 @@ export const adminCreateWave = createServerFn({ method: "POST" })
     if (!auth.ok) return { ok: false, error: describeAuthFailure(auth.reason) };
 
     const { createWaveAsAdmin } = await import("./wave-admin.server");
-    const { accessToken: _accessToken, ...rest } = data;
-    const result = await createWaveAsAdmin({ ...rest, orgId: auth.membership.orgId });
+    const { accessToken: _accessToken, linkModel, ...rest } = data;
+    const result = await createWaveAsAdmin({
+      ...rest,
+      orgId: auth.membership.orgId,
+      distributionMode: linkModel === "SECTOR" ? "sector" : "individual",
+    });
     if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, ...result };
   });

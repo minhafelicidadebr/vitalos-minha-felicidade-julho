@@ -62,12 +62,12 @@ describe("o painel real nunca cai para mock", () => {
   test("a rota real trata erro como erro, com papel de alerta", () => {
     const src = ler(ROTA_REAL);
     expect(src).toContain('role="alert"');
-    expect(src).toMatch(/estado\.t === "erro"/);
+    expect(src).toMatch(/pageState\.state === "error"/);
   });
 
   test("os quatro estados de tela existem", () => {
     const src = ler(ROTA_REAL);
-    for (const estado of ["carregando", "vazio", "erro", "ok"]) {
+    for (const estado of ["loading", "missing_campaign", "error", "ready"]) {
       expect(src).toContain(`"${estado}"`);
     }
   });

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeAuthReturnTo } from "@/lib/auth/auth-redirect";
 
 const ADMIN_ROLES = new Set(["RH_ADMIN", "DIRETOR", "SST"]);
 
@@ -44,8 +45,9 @@ function AuthCallbackPage() {
         return;
       }
 
-      if (redirect && redirect.startsWith("/")) {
-        navigate({ to: redirect });
+      const safeRedirect = sanitizeAuthReturnTo(redirect);
+      if (safeRedirect) {
+        navigate({ to: safeRedirect });
         return;
       }
 

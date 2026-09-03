@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { SECTOR_RESPONSE_CONSENT_VERSION } from "@/domain/survey/sector-response-consent";
 import { captureSectorLinkResponse, resolveToken } from "../survey/sector-link.server";
 
 // Token: comprimento mínimo 20 para prevenir força bruta trivial; máximo 200.
@@ -18,7 +19,7 @@ const answerSchema = z.object({
 const sectorSubmitSchema = z.object({
   token: tokenSchema,
   answers: z.array(answerSchema).min(1).max(250),
-  consentVersion: z.string().min(1).max(20),
+  consentVersion: z.literal(SECTOR_RESPONSE_CONSENT_VERSION),
 });
 
 /** Submete respostas anônimas de um sector link. submissionId gerado server-side. */
@@ -42,7 +43,7 @@ export const adminCreateSectorLink = createServerFn({ method: "POST" })
       accessToken: z.string().min(10),
       waveId: z.string().uuid(),
       sectorLabel: z.string().min(1).max(80),
-      expiresInDays: z.number().int().min(1).max(365).optional(),
+      expiresInDays: z.number().int().min(1).max(90).optional(),
     }),
   )
   .handler(async ({ data }) => {

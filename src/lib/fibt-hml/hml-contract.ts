@@ -35,6 +35,53 @@ export type HmlCohortKey = (typeof HML_COHORT_KEYS)[number];
 export const HML_K_MIN = 5;
 export const HML_EXPIRES_IN_DAYS = 7;
 
+// ─── Smoke sintético por sector link (ISG Fast Track / Wave 2.2) ───────────
+//
+// Este é um lote diferente da campanha de convites acima. A identidade fica
+// explícita e é conferida no servidor depois de resolver o hash do token, tanto
+// no loader quanto novamente antes da RPC de submissão. Assim, abrir a rota no
+// deployment HML não transforma todo sector link válido de STAGING em link HML.
+export const HML_SECTOR_SMOKE = {
+  organizationName: "ISG — VALIDAÇÃO FIB-T",
+  waveLabel: "FIB-T ISG — VALIDAÇÃO CONTROLADA 2026",
+  instrument: "FIB_T",
+  instrumentVersion: "1.0.0",
+  sectorLabels: ["TESTE-ISG-A", "TESTE-ISG-B"],
+} as const;
+
+export interface HmlSectorSmokeBindingRow {
+  linkOrganizationId: string | null | undefined;
+  waveOrganizationId: string | null | undefined;
+  organizationName: string | null | undefined;
+  waveLabel: string | null | undefined;
+  instrument: string | null | undefined;
+  instrumentVersion: string | null | undefined;
+  sectorLabel: string | null | undefined;
+}
+
+export type HmlSectorSmokeBindingResult =
+  | { ok: true }
+  | { ok: false; code: "HML_SECTOR_LINK_OUTSIDE_AUTHORIZED_SMOKE" };
+
+/** Vínculo exato link→onda→organização do único smoke por setor autorizado. */
+export function assertSectorLinkWithinAuthorizedHmlSmoke(
+  row: HmlSectorSmokeBindingRow,
+): HmlSectorSmokeBindingResult {
+  const belongsToSmoke =
+    !!row.linkOrganizationId &&
+    row.linkOrganizationId === row.waveOrganizationId &&
+    row.organizationName === HML_SECTOR_SMOKE.organizationName &&
+    row.waveLabel === HML_SECTOR_SMOKE.waveLabel &&
+    row.instrument === HML_SECTOR_SMOKE.instrument &&
+    row.instrumentVersion === HML_SECTOR_SMOKE.instrumentVersion &&
+    !!row.sectorLabel &&
+    (HML_SECTOR_SMOKE.sectorLabels as readonly string[]).includes(row.sectorLabel);
+
+  return belongsToSmoke
+    ? { ok: true }
+    : { ok: false, code: "HML_SECTOR_LINK_OUTSIDE_AUTHORIZED_SMOKE" };
+}
+
 // ─── Origem de frontend — allowlist por igualdade exata (Fase 12) ─────────
 //
 // Hostnames de produção nunca são aceitos como origem de homologação, mesmo

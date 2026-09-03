@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   assertHmlDeploymentRequestAllowed,
+  resolveHmlServerFnMetaForRequest,
   runHmlDeploymentBoundary,
   classifyHmlDeploymentDeclaration,
   hmlDeploymentBlockedResponse,
@@ -20,6 +21,27 @@ const SUBMIT_SURVEY: HmlServerFnMetaLike = {
   filename: "src/lib/api/survey.functions.ts",
   name: "submitSurveyResponses",
 };
+const RESOLVE_SECTOR_TOKEN: HmlServerFnMetaLike = {
+  filename: "src/lib/api/sector-link.functions.ts",
+  name: "resolveSectorToken",
+};
+const SUBMIT_SECTOR_RESPONSE: HmlServerFnMetaLike = {
+  filename: "src/lib/api/sector-link.functions.ts",
+  name: "submitSectorLinkResponse",
+};
+const LOAD_MANAGER_CONTROL_CENTER: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "loadFibtManagerControlCenter",
+};
+const ISSUE_MANAGER_LINK: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "issueFibtManagerSectorLink",
+};
+const REVOKE_MANAGER_LINK: HmlServerFnMetaLike = {
+  filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+  name: "revokeFibtManagerSectorLink",
+};
+const SUBMIT_SECTOR_RESPONSE_ID = "a".repeat(64);
 
 /** Verificador de Access sempre-válido — os testes de JWT em si vivem em cloudflare-access-jwt.server.test.ts. */
 const ACCESS_OK = async () => ({
@@ -29,8 +51,17 @@ const ACCESS_OK = async () => ({
 
 describe("1. HML não declarado → modo normal preservado", () => {
   test("qualquer rota passa quando FIBT_HML_DEPLOYMENT_ENABLED está ausente", () => {
-    for (const path of ["/admin", "/rh", "/", "/relatorios", "/convite/abc", "/_serverFn/whatever"]) {
-      expect(assertHmlDeploymentRequestAllowed({ pathname: path, method: "GET", env: HML_OFF })).toEqual({
+    for (const path of [
+      "/admin",
+      "/rh",
+      "/",
+      "/relatorios",
+      "/convite/abc",
+      "/_serverFn/whatever",
+    ]) {
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: path, method: "GET", env: HML_OFF }),
+      ).toEqual({
         allowed: true,
       });
     }
@@ -51,45 +82,125 @@ describe("2/3. classificação da declaração HML", () => {
 
   test("3b. configuração HML parcial (valor inválido) bloqueia TODAS as rotas, inclusive a página de convite", () => {
     const partial: HmlDeploymentEnvLike = { FIBT_HML_DEPLOYMENT_ENABLED: "1" };
-    const r = assertHmlDeploymentRequestAllowed({ pathname: "/convite/abc", method: "GET", env: partial });
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: "/convite/abc",
+      method: "GET",
+      env: partial,
+    });
     expect(r).toEqual({ allowed: false, status: 404, reason: "HML_DEPLOYMENT_CONFIG_INVALID" });
   });
 });
 
 describe("4/5/6. rotas necessárias permitidas", () => {
   test("4. GET /convite/:token permitido", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/convite/tok-123", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/convite/tok-123",
+        method: "GET",
+        env: HML_ON,
+      }),
+    ).toEqual({
       allowed: true,
     });
   });
 
   test("5. HEAD /convite/:token permitido", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/convite/tok-123", method: "HEAD", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/convite/tok-123",
+        method: "HEAD",
+        env: HML_ON,
+      }),
+    ).toEqual({
       allowed: true,
     });
   });
 
   test("6. GET /api/fibt-hml/attestation permitido", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/api/fibt-hml/attestation", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/api/fibt-hml/attestation",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: true });
+  });
+
+  test("6b. somente GET/HEAD da rota /respond/s/:token são permitidos", () => {
+    for (const method of ["GET", "HEAD"]) {
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: "/respond/s/tok-123", method, env: HML_ON }),
+      ).toEqual({ allowed: true });
+    }
+  });
+
+  test("6c. somente GET/HEAD da rota exata do centro de controle são permitidos", () => {
+    for (const method of ["GET", "HEAD"]) {
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: "/fibt-piloto", method, env: HML_ON }),
+      ).toEqual({ allowed: true });
+    }
+    expect(
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/fibt-piloto/admin",
+        method: "GET",
+        env: HML_ON,
+      }),
+    ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+  });
+
+  test("6d. somente GET/HEAD das rotas exatas de autenticação HML são permitidos", () => {
+    for (const pathname of ["/entrar", "/auth/callback"]) {
+      for (const method of ["GET", "HEAD"]) {
+        expect(assertHmlDeploymentRequestAllowed({ pathname, method, env: HML_ON })).toEqual({
+          allowed: true,
+        });
+      }
+      expect(assertHmlDeploymentRequestAllowed({ pathname, method: "POST", env: HML_ON })).toEqual({
+        allowed: false,
+        status: 404,
+        reason: "HML_ROUTE_NOT_ALLOWLISTED",
+      });
+    }
+
+    for (const pathname of ["/entrar/admin", "/auth/callback/extra", "/auth/callback%2Fextra"]) {
+      expect(assertHmlDeploymentRequestAllowed({ pathname, method: "GET", env: HML_ON })).toEqual({
+        allowed: false,
+        status: 404,
+        reason: "HML_ROUTE_NOT_ALLOWLISTED",
+      });
+    }
   });
 });
 
 describe("7/21. método inesperado bloqueado", () => {
   test("7. POST em /api/fibt-hml/attestation bloqueado (endpoint é GET-only)", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/api/fibt-hml/attestation", method: "POST", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/api/fibt-hml/attestation",
+        method: "POST",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
   test("21. DELETE/PUT/PATCH/OPTIONS em /convite/:token bloqueados", () => {
     for (const method of ["DELETE", "PUT", "PATCH", "OPTIONS"]) {
-      expect(assertHmlDeploymentRequestAllowed({ pathname: "/convite/tok-123", method, env: HML_ON })).toEqual({
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: "/convite/tok-123", method, env: HML_ON }),
+      ).toEqual({
         allowed: false,
         status: 404,
         reason: "HML_ROUTE_NOT_ALLOWLISTED",
       });
+    }
+  });
+
+  test("métodos não seguros em /respond/s/:token são bloqueados", () => {
+    for (const method of ["POST", "DELETE", "PUT", "PATCH", "OPTIONS"]) {
+      expect(
+        assertHmlDeploymentRequestAllowed({ pathname: "/respond/s/tok-123", method, env: HML_ON }),
+      ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
     }
   });
 });
@@ -111,13 +222,21 @@ describe("8. assets — arquitetura verificada, não testada como allowlist dest
 describe("9/17/18. path traversal, codificação dupla e encoded slash bloqueados", () => {
   test("9. traversal cru bloqueado", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/assets/../admin", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/assets/../admin",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
   test("traversal a partir de /convite/ também bloqueado", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/convite/../admin", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/convite/../admin",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
@@ -147,7 +266,11 @@ describe("9/17/18. path traversal, codificação dupla e encoded slash bloqueado
 
   test("barra invertida bloqueada", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/convite\\..\\admin", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/convite\\..\\admin",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
@@ -163,14 +286,20 @@ describe("9/17/18. path traversal, codificação dupla e encoded slash bloqueado
 
   test("barras múltiplas ambíguas são colapsadas e ainda avaliadas corretamente", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "//convite//tok-123", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "//convite//tok-123",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: true }); // colapsa para /convite/tok-123, rota legítima
   });
 });
 
 describe("10/11/12/15/16. rotas de aplicação bloqueadas antes do router", () => {
   test("10. /admin bloqueado", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/admin", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({ pathname: "/admin", method: "GET", env: HML_ON }),
+    ).toEqual({
       allowed: false,
       status: 404,
       reason: "HML_ROUTE_NOT_ALLOWLISTED",
@@ -178,7 +307,9 @@ describe("10/11/12/15/16. rotas de aplicação bloqueadas antes do router", () =
   });
 
   test("11. /rh bloqueado", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/rh", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({ pathname: "/rh", method: "GET", env: HML_ON }),
+    ).toEqual({
       allowed: false,
       status: 404,
       reason: "HML_ROUTE_NOT_ALLOWLISTED",
@@ -186,7 +317,9 @@ describe("10/11/12/15/16. rotas de aplicação bloqueadas antes do router", () =
   });
 
   test("12. /relatorios bloqueado", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/relatorios", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({ pathname: "/relatorios", method: "GET", env: HML_ON }),
+    ).toEqual({
       allowed: false,
       status: 404,
       reason: "HML_ROUTE_NOT_ALLOWLISTED",
@@ -195,18 +328,28 @@ describe("10/11/12/15/16. rotas de aplicação bloqueadas antes do router", () =
 
   test("15. API não-HML bloqueada", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/api/algum-outro-endpoint", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/api/algum-outro-endpoint",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
   test("16. rota desconhecida bloqueada (fail-closed, não fail-open)", () => {
     expect(
-      assertHmlDeploymentRequestAllowed({ pathname: "/qualquer-coisa-inventada", method: "GET", env: HML_ON }),
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/qualquer-coisa-inventada",
+        method: "GET",
+        env: HML_ON,
+      }),
     ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
   test("home ('/') também bloqueada — não está na allowlist", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({ pathname: "/", method: "GET", env: HML_ON }),
+    ).toEqual({
       allowed: false,
       status: 404,
       reason: "HML_ROUTE_NOT_ALLOWLISTED",
@@ -235,11 +378,54 @@ describe("13/14. server functions — Caminho A (identidade real via serverFnMet
     expect(r).toEqual({ allowed: true });
   });
 
+  test("as duas server functions do sector smoke são permitidas por identidade exata", () => {
+    for (const serverFnMeta of [RESOLVE_SECTOR_TOKEN, SUBMIT_SECTOR_RESPONSE]) {
+      const r = assertHmlDeploymentRequestAllowed({
+        pathname: "/_serverFn/qualquer-hash-resolvido",
+        method: serverFnMeta === RESOLVE_SECTOR_TOKEN ? "GET" : "POST",
+        serverFnMeta,
+        env: HML_ON,
+      });
+      expect(r).toEqual({ allowed: true });
+    }
+  });
+
+  test("as três server functions do centro de controle são permitidas por identidade exata", () => {
+    for (const serverFnMeta of [
+      LOAD_MANAGER_CONTROL_CENTER,
+      ISSUE_MANAGER_LINK,
+      REVOKE_MANAGER_LINK,
+    ]) {
+      const result = assertHmlDeploymentRequestAllowed({
+        pathname: "/_serverFn/qualquer-hash-resolvido",
+        method: serverFnMeta === LOAD_MANAGER_CONTROL_CENTER ? "GET" : "POST",
+        serverFnMeta,
+        env: HML_ON,
+      });
+      expect(result).toEqual({ allowed: true });
+    }
+  });
+
+  test("funções administrativas do mesmo arquivo continuam bloqueadas", () => {
+    for (const name of ["adminCreateSectorLink", "adminListOpsEvents"]) {
+      const r = assertHmlDeploymentRequestAllowed({
+        pathname: "/_serverFn/qualquer-hash-resolvido",
+        method: "POST",
+        serverFnMeta: { filename: "src/lib/api/sector-link.functions.ts", name },
+        env: HML_ON,
+      });
+      expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+    }
+  });
+
   test("13. server function fora da allowlist bloqueada, mesmo com hash plausível", () => {
     const r = assertHmlDeploymentRequestAllowed({
       pathname: "/_serverFn/ca707ab767d865221c613b51eb678dab2f8726ed58811cc1379126d3be4878e8",
       method: "POST",
-      serverFnMeta: { filename: "src/lib/api/capsule-aggregator.functions.ts", name: "checkAndAggregateCapsule" },
+      serverFnMeta: {
+        filename: "src/lib/api/capsule-aggregator.functions.ts",
+        name: "checkAndAggregateCapsule",
+      },
       env: HML_ON,
     });
     expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
@@ -249,7 +435,10 @@ describe("13/14. server functions — Caminho A (identidade real via serverFnMet
     const r = assertHmlDeploymentRequestAllowed({
       pathname: "/_serverFn/whatever",
       method: "POST",
-      serverFnMeta: { filename: "src/lib/api/some-other-file.functions.ts", name: "checkInviteToken" },
+      serverFnMeta: {
+        filename: "src/lib/api/some-other-file.functions.ts",
+        name: "checkInviteToken",
+      },
       env: HML_ON,
     });
     expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
@@ -266,9 +455,149 @@ describe("13/14. server functions — Caminho A (identidade real via serverFnMet
   });
 });
 
+describe("HML serverFn metadata propagation — resolver TanStack até a boundary", () => {
+  test("metadata resolvida do submit autorizado chega à allowlist e permite dispatch", async () => {
+    let lookupId: string | undefined;
+    const serverFnMeta = await resolveHmlServerFnMetaForRequest({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      env: HML_ON,
+      serverFnMeta: undefined,
+      lookupServerFn: async (id) => {
+        lookupId = id;
+        return {
+          serverFnMeta: {
+            id,
+            ...SUBMIT_SECTOR_RESPONSE,
+          },
+        };
+      },
+    });
+
+    let nextCalled = false;
+    const result = await runHmlDeploymentBoundary({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      method: "POST",
+      serverFnMeta,
+      env: HML_ON,
+      next: async () => {
+        nextCalled = true;
+        return "dispatch" as const;
+      },
+      verifyAccess: ACCESS_OK,
+    });
+
+    expect(lookupId).toBe(SUBMIT_SECTOR_RESPONSE_ID);
+    expect(serverFnMeta).toEqual(SUBMIT_SECTOR_RESPONSE);
+    expect(nextCalled).toBe(true);
+    expect(result).toBe("dispatch");
+  });
+
+  test("metadata ausente após falha do resolver continua fail-closed", async () => {
+    const serverFnMeta = await resolveHmlServerFnMetaForRequest({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      env: HML_ON,
+      serverFnMeta: undefined,
+      lookupServerFn: async () => {
+        throw new Error("not registered");
+      },
+    });
+
+    let nextCalled = false;
+    const result = await runHmlDeploymentBoundary({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      method: "POST",
+      serverFnMeta,
+      env: HML_ON,
+      next: async () => {
+        nextCalled = true;
+        return "nunca" as const;
+      },
+      verifyAccess: ACCESS_OK,
+    });
+
+    expect(serverFnMeta).toBeUndefined();
+    expect(nextCalled).toBe(false);
+    expect((result as Response).status).toBe(404);
+  });
+
+  test("função não autorizada e função administrativa continuam negadas após resolução", async () => {
+    for (const candidate of [
+      { filename: "src/lib/api/capsule-aggregator.functions.ts", name: "checkAndAggregateCapsule" },
+      { filename: "src/lib/api/sector-link.functions.ts", name: "adminCreateSectorLink" },
+    ]) {
+      const serverFnMeta = await resolveHmlServerFnMetaForRequest({
+        pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+        env: HML_ON,
+        serverFnMeta: undefined,
+        lookupServerFn: async (id) => ({ serverFnMeta: { id, ...candidate } }),
+      });
+
+      expect(
+        assertHmlDeploymentRequestAllowed({
+          pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+          method: "POST",
+          serverFnMeta,
+          env: HML_ON,
+        }),
+      ).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+    }
+  });
+
+  test("metadata adulterada ou incompleta não é propagada", async () => {
+    for (const serverFnMeta of [
+      { id: "b".repeat(64), ...SUBMIT_SECTOR_RESPONSE },
+      { id: SUBMIT_SECTOR_RESPONSE_ID, name: SUBMIT_SECTOR_RESPONSE.name },
+      { id: SUBMIT_SECTOR_RESPONSE_ID, filename: SUBMIT_SECTOR_RESPONSE.filename },
+    ]) {
+      expect(
+        await resolveHmlServerFnMetaForRequest({
+          pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+          env: HML_ON,
+          serverFnMeta: undefined,
+          lookupServerFn: async () => ({ serverFnMeta }),
+        }),
+      ).toBeUndefined();
+    }
+  });
+
+  test("produção não consulta o resolver e mantém o fluxo comum", async () => {
+    let lookupCalled = false;
+    const serverFnMeta = await resolveHmlServerFnMetaForRequest({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      env: HML_OFF,
+      serverFnMeta: undefined,
+      lookupServerFn: async () => {
+        lookupCalled = true;
+        return { serverFnMeta: { id: SUBMIT_SECTOR_RESPONSE_ID, ...SUBMIT_SECTOR_RESPONSE } };
+      },
+    });
+
+    let verifyAccessCalled = false;
+    const result = await runHmlDeploymentBoundary({
+      pathname: `/_serverFn/${SUBMIT_SECTOR_RESPONSE_ID}`,
+      method: "POST",
+      serverFnMeta,
+      env: HML_OFF,
+      next: async () => "produção" as const,
+      verifyAccess: async () => {
+        verifyAccessCalled = true;
+        return ACCESS_OK();
+      },
+    });
+
+    expect(lookupCalled).toBe(false);
+    expect(verifyAccessCalled).toBe(false);
+    expect(result).toBe("produção");
+  });
+});
+
 describe("19. query string não altera a decisão", () => {
   test("query numa rota bloqueada não libera nada", () => {
-    const r = assertHmlDeploymentRequestAllowed({ pathname: "/admin?x=1", method: "GET", env: HML_ON });
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: "/admin?x=1",
+      method: "GET",
+      env: HML_ON,
+    });
     // "?x=1" faz parte do pathname bruto aqui (o chamador real já separa
     // query de pathname antes de chamar esta função — RequestServerOptions.
     // pathname do TanStack Start já vem sem query). Mesmo se um "?" vazasse
@@ -277,9 +606,33 @@ describe("19. query string não altera a decisão", () => {
   });
 
   test("pathname exato de convite com query já removida pelo chamador continua permitido", () => {
-    expect(assertHmlDeploymentRequestAllowed({ pathname: "/convite/tok-123", method: "GET", env: HML_ON })).toEqual({
+    expect(
+      assertHmlDeploymentRequestAllowed({
+        pathname: "/convite/tok-123",
+        method: "GET",
+        env: HML_ON,
+      }),
+    ).toEqual({
       allowed: true,
     });
+  });
+});
+
+describe("ISG Fast Track — forma exata da rota sector smoke", () => {
+  test("near-misses, segmentos extras e traversal continuam bloqueados", () => {
+    for (const pathname of [
+      "/respond/s",
+      "/respond/x/token",
+      "/respond/s/token/extra",
+      "/respond/s/../admin",
+      "/respond/s/%252e%252e",
+    ]) {
+      expect(assertHmlDeploymentRequestAllowed({ pathname, method: "GET", env: HML_ON })).toEqual({
+        allowed: false,
+        status: 404,
+        reason: "HML_ROUTE_NOT_ALLOWLISTED",
+      });
+    }
   });
 });
 
@@ -358,7 +711,11 @@ describe("FIBT-HML-2E-LITE — Risco 2: token Base64 com slash codificado, prese
   });
 
   test("1. a rota é permitida", () => {
-    const r = assertHmlDeploymentRequestAllowed({ pathname: TOKEN_URL, method: "GET", env: HML_ON });
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: TOKEN_URL,
+      method: "GET",
+      env: HML_ON,
+    });
     expect(r).toEqual({ allowed: true });
   });
 
@@ -383,17 +740,33 @@ describe("FIBT-HML-2E-LITE — Risco 2: token Base64 com slash codificado, prese
   });
 
   test("5. /convite/../admin é bloqueado", () => {
-    const r = assertHmlDeploymentRequestAllowed({ pathname: "/convite/../admin", method: "GET", env: HML_ON });
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: "/convite/../admin",
+      method: "GET",
+      env: HML_ON,
+    });
     expect(r).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
   });
 
   test("6. /convite/%2Fadmin não permite escapar para outra rota — permanece /convite/:token com token='/admin', nunca alcança /admin de verdade", () => {
-    const r = assertHmlDeploymentRequestAllowed({ pathname: "/convite/%2Fadmin", method: "GET", env: HML_ON });
+    const r = assertHmlDeploymentRequestAllowed({
+      pathname: "/convite/%2Fadmin",
+      method: "GET",
+      env: HML_ON,
+    });
     expect(r).toEqual({ allowed: true });
     expect(extractConviteTokenForTesting("/convite/%2Fadmin")).toBe("/admin");
     // Confirma que isso NUNCA é confundido com uma requisição a /admin em si:
-    const adminDirect = assertHmlDeploymentRequestAllowed({ pathname: "/admin", method: "GET", env: HML_ON });
-    expect(adminDirect).toEqual({ allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" });
+    const adminDirect = assertHmlDeploymentRequestAllowed({
+      pathname: "/admin",
+      method: "GET",
+      env: HML_ON,
+    });
+    expect(adminDirect).toEqual({
+      allowed: false,
+      status: 404,
+      reason: "HML_ROUTE_NOT_ALLOWLISTED",
+    });
   });
 
   test("regra 'todo %2F é proibido' NÃO foi adotada — múltiplos tokens com barra codificada continuam permitidos", () => {
@@ -415,6 +788,11 @@ describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()",
     { filename: "src/lib/api/capsule-aggregator.functions.ts", name: "checkAndAggregateByToken" },
     { filename: "src/lib/api/survey-telemetry.functions.ts", name: "recordSurveyFunnelSnapshot" },
     { filename: "src/lib/api/survey-telemetry.functions.ts", name: "loadSurveyFunnelResult" },
+    RESOLVE_SECTOR_TOKEN,
+    SUBMIT_SECTOR_RESPONSE,
+    LOAD_MANAGER_CONTROL_CENTER,
+    ISSUE_MANAGER_LINK,
+    REVOKE_MANAGER_LINK,
   ];
 
   test("1. HML ausente → next() sem NENHUMA verificação de JWT (verificador nunca é chamado)", async () => {
@@ -545,7 +923,7 @@ describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()",
     expect((blocked as Response).status).toBe(403);
   });
 
-  test("26. as 5 server functions HML exigem JWT ANTES do dispatch", async () => {
+  test("26. todas as server functions HML exigem JWT ANTES do dispatch", async () => {
     for (const meta of ALLOWED_SERVER_FNS) {
       let nextCalled = false;
       const blocked = await runHmlDeploymentBoundary({
@@ -574,8 +952,26 @@ describe("FIBT-HML-3E — ordem dos boundaries: rota → Access JWT → next()",
     }
   });
 
+  test("a rota sector smoke também exige Access JWT antes do loader", async () => {
+    const blocked = await runHmlDeploymentBoundary({
+      pathname: "/respond/s/tok-1",
+      method: "GET",
+      env: HML_ON,
+      next: async () => "nunca" as const,
+      verifyAccess: ACCESS_FAIL,
+    });
+    expect((blocked as Response).status).toBe(403);
+  });
+
   test("27. modo normal segue sem regressão em todas as rotas do app", async () => {
-    for (const path of ["/", "/rh", "/admin", "/convite/x", "/_serverFn/h", "/api/fibt-hml/attestation"]) {
+    for (const path of [
+      "/",
+      "/rh",
+      "/admin",
+      "/convite/x",
+      "/_serverFn/h",
+      "/api/fibt-hml/attestation",
+    ]) {
       const r = await runHmlDeploymentBoundary({
         pathname: path,
         method: "GET",

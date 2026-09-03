@@ -70,53 +70,51 @@ function ambienteEfetivo(): Record<string, string | undefined> {
 
 const env = ambienteEfetivo();
 
-/**
- * Ambiente gerenciado Lovable (preview/build da plataforma). Ali não existe
- * `.env.local` — o sandbox é recriado a cada sessão e o único banco alcançável
- * é o backend gerenciado do próprio projeto. Exigir a declaração da máquina
- * nesse contexto não previne incidente nenhum: só impede o preview de subir.
- * Fora daqui, nada muda — o contrato segue fail-closed.
- */
-const ambienteGerenciadoLovable =
-  Boolean(env.LOVABLE_SANDBOX) || Boolean(env.LOVABLE_PROJECT_ID) || Boolean(env.LOVABLE_DEV_SERVER);
+// REGRESSÃO P0 REVERTIDA NA RECONCILIAÇÃO COM main (Wave 5.2.1) — histórico
+// registrado, não apagado silenciosamente.
+//
+// `main` (fora desta branch) introduziu, em commits sucessivos, uma detecção
+// de "ambiente gerenciado Lovable" que promovia runtime/dbTarget para
+// "production" por omissão sempre que LOVABLE_SANDBOX / LOVABLE_PROJECT_ID /
+// LOVABLE_DEV_SERVER estivesse definida — exatamente a classe de defeito que
+// este preflight inteiro existe para impedir: um default que resolve
+// produção em silêncio. `src/lib/env/environment-preflight.test.ts` já cobre
+// essa regressão especificamente (suíte "regressão P0 — ambiente gerenciado
+// nunca promove produção") e falha o gate se esta lógica reaparecer.
+//
+// O runtime e o alvo de banco continuam vindo SOMENTE do comando
+// (`--runtime`, `--db`) ou de declaração explícita da máquina em
+// `.env.local` (`VITALOS_RUNTIME_ENV`, `VITALOS_DB_TARGET`). Nenhuma
+// variável de plataforma decide isso por conta própria.
 
 // O runtime é sempre do comando: é ele que sabe o que está executando.
-const runtime =
-  ambienteGerenciadoLovable && !env.VITALOS_RUNTIME_ENV
-    ? "production"
-    : (arg("runtime") ?? env.VITALOS_RUNTIME_ENV);
+const runtime = arg("runtime") ?? env.VITALOS_RUNTIME_ENV;
 
 // O alvo de banco pode ser fixo (--db) ou escolha da máquina (VITALOS_DB_TARGET
 // no .env.local). Quando é escolha, --allow-db restringe o que aquele comando
 // tolera — assim `dev` nunca aceita `production` mesmo que alguém o escreva.
 const dbFixo = arg("db");
-const dbTargetDeclarado = env.VITALOS_DB_TARGET;
-const dbTarget =
-  dbFixo ??
-  dbTargetDeclarado ??
-  (ambienteGerenciadoLovable ? "production" : undefined);
+const dbTarget = dbFixo ?? env.VITALOS_DB_TARGET;
 
-const permitidos = ambienteGerenciadoLovable
-  ? undefined
-  : arg("allow-db")
-      ?.split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+const permitidos = arg("allow-db")
+  ?.split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 const erros: string[] = [];
 
 if (permitidos && dbTarget && isDbTarget(dbTarget) && !permitidos.includes(dbTarget)) {
   erros.push(
     `Este comando aceita VITALOS_DB_TARGET em [${permitidos.join(", ")}], ` +
-      `mas o ambiente declara "${dbTarget}".`,
+    `mas o ambiente declara "${dbTarget}".`,
   );
 }
 
-if (!dbFixo && !dbTargetDeclarado && !ambienteGerenciadoLovable) {
+if (!dbFixo && !env.VITALOS_DB_TARGET) {
   erros.push(
     "VITALOS_DB_TARGET ausente. Este comando exige que a máquina declare o alvo " +
-      "em .env.local — não existe default versionado, de propósito. " +
-      `Valores aceitos aqui: ${(permitidos ?? []).join(", ") || "ver docs/AMBIENTES_E_DEPLOY.md"}.`,
+    "em .env.local — não existe default versionado, de propósito. " +
+    `Valores aceitos aqui: ${(permitidos ?? []).join(", ") || "ver docs/AMBIENTES_E_DEPLOY.md"}.`,
   );
 }
 
@@ -124,20 +122,20 @@ const veredito =
   erros.length > 0
     ? { ok: false as const, erros }
     : validateEnvironment({
-        VITALOS_RUNTIME_ENV: runtime,
-        VITALOS_DB_TARGET: dbTarget,
-        SUPABASE_URL: env.SUPABASE_URL,
-        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
-        VITALOS_PRODUCTION_PROJECT_REF: env.VITALOS_PRODUCTION_PROJECT_REF,
-        VITALOS_STAGING_PROJECT_REF: env.VITALOS_STAGING_PROJECT_REF,
-      });
+      VITALOS_RUNTIME_ENV: runtime,
+      VITALOS_DB_TARGET: dbTarget,
+      SUPABASE_URL: env.SUPABASE_URL,
+      VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
+      VITALOS_PRODUCTION_PROJECT_REF: env.VITALOS_PRODUCTION_PROJECT_REF,
+      VITALOS_STAGING_PROJECT_REF: env.VITALOS_STAGING_PROJECT_REF,
+    });
 
 if (!veredito.ok) {
   console.error("\n[preflight] AMBIENTE RECUSADO\n");
   for (const e of veredito.erros) console.error(`  - ${e}`);
   console.error(
     "\n  Configure as variáveis em .env.local (não versionado). " +
-      "Consulte docs/AMBIENTES_E_DEPLOY.md e .env.example.\n",
+    "Consulte docs/AMBIENTES_E_DEPLOY.md e .env.example.\n",
   );
   process.exit(1);
 }

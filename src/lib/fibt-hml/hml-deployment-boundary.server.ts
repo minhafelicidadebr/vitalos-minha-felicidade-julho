@@ -22,13 +22,12 @@
 // determinístico e ESTÁVEL entre rebuilds (função pura de dois fatos de
 // código-fonte, sem timestamp/salt — confirmado por build sintético
 // repetido: o mesmo hash de checkInviteToken apareceu idêntico em builds
-// distintos). O TanStack Start expõe essa identidade já RESOLVIDA ao
-// middleware via `serverFnMeta: { name, filename }` (RequestServerOptions,
-// @tanstack/start-client-core) — resolvida pelo framework A PARTIR do hash
-// da URL, ANTES do handler rodar; o cliente não pode forjar esse valor
-// (ele reflete a função que o dispatch já determinou, não o contrário).
-// Por isso o allowlist é por {filename, name} exatos, nunca por hash cru
-// nem por prefixo genérico.
+// distintos). O request middleware global do runtime atual não recebe essa
+// identidade. O adaptador em src/start.ts consulta o resolvedor virtual do
+// próprio TanStack pelo id exato da URL e entrega a identidade resolvida à
+// boundary antes do dispatch; headers ou metadata do cliente nunca entram
+// nessa decisão. Por isso a allowlist é por {filename, name} exatos, nunca
+// por hash cru nem por prefixo genérico.
 //
 // ASSETS/FAVICON — não precisam de entrada aqui: confirmado por inspeção
 // do artefato Cloudflare (nitro) que arquivos estáticos são resolvidos por
@@ -56,13 +55,22 @@ export interface HmlDeploymentRequestInput {
   env: HmlDeploymentEnvLike;
 }
 
-export type HmlDeploymentBlockReason = "HML_DEPLOYMENT_CONFIG_INVALID" | "HML_ROUTE_NOT_ALLOWLISTED";
+export interface HmlServerFnMetaResolutionInput {
+  pathname: string;
+  env: HmlDeploymentEnvLike;
+  serverFnMeta?: HmlServerFnMetaLike | undefined;
+  lookupServerFn: (id: string) => Promise<unknown>;
+}
+
+export type HmlDeploymentBlockReason =
+  | "HML_DEPLOYMENT_CONFIG_INVALID"
+  | "HML_ROUTE_NOT_ALLOWLISTED";
 
 export type HmlDeploymentRouteDecision =
   | { allowed: true }
   | { allowed: false; status: 404; reason: HmlDeploymentBlockReason };
 
-/** As únicas 5 server functions que o fluxo real de /convite/:token usa —
+/** As únicas server functions usadas pelos fluxos sintéticos autorizados —
  *  identidade por arquivo+nome, resolvida pelo framework, nunca por hash. */
 const HML_ALLOWED_SERVER_FUNCTIONS: readonly HmlServerFnMetaLike[] = [
   { filename: "src/lib/api/invite-resolve.functions.ts", name: "checkInviteToken" },
@@ -70,6 +78,20 @@ const HML_ALLOWED_SERVER_FUNCTIONS: readonly HmlServerFnMetaLike[] = [
   { filename: "src/lib/api/capsule-aggregator.functions.ts", name: "checkAndAggregateByToken" },
   { filename: "src/lib/api/survey-telemetry.functions.ts", name: "recordSurveyFunnelSnapshot" },
   { filename: "src/lib/api/survey-telemetry.functions.ts", name: "loadSurveyFunnelResult" },
+  { filename: "src/lib/api/sector-link.functions.ts", name: "resolveSectorToken" },
+  { filename: "src/lib/api/sector-link.functions.ts", name: "submitSectorLinkResponse" },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "loadFibtManagerControlCenter",
+  },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "issueFibtManagerSectorLink",
+  },
+  {
+    filename: "src/lib/api/fibt-manager-control-center.functions.ts",
+    name: "revokeFibtManagerSectorLink",
+  },
 ];
 
 const SAFE_METHODS = new Set(["GET", "HEAD"]);
@@ -79,7 +101,9 @@ export type HmlDeploymentDeclaration = "not_declared" | "declared_valid" | "decl
 /** Ausente = modo comum. Exatamente "true" = HML. Qualquer outra coisa
  *  presente (vazio, "false", "1", " true", etc.) = configuração inválida,
  *  que bloqueia tudo — nunca cai de volta ao modo comum em silêncio. */
-export function classifyHmlDeploymentDeclaration(raw: string | undefined): HmlDeploymentDeclaration {
+export function classifyHmlDeploymentDeclaration(
+  raw: string | undefined,
+): HmlDeploymentDeclaration {
   if (raw === undefined) return "not_declared";
   if (raw === "true") return "declared_valid";
   return "declared_invalid";
@@ -141,8 +165,84 @@ function splitAndDecodePathname(raw: string): string[] | null {
   return segments;
 }
 
+const SERVER_FN_ID_PATTERN = /^[a-f0-9]{64}$/;
+
+function extractHmlServerFnId(pathname: string): string | null {
+  const segments = splitAndDecodePathname(pathname);
+  if (segments === null || segments.length !== 2 || segments[0] !== "_serverFn") return null;
+
+  const id = segments[1]!;
+  return SERVER_FN_ID_PATTERN.test(id) ? id : null;
+}
+
+/**
+ * Resolve a identidade de uma server function somente no deployment HML.
+ * O lookup injetado deve ser o resolvedor virtual do TanStack; qualquer id
+ * desconhecido, metadata incompleta ou divergencia entre URL e manifesto
+ * retorna undefined e deixa a boundary existente negar a requisicao.
+ */
+export async function resolveHmlServerFnMetaForRequest(
+  input: HmlServerFnMetaResolutionInput,
+): Promise<HmlServerFnMetaLike | undefined> {
+  if (
+    classifyHmlDeploymentDeclaration(input.env.FIBT_HML_DEPLOYMENT_ENABLED) !== "declared_valid"
+  ) {
+    return input.serverFnMeta;
+  }
+
+  if (input.serverFnMeta) return input.serverFnMeta;
+
+  const id = extractHmlServerFnId(input.pathname);
+  if (id === null) return undefined;
+
+  try {
+    const resolved = await input.lookupServerFn(id);
+    if ((typeof resolved !== "object" && typeof resolved !== "function") || resolved === null) {
+      return undefined;
+    }
+
+    const meta = (resolved as { serverFnMeta?: unknown }).serverFnMeta;
+    if (typeof meta !== "object" || meta === null) return undefined;
+
+    const { id: resolvedId, name, filename } = meta as Record<string, unknown>;
+    if (
+      resolvedId !== id ||
+      typeof name !== "string" ||
+      name.length === 0 ||
+      typeof filename !== "string" ||
+      filename.length === 0
+    ) {
+      return undefined;
+    }
+
+    return { name, filename };
+  } catch {
+    return undefined;
+  }
+}
+
 function isExactConviteRoute(segments: readonly string[]): boolean {
   return segments.length === 2 && segments[0] === "convite" && segments[1]!.length > 0;
+}
+
+function isExactSectorResponseRoute(segments: readonly string[]): boolean {
+  return (
+    segments.length === 3 &&
+    segments[0] === "respond" &&
+    segments[1] === "s" &&
+    segments[2]!.length > 0
+  );
+}
+
+function isExactManagerControlCenterRoute(segments: readonly string[]): boolean {
+  return segments.length === 1 && segments[0] === "fibt-piloto";
+}
+
+function isExactAuthRoute(segments: readonly string[]): boolean {
+  return (
+    (segments.length === 1 && segments[0] === "entrar") ||
+    (segments.length === 2 && segments[0] === "auth" && segments[1] === "callback")
+  );
 }
 
 /**
@@ -160,7 +260,9 @@ export function extractConviteTokenForTesting(pathname: string): string | null {
 
 function serverFnMetaAllowed(meta: HmlServerFnMetaLike | undefined): boolean {
   if (!meta) return false;
-  return HML_ALLOWED_SERVER_FUNCTIONS.some((f) => f.filename === meta.filename && f.name === meta.name);
+  return HML_ALLOWED_SERVER_FUNCTIONS.some(
+    (f) => f.filename === meta.filename && f.name === meta.name,
+  );
 }
 
 /**
@@ -169,7 +271,9 @@ function serverFnMetaAllowed(meta: HmlServerFnMetaLike | undefined): boolean {
  * recebe só pathname (já sem query/fragment, ver chamador), método, e a
  * identidade de server function já resolvida pelo framework.
  */
-export function assertHmlDeploymentRequestAllowed(input: HmlDeploymentRequestInput): HmlDeploymentRouteDecision {
+export function assertHmlDeploymentRequestAllowed(
+  input: HmlDeploymentRequestInput,
+): HmlDeploymentRouteDecision {
   const declaration = classifyHmlDeploymentDeclaration(input.env.FIBT_HML_DEPLOYMENT_ENABLED);
 
   if (declaration === "not_declared") return { allowed: true };
@@ -195,10 +299,18 @@ export function assertHmlDeploymentRequestAllowed(input: HmlDeploymentRequestInp
     return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
   }
 
-  if (segments.length === 3 && segments[0] === "api" && segments[1] === "fibt-hml" && segments[2] === "attestation") {
+  if (
+    segments.length === 3 &&
+    segments[0] === "api" &&
+    segments[1] === "fibt-hml" &&
+    segments[2] === "attestation"
+  ) {
     return { allowed: true };
   }
   if (isExactConviteRoute(segments)) return { allowed: true };
+  if (isExactSectorResponseRoute(segments)) return { allowed: true };
+  if (isExactManagerControlCenterRoute(segments)) return { allowed: true };
+  if (isExactAuthRoute(segments)) return { allowed: true };
 
   return { allowed: false, status: 404, reason: "HML_ROUTE_NOT_ALLOWLISTED" };
 }
