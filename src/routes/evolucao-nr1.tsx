@@ -31,6 +31,7 @@ import { useSectorNR1 } from "@/hooks/use-sector-nr1";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import {
   listRegisterableCapsules,
   loadCycleHistory,
@@ -118,7 +119,7 @@ function Sparkline({ values, trend }: { values: number[]; trend: RiskTrend }) {
 function CofreDeCiclosSection() {
   const cloudActive = isCloudReady();
   const { org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("ORGANIZATION_CYCLE") && cloudActive && !!realOrg;
   const instrument = "COPSOQ";
 
   const [loading, setLoading] = useState(false);
@@ -395,7 +396,7 @@ function EfficacySection({ efficacy }: { efficacy: ReavaliacaoEfficacy }) {
 function VitoriasSection() {
   const cloudActive = isCloudReady();
   const { org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("VICTORY_RECORDS") && cloudActive && !!realOrg;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -510,60 +511,60 @@ function VitoriasSection() {
               ) : (
                 <div className="space-y-3">
                   {bundle.reavaliacao.drivers.map((driver) => {
-                const meta = TREND_META[driver.trend];
-                const TrendIcon = meta.icon;
-                const ata = bundle.victories.find((v) => v.driverId === driver.driverId) ?? null;
-                const alreadySealed =
-                  bundle.latestCycleKey !== null && sealedSet.has(sealedKey(driver.driverId, bundle.latestCycleKey));
-                return (
-                  <div
-                    key={driver.driverId}
-                    className="rounded-2xl border border-border/60 bg-card p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-card-foreground">{driver.label}</span>
-                        <TrendIcon className={`h-3.5 w-3.5 ${meta.tint}`} aria-hidden />
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.firstRisk]}`}>
-                          {RISK_LABEL[driver.firstRisk]}
-                        </span>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden />
-                        <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.lastRisk]}`}>
-                          {RISK_LABEL[driver.lastRisk]}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {driver.dimensionLabel}: {driver.firstLoad} → {driver.lastLoad}
-                      {driver.reduction !== 0 &&
-                        ` (${driver.reduction > 0 ? "−" : "+"}${Math.abs(driver.reduction)})`}
-                    </p>
-
-                    {ata && bundle.latestCycleKey && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2">
-                        <ScrollText className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                        <p className="flex-1 text-xs text-foreground">
-                          Vitória elegível — medida mantida, queda de {driver.reduction} pts confirmada.
+                    const meta = TREND_META[driver.trend];
+                    const TrendIcon = meta.icon;
+                    const ata = bundle.victories.find((v) => v.driverId === driver.driverId) ?? null;
+                    const alreadySealed =
+                      bundle.latestCycleKey !== null && sealedSet.has(sealedKey(driver.driverId, bundle.latestCycleKey));
+                    return (
+                      <div
+                        key={driver.driverId}
+                        className="rounded-2xl border border-border/60 bg-card p-4"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-card-foreground">{driver.label}</span>
+                            <TrendIcon className={`h-3.5 w-3.5 ${meta.tint}`} aria-hidden />
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.firstRisk]}`}>
+                              {RISK_LABEL[driver.firstRisk]}
+                            </span>
+                            <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden />
+                            <span className={`rounded-full border px-2 py-0.5 font-medium ${RISK_TINT[driver.lastRisk]}`}>
+                              {RISK_LABEL[driver.lastRisk]}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {driver.dimensionLabel}: {driver.firstLoad} → {driver.lastLoad}
+                          {driver.reduction !== 0 &&
+                            ` (${driver.reduction > 0 ? "−" : "+"}${Math.abs(driver.reduction)})`}
                         </p>
-                        {alreadySealed ? (
-                          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-                            Ata selada
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={sealingDriverId === driver.driverId}
-                            onClick={() => handleSeal(ata, bundle.latestCycleKey!)}
-                            className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground disabled:opacity-40"
-                          >
-                            {sealingDriverId === driver.driverId ? "Selando…" : "Selar Ata de Vitória"}
-                          </button>
+
+                        {ata && bundle.latestCycleKey && (
+                          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2">
+                            <ScrollText className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                            <p className="flex-1 text-xs text-foreground">
+                              Vitória elegível — medida mantida, queda de {driver.reduction} pts confirmada.
+                            </p>
+                            {alreadySealed ? (
+                              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                                Ata selada
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={sealingDriverId === driver.driverId}
+                                onClick={() => handleSeal(ata, bundle.latestCycleKey!)}
+                                className="rounded-lg bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground disabled:opacity-40"
+                              >
+                                {sealingDriverId === driver.driverId ? "Selando…" : "Selar Ata de Vitória"}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
                     );
                   })}
                 </div>

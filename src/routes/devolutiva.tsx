@@ -8,6 +8,7 @@ import { usePersona } from "@/app/identity/persona-store";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { buildTrend, type Momentum } from "@/engine/trend/trend-engine";
 import { rankPriorities } from "@/engine/priority/priority-engine";
@@ -174,7 +175,7 @@ function DevolutivaPage() {
   // ─── Cerimônia da Devolutiva (I-T2) — só existe com sessão de org real ──────
   const cloudActive = isCloudReady();
   const { org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("DEVOLUTIVA") && cloudActive && !!realOrg;
 
   const [ceremonyLoading, setCeremonyLoading] = useState(false);
   const [ceremonySession, setCeremonySession] = useState<LoadedCeremonySession | null>(null);

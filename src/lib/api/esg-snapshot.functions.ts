@@ -14,6 +14,7 @@ import {
 } from "../esg/esg-snapshot.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, requireOrgAdmin, resolveOrgMembership } from "@/lib/auth/authorize.server";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
@@ -27,6 +28,7 @@ export type ListEsgSnapshotsResult =
 export const loadEsgSnapshots = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema.extend({ year: z.number().int().optional() }))
   .handler(async ({ data }): Promise<ListEsgSnapshotsResult> => {
+    if (!isCapabilityEnabled("ESG_ASSURANCE_SNAPSHOT")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -46,6 +48,9 @@ const createSchema = accessTokenSchema.extend({
 export const createEsgSnapshot = createServerFn({ method: "POST" })
   .inputValidator(createSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ESG_ASSURANCE_SNAPSHOT")) {
+      return { accepted: false as const, reason: "capability_disabled", snapshotId: null, contentHash: null };
+    }
     if (!isCloudReady()) {
       return { accepted: false as const, reason: "cloud_not_ready", snapshotId: null, contentHash: null };
     }

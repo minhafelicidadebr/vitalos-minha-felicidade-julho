@@ -19,6 +19,7 @@ import type { BoardBrief } from "@/lib/proof/board-brief.server";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import { loadCycleHistory, type LoadCycleHistoryResult } from "@/lib/api/cycle-history.functions";
 import { projectForecast } from "@/engine/forecast/forecast-engine";
 import { calculatePnL, DEFAULT_INPUTS } from "@/engine/pnl/pnl-engine";
@@ -98,7 +99,7 @@ function PanoramaPage() {
   // com sessão de org real e ≥2 ciclos registrados em /evolucao-nr1.
   const cloudActive = isCloudReady();
   const { org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("ORGANIZATION_CYCLE") && cloudActive && !!realOrg;
   const [realCycleResult, setRealCycleResult] = useState<LoadCycleHistoryResult | null>(null);
   const [realCycleLoading, setRealCycleLoading] = useState(false);
 
@@ -582,25 +583,22 @@ function BoardBriefCard({
           return (
             <li
               key={s.id}
-              className={`relative flex items-start gap-3.5 overflow-hidden rounded-xl border px-4 py-3.5 transition-colors ${
-                s.satisfied
-                  ? "border-emerald-300/50 bg-emerald-50/40 dark:border-emerald-800/40 dark:bg-emerald-950/20"
-                  : "border-border/50 bg-muted/20"
-              }`}
+              className={`relative flex items-start gap-3.5 overflow-hidden rounded-xl border px-4 py-3.5 transition-colors ${s.satisfied
+                ? "border-emerald-300/50 bg-emerald-50/40 dark:border-emerald-800/40 dark:bg-emerald-950/20"
+                : "border-border/50 bg-muted/20"
+                }`}
             >
               <span
                 aria-hidden
-                className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${
-                  s.satisfied ? "bg-emerald-500/70" : "bg-border"
-                }`}
+                className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${s.satisfied ? "bg-emerald-500/70" : "bg-border"
+                  }`}
               />
               <span
                 aria-hidden
-                className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full ring-1 ${
-                  s.satisfied
-                    ? "bg-emerald-100 text-emerald-700 ring-emerald-300/60 dark:bg-emerald-900/40 dark:text-emerald-200 dark:ring-emerald-700/50"
-                    : "bg-card text-muted-foreground ring-border/60"
-                }`}
+                className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full ring-1 ${s.satisfied
+                  ? "bg-emerald-100 text-emerald-700 ring-emerald-300/60 dark:bg-emerald-900/40 dark:text-emerald-200 dark:ring-emerald-700/50"
+                  : "bg-card text-muted-foreground ring-border/60"
+                  }`}
               >
                 <Icon className="h-[18px] w-[18px]" />
               </span>

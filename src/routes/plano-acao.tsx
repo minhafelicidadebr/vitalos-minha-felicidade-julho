@@ -20,6 +20,7 @@ import { usePack } from "@/engine/pack";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import {
   ACTION_LOG_SEED,
   ACTION_PLAN_INTRO,
@@ -227,9 +228,8 @@ function WeekRuler({ item, totalWeeks }: { item: EnrichedActionItem; totalWeeks:
           <div
             key={w}
             title={milestone ? `S${w} — Milestone` : `S${w}`}
-            className={`h-3 flex-1 rounded-sm transition-colors ${
-              milestone ? "bg-accent" : active ? "bg-primary/70" : "bg-muted"
-            }`}
+            className={`h-3 flex-1 rounded-sm transition-colors ${milestone ? "bg-accent" : active ? "bg-primary/70" : "bg-muted"
+              }`}
           />
         );
       })}
@@ -1038,7 +1038,7 @@ function PlanoAcao() {
 
   const cloudActive = isCloudReady();
   const { loading: orgLoading, org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("ACTION_PLAN") && cloudActive && !!realOrg;
 
   // ─── Demo (mock-first, inalterado) ─────────────────────────────────────────
   const demoPlan = ENRICHED_PLAN;
@@ -1240,10 +1240,10 @@ function PlanoAcao() {
             : null,
           cmo: hasCmo
             ? {
-                context: values.cmoContext.trim(),
-                mechanism: values.cmoMechanism.trim(),
-                outcome: values.cmoOutcome.trim(),
-              }
+              context: values.cmoContext.trim(),
+              mechanism: values.cmoMechanism.trim(),
+              outcome: values.cmoOutcome.trim(),
+            }
             : null,
           controlTier: values.controlTier || null,
         },

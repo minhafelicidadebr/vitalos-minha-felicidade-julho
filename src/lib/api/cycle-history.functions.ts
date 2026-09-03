@@ -16,6 +16,7 @@ import {
 import { buildCycleProofFromHistory, type CycleProof } from "../proof/cycle-proof.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, requireOrgAdmin, resolveOrgMembership } from "@/lib/auth/authorize.server";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 const instrumentSchema = z.string().min(2).max(20).default("COPSOQ");
@@ -26,15 +27,16 @@ export type LoadCycleHistoryResult =
   | { cloudReady: false }
   | { cloudReady: true; error: string }
   | {
-      cloudReady: true;
-      instrument: string;
-      registeredCycles: Array<{ cycleKey: string; closedOn: string; participantCount: number }>;
-      proof: CycleProof | null;
-    };
+    cloudReady: true;
+    instrument: string;
+    registeredCycles: Array<{ cycleKey: string; closedOn: string; participantCount: number }>;
+    proof: CycleProof | null;
+  };
 
 export const loadCycleHistory = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema.extend({ instrument: instrumentSchema }))
   .handler(async ({ data }): Promise<LoadCycleHistoryResult> => {
+    if (!isCapabilityEnabled("ORGANIZATION_CYCLE")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -64,6 +66,7 @@ export type ListRegisterableResult =
 export const listRegisterableCapsules = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema.extend({ instrument: instrumentSchema }))
   .handler(async ({ data }): Promise<ListRegisterableResult> => {
+    if (!isCapabilityEnabled("ORGANIZATION_CYCLE")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -84,6 +87,9 @@ const registerSchema = accessTokenSchema.extend({
 export const registerOrgCycle = createServerFn({ method: "POST" })
   .inputValidator(registerSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ORGANIZATION_CYCLE")) {
+      return { accepted: false as const, reason: "capability_disabled", registryId: null };
+    }
     if (!isCloudReady()) return { accepted: false as const, reason: "cloud_not_ready", registryId: null };
 
     const auth = await requireOrgAdmin(data.accessToken);

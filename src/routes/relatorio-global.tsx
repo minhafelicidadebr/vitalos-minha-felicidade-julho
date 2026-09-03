@@ -32,6 +32,7 @@ import {
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import { loadLatestOrgCapsule } from "@/lib/api/capsule-report.functions";
 import { loadCycleHistory } from "@/lib/api/cycle-history.functions";
 import { createEsgSnapshot, loadEsgSnapshots } from "@/lib/api/esg-snapshot.functions";
@@ -204,7 +205,7 @@ function RelatorioGlobalPage() {
   // ─── Anexo de Asseguração (I-E1) — só existe com sessão de org real ─────────
   const cloudActive = isCloudReady();
   const { org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("ESG_ASSURANCE_SNAPSHOT") && cloudActive && !!realOrg;
 
   const [annexLoading, setAnnexLoading] = useState(false);
   const [annexError, setAnnexError] = useState<string | null>(null);
@@ -799,11 +800,10 @@ function AssuranceAnnexSection({
                 Regras anti-greenwashing (§F3)
               </p>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                  annex.allChecksPassed
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
-                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                }`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${annex.allChecksPassed
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                  }`}
               >
                 {annex.allChecksPassed ? (
                   <ShieldCheck className="h-3.5 w-3.5" aria-hidden />

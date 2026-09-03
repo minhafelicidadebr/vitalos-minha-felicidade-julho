@@ -12,6 +12,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { getRegisteredWaveSurveyKeys, getWaveSurvey } from "@/mocks/survey-mock";
 import { loadSurveyFunnelResult, type LoadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import type { ItemFunnelStat, SurveyTelemetryResult } from "@/engine/survey/survey-telemetry-engine";
 
 export const Route = createFileRoute("/lupa-da-escuta")({
@@ -33,6 +34,7 @@ function instrumentLabel(packId: string, instrument: string): string {
 function LupaDaEscutaPage() {
   const { packId } = usePack();
   const instruments = useMemo(() => instrumentsForPack(packId), [packId]);
+  const telemetryEnabled = isCapabilityEnabled("SURVEY_TELEMETRY");
   const [instrument, setInstrument] = useState(instruments[0] ?? "");
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<LoadSurveyFunnelResult | null>(null);
@@ -42,7 +44,11 @@ function LupaDaEscutaPage() {
   }, [instruments]);
 
   useEffect(() => {
-    if (!instrument) return;
+    if (!instrument || !telemetryEnabled) {
+      setLoading(false);
+      setResult(null);
+      return;
+    }
     let active = true;
     setLoading(true);
     loadSurveyFunnelResult({ data: { packId, instrument } })
@@ -52,7 +58,7 @@ function LupaDaEscutaPage() {
     return () => {
       active = false;
     };
-  }, [packId, instrument]);
+  }, [packId, instrument, telemetryEnabled]);
 
   return (
     <AppShell>
@@ -80,11 +86,10 @@ function LupaDaEscutaPage() {
                 type="button"
                 onClick={() => setInstrument(i)}
                 aria-pressed={instrument === i}
-                className={`rounded-xl border px-3 py-2 text-sm transition-all ${
-                  instrument === i
-                    ? "border-foreground/40 bg-card shadow-sm"
-                    : "border-border/60 bg-card/50 text-muted-foreground hover:border-border"
-                }`}
+                className={`rounded-xl border px-3 py-2 text-sm transition-all ${instrument === i
+                  ? "border-foreground/40 bg-card shadow-sm"
+                  : "border-border/60 bg-card/50 text-muted-foreground hover:border-border"
+                  }`}
               >
                 {instrumentLabel(packId, i)}
               </button>
@@ -92,7 +97,18 @@ function LupaDaEscutaPage() {
           </div>
         )}
 
-        {loading && (
+        {!telemetryEnabled && (
+          <div className="rounded-2xl border border-border/70 bg-card p-8 text-center" role="status">
+            <ShieldCheck className="mx-auto h-8 w-8 text-primary" aria-hidden />
+            <p className="mt-2 font-serif text-xl text-foreground">Telemetria indisponível neste beta</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              A leitura permanece desligada até o contrato de telemetria de produção ser habilitado.
+              Nenhuma consulta ou gravação é realizada.
+            </p>
+          </div>
+        )}
+
+        {telemetryEnabled && loading && (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Carregando…
           </p>

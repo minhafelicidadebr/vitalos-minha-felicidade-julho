@@ -12,6 +12,7 @@ import { z } from "zod";
 import { loadSurveyFunnel, recordFunnelSnapshot } from "../survey/survey-telemetry.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import type { SurveyTelemetryResult } from "@/engine/survey/survey-telemetry-engine";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const packIdSchema = z.string().min(2).max(40);
 const instrumentSchema = z.string().min(2).max(20);
@@ -23,6 +24,7 @@ export type LoadSurveyFunnelResult =
 export const loadSurveyFunnelResult = createServerFn({ method: "GET" })
   .inputValidator(z.object({ packId: packIdSchema, instrument: instrumentSchema }))
   .handler(async ({ data }): Promise<LoadSurveyFunnelResult> => {
+    if (!isCapabilityEnabled("SURVEY_TELEMETRY")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
     const funnel = await loadSurveyFunnel(data.packId, data.instrument);
     return { cloudReady: true, funnel };
@@ -40,6 +42,7 @@ const snapshotSchema = z.object({
 export const recordSurveyFunnelSnapshot = createServerFn({ method: "POST" })
   .inputValidator(snapshotSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("SURVEY_TELEMETRY")) return { accepted: false as const, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false as const, reason: "cloud_not_ready" };
     return recordFunnelSnapshot(data);
   });

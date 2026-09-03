@@ -55,6 +55,7 @@ import {
 } from "@/mocks/espelho-mock";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import {
   eraseMyAssessments,
   loadAssessmentHistory,
@@ -89,7 +90,7 @@ function EspelhoPage() {
   const { gamification } = usePack();
   const cloudActive = isCloudReady();
   const { loading: orgLoading, org: realOrg } = useRealOrgSession();
-  const isRealMode = cloudActive && !!realOrg;
+  const isRealMode = isCapabilityEnabled("ESPELHO_REAL_PERSISTENCE") && cloudActive && !!realOrg;
 
   const [stage, setStage] = useState<Stage>("loading");
   const [responses, setResponses] = useState<Record<string, number>>({});
@@ -435,11 +436,10 @@ function Assessment({
               role="radio"
               aria-checked={responses[item.id] === option.value}
               onClick={() => onAnswer(item.id, option.value)}
-              className={`min-h-14 rounded-2xl border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                responses[item.id] === option.value
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5"
-              }`}
+              className={`min-h-14 rounded-2xl border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${responses[item.id] === option.value
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5"
+                }`}
             >
               <span className="block font-semibold tabular-nums">{option.value}</span>
               <span className="mt-0.5 block text-[11px] leading-tight opacity-80">{option.label}</span>
@@ -526,9 +526,8 @@ function Mirror({
               ) : (
                 <>
                   <span
-                    className={`mt-2 inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                      BAND_STYLE[factor.bandId ?? ""] ?? "bg-muted text-muted-foreground border-border/50"
-                    }`}
+                    className={`mt-2 inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium ${BAND_STYLE[factor.bandId ?? ""] ?? "bg-muted text-muted-foreground border-border/50"
+                      }`}
                   >
                     {factor.bandLabel}
                   </span>
@@ -608,13 +607,12 @@ function Mirror({
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                    rec.relevance === "prioritaria"
-                      ? "bg-primary/10 text-primary"
-                      : rec.relevance === "afinidade"
-                        ? "bg-accent/20 text-amber-800 dark:text-amber-300"
-                        : "bg-muted text-muted-foreground"
-                  }`}
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${rec.relevance === "prioritaria"
+                    ? "bg-primary/10 text-primary"
+                    : rec.relevance === "afinidade"
+                      ? "bg-accent/20 text-amber-800 dark:text-amber-300"
+                      : "bg-muted text-muted-foreground"
+                    }`}
                 >
                   {rec.relevance === "prioritaria"
                     ? "sua prioridade"
