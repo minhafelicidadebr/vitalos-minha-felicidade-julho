@@ -37,6 +37,7 @@ import { checkInviteToken } from "@/lib/api/invite-resolve.functions";
 import type { InviteResolution } from "@/lib/api/invite-resolve.server";
 import { CAPTURE_ERROR_COPY } from "@/lib/survey/capture-error-copy";
 import { recordSurveyFunnelSnapshot, loadSurveyFunnelResult } from "@/lib/api/survey-telemetry.functions";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import {
   resolveHmlMode,
   resolveHmlRouteDisplayState,
@@ -225,6 +226,7 @@ function SurveyFlow({
   const sessionStartRef = useRef(Date.now());
   const itemTimingsRef = useRef<Record<string, number>>({});
   const funnelSentRef = useRef(false);
+  const telemetryEnabled = isCapabilityEnabled("SURVEY_TELEMETRY");
 
   // Travessia Leve (I-M1): rascunho SÓ NESTE APARELHO (localStorage), nunca no
   // servidor — a resposta não se perde numa queda de conexão. Chave derivada de
@@ -269,6 +271,7 @@ function SurveyFlow({
   }>({ medianByItem: null, overallMedianMs: null });
 
   useEffect(() => {
+    if (!telemetryEnabled) return;
     let active = true;
     loadSurveyFunnelResult({ data: { packId: PILOT_PACK_ID, instrument: survey.instrumentShort } })
       .then((r) => {
@@ -279,14 +282,15 @@ function SurveyFlow({
         }
         setFunnelStats({ medianByItem, overallMedianMs: r.funnel.overallMedianDeltaMs });
       })
-      .catch(() => {});
+      .catch(() => { });
     return () => {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [telemetryEnabled]);
 
   function sendFunnelSnapshot(completed: boolean) {
+    if (!telemetryEnabled) return;
     recordSurveyFunnelSnapshot({
       data: {
         packId: PILOT_PACK_ID,
@@ -296,13 +300,14 @@ function SurveyFlow({
         elapsedMs: Date.now() - sessionStartRef.current,
         itemTimingsMs: itemTimingsRef.current,
       },
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   // Captura best-effort de abandono: dispara no MÁXIMO uma vez por sessão quando a
   // aba é ocultada antes do envio. Não é garantido (fechar a aba sem trocar de aba
   // primeiro pode não disparar) — documentado como limitação honesta, não promessa.
   useEffect(() => {
+    if (!telemetryEnabled) return;
     function handleVisibilityChange() {
       if (document.visibilityState !== "hidden" || funnelSentRef.current) return;
       funnelSentRef.current = true;
@@ -311,7 +316,7 @@ function SurveyFlow({
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [telemetryEnabled]);
 
   const progress = surveyProgress(survey.items, responses);
   const allAnswered = progress.answered === progress.total;
@@ -365,11 +370,11 @@ function SurveyFlow({
                 : { triggered: false, count: r.count },
             );
           })
-          .catch(() => {});
+          .catch(() => { });
       } else {
         setError(
           (result && CAPTURE_ERROR_COPY[result.reason]) ??
-            "Não foi possível registrar sua resposta. Tente novamente.",
+          "Não foi possível registrar sua resposta. Tente novamente.",
         );
       }
     } catch {
@@ -523,11 +528,10 @@ function SurveyItemCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
-      className={`rounded-2xl border p-5 transition-all duration-200 ${
-        value !== undefined
-          ? "border-primary/30 bg-primary/5"
-          : "border-border/70 bg-card"
-      }`}
+      className={`rounded-2xl border p-5 transition-all duration-200 ${value !== undefined
+        ? "border-primary/30 bg-primary/5"
+        : "border-border/70 bg-card"
+        }`}
     >
       <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {index + 1} / {item.pillarId}
@@ -541,11 +545,10 @@ function SurveyItemCard({
             return (
               <label
                 key={opt.value}
-                className={`flex cursor-pointer flex-col items-center gap-1 rounded-xl border px-3 py-2 text-center transition-all duration-150 ${
-                  checked
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                    : "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5"
-                }`}
+                className={`flex cursor-pointer flex-col items-center gap-1 rounded-xl border px-3 py-2 text-center transition-all duration-150 ${checked
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5"
+                  }`}
               >
                 <input
                   type="radio"
@@ -560,9 +563,8 @@ function SurveyItemCard({
                 />
                 <span className="text-xs font-semibold">{opt.value}</span>
                 <span
-                  className={`text-[10px] leading-tight ${
-                    checked ? "text-primary-foreground/80" : "text-muted-foreground"
-                  }`}
+                  className={`text-[10px] leading-tight ${checked ? "text-primary-foreground/80" : "text-muted-foreground"
+                    }`}
                 >
                   {opt.label}
                 </span>
@@ -617,9 +619,8 @@ function ConfirmationScreen({ journey }: { journey: ReceiptJourney }) {
           {journey.steps.map((step) => (
             <li key={step.id} className="flex items-center gap-3">
               <span
-                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-                  step.done ? "bg-primary text-primary-foreground" : "border border-border/70 bg-transparent"
-                }`}
+                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${step.done ? "bg-primary text-primary-foreground" : "border border-border/70 bg-transparent"
+                  }`}
               >
                 {step.done && <CheckCircle className="h-3.5 w-3.5" strokeWidth={2.5} />}
               </span>

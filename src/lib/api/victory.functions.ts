@@ -11,6 +11,7 @@ import { buildRealReavaliacaoBundle, type RealReavaliacaoBundle } from "../evolu
 import { listVictoryRecordsForOrg, sealVictoryRecordAsAdmin, type VictoryRecordSummary } from "../evolucao/victory.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, requireOrgAdmin, resolveOrgMembership } from "@/lib/auth/authorize.server";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 const instrumentSchema = z.string().min(2).max(20).default("COPSOQ");
@@ -25,6 +26,7 @@ export type LoadRealReavaliacaoResult =
 export const loadRealReavaliacao = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema.extend({ instrument: instrumentSchema }))
   .handler(async ({ data }): Promise<LoadRealReavaliacaoResult> => {
+    if (!isCapabilityEnabled("VICTORY_RECORDS")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -44,6 +46,7 @@ export type LoadVictoryRecordsResult =
 export const loadVictoryRecords = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema)
   .handler(async ({ data }): Promise<LoadVictoryRecordsResult> => {
+    if (!isCapabilityEnabled("VICTORY_RECORDS")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -68,6 +71,9 @@ const sealSchema = accessTokenSchema.extend({
 export const sealVictoryRecord = createServerFn({ method: "POST" })
   .inputValidator(sealSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("VICTORY_RECORDS")) {
+      return { accepted: false as const, reason: "capability_disabled", recordId: null, contentHash: null };
+    }
     if (!isCloudReady()) {
       return { accepted: false as const, reason: "cloud_not_ready", recordId: null, contentHash: null };
     }

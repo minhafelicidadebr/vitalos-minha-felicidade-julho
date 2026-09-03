@@ -19,6 +19,7 @@ import {
 export type { LoadedCeremonySession } from "./devolutiva-ceremony.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, requireOrgAdmin, resolveOrgMembership } from "@/lib/auth/authorize.server";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
@@ -32,6 +33,7 @@ export type LoadCeremonyResult =
 export const loadDevolutivaCeremony = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema)
   .handler(async ({ data }): Promise<LoadCeremonyResult> => {
+    if (!isCapabilityEnabled("DEVOLUTIVA")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -51,6 +53,7 @@ const openSchema = accessTokenSchema.extend({
 export const openDevolutivaCeremony = createServerFn({ method: "POST" })
   .inputValidator(openSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("DEVOLUTIVA")) return { accepted: false as const, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false as const, reason: "cloud_not_ready" };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -74,6 +77,7 @@ const voteSchema = accessTokenSchema.extend({
 export const castCeremonyVote = createServerFn({ method: "POST" })
   .inputValidator(voteSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("DEVOLUTIVA")) return { accepted: false, reason: "capability_disabled", votes: null };
     if (!isCloudReady()) return { accepted: false, reason: "cloud_not_ready", votes: null };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -92,6 +96,7 @@ const attendanceSchema = accessTokenSchema.extend({
 export const setCeremonyAttendance = createServerFn({ method: "POST" })
   .inputValidator(attendanceSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("DEVOLUTIVA")) return { accepted: false, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false, reason: "cloud_not_ready" };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -110,6 +115,9 @@ const closeSchema = accessTokenSchema.extend({
 export const closeCeremony = createServerFn({ method: "POST" })
   .inputValidator(closeSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("DEVOLUTIVA")) {
+      return { accepted: false as const, reason: "capability_disabled", published: false, pauta: null };
+    }
     if (!isCloudReady()) {
       return { accepted: false as const, reason: "cloud_not_ready", published: false, pauta: null };
     }

@@ -13,6 +13,7 @@ import { BookOpen, Download, Loader2 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import { supabase } from "@/integrations/supabase/client";
 import { loadCycleBook, type LoadCycleBookResult } from "@/lib/api/cycle-book.functions";
 import type { CycleBookChapter, CycleBookDocument } from "@/engine/evolucao/cycle-book-engine";
@@ -29,7 +30,7 @@ async function getAccessToken(): Promise<string | null> {
 
 function LivroDoCicloPage() {
   const { loading: orgLoading, org } = useRealOrgSession();
-  const isRealMode = isCloudReady() && !!org;
+  const isRealMode = isCapabilityEnabled("ORGANIZATION_CYCLE") && isCloudReady() && !!org;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -218,9 +219,8 @@ function ChapterCard({ chapter, index }: { chapter: CycleBookChapter; index: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.06 + index * 0.04 }}
-      className={`rounded-2xl border p-5 ${
-        chapter.hasContent ? "border-border/60 bg-card" : "border-dashed border-border/50 bg-card/40"
-      }`}
+      className={`rounded-2xl border p-5 ${chapter.hasContent ? "border-border/60 bg-card" : "border-dashed border-border/50 bg-card/40"
+        }`}
     >
       <h2 className="font-serif text-lg text-card-foreground">{chapter.title}</h2>
       <div className={`mt-2 space-y-1.5 text-sm leading-relaxed ${chapter.hasContent ? "text-card-foreground" : "text-muted-foreground italic"}`}>

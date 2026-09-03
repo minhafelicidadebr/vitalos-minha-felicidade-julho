@@ -11,6 +11,7 @@
 // demonstração continua 100% localStorage, por design (ver /espelho.tsx).
 
 import { supabase } from "@/integrations/supabase/client";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import type { PersonalAssessmentRecord } from "@/engine/espelho/personal-assessment-engine";
 
 const db = supabase as any; // tipos resolvem pós-geração de schema pelo Lovable
@@ -19,6 +20,7 @@ export async function loadAssessmentHistory(
   userId: string,
   instrument: string,
 ): Promise<PersonalAssessmentRecord[]> {
+  if (!isCapabilityEnabled("ESPELHO_REAL_PERSISTENCE")) return [];
   const { data } = await db
     .from("personal_assessments")
     .select("id, instrument, instrument_version, engine_version, result, taken_at")
@@ -48,6 +50,7 @@ export async function saveAssessmentRecord(
   userId: string,
   record: Omit<PersonalAssessmentRecord, "assessmentId">,
 ): Promise<void> {
+  if (!isCapabilityEnabled("ESPELHO_REAL_PERSISTENCE")) return;
   const { error } = await db.from("personal_assessments").insert({
     user_id: userId,
     instrument: record.instrument,
@@ -63,6 +66,7 @@ export async function saveAssessmentRecord(
 
 /** Cofre Pessoal (LGPD art. 18) — o único caminho de apagar tudo, via RPC. */
 export async function eraseMyAssessments(): Promise<{ success: boolean; erasedCount: number }> {
+  if (!isCapabilityEnabled("ESPELHO_REAL_PERSISTENCE")) return { success: false, erasedCount: 0 };
   const { data, error } = await db.rpc("erase_my_assessments");
   if (error) return { success: false, erasedCount: 0 };
   const row = Array.isArray(data) ? data[0] : data;

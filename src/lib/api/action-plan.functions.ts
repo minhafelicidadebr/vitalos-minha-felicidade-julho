@@ -18,6 +18,7 @@ import {
 import { toAccountability, type LoadedActionPlan } from "./action-plan-shapes";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, requireOrgAdmin, resolveOrgMembership } from "@/lib/auth/authorize.server";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import type { ActionAccountability } from "@/engine/action-plan/plan-enrichment-engine";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
@@ -34,6 +35,7 @@ export type LoadActionPlanResult =
 export const loadActionPlan = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema)
   .handler(async ({ data }): Promise<LoadActionPlanResult> => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
@@ -82,6 +84,7 @@ const createPlanSchema = accessTokenSchema.extend({
 export const createActionPlan = createServerFn({ method: "POST" })
   .inputValidator(createPlanSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) return { accepted: false as const, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false as const, reason: "cloud_not_ready" };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -126,6 +129,7 @@ const setAccountabilitySchema = accessTokenSchema.extend({
 export const setActionItemAccountability = createServerFn({ method: "POST" })
   .inputValidator(setAccountabilitySchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) return { accepted: false, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false, reason: "cloud_not_ready" };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -150,6 +154,9 @@ const activatePlanSchema = accessTokenSchema.extend({ planId: z.string().uuid() 
 export const activateActionPlan = createServerFn({ method: "POST" })
   .inputValidator(activatePlanSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) {
+      return { accepted: false as const, reason: "capability_disabled", incompleteCount: 0 };
+    }
     if (!isCloudReady()) return { accepted: false as const, reason: "cloud_not_ready", incompleteCount: 0 };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -176,6 +183,7 @@ const recordEventSchema = accessTokenSchema.extend({
 export const recordActionEvent = createServerFn({ method: "POST" })
   .inputValidator(recordEventSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) return { accepted: false, reason: "capability_disabled" };
     if (!isCloudReady()) return { accepted: false, reason: "cloud_not_ready" };
 
     const auth = await requireOrgAdmin(data.accessToken);
@@ -207,6 +215,7 @@ const recordEvidenceSchema = accessTokenSchema.extend({
 export const recordEvidence = createServerFn({ method: "POST" })
   .inputValidator(recordEvidenceSchema)
   .handler(async ({ data }) => {
+    if (!isCapabilityEnabled("ACTION_PLAN")) return { accepted: false, reason: "capability_disabled", evidenceId: null };
     if (!isCloudReady()) return { accepted: false, reason: "cloud_not_ready", evidenceId: null };
 
     const auth = await requireOrgAdmin(data.accessToken);

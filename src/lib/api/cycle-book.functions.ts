@@ -8,6 +8,7 @@ import { buildRealCycleBook } from "../evolucao/cycle-book-real.server";
 import { isCloudReady } from "../cloud/supabase-client";
 import { describeAuthFailure, resolveOrgMembership } from "@/lib/auth/authorize.server";
 import type { CycleBookDocument } from "@/engine/evolucao/cycle-book-engine";
+import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 
 const accessTokenSchema = z.object({ accessToken: z.string().min(10) });
 
@@ -19,6 +20,7 @@ export type LoadCycleBookResult =
 export const loadCycleBook = createServerFn({ method: "GET" })
   .inputValidator(accessTokenSchema)
   .handler(async ({ data }): Promise<LoadCycleBookResult> => {
+    if (!isCapabilityEnabled("ORGANIZATION_CYCLE")) return { cloudReady: false };
     if (!isCloudReady()) return { cloudReady: false };
 
     const auth = await resolveOrgMembership(data.accessToken);
