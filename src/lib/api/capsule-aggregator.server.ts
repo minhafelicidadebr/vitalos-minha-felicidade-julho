@@ -33,7 +33,7 @@ interface CapsuleDim {
 }
 
 export type AggregationTriggerResult =
-  | { triggered: true; capsuleId: string; participantCount: number }
+  | { triggered: true; capsuleId: string; participantCount: number; withheldForPrivacy?: true }
   | { triggered: false; count: number; reason: string };
 
 export async function triggerCapsuleAggregation(
@@ -88,6 +88,61 @@ export async function triggerCapsuleAggregation(
   // Abaixo de 5, nenhum agregado é gerado; a onda continua coletando.
   if (n < K_ANONYMITY_MIN) {
     return { triggered: false, count: n, reason: "below_k_anonymity" };
+  }
+
+  // 1b. Supressão diferencial por snapshot (P1 / TASK 10.1 §C): esta função
+  // roda de novo a CADA resposta nova (via checkAndAggregateByToken, chamado
+  // pelo /responder logo após o submit) E no fechamento manual da onda
+  // (closeWaveAsAdmin). Sem controle de lote, cada execução reescreve
+  // wave_capsules com o total e as médias EXATAS até este instante — e
+  // wave_capsules é lido por QUALQUER membro da organização
+  // (loadLatestOrgCapsule). Duas leituras sucessivas do mesmo pilar
+  // (n=9,mean=m0 → n=10,mean=m1) permitem calcular
+  // valor_do_respondente_mais_novo = m1·10 − m0·9 — a mesma resposta exata de
+  // uma única pessoa, mesmo que os dois "n" individualmente respeitem
+  // k_min=5. Nenhuma checagem de tamanho ABSOLUTO evita isso: o problema é o
+  // DELTA entre publicações sucessivas.
+  //
+  // Correção: só publica (upsert em wave_capsules, com médias/dimensões
+  // novas) na primeira vez que a onda atinge k_min, ou quando o total
+  // cresceu por PELO MENOS k_min desde a última publicação — nunca por um
+  // incremento menor. Isso garante que a diferença aritmética entre duas
+  // cápsulas publicadas sucessivas sempre envolve k_min pessoas ou mais,
+  // nunca uma só.
+  //
+  // SEM EXCEÇÃO PARA O FECHAMENTO (TASK 10.1 §C, corrigindo uma falha real
+  // encontrada por red-team adversarial nesta mesma tarefa): uma versão
+  // anterior desta função aceitava um parâmetro forcePublish para que
+  // closeWaveAsAdmin pudesse ignorar este lote e sempre publicar a
+  // agregação final exata. Provado por simulação adversarial que isso
+  // reabre exatamente o ataque que este bloco existe para impedir — ex.:
+  // cápsula publicada em n=10 e onda fechada em n=11 (delta=1) revelaria a
+  // resposta exata do respondente 11 por subtração, mesmo a cápsula final
+  // "parecendo" definitiva. O fechamento de uma onda NUNCA é motivo
+  // suficiente para violar k-anonimato — é uma decisão humana sobre
+  // QUANDO parar de coletar, não uma isenção de privacidade. Se o total
+  // no fechamento não cresceu o suficiente desde a última publicação, a
+  // cápsula existente (já seguramente publicada) permanece observável sem
+  // alteração — o fechamento sela a onda mesmo assim, mas o relatório
+  // fica honestamente marcado como retido por proteção de privacidade
+  // (withheldForPrivacy), nunca republicado com um snapshot mais fino.
+  const { data: existingCapsule } = await admin
+    .from("wave_capsules")
+    .select("id, participant_count")
+    .eq("wave_id", waveId)
+    .maybeSingle();
+
+  if (existingCapsule) {
+    const lastPublishedCount = (existingCapsule as { participant_count: number }).participant_count;
+    const delta = n - lastPublishedCount;
+    if (delta < K_ANONYMITY_MIN) {
+      return {
+        triggered: true,
+        capsuleId: (existingCapsule as { id: string }).id,
+        participantCount: n,
+        withheldForPrivacy: true,
+      };
+    }
   }
 
   // 2. Lê respostas brutas via service role (único lugar no app que faz SELECT em wave_responses)

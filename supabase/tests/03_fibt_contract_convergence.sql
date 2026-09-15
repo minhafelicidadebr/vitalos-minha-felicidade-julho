@@ -329,3 +329,326 @@ BEGIN
   RAISE NOTICE 'PROVEN: nenhuma leitura de resposta individual por papel de cliente · K_MIN=5 · agregado suprimido abaixo de k';
 END
 $bloco5$;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- BLOCO 6 · SUPRESSÃO DIFERENCIAL — ISOLAR UM GRUPO PEQUENO POR SUBTRAÇÃO
+-- ═══════════════════════════════════════════════════════════════════════════
+--
+-- P1 (docs/SURVEY_SECTOR_LINKS_AUDIT.md:50): count_wave_responses devolve a
+-- contagem EXATA da onda inteira (finalidade operacional, sem gate de
+-- k-anon). Antes desta correção, aggregate_cohort_responses decidia
+-- visibilidade olhando SÓ a própria coorte — então uma coorte grande (n>=5)
+-- aparecia com response_count exato, e qualquer authenticated da organização
+-- podia calcular total_da_onda − n_coorte_grande para descobrir o tamanho
+-- exato de tudo que sobra (outra coorte pequena, ou o bucket sem coorte),
+-- mesmo esse residual sendo < k_min e portanto protegido se perguntado
+-- direto. Este bloco tenta esse ataque de verdade, com dados sintéticos, e
+-- prova que ele é recusado.
+DO $bloco6$
+DECLARE
+  c_org    CONSTANT UUID := 'c0000000-0000-4000-8000-0000000000e0';
+  c_onda   CONSTANT UUID := 'c0000000-0000-4000-8000-0000000000e1';
+  c_perfil CONSTANT UUID := '11111111-1111-4111-8111-111111111112';
+  v_big    UUID;
+  v_small  UUID;
+  v_row    RECORD;
+  v_total  INTEGER;
+  v_falhas TEXT[] := '{}';
+BEGIN
+  INSERT INTO public.organizations (id, slug, name)
+  VALUES (c_org, 'org-prova-diferencial', 'Org Prova Diferencial')
+  ON CONFLICT (id) DO NOTHING;
+
+  INSERT INTO public.waves (id, org_id, instrument, status)
+  VALUES (c_onda, c_org, 'FIB_T', 'collecting')
+  ON CONFLICT (id) DO NOTHING;
+
+  INSERT INTO public.wave_cohorts (org_id, wave_id, key, label)
+  VALUES (c_org, c_onda, 'grande', 'Grande'), (c_org, c_onda, 'pequena', 'Pequena')
+  ON CONFLICT DO NOTHING;
+  SELECT id INTO v_big FROM public.wave_cohorts WHERE wave_id = c_onda AND key = 'grande';
+  SELECT id INTO v_small FROM public.wave_cohorts WHERE wave_id = c_onda AND key = 'pequena';
+
+  INSERT INTO auth.users (id, email) VALUES (c_perfil, 'prova-diferencial@vitalos.invalid')
+    ON CONFLICT (id) DO NOTHING;
+  INSERT INTO public.profiles (id, org_id, role, display_name)
+  VALUES (c_perfil, c_org, 'RH_ADMIN', 'Prova Diferencial')
+  ON CONFLICT (id) DO NOTHING;
+
+  -- Coorte "grande": 6 respostas — >= k_min sozinha.
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, v_big, '{"1":2}'::JSONB FROM generate_series(1, 6);
+  -- Coorte "pequena": 3 respostas — < k_min, já suprimida sozinha (não é novidade).
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, v_small, '{"1":2}'::JSONB FROM generate_series(1, 3);
+
+  PERFORM set_config(
+    'request.jwt.claims',
+    jsonb_build_object('sub', c_perfil::TEXT, 'role', 'authenticated')::TEXT,
+    true
+  );
+
+  -- 6.1 Ataque: sem a correção, a coorte grande apareceria visible=true com
+  -- response_count=6 exato. count_wave_responses(c_onda) devolveria 9. Um
+  -- atacante calcularia 9-6=3 → tamanho exato da coorte pequena, que
+  -- aggregate_cohort_responses(c_onda, v_small) suprimiria se perguntada
+  -- direto. A correção precisa recusar isso suprimindo a coorte GRANDE.
+  SELECT * INTO v_row FROM public.aggregate_cohort_responses(c_onda, v_big);
+  IF v_row.visible OR v_row.suppression_reason IS DISTINCT FROM 'differential_inference_risk' THEN
+    v_falhas := v_falhas || format(
+      'ataque de subtração NÃO foi recusado: coorte grande (n=6) veio visible=%s reason=%L (residual=3 < k_min=5 deveria suprimir)',
+      v_row.visible, v_row.suppression_reason);
+  END IF;
+
+  SELECT * INTO v_row FROM public.aggregate_cohort_responses(c_onda, v_small);
+  IF v_row.visible OR v_row.suppression_reason IS DISTINCT FROM 'privacy_threshold' THEN
+    v_falhas := v_falhas || format(
+      'coorte pequena (n=3) deveria seguir suprimida por privacy_threshold, veio visible=%s reason=%L',
+      v_row.visible, v_row.suppression_reason);
+  END IF;
+
+  -- 6.2 Confirma que count_wave_responses realmente expõe a contagem exata
+  -- da onda (9) — é essa a assimetria que motiva a supressão em 6.1. Não é
+  -- um defeito a corrigir aqui: é a finalidade operacional documentada de
+  -- count_wave_responses; a correção do lado de aggregate_cohort_responses.
+  SELECT public.count_wave_responses(c_onda) INTO v_total;
+  IF v_total IS DISTINCT FROM 9 THEN
+    v_falhas := v_falhas || format('pré-condição do cenário mudou: count_wave_responses=%s, esperado 9', v_total);
+  END IF;
+
+  -- 6.3 Depois que a coorte pequena também atinge k_min, o residual de cada
+  -- lado vira 0 (nada mais na onda) — ambas voltam a ficar visíveis, sem
+  -- falso positivo motivado só por terem sido pequenas antes.
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, v_small, '{"1":2}'::JSONB FROM generate_series(1, 2);
+
+  SELECT * INTO v_row FROM public.aggregate_cohort_responses(c_onda, v_big);
+  IF NOT v_row.visible OR v_row.response_count IS DISTINCT FROM 6 THEN
+    v_falhas := v_falhas || format(
+      'falso positivo: coorte grande deveria ficar visível quando o residual (5) já não é < k_min, veio visible=%s response_count=%s',
+      v_row.visible, v_row.response_count);
+  END IF;
+  SELECT * INTO v_row FROM public.aggregate_cohort_responses(c_onda, v_small);
+  IF NOT v_row.visible OR v_row.response_count IS DISTINCT FROM 5 THEN
+    v_falhas := v_falhas || format(
+      'coorte pequena deveria ficar visível ao atingir k_min=5, veio visible=%s response_count=%s',
+      v_row.visible, v_row.response_count);
+  END IF;
+
+  -- 6.4 Bucket "sem coorte" (p_cohort_id NULL) — sem nenhuma resposta sem
+  -- coorte nesta onda, tem que ficar suprimido por privacy_threshold (n=0),
+  -- nunca tratado por engano como "toda a onda" pela comparação NULL=NULL.
+  SELECT * INTO v_row FROM public.aggregate_cohort_responses(c_onda, NULL);
+  IF v_row.visible OR v_row.suppression_reason IS DISTINCT FROM 'privacy_threshold' THEN
+    v_falhas := v_falhas || format(
+      'bucket sem coorte (0 respostas) deveria vir visible=false/privacy_threshold, veio visible=%s reason=%L',
+      v_row.visible, v_row.suppression_reason);
+  END IF;
+
+  IF array_length(v_falhas, 1) > 0 THEN
+    RAISE EXCEPTION E'FAILED: supressão diferencial:\n  - %',
+      array_to_string(v_falhas, E'\n  - ');
+  END IF;
+
+  RAISE NOTICE 'PROVEN: DIFFERENTIAL_SUPPRESSION=recusa isolar grupo residual<k_min por subtração contra count_wave_responses · falso-positivo=ausente quando residual>=k_min';
+END
+$bloco6$;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- BLOCO 7 · SUPRESSÃO DIFERENCIAL GENERALIZADA — MATRIZ DA TASK 10.1 §E
+-- ═══════════════════════════════════════════════════════════════════════════
+--
+-- O BLOCO 6 provou o caso de 2 segmentos (coorte grande + coorte pequena).
+-- Red-team adversarial (TASK 10.1 §E) descobriu que a correção de residual
+-- pairwise ("esta coorte vs. resto somado") NÃO generaliza para 3+ coortes:
+-- em [10, 8, 4], nem a coorte de 10 nem a de 8 têm residual pairwise < k_min
+-- (22−10=12, 22−8=14, ambos >=5) — mas juntas elas revelam a terceira por
+-- 22−10−8=4. Este bloco prova a matriz completa exigida, incluindo esse
+-- caso e outros, contra a correção generalizada (partição completa de
+-- segmentos, hiddenCount=1 && visibleCount=total-1).
+--
+-- Cada array de tamanhos vira uma onda sintética própria (uma coorte por
+-- tamanho), sempre limpa ao final. Para cada array, verifica TODOS os
+-- segmentos (nenhum "amostrado") — o requisito explícito é
+-- NO_SINGLE_SUPPRESSED_COHORT_DERIVABLE=true, ou seja, nenhuma coorte oculta
+-- pode ser isolada por combinação de coortes visíveis + total da onda.
+DO $bloco7$
+DECLARE
+  c_perfil CONSTANT UUID := '11111111-1111-4111-8111-111111111113';
+  c_k      CONSTANT INTEGER := 5;
+  v_org    UUID;
+  v_onda   UUID;
+  v_falhas TEXT[] := '{}';
+
+  -- Cada elemento é um array de tamanhos de coorte para uma onda sintética.
+  -- JSONB (não INTEGER[][]) porque os arranjos têm comprimentos DIFERENTES —
+  -- um array multidimensional do Postgres exige dimensões iguais em toda
+  -- linha, o que o requisito da tarefa (2 a 4 coortes por arranjo) viola.
+  v_matriz JSONB := '[[10,4],[10,8,4],[10,8,4,3],[5,4],[100,4],[100,100,4]]'::JSONB;
+  v_arranjo_json JSONB;
+  v_arranjo  INTEGER[];
+  v_tamanho  INTEGER;
+  v_idx      INTEGER;
+  v_cohort_ids UUID[];
+  v_cid      UUID;
+  v_total    INTEGER;
+  v_total_rpc INTEGER;
+  v_esperado_oculto BOOLEAN;
+  v_row      RECORD;
+  v_soma_visiveis INTEGER;
+  v_qtd_ocultos   INTEGER;
+  v_oculto_n  INTEGER;
+BEGIN
+  INSERT INTO auth.users (id, email) VALUES (c_perfil, 'prova-matriz-diferencial@vitalos.invalid')
+    ON CONFLICT (id) DO NOTHING;
+
+  FOR v_arranjo_json IN SELECT jsonb_array_elements(v_matriz)
+  LOOP
+    SELECT array_agg(elem::INTEGER) INTO v_arranjo
+      FROM jsonb_array_elements_text(v_arranjo_json) AS elem;
+
+    v_org := gen_random_uuid();
+    v_onda := gen_random_uuid();
+    v_cohort_ids := ARRAY[]::UUID[];
+    v_total := 0;
+
+    INSERT INTO public.organizations (id, slug, name)
+    VALUES (v_org, 'org-matriz-diff-' || substr(v_org::TEXT, 1, 8), 'Org Matriz Diferencial');
+    INSERT INTO public.waves (id, org_id, instrument, status)
+    VALUES (v_onda, v_org, 'FIB_T', 'collecting');
+    INSERT INTO public.profiles (id, org_id, role, display_name)
+    VALUES (c_perfil, v_org, 'RH_ADMIN', 'Prova Matriz Diferencial')
+    ON CONFLICT (id) DO UPDATE SET org_id = EXCLUDED.org_id;
+
+    -- Cria uma coorte por tamanho do arranjo e insere N respostas nela.
+    FOR v_idx IN 1 .. array_length(v_arranjo, 1) LOOP
+      v_tamanho := v_arranjo[v_idx];
+      v_cid := gen_random_uuid();
+      INSERT INTO public.wave_cohorts (id, org_id, wave_id, key, label)
+      VALUES (v_cid, v_org, v_onda, 'segmento-' || v_idx, 'Segmento ' || v_idx);
+      INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+      SELECT v_onda, v_cid, '{"1":2}'::JSONB FROM generate_series(1, v_tamanho);
+      v_cohort_ids := array_append(v_cohort_ids, v_cid);
+      v_total := v_total + v_tamanho;
+    END LOOP;
+
+    PERFORM set_config(
+      'request.jwt.claims',
+      jsonb_build_object('sub', c_perfil::TEXT, 'role', 'authenticated')::TEXT,
+      true
+    );
+
+    -- hiddenCount=1 && visibleCount=total-1 é exatamente o estado em que a
+    -- supressão diferencial se aplica — calcula isso PARA CONFERIR (não para
+    -- decidir) o que o banco deveria fazer, e então testa TODOS os segmentos.
+    SELECT COUNT(*) FILTER (WHERE n < c_k),
+           COALESCE(SUM(n) FILTER (WHERE n >= c_k), 0)
+      INTO v_qtd_ocultos, v_soma_visiveis
+      FROM unnest(v_arranjo) t(n);
+
+    v_esperado_oculto := (
+      v_qtd_ocultos = 1
+      AND (SELECT COUNT(*) FROM unnest(v_arranjo) t(n) WHERE n >= c_k) = array_length(v_arranjo, 1) - 1
+    );
+
+    -- n do único segmento oculto, quando existe exatamente um. Derivado dos
+    -- TAMANHOS do arranjo (não do que o banco publicou): a pré-condição do
+    -- ataque é sobre o tamanho real dos segmentos, independente de o banco
+    -- ter corretamente suprimido ou não.
+    SELECT MIN(n) INTO v_oculto_n
+      FROM unnest(v_arranjo) t(n) WHERE n < c_k;
+
+    FOR v_idx IN 1 .. array_length(v_arranjo, 1) LOOP
+      v_cid := v_cohort_ids[v_idx];
+      v_tamanho := v_arranjo[v_idx];
+      SELECT * INTO v_row FROM public.aggregate_cohort_responses(v_onda, v_cid);
+
+      IF v_tamanho < c_k THEN
+        -- Um segmento <k_min sempre suprime por privacy_threshold — nunca
+        -- muda com o estado dos outros segmentos.
+        IF v_row.visible OR v_row.suppression_reason IS DISTINCT FROM 'privacy_threshold' THEN
+          v_falhas := v_falhas || format(
+            'arranjo %s: segmento %s (n=%s <k_min) deveria vir privacy_threshold, veio visible=%s reason=%L',
+            v_arranjo, v_idx, v_tamanho, v_row.visible, v_row.suppression_reason);
+        END IF;
+        -- Diferenciação por MÉDIA (não só por contagem): suprimido tem que
+        -- vir sem item_means — nunca dá para reconstruir a média do grupo
+        -- oculto combinando médias de outros segmentos porque este aqui
+        -- nunca publica média alguma.
+        IF v_row.item_means IS NOT NULL THEN
+          v_falhas := v_falhas || format(
+            'arranjo %s: segmento %s suprimido por privacy_threshold mas item_means não é NULL', v_arranjo, v_idx);
+        END IF;
+      ELSIF v_esperado_oculto THEN
+        -- Exatamente 1 oculto no arranjo inteiro: TODO segmento >=k_min
+        -- (incluindo este) tem que ser suprimido por differential_inference_risk
+        -- — é a correção generalizada sendo testada diretamente.
+        IF v_row.visible OR v_row.suppression_reason IS DISTINCT FROM 'differential_inference_risk' THEN
+          v_falhas := v_falhas || format(
+            'arranjo %s: segmento %s (n=%s >=k_min) deveria ser suprimido por differential_inference_risk (exatamente 1 oculto no arranjo), veio visible=%s reason=%L',
+            v_arranjo, v_idx, v_tamanho, v_row.visible, v_row.suppression_reason);
+        END IF;
+        -- Diferenciação por MÉDIA: com hiddenCount=1, NENHUM segmento (nem
+        -- os que teriam n>=k_min) pode publicar item_means — se um deles
+        -- publicasse, um atacante com a média TOTAL da onda (ex.: via
+        -- wave_capsules, cuja proteção é independente — Seção C) poderia
+        -- combinar médias ponderadas para isolar a média do único oculto.
+        IF v_row.item_means IS NOT NULL THEN
+          v_falhas := v_falhas || format(
+            'arranjo %s: segmento %s (n=%s) suprimido por differential_inference_risk mas item_means não é NULL — diferenciação por média ainda possível',
+            v_arranjo, v_idx, v_tamanho);
+        END IF;
+      ELSE
+        -- Nenhum oculto, ou 2+ ocultos: este segmento >=k_min deve
+        -- permanecer visível — não há diferenciação possível.
+        IF NOT v_row.visible OR v_row.response_count IS DISTINCT FROM v_tamanho THEN
+          v_falhas := v_falhas || format(
+            'arranjo %s: segmento %s (n=%s) deveria permanecer visível (0 ou 2+ ocultos no arranjo), veio visible=%s response_count=%s reason=%L',
+            v_arranjo, v_idx, v_tamanho, v_row.visible, v_row.response_count, v_row.suppression_reason);
+        END IF;
+      END IF;
+    END LOOP;
+
+    -- Prova de que o cenário é REALMENTE perigoso, não inofensivo: quando há
+    -- exatamente 1 segmento oculto, a aritmética do ataque tem que fechar —
+    -- total_da_onda − soma(segmentos com n>=k_min) == n do único oculto.
+    -- Se essa identidade não valer, o teste acima não estaria provando nada
+    -- (estaria "protegendo" contra um ataque que não existiria). Calculado a
+    -- partir dos TAMANHOS reais dos segmentos, nunca do que o banco decidiu
+    -- publicar — é a pré-condição do ataque, não o resultado da defesa.
+    IF v_esperado_oculto AND (v_total - v_soma_visiveis) IS DISTINCT FROM v_oculto_n THEN
+      v_falhas := v_falhas || format(
+        'arranjo %s: pré-condição do ataque não se sustenta — total(%s) - soma_visiveis(%s) deveria ser exatamente n_oculto(%s)',
+        v_arranjo, v_total, v_soma_visiveis, v_oculto_n);
+    END IF;
+
+    -- Confirma count_wave_responses (a fonte da contagem exata que habilita
+    -- o ataque) devolve o total esperado — sem isso, o cenário não reproduz
+    -- a assimetria real entre a contagem exata e o agregado protegido.
+    SELECT public.count_wave_responses(v_onda) INTO v_total_rpc;
+    IF v_total_rpc IS DISTINCT FROM v_total THEN
+      v_falhas := v_falhas || format(
+        'arranjo %s: count_wave_responses=%s divergiu do total esperado (%s)',
+        v_arranjo, v_total_rpc, v_total);
+    END IF;
+
+    -- Limpeza desta onda sintética antes do próximo arranjo.
+    -- cohort_capsules primeiro: os segmentos publicados nesta iteração têm FK
+    -- composta (cohort_id, wave_id) para wave_cohorts (migration 20260909222000).
+    PERFORM set_config('request.jwt.claims', '', true);
+    DELETE FROM public.cohort_capsules WHERE wave_id = v_onda;
+    DELETE FROM public.wave_responses WHERE wave_id = v_onda;
+    DELETE FROM public.wave_cohorts WHERE wave_id = v_onda;
+    DELETE FROM public.waves WHERE id = v_onda;
+    DELETE FROM public.profiles WHERE id = c_perfil;
+    DELETE FROM public.organizations WHERE id = v_org;
+  END LOOP;
+
+  IF array_length(v_falhas, 1) > 0 THEN
+    RAISE EXCEPTION E'FAILED: matriz de supressão diferencial generalizada (TASK 10.1 §E):\n  - %',
+      array_to_string(v_falhas, E'\n  - ');
+  END IF;
+
+  RAISE NOTICE 'PROVEN: NO_SINGLE_SUPPRESSED_COHORT_DERIVABLE=true para [10,4]·[10,8,4]·[10,8,4,3]·[5,4]·[100,4]·[100,100,4] — nenhuma coorte oculta é derivável por combinação de coortes visíveis + total da onda';
+END
+$bloco7$;
