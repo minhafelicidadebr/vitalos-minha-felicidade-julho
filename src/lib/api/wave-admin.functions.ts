@@ -11,7 +11,11 @@ import { listOrgWaves, listOrgCapsules, type OrgScopedReadFailure } from "../clo
 import { isCloudReady } from "../cloud/supabase-client";
 import { getPlanLimits, type PlanId } from "@/engine/billing/plan-engine";
 import { requireOrgAdmin, resolveOrgMembership, describeAuthFailure } from "@/lib/auth/authorize.server";
-import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "@/lib/fibt/fibt-pilot-flag";
+import {
+  FIBT_PILOT_DISABLED_REASON,
+  isFibtInstrumentGateOpen,
+  isFibtPilotEnabled,
+} from "@/lib/fibt/fibt-pilot-flag";
 
 /** org_mismatch nunca deveria surgir aqui (o orgId vem do mesmo requireOrgAdmin
  * que acabou de rodar) — só existe como defesa em profundidade dentro de
@@ -73,7 +77,15 @@ type AdminCreateWaveErr = { ok: false; error: string };
 export const adminCreateWave = createServerFn({ method: "POST" })
   .inputValidator(createWaveSchema)
   .handler(async ({ data }): Promise<AdminCreateWaveOk | AdminCreateWaveErr> => {
-    if (data.linkModel === "SECTOR" && !isFibtPilotEnabled()) {
+    // Decisão de produto (TASK 10.1): o piloto FIB-T é um gate de
+    // INSTRUMENTO, não de modelo de link — isFibtInstrumentGateOpen nem
+    // recebe linkModel, então o modelo de distribuição não tem como
+    // influenciar esta decisão (ver comentário na função). Antes, só
+    // linkModel==="SECTOR" disparava a checagem — uma onda FIB_T com
+    // linkModel INDIVIDUAL (ou omitido) passava direto. instrument!==FIB_T
+    // segue o caminho de sempre, sem nenhuma checagem nova
+    // (COPSOQ/PERMA/VIA_T inalterados).
+    if (!isFibtInstrumentGateOpen(data.instrument, isFibtPilotEnabled())) {
       return { ok: false, error: FIBT_PILOT_DISABLED_REASON };
     }
     if (!isCloudReady()) {

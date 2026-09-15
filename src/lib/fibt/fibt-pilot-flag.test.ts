@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "./fibt-pilot-flag";
+import { FIBT_PILOT_DISABLED_REASON, isFibtInstrumentGateOpen, isFibtPilotEnabled } from "./fibt-pilot-flag";
 
 describe("leitura do flag — fail-closed", () => {
   test("1. ausente → desabilitado", () => {
@@ -32,6 +32,95 @@ describe("leitura do flag — fail-closed", () => {
         ligado: false,
       });
     }
+  });
+});
+
+describe("isFibtInstrumentGateOpen — gate de INSTRUMENTO, nunca de modelo de link (TASK 10.1)", () => {
+  // A assinatura da função nem recebe linkModel — estes testes chamam com
+  // (instrument, pilotEnabled) exatamente como o código de produção chama,
+  // mas o nome de cada teste registra qual linkModel aquele cenário
+  // representaria em wave-admin.functions.ts, provando a matriz completa
+  // exigida por TASK 10.1 sem depender de HTTP/createServerFn.
+  test("FIB_T + SECTOR + pilot=false → BLOCK", () => {
+    expect(isFibtInstrumentGateOpen("FIB_T", false)).toBe(false);
+  });
+
+  test("FIB_T + INDIVIDUAL + pilot=false → BLOCK", () => {
+    // linkModel é irrelevante para esta função (não é parâmetro) — o mesmo
+    // par (instrument, pilotEnabled) que representaria SECTOR acima também
+    // representa INDIVIDUAL aqui: a prova de que o link model não influencia
+    // é a própria assinatura, não uma branch a testar separadamente.
+    expect(isFibtInstrumentGateOpen("FIB_T", false)).toBe(false);
+  });
+
+  test("FIB_T + SECTOR + pilot=true → PASS", () => {
+    expect(isFibtInstrumentGateOpen("FIB_T", true)).toBe(true);
+  });
+
+  test("FIB_T + INDIVIDUAL + pilot=true → PASS", () => {
+    expect(isFibtInstrumentGateOpen("FIB_T", true)).toBe(true);
+  });
+
+  test("COPSOQ não é afetado pelo gate, pilot ligado ou desligado", () => {
+    expect(isFibtInstrumentGateOpen("COPSOQ", false)).toBe(true);
+    expect(isFibtInstrumentGateOpen("COPSOQ", true)).toBe(true);
+  });
+
+  test("PERMA não é afetado pelo gate, pilot ligado ou desligado", () => {
+    expect(isFibtInstrumentGateOpen("PERMA", false)).toBe(true);
+    expect(isFibtInstrumentGateOpen("PERMA", true)).toBe(true);
+  });
+
+  test("VIA_T não é afetado pelo gate, pilot ligado ou desligado", () => {
+    expect(isFibtInstrumentGateOpen("VIA_T", false)).toBe(true);
+    expect(isFibtInstrumentGateOpen("VIA_T", true)).toBe(true);
+  });
+
+  test("matriz completa instrumento×piloto — tabela-verdade exata exigida por TASK 10.1", () => {
+    const casos: Array<{ instrument: string; pilotEnabled: boolean; esperado: boolean }> = [
+      { instrument: "COPSOQ", pilotEnabled: false, esperado: true },
+      { instrument: "COPSOQ", pilotEnabled: true, esperado: true },
+      { instrument: "PERMA", pilotEnabled: false, esperado: true },
+      { instrument: "PERMA", pilotEnabled: true, esperado: true },
+      { instrument: "VIA_T", pilotEnabled: false, esperado: true },
+      { instrument: "VIA_T", pilotEnabled: true, esperado: true },
+      { instrument: "FIB_T", pilotEnabled: false, esperado: false },
+      { instrument: "FIB_T", pilotEnabled: true, esperado: true },
+    ];
+    for (const c of casos) {
+      expect({ ...c, resultado: isFibtInstrumentGateOpen(c.instrument, c.pilotEnabled) }).toEqual({
+        ...c,
+        resultado: c.esperado,
+      });
+    }
+  });
+});
+
+describe("wiring real de adminCreateWave (wave-admin.functions.ts) — TASK 10.1", () => {
+  // adminCreateWave é createServerFn e não pode ser chamada diretamente fora
+  // do runtime do TanStack Start (exige AsyncLocalStorage do servidor) — por
+  // isso este teste verifica o CÓDIGO-FONTE real, mesmo padrão já usado para
+  // a rota fibt-piloto.tsx abaixo ("a rota consulta o gate antes de..."),
+  // em vez de invocar a função. A cobertura comportamental do gate em si
+  // está nos testes de isFibtInstrumentGateOpen acima.
+  const raiz = process.cwd();
+  const fonte = () =>
+    readFileSync(join(raiz, "src/lib/api/wave-admin.functions.ts"), "utf8");
+
+  test("adminCreateWave chama isFibtInstrumentGateOpen(data.instrument, ...) — nunca uma checagem baseada em linkModel", () => {
+    const src = fonte();
+    expect(src).toContain("isFibtInstrumentGateOpen(data.instrument, isFibtPilotEnabled())");
+    // A checagem antiga (só linkModel==="SECTOR") não pode ter voltado —
+    // isso reintroduziria exatamente a lacuna que esta tarefa fecha.
+    expect(src).not.toMatch(/linkModel\s*===\s*["']SECTOR["']\s*&&\s*!isFibtPilotEnabled/);
+  });
+
+  test("a checagem do gate acontece ANTES de isCloudReady/requireOrgAdmin — nega cedo, sem tocar backend", () => {
+    const src = fonte();
+    const idxGate = src.indexOf("isFibtInstrumentGateOpen(data.instrument");
+    const idxCloud = src.indexOf("isCloudReady()", idxGate);
+    expect(idxGate).toBeGreaterThan(-1);
+    expect(idxCloud).toBeGreaterThan(idxGate);
   });
 });
 

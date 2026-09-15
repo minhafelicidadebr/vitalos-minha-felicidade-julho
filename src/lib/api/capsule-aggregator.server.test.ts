@@ -21,6 +21,10 @@ let orgPackId: string | null = null;
 let waveExists = true;
 const upsertCalls: unknown[] = [];
 const wavesUpdateCalls: unknown[] = [];
+// Estado controlável da cápsula JÁ publicada (P1 — lote de supressão
+// diferencial). null = onda nunca publicou cápsula (comportamento de sempre:
+// primeira publicação nunca é retida pelo lote).
+let existingCapsule: { id: string; participant_count: number } | null = null;
 
 // ── wave_invites fake — só usado pelos testes de triggerCapsuleAggregationByToken ──
 let inviteRow: Record<string, unknown> | null = { wave_id: "wave-1", waves: { instrument: "COPSOQ", org_id: "org-real" } };
@@ -62,6 +66,11 @@ const fakeAdmin = {
     }
     if (table === "wave_capsules") {
       return {
+        select: (_cols: string) => ({
+          eq: (_c: string, _v: string) => ({
+            maybeSingle: async () => ({ data: existingCapsule }),
+          }),
+        }),
         upsert: (payload: unknown, _opts: unknown) => {
           upsertCalls.push(payload);
           return {
@@ -145,6 +154,7 @@ beforeEach(() => {
   upsertCalls.length = 0;
   wavesUpdateCalls.length = 0;
   inviteRow = { wave_id: "wave-1", waves: { instrument: "COPSOQ", org_id: "org-real" } };
+  existingCapsule = null;
 });
 
 describe("triggerCapsuleAggregation — k-anon publica, NUNCA sela a onda (P0-08)", () => {
@@ -193,6 +203,123 @@ describe("triggerCapsuleAggregation — k-anon publica, NUNCA sela a onda (P0-08
     const result = await triggerCapsuleAggregation("wave-1", "COPSOQ", "org-real");
     expect(result.triggered).toBe(true);
   });
+});
+
+describe("triggerCapsuleAggregation — supressão diferencial por lote (P1): delta < k_min não republica", () => {
+  test("primeira publicação (nenhuma cápsula existente): nunca é retida pelo lote, mesmo com n=5 exato", async () => {
+    existingCapsule = null;
+    responseCount = 5;
+    rawResponses = buildRawResponses(5);
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    expect(result.triggered).toBe(true);
+    if (result.triggered) expect(result.participantCount).toBe(5);
+    expect(upsertCalls).toHaveLength(1);
+  });
+
+  test("delta de 1 resposta desde a última publicação: NÃO republica (recusaria o ataque de diferenciação n=9→n=10)", async () => {
+    existingCapsule = { id: "capsule-anterior", participant_count: 9 };
+    responseCount = 10;
+    rawResponses = buildRawResponses(10);
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    // Retorna triggered=true (a onda AINDA tem cápsula publicada) e
+    // withheldForPrivacy=true — sinaliza explicitamente que o
+    // participantCount é o total real (10), mas nenhum snapshot com médias
+    // recalculadas foi persistido/tornado observável para esse delta pequeno.
+    expect(result).toEqual({
+      triggered: true,
+      capsuleId: "capsule-anterior",
+      participantCount: 10,
+      withheldForPrivacy: true,
+    });
+    expect(upsertCalls).toHaveLength(0);
+  });
+
+  test("delta de exatamente k_min (5) desde a última publicação: republica normalmente", async () => {
+    existingCapsule = { id: "capsule-anterior", participant_count: 5 };
+    responseCount = 10;
+    rawResponses = buildRawResponses(10);
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    expect(result.triggered).toBe(true);
+    if (result.triggered) expect(result.participantCount).toBe(10);
+    expect(upsertCalls).toHaveLength(1);
+  });
+
+  test("delta negativo (não deveria ocorrer, mas não republica por segurança — nunca republica com menos que k_min de diferença)", async () => {
+    existingCapsule = { id: "capsule-anterior", participant_count: 10 };
+    responseCount = 10;
+    rawResponses = buildRawResponses(10);
+    const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+    expect(result).toEqual({
+      triggered: true,
+      capsuleId: "capsule-anterior",
+      participantCount: 10,
+      withheldForPrivacy: true,
+    });
+    expect(upsertCalls).toHaveLength(0);
+  });
+
+  test("NENHUM parâmetro existe para ignorar o lote — a função aceita só (waveId, instrument, authorizedOrgId)", async () => {
+    // TASK 10.1 §C: uma versão anterior tinha um 4º parâmetro forcePublish
+    // que permitia bypassar esta proteção — provado por red-team que isso
+    // reabria o ataque de diferenciação mesmo no fechamento da onda. A
+    // função não aceita mais esse parâmetro; não há "modo forçado" a testar
+    // porque ele não existe mais na assinatura.
+    expect(triggerCapsuleAggregation.length).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("triggerCapsuleAggregation — red-team adversarial de diferenciação na publicação final (TASK 10.1 §C)", () => {
+  // Para cada par (anterior, final), um observador com wave_capsules
+  // ANTES (n=anterior, médias exatas) e DEPOIS (n=final, médias exatas)
+  // poderia calcular mean_final*final − mean_anterior*anterior para isolar
+  // o valor do grupo de (final−anterior) respondentes NOVOS. K_MIN=5: isso
+  // só é seguro quando esse grupo tem >=5 pessoas. Requisito explícito da
+  // tarefa: nenhum destes cenários pode permitir isolar um grupo <5.
+  const cenarios: Array<{ anterior: number; final: number; delta: number; seguro: boolean }> = [
+    { anterior: 5, final: 6, delta: 1, seguro: false },
+    { anterior: 10, final: 11, delta: 1, seguro: false },
+    { anterior: 10, final: 12, delta: 2, seguro: false },
+    { anterior: 10, final: 14, delta: 4, seguro: false },
+    { anterior: 10, final: 15, delta: 5, seguro: true },
+  ];
+
+  for (const c of cenarios) {
+    test(`anterior N=${c.anterior} → final N=${c.final} (delta=${c.delta}): ${c.seguro ? "publica (delta>=k_min)" : "RETIDO — delta<k_min não pode ser isolável"}`, async () => {
+      existingCapsule = { id: "capsule-anterior", participant_count: c.anterior };
+      responseCount = c.final;
+      rawResponses = buildRawResponses(c.final);
+
+      const result = await triggerCapsuleAggregation("wave-1", "COPSOQ");
+
+      if (c.seguro) {
+        // delta>=k_min: publica um snapshot novo — o grupo isolável por
+        // subtração teria >=k_min pessoas, o que já não viola k-anonimato
+        // (é exatamente o que count_wave_responses/aggregate_cohort_responses
+        // já consideram seguro em qualquer outro lugar do sistema).
+        expect(result).toEqual({
+          triggered: true,
+          capsuleId: "capsule-1", // id do upsert simulado
+          participantCount: c.final,
+        });
+        expect(upsertCalls).toHaveLength(1);
+        // Nenhuma flag de retenção quando de fato publica.
+        expect((result as { withheldForPrivacy?: true }).withheldForPrivacy).toBeUndefined();
+      } else {
+        // delta<k_min: NENHUM upsert — a cápsula anterior (única fonte
+        // observável de médias) não muda. participantCount no retorno é o
+        // total real (não é escondido do CHAMADOR, que já sabe a contagem
+        // por count_wave_responses de qualquer forma), mas nenhum dado
+        // agregado novo (mean/dimensions) é gravado ou torna-se observável.
+        expect(result).toEqual({
+          triggered: true,
+          capsuleId: "capsule-anterior",
+          participantCount: c.final,
+          withheldForPrivacy: true,
+        });
+        expect(upsertCalls).toHaveLength(0);
+      }
+    });
+  }
 });
 
 describe("triggerCapsuleAggregation — pack resolvido da ORG dona da onda, nunca do chamador", () => {

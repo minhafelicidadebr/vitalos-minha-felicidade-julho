@@ -760,7 +760,9 @@ function WaveCard({
         setCloseMsg(
           result.capsulePublished
             ? `Onda fechada — relatório final com ${result.participantCount} participantes.`
-            : `Onda fechada sem relatório (${result.reason}) — participação abaixo do k-anonimato mínimo.`,
+            : result.reason === "withheld_for_privacy"
+              ? "Onda fechada — a última leitura publicada permanece disponível; a atualização final foi retida por proteção de privacidade (poucas respostas novas desde a última publicação)."
+              : `Onda fechada sem relatório (${result.reason}) — participação abaixo do k-anonimato mínimo.`,
         );
         onAggregated();
       } else {

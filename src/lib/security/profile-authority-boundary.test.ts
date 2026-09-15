@@ -231,13 +231,62 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as quatro suítes existem", () => {
+    test("as seis suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
             "03_fibt_contract_convergence.sql",
             "04_m6a_phase_aware_surface.sql",
+            // TASK 10.1 §F — fronteira de escrita de public.waves. Fecha o
+            // P0-2 (gate de instrumento/plano só existia em TypeScript,
+            // enquanto o cliente escrevia direto na tabela).
+            "05_waves_write_boundary.sql",
+            // TASK 10.1 Decisão 1 — diferenciação TEMPORAL. k_min por
+            // snapshot não basta: o vazamento está na DIFERENÇA entre duas
+            // chamadas sucessivas à mesma coorte.
+            "06_cohort_temporal_release.sql",
         ]);
+    });
+
+    test("a suíte de release temporal ataca de verdade o delta entre snapshots", () => {
+        const sql = readFileSync(join(DIR_PROVAS, "06_cohort_temporal_release.sql"), "utf8");
+        // Ataque real com papéis reais, não inspeção de ACL.
+        expect(sql).toContain("SET LOCAL ROLE anon");
+        expect(sql).toContain("_proof.blocked");
+        expect(sql).toContain("request.jwt.claims");
+        // O núcleo: +1..+4 não move o observável, +5 move.
+        expect(sql).toContain("DELTA_+1..+4=NO_OBSERVABLE_CHANGE");
+        expect(sql).toContain("DELTA_+5=ATOMIC_RELEASE");
+        // PROVA A (mutação) e PROVA B (contribuintes por item).
+        expect(sql).toContain("RESPONSE_MUTATION_CANNOT_YIELD_DELTA_LT_K=true");
+        expect(sql).toContain("EVERY_RELEASED_ITEM_MEAN_HAS_K_MIN_CONTRIBUTORS=true");
+        // PROVA C (composição) e concorrência.
+        expect(sql).toContain("CROSS_SNAPSHOT_COMPOSITION_SAFE=true");
+        expect(sql).toContain("CONCURRENT_PUBLICATION_SAFE=true");
+        // A persistência não pode ser lida/escrita por papel de cliente.
+        expect(sql).toContain("PERSISTENCE_TABLE_CLIENT_ACCESS=DENIED");
+        // Controle positivo: o caminho legítimo continua publicando.
+        expect(sql).toContain("FIRST_RELEASE_AT_K=ALLOWED");
+    });
+
+    test("a suíte da fronteira de waves tenta a escrita direta, e não só lê o catálogo", () => {
+        const sql = readFileSync(join(DIR_PROVAS, "05_waves_write_boundary.sql"), "utf8");
+        // Mesma disciplina da suíte 01: o ataque é TENTADO como authenticated
+        // com JWT de sessão, não inferido de has_table_privilege.
+        expect(sql).toContain("SET LOCAL ROLE authenticated");
+        expect(sql).toContain("request.jwt.claims");
+        expect(sql).toContain("_proof.blocked");
+        // As três portas de escrita direta, mais a variante cross-tenant.
+        expect(sql).toContain("WAVES_DIRECT_INSERT=BLOCKED");
+        expect(sql).toContain("WAVES_DIRECT_UPDATE=BLOCKED");
+        expect(sql).toContain("WAVES_DIRECT_DELETE=BLOCKED");
+        expect(sql).toContain("CROSS_TENANT_WRITE=BLOCKED");
+        // Controle positivo: revogar não pode virar indisponibilidade —
+        // leitura org-scoped e o caminho service_role continuam funcionando.
+        expect(sql).toContain("ORG_SCOPED_READ=PASS");
+        expect(sql).toContain("LEGITIMATE_APP_WAVE_MANAGEMENT=PASS");
+        // Rastreio de caminhos de mutação no catálogo, não grep de nomes.
+        expect(sql).toContain("NO_CLIENT_REACHABLE_RPC_MUTATES_WAVES");
     });
 
     test("a suíte de autoridade tenta o ataque, e não só lê o catálogo", () => {

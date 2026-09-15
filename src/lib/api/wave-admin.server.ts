@@ -128,16 +128,25 @@ export async function createWaveAsAdmin(
 
 export type CloseWaveOutcome =
   | { closed: true; capsulePublished: true; participantCount: number }
-  | { closed: true; capsulePublished: false; reason: string }
+  | { closed: true; capsulePublished: false; reason: "below_k_anonymity" | "withheld_for_privacy" | string }
   | { closed: false; error: string };
 
 /**
  * Fechamento é a ÚNICA ação que sela uma onda (P0-08) — sempre uma decisão
  * humana autorizada, nunca um efeito colateral automático de atingir n≥5.
- * Roda uma agregação final (a última cápsula reflete todas as respostas até
- * este momento) e só então marca a onda como selada. Se n<5 no fechamento,
- * a onda ainda sela — sem cápsula, como reconhecimento honesto de
- * participação insuficiente — nunca inventa um agregado abaixo do limiar.
+ * Roda a MESMA agregação sujeita a k-anon e a supressão diferencial por lote
+ * que o gatilho automático pós-submissão (TASK 10.1 §C) — o fechamento não é
+ * uma isenção de privacidade. Três desfechos possíveis:
+ *   - n<5: sela sem cápsula (seal_outcome=insufficient_data) — reconhecimento
+ *     honesto de participação insuficiente, nunca inventa um agregado.
+ *   - n>=5 e o crescimento desde a última publicação é >=k_min (ou é a
+ *     primeira publicação da onda): sela com a cápsula final EXATA
+ *     (seal_outcome=published).
+ *   - n>=5 mas o crescimento desde a última publicação é <k_min: sela mesmo
+ *     assim (é a decisão humana de parar de coletar), mas NÃO publica um
+ *     snapshot novo — a última cápsula já publicada permanece observável
+ *     sem alteração (seal_outcome=withheld_for_privacy). Nunca fabrica dado,
+ *     nunca deleta a cápsula anterior como "solução" de privacidade.
  */
 export async function closeWaveAsAdmin(
   orgId: string,
@@ -163,21 +172,49 @@ export async function closeWaveAsAdmin(
   const triggerCapsuleAggregation =
     deps.triggerCapsuleAggregation ??
     (await import("./capsule-aggregator.server")).triggerCapsuleAggregation;
+  // TASK 10.1 §C (correção de uma falha real encontrada por red-team
+  // adversarial): NUNCA passar um modo que force a republicação ignorando o
+  // lote de supressão diferencial (ver comentário em
+  // triggerCapsuleAggregation). O fechamento é uma decisão humana sobre
+  // QUANDO parar de coletar — não é, e nunca deveria ter sido, uma isenção
+  // da proteção de k-anonimato contra diferenciação entre a última cápsula
+  // publicada e a agregação final. Se o total no fechamento não cresceu ao
+  // menos k_min desde a última publicação, o resultado vem marcado
+  // withheldForPrivacy=true e a cápsula existente permanece observável sem
+  // alteração — a onda ainda sela, honestamente, sem inventar nem vazar.
   const aggregation = await triggerCapsuleAggregation(waveId, wave.instrument as string, orgId);
 
   emitOpsEvent("wave_closed", {
     orgId,
     waveId,
-    reason: aggregation.triggered ? "published" : aggregation.reason,
+    reason: aggregation.triggered
+      ? aggregation.withheldForPrivacy
+        ? "withheld_for_privacy"
+        : "published"
+      : aggregation.reason,
   });
 
-  const seal_outcome = aggregation.triggered ? "published" : "insufficient_data";
+  const seal_outcome = !aggregation.triggered
+    ? "insufficient_data"
+    : aggregation.withheldForPrivacy
+      ? "withheld_for_privacy"
+      : "published";
   await admin
     .from("waves")
     .update({ status: "sealed", sealed_at: new Date().toISOString(), seal_outcome })
     .eq("id", waveId);
 
   if (aggregation.triggered) {
+    if (aggregation.withheldForPrivacy) {
+      // A onda sela, mas a última cápsula PUBLICADA é a que fica visível —
+      // nenhum snapshot novo, mais fino, é gravado. Honesto sobre o motivo,
+      // nunca fabrica dado nem inventa uma contagem diferente da real.
+      return {
+        closed: true,
+        capsulePublished: false,
+        reason: "withheld_for_privacy",
+      };
+    }
     return { closed: true, capsulePublished: true, participantCount: aggregation.participantCount };
   }
   return { closed: true, capsulePublished: false, reason: aggregation.reason };
