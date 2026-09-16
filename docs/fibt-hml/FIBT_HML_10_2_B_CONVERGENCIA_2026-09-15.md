@@ -464,7 +464,12 @@ como afirmar quais migrations faltam no banco vivo.
 
 **3 · Aplicar as três migrations em HML/staging**, na ordem, conforme o plano já
 detalhado na 10.2 §6 — agora com D8 acrescentado aos critérios de parada
-(reaplicar a 221000 isoladamente é proibido).
+(reaplicar a 221000 isoladamente é proibido). **Atualização do fechamento
+local:** `scripts/fibt-hml/guard-against-221000-isolated-reapply.sql` (somente
+leitura) passou a existir e a ser exercitado pelo replay; o operador deve
+rodá-lo no SQL Editor antes de colar o corpo de `221000` em qualquer sessão.
+Ele não é enforcement de banco — é passo de procedimento, documentado com o
+alcance exato no próprio cabeçalho do arquivo.
 
 **4 · Correções P2 acumuladas, em onda própria:** invariante do bootstrap
 escopada (D4), regeneração dos tipos (D5), e a decisão sobre `config.toml` (D6).
