@@ -154,3 +154,79 @@ describe("fail-closed de manifesto e versao do instrumento", () => {
     expect(r.resultado.domains).toHaveLength(9);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Motivos de supressão da Task 10.1 (correção do defeito D2 da macro-onda 10.2)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Antes, TODO motivo diferente de `not_authorized` caía no ramo único de
+// supressão e a mensagem afirmava "menos de 5 respostas (<5)" — falso para uma
+// coorte de 9 ou 40 respostas retida por lote ou por supressão complementar.
+
+const semRotulo = (reason: string): CohortAggregate =>
+  agg({ visible: false, n: null, countLabel: null, itemMeans: null, suppressionReason: reason });
+
+describe("motivos de supressão introduzidos pela Task 10.1", () => {
+  test("awaiting_batched_release NÃO é 'menos de 5'", () => {
+    const r = buildFibtCohortReport(semRotulo("awaiting_batched_release"));
+    expect(r.status).toBe("aguardando_lote");
+    if (r.status !== "aguardando_lote") return;
+    expect(r.motivo).not.toContain("menos de");
+    expect(r.motivo).not.toContain("<5");
+    expect(r.motivo).toContain("lote protegido");
+    expect(r).not.toHaveProperty("countLabel");
+    expect(r).not.toHaveProperty("n");
+  });
+
+  test("differential_inference_risk é supressão complementar, não falta de gente", () => {
+    const r = buildFibtCohortReport(semRotulo("differential_inference_risk"));
+    expect(r.status).toBe("supressao_complementar");
+    if (r.status !== "supressao_complementar") return;
+    expect(r.motivo).not.toContain("menos de");
+    expect(r.motivo).toContain("subtracao");
+    expect(r.motivo).toContain("Nao e falha tecnica");
+  });
+
+  test("item_level_insufficient_contributors fala de itens, não de respondentes", () => {
+    const r = buildFibtCohortReport(semRotulo("item_level_insufficient_contributors"));
+    expect(r.status).toBe("aguardando_cobertura_itens");
+    if (r.status !== "aguardando_cobertura_itens") return;
+    expect(r.motivo).not.toContain("menos de");
+    expect(r.motivo).toContain("item");
+    expect(r.motivo).toContain("zero");
+  });
+
+  test("motivo desconhecido é retido fail-closed, sem inventar faixa", () => {
+    const r = buildFibtCohortReport(semRotulo("motivo_que_ainda_nao_existe"));
+    expect(r.status).toBe("retido");
+    if (r.status !== "retido") return;
+    expect(r.motivo).not.toContain("menos de");
+    expect(r.motivo).not.toContain("<5");
+    expect(r).not.toHaveProperty("countLabel");
+  });
+
+  test("privacy_threshold continua sendo a única supressão que cita a faixa", () => {
+    const r = buildFibtCohortReport(
+      agg({
+        visible: false,
+        n: null,
+        countLabel: "<5",
+        itemMeans: null,
+        suppressionReason: "privacy_threshold",
+      }),
+    );
+    expect(r.status).toBe("suprimido");
+    if (r.status !== "suprimido") return;
+    expect(r.motivo).toContain("menos de 5");
+  });
+
+  test("rótulo numérico com conteúdo suprimido não é apresentado como faixa falsa", () => {
+    // Estado anômalo: banco diz visible=true mas não manda médias.
+    const r = buildFibtCohortReport(agg({ visible: true, countLabel: "6", itemMeans: null }));
+    expect(r.status).toBe("suprimido");
+    if (r.status !== "suprimido") return;
+    // Nem afirma "<5" (seria falso), nem devolve o 6 como se fosse publicável.
+    expect(r.countLabel).toBe("protegida");
+    expect(r.motivo).not.toContain("menos de");
+  });
+});

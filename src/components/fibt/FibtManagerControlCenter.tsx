@@ -9,6 +9,7 @@ import {
   Clipboard,
   Clock3,
   EyeOff,
+  Hourglass,
   Link2,
   LockKeyhole,
   RefreshCw,
@@ -68,26 +69,82 @@ function formatDate(value: string | null): string {
   return Number.isNaN(parsed.getTime()) ? "Data indisponível" : parsed.toLocaleDateString("pt-BR");
 }
 
+// ─── Estados de leitura ───────────────────────────────────────────────────────
+//
+// Sete situações que ANTES colapsavam em três rótulos ("Protegido", "Sem
+// dados", "Erro") — e uma delas, a espera por lote protegido, chegava a ser
+// descrita como "menos de 5 participações", o que era falso. Cada estado tem
+// agora título, ícone, cor e testid próprios. Proteção de privacidade NUNCA usa
+// a linguagem visual de falha (`role="alert"`, cor destrutiva) — só erro
+// técnico e falha metodológica usam.
+
+const BADGE_STYLE: Record<ManagerAnalytics["state"], string> = {
+  available: "border-emerald-600/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  insufficient_participants:
+    "border-amber-600/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  awaiting_batched_release: "border-sky-600/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  awaiting_item_coverage: "border-sky-600/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  complementary_suppression:
+    "border-amber-600/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  withheld_on_close: "border-amber-600/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  wave_reading_unavailable: "border-border bg-muted/50 text-muted-foreground",
+  no_data: "border-border bg-muted/50 text-muted-foreground",
+  methodology_error: "border-destructive/30 bg-destructive/10 text-destructive",
+  technical_error: "border-destructive/30 bg-destructive/10 text-destructive",
+};
+
+const BADGE_LABEL: Record<ManagerAnalytics["state"], string> = {
+  available: "Publicada",
+  insufficient_participants: "Protegido",
+  awaiting_batched_release: "Aguardando lote",
+  awaiting_item_coverage: "Aguardando itens",
+  complementary_suppression: "Retido",
+  withheld_on_close: "Retido no fechamento",
+  wave_reading_unavailable: "Por setor",
+  no_data: "Sem dados",
+  methodology_error: "Metodologia",
+  technical_error: "Falha técnica",
+};
+
+const STATE_TITLE: Record<Exclude<ManagerAnalytics["state"], "available">, string> = {
+  insufficient_participants: "Participações insuficientes para publicar",
+  awaiting_batched_release: "Aguardando publicação em lote protegido",
+  awaiting_item_coverage: "Aguardando cobertura por item",
+  complementary_suppression: "Retido por supressão complementar",
+  withheld_on_close: "Fechada com resultado retido por privacidade",
+  wave_reading_unavailable: "Publicação acontece por setor",
+  no_data: "Sem dados agregados",
+  methodology_error: "Leitura não calculável",
+  technical_error: "Falha técnica na leitura",
+};
+
 function StateBadge({ state }: { state: ManagerAnalytics["state"] }) {
-  const styles = {
-    available: "border-emerald-600/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-    suppressed: "border-amber-600/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
-    no_data: "border-border bg-muted/50 text-muted-foreground",
-    error: "border-destructive/30 bg-destructive/10 text-destructive",
-  } as const;
-  const labels = {
-    available: "Publicável",
-    suppressed: "Protegido",
-    no_data: "Sem dados",
-    error: "Erro",
-  } as const;
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${styles[state]}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${BADGE_STYLE[state]}`}
     >
-      {labels[state]}
+      {BADGE_LABEL[state]}
     </span>
   );
+}
+
+function StateIcon({ state }: { state: Exclude<ManagerAnalytics["state"], "available"> }) {
+  const className = "mt-0.5 h-4 w-4 shrink-0";
+  switch (state) {
+    case "insufficient_participants":
+    case "complementary_suppression":
+    case "withheld_on_close":
+      return <EyeOff className={`${className} text-amber-700 dark:text-amber-300`} />;
+    case "awaiting_batched_release":
+    case "awaiting_item_coverage":
+      return <Hourglass className={`${className} text-sky-700 dark:text-sky-300`} />;
+    case "wave_reading_unavailable":
+    case "no_data":
+      return <BarChart3 className={`${className} text-muted-foreground`} />;
+    case "methodology_error":
+    case "technical_error":
+      return <XCircle className={`${className} text-destructive`} />;
+  }
 }
 
 export function AnalyticsState({ analytics }: { analytics: ManagerAnalytics }) {
@@ -116,44 +173,37 @@ export function AnalyticsState({ analytics }: { analytics: ManagerAnalytics }) {
           <strong className="font-semibold text-foreground">
             {analytics.result.escoreBruto} / 12
           </strong>
-          . Leitura descritiva, sem faixas interpretativas.
+          . Leitura publicada de {analytics.countLabel} participações — descritiva, sem faixas
+          interpretativas.
         </p>
-      </div>
-    );
-  }
-
-  if (analytics.state === "suppressed") {
-    return (
-      <div className="flex items-start gap-3" data-testid="analytics-suppressed">
-        <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
-        <div>
-          <p className="text-sm font-medium text-foreground">Dado ainda não publicável</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            {analytics.message}
+        {analytics.finalUpdateWithheld && (
+          <p
+            className="mt-2 text-xs leading-relaxed text-amber-800 dark:text-amber-300"
+            data-testid="analytics-final-update-withheld"
+          >
+            A onda foi fechada e esta é a última leitura publicada. A atualização final foi retida
+            por proteção de privacidade: poucas participações novas entraram desde a publicação
+            anterior, e republicar revelaria quem respondeu.
           </p>
-        </div>
+        )}
       </div>
     );
   }
 
-  if (analytics.state === "no_data") {
-    return (
-      <div className="flex items-start gap-3" data-testid="analytics-no-data">
-        <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <div>
-          <p className="text-sm font-medium text-foreground">Sem dados agregados</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{analytics.message}</p>
-        </div>
-      </div>
-    );
-  }
+  const isFailure = analytics.state === "methodology_error" || analytics.state === "technical_error";
 
   return (
-    <div className="flex items-start gap-3" role="alert" data-testid="analytics-error">
-      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+    <div
+      className="flex items-start gap-3"
+      data-testid={`analytics-${analytics.state}`}
+      {...(isFailure ? { role: "alert" as const } : {})}
+    >
+      <StateIcon state={analytics.state} />
       <div>
-        <p className="text-sm font-medium text-destructive">Leitura indisponível</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{analytics.message}</p>
+        <p className={`text-sm font-medium ${isFailure ? "text-destructive" : "text-foreground"}`}>
+          {STATE_TITLE[analytics.state]}
+        </p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{analytics.message}</p>
       </div>
     </div>
   );
@@ -254,11 +304,10 @@ function SectorCard({
               type="button"
               onClick={() => onRevoke(sector, revocableLink.id)}
               disabled={busy !== null}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${
-                confirmRevoke === revocableLink.id
-                  ? "border-destructive bg-destructive/10 text-destructive"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${confirmRevoke === revocableLink.id
+                ? "border-destructive bg-destructive/10 text-destructive"
+                : "border-border text-muted-foreground hover:text-foreground"
+                }`}
             >
               <Unlink className="h-4 w-4" />
               {confirmRevoke === revocableLink.id
@@ -421,6 +470,21 @@ export function FibtManagerControlCenter({
         </div>
       </header>
 
+      {snapshot.campaign.sealOutcome === "withheld_for_privacy" && (
+        <div
+          className="mt-4 rounded-md border border-amber-600/30 bg-amber-500/5 p-3"
+          role="note"
+          data-testid="seal-outcome-withheld"
+        >
+          <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-200">
+            <strong className="font-semibold">Fechamento com atualização retida.</strong> A onda foi
+            selada, mas a leitura final não foi republicada: poucas participações novas entraram
+            desde a última publicação, e republicar revelaria quem respondeu. As leituras já
+            publicadas permanecem disponíveis — nada foi apagado nem estimado.
+          </p>
+        </div>
+      )}
+
       <section
         className="grid border-b border-border sm:grid-cols-2 lg:grid-cols-4"
         aria-label="Resumo da campanha"
@@ -438,9 +502,9 @@ export function FibtManagerControlCenter({
           </p>
         </div>
         <div className="border-b border-border py-4 sm:border-b-0 sm:border-r lg:pl-4">
-          <p className="text-xs text-muted-foreground">Resultados publicaveis</p>
+          <p className="text-xs text-muted-foreground">Leituras publicadas</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-            {snapshot.participation.publishableCohorts}
+            {snapshot.participation.publishedCohorts}
           </p>
         </div>
         <div className="py-4 sm:pl-4">
@@ -495,10 +559,11 @@ export function FibtManagerControlCenter({
       {snapshot.factorComparison.length > 1 && (
         <section className="border-b border-border py-6" aria-labelledby="comparison-title">
           <h2 id="comparison-title" className="text-sm font-semibold text-foreground">
-            Comparação entre setores publicáveis
+            Comparação entre setores com leitura publicada
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Medias dos fatores na escala documentada de 0 a 4.
+            Médias dos fatores na escala documentada de 0 a 4, somente de setores cuja leitura já
+            foi publicada em lote protegido. Setores retidos não aparecem aqui.
           </p>
           <div className="mt-4 h-72 w-full" data-testid="factor-comparison-chart">
             <ResponsiveContainer width="100%" height="100%">
@@ -536,11 +601,12 @@ export function FibtManagerControlCenter({
               Setores, participação e links
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Operação e elegibilidade analítica no mesmo recorte.
+              Operação e estado de publicação no mesmo recorte.
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <LockKeyhole className="h-3.5 w-3.5" /> Publicação mínima n={snapshot.privacy.kMin}
+            <LockKeyhole className="h-3.5 w-3.5" /> Publicação protegida: n≥{snapshot.privacy.kMin} e
+            lote de {snapshot.privacy.kMin} novas participações
           </span>
         </div>
 
@@ -649,7 +715,8 @@ export function FibtManagerControlCenter({
           <LockKeyhole className="h-3.5 w-3.5" /> Tokens persistidos somente como hash
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <Users className="h-3.5 w-3.5" /> Coortes abaixo de n=5 protegidas
+          <Users className="h-3.5 w-3.5" /> Publicação em lote protegido (n≥{snapshot.privacy.kMin} e{" "}
+          {snapshot.privacy.kMin} novas participações)
         </span>
       </footer>
     </div>

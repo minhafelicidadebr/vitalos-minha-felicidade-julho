@@ -762,7 +762,12 @@ function WaveCard({
             ? `Onda fechada — relatório final com ${result.participantCount} participantes.`
             : result.reason === "withheld_for_privacy"
               ? "Onda fechada — a última leitura publicada permanece disponível; a atualização final foi retida por proteção de privacidade (poucas respostas novas desde a última publicação)."
-              : `Onda fechada sem relatório (${result.reason}) — participação abaixo do k-anonimato mínimo.`,
+              : result.reason === "below_k_anonymity"
+                ? "Onda fechada sem relatório — participação abaixo do k-anonimato mínimo."
+                : // Não atribuir a k-anonimato um motivo que o servidor não afirmou:
+                  // motivos novos existem (lote protegido, cobertura por item), e
+                  // chamá-los de "poucos participantes" seria falso.
+                  `Onda fechada sem relatório novo (${result.reason}). Nenhum dado foi estimado; as leituras já publicadas permanecem disponíveis.`,
         );
         onAggregated();
       } else {

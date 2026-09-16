@@ -18,6 +18,7 @@
     "secret-scan": "bun run scripts/build-secret-scan.ts",
     "db:replay": "bun run scripts/db-replay-proof.ts --mode=clean",
     "db:replay:preprod": "bun run scripts/db-replay-proof.ts --mode=preprod",
+    "db:replay:upgrade": "bun run scripts/db-replay-proof.ts --mode=upgrade",
     "proof:concurrency": "bun run scripts/cohort-release-concurrency-proof.ts",
     "manifest": "bun run scripts/migration-manifest.ts",
     "manifest:write": "bun run scripts/migration-manifest.ts --write",
