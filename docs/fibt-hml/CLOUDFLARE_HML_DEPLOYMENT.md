@@ -472,3 +472,26 @@ Confirmações adicionais, herdadas da preparação anterior:
 
 **O deployment não poderá ser entregue ao RH enquanto as Etapas A, B e C
 não estiverem completas, nessa ordem — nunca C antes de B.**
+
+### Identidade de publicação em HML — usuário sintético da organização (D9)
+
+A RPC `aggregate_cohort_responses` é o único publicador de leitura protegida e
+resolve o tenant por `auth.uid()`; `service_role` recebe `not_authorized` por
+construção. O Cloudflare Access prova apenas a autenticação de perímetro e não
+produz sessão Supabase, então o painel HML fica somente-leitura até existir uma
+identidade organizacional real.
+
+Essa identidade vem de um **login interativo** em `/entrar`, feito por um
+usuário sintético que existe apenas no projeto Supabase de staging/HML e
+pertence à organização da campanha sintética. O papel administrativo dele é o
+`orgAdminRole` declarado no pack da organização — a mesma fonte usada por
+`requireOrgAdmin`, sem lista paralela de papéis. O token dessa sessão só é
+aceito quando a organização da sessão coincide com a organização da onda
+canônica; token ausente, inválido ou de outra organização mantém o painel no
+mesmo modo protegido, sem chamar a RPC.
+
+A senha é mantida **fora do repositório** (cofre do operador) e nunca entra em
+`vars`, secret do Worker, `.env` versionado ou variável de build: **nenhuma
+credencial desse usuário existe no Worker**. A revogação é feita desativando o
+usuário no projeto de staging ou trocando a senha — não depende de deploy,
+rebuild ou alteração de configuração do Worker.

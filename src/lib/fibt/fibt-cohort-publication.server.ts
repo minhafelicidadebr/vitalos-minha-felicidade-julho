@@ -18,12 +18,14 @@
 // publicar com a chave de serviço, por construção, e isso é correto.
 //
 // Consequência operacional, registrada e não contornada aqui: o avanço da
-// publicação exige uma identidade ORGANIZACIONAL real. O painel tem essa
-// identidade no modo `supabase_admin` (o access token da própria sessão do
-// RH_ADMIN, já validado por `requireOrgAdmin`). O deployment HML autentica
-// por Cloudflare Access e NÃO tem usuário Supabase — lá o painel permanece
-// somente-leitura sobre o que já estiver publicado. Nenhuma permissão ampla
-// foi recuperada para contornar isso.
+// publicação exige uma identidade ORGANIZACIONAL real — sempre o access token
+// de uma sessão Supabase já validada por `requireOrgAdmin`, cuja organização é
+// a da própria onda. No modo `supabase_admin` é a sessão do RH_ADMIN. No
+// deployment HML, onde o Cloudflare Access prova apenas a autenticação de
+// perímetro, essa identidade vem do login interativo de um usuário sintético
+// da organização HML; sem ela o painel permanece somente-leitura sobre o que
+// já estiver publicado. Nenhuma permissão ampla foi recuperada para contornar
+// isso, e `service_role` continua recebendo `not_authorized` da RPC.
 //
 // Este módulo é best-effort de propósito: falha de publicação nunca pode
 // derrubar a leitura do painel. Quando falha, o painel simplesmente mostra o
