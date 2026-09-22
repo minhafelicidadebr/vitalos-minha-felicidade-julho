@@ -42,10 +42,25 @@ export interface CohortAggregate {
 
 export type FibtCohortReport =
   | { status: "suprimido"; countLabel: string; kMin: number; motivo: string }
+  /** RPC devolveu `awaiting_batched_release`: há participações suficientes, falta lote. */
+  | { status: "aguardando_lote"; kMin: number; motivo: string }
+  /** RPC devolveu `differential_inference_risk`: supressão complementar entre recortes. */
+  | { status: "supressao_complementar"; kMin: number; motivo: string }
+  /** RPC devolveu `item_level_insufficient_contributors`. */
+  | { status: "aguardando_cobertura_itens"; kMin: number; motivo: string }
+  /** Motivo de supressão desconhecido — fail-closed, sem afirmar contagem. */
+  | { status: "retido"; kMin: number; motivo: string }
   | { status: "nao_autorizado"; motivo: string }
   | { status: "incompleto"; n: number; itensAusentes: string[]; motivo: string }
   | { status: "versao_incompativel"; n: number; esperada: string; recebida: string; motivo: string }
   | { status: "ok"; n: number; resultado: FibtResult };
+
+/**
+ * Rótulo não numérico. Usado quando a contagem não pode sair e a faixa "<k"
+ * também seria uma afirmação falsa (o recorte pode ter muitas respostas e
+ * ainda assim estar retido por lote ou por supressão complementar).
+ */
+export const RETIDO_COUNT_LABEL = "protegida";
 
 /**
  * DESENHO ARQUITETURAL -- por que a RPC devolve factor_scores e domain_means
@@ -88,25 +103,89 @@ export function buildFibtCohortReport(
   agg: CohortAggregate,
   instrumentVersion?: string | null,
 ): FibtCohortReport {
-  if (agg.suppressionReason === "not_authorized") {
+  const reason = agg.suppressionReason ?? null;
+
+  if (reason === "not_authorized") {
     return {
       status: "nao_autorizado",
       motivo: "Esta onda nao pertence a sua organizacao, ou a sessao nao tem vinculo organizacional.",
     };
   }
 
+  // ── Motivos introduzidos pela Task 10.1 ────────────────────────────────────
+  //
+  // ANTES (defeito D2 da macro-onda 10.2): todo motivo diferente de
+  // `not_authorized` caia no ramo unico de supressao e a mensagem afirmava
+  // "menos de 5 respostas (<5)" usando `countLabel ?? "<k"`. Como
+  // `awaiting_batched_release`, `differential_inference_risk` e
+  // `item_level_insufficient_contributors` devolvem `response_count_label`
+  // NULO, uma coorte com 9 ou 40 respostas era descrita como tendo menos de
+  // cinco. Cada motivo passa a ter ramo proprio, e nenhum deles afirma
+  // contagem.
+  if (reason === "awaiting_batched_release") {
+    return {
+      status: "aguardando_lote",
+      kMin: agg.kMin,
+      motivo:
+        "Resultado ainda nao publicado: a liberacao acontece em lote protegido, " +
+        `somente quando ${agg.kMin} novas participacoes entram desde a ultima publicacao. ` +
+        "Nao significa que faltem participantes.",
+    };
+  }
+
+  if (reason === "differential_inference_risk") {
+    return {
+      status: "supressao_complementar",
+      kMin: agg.kMin,
+      motivo:
+        "Resultado retido para proteger um recorte pequeno desta onda: publicar este " +
+        "recorte permitiria deduzi-lo por subtracao contra o total. Nao e falha tecnica.",
+    };
+  }
+
+  if (reason === "item_level_insufficient_contributors") {
+    return {
+      status: "aguardando_cobertura_itens",
+      kMin: agg.kMin,
+      motivo:
+        `Nenhum item alcancou ${agg.kMin} participantes na publicacao atual. ` +
+        "Sem cobertura por item nao existe escore, e item ausente nunca vale zero.",
+    };
+  }
+
   if (!agg.visible || agg.itemMeans === null) {
+    if (reason !== null && reason !== "privacy_threshold") {
+      // Motivo novo que este cliente ainda nao conhece. Fail-closed: nunca
+      // inventa faixa nem afirma quantidade.
+      return {
+        status: "retido",
+        kMin: agg.kMin,
+        motivo:
+          "Resultado retido por protecao de privacidade. O motivo informado pelo banco " +
+          "nao e reconhecido por esta versao da aplicacao, e nenhuma contagem foi estimada.",
+      };
+    }
+
     // Defesa em profundidade: mesmo que o banco devolva a contagem exata, ela
-    // NAO atravessa para a interface abaixo do limiar. O rotulo de faixa e a
-    // unica coisa que sai daqui.
-    const label = agg.countLabel ?? `<${agg.kMin}`;
+    // NAO atravessa para a interface abaixo do limiar. Somente a FAIXA sai
+    // daqui — e apenas quando ela e, de fato, uma faixa.
+    const incoming = agg.countLabel;
+    const label =
+      incoming === null || incoming === undefined
+        ? `<${agg.kMin}`
+        : incoming.startsWith("<")
+          ? incoming
+          : RETIDO_COUNT_LABEL;
     return {
       status: "suprimido",
       countLabel: label,
       kMin: agg.kMin,
       motivo:
-        `Resultado oculto: menos de ${agg.kMin} respostas (${label}). ` +
-        "A quantidade exata nao e informada, para proteger quem respondeu.",
+        label.startsWith("<")
+          ? `Resultado oculto: menos de ${agg.kMin} respostas (${label}). ` +
+          "A quantidade exata nao e informada, para proteger quem respondeu."
+          : "Resultado oculto por protecao de privacidade. A quantidade exata nao e " +
+          "informada, para proteger quem respondeu.",
     };
   }
 

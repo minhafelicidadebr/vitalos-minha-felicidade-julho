@@ -179,6 +179,46 @@ const PACOTE_G1_V2 = [
     M6A_ATUAL,
 ] as const;
 
+/**
+ * PACOTE TASK 10.1 — as três migrations de proteção de privacidade da coorte.
+ *
+ * ACHADO DA MACRO-ONDA 10.2 (defeito D3), corrigido aqui: o modo `preprod`
+ * aplicava apenas `PACOTE_G1_V2` (lista fechada de 6 arquivos) e, ainda assim,
+ * `rodarProvas()` executava TODAS as suítes de `supabase/tests/` por glob.
+ * Resultado: 05 e 06 rodavam contra um banco sem `cohort_capsules` e sem a ACL
+ * de `waves` fechada, e 03 falhava na supressão diferencial — três FAIL que não
+ * eram defeito das migrations, e sim do harness.
+ *
+ * RECONCILIAÇÃO EXPLÍCITA DOS ARQUIVOS (59 no manifesto):
+ *   59 total
+ *   − 1  `20260730160000` … exclusiva de STAGING (gêmea mutuamente exclusiva)
+ *   − 1  `20260806210000` … comprovadamente não executável (precondition 1.6)
+ *   = 57 linhagem de produção replayável
+ *
+ *   Dentro dos 57, no modo `preprod`:
+ *     47  baseline (`antes`): tudo com nome < 20260806210000, mais a
+ *         `20260825022411` superseded (46 + 1)
+ *      6  PACOTE_G1_V2
+ *      3  PACOTE_TASK_10_1  ← faltava
+ *      1  `20260828121000` M6 histórico, deliberadamente FORA do baseline
+ *         produtivo e do pacote (exige 14 funções não promovidas); segue
+ *         exercitado somente na linhagem `clean`.
+ *     47 + 6 + 3 + 1 = 57 ✔
+ *
+ * A lista é FECHADA e nunca inferida por timestamp: adicioná-la por glob
+ * reintroduziria a classe de erro que este arquivo existe para impedir.
+ */
+const TASK_10_1_WAVES_LOCKDOWN = "20260909220000_lock_down_waves_direct_writes.sql";
+const TASK_10_1_DIFFERENTIAL = "20260909221000_cohort_differential_suppression.sql";
+const TASK_10_1_BATCHED_RELEASE =
+    "20260909222000_cohort_batched_release_temporal_privacy.sql";
+
+const PACOTE_TASK_10_1 = [
+    TASK_10_1_WAVES_LOCKDOWN,
+    TASK_10_1_DIFFERENTIAL,
+    TASK_10_1_BATCHED_RELEASE,
+] as const;
+
 const IDEMPOTENTES = new Set([
     // G1-v2.
     "20260806211000_response_invite_link_contract_forward_fix.sql",
@@ -194,6 +234,41 @@ const IDEMPOTENTES = new Set([
     "20260811120000_fail_closed_sector_response_cohort_binding.sql",
     "20260812120000_one_active_sector_link_per_cohort.sql",
 ]);
+
+/**
+ * REAPLICAÇÃO DA TASK 10.1 — caracterizada no FIM da execução, nunca antes das
+ * provas, por um motivo concreto descoberto nesta onda (achado D8):
+ *
+ * `20260909221000` e `20260909222000` substituem a MESMA função
+ * (`aggregate_cohort_responses`) por `CREATE OR REPLACE`, e 222000 é a versão
+ * final. Reaplicar 221000 DEPOIS de 222000 não é idempotência — é REGRESSÃO:
+ * o corpo volta ao que só tinha supressão diferencial, e o release em lote
+ * desaparece. Uma versão anterior deste script reaplicava as duas ANTES das
+ * suítes e só passava porque a reaplicação de 222000, logo em seguida,
+ * restaurava a função por acidente de ordem. No modo `upgrade` — onde já existe
+ * publicação e 222000 recusa reaplicar — o acidente não acontecia e a suíte 06
+ * falhava contra uma função regredida.
+ *
+ * Lição encodada aqui: ordem de reaplicação de migrations que compartilham o
+ * mesmo objeto é significativa, e o replay tem de dizer isso em voz alta em vez
+ * de depender dela.
+ */
+/**
+ * REAPLICAÇÃO DEPENDENTE DE ESTADO — achado da macro-onda 10.2 (defeito D4).
+ *
+ * `20260909222000` é idempotente ENQUANTO nada foi publicado: o `INSERT` do
+ * bootstrap é guardado por `NOT EXISTS` e semeia 0 linhas. Mas a invariante
+ * final do bootstrap é GLOBAL
+ * (`IF EXISTS (SELECT 1 FROM cohort_capsules WHERE item_means IS NOT NULL)`),
+ * então depois de qualquer publicação legítima uma reexecução ABORTA com
+ * `FALHA: o bootstrap publicou agregado`. Não é falha de segurança — é
+ * fail-closed excessivo, e a mensagem confunde quem retoma uma janela.
+ *
+ * As duas metades são caracterizadas em `caracterizarReaplicacaoTask10()`, junto
+ * com o achado D8 acima. Corrigir a invariante para o escopo das linhas semeadas
+ * nesta execução é a menor correção proposta, e exige autorização própria — não
+ * foi feita aqui.
+ */
 
 const NAO_EXECUTAVEIS = new Map([
     [
@@ -211,12 +286,15 @@ const PGPASSWORD = "replay-local-only";
 const args = process.argv.slice(2);
 const modo = (args.find((a) => a.startsWith("--mode="))?.slice(7) ?? "clean") as
     | "clean"
-    | "preprod";
+    | "preprod"
+    | "upgrade";
 const manter = args.includes("--keep");
 const inventario = args.includes("--inventory");
 
-if (modo !== "clean" && modo !== "preprod") {
-    console.error(`Modo inválido: ${modo}. Use --mode=clean ou --mode=preprod.`);
+if (modo !== "clean" && modo !== "preprod" && modo !== "upgrade") {
+    console.error(
+        `Modo inválido: ${modo}. Use --mode=clean, --mode=preprod ou --mode=upgrade.`,
+    );
     process.exit(1);
 }
 
@@ -476,6 +554,310 @@ async function aplicarCadeia(nomes: string[], rotulo: string): Promise<boolean> 
     return true;
 }
 
+// ── Ensaio de ATUALIZAÇÃO (modo `upgrade`) ──────────────────────────────────
+//
+// POR QUE ESTE MODO EXISTE: `clean` prova que um clone reproduz o schema desde
+// banco VAZIO, e `preprod` prova o pacote sobre o estado observado de produção.
+// Nenhum dos dois exercitava o que uma janela de mudança realmente faz: aplicar
+// as migrations sobre um banco que JÁ TEM dados. Isso importa aqui porque o
+// bootstrap de `20260909222000` só faz alguma coisa quando existem respostas —
+// no `clean` ele semeia 0 linhas, e a suíte 06 apenas SIMULA o INSERT do
+// bootstrap ("MESMA forma de INSERT do bootstrap da migration"). Ou seja: o
+// bloco `DO $bootstrap$` real nunca havia rodado contra banco não vazio em
+// lugar nenhum.
+//
+// Este modo fecha essa lacuna dentro do repositório, sem harness externo:
+// reconstrói a linhagem SEM as três migrations, semeia dados SINTÉTICOS com
+// partição conhecida, mede o observável ANTES, aplica as três medindo duração,
+// e mede o observável DEPOIS.
+
+const SEMEADURA_SINTETICA = `
+DO $seed$
+DECLARE
+  c_org  CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000f1';
+  c_onda CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000f2';
+  c_a    CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000fa';
+  c_b    CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000fb';
+  c_c    CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000fc';
+  c_d    CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000fd';
+  c_user CONSTANT UUID := 'e0000000-0000-4000-8000-0000000000f9';
+  v_ans  JSONB;
+BEGIN
+  -- 32 itens na escala 0-4, como o contrato congelado exige.
+  SELECT jsonb_object_agg(i::TEXT, 2) INTO v_ans FROM generate_series(1,32) i;
+
+  INSERT INTO public.organizations (id, slug, name)
+  VALUES (c_org, 'org-ensaio-upgrade', 'Org Ensaio Upgrade (sintetico)')
+  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO public.waves (id, org_id, instrument, label, status)
+  VALUES (c_onda, c_org, 'FIB_T', 'Onda Ensaio Upgrade', 'collecting')
+  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO public.wave_cohorts (id, org_id, wave_id, key, label) VALUES
+    (c_a, c_org, c_onda, 'seg-a', 'Segmento A'),
+    (c_b, c_org, c_onda, 'seg-b', 'Segmento B'),
+    (c_c, c_org, c_onda, 'seg-c', 'Segmento C'),
+    (c_d, c_org, c_onda, 'seg-d', 'Segmento D')
+  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO auth.users (id, email) VALUES (c_user, 'ensaio-upgrade@exemplo.invalid')
+  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO public.profiles (id, org_id, role, display_name)
+  VALUES (c_user, c_org, 'RH_ADMIN', 'Gestor Ensaio') ON CONFLICT (id) DO NOTHING;
+
+  -- Partição deliberada: A=9 e B=6 visiveis, C=3 e D=2 ocultos. DOIS ocultos
+  -- para que a supressao complementar NAO dispare e o estado observavel seja
+  -- justamente o de espera por lote.
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, c_a, v_ans FROM generate_series(1,9);
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, c_b, v_ans FROM generate_series(1,6);
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, c_c, v_ans FROM generate_series(1,3);
+  INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+  SELECT c_onda, c_d, v_ans FROM generate_series(1,2);
+END
+$seed$;
+`;
+
+const ENSAIO_ONDA = "e0000000-0000-4000-8000-0000000000f2";
+const ENSAIO_SEG_A = "e0000000-0000-4000-8000-0000000000fa";
+const ENSAIO_SEG_C = "e0000000-0000-4000-8000-0000000000fc";
+const ENSAIO_USER = "e0000000-0000-4000-8000-0000000000f9";
+
+/** Executa como membro autenticado da organização sintética, via JWT de sessão. */
+function comoMembroSintetico(sql: string): string {
+    return `BEGIN;
+DO $claims$ BEGIN PERFORM set_config('request.jwt.claims',
+  json_build_object('sub','${ENSAIO_USER}','role','authenticated')::TEXT, true); END $claims$;
+${sql}
+COMMIT;`;
+}
+
+function leituraDeSegmento(cohort: string): string {
+    return comoMembroSintetico(
+        `SELECT visible::TEXT || '|' || COALESCE(response_count::TEXT,'NULL') || '|' ||
+                COALESCE(response_count_label,'NULL') || '|' ||
+                COALESCE(suppression_reason,'NULL') || '|' ||
+                COALESCE(left(item_means::TEXT, 20),'NULL')
+           FROM public.aggregate_cohort_responses('${ENSAIO_ONDA}','${cohort}');`,
+    );
+}
+
+const ACL_WAVES_SQL = `SELECT
+  has_table_privilege('authenticated','public.waves','INSERT')::TEXT || '/' ||
+  has_table_privilege('authenticated','public.waves','UPDATE')::TEXT || '/' ||
+  has_table_privilege('authenticated','public.waves','DELETE')::TEXT || '/' ||
+  has_table_privilege('authenticated','public.waves','SELECT')::TEXT || ' policy=' ||
+  (EXISTS (SELECT 1 FROM pg_policies
+            WHERE schemaname='public' AND tablename='waves'
+              AND policyname='waves_admin_write'))::TEXT;`;
+
+async function rodarEnsaioDeAtualizacao(anteriores: string[]): Promise<void> {
+    if (!(await aplicarCadeia(anteriores, "estado ANTERIOR à Task 10.1 reproduzido"))) {
+        throw new Error("cadeia anterior falhou");
+    }
+
+    const aclAntes = await scalar(ACL_WAVES_SQL);
+    registrar(
+        "PRÉ: authenticated tinha DML direto em public.waves (bypass do gate de plano)",
+        aclAntes.startsWith("true/true/true/true") && aclAntes.includes("policy=true"),
+        aclAntes,
+    );
+    const capsulaAntes = await scalar(
+        "SELECT (to_regclass('public.cohort_capsules') IS NOT NULL)::TEXT;",
+    );
+    registrar("PRÉ: cohort_capsules ainda não existe", capsulaAntes === "false", capsulaAntes);
+
+    const seed = await psql(SEMEADURA_SINTETICA);
+    registrar(
+        "dados SINTÉTICOS semeados (partição A=9 · B=6 · C=3 · D=2, 32 itens cada)",
+        seed.code === 0,
+        seed.code === 0 ? undefined : seed.err.trim().split("\n").slice(0, 4).join(" | "),
+    );
+    if (seed.code !== 0) throw new Error("semeadura falhou");
+
+    const preA = await scalar(leituraDeSegmento(ENSAIO_SEG_A));
+    registrar(
+        "PRÉ: segmento com n=9 devolvia a MÉDIA AO VIVO (a exposição temporal existia)",
+        preA.startsWith("true|9|9|NULL|"),
+        preA,
+    );
+
+    // ── Aplicação medida ────────────────────────────────────────────────────
+    const duracoes: string[] = [];
+    for (const nome of PACOTE_TASK_10_1) {
+        const t0 = Date.now();
+        const ok = await aplicarArquivo(`Task 10.1 aplicada: ${nome}`, "supabase", "migrations", nome);
+        duracoes.push(`${nome.slice(0, 14)}=${Date.now() - t0}ms`);
+        if (!ok) throw new Error(`Task 10.1 falhou em ${nome}`);
+    }
+    console.log(`         duração medida (dataset sintético pequeno): ${duracoes.join(" · ")}`);
+
+    // ── Bootstrap REAL sobre banco não vazio ────────────────────────────────
+    const capsulas = await scalar(
+        `SELECT COUNT(*)::TEXT || '|' ||
+                COUNT(*) FILTER (WHERE item_means IS NULL)::TEXT || '|' ||
+                COUNT(*) FILTER (WHERE published_response_count IS NULL)::TEXT || '|' ||
+                COALESCE(MAX(array_length(published_response_ids,1))::TEXT,'0')
+           FROM public.cohort_capsules;`,
+    );
+    registrar(
+        "bootstrap REAL semeou 2 baselines NÃO PUBLICADOS (A=9 e B=6) e 0 publicados",
+        capsulas === "2|2|2|9",
+        `linhas|means_null|count_null|max_ids = ${capsulas}`,
+    );
+
+    const aclDepois = await scalar(ACL_WAVES_SQL);
+    registrar(
+        "PÓS: authenticated sem INSERT/UPDATE/DELETE em waves, SELECT preservado, policy removida",
+        aclDepois === "false/false/false/true policy=false",
+        aclDepois,
+    );
+
+    const posA = await scalar(leituraDeSegmento(ENSAIO_SEG_A));
+    registrar(
+        "PÓS: n=9 deixa de expor média ao vivo e responde awaiting_batched_release",
+        posA === "false|NULL|NULL|awaiting_batched_release|NULL",
+        posA,
+    );
+
+    const posC = await scalar(leituraDeSegmento(ENSAIO_SEG_C));
+    registrar(
+        "PÓS: n=3 responde privacy_threshold com rótulo de faixa <5",
+        posC === "false|NULL|<5|privacy_threshold|NULL",
+        posC,
+    );
+
+    // +4 contribuintes novos: nada observável muda.
+    await psql(`INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+      SELECT '${ENSAIO_ONDA}','${ENSAIO_SEG_A}',
+             (SELECT jsonb_object_agg(i::TEXT, 4) FROM generate_series(1,32) i)
+        FROM generate_series(1,4);`);
+    const pos4 = await scalar(leituraDeSegmento(ENSAIO_SEG_A));
+    registrar(
+        "PÓS: +4 contribuintes novos NÃO publicam (nada observável se move)",
+        pos4 === "false|NULL|NULL|awaiting_batched_release|NULL",
+        pos4,
+    );
+
+    // 5º contribuinte novo: publica de uma vez.
+    await psql(`INSERT INTO public.wave_responses (wave_id, cohort_id, answers)
+      VALUES ('${ENSAIO_ONDA}','${ENSAIO_SEG_A}',
+              (SELECT jsonb_object_agg(i::TEXT, 4) FROM generate_series(1,32) i));`);
+    const pos5 = await scalar(leituraDeSegmento(ENSAIO_SEG_A));
+    registrar(
+        "PÓS: 5º contribuinte novo publica snapshot atômico com contagem 14",
+        pos5.startsWith("true|14|14|NULL|"),
+        pos5,
+    );
+}
+
+/**
+ * Caracteriza a reaplicação das três migrations da Task 10.1 — depois das
+ * provas, porque duas delas compartilham a mesma função e a ORDEM importa.
+ *
+ * Deixa o banco deliberadamente REGREDIDO no final (o container é descartado em
+ * seguida): a última verificação é justamente que reaplicar 221000 sobre 222000
+ * remove o release em lote.
+ */
+async function caracterizarReaplicacaoTask10(): Promise<void> {
+    const publicadasSql =
+        "SELECT COUNT(*)::TEXT FROM public.cohort_capsules WHERE item_means IS NOT NULL;";
+    const temReleaseEmLote = async (database = DB) =>
+        (await scalar(
+            `SELECT (pg_get_functiondef(to_regprocedure('public.aggregate_cohort_responses(uuid,uuid)')) ~* 'cohort_capsules')::TEXT;`,
+            database,
+        )) === "true";
+
+    // 1. Bloqueio de escrita direta em `waves` — não toca a função, reaplicar é
+    //    idempotente em qualquer ordem.
+    const lockdown = await psql(lerSql("supabase", "migrations", TASK_10_1_WAVES_LOCKDOWN));
+    registrar(
+        `idempotente ao reaplicar em qualquer ordem: ${TASK_10_1_WAVES_LOCKDOWN}`,
+        lockdown.code === 0,
+        lockdown.code === 0 ? undefined : lockdown.err.trim().split("\n").slice(0, 3).join(" | "),
+    );
+
+    // 2. Metade 1 de D4, num CLONE: sem publicação, a reaplicação de 222000
+    //    PASSA. O clone existe para não precisar apagar publicação do banco de
+    //    prova só para montar a precondição.
+    await comCloneLocal("task10_sem_publicacao", async (database) => {
+        const limpeza = await psql(
+            "UPDATE public.cohort_capsules SET item_means = NULL, published_response_count = NULL, published_at = NULL;",
+            database,
+        );
+        if (limpeza.code !== 0) {
+            registrar("clone sem publicação preparado", false, limpeza.err.trim());
+            return;
+        }
+        const r = await psql(lerSql("supabase", "migrations", TASK_10_1_BATCHED_RELEASE), database);
+        registrar(
+            `reaplicável enquanto nada foi publicado: ${TASK_10_1_BATCHED_RELEASE}`,
+            r.code === 0,
+            r.code === 0 ? undefined : r.err.trim().split("\n").filter((l) => /ERROR|FALHA/.test(l)).slice(0, 2).join(" | "),
+        );
+        registrar(
+            "clone conserva o release em lote depois da reaplicação",
+            await temReleaseEmLote(database),
+        );
+    });
+
+    // 3. Metade 2 de D4: com publicação existente, a MESMA migration recusa —
+    //    por uma invariante GLOBAL do bootstrap, não por drift real.
+    const publicadas = await scalar(publicadasSql);
+    const comPublicacao = await psql(lerSql("supabase", "migrations", TASK_10_1_BATCHED_RELEASE));
+    const recusouPorInvariante =
+        comPublicacao.code !== 0 && /o bootstrap publicou agregado/i.test(comPublicacao.err);
+    registrar(
+        `reaplicação recusada DEPOIS de haver publicação (D4 — fail-closed excessivo, não drift): ${TASK_10_1_BATCHED_RELEASE} (publicadas=${publicadas})`,
+        publicadas === "0" ? comPublicacao.code === 0 : recusouPorInvariante,
+        publicadas === "0"
+            ? "nenhuma publicação existia — metade 2 não exercitada nesta execução"
+            : recusouPorInvariante
+                ? undefined
+                : "esperava recusa pela invariante global do bootstrap",
+    );
+
+    // 4. D8: reaplicar 221000 DEPOIS de 222000 é REGRESSÃO, não idempotência.
+    //    O SQL passa (é um CREATE OR REPLACE válido) e justamente por isso o
+    //    risco é silencioso — o replay o torna audível.
+    //
+    //    Feito num CLONE, não no banco de prova: `--keep` precisa deixar o
+    //    container no estado FINAL correto, porque `bun run proof:concurrency`
+    //    roda em seguida contra ele e depende do release em lote estar presente.
+    await comCloneLocal("task10_downgrade_hazard", async (database) => {
+        const antes = await temReleaseEmLote(database);
+
+        // O guard de procedimento (scripts/fibt-hml/guard-against-221000-isolated-reapply.sql)
+        // tem de BLOQUEAR aqui — antes de qualquer tentativa de reaplicar a
+        // 221000 isolada. É a mesma checagem que o operador humano roda no SQL
+        // Editor antes de colar o corpo da migration.
+        const guard = await psql(
+            lerSql("scripts", "fibt-hml", "guard-against-221000-isolated-reapply.sql"),
+            database,
+        );
+        const guardBloqueou =
+            guard.code !== 0 && /GUARD_VERDICT=BLOQUEAR_REAPLICACAO_ISOLADA_221000/i.test(guard.err);
+        registrar(
+            "guard de procedimento bloqueia a reaplicação isolada de 221000 quando 222000 já está ativa",
+            guardBloqueou,
+            guardBloqueou ? undefined : guard.err.trim().split("\n").slice(0, 4).join(" | "),
+        );
+
+        const downgrade = await psql(lerSql("supabase", "migrations", TASK_10_1_DIFFERENTIAL), database);
+        const depois = await temReleaseEmLote(database);
+        registrar(
+            `D8: reaplicar ${TASK_10_1_DIFFERENTIAL} sobre ${TASK_10_1_BATCHED_RELEASE} REGRIDE a função (perde o release em lote) — o guard acima é o único controle; o SQL em si não recusa — ordem de reaplicação é significativa`,
+            downgrade.code === 0 && antes && !depois,
+            `sql_ok=${downgrade.code === 0} · release_em_lote_antes=${antes} · depois=${depois}`,
+        );
+    });
+
+    registrar(
+        "banco de prova permanece no estado FINAL correto (release em lote presente)",
+        await temReleaseEmLote(),
+    );
+}
+
 async function rodarProvas(): Promise<void> {
     const dir = join(raiz, "supabase", "tests");
     if (!existsSync(dir)) {
@@ -682,6 +1064,53 @@ try {
     );
     if (!pacoteValido) throw new Error("custódia do pacote G1-v2 inválida");
 
+    // ── Custódia do pacote Task 10.1 ────────────────────────────────────────
+    const pacote10 = [...PACOTE_TASK_10_1];
+    const p10Ausentes = pacote10.filter((nome) => !todasOrdenadas.includes(nome));
+    const p10Duplicados = pacote10.filter((nome, i) => pacote10.indexOf(nome) !== i);
+    const p10ForaDaLinhagem = pacote10.filter((nome) => !todas.includes(nome));
+    const p10SobrepoeG1 = pacote10.filter((nome) => pacoteG1.includes(nome));
+    const p10OrdemOk = [...pacote10].sort().join("|") === pacote10.join("|");
+    const p10Valido =
+        pacote10.length === 3 &&
+        p10Ausentes.length === 0 &&
+        p10Duplicados.length === 0 &&
+        p10ForaDaLinhagem.length === 0 &&
+        p10SobrepoeG1.length === 0 &&
+        p10OrdemOk;
+
+    registrar(
+        "custódia do pacote Task 10.1 explícito (3 arquivos únicos, em ordem, sem sobreposição com G1-v2)",
+        p10Valido,
+        p10Valido
+            ? undefined
+            : `quantidade=${pacote10.length} · ausentes=${p10Ausentes.join(",") || "0"} · duplicados=${p10Duplicados.join(",") || "0"} · fora_da_linhagem=${p10ForaDaLinhagem.join(",") || "0"} · sobrepõe_G1=${p10SobrepoeG1.join(",") || "0"} · ordem_lexicográfica=${p10OrdemOk}`,
+    );
+    if (!p10Valido) throw new Error("custódia do pacote Task 10.1 inválida");
+
+    // Reconciliação aritmética explícita: nenhum arquivo da linhagem de
+    // produção fica sem classificação. Se alguém adicionar uma migration nova
+    // sem decidir a que pacote ela pertence, este passo falha — em vez de o
+    // preprod ficar silenciosamente incompleto, como aconteceu na 10.1.
+    const antesPrevisto = todas.filter(
+        (nome) => nome < G1_BOUNDARY || SUPERSEDIDAS_NAO_AUTORADAS.has(nome),
+    );
+    const classificadas = new Set<string>([
+        ...antesPrevisto,
+        ...pacoteG1,
+        ...pacote10,
+        ORIGINAL_M6_HISTORICA,
+    ]);
+    const semClassificacao = todas.filter((nome) => !classificadas.has(nome));
+    registrar(
+        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + 1 M6 histórico)`,
+        semClassificacao.length === 0 && classificadas.size === todas.length,
+        semClassificacao.length > 0
+            ? `sem classificação: ${semClassificacao.join(", ")}`
+            : `classificadas=${classificadas.size} vs linhagem=${todas.length}`,
+    );
+    if (semClassificacao.length > 0) throw new Error("migration sem pacote declarado");
+
     // Baseline preprod é deliberadamente assimétrico: tudo antes da fronteira
     // produtiva mais a correção parcial do Lovable, que pode já estar aplicada
     // apesar do timestamp posterior. O M6 histórico não entra no baseline nem
@@ -706,6 +1135,8 @@ try {
         if (!(await aplicarCadeia(todas, "cadeia completa RC aplicada (M6 histórico + M6A)"))) {
             throw new Error("cadeia falhou");
         }
+    } else if (modo === "upgrade") {
+        await rodarEnsaioDeAtualizacao(todas.filter((nome) => !pacote10.includes(nome)));
     } else {
         if (!(await aplicarCadeia(antes, "estado pré-produção reproduzido"))) {
             throw new Error("baseline falhou");
@@ -745,6 +1176,30 @@ try {
         if (!(await aplicarCadeia(pacoteG1, "pacote G1-v2 explícito aplicado sobre o estado real"))) {
             throw new Error("pacote G1-v2 falhou");
         }
+
+        // Correção do defeito D3: sem este passo, as suítes 03, 05 e 06 rodavam
+        // contra um banco que não tem `cohort_capsules` nem a ACL de `waves`
+        // fechada — três FAIL do harness, não das migrations.
+        if (
+            !(await aplicarCadeia(
+                pacote10,
+                "pacote Task 10.1 explícito aplicado sobre o estado real",
+            ))
+        ) {
+            throw new Error("pacote Task 10.1 falhou");
+        }
+
+        // O inventário produtivo é 0 respostas (3 ondas legadas seladas), então
+        // o bootstrap tem de ser comprovadamente no-op AQUI — e não por
+        // suposição: o estado é conferido no banco.
+        const capsulasPreprod = await scalar(
+            "SELECT COUNT(*)::TEXT FROM public.cohort_capsules;",
+        );
+        registrar(
+            "bootstrap no-op no baseline produtivo (0 respostas ⇒ 0 baseline semeado)",
+            capsulasPreprod === "0",
+            `linhas em cohort_capsules = ${capsulasPreprod}`,
+        );
     }
 
     // ── Retomabilidade do runbook G1 ────────────────────────────────────────
@@ -814,6 +1269,9 @@ try {
             r.code !== 0 ? undefined : "reaplicou em silêncio — deveria detectar drift e abortar",
         );
     }
+
+    // ── Reaplicação da Task 10.1 — sempre no FIM, nunca antes das provas ────
+    await caracterizarReaplicacaoTask10();
 
     if (inventario) await dumpInventario();
 } catch (e) {

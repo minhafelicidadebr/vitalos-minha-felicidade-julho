@@ -289,8 +289,11 @@ function LeaderView({
         <div className="rounded-2xl border border-border/60 bg-card p-5">
           <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Resultado</p>
           <p className="mt-1.5 text-base leading-relaxed text-foreground">
+            {/* n≥5 é condição necessária, não suficiente: a publicação acontece em
+                LOTE protegido (ver capsule-aggregator.server.ts) e só avança quando
+                entram ao menos 5 respostas novas desde a última leitura publicada. */}
             {ledger.readyToPublishOverall
-              ? "Pronto para publicar (n≥5 no agregado)."
+              ? "Limiar de privacidade atingido (n≥5). A leitura é publicada em lote protegido."
               : "Aguardando n≥5 para publicar com segurança."}
           </p>
           {ledger.readyToPublishOverall && (

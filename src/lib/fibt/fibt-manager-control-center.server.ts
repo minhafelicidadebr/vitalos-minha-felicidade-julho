@@ -1,15 +1,22 @@
 import { FIBT_K_MIN } from "@/engine/fibt/fibt-engine";
 import { HML_SECTOR_SMOKE } from "@/lib/fibt-hml/hml-contract";
 import { listOpsEventsForOrg, type OpsEventRow } from "@/lib/telemetry/ops-events.server";
-import { classifySectorLink, type SectorLinkState } from "@/lib/survey/sector-operations";
+import {
+  classifySectorLink,
+  protectSectorParticipation,
+  type SectorLinkState,
+} from "@/lib/survey/sector-operations";
 import { FIBT_PILOT_DISABLED_REASON, isFibtPilotEnabled } from "./fibt-pilot-flag";
 import {
   buildFactorComparison,
-  buildManagerAnalytics,
-  type ManagerAggregateResponse,
+  buildProtectedCohortReading,
+  buildTechnicalUnavailable,
+  buildWaveReadingUnavailable,
   type ManagerAnalytics,
   type ManagerFactorComparison,
+  type PublishedCohortSnapshot,
 } from "./fibt-manager-control-center";
+import type { AdvanceCohortPublication } from "./fibt-cohort-publication.server";
 
 const MANAGER_TELEMETRY_EVENTS = new Set([
   "response_submit_attempted",
@@ -30,6 +37,8 @@ export interface FibtManagerWaveRow {
   instrument: string;
   instrumentVersion: string | null;
   status: string;
+  /** `withheld_for_privacy` quando o fechamento nao pôde republicar. */
+  sealOutcome: string | null;
   createdAt: string;
   closesAt: string | null;
 }
@@ -53,7 +62,22 @@ export interface FibtManagerLinkRow {
   createdAt: string;
 }
 
-export interface FibtManagerResponseRow extends ManagerAggregateResponse {
+/**
+ * Participação de UM segmento da onda — contagem e versões presentes, nunca
+ * conteúdo de resposta.
+ *
+ * `cohortId` NULL representa o bucket "sem coorte", que é um segmento legítimo
+ * da partição e precisa entrar na regra de supressão complementar.
+ */
+export interface FibtManagerSegmentParticipation {
+  cohortId: string | null;
+  count: number;
+  /** Versões de instrumento distintas presentes no segmento. */
+  instrumentVersions: readonly (string | null)[];
+}
+
+/** Snapshot PUBLICADO de um segmento, como vive em `cohort_capsules`. */
+export interface FibtManagerPublishedSnapshotRow extends PublishedCohortSnapshot {
   cohortId: string | null;
 }
 
@@ -62,7 +86,14 @@ export interface FibtManagerStore {
   findCanonicalHmlWave(): Promise<FibtManagerWaveRow | null>;
   listCohorts(orgId: string, waveId: string): Promise<FibtManagerCohortRow[]>;
   listLinks(orgId: string, waveId: string): Promise<FibtManagerLinkRow[]>;
-  listResponses(waveId: string): Promise<FibtManagerResponseRow[]>;
+  /**
+   * Substitui o antigo `listResponses`, que trazia `answers` CRUAS e alimentava
+   * o recálculo ao vivo (macro-onda 10.2-B, defeito D1). Aqui só saem
+   * contagens por segmento e versões de instrumento.
+   */
+  listSegmentParticipation(waveId: string): Promise<FibtManagerSegmentParticipation[]>;
+  /** Leitura do estado PUBLICADO — a única fonte de valor observável. */
+  listPublishedSnapshots(waveId: string): Promise<FibtManagerPublishedSnapshotRow[]>;
   listEvents(orgId: string): Promise<OpsEventRow[]>;
 }
 
@@ -79,8 +110,15 @@ export interface FibtManagerSectorSummary {
   label: string;
   operationalState: "collecting" | "no_active_link" | "closed" | "error";
   participationState: ManagerAnalytics["state"];
+  /**
+   * Derivado do ESTADO, nunca da contagem viva: número somente quando há
+   * leitura publicada; faixa `<k` abaixo do limiar; rótulo não numérico em
+   * qualquer estado protegido. Isso impede que o painel devolva por rótulo o
+   * que a RPC retém.
+   */
   participationLabel: string;
-  publicationEligible: boolean;
+  /** Existe leitura PUBLICADA para este setor. */
+  readingPublished: boolean;
   analytics: ManagerAnalytics;
   links: FibtManagerLinkSummary[];
 }
@@ -93,15 +131,18 @@ export interface FibtManagerSnapshot {
     instrument: "FIB_T";
     instrumentVersion: string;
     status: string;
+    /** `withheld_for_privacy` quando o fechamento reteve a atualização final. */
+    sealOutcome: string | null;
     createdAt: string;
     closesAt: string | null;
     environment: "hml_staging" | "application";
     hmlAttested: boolean;
   };
   participation: {
-    state: ManagerAnalytics["state"];
+    /** Participação total da onda, protegida por faixa abaixo do limiar. */
     countLabel: string;
-    publishableCohorts: number;
+    /** Setores com leitura PUBLICADA (não "elegíveis"). */
+    publishedCohorts: number;
     totalCohorts: number;
   };
   waveAnalytics: ManagerAnalytics;
@@ -129,6 +170,12 @@ export interface FibtManagerServiceDeps {
   store?: FibtManagerStore;
   now?: () => Date;
   pilotEnabled?: () => boolean;
+  /**
+   * Publicador canônico (a própria RPC, com a identidade do chamador). Injetado
+   * para que os testes exercitem o caminho real sem rede — e ausente quando não
+   * há identidade organizacional (deployment HML).
+   */
+  advancePublication?: AdvanceCohortPublication;
 }
 
 function createSupabaseStore(): FibtManagerStore {
@@ -139,6 +186,9 @@ function createSupabaseStore(): FibtManagerStore {
     return supabaseAdmin as any;
   }
 
+  const WAVE_COLUMNS =
+    "id,org_id,label,instrument,instrument_version,status,seal_outcome,created_at,closes_at";
+
   const mapWave = (row: Record<string, unknown>, organizationName: string): FibtManagerWaveRow => ({
     id: String(row.id),
     orgId: String(row.org_id),
@@ -147,6 +197,7 @@ function createSupabaseStore(): FibtManagerStore {
     instrument: String(row.instrument),
     instrumentVersion: (row.instrument_version as string | null) ?? null,
     status: String(row.status),
+    sealOutcome: (row.seal_outcome as string | null) ?? null,
     createdAt: String(row.created_at ?? ""),
     closesAt: (row.closes_at as string | null) ?? null,
   });
@@ -156,7 +207,7 @@ function createSupabaseStore(): FibtManagerStore {
       const admin = await adminClient();
       const { data: wave, error } = await admin
         .from("waves")
-        .select("id,org_id,label,instrument,instrument_version,status,created_at,closes_at")
+        .select(WAVE_COLUMNS)
         .eq("id", waveId)
         .eq("org_id", orgId)
         .maybeSingle();
@@ -182,7 +233,7 @@ function createSupabaseStore(): FibtManagerStore {
       const organization = organizations[0] as { id: string; name: string };
       const { data: waves, error: waveError } = await admin
         .from("waves")
-        .select("id,org_id,label,instrument,instrument_version,status,created_at,closes_at")
+        .select(WAVE_COLUMNS)
         .eq("org_id", organization.id)
         .eq("label", HML_SECTOR_SMOKE.waveLabel)
         .eq("instrument", HML_SECTOR_SMOKE.instrument)
@@ -231,17 +282,50 @@ function createSupabaseStore(): FibtManagerStore {
       }));
     },
 
-    async listResponses(waveId) {
+    /**
+     * `answers` NÃO é selecionada. Esta é a diferença que fecha o bypass: o
+     * painel não tem mais como recalcular nada ao vivo, porque o conteúdo das
+     * respostas não sai do banco por este caminho.
+     */
+    async listSegmentParticipation(waveId) {
       const admin = await adminClient();
       const { data, error } = await admin
         .from("wave_responses")
-        .select("cohort_id,instrument_version,answers")
+        .select("cohort_id,instrument_version")
         .eq("wave_id", waveId);
       if (error) throw new Error("FIBT_MANAGER_AGGREGATE_READ_FAILED");
+
+      const buckets = new Map<string, { cohortId: string | null; count: number; versions: Set<string | null> }>();
+      for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+        const cohortId = (row.cohort_id as string | null) ?? null;
+        const key = cohortId ?? "\u0000sem-coorte";
+        const bucket = buckets.get(key) ?? { cohortId, count: 0, versions: new Set() };
+        bucket.count += 1;
+        bucket.versions.add((row.instrument_version as string | null) ?? null);
+        buckets.set(key, bucket);
+      }
+
+      return [...buckets.values()].map((bucket) => ({
+        cohortId: bucket.cohortId,
+        count: bucket.count,
+        instrumentVersions: [...bucket.versions],
+      }));
+    },
+
+    async listPublishedSnapshots(waveId) {
+      const admin = await adminClient();
+      const { data, error } = await admin
+        .from("cohort_capsules")
+        .select("cohort_id,published_response_count,item_means,published_at")
+        .eq("wave_id", waveId);
+      // Tabela ausente = migrations da Task 10.1 não aplicadas neste ambiente.
+      // Fail-closed: nenhuma leitura publicada, nunca cálculo ao vivo.
+      if (error) return [];
       return ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
         cohortId: (row.cohort_id as string | null) ?? null,
-        instrumentVersion: (row.instrument_version as string | null) ?? null,
-        answers: (row.answers as Record<string, unknown>) ?? {},
+        publishedResponseCount: (row.published_response_count as number | null) ?? null,
+        itemMeans: (row.item_means as Record<string, number> | null) ?? null,
+        publishedAt: (row.published_at as string | null) ?? null,
       }));
     },
 
@@ -292,6 +376,13 @@ export async function loadFibtManagerControlCenterAsAdmin(
     environment?: "hml_staging" | "application";
     hmlAttested?: boolean;
     expectedCohortKeys?: readonly string[];
+    /**
+     * Access token do administrador autenticado. Presente somente no modo
+     * `supabase_admin`: é a identidade organizacional que a RPC canônica exige
+     * para AVANÇAR a publicação. Ausente no deployment HML (Cloudflare Access
+     * não produz sessão Supabase), onde o painel fica somente-leitura.
+     */
+    publisherAccessToken?: string;
   } = {},
   deps: FibtManagerServiceDeps = {},
 ): Promise<FibtManagerLoadOutcome> {
@@ -341,17 +432,60 @@ export async function loadFibtManagerControlCenterAsAdmin(
       };
     }
 
-    // Raw answers are read only after tenant, wave and optional HML cohort binding pass.
-    const responses = await store.listResponses(waveId);
+    // ── Avanço da publicação, pelo mecanismo canônico ──────────────────────
+    // Só acontece quando existe identidade organizacional real (modo
+    // `supabase_admin`). O retorno é descartado: quem interpreta o estado é o
+    // leitor do snapshot publicado, num único lugar. Falha aqui nunca derruba a
+    // leitura — o painel apenas mostra o estado protegido.
+    if (options.publisherAccessToken && deps.advancePublication && cohorts.length > 0) {
+      try {
+        await deps.advancePublication(
+          waveId,
+          cohorts.map((cohort) => cohort.id),
+          options.publisherAccessToken,
+        );
+      } catch {
+        // Intencionalmente silencioso: fail-closed já é o comportamento do leitor.
+      }
+    }
+
+    // Nenhuma resposta individual é lida daqui para frente: só contagens por
+    // segmento e o snapshot já publicado.
+    const [participation, publishedRows] = await Promise.all([
+      store.listSegmentParticipation(waveId),
+      store.listPublishedSnapshots(waveId),
+    ]);
+
     const cohortIds = new Set(cohorts.map((cohort) => cohort.id));
-    const scopeDrift = responses.some(
-      (response) => !response.cohortId || !cohortIds.has(response.cohortId),
+    const scopeDrift = participation.some(
+      (segment) => !segment.cohortId || !cohortIds.has(segment.cohortId),
     );
+
+    // Partição COMPLETA da onda, do jeito que o SQL a enumera: um segmento por
+    // `cohort_id` distinto COM ao menos uma resposta (inclui o bucket sem
+    // coorte). Segmento vazio não existe para a regra diferencial.
+    const partitionCounts = participation
+      .filter((segment) => segment.count > 0)
+      .map((segment) => segment.count);
+    const liveTotal = partitionCounts.reduce((sum, count) => sum + count, 0);
+
+    const bySegment = new Map(participation.map((segment) => [segment.cohortId ?? "", segment]));
+    const publishedBySegment = new Map(
+      publishedRows.map((row) => [row.cohortId ?? "", row as PublishedCohortSnapshot]),
+    );
+    const waveSealed = wave.status !== "collecting";
     const now = (deps.now ?? (() => new Date()))();
 
     const sectors = cohorts.map((cohort): FibtManagerSectorSummary => {
-      const cohortResponses = responses.filter((response) => response.cohortId === cohort.id);
-      const analytics = buildManagerAnalytics(cohortResponses, wave.instrumentVersion);
+      const segment = bySegment.get(cohort.id);
+      const analytics = buildProtectedCohortReading({
+        liveCount: segment?.count ?? 0,
+        partitionCounts,
+        published: publishedBySegment.get(cohort.id) ?? null,
+        waveInstrumentVersion: wave.instrumentVersion,
+        segmentInstrumentVersions: segment?.instrumentVersions ?? [],
+        waveSealed,
+      });
       const cohortLinks = links
         .filter((link) => link.sectorKey === cohort.key)
         .map((link) => ({
@@ -376,7 +510,7 @@ export async function loadFibtManagerControlCenterAsAdmin(
                 : "no_active_link",
         participationState: analytics.state,
         participationLabel: analytics.countLabel,
-        publicationEligible: analytics.state === "available",
+        readingPublished: analytics.state === "available",
         analytics,
         links: cohortLinks,
       };
@@ -392,18 +526,20 @@ export async function loadFibtManagerControlCenterAsAdmin(
     if (sectors.some((sector) => sector.operationalState === "error")) {
       blockers.push("Foi detectado mais de um link ativo para o mesmo setor.");
     }
-    if (sectors.some((sector) => sector.analytics.state === "error")) {
+    if (
+      sectors.some(
+        (sector) =>
+          sector.analytics.state === "methodology_error" ||
+          sector.analytics.state === "technical_error",
+      )
+    ) {
       blockers.push("Um ou mais agregados falharam na validação metodológica.");
     }
 
     const waveAnalytics = scopeDrift
-      ? ({
-          state: "error",
-          countLabel: "Indisponível",
-          message: "A leitura agregada foi bloqueada por divergência de coorte.",
-        } satisfies ManagerAnalytics)
-      : buildManagerAnalytics(responses, wave.instrumentVersion);
-    const publishableCohorts = sectors.filter((sector) => sector.publicationEligible).length;
+      ? buildTechnicalUnavailable("A leitura agregada foi bloqueada por divergência de coorte.")
+      : buildWaveReadingUnavailable();
+    const publishedCohorts = sectors.filter((sector) => sector.readingPublished).length;
     const missingLinks = sectors.filter((sector) => sector.operationalState === "no_active_link");
     const operational =
       wave.status === "collecting" &&
@@ -412,15 +548,28 @@ export async function loadFibtManagerControlCenterAsAdmin(
       missingLinks.length === 0;
     const readinessState = blockers.length > 0 ? "blocked" : operational ? "ready" : "attention";
 
-    let nextAction = "Revisar os resultados agregados ja publicaveis.";
+    const anyAwaitingBatch = sectors.some(
+      (sector) => sector.analytics.state === "awaiting_batched_release",
+    );
+
+    let nextAction = "Revisar as leituras já publicadas por setor.";
     if (blockers.length > 0)
       nextAction = "Resolver o primeiro bloqueio operacional antes de prosseguir.";
     else if (wave.status !== "collecting")
-      nextAction = "A onda esta fechada; revisar a leitura agregada final.";
+      nextAction = "A onda está fechada; revisar as leituras publicadas até o fechamento.";
     else if (missingLinks.length > 0) nextAction = `Emitir um link para ${missingLinks[0]!.label}.`;
-    else if (publishableCohorts === 0) {
+    else if (anyAwaitingBatch)
+      nextAction =
+        "Seguir com a coleta: a leitura é liberada em lote protegido, não a cada resposta.";
+    else if (publishedCohorts === 0) {
       nextAction = "Manter a coleta controlada e acompanhar o limiar de privacidade.";
     }
+
+    // Participação total da onda: metadado operacional, protegido por faixa
+    // abaixo do limiar. Não permite derivar segmento porque as contagens dos
+    // segmentos protegidos não saem (ver `participationLabel`).
+    const totalParticipationLabel =
+      liveTotal === 0 ? "0" : protectSectorParticipation(liveTotal).countLabel;
 
     return {
       ok: true,
@@ -432,15 +581,15 @@ export async function loadFibtManagerControlCenterAsAdmin(
           instrument: "FIB_T",
           instrumentVersion: wave.instrumentVersion ?? "não confirmada",
           status: wave.status,
+          sealOutcome: wave.sealOutcome,
           createdAt: wave.createdAt,
           closesAt: wave.closesAt,
           environment: options.environment ?? "application",
           hmlAttested: options.hmlAttested ?? false,
         },
         participation: {
-          state: waveAnalytics.state,
-          countLabel: waveAnalytics.countLabel,
-          publishableCohorts,
+          countLabel: totalParticipationLabel,
+          publishedCohorts,
           totalCohorts: sectors.length,
         },
         waveAnalytics,

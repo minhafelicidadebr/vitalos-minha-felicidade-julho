@@ -23,16 +23,28 @@ export const loadFibtManagerControlCenter = createServerFn({ method: "GET" })
 
     const { loadFibtManagerControlCenterAsAdmin } =
       await import("@/lib/fibt/fibt-manager-control-center.server");
+    const { advanceCohortPublication } =
+      await import("@/lib/fibt/fibt-cohort-publication.server");
+
+    // `publisherAccessToken` só existe no modo `supabase_admin`: a RPC canônica
+    // que AVANÇA a publicação protegida exige identidade organizacional
+    // (`auth.uid()`), e o deployment HML autentica por Cloudflare Access, sem
+    // sessão Supabase. Lá o painel é somente-leitura sobre o já publicado.
     return loadFibtManagerControlCenterAsAdmin(
       access.orgId,
       access.waveId,
       access.mode === "hml_access"
         ? {
-            environment: "hml_staging",
-            hmlAttested: true,
-            expectedCohortKeys: expectedHmlCohorts,
-          }
-        : { environment: "application", hmlAttested: false },
+          environment: "hml_staging",
+          hmlAttested: true,
+          expectedCohortKeys: expectedHmlCohorts,
+        }
+        : {
+          environment: "application",
+          hmlAttested: false,
+          publisherAccessToken: data.accessToken,
+        },
+      { advancePublication: advanceCohortPublication },
     );
   });
 
