@@ -377,10 +377,11 @@ export async function loadFibtManagerControlCenterAsAdmin(
     hmlAttested?: boolean;
     expectedCohortKeys?: readonly string[];
     /**
-     * Access token do administrador autenticado. Presente somente no modo
-     * `supabase_admin`: é a identidade organizacional que a RPC canônica exige
-     * para AVANÇAR a publicação. Ausente no deployment HML (Cloudflare Access
-     * não produz sessão Supabase), onde o painel fica somente-leitura.
+     * Access token de uma sessão administrativa JÁ validada pelo chamador, cuja
+     * organização é a mesma da onda: é a identidade organizacional que a RPC
+     * canônica exige para AVANÇAR a publicação. Ausente quando não há sessão
+     * Supabase (ou quando a que existe não pertence à organização da onda),
+     * caso em que o painel fica somente-leitura sobre o já publicado.
      */
     publisherAccessToken?: string;
   } = {},
@@ -433,8 +434,8 @@ export async function loadFibtManagerControlCenterAsAdmin(
     }
 
     // ── Avanço da publicação, pelo mecanismo canônico ──────────────────────
-    // Só acontece quando existe identidade organizacional real (modo
-    // `supabase_admin`). O retorno é descartado: quem interpreta o estado é o
+    // Só acontece quando existe identidade organizacional real da própria
+    // organização da onda. O retorno é descartado: quem interpreta o estado é o
     // leitor do snapshot publicado, num único lugar. Falha aqui nunca derruba a
     // leitura — o painel apenas mostra o estado protegido.
     if (options.publisherAccessToken && deps.advancePublication && cohorts.length > 0) {

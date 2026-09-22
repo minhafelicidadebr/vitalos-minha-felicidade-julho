@@ -18,24 +18,33 @@ export interface FibtManagerAccessDeps extends FibtManagerServiceDeps {
 
 export type FibtManagerAccessOutcome =
   | {
-      ok: true;
-      orgId: string;
-      waveId: string;
-      mode: "hml_access";
-      hmlAttested: true;
-    }
+    ok: true;
+    orgId: string;
+    waveId: string;
+    mode: "hml_access";
+    hmlAttested: true;
+    /**
+     * Presente SOMENTE quando o chamador apresentou uma sessão Supabase que
+     * `requireAdmin` validou E cuja organização é a MESMA da onda canônica
+     * HML. É a identidade organizacional que a RPC canônica exige em
+     * `auth.uid()`. Ausente (e, portanto, painel somente-leitura sobre o já
+     * publicado) quando não há token, quando o token é inválido, ou quando a
+     * sessão pertence a outra organização.
+     */
+    publisherAccessToken?: string;
+  }
   | {
-      ok: true;
-      orgId: string;
-      waveId: string;
-      mode: "supabase_admin";
-      hmlAttested: false;
-    }
+    ok: true;
+    orgId: string;
+    waveId: string;
+    mode: "supabase_admin";
+    hmlAttested: false;
+  }
   | {
-      ok: false;
-      category: "authorization" | "hml_boundary" | "validation";
-      error: string;
-    };
+    ok: false;
+    category: "authorization" | "hml_boundary" | "validation";
+    error: string;
+  };
 
 function verifiedHmlIdentity(context: unknown): boolean {
   if (!context || typeof context !== "object") return false;
@@ -79,12 +88,44 @@ export async function authorizeFibtManagerRequest(
         error: "A campanha solicitada não corresponde ao lote sintético autorizado.",
       };
     }
+    // Sessão Supabase OPCIONAL, empilhada sobre a identidade Access já
+    // verificada acima. Quando o usuário sintético da organização HML entra
+    // pelo login interativo (`/entrar`), a sessão DELE — e somente ela — pode
+    // habilitar o publicador canônico, que exige `auth.uid()` de um membro da
+    // organização da onda. Nenhum modo novo, nenhum `service_role`: o token é
+    // repassado ao mesmo publicador do fluxo `supabase_admin`.
+    //
+    // Fail-closed em quatro frentes: token ausente, token que `requireAdmin`
+    // recusa, token de OUTRA organização (o cruzamento `membership.orgId ===
+    // wave.orgId` é o que impede um admin legítimo de uma org alheia de
+    // disparar publicação na onda HML) e FALHA da própria validação — rede
+    // fora, projeto indisponível, qualquer rejeição inesperada. Em todos esses
+    // casos o painel segue disponível no mesmo modo protegido, sem chamar a RPC.
+    //
+    // O `catch` é deliberadamente silencioso e não registra nada: o token não
+    // pode aparecer em log nem em telemetria, e a única decisão que importa
+    // aqui é NÃO liberar o publicador.
+    let publisherAccessToken: string | undefined;
+    if (input.accessToken) {
+      try {
+        const session = await (deps.requireAdmin ?? requireOrgAdmin)(input.accessToken);
+        if (session.ok && session.membership.orgId === wave.orgId) {
+          publisherAccessToken = input.accessToken;
+        }
+      } catch {
+        publisherAccessToken = undefined;
+      }
+    }
+
     return {
       ok: true,
       orgId: wave.orgId,
       waveId: wave.id,
       mode: "hml_access",
       hmlAttested: true,
+      // Chave omitida (não `undefined` explícito) quando não houve liberação:
+      // o publicador é acionado por presença.
+      ...(publisherAccessToken ? { publisherAccessToken } : {}),
     };
   }
 
