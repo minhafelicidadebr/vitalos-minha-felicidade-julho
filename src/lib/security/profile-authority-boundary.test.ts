@@ -231,7 +231,7 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as seis suítes existem", () => {
+    test("as sete suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
@@ -245,6 +245,10 @@ describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => 
             // snapshot não basta: o vazamento está na DIFERENÇA entre duas
             // chamadas sucessivas à mesma coorte.
             "06_cohort_temporal_release.sql",
+            // IVO R6 — proveniência FIB-T em action_items (migration local
+            // 20261002120000, não aplicada remotamente). Prova cross-tenant,
+            // escrita direta e RLS/RPC como authenticated de duas orgs + anon.
+            "07_fibt_action_provenance.sql",
         ]);
     });
 
