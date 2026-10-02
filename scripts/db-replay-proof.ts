@@ -219,6 +219,17 @@ const PACOTE_TASK_10_1 = [
     TASK_10_1_BATCHED_RELEASE,
 ] as const;
 
+/**
+ * PACOTE IVO R6 — proveniência FIB-T em action_items e escopo de evidência.
+ *
+ * Preparado para REVISÃO; nunca aplicado remotamente. Lista fechada como as
+ * demais: no `preprod` entra DEPOIS da Task 10.1 (é trabalho pendente sobre o
+ * estado produtivo observado, onde o módulo Action Plan não está promovido e a
+ * migration só adiciona colunas/constraints). Declara-se IDEMPOTENTE e o
+ * replay verifica isso reaplicando-a.
+ */
+const PACOTE_IVO_R6 = ["20261002120000_fibt_action_provenance.sql"] as const;
+
 const IDEMPOTENTES = new Set([
     // G1-v2.
     "20260806211000_response_invite_link_contract_forward_fix.sql",
@@ -1088,6 +1099,27 @@ try {
     );
     if (!p10Valido) throw new Error("custódia do pacote Task 10.1 inválida");
 
+    // ── Custódia do pacote IVO R6 ───────────────────────────────────────────
+    const pacoteR6 = [...PACOTE_IVO_R6];
+    const r6Ausentes = pacoteR6.filter((nome) => !todasOrdenadas.includes(nome));
+    const r6ForaDaLinhagem = pacoteR6.filter((nome) => !todas.includes(nome));
+    const r6Sobrepoe = pacoteR6.filter(
+        (nome) => pacoteG1.includes(nome as never) || pacote10.includes(nome as never),
+    );
+    const r6Valido =
+        pacoteR6.length === 1 &&
+        r6Ausentes.length === 0 &&
+        r6ForaDaLinhagem.length === 0 &&
+        r6Sobrepoe.length === 0;
+    registrar(
+        "custódia do pacote IVO R6 explícito (1 arquivo, sem sobreposição com G1-v2/Task 10.1)",
+        r6Valido,
+        r6Valido
+            ? undefined
+            : `ausentes=${r6Ausentes.join(",") || "0"} · fora_da_linhagem=${r6ForaDaLinhagem.join(",") || "0"} · sobrepõe=${r6Sobrepoe.join(",") || "0"}`,
+    );
+    if (!r6Valido) throw new Error("custódia do pacote IVO R6 inválida");
+
     // Reconciliação aritmética explícita: nenhum arquivo da linhagem de
     // produção fica sem classificação. Se alguém adicionar uma migration nova
     // sem decidir a que pacote ela pertence, este passo falha — em vez de o
@@ -1099,11 +1131,12 @@ try {
         ...antesPrevisto,
         ...pacoteG1,
         ...pacote10,
+        ...pacoteR6,
         ORIGINAL_M6_HISTORICA,
     ]);
     const semClassificacao = todas.filter((nome) => !classificadas.has(nome));
     registrar(
-        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + 1 M6 histórico)`,
+        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + 1 M6 histórico)`,
         semClassificacao.length === 0 && classificadas.size === todas.length,
         semClassificacao.length > 0
             ? `sem classificação: ${semClassificacao.join(", ")}`
@@ -1189,6 +1222,17 @@ try {
             throw new Error("pacote Task 10.1 falhou");
         }
 
+        // IVO R6 — pendente de revisão; sobre o estado produtivo observado só
+        // adiciona colunas/constraints (create_action_plan não existe ali).
+        if (
+            !(await aplicarCadeia(
+                pacoteR6,
+                "pacote IVO R6 aplicado sobre o estado real (módulo Action Plan ausente)",
+            ))
+        ) {
+            throw new Error("pacote IVO R6 falhou");
+        }
+
         // O inventário produtivo é 0 respostas (3 ondas legadas seladas), então
         // o bootstrap tem de ser comprovadamente no-op AQUI — e não por
         // suposição: o estado é conferido no banco.
@@ -1218,6 +1262,14 @@ try {
     //     diagnóstico. Uma recusa aqui é o comportamento correto; o que seria
     //     defeito é reaplicar em silêncio.
     for (const nome of pacoteG1.filter((n) => IDEMPOTENTES.has(n))) {
+        const r = await psql(lerSql("supabase", "migrations", nome));
+        registrar(
+            `idempotente ao reaplicar: ${nome}`,
+            r.code === 0,
+            r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
+        );
+    }
+    for (const nome of pacoteR6) {
         const r = await psql(lerSql("supabase", "migrations", nome));
         registrar(
             `idempotente ao reaplicar: ${nome}`,

@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 59,
-  "rollupSha256": "9d52b09b921fdbcff6439d2ab27291c792452eaf583e9af1c540096315b4a92d",
+  "migrationCount": 60,
+  "rollupSha256": "96ea5ab0386328d65864e661bcaafbb8f4fe094030698f25b061225908a2102a",
   "migrations": [
     {
       "order": 1,
@@ -356,6 +356,12 @@
       "name": "20260909222000_cohort_batched_release_temporal_privacy.sql",
       "sha256": "a8bc43af1aaa87f995f15f76b13ee64a5b54598fa2afce44043bb03f75c81928",
       "bytes": 26018
+    },
+    {
+      "order": 60,
+      "name": "20261002120000_fibt_action_provenance.sql",
+      "sha256": "e792a44f03cd3ae2a91e801ea6f7d989992086020c7d314e932bf50d6defd49a",
+      "bytes": 13025
     }
   ]
 }
