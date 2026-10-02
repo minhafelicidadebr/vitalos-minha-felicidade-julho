@@ -26,7 +26,6 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { join } from "node:path";
 import { Glob } from "bun";
 import { isLocalUrl } from "../src/lib/env/environment-contract";
-import { getFibtManifest } from "../src/domain/instruments/fibt/fibt-instrument";
 
 const ROOT = process.cwd();
 const WORKDIR = join(ROOT, ".ivo-demo.local");
@@ -35,34 +34,21 @@ const DB_CONTAINER = `supabase_db_${PROJECT_ID}`;
 const CLI = "supabase@2.119.0";
 const ENV_FILE = join(WORKDIR, "demo.env");
 const USERS_FILE = join(WORKDIR, "demo-users.json");
+const MANIFEST_FILE = join(WORKDIR, "demo-manifest.json");
 
 /** Mesmas exclusões declaradas do replay (linhagem de produção). */
 const STAGING_ONLY = new Set(["20260730160000_drop_response_invite_link_contract.sql"]);
 const NAO_EXECUTAVEIS = new Set(["20260806210000_drop_response_invite_link_contract_production.sql"]);
 
-// ── Fixtures fictícias (UUIDs fixos, prefixo d1/d2) ──────────────────────────
+// ── Usuários de teste da demonstração local ─────────────────────────────────
+// Organizações, onda, setores e respostas vêm de scripts/ivo-provision-fictitious-orgs.ts
+// (mesmos mecanismos do produto usados no runbook de staging); IDs gerados ficam em
+// .ivo-demo.local/demo-manifest.json.
 export const DEMO = {
   orgs: {
-    alfa: { id: "d1000000-0000-4000-8000-000000000001", slug: "org-ficticia-alfa", name: "Organização Fictícia Alfa" },
-    beta: { id: "d2000000-0000-4000-8000-000000000001", slug: "org-ficticia-beta", name: "Organização Fictícia Beta" },
+    alfa: { name: "Organização Fictícia Alfa" },
+    beta: { name: "Organização Fictícia Beta" },
   },
-  waves: {
-    alfa: { id: "d1000000-0000-4000-8000-0000000000a0", label: "FIB-T Alfa · 2º trimestre 2026" },
-    beta: { id: "d2000000-0000-4000-8000-0000000000b0", label: "FIB-T Beta · 2º trimestre 2026" },
-  },
-  // Alfa: Operações 9 (publicada), Atendimento 6 (publicação pendente — ninguém
-  // acionou o publicador), Logística 3 e Financeiro 2 (abaixo do limiar; dois
-  // ocultos ⇒ sem supressão complementar), Comercial 0 (em coleta).
-  // Beta: Produção 8 e Qualidade 3 — um único oculto ⇒ supressão complementar.
-  cohorts: [
-    { id: "d1000000-0000-4000-8000-0000000000c1", org: "alfa", key: "operacoes", label: "Operações", responses: 9, publish: true },
-    { id: "d1000000-0000-4000-8000-0000000000c2", org: "alfa", key: "atendimento", label: "Atendimento", responses: 6, publish: false },
-    { id: "d1000000-0000-4000-8000-0000000000c3", org: "alfa", key: "logistica", label: "Logística", responses: 3, publish: false },
-    { id: "d1000000-0000-4000-8000-0000000000c4", org: "alfa", key: "financeiro", label: "Financeiro", responses: 2, publish: false },
-    { id: "d1000000-0000-4000-8000-0000000000c5", org: "alfa", key: "comercial", label: "Comercial", responses: 0, publish: false },
-    { id: "d2000000-0000-4000-8000-0000000000c1", org: "beta", key: "producao", label: "Produção", responses: 8, publish: true },
-    { id: "d2000000-0000-4000-8000-0000000000c2", org: "beta", key: "qualidade", label: "Qualidade", responses: 3, publish: false },
-  ],
   users: [
     { key: "alfa_admin", org: "alfa", role: "RH_ADMIN", email: "gestora.alfa@alfa.ficticia.test", name: "Gestora Alfa (fictícia)" },
     { key: "alfa_membro", org: "alfa", role: "COLABORADOR", email: "membro.alfa@alfa.ficticia.test", name: "Membro Alfa (fictício)" },
@@ -169,129 +155,8 @@ async function applyLineage(): Promise<void> {
   console.log(`  ok   linhagem de produção aplicada (${names.length} migrations; exclusões declaradas: ${[...STAGING_ONLY, ...NAO_EXECUTAVEIS].length})`);
 }
 
-// ── Semeadura sintética ─────────────────────────────────────────────────────
-
-/** Respostas determinísticas 0–4 por item (sem nenhum dado real). */
-function syntheticAnswers(seed: number): Record<string, number> {
-  const items = getFibtManifest().items;
-  let x = seed * 2654435761;
-  return Object.fromEntries(
-    items.map((item) => {
-      x = (x * 1103515245 + 12345) >>> 0;
-      return [item.id, (x >>> 16) % 5];
-    }),
-  );
-}
-
-async function gotrue(stack: LocalStack, path: string, body: unknown): Promise<Response> {
-  return fetch(`${stack.apiUrl}/auth/v1${path}`, {
-    method: "POST",
-    headers: {
-      apikey: stack.serviceKey,
-      Authorization: `Bearer ${stack.serviceKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-}
-
 function demoPassword(key: string): string {
   return `demo-local-${key}-2026`;
-}
-
-async function ensureUsers(stack: LocalStack): Promise<Record<string, string>> {
-  const ids: Record<string, string> = {};
-  for (const user of DEMO.users) {
-    const existing = await scalar(`SELECT id::TEXT FROM auth.users WHERE email = '${user.email}';`);
-    if (existing) {
-      ids[user.key] = existing;
-      continue;
-    }
-    const res = await gotrue(stack, "/admin/users", {
-      email: user.email,
-      password: demoPassword(user.key),
-      email_confirm: true,
-    });
-    if (!res.ok) fail(`criação do usuário fictício ${user.key} falhou (HTTP ${res.status})`);
-    ids[user.key] = String(((await res.json()) as { id: string }).id);
-  }
-  return ids;
-}
-
-function seedSql(userIds: Record<string, string>): string {
-  const orgRows = Object.values(DEMO.orgs)
-    .map((o) => `('${o.id}', '${o.slug}', '${o.name}')`)
-    .join(",\n    ");
-  const profileRows = DEMO.users
-    .map((u) => `('${userIds[u.key]}', '${DEMO.orgs[u.org].id}', '${u.role}', '${u.name}')`)
-    .join(",\n    ");
-  const waveRows = (["alfa", "beta"] as const)
-    .map(
-      (k) =>
-        `('${DEMO.waves[k].id}', '${DEMO.orgs[k].id}', 'FIB_T', '1.0.0', '${DEMO.waves[k].label}', 'collecting', '2026-04-10T12:00:00Z')`,
-    )
-    .join(",\n    ");
-  const cohortRows = DEMO.cohorts
-    .map((c) => `('${c.id}', '${DEMO.orgs[c.org].id}', '${DEMO.waves[c.org].id}', '${c.key}', '${c.label}')`)
-    .join(",\n    ");
-  let seed = 1;
-  const responseRows: string[] = [];
-  for (const c of DEMO.cohorts) {
-    for (let i = 0; i < c.responses; i++) {
-      responseRows.push(
-        `('${DEMO.waves[c.org].id}', '${c.id}', 'FIB_T', '1.0.0', '${JSON.stringify(syntheticAnswers(seed++))}'::JSONB, '2026.1', '2026-05-${String(10 + (i % 18)).padStart(2, "0")}T12:00:00Z')`,
-      );
-    }
-  }
-  return `BEGIN;
-INSERT INTO public.organizations (id, slug, name) VALUES
-    ${orgRows}
-ON CONFLICT (id) DO NOTHING;
-UPDATE public.organizations SET pack_id = 'enterprise'
- WHERE id IN ('${DEMO.orgs.alfa.id}', '${DEMO.orgs.beta.id}')
-   AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='organizations' AND column_name='pack_id');
-INSERT INTO public.profiles (id, org_id, role, display_name) VALUES
-    ${profileRows}
-ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.waves (id, org_id, instrument, instrument_version, label, status, created_at) VALUES
-    ${waveRows}
-ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.wave_cohorts (id, org_id, wave_id, key, label) VALUES
-    ${cohortRows}
-ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.wave_responses (wave_id, cohort_id, instrument, instrument_version, answers, consent_version, consent_accepted_at) VALUES
-    ${responseRows.join(",\n    ")};
-COMMIT;`;
-}
-
-async function signIn(stack: LocalStack, email: string, password: string): Promise<string> {
-  const res = await fetch(`${stack.apiUrl}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: { apikey: stack.anonKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) fail(`login local de ${email} falhou (HTTP ${res.status})`);
-  return String(((await res.json()) as { access_token: string }).access_token);
-}
-
-/** Publicação pelo mecanismo canônico: a RPC, com a identidade do gestor. */
-async function publishCanonically(stack: LocalStack): Promise<string[]> {
-  const report: string[] = [];
-  for (const org of ["alfa", "beta"] as const) {
-    const admin = DEMO.users.find((u) => u.org === org && u.role === "RH_ADMIN")!;
-    const token = await signIn(stack, admin.email, demoPassword(admin.key));
-    for (const cohort of DEMO.cohorts.filter((c) => c.org === org && c.publish)) {
-      const res = await fetch(`${stack.apiUrl}/rest/v1/rpc/aggregate_cohort_responses`, {
-        method: "POST",
-        headers: { apikey: stack.anonKey, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_wave_id: DEMO.waves[org].id, p_cohort_id: cohort.id }),
-      });
-      const rows = (await res.json()) as Array<{ visible: boolean; suppression_reason: string | null }>;
-      const row = Array.isArray(rows) ? rows[0] : undefined;
-      report.push(`${cohort.label}: ${row?.visible ? "publicada" : `retida (${row?.suppression_reason ?? `HTTP ${res.status}`})`}`);
-    }
-  }
-  return report;
 }
 
 function writeEnv(stack: LocalStack): void {
@@ -354,18 +219,22 @@ async function setup(): Promise<void> {
 
   await applyLineage();
 
-  const seeded = await scalar(`SELECT COUNT(*)::TEXT FROM public.organizations WHERE id = '${DEMO.orgs.alfa.id}';`);
-  const userIds = await ensureUsers(stack);
-  if (seeded === "0") {
-    const r = await psql(seedSql(userIds));
-    if (r.code !== 0) fail(`semeadura falhou: ${r.err.trim().split("\n").slice(0, 6).join(" | ")}`);
-    console.log(`  ok   2 organizações fictícias, ${DEMO.users.length} usuários, ${DEMO.cohorts.reduce((s, c) => s + c.responses, 0)} respostas sintéticas`);
-    for (const line of await publishCanonically(stack)) console.log(`  ok   publicação canônica — ${line}`);
-  } else {
-    console.log("  ok   fixtures já semeadas (nada reescrito)");
-  }
-
+  // Fixtures pelo MESMO provisionamento que o runbook usa em staging
+  // (mecanismos do produto: convite de organização, convite de membro,
+  // onda setorial, links, respostas pela captura, publicação com JWT do admin).
   writeEnv(stack);
+  for (const [k, v] of Object.entries(readDemoEnv())) process.env[k] = v;
+  const { provisionFictitiousIvoOrgs, LOCAL_FIXTURE_EMAILS } = await import("./ivo-provision-fictitious-orgs");
+  const passwords = Object.fromEntries(DEMO.users.map((u) => [u.email, demoPassword(u.key)]));
+  const manifest = await provisionFictitiousIvoOrgs({
+    target: "local",
+    apiUrl: stack.apiUrl,
+    publishableKey: stack.anonKey,
+    emails: LOCAL_FIXTURE_EMAILS,
+    passwords,
+    log: (line) => console.log(line.replace(/^ {2}ok {3}/, "  ok   ")),
+  });
+  writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
   console.log(`\n  ambiente local gravado em .ivo-demo.local/ (ignorado pelo git)`);
   console.log("  próximo passo: bun run demo:ivo:dev  →  http://localhost:8080/entrar");
   console.log(`  e-mails de acesso (link mágico) chegam no Mailpit local: http://127.0.0.1:55424\n`);

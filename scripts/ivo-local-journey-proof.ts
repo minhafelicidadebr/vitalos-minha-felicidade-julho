@@ -28,16 +28,26 @@ const USERS_FILE = join(WORKDIR, "demo-users.json");
 const STATE_FILE = join(WORKDIR, "proof-state.json");
 const DB_CONTAINER = "supabase_db_vitalos-ivo-local";
 
-const ORG_ALFA = "d1000000-0000-4000-8000-000000000001";
-const ORG_BETA = "d2000000-0000-4000-8000-000000000001";
-const WAVE_ALFA = "d1000000-0000-4000-8000-0000000000a0";
-const WAVE_BETA = "d2000000-0000-4000-8000-0000000000b0";
-const COHORT = {
-  operacoes: "d1000000-0000-4000-8000-0000000000c1",
-  atendimento: "d1000000-0000-4000-8000-0000000000c2",
-  logistica: "d1000000-0000-4000-8000-0000000000c3",
-  producao: "d2000000-0000-4000-8000-0000000000c1",
+// IDs gerados pelo provisionamento (mecanismos do produto) — nunca fixos.
+const MANIFEST_FILE = join(WORKDIR, "demo-manifest.json");
+if (!existsSync(MANIFEST_FILE)) {
+  console.error("❌ Manifesto do provisionamento ausente. Rode: bun run demo:ivo:setup");
+  process.exit(1);
+}
+const manifest = JSON.parse(readFileSync(MANIFEST_FILE, "utf8")) as {
+  orgs: Record<"alfa" | "beta", { orgId: string; waveId: string; cohorts: Record<string, { cohortId: string }> }>;
 };
+const ORG_ALFA = manifest.orgs.alfa.orgId;
+const ORG_BETA = manifest.orgs.beta.orgId;
+const WAVE_ALFA = manifest.orgs.alfa.waveId;
+const WAVE_BETA = manifest.orgs.beta.waveId;
+const COHORT = {
+  operacoes: manifest.orgs.alfa.cohorts.operacoes!.cohortId,
+  atendimento: manifest.orgs.alfa.cohorts.atendimento!.cohortId,
+  logistica: manifest.orgs.alfa.cohorts.logistica!.cohortId,
+  producao: manifest.orgs.beta.cohorts.producao!.cohortId,
+};
+const CANONICAL_CYCLE = /^\d{4}-T[1-4]$/;
 
 // ── Ambiente local verificado ANTES de importar qualquer módulo de servidor ──
 if (!existsSync(ENV_FILE)) {
@@ -141,7 +151,7 @@ async function writePhase(): Promise<void> {
   const a = await loadIvoQ2ReadingForSession({ accessToken: alfa });
   const ready = a.ok && a.state === "ready" ? a.view : null;
   check("R5.1 admin Alfa lê a leitura Q2 da própria organização", !!ready && ready.organizationName === "Organização Fictícia Alfa");
-  const byKey = Object.fromEntries((ready?.sectors ?? []).map((s) => [s.key, s]));
+  const byKey = Object.fromEntries((ready?.sectors ?? []).map((s) => [s.key.toLowerCase(), s]));
   check("R5.2 Operações publicada com fatores (0–4) e contagem publicada", byKey.operacoes?.group === "available" && byKey.operacoes.factors?.length === 3 && byKey.operacoes.countLabel === "9");
   check("R5.3 Atendimento (n≥5, sem lote publicado) = publicação pendente, sem número", byKey.atendimento?.group === "pending_publication" && byKey.atendimento.factors === null && byKey.atendimento.countLabel === "protegida");
   check("R5.4 Logística e Financeiro (<5) = suprimidos com rótulo <5", byKey.logistica?.group === "suppressed" && byKey.financeiro?.group === "suppressed" && byKey.logistica.countLabel === "<5" && byKey.financeiro.countLabel === "<5");
@@ -192,7 +202,7 @@ async function writePhase(): Promise<void> {
   const admin = supabaseAdmin as any;
   const forged = await admin.rpc("create_action_plan", {
     p_org_id: ORG_BETA,
-    p_cycle_key: "2026-T2",
+    p_cycle_key: "2099-T1",
     p_season_name: "ataque",
     p_source_capsule_id: null,
     p_created_by: users.find((u) => u.key === "beta_admin") ? (await admin.auth.getUser(beta)).data.user.id : null,
@@ -205,7 +215,7 @@ async function writePhase(): Promise<void> {
   check("R6.4 admin Alfa cria a ação a partir de Operações publicada", created.ok && created.accepted === true);
   const first = await loop.loadFibtActionLoop({ accessToken: alfa });
   const action = first.ok ? first.plans[0]?.actions[0] : undefined;
-  check("R6.5 ação guarda origem FIB-T (versão e publicação derivadas do banco) e ciclo canônico", !!action && first.ok && first.plans[0]!.cycleKeyCanonical === "2026-T2" && action.source.instrumentVersion === "1.0.0" && action.source.cohortLabel === "Operações" && !!action.source.publishedAt && action.dimension.status === "mapping_pending");
+  check("R6.5 ação guarda origem FIB-T (versão e publicação derivadas do banco) e ciclo canônico", !!action && first.ok && first.plans[0]!.cycleKeyCanonical === ready?.cycleKey && CANONICAL_CYCLE.test(ready?.cycleKey ?? "") && action.source.instrumentVersion === "1.0.0" && action.source.cohortLabel === "Operações" && !!action.source.publishedAt && action.dimension.status === "mapping_pending");
   if (!action || !first.ok) throw new Error("sem ação criada");
 
   const acc = await loop.setFibtActionAccountability({ accessToken: alfa, itemId: action.id, ownerRoleLabel: "Coordenação de Operações", dueOn: "2026-09-30", executionMetric: { label: "Encontros realizados", baseline: 0, target: 4, unit: "encontros" } });
@@ -271,7 +281,7 @@ async function readPhase(): Promise<void> {
   check("P.2 evidência de execução e aprendizagem reaparecem separadas", !!action && action.evidence.execution.length === 1 && action.evidence.learning.length === 1);
   check("P.3 eficácia continua não avaliada; dimensão continua pendente", !!action && action.efficacy.status === "not_evaluated" && action.dimension.status === "mapping_pending");
   const plan = reloaded.ok ? reloaded.plans.find((p) => p.id === state.planId) : undefined;
-  check("P.4 plano ativo no ciclo canônico 2026-T2", plan?.status === "active" && plan.cycleKeyCanonical === "2026-T2");
+  check("P.4 plano ativo no ciclo canônico YYYY-Tn", plan?.status === "active" && CANONICAL_CYCLE.test(plan.cycleKeyCanonical ?? ""));
   const betaView = await loop.loadFibtActionLoop({ accessToken: beta });
   check("P.5 Beta continua sem ver nada da Alfa", betaView.ok && betaView.plans.length === 0);
 }
