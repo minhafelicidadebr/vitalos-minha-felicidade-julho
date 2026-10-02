@@ -4,6 +4,7 @@ import {
   type HmlBackendBoundaryResult,
 } from "@/lib/fibt-hml/hml-backend-boundary.server";
 import type { HmlAccessIdentityLike } from "@/lib/fibt-hml/hml-deployment-boundary.server";
+import { HML_SECTOR_SMOKE } from "@/lib/fibt-hml/hml-contract";
 import { requireOrgAdmin, type MembershipResult } from "@/lib/auth/authorize.server";
 import type { FibtManagerServiceDeps } from "./fibt-manager-control-center.server";
 
@@ -79,8 +80,18 @@ export async function authorizeFibtManagerRequest(
       };
     }
 
+    // A identidade do lote é conhecimento da FRONTEIRA HML, não do leitor de
+    // produto: é injetada aqui, onde o deployment já foi atestado.
     const { resolveCanonicalHmlManagerWave } = await import("./fibt-manager-control-center.server");
-    const wave = await resolveCanonicalHmlManagerWave(deps);
+    const wave = await resolveCanonicalHmlManagerWave(
+      {
+        organizationName: HML_SECTOR_SMOKE.organizationName,
+        waveLabel: HML_SECTOR_SMOKE.waveLabel,
+        instrument: HML_SECTOR_SMOKE.instrument,
+        instrumentVersion: HML_SECTOR_SMOKE.instrumentVersion,
+      },
+      deps,
+    );
     if (!wave || (input.waveId && input.waveId !== wave.id)) {
       return {
         ok: false,

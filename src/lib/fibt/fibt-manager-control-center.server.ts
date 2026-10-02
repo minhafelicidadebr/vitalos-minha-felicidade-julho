@@ -1,5 +1,4 @@
 import { FIBT_K_MIN } from "@/engine/fibt/fibt-engine";
-import { HML_SECTOR_SMOKE } from "@/lib/fibt-hml/hml-contract";
 import { listOpsEventsForOrg, type OpsEventRow } from "@/lib/telemetry/ops-events.server";
 import {
   classifySectorLink,
@@ -81,9 +80,21 @@ export interface FibtManagerPublishedSnapshotRow extends PublishedCohortSnapshot
   cohortId: string | null;
 }
 
+/**
+ * Identidade exata de uma campanha de homologação. Fornecida pela fronteira
+ * de deployment HML (`fibt-manager-access.server.ts`), nunca conhecida pelo
+ * leitor de produto: este módulo não sabe qual cliente ou lote existe.
+ */
+export interface FibtCampaignIdentity {
+  organizationName: string;
+  waveLabel: string;
+  instrument: string;
+  instrumentVersion: string;
+}
+
 export interface FibtManagerStore {
   findWave(orgId: string, waveId: string): Promise<FibtManagerWaveRow | null>;
-  findCanonicalHmlWave(): Promise<FibtManagerWaveRow | null>;
+  findCanonicalHmlWave(identity: FibtCampaignIdentity): Promise<FibtManagerWaveRow | null>;
   listCohorts(orgId: string, waveId: string): Promise<FibtManagerCohortRow[]>;
   listLinks(orgId: string, waveId: string): Promise<FibtManagerLinkRow[]>;
   /**
@@ -221,12 +232,12 @@ function createSupabaseStore(): FibtManagerStore {
       return mapWave(wave as Record<string, unknown>, String(organization?.name ?? "Organização"));
     },
 
-    async findCanonicalHmlWave() {
+    async findCanonicalHmlWave(identity) {
       const admin = await adminClient();
       const { data: organizations, error: orgError } = await admin
         .from("organizations")
         .select("id,name")
-        .eq("name", HML_SECTOR_SMOKE.organizationName)
+        .eq("name", identity.organizationName)
         .limit(2);
       if (orgError || organizations?.length !== 1) return null;
 
@@ -235,9 +246,9 @@ function createSupabaseStore(): FibtManagerStore {
         .from("waves")
         .select(WAVE_COLUMNS)
         .eq("org_id", organization.id)
-        .eq("label", HML_SECTOR_SMOKE.waveLabel)
-        .eq("instrument", HML_SECTOR_SMOKE.instrument)
-        .eq("instrument_version", HML_SECTOR_SMOKE.instrumentVersion)
+        .eq("label", identity.waveLabel)
+        .eq("instrument", identity.instrument)
+        .eq("instrument_version", identity.instrumentVersion)
         .limit(2);
       if (waveError || waves?.length !== 1) return null;
       return mapWave(waves[0] as Record<string, unknown>, organization.name);
@@ -338,9 +349,10 @@ function managerStore(deps: FibtManagerServiceDeps): FibtManagerStore {
 }
 
 export async function resolveCanonicalHmlManagerWave(
+  identity: FibtCampaignIdentity,
   deps: FibtManagerServiceDeps = {},
 ): Promise<FibtManagerWaveRow | null> {
-  return managerStore(deps).findCanonicalHmlWave();
+  return managerStore(deps).findCanonicalHmlWave(identity);
 }
 
 export async function managerLinkBelongsToExpectedCohort(

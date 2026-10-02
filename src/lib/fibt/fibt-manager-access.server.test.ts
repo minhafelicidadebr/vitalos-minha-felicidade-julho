@@ -21,6 +21,34 @@ const hmlStore = {
   findCanonicalHmlWave: async () => HML_WAVE,
 } as unknown as FibtManagerStore;
 
+describe("identidade do lote HML injetada pela fronteira", () => {
+  test("a camada de acesso informa ao leitor a identidade exata do smoke HML", async () => {
+    const { HML_SECTOR_SMOKE } = await import("@/lib/fibt-hml/hml-contract");
+    let received: unknown = null;
+    const store = {
+      findCanonicalHmlWave: async (identity: unknown) => {
+        received = identity;
+        return HML_WAVE;
+      },
+    } as unknown as FibtManagerStore;
+    await authorizeFibtManagerRequest(
+      {},
+      { hmlAccessIdentity: { email: "nao-retornado@example.test", subject: "s" } },
+      {},
+      {
+        store,
+        boundary: () => ({ hmlDeclared: true, attested: true, batchId: "b", serverProjectRefMasked: "m" }),
+      },
+    );
+    expect(received).toEqual({
+      organizationName: HML_SECTOR_SMOKE.organizationName,
+      waveLabel: HML_SECTOR_SMOKE.waveLabel,
+      instrument: HML_SECTOR_SMOKE.instrument,
+      instrumentVersion: HML_SECTOR_SMOKE.instrumentVersion,
+    });
+  });
+});
+
 describe("FIB-T manager request authorization", () => {
   test("requires a verified Access identity in an attested HML deployment", async () => {
     const denied = await authorizeFibtManagerRequest(
