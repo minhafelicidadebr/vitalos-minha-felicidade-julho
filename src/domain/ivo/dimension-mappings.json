@@ -1,0 +1,5 @@
+{
+  "registry_version": "1.0.0",
+  "description": "Mapeamentos versionados lente -> dimensao IVO. Somente status APROVADO, com responsavel, evidencia cientifica e data, alimenta celulas da matriz. Nenhum mapeamento foi aprovado: a FIB-T aparece na matriz pelo estado da lente, sem evidencia por dimensao.",
+  "mappings": []
+}
