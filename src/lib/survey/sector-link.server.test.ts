@@ -6,6 +6,10 @@ import { HML_SECTOR_SMOKE } from "@/lib/fibt-hml/hml-contract";
 
 // Token demo real de src/mocks/sector-link-mock.ts (link ativo, dentro da janela).
 const VALID_DEMO_TOKEN = "vL9k3mPqR7wXnAy2sZcBdEfGhJtUiOp";
+// Relógio fixo dentro da janela do link demo (criado 2026-06-23, expira em
+// 99 dias = 2026-09-30). Sem isto o teste quebra quando o relógio real passa
+// da janela — o comportamento sob teste é o caminho demo, não a data de hoje.
+const DEMO_WINDOW_NOW = "2026-08-01T00:00:00.000Z";
 // Token "real" do fake cloud — o banco só conhece o hash dele.
 const CLOUD_TOKEN = "a".repeat(48);
 const CLOUD_TOKEN_HASH = createHash("sha256").update(CLOUD_TOKEN).digest("hex");
@@ -146,11 +150,14 @@ describe("captureSectorLinkResponse — demo inalterado", () => {
     expect(unknown.accepted).toBe(false);
     if (!unknown.accepted) expect(unknown.reason).toBe("unknown_wave");
 
-    const ok = await captureSectorLinkResponse({
-      token: VALID_DEMO_TOKEN,
-      answers: validAnswers(),
-      consentVersion: "2026.1",
-    });
+    const ok = await captureSectorLinkResponse(
+      {
+        token: VALID_DEMO_TOKEN,
+        answers: validAnswers(),
+        consentVersion: "2026.1",
+      },
+      DEMO_WINDOW_NOW,
+    );
     expect(ok.accepted).toBe(true);
     if (ok.accepted) expect(ok.receipt.persistence).toBe("ephemeral_demo");
     expect(rpcCalls).toHaveLength(0); // demo nunca toca o banco
@@ -296,7 +303,7 @@ describe("resolveToken — cloud", () => {
   });
 
   test("demo continua resolvendo o token mock", async () => {
-    const result = await resolveToken(VALID_DEMO_TOKEN);
+    const result = await resolveToken(VALID_DEMO_TOKEN, DEMO_WINDOW_NOW);
     expect(result.valid).toBe(true);
     if (result.valid) expect(result.sectorLabel).toBe("Operações");
   });
