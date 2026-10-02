@@ -3,20 +3,37 @@
 ## Componente da matriz (`src/components/ivo/IvoLensMatrix.tsx`)
 
 - Tabela semântica: `<caption>`, `<th scope="col">` por lente, `<th scope="row">` por dimensão.
-- Cada célula mostra rótulo textual de estado (não só cor) e versão quando houver.
-- Nenhum número de pontuação é renderizado.
+- Cada célula responde, em texto, três perguntas separadas: **Lente**
+  (disponível/planejada), **Resultado da lente** (disponível em N de M setores,
+  protegido, em coleta, sem leitura) e **Esta dimensão** (mapeamento pendente,
+  proposto ou aprovado). Contagens são de setores, nunca de participantes.
+- Nenhum número de pontuação é renderizado; ausência, proteção e pendência nunca aparecem como zero.
 - Avisos (`warnings`) aparecem em região `role="status"`.
-- Estado vazio: sem organização selecionada → texto explicativo, matriz de catálogo.
+- Região rolável da matriz é focável por teclado (`tabIndex=0`, rótulo próprio).
+- Estado vazio: sem organização → texto explicativo, matriz de catálogo.
 
-## Rota de catálogo (`src/routes/ivo-integral.tsx`) — R5 parcial
+## Rotas
 
-- Monta `buildIvoMatrix` com `organizationId: null`, `readings: []`, dimensões do
-  pack ativo e o registro de mapeamentos (vazio). Sem mock, sem dado de organização.
-- Mostra o estado de cada lente (FIB-T funcional; demais planejadas) e nenhuma pontuação.
-- Pendente: leitura Q2 real via `toFibtLensReading` atrás de sessão autorizada,
-  reutilizando a fronteira de acesso existente (`fibt-manager-access.server.ts`).
+| Rota | Conteúdo |
+|---|---|
+| `/ivo-integral` | Resumo da leitura Q2 da organização (ou recusa explicada) + matriz. Sem sessão autorizada, a matriz é o catálogo. |
+| `/ivo-integral/q2` | Identidade metodológica (versões, cálculo, `k_min`, escalas), setores com estado nativo, fatores e escore bruto **só** de setores publicados, link para o centro de controle FIB-T e para definir prioridade por fator. |
+| `/ivo-integral/acoes` | Ciclo de ação (spec `action-learning-loop.md`). |
 
-## Visão executiva (R5)
+Todas atrás do `AuthGate` global; a leitura organizacional depende só da
+autorização no servidor. Carregamento com `role="status"`; recusa de acesso
+em tom neutro (`role="note"`, sem "tentar novamente"); falha técnica com
+`role="alert"` e repetir.
+
+## Verificação visual executada (local)
+
+`demo:ivo:visual` (Edge headless via CDP): login real por link mágico,
+1366 px e 390 px sem overflow horizontal de página, ordem de foco com
+indicador visível, registro de evidência por teclado persistido após recarga,
+admin de outra organização sem acesso. Não substitui teste com tecnologia
+assistiva nem revisão de acessibilidade especializada.
+
+## Visão executiva
 
 Ciclo anual, estado das 4 lentes, prioridades, ações e evidências — reutiliza
 `season-engine` e o ledger quando habilitados. Ainda não implementada.
