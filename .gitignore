@@ -55,3 +55,6 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+# Cache de versão do Supabase CLI (bunx supabase …); nunca contém dado de projeto.
+supabase/.temp/
