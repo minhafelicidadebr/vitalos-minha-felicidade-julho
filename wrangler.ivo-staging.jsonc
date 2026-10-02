@@ -1,0 +1,39 @@
+// Worker de STAGING da experiência IVO (R5/R6) — perfil VITALOS_IVO_PROFILE=staging.
+//
+// É um Worker NOVO e separado. O Worker histórico `vitalos-fibt-hml-isg`
+// (wrangler.hml.jsonc) não é alterado, nem sua allowlist HML: este Worker
+// NÃO declara FIBT_HML_DEPLOYMENT_ENABLED nem VITE_FIBT_HML_ENABLED — o perfil
+// IVO recusa tudo se qualquer declaração HML estiver presente.
+//
+// Campos de empacotamento iguais aos do Worker histórico (mesmo artefato nitro:
+// nodejs_compat, no_bundle + rules ESModule, run_worker_first). Ver o
+// racional de cada um em wrangler.hml.jsonc.
+//
+// Este arquivo NUNCA contém URL, chave, project ref, account_id ou zone_id.
+// As variáveis de runtime (nomes em docs/vitalos/staging-rollout.md §5) e o
+// único secret (SUPABASE_SERVICE_ROLE_KEY) são configurados no Worker pelo
+// operador. Pré-condição de deploy: aplicação Cloudflare Access cobrindo a
+// URL workers.dev deste Worker ANTES do primeiro upload.
+//
+// Uso pretendido (NÃO executado por esta preparação):
+//   bunx wrangler deploy --config wrangler.ivo-staging.jsonc
+{
+  "name": "vitalos-ivo-staging",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "main": ".output/server/index.mjs",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".output/public",
+    "run_worker_first": true
+  },
+  "no_bundle": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.mjs", "**/*.js"]
+    }
+  ]
+}

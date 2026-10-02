@@ -11,6 +11,8 @@
     "build:dev": "bun run preflight --runtime=local --allow-db=local,staging && vite build --mode development",
     "preview": "bun run preflight --runtime=preview --db=staging && vite preview",
     "build:hml:staging": "bun run scripts/environment-preflight.ts --runtime=preview --db=staging && vite build",
+    "build:ivo:staging": "bun run scripts/environment-preflight.ts --runtime=preview --db=staging && vite build",
+    "ivo:staging:provision": "bun run scripts/ivo-provision-fictitious-orgs.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "bun test src",
