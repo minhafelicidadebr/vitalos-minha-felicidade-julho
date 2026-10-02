@@ -4,6 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { WaveStatus } from "./database.types";
+import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
 
 // ─── Tipos de domínio ──────────────────────────────────────────────────────────
 
@@ -109,6 +110,10 @@ export async function createWaveWithAdmin(
       status: "collecting",
       invited_count: input.inviteCount,
       closes_at: input.closesAt ?? null,
+      // FIB-T: a versao aplicada na onda e a do manifesto carregado. Sem ela o
+      // leitor protegido recusa a onda (methodology_error) e nenhuma leitura
+      // aparece. Outros instrumentos seguem como estavam.
+      ...(input.instrument === "FIB_T" ? { instrument_version: getFibtManifest().instrument_version } : {}),
     })
     .select("id")
     .single();

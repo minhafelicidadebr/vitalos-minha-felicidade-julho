@@ -63,6 +63,9 @@ describe("createWaveWithAdmin sector distribution", () => {
         status: "collecting",
         invited_count: 30,
         closes_at: null,
+        // A onda FIB-T nasce com a versão do manifesto — sem ela o leitor
+        // protegido devolve methodology_error.
+        instrument_version: "1.0.0",
       },
     });
   });
