@@ -274,9 +274,11 @@ function EvidenceForm({
   const [content, setContent] = useState("");
   const [occurredOn, setOccurredOn] = useState(today);
   const [kind, setKind] = useState<"texto" | "checklist" | "metrica">("texto");
+  // Empilhado de propósito: o formulário vive em meia coluna no desktop e em
+  // coluna única no celular; campos lado a lado espremiam o texto principal.
   return (
     <form
-      className="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto] md:items-end"
+      className="mt-2 space-y-2"
       onSubmit={(e) => {
         e.preventDefault();
         if (content.trim().length < 3) return;
@@ -291,19 +293,23 @@ function EvidenceForm({
       >
         <input id={`${p}-content`} aria-describedby={`${p}-content-hint`} className={inputClass} value={content} minLength={3} maxLength={2000} required onChange={(e) => setContent(e.target.value)} />
       </Field>
-      {scope === "execucao" ? (
-        <Field id={`${p}-kind`} label="Tipo">
-          <select id={`${p}-kind`} className={inputClass} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
-            <option value="texto">Relato</option>
-            <option value="checklist">Checklist</option>
-            <option value="metrica">Indicador de execução</option>
-          </select>
-        </Field>
-      ) : null}
-      <div className="flex items-end gap-2">
-        <Field id={`${p}-date`} label="Data">
-          <input id={`${p}-date`} type="date" max={today} className={inputClass} value={occurredOn} required onChange={(e) => setOccurredOn(e.target.value)} />
-        </Field>
+      <div className="flex flex-wrap items-end gap-2">
+        {scope === "execucao" ? (
+          <div className="min-w-[10rem] flex-1">
+            <Field id={`${p}-kind`} label="Tipo">
+              <select id={`${p}-kind`} className={inputClass} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
+                <option value="texto">Relato</option>
+                <option value="checklist">Checklist</option>
+                <option value="metrica">Indicador de execução</option>
+              </select>
+            </Field>
+          </div>
+        ) : null}
+        <div className="min-w-[10rem] flex-1">
+          <Field id={`${p}-date`} label="Data">
+            <input id={`${p}-date`} type="date" max={today} className={inputClass} value={occurredOn} required onChange={(e) => setOccurredOn(e.target.value)} />
+          </Field>
+        </div>
         <button type="submit" className={buttonSecondary} disabled={busy}>
           Registrar<span className="sr-only"> {scope === "execucao" ? "evidência de execução" : "aprendizagem"} de {action.title}</span>
         </button>

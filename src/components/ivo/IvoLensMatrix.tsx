@@ -81,7 +81,7 @@ function Cell({ cell }: { cell: IvoMatrixCell }) {
         {cell.instrumentVersion ? (
           <p className="mt-2 text-xs text-muted-foreground">Versão {cell.instrumentVersion}</p>
         ) : null}
-        {measured ? <p className="text-xs text-muted-foreground">Última leitura: {measured}</p> : null}
+        {measured ? <p className="text-xs text-muted-foreground">Leitura consultada em {measured}</p> : null}
         {cell.detailRoute && cell.availability === "functional" ? (
           <a
             href={cell.detailRoute}

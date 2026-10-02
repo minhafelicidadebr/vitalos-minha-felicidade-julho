@@ -52,7 +52,10 @@ function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string })
           {SECTOR_GROUP_LABEL[sector.group]}
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">Participação: {sector.countLabel}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Participação:{" "}
+        {sector.group === "collecting" || sector.group === "no_data" ? "nenhuma registrada" : sector.countLabel}
+      </p>
 
       {sector.group === "available" && sector.factors ? (
         <>

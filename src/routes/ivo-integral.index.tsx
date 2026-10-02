@@ -14,11 +14,12 @@ import type { IvoQ2Outcome } from "@/lib/ivo/ivo-views";
 // Visão IVO (ADR-004, spec ivo-dashboard.md).
 //
 // DECISÃO DE ACESSO: o CATÁLOGO (4 dimensões × 4 lentes, estado e versão de
-// cada lente) não contém dado de organização e continua visível a quem passa
-// pelo AppShell (sessão real ou portão de demonstração). Ele NÃO é tratado
-// como página pública separada. A LEITURA ORGANIZACIONAL é outra coisa: só
-// aparece quando a server function autoriza a sessão no servidor — o
-// AppShell e o portão de demonstração não autorizam nada.
+// cada lente) não contém dado de organização, mas NÃO é página pública: a
+// rota fica atrás do AuthGate global (sessão Supabase ou portão de
+// demonstração) como o restante do app — visitante sem nenhum dos dois é
+// levado a /entrar. A LEITURA ORGANIZACIONAL é outra coisa: só aparece quando
+// a server function autoriza a sessão no servidor. AuthGate, AppShell e o
+// portão de demonstração são navegação; nenhum deles autoriza leitura.
 
 export const Route = createFileRoute("/ivo-integral/")({
   head: () => ({ meta: [{ title: "IVO integral · 4 dimensões × 4 lentes — VitalOS™" }] }),
