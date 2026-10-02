@@ -23,6 +23,7 @@ import {
   type HmlBackendBoundaryResult,
 } from "@/lib/fibt-hml/hml-backend-boundary.server";
 import { readIdentityBoundaryStatus } from "@/lib/identity/identity-boundary.server";
+import { resolveIvoRuntimeProfile, type IvoRuntimeProfile } from "./ivo-runtime-profile.server";
 import type { IdentityBoundaryStatus } from "@/engine/identity/authorization-engine";
 import { requireOrgAdmin, type MembershipResult } from "@/lib/auth/authorize.server";
 import {
@@ -40,6 +41,7 @@ import type { IvoQ2Failure, IvoQ2Outcome, IvoQ2Sector, IvoQ2SectorGroup, IvoQ2Vi
 export type { IvoQ2Failure, IvoQ2Outcome, IvoQ2Sector, IvoQ2SectorGroup, IvoQ2View } from "./ivo-views";
 
 export interface IvoSessionDeps {
+  profile?: () => IvoRuntimeProfile;
   env?: HmlBackendBoundaryEnv;
   boundary?: (env: HmlBackendBoundaryEnv) => HmlBackendBoundaryResult;
   identity?: () => IdentityBoundaryStatus;
@@ -66,6 +68,17 @@ export async function authorizeIvoSession(
   accessToken: string | undefined,
   deps: IvoSessionDeps = {},
 ): Promise<IvoSessionAuthorization> {
+  // Perfil IVO primeiro: configuração ausente/inconsistente recusa tudo antes
+  // de qualquer I/O (nem a sessão é consultada).
+  const profile = (deps.profile ?? resolveIvoRuntimeProfile)();
+  if (profile.kind === "invalid") {
+    return {
+      ok: false,
+      category: "unavailable",
+      error: "A experiência IVO não está habilitada corretamente neste ambiente. Nada foi lido.",
+    };
+  }
+
   const boundary = (deps.boundary ?? assertHmlBackendBoundary)(
     deps.env ?? (process.env as HmlBackendBoundaryEnv),
   );
@@ -112,6 +125,15 @@ export async function authorizeIvoSession(
         auth.reason === "no_profile"
           ? "Esta conta não está vinculada a uma organização."
           : "Seu papel não tem permissão para ver os resultados FIB-T da organização.",
+    };
+  }
+  // Perfil staging: a organização DA SESSÃO precisa estar na allowlist do
+  // ambiente. A allowlist só restringe; nunca escolhe a organização.
+  if (profile.kind === "staging" && !profile.authorizedOrgIds.has(auth.membership.orgId.toLowerCase())) {
+    return {
+      ok: false,
+      category: "forbidden",
+      error: "Esta organização não está habilitada para a experiência IVO neste ambiente.",
     };
   }
   return { ok: true, userId: auth.membership.userId, orgId: auth.membership.orgId, role: auth.membership.role };

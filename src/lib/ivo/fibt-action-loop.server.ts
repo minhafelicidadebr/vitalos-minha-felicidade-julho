@@ -33,6 +33,7 @@ import {
 } from "@/lib/api/action-plan.server";
 import { resolveServerCapability, type ServerCapabilityDecision } from "@/lib/capabilities/local-fixture-capabilities.server";
 import { CAPABILITY_DISABLED_REASON } from "@/lib/capabilities/registry";
+import { resolveIvoRuntimeProfile } from "./ivo-runtime-profile.server";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { canTransition } from "@/engine/action-plan/action-log-engine";
 import { normalizeCycleKey, sameCycle } from "@/domain/ivo/cycle-key";
@@ -183,8 +184,20 @@ function rejected(reason: string): LedgerWriteOutcome {
 
 // ─── Autorização do ledger ──────────────────────────────────────────────────
 
+/**
+ * ACTION_PLAN para o ciclo IVO: fixture local controlada OU perfil IVO de
+ * staging válido. O registro global continua desligado — os server functions
+ * legados de /plano-acao (isCapabilityEnabled) seguem fechados.
+ */
+function defaultLedgerCapability(deps: FibtActionLoopDeps): ServerCapabilityDecision {
+  const local = resolveServerCapability("ACTION_PLAN");
+  if (local.enabled) return local;
+  const profile = (deps.profile ?? resolveIvoRuntimeProfile)();
+  return profile.kind === "staging" ? { enabled: true, source: "ivo_staging_profile" } : local;
+}
+
 async function authorizeLedger(accessToken: string | undefined, deps: FibtActionLoopDeps) {
-  const capability = (deps.capability ?? (() => resolveServerCapability("ACTION_PLAN")))();
+  const capability = (deps.capability ?? (() => defaultLedgerCapability(deps)))();
   if (!capability.enabled) {
     return { ok: false as const, category: "unavailable" as const, error: CAPABILITY_DISABLED_REASON };
   }

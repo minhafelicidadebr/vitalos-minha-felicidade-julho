@@ -35,15 +35,15 @@ export interface LocalFixtureEnv {
 }
 
 export type ServerCapabilityDecision =
-  | { enabled: true; source: "registry" | "local_fixture" }
+  | { enabled: true; source: "registry" | "local_fixture" | "ivo_staging_profile" }
   | {
     enabled: false;
     reason:
-      | "registry_disabled"
-      | "not_fixture_capability"
-      | "not_local_runtime"
-      | "non_loopback_database"
-      | "hml_declared";
+    | "registry_disabled"
+    | "not_fixture_capability"
+    | "not_local_runtime"
+    | "non_loopback_database"
+    | "hml_declared";
   };
 
 export function resolveServerCapability(
