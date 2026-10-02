@@ -8,6 +8,14 @@
 - Avisos (`warnings`) aparecem em região `role="status"`.
 - Estado vazio: sem organização selecionada → texto explicativo, matriz de catálogo.
 
+## Rota de catálogo (`src/routes/ivo-integral.tsx`) — R5 parcial
+
+- Monta `buildIvoMatrix` com `organizationId: null`, `readings: []`, dimensões do
+  pack ativo e o registro de mapeamentos (vazio). Sem mock, sem dado de organização.
+- Mostra o estado de cada lente (FIB-T funcional; demais planejadas) e nenhuma pontuação.
+- Pendente: leitura Q2 real via `toFibtLensReading` atrás de sessão autorizada,
+  reutilizando a fronteira de acesso existente (`fibt-manager-access.server.ts`).
+
 ## Visão executiva (R5)
 
 Ciclo anual, estado das 4 lentes, prioridades, ações e evidências — reutiliza

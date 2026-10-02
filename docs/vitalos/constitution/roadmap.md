@@ -9,7 +9,7 @@ Preserva funcionalidades verdes; nenhuma reconstrução ampla.
 | R2 | Contrato de lente, matriz 4×4 (engine puro), catálogo de lentes, registro de mapeamentos | Concluído |
 | R3 | Adaptador FIB-T → leitura normalizada; leitor FIB-T sem identidade de cliente | Concluído |
 | R4 | Componente da matriz 4×4 (estados honestos, acessível) | Concluído |
-| R5 | Rota `/ivo` integral: shell executivo com matriz + Q2 real autenticado | Próximo |
+| R5 | Rota `/ivo-integral`: shell executivo com matriz + Q2 real autenticado | Parcial — rota de catálogo entregue (sem organização, sem mock, sem pontuação); leitura Q2 autenticada via adaptador pendente |
 | R6 | Proveniência lente→ação: `action_items` referenciando leitura publicada (migration local + testes SQL) | Planejado — escrita remota é gate |
 | R7 | Linha do tempo de aprendizagem sobre `action_log`/`victory_records` | Planejado |
 | R8 | Visão de governança metodológica (versões, mapeamentos, status) | Planejado |
