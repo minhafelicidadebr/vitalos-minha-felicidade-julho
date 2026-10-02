@@ -44,7 +44,6 @@ import { Route as GovernoRouteImport } from './routes/governo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as IvoRouteImport } from './routes/ivo'
-import { Route as IvoIntegralRouteImport } from './routes/ivo-integral'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LiderRouteImport } from './routes/lider'
@@ -92,6 +91,9 @@ import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
+import { Route as IvoIntegralIndexRouteImport } from './routes/ivo-integral.index'
+import { Route as IvoIntegralAcoesRouteImport } from './routes/ivo-integral.acoes'
+import { Route as IvoIntegralQ2RouteImport } from './routes/ivo-integral.q2'
 import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
@@ -268,11 +270,6 @@ const ImpactoRoute = ImpactoRouteImport.update({
 const IvoRoute = IvoRouteImport.update({
   id: '/ivo',
   path: '/ivo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IvoIntegralRoute = IvoIntegralRouteImport.update({
-  id: '/ivo-integral',
-  path: '/ivo-integral',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LabRoute = LabRouteImport.update({
@@ -510,6 +507,21 @@ const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   path: '/driver/$driverId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IvoIntegralIndexRoute = IvoIntegralIndexRouteImport.update({
+  id: '/ivo-integral/',
+  path: '/ivo-integral/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralAcoesRoute = IvoIntegralAcoesRouteImport.update({
+  id: '/ivo-integral/acoes',
+  path: '/ivo-integral/acoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralQ2Route = IvoIntegralQ2RouteImport.update({
+  id: '/ivo-integral/q2',
+  path: '/ivo-integral/q2',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFibtHmlAttestationRoute = ApiFibtHmlAttestationRouteImport.update({
   id: '/api/fibt-hml/attestation',
   path: '/api/fibt-hml/attestation',
@@ -557,7 +569,6 @@ export interface FileRoutesByFullPath {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
-  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -605,6 +616,9 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -644,7 +658,6 @@ export interface FileRoutesByTo {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
-  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -692,6 +705,9 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -732,7 +748,6 @@ export interface FileRoutesById {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
-  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -780,6 +795,9 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -821,7 +839,6 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
-    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -869,6 +886,9 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/q2'
+    | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -908,7 +928,6 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
-    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -956,6 +975,9 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/q2'
+    | '/ivo-integral'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   id:
@@ -995,7 +1017,6 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
-    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -1043,6 +1064,9 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/q2'
+    | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   fileRoutesById: FileRoutesById
@@ -1083,7 +1107,6 @@ export interface RootRouteChildren {
   HoldingRoute: typeof HoldingRoute
   ImpactoRoute: typeof ImpactoRoute
   IvoRoute: typeof IvoRoute
-  IvoIntegralRoute: typeof IvoIntegralRoute
   LabRoute: typeof LabRoute
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
@@ -1131,6 +1154,9 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
+  IvoIntegralAcoesRoute: typeof IvoIntegralAcoesRoute
+  IvoIntegralQ2Route: typeof IvoIntegralQ2Route
+  IvoIntegralIndexRoute: typeof IvoIntegralIndexRoute
   ApiFibtHmlAttestationRoute: typeof ApiFibtHmlAttestationRoute
   RespondSTokenRoute: typeof RespondSTokenRoute
 }
@@ -1380,13 +1406,6 @@ declare module '@tanstack/react-router' {
       path: '/ivo'
       fullPath: '/ivo'
       preLoaderRoute: typeof IvoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ivo-integral': {
-      id: '/ivo-integral'
-      path: '/ivo-integral'
-      fullPath: '/ivo-integral'
-      preLoaderRoute: typeof IvoIntegralRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lab': {
@@ -1718,6 +1737,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriverDriverIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ivo-integral/': {
+      id: '/ivo-integral/'
+      path: '/ivo-integral'
+      fullPath: '/ivo-integral/'
+      preLoaderRoute: typeof IvoIntegralIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/acoes': {
+      id: '/ivo-integral/acoes'
+      path: '/ivo-integral/acoes'
+      fullPath: '/ivo-integral/acoes'
+      preLoaderRoute: typeof IvoIntegralAcoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/q2': {
+      id: '/ivo-integral/q2'
+      path: '/ivo-integral/q2'
+      fullPath: '/ivo-integral/q2'
+      preLoaderRoute: typeof IvoIntegralQ2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fibt-hml/attestation': {
       id: '/api/fibt-hml/attestation'
       path: '/api/fibt-hml/attestation'
@@ -1771,7 +1811,6 @@ const rootRouteChildren: RootRouteChildren = {
   HoldingRoute: HoldingRoute,
   ImpactoRoute: ImpactoRoute,
   IvoRoute: IvoRoute,
-  IvoIntegralRoute: IvoIntegralRoute,
   LabRoute: LabRoute,
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
@@ -1819,6 +1858,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
+  IvoIntegralAcoesRoute: IvoIntegralAcoesRoute,
+  IvoIntegralQ2Route: IvoIntegralQ2Route,
+  IvoIntegralIndexRoute: IvoIntegralIndexRoute,
   ApiFibtHmlAttestationRoute: ApiFibtHmlAttestationRoute,
   RespondSTokenRoute: RespondSTokenRoute,
 }

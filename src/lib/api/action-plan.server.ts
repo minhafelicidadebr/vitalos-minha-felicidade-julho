@@ -27,7 +27,7 @@ type RpcRow<Extra extends Record<string, unknown> = Record<string, never>> = {
   reason: string | null;
 } & Partial<Extra>;
 
-async function callLedgerRpc<Extra extends Record<string, unknown> = Record<string, never>>(
+export async function callLedgerRpc<Extra extends Record<string, unknown> = Record<string, never>>(
   fn: string,
   params: Record<string, unknown>,
 ): Promise<RpcRow<Extra>> {
@@ -185,7 +185,8 @@ export async function recordActionEventAsAdmin(
 
 export interface RecordEvidenceInput {
   itemId: string;
-  evidenceKind: "texto" | "foto" | "checklist" | "metrica";
+  /** `aprendizagem` exige a migration 20261002120000 (escopo de evidência IVO R6). */
+  evidenceKind: "texto" | "foto" | "checklist" | "metrica" | "aprendizagem";
   contentRef: string;
   sourceKind: "direct" | "practice_record_ref";
   consentRef: string | null;
@@ -239,10 +240,10 @@ export async function loadLatestActionPlanForOrg(
   const itemIds = (items ?? []).map((i: any) => i.id as string);
   const { data: log } = itemIds.length
     ? await admin
-        .from("action_log")
-        .select("id, item_id, event_kind, actor_role_label, to_status, maintained, note, occurred_at")
-        .in("item_id", itemIds)
-        .order("occurred_at", { ascending: true })
+      .from("action_log")
+      .select("id, item_id, event_kind, actor_role_label, to_status, maintained, note, occurred_at")
+      .in("item_id", itemIds)
+      .order("occurred_at", { ascending: true })
     : { data: [] };
 
   return {
@@ -279,11 +280,11 @@ export async function loadLatestActionPlanForOrg(
       metric:
         item.metric_label != null && item.metric_baseline != null && item.metric_target != null
           ? {
-              label: item.metric_label,
-              baseline: Number(item.metric_baseline),
-              target: Number(item.metric_target),
-              unit: item.metric_unit ?? "",
-            }
+            label: item.metric_label,
+            baseline: Number(item.metric_baseline),
+            target: Number(item.metric_target),
+            unit: item.metric_unit ?? "",
+          }
           : null,
       cmo:
         item.cmo_context && item.cmo_mechanism && item.cmo_outcome
