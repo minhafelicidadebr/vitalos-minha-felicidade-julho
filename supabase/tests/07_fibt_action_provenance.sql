@@ -435,6 +435,156 @@ END
 $bloco3$;
 
 -- ═══════════════════════════════════════════════════════════════════════════
+-- BLOCO 4 · CHECK de completude não pode avaliar para NULL (achado R6-C1)
+-- ═══════════════════════════════════════════════════════════════════════════
+--
+-- PostgreSQL ACEITA linha cujo CHECK avalia para NULL. Com `source_lens_id`
+-- ou `source_factor_id` nulos e as demais referências preenchidas, a
+-- disjunção `(tudo nulo) OR (lente = 'fibt' AND fator ~ ...)` vira
+-- `FALSE OR NULL = NULL` e a meia-proveniência passa. E com lente nula a
+-- regra de lift (`lente IS NULL OR lift = 0`) é TRUE para qualquer lift.
+-- Este bloco tenta exatamente isso, por INSERT e por UPDATE, como
+-- service_role (a proteção tem de ser do banco, não da aplicação), e exige
+-- a constraint nomeada na recusa e nenhuma alteração parcial.
+CREATE OR REPLACE FUNCTION _proof.violation(p_sql TEXT) RETURNS TEXT
+LANGUAGE plpgsql SECURITY INVOKER AS $$
+DECLARE
+  v_rows INTEGER;
+  v_constraint TEXT;
+BEGIN
+  EXECUTE p_sql;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  RETURN 'executed:' || v_rows;
+EXCEPTION
+  WHEN check_violation THEN
+    GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME;
+    RETURN 'violated:' || v_constraint;
+  WHEN OTHERS THEN
+    RETURN 'raised:' || SQLSTATE;
+END $$;
+GRANT EXECUTE ON FUNCTION _proof.violation(TEXT) TO service_role;
+
+DO $bloco4$
+DECLARE
+  c_org_a   CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a1';
+  c_wave_a  CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a2';
+  c_a1      CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a3';
+  c_admin_a CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a9';
+  c_plano   CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a6';
+  c_valido  CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a7';
+  c_legado  CONSTANT UUID := 'a7000000-0000-4000-8000-0000000000a8';
+  v_cols    TEXT := 'plan_id, org_id, rank, lever_id, title, effort, start_week, end_week, milestone_week, weeks_budget';
+  v_src     TEXT := 'source_lens_id, source_wave_id, source_cohort_id, source_factor_id, source_instrument_version, source_published_at';
+  v_base    TEXT;
+  v_out     TEXT;
+  v_antes   TEXT;
+  v_depois  TEXT;
+  v_falhas  TEXT[] := '{}';
+  c_completo CONSTANT TEXT[] := ARRAY['violated:action_items_source_complete_ck'];
+  c_lift_ou_completo CONSTANT TEXT[] := ARRAY['violated:action_items_source_complete_ck', 'violated:action_items_source_no_ivo_lift_ck'];
+BEGIN
+  INSERT INTO public.action_plans (id, org_id, cycle_key, season_name, created_by)
+  VALUES (c_plano, c_org_a, 'r6-check-null', 'Prova R6 CHECK NULL', c_admin_a)
+  ON CONFLICT (id) DO NOTHING;
+
+  PERFORM set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  EXECUTE 'SET LOCAL ROLE service_role';
+
+  v_base := format('%L, %L, 1, %L, %L, %L, 1, 13, 7, 13', c_plano, c_org_a, 'lever-check', 'Check', 'baixo');
+
+  -- 4.1 INSERT com só source_lens_id nulo.
+  v_out := _proof.violation(format('INSERT INTO public.action_items (%s, %s) VALUES (%s, NULL, %L, %L, %L, %L, %L)',
+    v_cols, v_src, v_base, c_wave_a, c_a1, 'bem_estar', '1.0.0', '2026-06-20T12:00:00Z'));
+  IF NOT v_out = ANY (c_completo) THEN
+    v_falhas := v_falhas || format('INSERT com lente nula e demais referências aceito (%s)', v_out);
+  END IF;
+
+  -- 4.2 INSERT com só source_factor_id nulo.
+  v_out := _proof.violation(format('INSERT INTO public.action_items (%s, %s) VALUES (%s, %L, %L, %L, NULL, %L, %L)',
+    v_cols, v_src, v_base, 'fibt', c_wave_a, c_a1, '1.0.0', '2026-06-20T12:00:00Z'));
+  IF NOT v_out = ANY (c_completo) THEN
+    v_falhas := v_falhas || format('INSERT com fator nulo e demais referências aceito (%s)', v_out);
+  END IF;
+
+  -- 4.3 Lente nula, demais referências presentes, lift positivo.
+  v_out := _proof.violation(format('INSERT INTO public.action_items (%s, expected_ivo_lift, %s) VALUES (%s, 5, NULL, %L, %L, %L, %L, %L)',
+    v_cols, v_src, v_base, c_wave_a, c_a1, 'bem_estar', '1.0.0', '2026-06-20T12:00:00Z'));
+  IF NOT v_out = ANY (c_lift_ou_completo) THEN
+    v_falhas := v_falhas || format('lente nula com referências e lift 5 aceita (%s)', v_out);
+  END IF;
+
+  -- 4.4 Controle: proveniência FIB-T completa e válida.
+  v_out := _proof.violation(format('INSERT INTO public.action_items (id, %s, %s) VALUES (%L, %s, %L, %L, %L, %L, %L, %L)',
+    v_cols, v_src, c_valido, v_base, 'fibt', c_wave_a, c_a1, 'bem_estar', '1.0.0', '2026-06-20T12:00:00Z'));
+  IF v_out <> 'executed:1' THEN
+    v_falhas := v_falhas || format('proveniência FIB-T completa recusada (%s)', v_out);
+  END IF;
+
+  -- 4.5 Controle: ação legada, todas as referências nulas, lift livre.
+  v_out := _proof.violation(format('INSERT INTO public.action_items (id, %s, expected_ivo_lift) VALUES (%L, %s, 2.5)',
+    v_cols, c_legado, v_base));
+  IF v_out <> 'executed:1' THEN
+    v_falhas := v_falhas || format('ação legada sem origem recusada (%s)', v_out);
+  END IF;
+
+  SELECT row_to_json(i)::TEXT INTO v_antes FROM public.action_items i WHERE id = c_valido;
+
+  -- 4.6 UPDATE: apagar só a lente de uma ação FIB-T válida.
+  v_out := _proof.violation(format('UPDATE public.action_items SET source_lens_id = NULL WHERE id = %L', c_valido));
+  IF NOT v_out = ANY (c_completo) THEN
+    v_falhas := v_falhas || format('UPDATE lente→NULL aceito (%s)', v_out);
+  END IF;
+
+  -- 4.7 UPDATE: apagar só o fator.
+  v_out := _proof.violation(format('UPDATE public.action_items SET source_factor_id = NULL WHERE id = %L', c_valido));
+  IF NOT v_out = ANY (c_completo) THEN
+    v_falhas := v_falhas || format('UPDATE fator→NULL aceito (%s)', v_out);
+  END IF;
+
+  -- 4.8 UPDATE: lente→NULL e lift positivo ao mesmo tempo.
+  v_out := _proof.violation(format('UPDATE public.action_items SET source_lens_id = NULL, expected_ivo_lift = 7 WHERE id = %L', c_valido));
+  IF NOT v_out = ANY (c_lift_ou_completo) THEN
+    v_falhas := v_falhas || format('UPDATE lente→NULL com lift 7 aceito (%s)', v_out);
+  END IF;
+
+  -- 4.9 UPDATE: dar referências a uma ação legada sem dar lente.
+  v_out := _proof.violation(format('UPDATE public.action_items SET source_wave_id = %L, source_cohort_id = %L, source_factor_id = %L, source_instrument_version = %L, source_published_at = %L WHERE id = %L',
+    c_wave_a, c_a1, 'bem_estar', '1.0.0', '2026-06-20T12:00:00Z', c_legado));
+  IF NOT v_out = ANY (c_lift_ou_completo) THEN
+    v_falhas := v_falhas || format('UPDATE de ação legada para meia-proveniência aceito (%s)', v_out);
+  END IF;
+
+  SELECT row_to_json(i)::TEXT INTO v_depois FROM public.action_items i WHERE id = c_valido;
+  IF v_antes IS DISTINCT FROM v_depois THEN
+    v_falhas := v_falhas || 'uma recusa deixou alteração parcial na ação FIB-T válida'::TEXT;
+  END IF;
+  IF (SELECT source_wave_id FROM public.action_items WHERE id = c_legado) IS NOT NULL THEN
+    v_falhas := v_falhas || 'uma recusa deixou alteração parcial na ação legada'::TEXT;
+  END IF;
+
+  EXECUTE 'RESET ROLE';
+  PERFORM set_config('request.jwt.claims', '', true);
+
+  -- 4.10 Nenhuma linha meia-proveniente sobreviveu no banco de prova.
+  -- Contagem de referências presentes: válido é 0 (legado) ou 6 com lente 'fibt'.
+  IF EXISTS (
+    SELECT 1 FROM public.action_items
+     WHERE num_nonnulls(source_lens_id, source_wave_id, source_cohort_id, source_factor_id,
+                        source_instrument_version, source_published_at) NOT IN (0, 6)
+        OR (num_nonnulls(source_lens_id) = 1 AND source_lens_id <> 'fibt')
+  ) THEN
+    v_falhas := v_falhas || 'existe ação com proveniência parcial gravada'::TEXT;
+  END IF;
+
+  IF array_length(v_falhas, 1) > 0 THEN
+    RAISE EXCEPTION E'FAILED: CHECK de completude da proveniência:\n  - %', array_to_string(v_falhas, E'\n  - ');
+  END IF;
+
+  RAISE NOTICE 'PROVEN: R6_CHECK_NULL_LENS=BLOCKED · R6_CHECK_NULL_FACTOR=BLOCKED · R6_NULL_LENS_WITH_LIFT=BLOCKED · R6_UPDATE_TO_PARTIAL=BLOCKED · R6_LEGACY_TO_PARTIAL=BLOCKED · R6_NO_PARTIAL_WRITE=PASS · R6_VALID_CONTROLS=PASS (INSERT e UPDATE como service_role)';
+END
+$bloco4$;
+
+-- ═══════════════════════════════════════════════════════════════════════════
 -- LIMPEZA · o banco de prova volta ao estado anterior à suíte
 -- ═══════════════════════════════════════════════════════════════════════════
 DO $limpeza$

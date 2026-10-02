@@ -918,6 +918,87 @@ async function comCloneLocal(
     }
 }
 
+// ── IVO R6 — atualização a partir da versão defeituosa (achado R6-C1) ───────
+//
+// A primeira versão de 20261002120000 tinha CHECKs que avaliavam para NULL
+// (meia-proveniência aceita). Um banco que já a aplicou guarda a constraint
+// antiga com o MESMO nome, e `IF NOT EXISTS` não a trocaria. Aqui o defeito é
+// reinstalado de propósito, a migration corrigida é reaplicada e o banco tem
+// de terminar com a regra nova.
+const R6_CHECKS_DEFEITUOSOS = `
+ALTER TABLE public.action_items
+  DROP CONSTRAINT IF EXISTS action_items_source_complete_ck,
+  ADD CONSTRAINT action_items_source_complete_ck CHECK (
+    (source_lens_id IS NULL AND source_wave_id IS NULL AND source_cohort_id IS NULL
+      AND source_factor_id IS NULL AND source_instrument_version IS NULL AND source_published_at IS NULL)
+    OR (source_lens_id = 'fibt' AND source_wave_id IS NOT NULL AND source_cohort_id IS NOT NULL
+      AND source_factor_id ~ '^[a-z][a-z_]{0,39}$' AND source_instrument_version IS NOT NULL
+      AND source_published_at IS NOT NULL)),
+  DROP CONSTRAINT IF EXISTS action_items_source_no_ivo_lift_ck,
+  ADD CONSTRAINT action_items_source_no_ivo_lift_ck CHECK (source_lens_id IS NULL OR expected_ivo_lift = 0);`;
+
+const R6_CHECKS_CORRETOS_SQL = `SELECT string_agg(conname || '=' || (pg_get_constraintdef(oid) LIKE '%IS TRUE%' AND pg_get_constraintdef(oid) LIKE '%num_nonnulls%')::TEXT, ',' ORDER BY conname)
+  FROM pg_constraint WHERE conname IN ('action_items_source_complete_ck','action_items_source_no_ivo_lift_ck');`;
+
+async function caracterizarAtualizacaoR6(pacoteR6: string[]): Promise<void> {
+    const regride = await psql(R6_CHECKS_DEFEITUOSOS);
+    if (regride.code !== 0) {
+        registrar("R6: reinstalar CHECKs da versão defeituosa (preparo do ensaio)", false, regride.err.trim().slice(0, 300));
+        return;
+    }
+    const antes = await scalar(R6_CHECKS_CORRETOS_SQL);
+    for (const nome of pacoteR6) {
+        const r = await psql(lerSql("supabase", "migrations", nome));
+        if (r.code !== 0) {
+            registrar(`R6: atualização a partir da versão defeituosa (${nome})`, false, r.err.trim().slice(0, 300));
+            return;
+        }
+    }
+    const depois = await scalar(R6_CHECKS_CORRETOS_SQL);
+    const esperado = "action_items_source_complete_ck=true,action_items_source_no_ivo_lift_ck=true";
+    registrar(
+        "R6: atualização substitui os CHECKs defeituosos da versão anterior (R6-C1)",
+        antes !== esperado && depois === esperado,
+        `antes=${antes} · depois=${depois}`,
+    );
+}
+
+// ── IVO R6 — promoção mínima do módulo Action Plan sobre o estado produtivo ─
+//
+// No `preprod` o módulo não existe (20_production_absent_...), e a suíte 07
+// só prova constraints/RLS — o caminho de RPC sai como SKIP, e SKIP não prova
+// que R6 funciona num ambiente assim. Num CLONE local, aplica a promoção
+// mínima na ordem do runbook (ledger 20260705100000 → R6), confere o corpo da
+// RPC, reconcilia a M6A e roda a suíte 07 exigindo o caminho de RPC PROVADO.
+async function provarPromocaoActionPlan(pacoteR6: string[]): Promise<void> {
+    await comCloneLocal("r6_action_plan_promotion", async (database) => {
+        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6]) {
+            const r = await psql(lerSql("supabase", "migrations", nome), database);
+            if (r.code !== 0) {
+                registrar(`R6 promoção: ${nome} no clone produtivo`, false, r.err.trim().split("\n").slice(0, 6).join(" | "));
+                return;
+            }
+        }
+        const corpo = await scalar(
+            `SELECT (prosrc LIKE '%provenance_cross_tenant_denied%' AND prosrc LIKE '%source_not_published%')::TEXT
+               FROM pg_proc WHERE oid = to_regprocedure('public.create_action_plan(uuid,text,text,uuid,uuid,jsonb)');`,
+            database,
+        );
+        registrar("R6 promoção: create_action_plan com validação de proveniência após ledger → R6", corpo === "true", `corpo=${corpo}`);
+
+        const m6a = await psql(lerSql("supabase", "migrations", M6A_ATUAL), database);
+        registrar("R6 promoção: M6A reconcilia a superfície com o módulo Action Plan presente", m6a.code === 0, m6a.code === 0 ? undefined : m6a.err.trim().slice(0, 300));
+
+        const suite = await psql(lerSql("supabase", "tests", "07_fibt_action_provenance.sql"), database);
+        const rpcProvado = suite.err.includes("R6_CROSS_TENANT=DENIED") && !suite.err.includes("R6_RPC_PATH=SKIP");
+        registrar(
+            "R6 promoção: suíte 07 com caminho de RPC PROVADO (não SKIP) no clone produtivo promovido",
+            suite.code === 0 && rpcProvado,
+            suite.code !== 0 ? suite.err.split("\n").filter((l) => l.includes("FAILED") || l.includes("ERROR") || l.includes("  - ")).slice(0, 12).join(" | ") : `rpc_provado=${rpcProvado}`,
+        );
+    });
+}
+
 async function rodarMatrizNegativaM6A(): Promise<void> {
     const m6a = lerSql("supabase", "migrations", M6A_ATUAL);
 
@@ -1277,6 +1358,7 @@ try {
             r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
         );
     }
+    await caracterizarAtualizacaoR6(pacoteR6);
 
     // 20260825022411 já foi aplicada dentro de `antes` (linhagem de
     // baseline), nunca dentro do pacote G1-v2 explícito. Aqui só se VERIFICA a
@@ -1308,6 +1390,7 @@ try {
     }
 
     await rodarProvas();
+    if (modo === "preprod") await provarPromocaoActionPlan(pacoteR6);
     await rodarMatrizNegativaM6A();
 
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria

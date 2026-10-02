@@ -41,8 +41,15 @@
 --        nunca aceitos do chamador;
 --      · expected_ivo_lift = 0.
 --
--- Idempotente: reaplicar não muda nada (ADD COLUMN IF NOT EXISTS, constraints
--- guardadas por pg_constraint, CHECK de evidence_kind recriado igual).
+-- Idempotente: reaplicar não muda nada (ADD COLUMN IF NOT EXISTS, FKs
+-- guardadas por pg_constraint, CHECKs de proveniência e de evidence_kind
+-- recriados iguais). Reaplicar sobre a versão anterior deste arquivo SUBSTITUI
+-- os CHECKs defeituosos (achado R6-C1) — ver caracterização no replay.
+--
+-- ORDEM OBRIGATÓRIA onde o módulo Action Plan ainda não existe: aplicar
+-- 20260705100000_action_plan_ledger.sql ANTES deste arquivo. Nunca reaplicar
+-- 20260705100000 depois: ele recria create_action_plan SEM a validação de
+-- proveniência (regressão silenciosa, mesma classe do achado D8).
 
 BEGIN;
 
@@ -58,25 +65,43 @@ ALTER TABLE public.action_items
   ADD COLUMN IF NOT EXISTS source_instrument_version TEXT,
   ADD COLUMN IF NOT EXISTS source_published_at       TIMESTAMPTZ;
 
+-- CHECKs de proveniência — SEMPRE recriados (DROP + ADD na mesma instrução).
+--
+-- Achado R6-C1: a primeira versão deste arquivo usava
+--   (tudo nulo) OR (lente = 'fibt' AND fator ~ '...' AND ...)
+-- e PostgreSQL ACEITA CHECK que avalia para NULL. Com só a lente (ou só o
+-- fator) nula e as demais referências preenchidas, a expressão virava
+-- `FALSE OR NULL = NULL` e a meia-proveniência passava; e a regra de lift
+-- `lente IS NULL OR lift = 0` era TRUE para qualquer lift. As expressões
+-- abaixo contam referências com `num_nonnulls` (nunca NULL) e terminam em
+-- `IS TRUE`: só dois estados passam — nenhuma referência (ação legada) ou
+-- as seis, com lente 'fibt' e fator no formato do manifesto.
+--
+-- Por que recriar e não `IF NOT EXISTS`: um banco local que já aplicou a
+-- versão anterior manteria a constraint antiga com o mesmo nome. DROP+ADD
+-- numa única ALTER é atômico; se houver linha que viole a regra correta, a
+-- ALTER falha e a migration inteira volta (fail-closed, nada é apagado).
+ALTER TABLE public.action_items
+  DROP CONSTRAINT IF EXISTS action_items_source_complete_ck,
+  ADD CONSTRAINT action_items_source_complete_ck CHECK ((
+    num_nonnulls(source_lens_id, source_wave_id, source_cohort_id, source_factor_id,
+                 source_instrument_version, source_published_at) = 0
+    OR (
+      num_nonnulls(source_lens_id, source_wave_id, source_cohort_id, source_factor_id,
+                   source_instrument_version, source_published_at) = 6
+      AND source_lens_id = 'fibt'
+      AND source_factor_id ~ '^[a-z][a-z_]{0,39}$'
+    )
+  ) IS TRUE),
+  DROP CONSTRAINT IF EXISTS action_items_source_no_ivo_lift_ck,
+  ADD CONSTRAINT action_items_source_no_ivo_lift_ck CHECK ((
+    num_nonnulls(source_lens_id, source_wave_id, source_cohort_id, source_factor_id,
+                 source_instrument_version, source_published_at) = 0
+    OR expected_ivo_lift = 0
+  ) IS TRUE);
+
 DO $constraints$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'action_items_source_complete_ck') THEN
-    ALTER TABLE public.action_items ADD CONSTRAINT action_items_source_complete_ck CHECK (
-      (source_lens_id IS NULL AND source_wave_id IS NULL AND source_cohort_id IS NULL
-        AND source_factor_id IS NULL AND source_instrument_version IS NULL
-        AND source_published_at IS NULL)
-      OR
-      (source_lens_id = 'fibt' AND source_wave_id IS NOT NULL AND source_cohort_id IS NOT NULL
-        AND source_factor_id ~ '^[a-z][a-z_]{0,39}$' AND source_instrument_version IS NOT NULL
-        AND source_published_at IS NOT NULL)
-    );
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'action_items_source_no_ivo_lift_ck') THEN
-    ALTER TABLE public.action_items ADD CONSTRAINT action_items_source_no_ivo_lift_ck
-      CHECK (source_lens_id IS NULL OR expected_ivo_lift = 0);
-  END IF;
-
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'action_items_source_wave_org_fk') THEN
     ALTER TABLE public.action_items ADD CONSTRAINT action_items_source_wave_org_fk
       FOREIGN KEY (source_wave_id, org_id) REFERENCES public.waves(id, org_id);
