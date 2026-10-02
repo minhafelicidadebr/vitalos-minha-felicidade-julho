@@ -44,6 +44,7 @@ import { Route as GovernoRouteImport } from './routes/governo'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as IvoRouteImport } from './routes/ivo'
+import { Route as IvoIntegralRouteImport } from './routes/ivo-integral'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as LiderRouteImport } from './routes/lider'
@@ -267,6 +268,11 @@ const ImpactoRoute = ImpactoRouteImport.update({
 const IvoRoute = IvoRouteImport.update({
   id: '/ivo',
   path: '/ivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralRoute = IvoIntegralRouteImport.update({
+  id: '/ivo-integral',
+  path: '/ivo-integral',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LabRoute = LabRouteImport.update({
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
+  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -637,6 +644,7 @@ export interface FileRoutesByTo {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
+  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -724,6 +732,7 @@ export interface FileRoutesById {
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
+  '/ivo-integral': typeof IvoIntegralRoute
   '/lab': typeof LabRoute
   '/landing': typeof LandingRoute
   '/lider': typeof LiderRoute
@@ -812,6 +821,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
+    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -898,6 +908,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
+    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -984,6 +995,7 @@ export interface FileRouteTypes {
     | '/holding'
     | '/impacto'
     | '/ivo'
+    | '/ivo-integral'
     | '/lab'
     | '/landing'
     | '/lider'
@@ -1071,6 +1083,7 @@ export interface RootRouteChildren {
   HoldingRoute: typeof HoldingRoute
   ImpactoRoute: typeof ImpactoRoute
   IvoRoute: typeof IvoRoute
+  IvoIntegralRoute: typeof IvoIntegralRoute
   LabRoute: typeof LabRoute
   LandingRoute: typeof LandingRoute
   LiderRoute: typeof LiderRoute
@@ -1367,6 +1380,13 @@ declare module '@tanstack/react-router' {
       path: '/ivo'
       fullPath: '/ivo'
       preLoaderRoute: typeof IvoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral': {
+      id: '/ivo-integral'
+      path: '/ivo-integral'
+      fullPath: '/ivo-integral'
+      preLoaderRoute: typeof IvoIntegralRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lab': {
@@ -1751,6 +1771,7 @@ const rootRouteChildren: RootRouteChildren = {
   HoldingRoute: HoldingRoute,
   ImpactoRoute: ImpactoRoute,
   IvoRoute: IvoRoute,
+  IvoIntegralRoute: IvoIntegralRoute,
   LabRoute: LabRoute,
   LandingRoute: LandingRoute,
   LiderRoute: LiderRoute,
