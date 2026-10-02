@@ -27,8 +27,11 @@ const LENS_BY_JOURNEY_KEY: Record<JourneyStage["key"], { id: IvoLensId; label: s
   forcas: { id: "via_t", label: "VIA-T" },
 };
 
-/** Rota do painel protegido da FIB-T — a única lente funcional. */
-export const FIBT_LENS_ROUTE = "/fibt-piloto";
+/** Detalhe da lente Q2 dentro da experiência IVO — a única lente funcional. */
+export const FIBT_LENS_ROUTE = "/ivo-integral/q2";
+
+/** Centro de controle operacional da FIB-T (coleta, links, publicação protegida). */
+export const FIBT_MANAGER_PANEL_ROUTE = "/fibt-piloto";
 
 export function ivoLensCatalog(): IvoLensDescriptor[] {
   return [...CANONICAL_JOURNEY]

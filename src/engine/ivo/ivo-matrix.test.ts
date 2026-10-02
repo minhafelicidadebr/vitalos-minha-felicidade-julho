@@ -186,6 +186,45 @@ describe("matriz IVO 4 × 4", () => {
     expect(isMappingApproved({ ...approvedMapping, approvedAt: null })).toBe(false);
   });
 
+  test("distingue lente disponível, resultado disponível, resultado protegido e mapeamento pendente (M7)", () => {
+    const m = buildIvoMatrix({ organizationId: "org-demo", dimensions: DIMENSIONS, lenses: LENSES, readings: [reading()], mappings: [] });
+    const fibt = m.rows[0]!.cells.find((c) => c.lens === "fibt")!;
+    expect(fibt.availability).toBe("functional");
+    expect(fibt.resultState).toBe("available");
+    expect(fibt.cohortSummary).toEqual({ published: 1, protected: 1, collecting: 0, total: 2 });
+    expect(fibt.mapping).toBe("none");
+
+    const planned = m.rows[0]!.cells.find((c) => c.lens === "copsoq")!;
+    expect(planned.availability).toBe("planned");
+    expect(planned.resultState).toBe("not_applicable");
+    expect(planned.cohortSummary).toBeNull();
+  });
+
+  test("tudo protegido vira resultState protected, sem número (M7)", () => {
+    const allProtected = reading({
+      publicationStatus: "protected",
+      cohorts: [
+        { cohortKey: "B", cohortLabel: "Setor B", publication: "protected", countLabel: "<5", constructs: null, protectionReason: "limiar" },
+      ],
+    });
+    const m = buildIvoMatrix({ organizationId: "org-demo", dimensions: DIMENSIONS, lenses: LENSES, readings: [allProtected], mappings: [] });
+    const fibt = m.rows[0]!.cells.find((c) => c.lens === "fibt")!;
+    expect(fibt.resultState).toBe("protected");
+    expect(fibt.cohortSummary).toEqual({ published: 0, protected: 1, collecting: 0, total: 1 });
+  });
+
+  test("ausência de leitura e coleta sem dados nunca viram zero (M7)", () => {
+    const none = buildIvoMatrix({ organizationId: "org-demo", dimensions: DIMENSIONS, lenses: LENSES, readings: [], mappings: [] });
+    expect(none.rows[0]!.cells.find((c) => c.lens === "fibt")!.resultState).toBe("no_reading");
+
+    const collecting = reading({
+      publicationStatus: "collecting",
+      cohorts: [{ cohortKey: "A", cohortLabel: "A", publication: "collecting", countLabel: "0", constructs: null, protectionReason: null }],
+    });
+    const m = buildIvoMatrix({ organizationId: "org-demo", dimensions: DIMENSIONS, lenses: LENSES, readings: [collecting], mappings: [] });
+    expect(m.rows[0]!.cells.find((c) => c.lens === "fibt")!.resultState).toBe("collecting");
+  });
+
   test("nenhuma célula carrega pontuação (M5)", () => {
     const m = buildIvoMatrix({ organizationId: "org-demo", dimensions: DIMENSIONS, lenses: LENSES, readings: [reading()], mappings: [approvedMapping] });
     const serialized = JSON.stringify(m.rows);

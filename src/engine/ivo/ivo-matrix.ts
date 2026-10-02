@@ -41,12 +41,39 @@ export interface MatrixCellEvidence {
   cohortKeys: readonly string[];
 }
 
+/**
+ * Estado do RESULTADO NATIVO da lente (não da dimensão). Quatro perguntas
+ * distintas que a célula responde separadamente:
+ *   · a lente existe?            → `availability`
+ *   · há resultado da lente?     → `resultState`
+ *   · o resultado está retido?   → `resultState === "protected"` / `cohortSummary.protected`
+ *   · ele conta para a dimensão? → `mapping`
+ * Ausência, proteção e pendência nunca viram zero: são estados, sem número.
+ */
+export type LensResultState =
+  | "not_applicable"
+  | "no_reading"
+  | "no_data"
+  | "collecting"
+  | "protected"
+  | "available";
+
+/** Contagem de RECORTES (setores) por estado — nunca de participantes. */
+export interface LensCohortSummary {
+  published: number;
+  protected: number;
+  collecting: number;
+  total: number;
+}
+
 export interface IvoMatrixCell {
   dimension: IvoDimensionId;
   lens: IvoLensId;
   availability: LensAvailability;
   instrumentVersion: string | null;
   publicationState: LensPublicationState;
+  resultState: LensResultState;
+  cohortSummary: LensCohortSummary | null;
   lastMeasuredAt: string | null;
   mapping: "none" | "proposed" | "approved";
   evidence: readonly MatrixCellEvidence[];
@@ -83,6 +110,22 @@ export function isMappingApproved(mapping: DimensionMapping): boolean {
 function latestReading(readings: readonly NormalizedLensReading[]): NormalizedLensReading | null {
   if (readings.length === 0) return null;
   return [...readings].sort((a, b) => b.generatedAt.localeCompare(a.generatedAt))[0]!;
+}
+
+function summarizeCohorts(reading: NormalizedLensReading): LensCohortSummary {
+  return {
+    published: reading.cohorts.filter((c) => c.publication === "published").length,
+    protected: reading.cohorts.filter((c) => c.publication === "protected").length,
+    collecting: reading.cohorts.filter((c) => c.publication === "collecting").length,
+    total: reading.cohorts.length,
+  };
+}
+
+function resultStateOf(reading: NormalizedLensReading, summary: LensCohortSummary): LensResultState {
+  if (summary.published > 0) return "available";
+  if (summary.protected > 0) return "protected";
+  if (summary.collecting > 0 || reading.publicationStatus === "collecting") return "collecting";
+  return "no_data";
 }
 
 export function buildIvoMatrix(input: BuildIvoMatrixInput): IvoMatrix {
@@ -126,7 +169,15 @@ export function buildIvoMatrix(input: BuildIvoMatrixInput): IvoMatrix {
       };
 
       if (lens.availability === "planned") {
-        return { ...base, publicationState: "planned", lastMeasuredAt: null, mapping: "none", evidence: [] };
+        return {
+          ...base,
+          publicationState: "planned",
+          resultState: "not_applicable",
+          cohortSummary: null,
+          lastMeasuredAt: null,
+          mapping: "none",
+          evidence: [],
+        };
       }
 
       const lensMappings = input.mappings.filter(
@@ -137,8 +188,17 @@ export function buildIvoMatrix(input: BuildIvoMatrixInput): IvoMatrix {
 
       const reading = latestReading(byLens.get(lens.id) ?? []);
       if (!reading) {
-        return { ...base, publicationState: "prepared", lastMeasuredAt: null, mapping, evidence: [] };
+        return {
+          ...base,
+          publicationState: "prepared",
+          resultState: "no_reading",
+          cohortSummary: null,
+          lastMeasuredAt: null,
+          mapping,
+          evidence: [],
+        };
       }
+      const cohortSummary = summarizeCohorts(reading);
 
       const evidence: MatrixCellEvidence[] = approved.flatMap((m) => {
         const cohortKeys = reading.cohorts
@@ -157,6 +217,8 @@ export function buildIvoMatrix(input: BuildIvoMatrixInput): IvoMatrix {
         ...base,
         instrumentVersion: reading.instrumentVersion,
         publicationState: reading.publicationStatus,
+        resultState: resultStateOf(reading, cohortSummary),
+        cohortSummary,
         lastMeasuredAt: reading.generatedAt,
         mapping,
         evidence,
