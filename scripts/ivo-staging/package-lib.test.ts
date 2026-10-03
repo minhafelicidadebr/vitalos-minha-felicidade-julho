@@ -4,6 +4,7 @@ import {
   PENDING_ORG_IDS,
   buildEnvironment,
   classifyPublishableKey,
+  extractCopyBlocks,
   effectiveWranglerConfig,
   packageDigest,
   parseOrgIds,
@@ -119,5 +120,29 @@ describe("hash do pacote e logs", () => {
 
   test("URL do Worker deriva do nome e do subdomínio da conta", () => {
     expect(workerUrl()).toBe("https://vitalos-ivo-staging.pesquisafib.workers.dev");
+  });
+});
+
+describe("extração seletiva de dump SQL plano", () => {
+  const dump = [
+    "SET statement_timeout = 0;",
+    'COPY "public"."action_plans" (id, org_id) FROM stdin;',
+    "p1\to1",
+    "p2\to2",
+    "\\.",
+    'COPY "public"."profiles" (id) FROM stdin;',
+    "u1",
+    "\\.",
+    "COPY public.action_log (id) FROM stdin;",
+    "\\.",
+  ].join("\n");
+
+  test("extrai só as tabelas pedidas, conta linhas e aponta ausentes", () => {
+    const r = extractCopyBlocks(dump, ["action_plans", "action_log", "evidence_records"]);
+    expect(r.rows).toEqual({ action_plans: 2, action_log: 0 });
+    expect(r.absent).toEqual(["evidence_records"]);
+    expect(r.sql).toContain("p2\to2");
+    expect(r.sql).not.toContain("profiles");
+    expect(r.sql).not.toContain("statement_timeout");
   });
 });

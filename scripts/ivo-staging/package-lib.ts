@@ -195,3 +195,33 @@ export function sanitizeLog(text: string, sensitive: readonly string[]): string 
     .replace(/(PGPASSWORD\s*=\s*)("[^"]*"|'[^']*'|\S+)/g, "$1<REDACTED>")
     .replace(/(password\s*=\s*)("[^"]*"|'[^']*'|\S+)/gi, "$1<REDACTED>");
 }
+
+/**
+ * Extrai de um dump SQL PLANO (`supabase db dump --data-only --use-copy`) apenas
+ * os blocos `COPY public.<tabela> … FROM stdin; … \.` das tabelas pedidas, para
+ * restauração seletiva. Devolve também as tabelas sem bloco (0 linhas) e quantas
+ * linhas cada bloco tem. Não executa nada.
+ */
+export function extractCopyBlocks(
+  sql: string,
+  tables: readonly string[],
+): { sql: string; rows: Record<string, number>; absent: string[] } {
+  const lines = sql.replace(/\r\n/g, "\n").split("\n");
+  const out: string[] = [];
+  const rows: Record<string, number> = {};
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^COPY "?public"?\."?([a-z_]+)"? \(/.exec(lines[i]!);
+    if (!m || !tables.includes(m[1]!)) continue;
+    const table = m[1]!;
+    const block = [lines[i]!];
+    let n = 0;
+    for (i++; i < lines.length && lines[i] !== "\\."; i++) {
+      block.push(lines[i]!);
+      n++;
+    }
+    block.push("\\.");
+    out.push(...block, "");
+    rows[table] = n;
+  }
+  return { sql: out.join("\n"), rows, absent: tables.filter((t) => !(t in rows)) };
+}

@@ -571,6 +571,25 @@ async function preflight(): Promise<void> {
   if (by("FAIL").length > 0 || ledger.includes("PARAR")) throw new StepError("preflight bloqueia o rollout");
 }
 
+// ── snapshot-extract ────────────────────────────────────────────────────────
+// Prepara a restauração SELETIVA do ledger a partir de um snapshot `--via-cli`
+// (SQL plano). NÃO restaura nada: grava ledger-restore.sql (só blocos COPY das
+// tabelas pedidas, padrão: as 4 do ledger) ao lado do snapshot, com SHA-256.
+// Aplicar em staging exige decisão específica; o ensaio é num banco descartável.
+
+const LEDGER_TABLES = ["action_plans", "action_items", "evidence_records", "action_log"];
+
+async function snapshotExtract(): Promise<void> {
+  const dir = resolve(arg("snapshot") ?? "");
+  if (!arg("snapshot") || !existsSync(join(dir, "data-public.sql"))) throw new StepError("--snapshot=<diretório de um snapshot --via-cli> inválido");
+  const tables = (arg("tables") ?? LEDGER_TABLES.join(",")).split(",").map((s) => s.trim()).filter(Boolean);
+  const { extractCopyBlocks } = await import("./ivo-staging/package-lib");
+  const r = extractCopyBlocks(readFileSync(join(dir, "data-public.sql"), "utf8"), tables);
+  const out = join(dir, "ledger-restore.sql");
+  writeFileSync(out, r.sql);
+  console.log(`  ok   ${out} · linhas por tabela ${JSON.stringify(r.rows)}${r.absent.length ? ` · sem bloco (0 linhas): ${r.absent.join(",")}` : ""} · sha256 ${sha256File(out)}`);
+}
+
 // ── edge-check ──────────────────────────────────────────────────────────────
 // Prova, SEM credencial, que o Access cobre o hostname novo antes da versão
 // funcional: página, server function, asset e rota IVO precisam redirecionar
@@ -613,6 +632,7 @@ if (import.meta.main) {
     else if (command === "provision") await provision();
     else if (command === "preflight") await preflight();
     else if (command === "edge-check") await edgeCheck();
+    else if (command === "snapshot-extract") await snapshotExtract();
     else throw new StepError(`comando desconhecido: ${command}. Use build | finalize | snapshot | secrets-file | provision.`);
   } catch (error) {
     const code = error instanceof StepError ? error.code : 2;
