@@ -148,20 +148,47 @@ async function findUserByEmail(admin: any, email: string): Promise<string | null
   return null;
 }
 
+/**
+ * Usuário de teste. Conta JÁ EXISTENTE nunca é alterada (nem senha, nem
+ * confirmação): só é reutilizada. Conta nova nasce com e-mail confirmado e,
+ * se `password` for null (perfil staging), SEM senha — o acesso é por link
+ * mágico na caixa do operador.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function ensureUser(admin: any, email: string, password: string): Promise<string> {
+async function ensureUser(admin: any, email: string, password: string | null): Promise<string> {
   const existing = await findUserByEmail(admin, email);
-  if (existing) {
-    const { error } = await admin.auth.admin.updateUserById(existing, { password, email_confirm: true });
-    if (error) fail(`não foi possível atualizar o usuário de teste (${email})`);
-    return existing;
-  }
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  if (existing) return existing;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    ...(password ? { password } : {}),
+  });
   if (error || !data?.user?.id) fail(`criação do usuário de teste falhou (${email})`);
   return String(data.user.id);
 }
 
-async function signIn(apiUrl: string, publishableKey: string, email: string, password: string): Promise<string> {
+/**
+ * Sessão do admin para a publicação canônica. Com senha (demo local) usa o
+ * grant de senha. Sem senha (staging) pede ao Auth um link mágico administrativo
+ * (`generateLink`: NÃO envia e-mail e não altera a conta) e o troca em
+ * `/auth/v1/verify` por uma sessão do PRÓPRIO usuário — a RPC continua vendo
+ * `auth.uid()` do admin da organização.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function signIn(admin: any, apiUrl: string, publishableKey: string, email: string, password: string | null): Promise<string> {
+  if (!password) {
+    const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+    const tokenHash = data?.properties?.hashed_token as string | undefined;
+    if (error || !tokenHash) fail("não foi possível obter a sessão administrativa de publicação");
+    const verify = await fetch(`${apiUrl}/auth/v1/verify`, {
+      method: "POST",
+      headers: { apikey: publishableKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "magiclink", token_hash: tokenHash }),
+    });
+    const body = (await verify.json()) as { access_token?: string };
+    if (!verify.ok || !body.access_token) fail(`troca do link administrativo por sessão falhou (HTTP ${verify.status})`);
+    return body.access_token;
+  }
   const res = await fetch(`${apiUrl}/auth/v1/token?grant_type=password`, {
     method: "POST",
     headers: { apikey: publishableKey, "Content-Type": "application/json" },
@@ -176,7 +203,7 @@ export interface ProvisionOptions {
   apiUrl: string;
   publishableKey: string;
   emails: { alfaAdmin: string; alfaMember: string; betaAdmin: string };
-  passwords: Record<string, string>;
+  passwords: Record<string, string | null>;
   log?: Log;
 }
 
@@ -218,7 +245,7 @@ export async function provisionFictitiousIvoOrgs(opts: ProvisionOptions): Promis
 
   for (const org of fixtureOrgs(opts.emails)) {
     log(`\n▸ ${org.name}`);
-    const adminPassword = opts.passwords[org.adminEmail]!;
+    const adminPassword = opts.passwords[org.adminEmail] ?? null;
     const adminId = await ensureUser(admin, org.adminEmail, adminPassword);
 
     // ── Organização + admin pelo convite de organização ─────────────────────
@@ -256,7 +283,7 @@ export async function provisionFictitiousIvoOrgs(opts: ProvisionOptions): Promis
     let memberEmail: string | null = null;
     if (org.memberEmail) {
       memberEmail = org.memberEmail;
-      const memberId = await ensureUser(admin, org.memberEmail, opts.passwords[org.memberEmail]!);
+      const memberId = await ensureUser(admin, org.memberEmail, opts.passwords[org.memberEmail] ?? null);
       const { data: memberProfile } = await admin.from("profiles").select("org_id, role").eq("id", memberId).maybeSingle();
       if (memberProfile) {
         if (memberProfile.org_id !== orgId) fail("membro de teste pertence a outra organização — abortado");
@@ -354,7 +381,7 @@ export async function provisionFictitiousIvoOrgs(opts: ProvisionOptions): Promis
     }
 
     // ── Publicação canônica (JWT do admin) ───────────────────────────────────
-    const token = await signIn(opts.apiUrl, opts.publishableKey, org.adminEmail, adminPassword);
+    const token = await signIn(admin, opts.apiUrl, opts.publishableKey, org.adminEmail, adminPassword);
     for (const cohort of org.cohorts.filter((c) => c.publish)) {
       const res = await fetch(`${opts.apiUrl}/rest/v1/rpc/aggregate_cohort_responses`, {
         method: "POST",
@@ -404,8 +431,8 @@ async function cli(): Promise<void> {
     if (production && production === targetRef) problems.push("alvo é o projeto de PRODUÇÃO — recusado");
     for (const name of Object.values(STAGING_EMAIL_VARS)) if (!env[name]?.includes("@")) problems.push(`${name} ausente (caixa real controlada pelo operador)`);
     if (!out) problems.push("--out=<arquivo do manifesto> obrigatório");
-    if (!secretsOut) problems.push("--secrets-out=<arquivo privado FORA do repositório> obrigatório");
-    if (secretsOut && secretsOut.replace(/\\/g, "/").includes(process.cwd().replace(/\\/g, "/"))) problems.push("--secrets-out não pode ficar dentro do repositório");
+    // Staging é SEM SENHA: nenhuma credencial de usuário de teste é criada ou alterada.
+    if (secretsOut) problems.push("--secrets-out não se aplica ao staging (sem senhas)");
   }
 
   console.log(`PROVISIONAMENTO IVO — modo=${apply ? "apply" : "plan"} · alvo=${local ? "local" : targetRef ?? "(não informado)"}`);
@@ -427,9 +454,9 @@ async function cli(): Promise<void> {
       alfaMember: env[STAGING_EMAIL_VARS.alfaMember]!.trim(),
       betaAdmin: env[STAGING_EMAIL_VARS.betaAdmin]!.trim(),
     };
-  const previous: Record<string, string> = secretsOut && existsSync(secretsOut) ? JSON.parse(readFileSync(secretsOut, "utf8")) : {};
-  const passwords: Record<string, string> = {};
-  for (const email of Object.values(emails)) passwords[email] = previous[email] ?? randomBytes(18).toString("base64url");
+  const previous: Record<string, string> = local && secretsOut && existsSync(secretsOut) ? JSON.parse(readFileSync(secretsOut, "utf8")) : {};
+  const passwords: Record<string, string | null> = {};
+  for (const email of Object.values(emails)) passwords[email] = local ? (previous[email] ?? randomBytes(18).toString("base64url")) : null;
 
   const manifest = await provisionFictitiousIvoOrgs({
     target: local ? "local" : "staging",
@@ -438,7 +465,7 @@ async function cli(): Promise<void> {
     emails,
     passwords,
   });
-  if (secretsOut) writeFileSync(secretsOut, JSON.stringify(passwords, null, 2), { mode: 0o600 });
+  if (secretsOut && local) writeFileSync(secretsOut, JSON.stringify(passwords, null, 2), { mode: 0o600 });
   if (out) writeFileSync(out, JSON.stringify(manifest, null, 2));
   console.log(`\nIDs para VITALOS_IVO_AUTHORIZED_ORG_IDS: ${manifest.orgs.alfa.orgId},${manifest.orgs.beta.orgId}`);
 }
