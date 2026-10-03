@@ -129,7 +129,10 @@ Interromper em: `FAIL` ou divergência no preflight; erro na migration; provisio
 
 **Banco** (independente; rollback de Worker não desfaz migration):
 - R6 é aditiva; o código anterior ignora as colunas novas. Correção sempre progressiva (nova migration ou reaplicação de R6), nunca DROP de colunas.
-- Dados do ledger: restaurar só as tabelas do ledger a partir do snapshot (`pg_restore --data-only --single-transaction -t action_plans -t action_items -t evidence_records -t action_log`), depois de decisão explícita. Nada de remoção automática.
+- Dados do ledger: restauração **seletiva, só com decisão específica**, e sempre precedida de ensaio em banco descartável. O formato depende do snapshot:
+  - `snapshot --via-cli` (SQL plano, `data-public.sql`): `bun run ivo:staging:prepare snapshot-extract --snapshot=<dir>` grava `ledger-restore.sql` (só os blocos `COPY` das 4 tabelas do ledger, em ordem de dependência, com SHA-256; tabela sem bloco = 0 linhas). Aplicação: `psql -v ON_ERROR_STOP=1 --single-transaction -f ledger-restore.sql` contra o alvo, com as 4 tabelas vazias (restauração sobre linhas existentes falha por chave duplicada e nada muda). Ensaio comprovado em banco local: 1/1/2/3 → perda simulada 0/0/0/0 → restaurado 1/1/2/3.
+  - `prepare.ps1 -Command snapshot` (`pg_dump -Fc`): `pg_restore --data-only --single-transaction --exit-on-error -t action_plans -t action_items -t evidence_records -t action_log -d <alvo> data-ivo.dump`.
+  - Nada de remoção automática de dados.
 - Organizações fictícias podem permanecer; removê-las é ato manual autorizado à parte.
 
 ## 10. Evidências
