@@ -118,7 +118,10 @@ for (const rel of globScripts.scanSync({ cwd: raiz })) {
 }
 
 // ─── Superfície 1: artefato servido ao navegador ─────────────────────────────
-const PUBLIC_DIR = join(raiz, ".output", "public");
+// `--artifact-dir=<dir>` varre um pacote copiado (ex.: pacote de staging IVO)
+// em vez do .output do repo; padrão inalterado.
+const artefatoArg = process.argv.find((a) => a.startsWith("--artifact-dir="))?.slice("--artifact-dir=".length);
+const PUBLIC_DIR = artefatoArg ? artefatoArg : join(raiz, ".output", "public");
 let artefatoVarrido = 0;
 const temArtefato = existsSync(PUBLIC_DIR);
 
