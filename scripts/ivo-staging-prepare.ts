@@ -469,11 +469,13 @@ function outsideRepo(path: string, flag: string): string {
 
 async function secretsFile(): Promise<void> {
   const out = outsideRepo(arg("out") ?? "", "out");
-  const r = await run(["bunx", SUPABASE_CLI, "projects", "api-keys", "--project-ref", IVO_STAGING_TARGET.projectRef, "-o", "json"], { timeoutMs: 90_000 });
+  // `--reveal` é o mecanismo suportado do CLI para a secret completa (sem ele vem mascarada).
+  const r = await run(["bunx", SUPABASE_CLI, "projects", "api-keys", "--reveal", "--project-ref", IVO_STAGING_TARGET.projectRef, "-o", "json"], { timeoutMs: 90_000 });
   if (r.code !== 0 || r.timedOut) throw new StepError("Supabase CLI sem acesso às chaves do projeto de staging");
   const keys = JSON.parse(r.out) as Array<{ name?: string; type?: string; api_key?: string }>;
   const secret = keys.find((k) => k.type === "secret")?.api_key ?? keys.find((k) => k.name === "service_role")?.api_key;
   if (!secret) throw new StepError("chave de servidor não encontrada para o projeto de staging");
+  if (/[^\x21-\x7e]/.test(secret) || secret.includes("···") || secret.includes("...")) throw new StepError("a chave de servidor veio mascarada — não gravada");
   writeFileSync(out, JSON.stringify({ SUPABASE_SERVICE_ROLE_KEY: secret }), { mode: 0o600 });
   console.log(`  ok   secrets file gravado fora do repositório (${out}); valor não exibido`);
 }
