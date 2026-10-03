@@ -159,8 +159,20 @@ function contentChecks(outputDir: string, key: string): ContentCheck[] {
       ok: true,
       detail: `${count(server, IVO_STAGING_TARGET.productionRef)} arquivo(s) com o ref literal (informativo: o runtime recebe VITALOS_PRODUCTION_PROJECT_REF para RECUSAR esse alvo)`,
     },
-    { check: "nenhuma declaração HML ativa embutida", ok: [...client, ...server].every((x) => !x.s.includes("FIBT-ISG-HML-01")), detail: "lote HML ausente do bundle" },
+    {
+      // O código da fronteira HML (constantes do lote) existe no bundle por
+      // natureza; o que importa é a DECLARAÇÃO não ter sido embutida.
+      check: "nenhuma declaração HML embutida (VITE_FIBT_HML_ENABLED)",
+      ok: [...client, ...server].every((x) => !/["']?VITE_FIBT_HML_ENABLED["']?\s*:\s*["']true["']/.test(x.s)),
+      detail: "variável removida do ambiente do build e ausente do bundle",
+    },
   ];
+}
+
+export function assertBuildEnvClean(env: Record<string, string>): void {
+  for (const name of ["VITE_FIBT_HML_ENABLED", "FIBT_HML_DEPLOYMENT_ENABLED", "SUPABASE_SERVICE_ROLE_KEY", "STAGING_DB_URL"]) {
+    if (name in env) throw new StepError(`ambiente do build contém ${name} — recusado`);
+  }
 }
 
 // ── Configs efetivos ────────────────────────────────────────────────────────
@@ -256,6 +268,7 @@ async function build(): Promise<void> {
   log(`  ok   chave pública (${klass.kind}) de ${source}; validada no projeto (GET /auth/v1/settings → 200)`);
 
   const env = buildEnvironment(process.env as Record<string, string | undefined>, key);
+  assertBuildEnvClean(env);
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\..+/, "");
   const pkg = join(PACKAGES, `${commit.slice(0, 12)}-${stamp}`);
   mkdirSync(join(pkg, "evidence"), { recursive: true });
