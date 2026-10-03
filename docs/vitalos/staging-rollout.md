@@ -1,141 +1,146 @@
 # Rollout IVO R5/R6 em staging — pacote operacional
 
-Documento único do rollout IVO em staging. Não substitui
-`docs/fibt-hml/*` (Worker histórico `vitalos-fibt-hml-isg`, que **não muda**).
+Documento único do rollout IVO em staging. O Worker histórico
+`vitalos-fibt-hml-isg` (`docs/fibt-hml/*`) **não muda**.
 
-## 1. Estado
+## 1. Estado e entrada única
 
-| Item | Valor |
+Toda a preparação passa por `bun run ivo:staging:prepare <comando>`
+(`scripts/ivo-staging-prepare.ts`; adaptador PowerShell 5.1 com prompt oculto
+em `scripts/ivo-staging/prepare.ps1`). Comandos: `build`, `preflight`,
+`snapshot`, `edge-check`, `secrets-file`, `provision`, `finalize`.
+
+| Marco | Estado |
 |---|---|
-| Branch / PR | `feat/ivo-fibt-platform-foundation` / #51 (draft) |
-| Commit de código do pacote | `a99e760` (evidências abaixo vinculadas a esta árvore) |
-| CODE_READY | Sim — testes locais e CI do commit final |
-| STAGING_PACKAGE_READY | **Parcial** — falta a configuração privada de staging (§8); sem ela não há artefato de staging nem dry-run com alvo real |
+| CODE_READY | Sim (gate + CI do commit do pacote) |
+| BUILD_ENV_READY | Sim — alvo canônico fixo; chave pública obtida pelo Supabase CLI autenticado e validada no projeto (`GET /auth/v1/settings` → 200) |
+| STAGING_ARTIFACT_VERIFIED | Sim — pacote em `.ivo-staging.local/packages/<commit12>-<carimbo>/` (fora do git), hash publicado no PR |
+| DRY_RUN | Sim — bootstrap, app e contenção sobre o MESMO pacote, digest conferido depois |
+| ROLLOUT_PLAN_READY | Sim — entradas, ordem, recuperação e comandos definidos abaixo |
 | REMOTE_SMOKE | Não executado |
-| Escritas remotas desta onda | Nenhuma em banco/infra. Só GitHub (push + PR) |
 
-## 2. Decisão (Tree of Thoughts, 3 caminhos)
+Escritas feitas até aqui: só GitHub. Leituras feitas no staging: preflight e
+impressão digital do ledger (SELECT via `supabase db query --linked`).
 
-- A — só a migration: insuficiente; o código recusa HML e o ledger fica sem capability.
-- B — ampliar o Worker HML: mistura o deployment histórico (ISG, allowlist fechada) com o produto genérico.
-- **C — perfil de staging IVO** (escolhido): Worker novo `vitalos-ivo-staging`, `VITALOS_IVO_PROFILE=staging` com projeto e organizações explícitos, reaproveitando sessão, leitor FIB-T e ledger. Recuperação da aplicação independe do banco.
+## 2. Mecanismo de preparação (decisão)
 
-## 3. Alvo
+Configuração por **processo filho** com ambiente montado pelo script, chave
+pública vinda da integração autenticada já instalada (Supabase CLI) ou de
+prompt oculto. Rejeitados: arquivo privado com chave (precisa de ciclo de vida
+e limpeza) e editar `.env`/dashboard (herança silenciosa, sem verificação). O
+ambiente do chamador não é alterado; o adaptador restaura variáveis no `finally`.
+
+## 3. Alvo (valores públicos)
 
 | | |
 |---|---|
-| Projeto Supabase | staging `xttjkpzhxtjfwxjsxuab` (produção `shlmzzchddohaytfakol` excluída: o perfil recusa se o ref coincidir) |
-| Worker | `vitalos-ivo-staging` (`wrangler.ivo-staging.jsonc`), `workers_dev`, sem preview URLs |
-| Borda | Aplicação Cloudflare Access cobrindo a URL workers.dev **antes do primeiro upload** |
-| Organizações | Fictícias Alfa e Beta, criadas pelo provisionamento (§6.4) |
+| Supabase | `xttjkpzhxtjfwxjsxuab` (`https://xttjkpzhxtjfwxjsxuab.supabase.co`); produção `shlmzzchddohaytfakol` só como bloqueio |
+| Conta Cloudflare | `cf5c12917add1a584f7ee33bc7a56a6a` (wrangler whoami); subdomínio `pesquisafib` (confirmado: `vitalos-fibt-hml-isg.pesquisafib.workers.dev` → 302 Access) |
+| Worker | `vitalos-ivo-staging` (inexistente na leitura: 10007) → `https://vitalos-ivo-staging.pesquisafib.workers.dev` = `VITE_APP_URL` |
+| PostgreSQL | 17.6 |
 
-## 4. Banco — o mínimo necessário, nesta ordem
+## 4. Entradas
 
-Rode `scripts/ivo-staging/preflight.sql` (somente leitura) antes de tudo. Cada passo abaixo só roda se o preflight indicar `MISSING` no item correspondente; qualquer `FAIL` interrompe o rollout.
+| Entrada | Fonte | Estado |
+|---|---|---|
+| Ref/URL de staging e ref de produção | fixos em `scripts/ivo-staging/package-lib.ts` | ok |
+| Publishable key | `supabase projects api-keys` (CLI autenticado) ou `prepare.ps1` (prompt oculto); aceita `sb_publishable_` ou anon legada; recusa secret/service_role | ok |
+| `VITE_FIBT_PILOT_ENABLED` | `true` (fixado pelo build) | ok |
+| Declarações HML / fixture local / `VITALOS_DB_TARGET` | **removidas** do processo de build (não "false") | ok |
+| `SUPABASE_SERVICE_ROLE_KEY` | `secrets-file` → arquivo privado fora do repo → `wrangler deploy --secrets-file` e `provision` | gerado no rollout |
+| `IVO_STAGING_ALFA_ADMIN_EMAIL`, `IVO_STAGING_ALFA_MEMBER_EMAIL`, `IVO_STAGING_BETA_ADMIN_EMAIL` | 3 caixas reais do operador (login por link mágico) | **operador** |
+| E-mails da política Access | pessoas nomeadas (sem curinga de domínio) | **operador** |
+| IDs de Alfa/Beta | saída do `provision --apply` (nunca IDs da demo local — `finalize` recusa) | gerado no rollout |
 
-| # | Arquivo | Quando | O que entrega |
-|---|---|---|---|
-| 1 | `supabase/migrations/20260705100000_action_plan_ledger.sql` | Se `table action_*` ou `function create_action_plan…` = MISSING | 4 tabelas do ledger (RLS: membro lê a própria org; sem escrita de cliente) e 5 RPCs `SECURITY DEFINER`, `search_path=public`, EXECUTE só `service_role`. Depende de `wave_capsules` (FK). |
-| 2 | `supabase/migrations/20261002120000_fibt_action_provenance.sql` | Sempre (idempotente) | Colunas `source_*`, CHECKs corrigidos (R6-C1), FKs compostas por organização, `evidence_scope`, `create_action_plan` com validação de proveniência. |
+## 5. Bindings do Worker — fonte de verdade
 
-Regras:
-- **Nunca** reaplicar o passo 1 depois do passo 2 (recria `create_action_plan` sem validação). O preflight detecta (`R6 create_action_plan validates provenance` = MISSING) e a correção é reaplicar o passo 2.
-- Não usar `supabase db push`, `--include-all` nem `migration repair`: o histórico remoto não está reconciliado. Não inserir linhas em `supabase_migrations.schema_migrations`.
-- Procedimento por arquivo: conferir o SHA-256 do arquivo contra `supabase/migrations.manifest.json`; colar o conteúdo inteiro no SQL Editor de **staging** (o arquivo 2 tem `BEGIN/COMMIT` próprios; o 1 roda como submissão única); registrar horário, hash e o resultado do preflight posterior no log do rollout.
-- Nada de M6A, G1 ou Task 10.1 é reaplicado por este rollout.
+O config efetivo do pacote (`wrangler.app.json`) é a fonte de verdade:
+`keep_vars: false` faz o deploy **apagar** vars do Dashboard e aplicar
+exatamente estas; `secrets.required` faz o deploy falhar sem o secret. Não
+editar vars no Dashboard.
 
-Prova local da sequência (commit `e6d095a` em diante): `db:replay:preprod` aplica ledger → R6 num clone do estado produtivo observado, confere o corpo da RPC, reconcilia a M6A e roda a suíte 07 com caminho de RPC **PROVADO** (não SKIP).
-
-## 5. Configuração
-
-Build (`bun run build:ivo:staging`, preflight `--runtime=preview --db=staging`) — variáveis do processo de build:
-
-| Nome | Valor esperado |
-|---|---|
-| `VITALOS_STAGING_PROJECT_REF` | `xttjkpzhxtjfwxjsxuab` |
-| `VITALOS_PRODUCTION_PROJECT_REF` | ref de produção (já no `.env` versionado) |
-| `SUPABASE_URL`, `VITE_SUPABASE_URL` | URL do projeto de staging (sobrescrevem o `.env`) |
-| `SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PUBLISHABLE_KEY` | publishable key de staging (pode ser opaca `sb_publishable_…`) |
-| `VITE_FIBT_PILOT_ENABLED` | `true` |
-| `VITE_APP_URL` | URL do Worker |
-| `VITE_FIBT_HML_ENABLED` | **ausente** |
-
-Runtime do Worker (`vars`) + 1 secret:
-
-| Nome | Valor |
+| Var | Valor |
 |---|---|
 | `VITALOS_IVO_PROFILE` | `staging` |
 | `VITALOS_IVO_AUTHORIZED_PROJECT_REF` | `xttjkpzhxtjfwxjsxuab` |
-| `VITALOS_IVO_AUTHORIZED_ORG_IDS` | IDs de Alfa e Beta (saída do §6.4), separados por vírgula |
-| `VITALOS_PRODUCTION_PROJECT_REF` | ref de produção |
+| `VITALOS_IVO_AUTHORIZED_ORG_IDS` | `PENDENTE_PROVISIONAMENTO` até o `finalize` — placeholder **invalida** o perfil (fail-closed); o perfil `default` nunca conta como staging configurado |
+| `VITALOS_PRODUCTION_PROJECT_REF` | `shlmzzchddohaytfakol` |
 | `SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | iguais ao build |
-| `SUPABASE_SERVICE_ROLE_KEY` | **secret** (`wrangler secret put`), nunca em `vars` |
-| `FIBT_HML_DEPLOYMENT_ENABLED`, `VITE_FIBT_HML_ENABLED` | **ausentes** (presentes ⇒ perfil inválido ⇒ IVO recusa tudo) |
+| Secret `SUPABASE_SERVICE_ROLE_KEY` | `--secrets-file` (aditivo; não apaga secrets) |
 
-O perfil (`src/lib/ivo/ivo-runtime-profile.server.ts`) recusa antes de consultar a sessão se o projeto da URL ≠ autorizado, se produção não está declarada ou coincide, ou se a allowlist está vazia/malformada. A organização sempre vem da sessão; a allowlist só restringe. `ACTION_PLAN` liga apenas para o ciclo IVO; o registro global e `/plano-acao` legado continuam desligados.
+`workers_dev: true`, `preview_urls: false` (sem Version/Preview URLs),
+`run_worker_first: true` (assets também passam pelo Worker e pelo Access).
 
-## 6. Sequência
+## 6. Banco — o que o preflight observou e o que falta
 
-1. **Snapshot** (antes de qualquer escrita): confirmar backup diário/PITR do projeto no dashboard; e
-   `docker run --rm postgres:17 pg_dump "$STAGING_DB_URL" --schema-only -f ivo-pre-schema.sql` +
-   `pg_dump "$STAGING_DB_URL" --data-only -t 'public.action_*' -t public.evidence_records -f ivo-pre-ledger.sql`
-   (`STAGING_DB_URL` vem do cofre do operador; arquivos fora do repositório).
-2. **Preflight** `scripts/ivo-staging/preflight.sql`. Interromper em qualquer `FAIL`.
-3. **Banco** §4 (passo 1 condicional, passo 2). **Preflight de novo**: todos os itens de banco = PASS (fixtures ainda MISSING).
-4. **Provisionamento** (escreve em staging: usuários de teste, organizações, onda, respostas sintéticas):
-   ```
-   bun run ivo:staging:provision --target-ref=xttjkpzhxtjfwxjsxuab            # plan: só valida, sem rede
-   bun run ivo:staging:provision --target-ref=xttjkpzhxtjfwxjsxuab --apply \
-     --out=<privado>/ivo-staging-manifest.json --secrets-out=<privado>/ivo-staging-test-passwords.json
-   ```
-   Requer `IVO_STAGING_ALFA_ADMIN_EMAIL`, `IVO_STAGING_ALFA_MEMBER_EMAIL`, `IVO_STAGING_BETA_ADMIN_EMAIL` (caixas reais do operador — o login é por link mágico), `SUPABASE_SERVICE_ROLE_KEY` e `VITE_FIBT_PILOT_ENABLED=true` no ambiente. Idempotente; estado parcial aborta. Imprime os IDs para `VITALOS_IVO_AUTHORIZED_ORG_IDS`.
-5. **Build** `bun run build:ivo:staging`; `bun run scripts/build-secret-scan.ts --require-artifact`; registrar SHA-256 de `.output/server/index.mjs`.
-6. **Dry-run** `bunx wrangler deploy --dry-run --config wrangler.ivo-staging.jsonc --outdir <tmp>`.
-7. **Access** confirmado na URL do Worker; **vars/secret** do §5 configurados.
-8. **Deploy** `bunx wrangler deploy --config wrangler.ivo-staging.jsonc`; registrar o version id.
-9. **Smoke** (§7). **Preflight final**.
+`bun run ivo:staging:prepare preflight` (somente SELECT): **41 PASS · 9 MISSING · 0 FAIL**.
+Ledger `20260705100000`: as 5 RPCs com corpo **idêntico ao do repositório**
+(md5 normalizado), ACL só `service_role`, RLS ligada, colunas iguais, 0 linhas
+em `action_*`. Decisão: **não reaplicar o ledger**. MISSING: os 7 itens de R6
+e as 2 organizações fictícias.
 
-Critérios de interrupção: `FAIL` no preflight; erro em qualquer migration (a transação volta inteira); provisionamento abortado; requisição sem Access que não seja redirecionada; qualquer dado de uma organização visível à outra; número exibido em setor protegido.
+Única mudança de banco: `supabase/migrations/20261002120000_fibt_action_provenance.sql`.
+- Atômica: `BEGIN … COMMIT` próprios, uma transação; erro ⇒ nada muda.
+- Estado antes: ledger sem R6. Depois: ledger + R6. Não há estado intermediário.
+- Não existe rollback conjunto com o provisionamento (transações distintas, etapas seguintes).
+- Método: conferir SHA-256 contra `supabase/migrations.manifest.json` e executar o arquivo inteiro:
+  `bunx supabase@2.119.0 db query --linked --project-ref xttjkpzhxtjfwxjsxuab -f supabase/migrations/20261002120000_fibt_action_provenance.sql`
+  (ou colar no SQL Editor). Sem `db push`, `--include-all` ou `migration repair`; nada é escrito em `supabase_migrations.schema_migrations`.
+- Nunca reaplicar `20260705100000` depois de R6 (recria `create_action_plan` sem validação; o preflight acusa).
 
-## 7. Smoke remoto (pela interface, com Access)
+## 7. Sequência executável
+
+1. **Pacote** (já feito para o commit do PR): `bun run ivo:staging:prepare build` — exige worktree limpo; gera diretório novo a cada execução, nunca sobrescreve.
+2. **Borda, sem exposição intermediária**
+   1. `bunx wrangler@4.147.0 deploy --config <pkg>/wrangler.bootstrap.json` — cria o Worker com uma versão selada (403 em tudo, sem vars, sem secret, sem código VitalOS).
+   2. Dashboard → Workers & Pages → `vitalos-ivo-staging` → Settings → Domains & Routes → workers.dev → habilitar Cloudflare Access; política só com as pessoas nomeadas.
+   3. `bun run ivo:staging:prepare edge-check` — `/`, `/ivo-integral`, `/ivo-integral/q2`, `/_serverFn/…`, `/assets/…`, `/favicon.ico`, `/entrar` precisam dar 302 para `*.cloudflareaccess.com` (controle positivo provado contra o Worker histórico). O 403 do bootstrap **não** conta.
+3. **Snapshot**: `bun run ivo:staging:prepare snapshot --via-cli --out-dir=<privado>` (schema `public` + dados de `public`, SQL plano, `SHA256SUMS`, `coverage.json`; credenciais redigidas nos logs). Alternativa com URL própria: `prepare.ps1 -Command snapshot -OutDir <privado>` (URL por prompt oculto → `pg_dump -Fc` em volume `-v <host>:/backup`, TOC + SHA-256). Não cobre `auth.*`/`storage.*` — o backup do projeto (PITR/diário) segue sendo a referência para isso.
+4. **Preflight** → esperado 41/9/0 e "não reaplicar o ledger".
+5. **Banco** (§6) → **preflight**: R6 PASS; só fixtures MISSING.
+6. **Provisionamento**: `bun run ivo:staging:prepare secrets-file --out=<privado>\ivo-staging.secrets.json`; definir os 3 e-mails; `… provision --secrets-file=<privado>\ivo-staging.secrets.json` (plano) e depois `… --apply --out=<privado>\provision-manifest.json --secrets-out=<privado>\test-passwords.json`. Escreve: 3 usuários de teste, 2 organizações (convite → `provision_organization_from_invite`), 1 membro, 2 ondas, 7 setores, 7 links, 31 respostas sintéticas, publicação de Operações e tentativa em Produção (retida por supressão complementar). Idempotente; estado parcial aborta. **Preflight**: tudo PASS.
+7. **Runtime**: `bun run ivo:staging:prepare finalize --package=<pkg> --provision-manifest=<privado>\provision-manifest.json` — valida projeto e IDs, regrava `wrangler.app.json`, refaz o dry-run, confere o digest do código; registrar `runtime-manifest.json`.
+8. **Deploy do pacote identificado**: `bunx wrangler@4.147.0 deploy --config <pkg>/wrangler.app.json --secrets-file <privado>\ivo-staging.secrets.json`; registrar o version id; `edge-check` de novo.
+9. **Smoke** (§8).
+
+Interromper em: `FAIL` ou divergência no preflight; erro na migration; provisionamento abortado; qualquer caminho sem Access; perfil não-staging após o deploy (Q2 responde "não está habilitada corretamente"); dado de uma organização visível à outra; número em setor protegido.
+
+## 8. Smoke remoto (Access + contas do operador; só organizações fictícias)
 
 | # | Ação | Esperado |
 |---|---|---|
-| S1 | `curl -sI <worker>/ivo-integral` sem Access | 302/403 da Cloudflare Access |
-| S2 | Admin Alfa: `/entrar` → link no e-mail → `/ivo-integral` | Resumo "Organização Fictícia Alfa", Q2 FIB-T 1.0.0 disponível em parte dos setores |
+| S1 | `edge-check` | todos os caminhos 302 → Access |
+| S2 | Admin Alfa: `/entrar` → link → `/ivo-integral` | "Organização Fictícia Alfa", Q2 FIB-T 1.0.0 disponível em parte dos setores; dimensão "mapeamento pendente" |
 | S3 | `/ivo-integral/q2` | Operações com fatores; Atendimento "Publicação pendente"; Logística/Financeiro "Protegido" `<5`; Comercial "Em coleta" |
-| S4 | `/ivo-integral/acoes`: prioridade Operações × Bem-Estar → responsável/prazo/indicador → ativar → "Em execução" → evidência de execução e aprendizagem → **recarregar** | Tudo reaparece; eficácia "não avaliada"; dimensão "mapeamento pendente" |
-| S5 | Membro Alfa (papel não administrativo) | "Acesso não autorizado" |
-| S6 | Admin Beta: `/ivo-integral/q2` e `/acoes` | Beta inteira protegida (supressão complementar); nenhuma ação ou dado da Alfa |
-| S7 | Preflight final | Todos PASS |
+| S4 | `/ivo-integral/acoes`: prioridade Operações × Bem-Estar → responsável/prazo/indicador → ativar → "Em execução" → execução e aprendizagem → **recarregar** | tudo reaparece; eficácia "não avaliada" |
+| S5 | Prioridade em setor protegido (URL com `setor` de Logística) | recusada: só setor publicado embasa ação |
+| S6 | Membro Alfa | "Acesso não autorizado" |
+| S7 | Sessão inválida (sair e abrir `/ivo-integral/q2`, ou link expirado) | pedido de login; nada lido |
+| S8 | Admin Beta: `/q2` e `/acoes` | Beta inteira protegida; nenhuma ação ou dado da Alfa |
+| S9 | Preflight final | tudo PASS |
 
-## 8. Recuperação
+## 9. Recuperação
 
-**Aplicação** (não toca o banco):
-- Desligar IVO sem redeploy: `VITALOS_IVO_PROFILE=disabled` (valor inválido ⇒ toda leitura/escrita IVO recusada antes da sessão).
-- Bloquear a borda: política Access "deny all" na aplicação do Worker.
-- Versões seguintes: `bunx wrangler rollback <version-id> --name vitalos-ivo-staging`. No primeiro deploy não há versão anterior: usar os dois itens acima.
+**Aplicação** (não toca o banco; cada item é um deploy/config no provedor, verificável):
+- Contenção: `bunx wrangler@4.147.0 deploy --config <pkg>/wrangler.app-disabled.json --secrets-file …` — mesmo código, `VITALOS_IVO_PROFILE=disabled` ⇒ toda leitura/escrita IVO recusada antes da sessão. Verificação: Q2 responde "não está habilitada corretamente".
+- Rollback de versão: `bunx wrangler@4.147.0 rollback <version-id> --name vitalos-ivo-staging`. No primeiro deploy funcional, a versão anterior é o **bootstrap selado** (403 em tudo).
+- Borda: política Access "deny all" na aplicação do Worker (imediato, sem deploy).
+- Segredo: `wrangler secret delete SUPABASE_SERVICE_ROLE_KEY --name vitalos-ivo-staging` e rotação da chave no Supabase.
 
 **Banco** (independente; rollback de Worker não desfaz migration):
-- As migrations são aditivas e idempotentes; código anterior ignora as colunas novas.
-- Correção progressiva: nova migration ou reaplicação do passo 2. Não preparar DROP de colunas nem remoção automática de dados como recuperação.
-- Se o passo 1 regredir `create_action_plan`, reaplicar o passo 2.
-- Dados do ledger das organizações fictícias podem permanecer; remoção, se decidida, é ato manual autorizado à parte.
+- R6 é aditiva; o código anterior ignora as colunas novas. Correção sempre progressiva (nova migration ou reaplicação de R6), nunca DROP de colunas.
+- Dados do ledger: restaurar só as tabelas do ledger a partir do snapshot (`pg_restore --data-only --single-transaction -t action_plans -t action_items -t evidence_records -t action_log`), depois de decisão explícita. Nada de remoção automática.
+- Organizações fictícias podem permanecer; removê-las é ato manual autorizado à parte.
 
-## 9. Evidências desta árvore (local)
+## 10. Evidências
 
 | Evidência | Resultado |
 |---|---|
-| Regressão R6-C1 antes da correção (suíte 07 bloco 4 contra a versão anterior) | 7 ataques aceitos (INSERT/UPDATE com lente ou fator nulo, lente nula com lift) |
-| Depois da correção | clean 36/36, preprod 46/46, upgrade 49/49; atualização da versão defeituosa substitui os CHECKs |
-| Promoção ledger → R6 no clone produtivo | caminho de RPC PROVADO |
-| Perfil staging (unit) | ambiente/projeto/produção/allowlist/HML: recusa; org fora da allowlist: forbidden |
-| `demo:ivo:proof` (Supabase local, sessões reais, dados do provisionamento) | 30 + 5 PASS (isolamento Alfa/Beta, sessão ausente/inválida, papel insuficiente, origem não publicada, persistência após processo novo) |
-| Provisionamento reexecutado | contagens idênticas (orgs/ondas/setores/respostas/perfis/publicações) |
-| Preflight no stack promovido | 50/50 PASS |
-| `bun run gate` + `build:ci` + secret-scan `--require-artifact` | 3923 pass / 0 fail |
-| `wrangler deploy --dry-run` (artefato de CI **inerte**) | empacotamento OK (Wrangler 4.147.0). Valida a config, **não** é artefato de staging |
-
-## 10. Pendências para declarar STAGING_PACKAGE_READY
-
-Configuração privada de build de staging indisponível nesta máquina: `VITALOS_STAGING_PROJECT_REF`, `SUPABASE_URL`/`VITE_SUPABASE_URL` de staging e a publishable key de staging (nenhum `.env.local` ou arquivo privado presente). Com elas: §6 passos 5–6 produzem o artefato com alvo efetivo, hash e dry-run.
+| Regressão R6-C1 (antes/depois), promoção ledger→R6, perfil staging, `instrument_version`, isolamento Alfa/Beta | herdadas — código inalterado desde `2b68e69` (replay clean 36/36, preprod 46/46, upgrade 49/49; `demo:ivo:proof` 30+5) |
+| Preflight remoto (SELECT) | 41 PASS · 9 MISSING · 0 FAIL; ledger = versão do repo |
+| Snapshot local (`-Fc` em volume do host) | 14/14 tabelas; `sha256sum -c` OK; perda simulada das 4 tabelas do ledger restaurada com contagens idênticas (1/1/2/3) |
+| Snapshot via CLI | `--dry-run` OK; logs sem credencial (redação testada) |
+| Borda | `edge-check` reprova hoje (Worker inexistente: 404) e passa no controle positivo (Worker histórico: 7/7 → 302 Access) |
+| Pacote | `package-manifest.json`: commit, árvore, ferramentas, SHA-256 dos 678 arquivos, digest; `runtime-manifest.json`: hashes dos 3 configs, vars (chave só por impressão digital) |
+| Conteúdo do pacote | cliente com URL e chave de staging; sem URL/ref de produção; sem secret/service_role; servidor sem URL de produção; sem declaração HML |
+| Dry-run | bootstrap, app e contenção · Wrangler 4.147.0 · digest inalterado após o dry-run |

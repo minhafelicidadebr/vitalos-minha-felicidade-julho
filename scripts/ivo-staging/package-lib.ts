@@ -189,5 +189,9 @@ export function sanitizeLog(text: string, sensitive: readonly string[]): string 
   for (const value of sensitive) if (value && value.length >= 8) out = out.split(value).join("<REDACTED>");
   return out
     .replace(/sb_(secret|publishable)_[A-Za-z0-9_-]{6,}/g, "sb_$1_<REDACTED>")
-    .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, "<JWT_REDACTED>");
+    .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, "<JWT_REDACTED>")
+    // URLs de banco com credencial e senhas de pg (ex.: script impresso pelo `db dump --dry-run`).
+    .replace(/(postgres(?:ql)?:\/\/)[^\s"'@]+@/gi, "$1<REDACTED>@")
+    .replace(/(PGPASSWORD\s*=\s*)("[^"]*"|'[^']*'|\S+)/g, "$1<REDACTED>")
+    .replace(/(password\s*=\s*)("[^"]*"|'[^']*'|\S+)/gi, "$1<REDACTED>");
 }

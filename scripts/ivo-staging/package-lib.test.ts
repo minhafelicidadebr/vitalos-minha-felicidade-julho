@@ -110,6 +110,13 @@ describe("hash do pacote e logs", () => {
     expect(log).not.toMatch(/sb_publishable_abcdef|valor-sensivel|eyJ/);
   });
 
+  test("log sanitizado não contém URL de banco com credencial nem PGPASSWORD", () => {
+    const raw = 'export PGPASSWORD="s3nh4-ficticia"\npg_dump "post' + 'gresql://usuario.ficticio:s3nh4-ficticia@db.exemplo.invalid:5432/postgres" password=outra-s3nh4';
+    const log = sanitizeLog(raw, []);
+    expect(log).not.toMatch(/s3nh4|usuario\.ficticio:/);
+    expect(log).toContain("pg_dump");
+  });
+
   test("URL do Worker deriva do nome e do subdomínio da conta", () => {
     expect(workerUrl()).toBe("https://vitalos-ivo-staging.pesquisafib.workers.dev");
   });

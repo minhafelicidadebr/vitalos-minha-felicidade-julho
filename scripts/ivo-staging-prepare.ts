@@ -206,10 +206,20 @@ function writeConfigs(pkg: string, key: string, orgIds: string[] | null) {
     keep_vars: false,
     vars: {},
   };
+  // Contenção: MESMO código verificado, perfil inválido ⇒ toda leitura/escrita
+  // IVO recusada antes da sessão. Exige um deploy (nova versão), não é
+  // mudança "sem redeploy".
+  const disabled = effectiveWranglerConfig(baseConfig(), {
+    phase: "public",
+    outputDir,
+    vars: { ...vars, VITALOS_IVO_PROFILE: "disabled" },
+  });
   writeFileSync(join(pkg, "wrangler.app.json"), JSON.stringify(app, null, 2));
+  writeFileSync(join(pkg, "wrangler.app-disabled.json"), JSON.stringify(disabled, null, 2));
   writeFileSync(join(pkg, "wrangler.bootstrap.json"), JSON.stringify(bootstrap, null, 2));
   return {
     vars,
+    disabledSha256: sha256File(join(pkg, "wrangler.app-disabled.json")),
     appSha256: sha256File(join(pkg, "wrangler.app.json")),
     bootstrapSha256: sha256File(join(pkg, "wrangler.bootstrap.json")),
     bootstrapWorkerSha256: sha256File(join(pkg, "bootstrap", "index.mjs")),
@@ -236,6 +246,7 @@ function runtimeManifest(pkg: string, codeDigest: string, cfg: ReturnType<typeof
     configs: {
       bootstrap: { file: "wrangler.bootstrap.json", sha256: cfg.bootstrapSha256, workerSha256: cfg.bootstrapWorkerSha256 },
       app: { file: "wrangler.app.json", sha256: cfg.appSha256, keep_vars: false, workers_dev: true, preview_urls: false },
+      containment: { file: "wrangler.app-disabled.json", sha256: cfg.disabledSha256, VITALOS_IVO_PROFILE: "disabled" },
     },
     vars: Object.fromEntries(
       Object.entries(cfg.vars).map(([k, v]) => [k, k === "SUPABASE_PUBLISHABLE_KEY" ? `<publishable sha256:${fingerprint.slice(0, 16)}>` : v]),
@@ -302,7 +313,8 @@ async function build(): Promise<void> {
   const cfg = writeConfigs(pkg, key, null);
   const dryApp = await dryRun(pkg, "wrangler.app.json", "app", key);
   const dryBoot = await dryRun(pkg, "wrangler.bootstrap.json", "bootstrap", key);
-  if (!dryApp.ok || !dryBoot.ok) throw new StepError("dry-run do Wrangler falhou — ver evidence/dryrun-*.log");
+  const dryOff = await dryRun(pkg, "wrangler.app-disabled.json", "containment", key);
+  if (!dryApp.ok || !dryBoot.ok || !dryOff.ok) throw new StepError("dry-run do Wrangler falhou — ver evidence/dryrun-*.log");
   const after = packageDigest(digestTree(join(pkg, "output")));
   if (after !== digest) throw new StepError("o pacote mudou durante o dry-run (rebuild oculto?)");
   log(`  ok   dry-run (app + bootstrap) sobre o mesmo pacote · Wrangler ${dryApp.wrangler} · digest inalterado`);
@@ -364,11 +376,54 @@ const SNAPSHOT_TABLES = [
   "wave_responses", "cohort_capsules", "ops_events", "action_plans", "action_items", "evidence_records", "action_log",
 ];
 
+/**
+ * Variante sem URL de banco: `supabase db dump --linked --project-ref` (o CLI
+ * autenticado gerencia a credencial e grava no HOST via -f). SQL plano.
+ * `--dry-run` só imprime o script do pg_dump (nenhum dado lido).
+ */
+async function snapshotViaCli(outDir: string, dryRunOnly: boolean): Promise<void> {
+  const base = ["bunx", SUPABASE_CLI, "db", "dump", "--linked", "--project-ref", IVO_STAGING_TARGET.projectRef, "--schema", "public"];
+  const workdir = join(outDir, ".cli");
+  mkdirSync(workdir, { recursive: true });
+  const jobs = [
+    { file: "schema-public.sql", args: [] as string[] },
+    { file: "data-public.sql", args: ["--data-only", "--use-copy"] },
+  ];
+  for (const job of jobs) {
+    const cmd = [...base, ...job.args, "--workdir", workdir, ...(dryRunOnly ? ["--dry-run"] : ["-f", join(outDir, job.file)])];
+    const r = await run(cmd, { timeoutMs: 900_000 });
+    writeFileSync(join(outDir, `${job.file}.log`), sanitizeLog(`${r.out}\n${r.err}`, []));
+    if (r.code !== 0 || r.timedOut) throw new StepError(`supabase db dump falhou para ${job.file} (exit ${r.code}) — ver ${job.file}.log`);
+    if (dryRunOnly && !/pg_dump/.test(r.out + r.err)) throw new StepError(`dry-run do dump não mostrou o script do pg_dump (${job.file})`);
+  }
+  if (dryRunOnly) {
+    console.log(`  ok   dump via CLI validado em --dry-run (nenhum dado lido) · logs em ${outDir}`);
+    return;
+  }
+  for (const job of jobs) {
+    const path = join(outDir, job.file);
+    if (!existsSync(path) || statSync(path).size === 0) throw new StepError(`arquivo de snapshot vazio ou ausente: ${job.file}`);
+  }
+  const data = readFileSync(join(outDir, "data-public.sql"), "utf8");
+  const covered = SNAPSHOT_TABLES.filter((t) => new RegExp(`COPY "?public"?\\."?${t}"? `).test(data));
+  const files = jobs.map((j) => j.file);
+  writeFileSync(join(outDir, "SHA256SUMS"), files.map((f) => `${sha256File(join(outDir, f))}  ${f}`).join("\n") + "\n");
+  writeFileSync(
+    join(outDir, "coverage.json"),
+    JSON.stringify({ takenAt: new Date().toISOString(), via: "supabase db dump --linked", schema: "public (DDL + ACL)", data: "todas as tabelas de public", rolloutTablesWithData: covered, notCovered: ["auth.*", "storage.*"] }, null, 2),
+  );
+  console.log(`  ok   snapshot via CLI em ${outDir} · ${covered.length}/${SNAPSHOT_TABLES.length} tabelas do rollout com dados · SHA256SUMS gravado`);
+}
+
 async function snapshot(): Promise<void> {
   const outDir = resolve(arg("out-dir") ?? "");
   if (!arg("out-dir")) throw new StepError("--out-dir=<diretório do host FORA do repositório> obrigatório");
   if (outDir.toLowerCase().startsWith(ROOT.toLowerCase())) throw new StepError("--out-dir não pode ficar dentro do repositório");
-  if (!process.env.STAGING_DB_URL) throw new StepError("STAGING_DB_URL ausente no ambiente (nunca passe a URL como argumento)");
+  if (!process.env.STAGING_DB_URL || process.argv.includes("--via-cli")) {
+    mkdirSync(outDir, { recursive: true });
+    await snapshotViaCli(outDir, process.argv.includes("--dry-run"));
+    return;
+  }
   mkdirSync(outDir, { recursive: true });
   const network = arg("docker-network");
   const tables = SNAPSHOT_TABLES.map((t) => `-t public.${t}`).join(" ");
@@ -400,6 +455,152 @@ async function snapshot(): Promise<void> {
   console.log(`  ok   snapshot em ${outDir} · ${covered.length}/${SNAPSHOT_TABLES.length} tabelas com dados · SHA256SUMS gravado`);
 }
 
+// ── secrets-file ────────────────────────────────────────────────────────────
+// Grava o ÚNICO secret do Worker num arquivo privado FORA do repositório, a
+// partir da integração autenticada do Supabase CLI. Nunca imprime o valor.
+// Usado por `wrangler deploy --secrets-file` e pelo `provision`.
+
+function outsideRepo(path: string, flag: string): string {
+  const full = resolve(path);
+  if (!path) throw new StepError(`--${flag}=<arquivo FORA do repositório> obrigatório`);
+  if (full.toLowerCase().startsWith(ROOT.toLowerCase())) throw new StepError(`--${flag} não pode ficar dentro do repositório`);
+  return full;
+}
+
+async function secretsFile(): Promise<void> {
+  const out = outsideRepo(arg("out") ?? "", "out");
+  const r = await run(["bunx", SUPABASE_CLI, "projects", "api-keys", "--project-ref", IVO_STAGING_TARGET.projectRef, "-o", "json"], { timeoutMs: 90_000 });
+  if (r.code !== 0 || r.timedOut) throw new StepError("Supabase CLI sem acesso às chaves do projeto de staging");
+  const keys = JSON.parse(r.out) as Array<{ name?: string; type?: string; api_key?: string }>;
+  const secret = keys.find((k) => k.type === "secret")?.api_key ?? keys.find((k) => k.name === "service_role")?.api_key;
+  if (!secret) throw new StepError("chave de servidor não encontrada para o projeto de staging");
+  writeFileSync(out, JSON.stringify({ SUPABASE_SERVICE_ROLE_KEY: secret }), { mode: 0o600 });
+  console.log(`  ok   secrets file gravado fora do repositório (${out}); valor não exibido`);
+}
+
+// ── provision ───────────────────────────────────────────────────────────────
+// Executa scripts/ivo-provision-fictitious-orgs.ts com o ambiente canônico de
+// staging num processo filho (mesma construção do build + o secret do arquivo
+// privado). Sem --apply, só valida o plano.
+
+async function provision(): Promise<void> {
+  const secretsPath = arg("secrets-file");
+  const { key } = await resolvePublishableKey(console.log);
+  const env = buildEnvironment(process.env as Record<string, string | undefined>, key);
+  for (const name of ["IVO_STAGING_ALFA_ADMIN_EMAIL", "IVO_STAGING_ALFA_MEMBER_EMAIL", "IVO_STAGING_BETA_ADMIN_EMAIL"]) {
+    const v = process.env[name];
+    if (v) env[name] = v;
+  }
+  const sensitive = [key];
+  if (secretsPath && existsSync(secretsPath)) {
+    const secret = (JSON.parse(readFileSync(secretsPath, "utf8")) as { SUPABASE_SERVICE_ROLE_KEY?: string }).SUPABASE_SERVICE_ROLE_KEY;
+    if (secret) {
+      env.SUPABASE_SERVICE_ROLE_KEY = secret;
+      sensitive.push(secret);
+    }
+  }
+  const args = ["run", "scripts/ivo-provision-fictitious-orgs.ts", `--target-ref=${IVO_STAGING_TARGET.projectRef}`];
+  for (const flag of ["out", "secrets-out"]) {
+    const v = arg(flag);
+    if (v) args.push(`--${flag}=${outsideRepo(v, flag)}`);
+  }
+  if (process.argv.includes("--apply")) args.push("--apply");
+  const r = await run(["bun", ...args], { env, timeoutMs: 1_800_000 });
+  console.log(sanitizeLog(`${r.out}\n${r.err}`.trim(), sensitive));
+  if (r.code !== 0) throw new StepError(`provisionamento ${process.argv.includes("--apply") ? "falhou" : "recusou o plano"} (exit ${r.code})`);
+}
+
+// ── preflight ───────────────────────────────────────────────────────────────
+// Roda as verificações de scripts/ivo-staging/preflight.sql (somente SELECT)
+// pelo Supabase CLI autenticado (`db query --linked --project-ref`) e compara
+// a impressão digital do ledger remoto com a do arquivo do repositório:
+//   AUSENTE · VERSÃO_DO_REPO · DIVERGENTE — idempotência não justifica reaplicar.
+
+const LEDGER_FINGERPRINT_SQL = `SELECT p.proname AS fn, md5(regexp_replace(p.prosrc, '\\s+', ' ', 'g')) AS body_md5
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE n.nspname = 'public' AND p.proname IN ('create_action_plan','set_action_item_accountability','activate_action_plan','record_action_event','record_evidence')
+ ORDER BY 1;`;
+
+/** md5 dos corpos das 5 RPCs do ledger 20260705100000, normalizados (whitespace). */
+export const LEDGER_REPO_BODY_MD5: Record<string, string> = {
+  activate_action_plan: "2989bd436df1c21c7f119613de154657",
+  create_action_plan: "07e18a35ccd964f895498b2066bc3c00",
+  record_action_event: "9f37f2553ba5528291bd16c7f9447412",
+  record_evidence: "c19fac493371a8ebb4962901656505a8",
+  set_action_item_accountability: "f7c528fc36f316e449d90bb99c8a9ead",
+};
+
+async function remoteQuery(sql: string): Promise<Array<Record<string, unknown>>> {
+  const dir = join(process.env.TEMP ?? process.env.TMPDIR ?? "/tmp", `ivo-preflight-${process.pid}`);
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, "q.sql");
+  writeFileSync(file, sql);
+  const r = await run(
+    ["bunx", SUPABASE_CLI, "db", "query", "--linked", "--project-ref", IVO_STAGING_TARGET.projectRef, "--workdir", dir, "-f", file, "--output-format", "json"],
+    { timeoutMs: 180_000 },
+  );
+  if (r.code !== 0 || r.timedOut) throw new StepError(`consulta somente leitura ao staging falhou (exit ${r.code}${r.timedOut ? ", timeout" : ""})`);
+  return JSON.parse(r.out) as Array<Record<string, unknown>>;
+}
+
+async function preflight(): Promise<void> {
+  const sql = readFileSync(join(ROOT, "scripts", "ivo-staging", "preflight.sql"), "utf8").replace(/\r\n/g, "\n");
+  const start = sql.indexOf("WITH\n");
+  const end = sql.indexOf("check_name;", start) + "check_name;".length;
+  if (start < 0 || end <= start) throw new StepError("preflight.sql com formato inesperado");
+  const rows = await remoteQuery(sql.slice(start, end));
+  const by = (s: string) => rows.filter((r) => r.state === s);
+  for (const r of [...by("FAIL"), ...by("MISSING")]) console.log(`  ${String(r.state).padEnd(7)} ${r.check_name} — ${r.detail}`);
+  console.log(`  checks: PASS=${by("PASS").length} MISSING=${by("MISSING").length} FAIL=${by("FAIL").length}`);
+
+  const fp = await remoteQuery(LEDGER_FINGERPRINT_SQL);
+  const states = Object.entries(LEDGER_REPO_BODY_MD5).map(([fn, md5]) => {
+    const remote = fp.find((r) => r.fn === fn)?.body_md5;
+    const r6 = fn === "create_action_plan" && rows.some((x) => x.check_name === "R6 create_action_plan validates provenance" && x.state === "PASS");
+    return { fn, state: remote === undefined ? "AUSENTE" : remote === md5 ? "VERSÃO_DO_REPO" : r6 ? "VERSÃO_R6" : "DIVERGENTE" };
+  });
+  for (const s of states) console.log(`  ledger ${s.fn}: ${s.state}`);
+  const ledger = states.every((s) => s.state === "AUSENTE")
+    ? "AUSENTE → aplicar 20260705100000 e depois 20261002120000"
+    : states.some((s) => s.state === "DIVERGENTE")
+      ? "DIVERGENTE → PARAR (não aplicar nada por cima)"
+      : states.some((s) => s.state === "AUSENTE")
+        ? "PARCIAL → PARAR"
+        : "PRESENTE → NÃO reaplicar 20260705100000";
+  console.log(`  decisão do ledger: ${ledger}`);
+  if (by("FAIL").length > 0 || ledger.includes("PARAR")) throw new StepError("preflight bloqueia o rollout");
+}
+
+// ── edge-check ──────────────────────────────────────────────────────────────
+// Prova, SEM credencial, que o Access cobre o hostname novo antes da versão
+// funcional: página, server function, asset e rota IVO precisam redirecionar
+// para *.cloudflareaccess.com. O 403 do bootstrap selado NÃO conta como Access.
+
+const EDGE_PATHS = ["/", "/ivo-integral", "/ivo-integral/q2", "/_serverFn/" + "0".repeat(64), "/assets/probe.js", "/favicon.ico", "/entrar"];
+
+async function edgeCheck(): Promise<void> {
+  // --worker-url só para controle positivo (ex.: Worker histórico já protegido).
+  const base = (arg("worker-url") ?? workerUrl()).replace(/\/$/, "");
+  if (!/^https:\/\/[a-z0-9-]+\.pesquisafib\.workers\.dev$/.test(base)) throw new StepError("--worker-url fora da conta workers.dev conhecida");
+  let ok = true;
+  for (const path of EDGE_PATHS) {
+    const res = await fetch(base + path, { redirect: "manual" });
+    await res.arrayBuffer();
+    const location = res.headers.get("location") ?? "";
+    let host = "";
+    try {
+      host = location ? new URL(location, base).hostname : "";
+    } catch {
+      host = "";
+    }
+    const access = (res.status === 302 || res.status === 303) && host.endsWith(".cloudflareaccess.com");
+    ok &&= access;
+    console.log(`  ${access ? "ok  " : "FAIL"} ${path} → ${res.status}${host ? ` (${host.endsWith(".cloudflareaccess.com") ? "<team>.cloudflareaccess.com" : host})` : ""}`);
+  }
+  if (!ok) throw new StepError("Cloudflare Access não cobre todos os caminhos do Worker — NÃO implantar a versão funcional");
+  console.log("  ok   todos os caminhos exigem Access");
+}
+
 // ── main ────────────────────────────────────────────────────────────────────
 
 if (import.meta.main) {
@@ -408,7 +609,11 @@ if (import.meta.main) {
     if (command === "build") await build();
     else if (command === "finalize") await finalize();
     else if (command === "snapshot") await snapshot();
-    else throw new StepError(`comando desconhecido: ${command}. Use build | finalize | snapshot.`);
+    else if (command === "secrets-file") await secretsFile();
+    else if (command === "provision") await provision();
+    else if (command === "preflight") await preflight();
+    else if (command === "edge-check") await edgeCheck();
+    else throw new StepError(`comando desconhecido: ${command}. Use build | finalize | snapshot | secrets-file | provision.`);
   } catch (error) {
     const code = error instanceof StepError ? error.code : 2;
     console.error(`\n❌ ${sanitizeLog((error as Error).message, [process.env.IVO_STAGING_PUBLISHABLE_KEY ?? "", process.env.STAGING_DB_URL ?? ""])}`);
