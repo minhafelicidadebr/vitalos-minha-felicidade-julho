@@ -37,9 +37,9 @@ bloqueado (leitura Q2, prioridade, ação, evidência e aprendizagem funcionam).
 | C5 | Versão FIB-T em três notações (`1.0.0`, `fibt-1.0.0`, `2020.1-furtado`) | manifesto, `hml-contract.ts`, `instrument-registry-mock.ts` | Manifesto prevalece. A ação guarda a versão **derivada da onda** no banco. |
 | C6 | `action_items.expected_ivo_lift` pressupõe previsão de índice composto | migration `20260705100000` | Ação de origem FIB-T tem lift fixado em 0 por CHECK (`20261002120000`) e a RPC recusa lift ≠ 0. A jornada IVO não exibe lift. `/plano-acao` legado continua exibindo "Lift IVO" como estimativa. |
 | C7 | Fonte metodológica da FIB-T arquivada em pasta de cliente (`docs/fibt-isg/references/`) | manifesto `source_document` | Mover exige refazer custódia SHA-256; adiado. |
-| C8 | **Critério de eficácia** de uma ação: o que conta como melhora e como compará-la entre leituras publicadas de ciclos diferentes (mesmo setor? mesmo n? mesma versão?) | spec `action-learning-loop.md` | Eficácia **não é registrável** (`evidence_scope` só aceita execução e aprendizagem) e aparece como "não avaliada". Concluir ação ou anexar documento não comprova melhora nem causalidade. |
+| C8 | **Critério de eficácia** de uma ação: o que conta como melhora e como compará-la entre leituras publicadas de ciclos diferentes (mesmo setor? mesmo n? mesma versão?) | spec `action-learning-loop.md` | Eficácia **não é registrável** (`evidence_scope` só aceita execução e aprendizagem) e aparece como "não avaliada". Concluir ação ou anexar documento não comprova melhora nem causalidade. Proposta de protocolo: `specs/efficacy-protocol-c8.md` (motor puro em `src/engine/ivo/efficacy-protocol.ts`; persistência e parâmetros D9 pendentes). |
 
-Qualquer resolução destes itens é **gate metodológico**.
+Qualquer resolução destes itens é **gate metodológico**. Preparo das decisões (propostas, nada aprovado): `docs/vitalos/ivo-methodology-dossier.md` §11 (D1–D10).
 
 ## Decisões operacionais (não metodológicas) desta macro-onda
 

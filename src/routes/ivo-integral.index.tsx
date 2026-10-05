@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/app/shell/AppShell";
+import { IvoCoveragePanel } from "@/components/ivo/IvoCoveragePanel";
 import { IvoLensMatrix } from "@/components/ivo/IvoLensMatrix";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { usePack } from "@/engine/pack";
+import { buildIvoCoverage } from "@/engine/ivo/ivo-coverage";
 import { buildIvoMatrix } from "@/engine/ivo/ivo-matrix";
 import { getDimensionMappings } from "@/domain/ivo/dimension-mappings";
 import { ivoDimensionsForPack, ivoLensCatalog } from "@/domain/ivo/lens-catalog";
@@ -68,6 +70,8 @@ function IvoIntegralPage() {
     [packId, view],
   );
 
+  // Sem método aprovado (decisão D-método): cobertura mostra estado e motivo, nunca número.
+  const coverage = useMemo(() => buildIvoCoverage(matrix), [matrix]);
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -135,6 +139,7 @@ function IvoIntegralPage() {
         </section>
 
         <IvoLensMatrix matrix={matrix} />
+        <IvoCoveragePanel coverage={coverage} />
         <p className="text-xs text-muted-foreground">
           A FIB-T é a primeira lente funcional (Q2). COPSOQ, PERMA+V e VIA-T estão planejadas e não
           produzem leitura. Associações entre lentes e dimensões dependem de aprovação metodológica;
