@@ -17,10 +17,9 @@ em `scripts/ivo-staging/prepare.ps1`). Comandos: `build`, `preflight`,
 | STAGING_ARTIFACT_VERIFIED | Sim — pacote em `.ivo-staging.local/packages/<commit12>-<carimbo>/` (fora do git), hash publicado no PR |
 | DRY_RUN | Sim — bootstrap, app e contenção sobre o MESMO pacote, digest conferido depois |
 | ROLLOUT_PLAN_READY | Sim — entradas, ordem, recuperação e comandos definidos abaixo |
-| REMOTE_SMOKE | Não executado |
+| REMOTE_SMOKE | Parcial — S1 e S9 remotos verificados; S2–S8 (login autenticado no navegador) pendentes (§11) |
 
-Escritas feitas até aqui: só GitHub. Leituras feitas no staging: preflight e
-impressão digital do ledger (SELECT via `supabase db query --linked`).
+Escritas e verificações já realizadas no staging: ver §11 (separadas em testes locais, verificações remotas e pendências).
 
 ## 2. Mecanismo de preparação (decisão)
 
@@ -147,3 +146,30 @@ Interromper em: `FAIL` ou divergência no preflight; erro na migration; provisio
 | Pacote | `package-manifest.json`: commit, árvore, ferramentas, SHA-256 dos 678 arquivos, digest; `runtime-manifest.json`: hashes dos 3 configs, vars (chave só por impressão digital) |
 | Conteúdo do pacote | cliente com URL e chave de staging; sem URL/ref de produção; sem secret/service_role; servidor sem URL de produção; sem declaração HML |
 | Dry-run | bootstrap, app e contenção · Wrangler 4.147.0 · digest inalterado após o dry-run |
+
+## 11. Execução em staging — o que foi provado onde
+
+Pacote publicado em staging (Worker `vitalos-ivo-staging`, Supabase `xttjkpzhxtjfwxjsxuab`):
+commit `8859c01`, pacote `8859c0111982-20261005T024421`, digest
+`a45652245c17ae462d0466541cb18d51eb1a0166a125ba223d2abe2410bc55fc`,
+`wrangler.app.json` sha256 `fc4c2c7e…fda08`, **versão ativa `8da81ce2-6de4-4819-aa09-ddbacfa74928`**
+(anterior `98b1a4db-0427-42f8-919e-9524386c1e53`, rollback disponível; bootstrap selado `47eaaf24-…`).
+
+**Testes locais (dados sintéticos, Supabase local, Edge real via CDP)** — não substituem o smoke remoto:
+- formulários de execução e aprendizagem independentes: cada envio grava só o seu escopo; recarregar mostra 1 ocorrência; duplo clique grava 1;
+- falha de rede: alerta no cartão correto, texto mantido, reenvio funciona;
+- teclado, foco visível, calendário nativo no tema escuro, celular 390 px sem overflow, botões de 48 px;
+- data: `03102026` digitado → `2026-10-03`; prazo `2026-10-11` sobrevive a gravação e leitura e aparece por extenso;
+- gate completo (3942+ testes, paridade, `tsc`, varredura de segredos) e CI do commit `8859c01` verdes.
+
+**Verificações remotas (executadas após a publicação)**:
+- integridade do pacote 678/678 e configuração conferidas imediatamente antes do deploy; versão ativa anterior confirmada;
+- nova versão ativa com 100% do tráfego; bindings: perfil `staging`, projeto autorizado, 2 IDs de organização, chave de serviço oculta;
+- bundle publicado contém os rótulos "Registrar execução" / "Registrar aprendizagem";
+- S1 — `edge-check` 7/7 (302 para o Access);
+- S9 — `preflight` 50 PASS · 0 MISSING · 0 FAIL;
+- dados preservados (leitura): prazo da ação segue `2026-01-11`, 2 registros de aprendizagem e 0 de execução, nenhum usuário/organização recriado, nenhuma migration.
+
+**Pendente (exige o operador no navegador — Access + magic link)**: S2–S8, incluindo a conferência visual
+dos cartões, o calendário no tema escuro e os dois envios reais. O smoke **não** está aprovado.
+Recuperação acionada neste deploy: nenhuma.
