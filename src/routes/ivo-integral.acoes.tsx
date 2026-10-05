@@ -3,7 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/app/shell/AppShell";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
-import { FibtActionPlanSection, PriorityPlanner, type ActionCallbacks, type PriorityDraft } from "@/components/ivo/FibtActionLoop";
+import {
+  FibtActionPlanSection,
+  PriorityPlanner,
+  type ActionCallbacks,
+  type EvidenceSubmitResult,
+  type PriorityDraft,
+} from "@/components/ivo/FibtActionLoop";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import {
@@ -15,6 +21,7 @@ import {
   setFibtActionAccountabilityFn,
 } from "@/lib/api/ivo-action-loop.functions";
 import type { IvoQ2Outcome, LedgerWriteOutcome, LoadFibtActionLoopOutcome } from "@/lib/ivo/ivo-views";
+import { todayInSaoPaulo } from "@/lib/ivo/local-date";
 
 // Prioridades e ações do ciclo a partir do resultado FIB-T publicado (R6).
 // Toda escrita passa pelo servidor, que confere sessão, papel, organização,
@@ -42,7 +49,7 @@ function IvoAcoesPage() {
   const [token, setToken] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInSaoPaulo();
 
   const load = useCallback(async () => {
     try {
@@ -62,20 +69,25 @@ function IvoAcoesPage() {
     void load();
   }, [load]);
 
-  async function write(run: () => Promise<LedgerWriteOutcome>, okText: string) {
+  // `inline`: o desfecho volta ao formulário que enviou (sucesso/erro junto dele, com
+  // anúncio próprio) em vez de ir para a faixa global no topo da página.
+  async function write(run: () => Promise<LedgerWriteOutcome>, okText: string, options?: { inline?: boolean }): Promise<EvidenceSubmitResult> {
     setBusy(true);
-    setFeedback(null);
+    if (!options?.inline) setFeedback(null);
+    let outcome: EvidenceSubmitResult;
     try {
       const r = await run();
-      if (!r.ok) setFeedback({ tone: "error", text: r.error });
-      else if (!r.accepted) setFeedback({ tone: "error", text: r.message });
-      else setFeedback({ tone: "ok", text: okText });
+      if (!r.ok) outcome = { ok: false, message: r.error };
+      else if (!r.accepted) outcome = { ok: false, message: r.message };
+      else outcome = { ok: true, message: okText };
       await load();
     } catch {
-      setFeedback({ tone: "error", text: "Falha de comunicação com o servidor. Nada foi confirmado." });
+      outcome = { ok: false, message: "Falha de comunicação com o servidor. Nada foi confirmado." };
     } finally {
       setBusy(false);
     }
+    if (!options?.inline) setFeedback({ tone: outcome.ok ? "ok" : "error", text: outcome.message });
+    return outcome;
   }
 
   const callbacks: ActionCallbacks = {
@@ -84,9 +96,10 @@ function IvoAcoesPage() {
     onStatus: (itemId, toStatus) =>
       void write(() => recordFibtActionStatusFn({ data: { accessToken: token, itemId, toStatus } }), "Estado atualizado."),
     onEvidence: (itemId, input) =>
-      void write(
+      write(
         () => recordFibtActionEvidenceFn({ data: { accessToken: token, itemId, ...input } }),
         input.scope === "aprendizagem" ? "Aprendizagem registrada." : "Evidência de execução registrada.",
+        { inline: true },
       ),
   };
 

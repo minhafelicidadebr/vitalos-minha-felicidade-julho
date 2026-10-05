@@ -205,10 +205,11 @@ async function main() {
 
     log("4. Registrar evidência pelo formulário (teclado) e recarregar");
     const marker = `Checklist da 2ª roda (verificação visual ${new Date().toISOString().slice(11, 19)})`;
-    const focused = await cdp.eval<boolean>(`(() => { const el = document.querySelector('input[id^="execucao-"][id$="-content"]'); if (!el) return false; el.focus(); return true; })()`);
+    const focused = await cdp.eval<boolean>(`(() => { const el = document.querySelector('textarea[id^="execucao-"][id$="-content"]'); if (!el) return false; el.focus(); return true; })()`);
     if (!focused) throw new Error("formulário de evidência não encontrado (plano ativo?)");
     await cdp.send("Input.insertText", { text: marker });
-    await pressKey(cdp, "Enter");
+    // O campo agora é textarea (Enter quebra linha): envia pelo botão "Registrar execução".
+    await cdp.eval(`document.querySelector('section[aria-label^="Evidência de execução"] form button[type="submit"]').click()`);
     await waitFor(cdp, bodyHas("Evidência de execução registrada."), "confirmação da evidência");
     await cdp.send("Page.reload", { ignoreCache: true });
     await Bun.sleep(800);

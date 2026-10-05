@@ -1,6 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { canTransition, type PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import type { FibtActionPlanView, FibtActionView, IvoQ2View } from "@/lib/ivo/ivo-views";
+import { formatIsoDateLong } from "@/lib/ivo/local-date";
 import { formatDateBR } from "./IvoQ2Detail";
 
 // Ciclo resultado FIB-T → prioridade → ação → evidência → aprendizagem
@@ -21,12 +22,20 @@ const ALL_STATUSES: PlanActionStatus[] = ["planejada", "em_execucao", "concluida
 const EFFORT_LABEL = { baixo: "Baixo", medio: "Médio", alto: "Alto" } as const;
 
 const inputClass =
-  "mt-1 block min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "mt-1 block min-h-11 w-full rounded-md border border-foreground/55 bg-background px-3 text-sm text-foreground outline-none [color-scheme:light] focus:border-primary focus:ring-2 focus:ring-primary/30 dark:[color-scheme:dark]";
 const buttonPrimary =
   "inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const buttonSecondary =
   "inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+// Ação principal do registro de execução: dourado institucional com texto verde-escuro
+// (contraste ≈10,4:1 medido; hover ≈11,1:1). Borda escura mantém o contorno no tema claro.
+const buttonExecution =
+  "inline-flex min-h-12 w-full items-center justify-center rounded-md border border-[var(--institutional-deep)] bg-[var(--institutional-gold)] px-5 text-sm font-semibold text-[var(--institutional-deep)] shadow-sm hover:bg-[color-mix(in_oklab,var(--institutional-gold)_88%,white)] aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto";
+// Tratamento secundário da aprendizagem: superfície secundária do tema + borda primária
+// (texto ≈11,7:1 claro / ≈12,4:1 escuro; borda ≈12:1 / ≈7,5:1 contra o cartão).
+const buttonLearning =
+  "inline-flex min-h-12 w-full items-center justify-center rounded-md border-2 border-primary bg-secondary px-5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/70 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto";
 function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
@@ -202,10 +211,23 @@ export function PriorityPlanner({
 
 // ─── Ação ────────────────────────────────────────────────────────────────────
 
+export interface EvidenceInput {
+  scope: "execucao" | "aprendizagem";
+  kind?: "texto" | "checklist" | "metrica";
+  content: string;
+  occurredOn: string;
+}
+
+export interface EvidenceSubmitResult {
+  ok: boolean;
+  message: string;
+}
+
 export interface ActionCallbacks {
   onAccountability: (itemId: string, input: { ownerRoleLabel: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } }) => void;
   onStatus: (itemId: string, toStatus: PlanActionStatus) => void;
-  onEvidence: (itemId: string, input: { scope: "execucao" | "aprendizagem"; kind?: "texto" | "checklist" | "metrica"; content: string; occurredOn: string }) => void;
+  // Devolve o desfecho para o formulário mostrar sucesso/erro junto dele; `void` conta como sucesso.
+  onEvidence: (itemId: string, input: EvidenceInput) => Promise<EvidenceSubmitResult> | void;
 }
 
 function AccountabilityForm({ action, busy, onSubmit }: { action: FibtActionView; busy: boolean; onSubmit: ActionCallbacks["onAccountability"] }) {
@@ -231,8 +253,8 @@ function AccountabilityForm({ action, busy, onSubmit }: { action: FibtActionView
       <Field id={`${p}-role`} label="Responsável (função que executa)">
         <input id={`${p}-role`} className={inputClass} value={role} required minLength={2} maxLength={80} onChange={(e) => setRole(e.target.value)} />
       </Field>
-      <Field id={`${p}-due`} label="Prazo">
-        <input id={`${p}-due`} type="date" className={inputClass} value={dueOn} required onChange={(e) => setDueOn(e.target.value)} />
+      <Field id={`${p}-due`} label="Prazo" hint={dueOn ? `Data selecionada: ${formatIsoDateLong(dueOn)}` : "Escolha o dia no calendário ou digite dia/mês/ano."}>
+        <input id={`${p}-due`} aria-describedby={`${p}-due-hint`} type="date" className={inputClass} value={dueOn} required onChange={(e) => setDueOn(e.target.value)} />
       </Field>
       <Field id={`${p}-metric`} label="Indicador de execução" hint="Mede se a ação aconteceu (ex.: encontros realizados). Não é o resultado FIB-T.">
         <input id={`${p}-metric`} aria-describedby={`${p}-metric-hint`} className={inputClass} value={label} required minLength={2} maxLength={120} onChange={(e) => setLabel(e.target.value)} />
@@ -257,6 +279,29 @@ function AccountabilityForm({ action, busy, onSubmit }: { action: FibtActionView
   );
 }
 
+const SCOPE_COPY = {
+  execucao: {
+    title: "Evidência de execução",
+    help: "Registre o que foi feito: encontro realizado, ata, checklist. Mostra que a ação aconteceu.",
+    field: "Nova evidência de execução",
+    submit: "Registrar execução",
+    pending: "Registrando execução…",
+    empty: "Nenhuma registrada.",
+    tooShort: "Descreva a execução com ao menos 3 caracteres.",
+  },
+  aprendizagem: {
+    title: "Aprendizagem",
+    help: "Registre o que a equipe aprendeu ao executar. Não comprova melhora do indicador.",
+    field: "Novo registro de aprendizagem",
+    submit: "Registrar aprendizagem",
+    pending: "Registrando aprendizagem…",
+    empty: "Nenhum registro.",
+    tooShort: "Descreva a aprendizagem com ao menos 3 caracteres.",
+  },
+} as const;
+
+const GENERIC_SUBMIT_ERROR = "Falha de comunicação com o servidor. Nada foi confirmado; o texto foi mantido.";
+
 function EvidenceForm({
   action,
   scope,
@@ -270,54 +315,157 @@ function EvidenceForm({
   today: string;
   onSubmit: ActionCallbacks["onEvidence"];
 }) {
+  const copy = SCOPE_COPY[scope];
   const p = `${scope}-${action.id}`;
   const [content, setContent] = useState("");
   const [occurredOn, setOccurredOn] = useState(today);
   const [kind, setKind] = useState<"texto" | "checklist" | "metrica">("texto");
-  // Empilhado de propósito: o formulário vive em meia coluna no desktop e em
-  // coluna única no celular; campos lado a lado espremiam o texto principal.
-  return (
-    <form
-      className="mt-2 space-y-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (content.trim().length < 3) return;
-        onSubmit(action.id, { scope, kind: scope === "execucao" ? kind : undefined, content: content.trim(), occurredOn });
+  const [pending, setPending] = useState(false);
+  const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  // Ref síncrona: dois cliques antes do re-render não podem gerar dois envios.
+  const inFlight = useRef(false);
+  const blocked = busy || pending;
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (inFlight.current || busy) return;
+    if (content.trim().length < 3) {
+      setFeedback({ tone: "error", text: copy.tooShort });
+      return;
+    }
+    inFlight.current = true;
+    setPending(true);
+    setFeedback(null);
+    try {
+      const result = await onSubmit(action.id, { scope, kind: scope === "execucao" ? kind : undefined, content: content.trim(), occurredOn });
+      if (result && !result.ok) {
+        // Falha: o texto digitado fica no campo para nova tentativa.
+        setFeedback({ tone: "error", text: result.message });
+      } else {
         setContent("");
-      }}
-    >
-      <Field
-        id={`${p}-content`}
-        label={scope === "execucao" ? "Nova evidência de execução" : "Novo registro de aprendizagem"}
-        hint="Sem nomes de pessoas e sem respostas individuais."
-      >
-        <input id={`${p}-content`} aria-describedby={`${p}-content-hint`} className={inputClass} value={content} minLength={3} maxLength={2000} required onChange={(e) => setContent(e.target.value)} />
+        setFeedback({ tone: "ok", text: result?.message ?? (scope === "execucao" ? "Evidência de execução registrada." : "Aprendizagem registrada.") });
+      }
+    } catch {
+      setFeedback({ tone: "error", text: GENERIC_SUBMIT_ERROR });
+    } finally {
+      inFlight.current = false;
+      setPending(false);
+    }
+  }
+
+  // Empilhado de propósito: o cartão vive em meia coluna no desktop e em coluna
+  // única no celular; campos lado a lado espremiam o texto principal.
+  return (
+    <form className="space-y-3" onSubmit={handleSubmit}>
+      <Field id={`${p}-content`} label={copy.field} hint="Sem nomes de pessoas e sem respostas individuais.">
+        <textarea
+          id={`${p}-content`}
+          aria-describedby={`${p}-content-hint`}
+          className={`${inputClass} min-h-24 py-2`}
+          rows={3}
+          value={content}
+          minLength={3}
+          maxLength={2000}
+          required
+          onChange={(e) => {
+            setContent(e.target.value);
+            if (feedback) setFeedback(null);
+          }}
+        />
       </Field>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {scope === "execucao" ? (
-          <div className="min-w-[10rem] flex-1">
-            <Field id={`${p}-kind`} label="Tipo">
-              <select id={`${p}-kind`} className={inputClass} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
-                <option value="texto">Relato</option>
-                <option value="checklist">Checklist</option>
-                <option value="metrica">Indicador de execução</option>
-              </select>
-            </Field>
-          </div>
-        ) : null}
-        <div className="min-w-[10rem] flex-1">
-          <Field id={`${p}-date`} label="Data">
-            <input id={`${p}-date`} type="date" max={today} className={inputClass} value={occurredOn} required onChange={(e) => setOccurredOn(e.target.value)} />
+          <Field id={`${p}-kind`} label="Tipo">
+            <select id={`${p}-kind`} className={inputClass} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
+              <option value="texto">Relato</option>
+              <option value="checklist">Checklist</option>
+              <option value="metrica">Indicador de execução</option>
+            </select>
           </Field>
-        </div>
-        <button type="submit" className={buttonSecondary} disabled={busy}>
-          Registrar<span className="sr-only"> {scope === "execucao" ? "evidência de execução" : "aprendizagem"} de {action.title}</span>
-        </button>
+        ) : null}
+        <Field
+          id={`${p}-date`}
+          label="Data"
+          hint={occurredOn ? `Data selecionada: ${formatIsoDateLong(occurredOn)}` : "Escolha o dia no calendário ou digite dia/mês/ano."}
+        >
+          <input
+            id={`${p}-date`}
+            aria-describedby={`${p}-date-hint`}
+            type="date"
+            max={today}
+            className={inputClass}
+            value={occurredOn}
+            required
+            onChange={(e) => setOccurredOn(e.target.value)}
+          />
+        </Field>
       </div>
+      {/* Rótulo visível distinto por formulário: dois botões "Registrar" lado a lado
+          levaram um registro de execução a ser enviado como aprendizagem (staging,
+          04/10/2026). O nome acessível contém o texto visível (WCAG 2.5.3).
+          aria-disabled (e não disabled) mantém o foco do teclado no botão durante o envio. */}
+      <button type="submit" className={scope === "execucao" ? buttonExecution : buttonLearning} aria-disabled={blocked}>
+        {pending ? copy.pending : copy.submit}
+        <span className="sr-only"> de {action.title}</span>
+      </button>
+      <div role="status" aria-live="polite" className="min-h-5 text-sm">
+        {feedback?.tone === "ok" ? <p className="text-emerald-700 dark:text-emerald-300">{feedback.text}</p> : null}
+      </div>
+      {feedback?.tone === "error" ? (
+        <p role="alert" className="text-sm font-medium text-destructive">
+          {feedback.text}
+        </p>
+      ) : null}
     </form>
   );
 }
 
+function EvidenceCard({
+  action,
+  scope,
+  records,
+  showForm,
+  busy,
+  today,
+  onSubmit,
+}: {
+  action: FibtActionView;
+  scope: "execucao" | "aprendizagem";
+  records: FibtActionView["evidence"]["execution"];
+  showForm: boolean;
+  busy: boolean;
+  today: string;
+  onSubmit: ActionCallbacks["onEvidence"];
+}) {
+  const copy = SCOPE_COPY[scope];
+  const isExecution = scope === "execucao";
+  return (
+    <section
+      aria-label={`${copy.title} — ${action.title}`}
+      className={`flex flex-col gap-3 rounded-lg border-2 p-4 ${isExecution ? "border-[var(--institutional-gold)] bg-card" : "border-border bg-secondary/40"}`}
+    >
+      <header>
+        <h4 className="text-sm font-semibold text-foreground">{copy.title}</h4>
+        <p className="mt-1 text-xs text-muted-foreground">{copy.help}</p>
+      </header>
+      {records.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{copy.empty}</p>
+      ) : (
+        <ul className="space-y-1 text-sm">
+          {records.map((e) => (
+            <li key={e.id}>
+              <time dateTime={e.occurredOn} className="font-medium">
+                {formatIsoDateLong(e.occurredOn)}
+              </time>{" "}
+              — {e.content}
+            </li>
+          ))}
+        </ul>
+      )}
+      {showForm ? <EvidenceForm action={action} scope={scope} busy={busy} today={today} onSubmit={onSubmit} /> : null}
+    </section>
+  );
+}
 export function FibtActionCard({
   action,
   planStatus,
@@ -366,7 +514,7 @@ export function FibtActionCard({
         </div>
         <div>
           <dt className="inline text-muted-foreground">Prazo: </dt>
-          <dd className="inline">{action.dueOn ? formatDateBR(`${action.dueOn}T12:00:00Z`) : "não definido"}</dd>
+          <dd className="inline">{action.dueOn ? <time dateTime={action.dueOn}>{formatIsoDateLong(action.dueOn)}</time> : "não definido"}</dd>
         </div>
         <div className="sm:col-span-2">
           <dt className="inline text-muted-foreground">Indicador de execução: </dt>
@@ -403,42 +551,9 @@ export function FibtActionCard({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section aria-label={`Evidência de execução — ${action.title}`}>
-          <h4 className="text-sm font-medium text-foreground">Evidência de execução</h4>
-          {action.evidence.execution.length === 0 ? (
-            <p className="mt-1 text-sm text-muted-foreground">Nenhuma registrada.</p>
-          ) : (
-            <ul className="mt-1 space-y-1 text-sm">
-              {action.evidence.execution.map((e) => (
-                <li key={e.id}>
-                  {formatDateBR(`${e.occurredOn}T12:00:00Z`)} — {e.content}
-                </li>
-              ))}
-            </ul>
-          )}
-          {planStatus === "active" ? (
-            <EvidenceForm action={action} scope="execucao" busy={busy} today={today} onSubmit={callbacks.onEvidence} />
-          ) : null}
-        </section>
-        <section aria-label={`Aprendizagem — ${action.title}`}>
-          <h4 className="text-sm font-medium text-foreground">Aprendizagem</h4>
-          {action.evidence.learning.length === 0 ? (
-            <p className="mt-1 text-sm text-muted-foreground">Nenhum registro.</p>
-          ) : (
-            <ul className="mt-1 space-y-1 text-sm">
-              {action.evidence.learning.map((e) => (
-                <li key={e.id}>
-                  {formatDateBR(`${e.occurredOn}T12:00:00Z`)} — {e.content}
-                </li>
-              ))}
-            </ul>
-          )}
-          {planStatus === "active" ? (
-            <EvidenceForm action={action} scope="aprendizagem" busy={busy} today={today} onSubmit={callbacks.onEvidence} />
-          ) : null}
-        </section>
+        <EvidenceCard action={action} scope="execucao" records={action.evidence.execution} showForm={planStatus === "active"} busy={busy} today={today} onSubmit={callbacks.onEvidence} />
+        <EvidenceCard action={action} scope="aprendizagem" records={action.evidence.learning} showForm={planStatus === "active"} busy={busy} today={today} onSubmit={callbacks.onEvidence} />
       </div>
-
       <div role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm">
         <p className="font-medium text-foreground">Eficácia: não avaliada</p>
         <p className="mt-1 text-muted-foreground">{action.efficacy.reason}</p>

@@ -578,6 +578,31 @@ describe("R6 · ciclo de ação FIB-T sobre o ledger", () => {
     expect(JSON.stringify(reloaded)).not.toContain("user-alfa");
   });
 
+  test("prazo canônico 2026-10-11 (dia ≤ 12) não inverte; execução e aprendizagem gravam só o próprio escopo, sem duplicar", async () => {
+    const { store } = memoryLedger();
+    const deps = loopDeps(store);
+    await createFibtPriorityActions({ accessToken: "token-alfa-admin", waveId: ID.waveAlfa, priorities: [PRIORITY] }, deps);
+    const first = await loadFibtActionLoop({ accessToken: "token-alfa-admin" }, deps);
+    if (!first.ok) throw new Error(first.error);
+    const action = first.plans[0]!.actions[0]!;
+    await setFibtActionAccountability(
+      { accessToken: "token-alfa-admin", itemId: action.id, ownerRoleLabel: "Coordenação de Operações", dueOn: "2026-10-11", executionMetric: { label: "Encontros", baseline: 0, target: 1, unit: "encontro" } },
+      deps,
+    );
+    await activateFibtActionPlan({ accessToken: "token-alfa-admin", planId: action.planId }, deps);
+    // Um envio de cada tipo, cada um com o outro campo "vazio" (não enviado).
+    const exec = await recordFibtActionEvidence({ accessToken: "token-alfa-admin", itemId: action.id, scope: "execucao", kind: "texto", content: "Encontro realizado", occurredOn: "2026-06-10" }, deps);
+    expect(exec).toMatchObject({ accepted: true });
+    const learn = await recordFibtActionEvidence({ accessToken: "token-alfa-admin", itemId: action.id, scope: "aprendizagem", content: "Pauta curta funcionou", occurredOn: "2026-06-10" }, deps);
+    expect(learn).toMatchObject({ accepted: true });
+    const reloaded = await loadFibtActionLoop({ accessToken: "token-alfa-admin" }, deps);
+    if (!reloaded.ok) throw new Error(reloaded.error);
+    const again = reloaded.plans[0]!.actions[0]!;
+    expect(again.dueOn).toBe("2026-10-11");
+    expect(again.evidence.execution.map((e) => e.content)).toEqual(["Encontro realizado"]);
+    expect(again.evidence.learning.map((e) => e.content)).toEqual(["Pauta curta funcionou"]);
+    expect(again.evidence.execution.map((e) => e.occurredOn)).toEqual(["2026-06-10"]);
+  });
   test("Beta não lê nem altera ações e evidências da Alfa", async () => {
     const { store, state } = memoryLedger();
     const deps = loopDeps(store);

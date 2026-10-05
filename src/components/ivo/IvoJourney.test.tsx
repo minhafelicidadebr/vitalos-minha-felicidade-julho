@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { IVO_LENS_READING_CONTRACT } from "@/engine/ivo/lens-contract";
 import { EFFICACY_NOT_EVALUATED_REASON, type FibtActionPlanView, type IvoQ2View } from "@/lib/ivo/ivo-views";
 import { IvoQ2Detail } from "./IvoQ2Detail";
@@ -223,7 +223,107 @@ describe("FibtActionPlanSection", () => {
     expect(onStatus).toHaveBeenCalledWith("item-1", "concluida");
   });
 
-  test("plano em rascunho com pendências não pode ser ativado", () => {
+  test("execução e aprendizagem têm botões distintos e cada envio grava somente o seu escopo", () => {
+    const onEvidence = mock((_itemId: string, _input: unknown) => { });
+    render(
+      <FibtActionPlanSection
+        plan={plan}
+        busy={false}
+        today="2026-06-30"
+        onActivate={() => {}}
+        callbacks={{ onAccountability: () => {}, onStatus: () => {}, onEvidence }}
+      />,
+    );
+    const execButton = screen.getByRole("button", { name: /^Registrar execução/ });
+    const learnButton = screen.getByRole("button", { name: /^Registrar aprendizagem/ });
+    // Rótulo VISÍVEL distinto (não só o texto para leitor de tela).
+    expect(execButton.textContent).toContain("Registrar execução");
+    expect(learnButton.textContent).toContain("Registrar aprendizagem");
+    expect(screen.queryByRole("button", { name: /^Registrar$/ })).toBeNull();
+
+    // Execução preenchida, aprendizagem vazia → só execução.
+    fireEvent.change(screen.getByLabelText("Nova evidência de execução"), { target: { value: "Encontro realizado com pauta" } });
+    fireEvent.click(execButton);
+    expect(onEvidence).toHaveBeenCalledTimes(1);
+    expect(onEvidence.mock.calls[0]![1]).toMatchObject({ scope: "execucao", kind: "texto", content: "Encontro realizado com pauta", occurredOn: "2026-06-30" });
+
+    // Aprendizagem preenchida, execução vazia → só aprendizagem, sem kind de execução.
+    fireEvent.change(screen.getByLabelText("Novo registro de aprendizagem"), { target: { value: "Combinar pauta ajudou a organizar" } });
+    fireEvent.click(learnButton);
+    expect(onEvidence).toHaveBeenCalledTimes(2);
+    const learnCall = onEvidence.mock.calls[1]![1] as Record<string, unknown>;
+    expect(learnCall).toMatchObject({ scope: "aprendizagem", content: "Combinar pauta ajudou a organizar" });
+    expect(learnCall.kind).toBeUndefined();
+
+    // Formulário vazio não envia nada.
+    fireEvent.click(execButton);
+    fireEvent.click(learnButton);
+    expect(onEvidence).toHaveBeenCalledTimes(2);
+  });
+  test("falha de envio aparece junto do formulário, mantém o texto e não contamina o outro cartão", async () => {
+    const onEvidence = mock(async (_itemId: string, _input: unknown) => ({ ok: false, message: "Não foi possível registrar agora." }));
+    render(
+      <FibtActionPlanSection
+        plan={plan}
+        busy={false}
+        today="2026-06-30"
+        onActivate={() => {}}
+        callbacks={{ onAccountability: () => {}, onStatus: () => {}, onEvidence }}
+      />,
+    );
+    const field = screen.getByLabelText("Nova evidência de execução") as HTMLTextAreaElement;
+    fireEvent.change(field, { target: { value: "Encontro realizado com pauta" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Registrar execução/ }));
+    const executionCard = screen.getByRole("region", { name: /Evidência de execução — Rodas/ });
+    const alert = await within(executionCard).findByRole("alert");
+    expect(alert.textContent).toContain("Não foi possível registrar agora.");
+    expect(field.value).toBe("Encontro realizado com pauta");
+    expect(within(screen.getByRole("region", { name: /Aprendizagem — Rodas/ })).queryByRole("alert")).toBeNull();
+  });
+  test("envio pendente não duplica; sucesso é anunciado no próprio cartão e limpa só o campo enviado", async () => {
+    let finish: (r: { ok: boolean; message: string }) => void = () => {};
+    const onEvidence = mock((_itemId: string, _input: unknown) => new Promise<{ ok: boolean; message: string }>((resolve) => (finish = resolve)));
+    render(
+      <FibtActionPlanSection
+        plan={plan}
+        busy={false}
+        today="2026-06-30"
+        onActivate={() => {}}
+        callbacks={{ onAccountability: () => {}, onStatus: () => {}, onEvidence }}
+      />,
+    );
+    const learning = screen.getByLabelText("Novo registro de aprendizagem") as HTMLTextAreaElement;
+    const execution = screen.getByLabelText("Nova evidência de execução") as HTMLTextAreaElement;
+    fireEvent.change(execution, { target: { value: "rascunho de execução" } });
+    fireEvent.change(learning, { target: { value: "Pauta curta funcionou" } });
+    const button = screen.getByRole("button", { name: /^Registrar aprendizagem/ });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    fireEvent.submit(button.closest("form")!);
+    expect(onEvidence).toHaveBeenCalledTimes(1);
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    finish({ ok: true, message: "Aprendizagem registrada." });
+    const learningCard = screen.getByRole("region", { name: /Aprendizagem — Rodas/ });
+    await waitFor(() => expect(within(learningCard).getByRole("status").textContent).toContain("Aprendizagem registrada."));
+    expect(learning.value).toBe("");
+    expect(execution.value).toBe("rascunho de execução");
+    expect(button.getAttribute("aria-disabled")).toBe("false");
+  });
+  test("datas salvas aparecem por extenso e preservam o valor armazenado", () => {
+    render(
+      <FibtActionPlanSection
+        plan={{ ...plan, actions: [{ ...plan.actions[0]!, dueOn: "2026-10-11" }] }}
+        busy={false}
+        today="2026-06-30"
+        onActivate={() => {}}
+        callbacks={{ onAccountability: () => {}, onStatus: () => {}, onEvidence: () => {} }}
+      />,
+    );
+    const due = screen.getByText("11 de outubro de 2026");
+    expect(due.tagName).toBe("TIME");
+    expect(due.getAttribute("datetime")).toBe("2026-10-11");
+    expect(screen.queryByText("11/10/2026")).toBeNull();
+  });  test("plano em rascunho com pendências não pode ser ativado", () => {
     const draft: FibtActionPlanView = { ...plan, status: "draft", missingAccountability: 1 };
     render(
       <FibtActionPlanSection
