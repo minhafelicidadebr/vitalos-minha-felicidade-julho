@@ -1,0 +1,45 @@
+{
+  "registry_version": "1.0.0",
+  "description": "Catálogo curatorial fator FIB-T → conteúdo educativo (R7). O vínculo educativo NÃO é mapeamento dimensional e NÃO altera escore. Nenhum conteúdo está APROVADO: a curadoria é a decisão D10 (pendente). As entradas de status TESTE servem só para demonstrar o fluxo; aparecem apenas em runtime local descartável, sempre identificadas, e não trazem afirmação científica.",
+  "curation": { "status": "pendente", "decision": "D10" },
+  "entries": [
+    {
+      "id": "TESTE-bem_estar-001",
+      "factor_id": "bem_estar",
+      "status": "TESTE",
+      "version": "0.0.1-teste",
+      "title": "[TESTE] Conversa curta de equipe sobre carga e descanso",
+      "objective": "Exercitar o fluxo educativo: ler um roteiro curto, combinar uma pequena mudança e registrar o que foi aprendido.",
+      "audience": "Gestores de equipe (conteúdo de teste)",
+      "format": "microlearning",
+      "estimated_minutes": 5,
+      "evidence_codes": [],
+      "safe_claim_ids": [],
+      "owner": null,
+      "approved_at": null,
+      "body": [
+        "Conteúdo de TESTE para demonstração do software. Não é recomendação aprovada e não afirma efeito algum.",
+        "Roteiro: (1) combine com a equipe um momento de cinco minutos; (2) pergunte o que ajuda e o que atrapalha o descanso no trabalho; (3) escolha uma única mudança pequena para testar na semana; (4) registre o que vocês aprenderam, sem nomes de pessoas."
+      ]
+    },
+    {
+      "id": "TESTE-satisfacao_empresa-001",
+      "factor_id": "satisfacao_empresa",
+      "status": "TESTE",
+      "version": "0.0.1-teste",
+      "title": "[TESTE] Roteiro para compartilhar metas com a equipe",
+      "objective": "Exercitar o fluxo educativo para o fator de governança com um roteiro neutro de teste.",
+      "audience": "Gestores de equipe (conteúdo de teste)",
+      "format": "checklist",
+      "estimated_minutes": 4,
+      "evidence_codes": [],
+      "safe_claim_ids": [],
+      "owner": null,
+      "approved_at": null,
+      "body": [
+        "Conteúdo de TESTE para demonstração do software. Não é recomendação aprovada e não afirma efeito algum.",
+        "Checklist: listar as metas do trimestre; marcar as que a equipe já conhece; combinar quando e como compartilhar as demais; registrar a combinação."
+      ]
+    }
+  ]
+}

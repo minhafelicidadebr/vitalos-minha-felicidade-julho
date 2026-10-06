@@ -339,7 +339,7 @@ function memoryLedger() {
       const item = state.items.find((i) => i.id === itemId && i.orgId === orgId);
       const plan = item && state.plans.find((p) => p.id === item.planId);
       return item && plan
-        ? { id: item.id, orgId: item.orgId, planId: item.planId, sourceLensId: item.sourceLensId, status: item.status, planStatus: plan.status }
+        ? { id: item.id, orgId: item.orgId, planId: item.planId, sourceLensId: item.sourceLensId, sourceFactorId: item.sourceFactorId, status: item.status, planStatus: plan.status }
         : null;
     },
     findPlan: async (orgId, planId) => {

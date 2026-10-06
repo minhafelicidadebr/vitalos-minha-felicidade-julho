@@ -93,6 +93,7 @@ import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 import { Route as IvoIntegralIndexRouteImport } from './routes/ivo-integral.index'
 import { Route as IvoIntegralAcoesRouteImport } from './routes/ivo-integral.acoes'
+import { Route as IvoIntegralGovernancaRouteImport } from './routes/ivo-integral.governanca'
 import { Route as IvoIntegralQ2RouteImport } from './routes/ivo-integral.q2'
 import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
@@ -517,6 +518,11 @@ const IvoIntegralAcoesRoute = IvoIntegralAcoesRouteImport.update({
   path: '/ivo-integral/acoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IvoIntegralGovernancaRoute = IvoIntegralGovernancaRouteImport.update({
+  id: '/ivo-integral/governanca',
+  path: '/ivo-integral/governanca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IvoIntegralQ2Route = IvoIntegralQ2RouteImport.update({
   id: '/ivo-integral/q2',
   path: '/ivo-integral/q2',
@@ -617,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -706,6 +713,7 @@ export interface FileRoutesByTo {
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -796,6 +804,7 @@ export interface FileRoutesById {
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -887,6 +896,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
     | '/ivo-integral/q2'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
@@ -976,6 +986,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
     | '/ivo-integral/q2'
     | '/ivo-integral'
     | '/api/fibt-hml/attestation'
@@ -1065,6 +1076,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
     | '/ivo-integral/q2'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
@@ -1155,6 +1167,7 @@ export interface RootRouteChildren {
   ConviteTokenRoute: typeof ConviteTokenRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
   IvoIntegralAcoesRoute: typeof IvoIntegralAcoesRoute
+  IvoIntegralGovernancaRoute: typeof IvoIntegralGovernancaRoute
   IvoIntegralQ2Route: typeof IvoIntegralQ2Route
   IvoIntegralIndexRoute: typeof IvoIntegralIndexRoute
   ApiFibtHmlAttestationRoute: typeof ApiFibtHmlAttestationRoute
@@ -1751,6 +1764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IvoIntegralAcoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ivo-integral/governanca': {
+      id: '/ivo-integral/governanca'
+      path: '/ivo-integral/governanca'
+      fullPath: '/ivo-integral/governanca'
+      preLoaderRoute: typeof IvoIntegralGovernancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ivo-integral/q2': {
       id: '/ivo-integral/q2'
       path: '/ivo-integral/q2'
@@ -1859,6 +1879,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteTokenRoute: ConviteTokenRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
   IvoIntegralAcoesRoute: IvoIntegralAcoesRoute,
+  IvoIntegralGovernancaRoute: IvoIntegralGovernancaRoute,
   IvoIntegralQ2Route: IvoIntegralQ2Route,
   IvoIntegralIndexRoute: IvoIntegralIndexRoute,
   ApiFibtHmlAttestationRoute: ApiFibtHmlAttestationRoute,

@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { canTransition, type PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import type { FibtActionPlanView, FibtActionView, IvoQ2View } from "@/lib/ivo/ivo-views";
 import { formatIsoDateLong } from "@/lib/ivo/local-date";
+import { parseContentRef } from "@/lib/ivo/content-ref";
 import { formatDateBR } from "./IvoQ2Detail";
 
 // Ciclo resultado FIB-T → prioridade → ação → evidência → aprendizagem
@@ -21,11 +22,11 @@ const ALL_STATUSES: PlanActionStatus[] = ["planejada", "em_execucao", "concluida
 
 const EFFORT_LABEL = { baixo: "Baixo", medio: "Médio", alto: "Alto" } as const;
 
-const inputClass =
+export const inputClass =
   "mt-1 block min-h-11 w-full rounded-md border border-foreground/55 bg-background px-3 text-sm text-foreground outline-none [color-scheme:light] focus:border-primary focus:ring-2 focus:ring-primary/30 dark:[color-scheme:dark]";
-const buttonPrimary =
+export const buttonPrimary =
   "inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const buttonSecondary =
+export const buttonSecondary =
   "inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 // Ação principal do registro de execução: dourado institucional com texto verde-escuro
@@ -36,7 +37,7 @@ const buttonExecution =
 // (texto ≈11,7:1 claro / ≈12,4:1 escuro; borda ≈12:1 / ≈7,5:1 contra o cartão).
 const buttonLearning =
   "inline-flex min-h-12 w-full items-center justify-center rounded-md border-2 border-primary bg-secondary px-5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/70 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto";
-function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
+export function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
       <label htmlFor={id} className="block text-xs font-medium text-foreground">
@@ -216,6 +217,24 @@ export interface EvidenceInput {
   kind?: "texto" | "checklist" | "metrica";
   content: string;
   occurredOn: string;
+  /** Só aprendizagem: conteúdo educativo estudado (referência do catálogo curatorial). */
+  contentId?: string;
+}
+
+/** Opção do catálogo curatorial exibida no registro de aprendizagem. */
+export interface EducationOption {
+  contentId: string;
+  title: string;
+  status: "APROVADO" | "TESTE";
+}
+
+/** Pontos de extensão da página de ações (C8, educação, acompanhamento) sem acoplar este arquivo a eles. */
+export interface ActionEnhancements {
+  summary?: ReactNode;
+  educationOptions?: (action: FibtActionView) => EducationOption[];
+  /** Substitui o aviso estático "Eficácia: não avaliada" quando fornecido. */
+  efficacy?: (action: FibtActionView) => ReactNode;
+  extras?: (action: FibtActionView) => ReactNode;
 }
 
 export interface EvidenceSubmitResult {
@@ -307,12 +326,14 @@ function EvidenceForm({
   scope,
   busy,
   today,
+  education,
   onSubmit,
 }: {
   action: FibtActionView;
   scope: "execucao" | "aprendizagem";
   busy: boolean;
   today: string;
+  education?: EducationOption[];
   onSubmit: ActionCallbacks["onEvidence"];
 }) {
   const copy = SCOPE_COPY[scope];
@@ -320,6 +341,7 @@ function EvidenceForm({
   const [content, setContent] = useState("");
   const [occurredOn, setOccurredOn] = useState(today);
   const [kind, setKind] = useState<"texto" | "checklist" | "metrica">("texto");
+  const [contentId, setContentId] = useState("");
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   // Ref síncrona: dois cliques antes do re-render não podem gerar dois envios.
@@ -337,12 +359,19 @@ function EvidenceForm({
     setPending(true);
     setFeedback(null);
     try {
-      const result = await onSubmit(action.id, { scope, kind: scope === "execucao" ? kind : undefined, content: content.trim(), occurredOn });
+      const result = await onSubmit(action.id, {
+        scope,
+        kind: scope === "execucao" ? kind : undefined,
+        content: content.trim(),
+        occurredOn,
+        ...(scope === "aprendizagem" && contentId ? { contentId } : {}),
+      });
       if (result && !result.ok) {
         // Falha: o texto digitado fica no campo para nova tentativa.
         setFeedback({ tone: "error", text: result.message });
       } else {
         setContent("");
+        setContentId("");
         setFeedback({ tone: "ok", text: result?.message ?? (scope === "execucao" ? "Evidência de execução registrada." : "Aprendizagem registrada.") });
       }
     } catch {
@@ -373,6 +402,18 @@ function EvidenceForm({
           }}
         />
       </Field>
+      {scope === "aprendizagem" && education && education.length > 0 ? (
+        <Field id={`${p}-content-link`} label="Conteúdo estudado (opcional)" hint="Vincula este registro a um conteúdo do catálogo. Não altera escore nem mapeamento.">
+          <select id={`${p}-content-link`} aria-describedby={`${p}-content-link-hint`} className={inputClass} value={contentId} onChange={(e) => setContentId(e.target.value)}>
+            <option value="">Nenhum</option>
+            {education.map((c) => (
+              <option key={c.contentId} value={c.contentId}>
+                {c.status === "TESTE" ? `${c.title} — conteúdo de TESTE` : c.title}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         {scope === "execucao" ? (
           <Field id={`${p}-kind`} label="Tipo">
@@ -427,6 +468,7 @@ function EvidenceCard({
   showForm,
   busy,
   today,
+  education,
   onSubmit,
 }: {
   action: FibtActionView;
@@ -435,6 +477,7 @@ function EvidenceCard({
   showForm: boolean;
   busy: boolean;
   today: string;
+  education?: EducationOption[];
   onSubmit: ActionCallbacks["onEvidence"];
 }) {
   const copy = SCOPE_COPY[scope];
@@ -454,15 +497,28 @@ function EvidenceCard({
         <ul className="space-y-1 text-sm">
           {records.map((e) => (
             <li key={e.id}>
-              <time dateTime={e.occurredOn} className="font-medium">
-                {formatIsoDateLong(e.occurredOn)}
-              </time>{" "}
-              — {e.content}
+              {(() => {
+                const ref = scope === "aprendizagem" ? parseContentRef(e.content) : null;
+                const linked = ref ? education?.find((c) => c.contentId === ref.contentId) : undefined;
+                return (
+                  <>
+                    <time dateTime={e.occurredOn} className="font-medium">
+                      {formatIsoDateLong(e.occurredOn)}
+                    </time>{" "}
+                    — {ref ? ref.text : e.content}
+                    {ref ? (
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        Conteúdo estudado: {linked?.title ?? ref.contentId} ({ref.version}){linked?.status === "TESTE" || ref.contentId.startsWith("TESTE-") ? " — conteúdo de TESTE" : ""}
+                      </span>
+                    ) : null}
+                  </>
+                );
+              })()}
             </li>
           ))}
         </ul>
       )}
-      {showForm ? <EvidenceForm action={action} scope={scope} busy={busy} today={today} onSubmit={onSubmit} /> : null}
+      {showForm ? <EvidenceForm action={action} scope={scope} busy={busy} today={today} education={education} onSubmit={onSubmit} /> : null}
     </section>
   );
 }
@@ -472,13 +528,16 @@ export function FibtActionCard({
   busy,
   today,
   callbacks,
+  enhancements,
 }: {
   action: FibtActionView;
   planStatus: FibtActionPlanView["status"];
   busy: boolean;
   today: string;
   callbacks: ActionCallbacks;
+  enhancements?: ActionEnhancements;
 }) {
+  const educationOptions = enhancements?.educationOptions?.(action);
   const headingId = `acao-${action.id}`;
   const next = ALL_STATUSES.filter((s) => canTransition(action.status, s));
   return (
@@ -552,14 +611,20 @@ export function FibtActionCard({
 
       <div className="grid gap-4 md:grid-cols-2">
         <EvidenceCard action={action} scope="execucao" records={action.evidence.execution} showForm={planStatus === "active"} busy={busy} today={today} onSubmit={callbacks.onEvidence} />
-        <EvidenceCard action={action} scope="aprendizagem" records={action.evidence.learning} showForm={planStatus === "active"} busy={busy} today={today} onSubmit={callbacks.onEvidence} />
+        <EvidenceCard action={action} scope="aprendizagem" records={action.evidence.learning} showForm={planStatus === "active"} busy={busy} today={today} education={educationOptions} onSubmit={callbacks.onEvidence} />
       </div>
-      <div role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm">
-        <p className="font-medium text-foreground">Eficácia: não avaliada</p>
-        <p className="mt-1 text-muted-foreground">{action.efficacy.reason}</p>
-      </div>
+      {enhancements?.extras?.(action)}
 
-      {action.timeline.length > 0 ? (
+      {enhancements?.efficacy ? (
+        enhancements.efficacy(action)
+      ) : (
+        <div role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm">
+          <p className="font-medium text-foreground">Eficácia: não avaliada</p>
+          <p className="mt-1 text-muted-foreground">{action.efficacy.reason}</p>
+        </div>
+      )}
+
+      {action.timeline.length > 0 && !enhancements?.extras ? (
         <details>
           <summary className="min-h-11 cursor-pointer py-2 text-sm text-muted-foreground">Histórico ({action.timeline.length})</summary>
           <ol className="mt-1 space-y-1 text-xs text-muted-foreground">
@@ -586,12 +651,14 @@ export function FibtActionPlanSection({
   today,
   onActivate,
   callbacks,
+  enhancements,
 }: {
   plan: FibtActionPlanView;
   busy: boolean;
   today: string;
   onActivate: (planId: string) => void;
   callbacks: ActionCallbacks;
+  enhancements?: ActionEnhancements;
 }) {
   const headingId = `plano-${plan.id}`;
   return (
@@ -622,8 +689,9 @@ export function FibtActionPlanSection({
           </button>
         </div>
       ) : null}
+      {enhancements?.summary}
       {plan.actions.map((action) => (
-        <FibtActionCard key={action.id} action={action} planStatus={plan.status} busy={busy} today={today} callbacks={callbacks} />
+        <FibtActionCard key={action.id} action={action} planStatus={plan.status} busy={busy} today={today} callbacks={callbacks} enhancements={enhancements} />
       ))}
     </section>
   );

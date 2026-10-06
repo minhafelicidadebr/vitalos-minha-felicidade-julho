@@ -67,6 +67,7 @@ export const ivoActionLoopSchemas = {
       kind: z.enum(["texto", "checklist", "metrica"]).optional(),
       content: z.string().trim().min(3).max(2000),
       occurredOn: z.string().date(),
+      contentId: z.string().regex(/^[A-Za-z0-9_.-]{1,80}$/).optional(),
     })
     .strict(),
 };

@@ -11,8 +11,12 @@
 //          A publicação protegida é feita pelo mecanismo canônico
 //          (aggregate_cohort_responses chamado com o JWT do gestor, via
 //          PostgREST) — nunca por INSERT direto em cohort_capsules.
+//   upgrade Atualiza um stack local JÁ EXISTENTE (schema da R6) aplicando a migration
+//          do protocolo de eficácia C8 — só nesse banco local descartável.
 //   dev    Sobe o app (bun run dev) apontando para o Supabase local, com a
-//          capability ACTION_PLAN ligada SÓ como fixture local controlada.
+//          capability ACTION_PLAN ligada SÓ como fixture local controlada e,
+//          por padrão, a governança D9 de TESTE SINTÉTICO (parecer conclusivo
+//          identificado como teste; desligue com VITALOS_IVO_TEST_GOVERNANCE=off).
 //   env    Imprime os NOMES das variáveis do ambiente local (sem valores).
 //   stop   Derruba o stack local e descarta os dados.
 //
@@ -240,8 +244,27 @@ async function setup(): Promise<void> {
   console.log(`  e-mails de acesso (link mágico) chegam no Mailpit local: http://127.0.0.1:55424\n`);
 }
 
+const C8_MIGRATION = "20261005120000_ivo_efficacy_protocols.sql";
+/** Atualização a partir do schema local anterior: aplica a migration C8 se ainda ausente. */
+async function upgrade(): Promise<void> {
+  console.log("\nDEMONSTRAÇÃO LOCAL IVO — upgrade (alvo: Supabase local descartável)\n");
+  const stack = await stackStatus();
+  if (!stack) fail("stack local não está rodando. Rode: bun run demo:ivo:setup");
+  await assertLocalTarget(stack);
+  const present = await scalar("SELECT (to_regclass('public.efficacy_protocols') IS NOT NULL)::TEXT;");
+  if (present === "true") {
+    console.log("  ok   protocolos de eficácia (C8) já presentes neste stack local (nada reaplicado)");
+    return;
+  }
+  const r = await psql(readFileSync(join(ROOT, "supabase", "migrations", C8_MIGRATION), "utf8"));
+  if (r.code !== 0) fail(`migration ${C8_MIGRATION}: ${r.err.trim().split("\n").slice(0, 6).join(" | ")}`);
+  console.log(`  ok   migration ${C8_MIGRATION} aplicada sobre o schema local anterior`);
+}
 async function dev(): Promise<void> {
   const env = readDemoEnv();
+  // Governança D9 de TESTE: só vale em runtime local descartável (checado no servidor).
+  const d9 = process.env.VITALOS_IVO_TEST_GOVERNANCE ?? "D9_APROVADO_SINTETICO";
+  if (d9 !== "off") env.VITALOS_IVO_TEST_GOVERNANCE = d9;
   for (const [k, v] of Object.entries(env)) {
     if (k.startsWith("SUPABASE_") || k.startsWith("VITE_SUPABASE_")) {
       if (!isLocalUrl(env.SUPABASE_URL ?? "") || !isLocalUrl(env.VITE_SUPABASE_URL ?? "")) fail("ambiente local aponta para fora da máquina.");
@@ -266,8 +289,9 @@ function printEnvNames(): void {
 if (import.meta.main) {
   const command = process.argv[2] ?? "setup";
   if (command === "setup") await setup();
+  else if (command === "upgrade") await upgrade();
   else if (command === "dev") await dev();
   else if (command === "stop") await stop();
   else if (command === "env") printEnvNames();
-  else fail(`comando desconhecido: ${command}. Use setup | dev | stop | env.`);
+  else fail(`comando desconhecido: ${command}. Use setup | upgrade | dev | stop | env.`);
 }

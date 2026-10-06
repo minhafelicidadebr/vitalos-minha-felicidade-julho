@@ -173,3 +173,11 @@ commit `8859c01`, pacote `8859c0111982-20261005T024421`, digest
 **Pendente (exige o operador no navegador — Access + magic link)**: S2–S8, incluindo a conferência visual
 dos cartões, o calendário no tema escuro e os dois envios reais. O smoke **não** está aprovado.
 Recuperação acionada neste deploy: nenhuma.
+
+## 12. Migration do C8 — NÃO aplicada em staging
+
+A migration `20261005120000_ivo_efficacy_protocols.sql` (protocolos, observações e pareceres de eficácia) existe **somente no
+repositório e no banco local descartável**. Ela **não** faz parte do pacote `8859c01` publicado e **nenhum comando deste
+runbook a aplica**. Promovê-la a staging é um passo separado (PI-15): exige revisão do SQL, autorização expressa do escopo
+"migration remota", `preflight`/M6A verdes no alvo e replay preprod (já verde localmente: 52/52). Até lá, a interface publicada
+mostra "Eficácia: não avaliada" e não há tabela `efficacy_*` em `xttjkpzhxtjfwxjsxuab`.

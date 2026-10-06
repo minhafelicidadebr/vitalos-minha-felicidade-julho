@@ -38,6 +38,8 @@ import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { canTransition } from "@/engine/action-plan/action-log-engine";
 import { normalizeCycleKey, sameCycle } from "@/domain/ivo/cycle-key";
 import { getDimensionMappings } from "@/domain/ivo/dimension-mappings";
+import { encodeContentRef, getFactorContentById } from "@/domain/ivo/factor-content";
+import { isDisposableLocalRuntime, type GovernanceGateEnv } from "./ivo-governance-gate.server";
 import { isMappingApproved } from "@/engine/ivo/ivo-matrix";
 import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
 import type { IvoDimensionId } from "@/engine/ivo/lens-contract";
@@ -131,6 +133,8 @@ export interface FibtActionLedgerStore {
     orgId: string;
     planId: string;
     sourceLensId: string | null;
+    /** Fator FIB-T de origem (para validar o vínculo educativo). */
+    sourceFactorId?: string | null;
     status: PlanActionStatus;
     planStatus: string;
   } | null>;
@@ -157,6 +161,8 @@ export { EFFICACY_NOT_EVALUATED_REASON } from "./ivo-views";
 export interface FibtActionLoopDeps extends IvoQ2Deps {
   capability?: () => ServerCapabilityDecision;
   ledger?: FibtActionLedgerStore;
+  /** Mostra/aceita conteúdo de TESTE (padrão: só em runtime local descartável). */
+  testContent?: boolean;
 }
 
 const REASON_MESSAGE: Record<string, string> = {
@@ -175,6 +181,8 @@ const REASON_MESSAGE: Record<string, string> = {
   incomplete_section_13: "Defina responsável, prazo e indicador de execução de todas as ações antes de ativar.",
   invalid_transition: "Essa mudança de estado não é permitida a partir do estado atual.",
   invalid_date: "Data inválida ou no futuro.",
+  content_link_only_for_learning: "O vínculo com conteúdo educativo vale somente para registros de aprendizagem.",
+  content_not_available: "Esse conteúdo não está disponível para o fator desta ação.",
   db_error: "O registro não pôde ser gravado agora. Nada foi alterado.",
 };
 
@@ -196,7 +204,7 @@ function defaultLedgerCapability(deps: FibtActionLoopDeps): ServerCapabilityDeci
   return profile.kind === "staging" ? { enabled: true, source: "ivo_staging_profile" } : local;
 }
 
-async function authorizeLedger(accessToken: string | undefined, deps: FibtActionLoopDeps) {
+export async function authorizeLedger(accessToken: string | undefined, deps: FibtActionLoopDeps) {
   const capability = (deps.capability ?? (() => defaultLedgerCapability(deps)))();
   if (!capability.enabled) {
     return { ok: false as const, category: "unavailable" as const, error: CAPABILITY_DISABLED_REASON };
@@ -204,7 +212,7 @@ async function authorizeLedger(accessToken: string | undefined, deps: FibtAction
   return authorizeIvoSession(accessToken, deps);
 }
 
-function ledgerOf(deps: FibtActionLoopDeps): FibtActionLedgerStore {
+export function ledgerOf(deps: FibtActionLoopDeps): FibtActionLedgerStore {
   return deps.ledger ?? createSupabaseLedgerStore();
 }
 
@@ -484,6 +492,8 @@ export async function recordFibtActionEvidence(
     kind?: "texto" | "checklist" | "metrica";
     content: string;
     occurredOn: string;
+    /** Só aprendizagem: referência estruturada ao conteúdo educativo estudado (catálogo curatorial). */
+    contentId?: string;
   },
   deps: FibtActionLoopDeps = {},
 ): Promise<LedgerWriteOutcome> {
@@ -496,10 +506,20 @@ export async function recordFibtActionEvidence(
     const item = await ledger.findItem(auth.orgId, input.itemId);
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
     if (item.planStatus !== "active") return rejected("plan_not_active");
+    let contentRef = input.content;
+    if (input.contentId) {
+      if (input.scope !== "aprendizagem") return rejected("content_link_only_for_learning");
+      const content = getFactorContentById(input.contentId);
+      const visible =
+        !!content &&
+        (content.status === "APROVADO" || (content.status === "TESTE" && (deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv))));
+      if (!content || !visible || content.factorId !== (item.sourceFactorId ?? null)) return rejected("content_not_available");
+      contentRef = encodeContentRef(content, input.content);
+    }
     const r = await ledger.recordEvidence({
       itemId: item.id,
       evidenceKind: input.scope === "aprendizagem" ? "aprendizagem" : (input.kind ?? "texto"),
-      contentRef: input.content,
+      contentRef,
       sourceKind: "direct",
       consentRef: null,
       occurredOn: input.occurredOn,
@@ -651,7 +671,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
       const db = await admin();
       const { data: item, error } = await db
         .from("action_items")
-        .select("id, org_id, plan_id, source_lens_id, status")
+        .select("id, org_id, plan_id, source_lens_id, source_factor_id, status")
         .eq("id", itemId)
         .eq("org_id", orgId)
         .maybeSingle();
@@ -670,6 +690,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
         orgId: String(item.org_id),
         planId: String(item.plan_id),
         sourceLensId: (item.source_lens_id as string | null) ?? null,
+        sourceFactorId: (item.source_factor_id as string | null) ?? null,
         status: item.status as PlanActionStatus,
         planStatus: String(plan.status),
       };

@@ -1,8 +1,11 @@
 # Spec — Protocolo de eficácia (C8)
 
-**Status:** especificação proposta + motor puro implementado localmente (`src/engine/ivo/efficacy-protocol.ts`).
-Persistência e UI **não implementadas** (PI-2, PI-3) — dependem dos parâmetros D9 do dossiê. Nada aqui aprova
-método; eficácia continua "não avaliada" na interface publicada.
+**Status (2026-10-05, segunda macro-onda):** motor puro (`src/engine/ivo/efficacy-protocol.ts`), **persistência
+(PI-2) e interface (PI-3) implementadas e provadas LOCALMENTE** em banco descartável. A migration
+`20261005120000_ivo_efficacy_protocols.sql` **não foi aplicada em staging nem em produção** (depende de revisão e
+autorização). Nada aqui aprova método: D9 segue em **proposta**; o parecer conclusivo só existe no ambiente local
+de teste, com governança sintética identificada. Na interface publicada em staging (`8da81ce2`) a eficácia continua
+"não avaliada".
 
 ## 1. Cinco camadas, nunca misturadas
 
@@ -49,23 +52,49 @@ apresentado como melhora de resultado.
   em `resultado`, baseline; qualquer valor ausente/suprimido ⇒ `inconclusiva` (nunca zero); `inconclusiva` exige
   motivo; `sustentada_por_desenho` exige `evidenceGrade = desenho_causal`.
 
-**Persistência proposta (migration aditiva — NÃO criada):** `efficacy_protocols`, `efficacy_observations`,
-`efficacy_verdicts`, todas com `org_id`, RLS por `profiles.org_id`, **append-only** (sem UPDATE/DELETE; gatilho
-de bloqueio), escrita só por RPCs `SECURITY DEFINER` que derivam organização e papel da sessão, conferem posse do
-item e aceitam `request_id` idempotente. FK composta `(item_id, org_id)` como no ledger R6. Revisor da RPC de
-parecer ≠ autor do protocolo. Observações de `leitura_publicada` guardam **referência** (ciclo, recorte, versões),
-nunca o valor; o valor é resolvido na leitura, pelo snapshot protegido. Critérios de conclusão: replay
-clean/preprod/upgrade, teste SQL com duas organizações, idempotência, append-only.
+**Persistência implementada (migration aditiva, local):** `efficacy_protocols`, `efficacy_observations`,
+`efficacy_verdicts`, todas com `org_id`, FK composta `(item_id, org_id)` como no ledger R6 (com `UNIQUE (id, org_id)`
+adicionada a `action_items`, protegida), RLS de leitura por `profiles.org_id`. Decisões que **divergem da proposta
+original**, com o motivo:
 
-## 4. Interface (PI-3, futura)
+- **Sem funções novas em `public`** (o guarda M6A aborta funções públicas desconhecidas) e **sem RPC `SECURITY DEFINER`**:
+  a escrita é feita só por `service_role` a partir do servidor, que valida sessão, papel, organização, capability e posse
+  do item; os gatilhos de integridade vivem no schema `ivo_c8`. `authenticated` só lê (RLS); `anon` não lê.
+- **Ciclo de vida com rascunho.** O protocolo nasce `draft` (campos anuláveis: pode ficar **incompleto** e persistir);
+  `registered` exige o contrato completo (`CHECK` + gatilho repetem a regra do motor) e é **imutável** depois. Revisar =
+  nova linha (`revision+1`, `supersedes_id`); um rascunho aberto por item (índice único parcial).
+- **Sem `DELETE` para ninguém de aplicação** (`service_role` inclusive); a exclusão da ação ainda remove por cascata de FK.
+- **Observações e pareceres são append-only.** Um novo parecer vira novo registro; **o mais recente prevalece** e os
+  anteriores permanecem no banco.
+- **Parecer conclusivo exige governança D9 aprovada registrada NO PRÓPRIO parecer** (`governance_decision`,
+  `governance_state`, `governance_source ∈ registro_canonico | teste_sintetico`, `CHECK` no banco). Revisor ≠ criador do protocolo
+  (gatilho). Override de teste `VITALOS_IVO_TEST_GOVERNANCE=D9_APROVADO_SINTETICO` só vale em runtime **local descartável**
+  (runtime/db local, URLs loopback, sem declaração HML) e marca o parecer como teste.
+- **Valor de leitura publicada nunca é persistido** (`baseline_value` nulo; só referência; `CHECK` recusa chaves extras no JSON).
+  Observação e parecer conclusivo sobre `leitura_publicada` de outro ciclo retornam `published_reading_resolution_pending`:
+  a **resolução protegida** do valor ainda **não existe** (pendência do roadmap). Único parecer possível ali: inconclusivo.
 
-Substituir o bloco estático "Eficácia: não avaliada" pelo estado real + protocolo + pareceres, mantendo o
-texto fixo "Concluir a ação registra a execução — não comprova melhora nem causalidade" e mostrando sempre
-`claimScope`, grau de evidência e limitações.
+Provas: replay clean 39/39 · preprod 52/52 · upgrade 52/52 (`PACOTE_IVO_C8`), suíte SQL `supabase/tests/08_ivo_efficacy_protocols.sql`
+(duas organizações), testes unitários do servidor e prova de integração com sessões reais (`bun run demo:ivo:proof`).
+
+## 4. Interface (PI-3 — implementada localmente)
+
+`src/components/ivo/EfficacyPanel.tsx`, dentro do cartão da ação em `/ivo-integral/acoes`: o bloco estático "Eficácia: não
+avaliada" só permanece quando não há protocolo **registrado**. Rascunho incompleto lista o que falta e segue persistido;
+registrado mostra o protocolo (sem campos editáveis — só "nova revisão"), observações e parecer com escopo, grau de evidência,
+atribuição causal (padrão "não avaliada"), governança D9 usada e marca de **TESTE SINTÉTICO**. Mantém o texto fixo "Concluir a ação
+registra a execução — não comprova melhora do indicador nem causalidade, e não altera o IVO". Com D9 em proposta, só "inconclusiva"
+é selecionável. Pareceres novos ficam em "Registrar nova observação ou novo parecer" (histórico preservado).
 
 ## 5. Critérios de aceite
 
 C8-1 estado independe da ação · C8-2 ausência nunca vira zero · C8-3 comparação inválida bloqueada e explicada ·
 C8-4 revisão de protocolo não reescreve pareceres · C8-5 favorável, desfavorável e inconclusivo persistem após
 recarga (PI-2/PI-3) · C8-6 atribuição causal nunca é padrão · C8-7 nenhum valor de leitura publicada é persistido.
-Dados sintéticos verificam o software, não a eficácia de intervenção real.
+
+**Situação local:** C8-1 (concluir a ação B não cria parecer; B termina "meta não atingida" com a ação concluída), C8-2, C8-3,
+C8-5 (UI real + releitura em processo novo), C8-6 e C8-7 comprovados localmente; C8-4 coberto por testes do motor e da suíte SQL.
+**Não comprovado:** qualquer efeito em staging/produção; resolução protegida de leitura publicada de outro ciclo (pendente).
+Critérios dos três desfechos de demonstração são **fictícios e explícitos** (favorável: base 40 → observado 62, meta 60, diferença
+mínima 5 · desfavorável: base 50 → observado 48, meta 60 · inconclusivo: leitura publicada sem resolução protegida). Dados sintéticos
+verificam o software, não a eficácia de intervenção real.

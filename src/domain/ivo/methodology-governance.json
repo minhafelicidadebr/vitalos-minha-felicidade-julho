@@ -1,0 +1,266 @@
+{
+  "registry_version": "1.0.0",
+  "description": "Registro canônico das decisões metodológicas do IVO (R8). Transcreve o dossiê docs/vitalos/ivo-methodology-dossier.md §5 e §11 sem aprová-lo. TODAS as entradas estão em 'proposta'. Somente uma autoridade metodológica configurada no servidor pode preparar uma aprovação; RH_ADMIN de organização não aprova método global. 'aprovado_para_piloto' autoriza uma experiência delimitada e identificada; 'validado_para_uso_definido' exige evidência de validação para o uso declarado — são estados distintos.",
+  "authority_policy": "A autoridade metodológica é configurada no servidor (VITALOS_IVO_METHOD_AUTHORITY_USER_IDS). Sem configuração, a aprovação fica indisponível. O papel RH_ADMIN de uma organização não concede essa autoridade.",
+  "states": [
+    { "id": "proposta", "label": "Proposta", "meaning": "Preparada para revisão. Não produz efeito no produto." },
+    { "id": "em_revisao", "label": "Em revisão", "meaning": "Revisor independente designado. Ainda sem efeito no produto." },
+    { "id": "aprovado_para_piloto", "label": "Aprovado para piloto", "meaning": "Autoriza uso experimental delimitado e identificado. Não é validação." },
+    { "id": "validado_para_uso_definido", "label": "Validado para uso definido", "meaning": "Evidência de validação para o uso declarado, com decisão registrada." },
+    { "id": "rejeitada", "label": "Rejeitada", "meaning": "Não será adotada nesta versão; pode ser reaberta como nova proposta." },
+    { "id": "retirada", "label": "Retirada", "meaning": "Deixou de valer; preserva a história." }
+  ],
+  "entries": [
+    {
+      "id": "D1", "kind": "decision", "title": "Finalidade e usos do IVO", "version": "0.1.0", "state": "proposta",
+      "proposal": "Índice composto de gestão da vitalidade organizacional: agregado, interno, experimental e identificado. Vedado como avaliação de desempenho individual, benchmark externo ou selo.",
+      "rationale": "Delimita o uso antes de qualquer fórmula; os claims proibidos do manifesto FIB-T já vedam benchmark, ranking e diagnóstico.",
+      "alternatives": ["Somente perfil dimensional, sem número composto", "Benchmark/selo (vedado pelos claims proibidos)"],
+      "recommendation": "Índice de gestão experimental identificado.",
+      "sources": [
+        { "ref": "docs/vitalos/ivo-methodology-dossier.md §11", "kind": "repo" },
+        { "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json#forbidden_claims", "kind": "repo" }
+      ],
+      "limitations": ["Não define método; apenas o uso pretendido."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Responsável metodológico nomeado", "Usos permitidos e vedados redigidos", "Revisão independente registrada"],
+      "effects": [
+        { "feature": "Índice IVO numérico", "effect": "Sem finalidade aprovada, nenhum número composto é publicado." }
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "D2", "kind": "decision", "title": "Menor conjunto que completa as quatro dimensões", "version": "0.1.0", "state": "proposta",
+      "proposal": "Publicar perfil parcial sem número agora; completar NÓS, LIDERANÇA e EU-no-trabalho com um módulo transversal mínimo (≥ 2 construtos × ≥ 3 itens por dimensão descoberta). Subescalas COPSOQ só se D5 resolver licença e separação Domínio A/B.",
+      "rationale": "A FIB-T mede vida geral e percepção de governança; nenhum fator mede relações de trabalho entre pares (NÓS) e o Fator 3 é a única fonte de LIDERANÇA e ORGANIZAÇÃO.",
+      "alternatives": ["Subescalas COPSOQ licenciadas (Domínio B, direção reversa)", "PERMA+V/VIA-T (sem LIDERANÇA; lentes só planejadas)", "Permanecer com perfil parcial sem número"],
+      "recommendation": "Perfil parcial agora; módulo transversal como caminho de menor dependência externa.",
+      "sources": [
+        { "ref": "docs/vitalos/ivo-methodology-dossier.md §6 e §8", "kind": "repo" },
+        { "ref": "src/domain/packs/enterprise/ivo-framework.json (pilares demonstrativos; não são itens validados)", "kind": "repo" }
+      ],
+      "limitations": ["Itens do módulo não existem: exigem autoria/licença, revisão de conteúdo e pré-teste.", "Carga de resposta adicional estimada em cerca de 18 itens."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Critério de 'cobertura substantiva suficiente' definido", "Conjunto de construtos por dimensão escolhido", "Fonte e licença de cada medida verificadas"],
+      "effects": [
+        { "feature": "Cobertura por dimensão", "effect": "Permanece 'não coberto' em NÓS e LIDERANÇA." },
+        { "feature": "Índice IVO numérico", "effect": "Sem conjunto fixo de medidas, não há número." }
+      ],
+      "depends_on": ["D1", "D5"]
+    },
+    {
+      "id": "D3", "kind": "decision", "title": "Mapeamentos FIB-T → dimensões (granularidade)", "version": "0.1.0", "state": "proposta",
+      "proposal": "Aprovar/rejeitar M1–M6 no nível de Fator; não derivar subescalas por reagrupamento de itens. Anexar fonte científica a cada aprovação.",
+      "rationale": "O carregador aceita mapeamento por Fator; regrupar itens criaria subescalas que exigem avaliação psicométrica.",
+      "alternatives": ["Nova escala derivada por itens (exige psicometria)"],
+      "recommendation": "Aprovar M2 e M1 (rótulo 'bem-estar geral'); M3 só exibição; rejeitar M4 e M6.",
+      "sources": [{ "ref": "docs/vitalos/ivo-methodology-dossier.md §5", "kind": "repo" }],
+      "limitations": ["Fonte científica das associações: a fornecer pelo responsável metodológico."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Decisão individual registrada para cada M1–M6", "Evidência científica anexada às aprovadas"],
+      "effects": [
+        { "feature": "Mapeamento das ações e matriz 4×4", "effect": "Sem mapeamento aprovado, ações seguem 'mapeamento pendente' e células sem evidência por dimensão." }
+      ],
+      "depends_on": ["D1"]
+    },
+    {
+      "id": "D4", "kind": "decision", "title": "Perguntas abertas do manifesto FIB-T", "version": "0.1.0", "state": "proposta",
+      "proposal": "Verificar com o autor/manual: item 5 no Fator 3, erros nos itens 21 e 22, nome do domínio (Bem-Estar Emocional × Psicológico), fórmula de subíndice por domínio, regra de ausência e interpretação. Manter o texto literal até resposta.",
+      "rationale": "O manifesto registra estas perguntas em governance.open_questions; o cálculo nativo não muda enquanto estiverem abertas.",
+      "alternatives": ["Aceitar o texto literal sem verificar", "Suspender os itens em dúvida"],
+      "recommendation": "Preparar perguntas ao autor por meio do responsável; nenhuma mensagem a terceiros é enviada por este sistema.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json#governance.open_questions", "kind": "repo" }],
+      "limitations": ["Nenhuma resposta do autor foi obtida; condições de uso não estão resolvidas por este registro."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Resposta do autor ou decisão explícita de manter o literal", "Registro da evidência da verificação"],
+      "effects": [
+        { "feature": "Cálculo nativo FIB-T", "effect": "Inalterado; subíndice por domínio continua vedado." },
+        { "feature": "Mapeamentos (D3)", "effect": "A associação do item 5 permanece incerta." }
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "D5", "kind": "decision", "title": "COPSOQ: licença, versão e política Domínio A/B", "version": "0.1.0", "state": "proposta",
+      "proposal": "Parecer jurídico sobre licença e uso; manter COPSOQ como lente independente (Q1) sem contribuir ao IVO até decidir a política de Domínio A/B e a versão (II-Br/III).",
+      "rationale": "O manifesto do repositório é demonstrativo e sem licença de versão; a política vigente proíbe misturar bem-estar (A) e risco (B); a página da rede COPSOQ descreve condições de licença que exigem interpretação própria.",
+      "alternatives": ["IVO só com Domínio A", "Subescalas COPSOQ invertidas dentro do IVO", "COPSOQ só como lente independente"],
+      "recommendation": "Lente independente sem contribuição ao IVO até parecer jurídico.",
+      "sources": [
+        { "ref": "docs/DECISAO_T5_TRILHO_LICENCIAMENTO_COPSOQ_2026-07-20.md", "kind": "repo" },
+        { "ref": "https://www.copsoq-network.org/licence-guidelines-and-questionnaire", "kind": "externa_a_verificar" }
+      ],
+      "limitations": ["Nenhuma interpretação jurídica foi feita; nenhuma condição de uso está declarada como resolvida."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Parecer jurídico registrado", "Versão do instrumento escolhida", "Política A/B decidida"],
+      "effects": [
+        { "feature": "Lente COPSOQ", "effect": "Permanece planejada; sem leitura real." },
+        { "feature": "Cobertura (D2)", "effect": "Subescalas COPSOQ não entram no conjunto mínimo." }
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "D6", "kind": "decision", "title": "Escala, normalização, pesos e agregação", "version": "0.1.0", "state": "proposta",
+      "proposal": "0–100 linear por construto (exibição), pesos iguais, média aritmética ponderada entre dimensões com alerta de dimensão mínima e análise de sensibilidade; aposentar 0–1000 na jornada IVO; manter lift = 0 (C6).",
+      "rationale": "Linear e transparente; o manifesto FIB-T hoje recusa normalização, então exige autorização expressa do responsável.",
+      "alternatives": ["Escala nativa sem escala comum", "0–1000 legado", "Percentil/z (sem normas disponíveis)", "Pesos do framework 27/25/24/24", "Agregação geométrica"],
+      "recommendation": "0–100 linear, pesos iguais, aritmética ponderada + sensibilidade.",
+      "sources": [{ "ref": "docs/vitalos/ivo-methodology-dossier.md §9", "kind": "repo" }],
+      "limitations": ["Fórmula candidata do relatório técnico de 2026-10-05; não aprovada.", "Mudar a escala não valida o método."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Escala, pesos e agregação fixados por versão", "Sensibilidade documentada", "Autorização de transformação linear da FIB-T"],
+      "effects": [
+        { "feature": "Índice IVO numérico", "effect": "Sem método, nenhum valor é calculado ou exibido." }
+      ],
+      "depends_on": ["D1", "D2", "D3"]
+    },
+    {
+      "id": "D7", "kind": "decision", "title": "Elegibilidade, janela de validade e comparabilidade", "version": "0.1.0", "state": "proposta",
+      "proposal": "Todas as entradas obrigatórias presentes, sem redistribuir peso; janela de validade do ciclo com datas visíveis; comparação só com mesma versão e composição.",
+      "rationale": "Evita preencher lacunas com zero e comparar medidas diferentes como evolução.",
+      "alternatives": ["Janela de 12 meses", "Janela por lente"],
+      "recommendation": "Janela do ciclo; sem redistribuição.",
+      "sources": [{ "ref": "docs/vitalos/ivo-methodology-dossier.md §10", "kind": "repo" }],
+      "limitations": ["Janela de validade sem valor default: enquanto não decidida, nada é 'desatualizado'."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Janela de validade numérica fixada", "Regra de comparação entre versões fixada"],
+      "effects": [
+        { "feature": "Cobertura por dimensão", "effect": "Estado 'desatualizado' indisponível." },
+        { "feature": "Comparação entre ciclos", "effect": "Sem regra aprovada, a comparação é tratada como não comparável." }
+      ],
+      "depends_on": ["D6"]
+    },
+    {
+      "id": "D8", "kind": "decision", "title": "Privacidade das saídas derivadas e controle temporal", "version": "0.1.0", "state": "proposta",
+      "proposal": "Índice e dimensões só por recorte publicado (sem agregado organizacional), com liberação em lote.",
+      "rationale": "Agregado global menos células publicadas pode revelar célula suprimida; recálculo a cada resposta reintroduz inferência.",
+      "alternatives": ["Agregado só com partição inteira publicada e checagem diferencial", "Agregado ponderado por n (vaza n)"],
+      "recommendation": "Somente por recorte publicado + liberação em lote.",
+      "sources": [{ "ref": "docs/vitalos/constitution/privacy-security.md", "kind": "repo" }],
+      "limitations": ["Guarda de divulgação conjunta ainda não implementada (PI-5)."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Política de divulgação conjunta fixada", "Teste de reconstrução de célula suprimida"],
+      "effects": [
+        { "feature": "Saídas derivadas (índice, dimensões)", "effect": "Não liberadas." }
+      ],
+      "depends_on": ["D6"]
+    },
+    {
+      "id": "D9", "kind": "decision", "title": "Parâmetros do protocolo de eficácia (C8)", "version": "0.1.0", "state": "proposta",
+      "proposal": "Adotar a especificação: comparabilidade de baseline, diferença mínima definida por protocolo (sem default global), graus de evidência, revisor independente e atribuição causal somente com desenho aprovado.",
+      "rationale": "Separa execução, mudança observada, alcance da meta e atribuição; evita ler conclusão de tarefa como melhora.",
+      "alternatives": ["Diferença mínima global", "Sem revisor independente"],
+      "recommendation": "Adotar a spec; piloto com caso identificado.",
+      "sources": [{ "ref": "docs/vitalos/specs/efficacy-protocol-c8.md", "kind": "repo" }],
+      "limitations": ["Resolução de valores de leituras publicadas de ciclos anteriores ainda não implementada: pareceres conclusivos sobre leitura publicada permanecem indisponíveis."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Regra de comparabilidade aprovada", "Graus de evidência aprovados", "Revisor independente designado"],
+      "effects": [
+        { "feature": "Avaliação de eficácia (parecer conclusivo)", "effect": "Enquanto pendente, só 'inconclusiva' é aceita; protocolos podem ser preparados em rascunho e registrados." },
+        { "feature": "Protocolo C8 em rascunho", "effect": "Disponível." }
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "D10", "kind": "decision", "title": "Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7)", "version": "0.1.0", "state": "proposta",
+      "proposal": "Curadoria pelo responsável metodológico com o orçamento de evidência existente; C2–C5 resolvidos em nota curta; C7 adiado.",
+      "rationale": "Conteúdo só pode afirmar o que o registro de evidências permite (safe_claim); hoje não existe conteúdo curado para fatores FIB-T.",
+      "alternatives": ["Conteúdo gerado sem curadoria (vedado)", "Reutilizar conteúdo mock da Academia (vedado como recomendação real)"],
+      "recommendation": "Curadoria pelo metodológico; catálogo versionado por fator.",
+      "sources": [
+        { "ref": "src/domain/evidence/learning-patterns.json", "kind": "repo" },
+        { "ref": "src/domain/ivo/factor-content.json", "kind": "repo" }
+      ],
+      "limitations": ["O catálogo atual contém apenas conteúdo de TESTE identificado."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Responsável pela curadoria nomeado", "Conteúdo aprovado com fontes e safe_claim por fator"],
+      "effects": [
+        { "feature": "Conteúdo educativo por fator", "effect": "Sem conteúdo aprovado, a interface mostra 'curadoria pendente'." }
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "M1", "kind": "mapping", "title": "Bem-Estar → EU (complementar, bem-estar geral)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": "bem_estar", "dimension": "eu", "nature": "complementar" },
+      "proposal": "Associar o Fator Bem-Estar à dimensão EU com o rótulo 'bem-estar geral', não 'experiência no trabalho'.",
+      "rationale": "Itens 7, 10, 14, 31 (emocional/propósito), 9, 11 (sono/tempo) e 24 (estresse) aproximam energia, propósito e equilíbrio; itens 15, 28, 30, 19 e 22 saem da definição de EU.",
+      "alternatives": ["Rejeitar", "Exibir sem contar no índice"],
+      "recommendation": "Aprovar com rótulo explícito.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json (itens por fator)", "kind": "repo" }],
+      "limitations": ["Fator mede vida geral; fonte científica da associação: a fornecer."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Fonte científica anexada", "Revisão independente de conteúdo"],
+      "effects": [{ "feature": "Cobertura EU", "effect": "Passa de 'não coberto' para parcial somente após aprovação." }],
+      "depends_on": ["D3"]
+    },
+    {
+      "id": "M2", "kind": "mapping", "title": "Satisfação com a Empresa → ORGANIZAÇÃO (direta, parcial)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": "satisfacao_empresa", "dimension": "organizacao", "nature": "direta" },
+      "proposal": "Associar o Fator 3 à dimensão ORGANIZAÇÃO como percepção de governança.",
+      "rationale": "Itens 3, 12, 13 e 20 descrevem políticas e condições percebidas; é percepção, não evidência institucional.",
+      "alternatives": ["Rejeitar", "Mapear à LIDERANÇA"],
+      "recommendation": "Aprovar como percepção de governança.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json", "kind": "repo" }],
+      "limitations": ["Fator 3 também sustenta M3; mapear nas duas conta o mesmo sinal duas vezes."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Fonte científica anexada", "Regra de não dupla contagem com M3"],
+      "effects": [{ "feature": "Cobertura ORGANIZAÇÃO", "effect": "Parcial somente após aprovação." }],
+      "depends_on": ["D3"]
+    },
+    {
+      "id": "M3", "kind": "mapping", "title": "Satisfação com a Empresa → LIDERANÇA (complementar; só exibição)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": "satisfacao_empresa", "dimension": "lideranca", "nature": "complementar" },
+      "proposal": "Exibir a associação sem contá-la no índice.",
+      "rationale": "Itens 4 e 26 são práticas de gestão; os oito itens não separam liderança de organização.",
+      "alternatives": ["Contar em LIDERANÇA e não em ORGANIZAÇÃO", "Rejeitar"],
+      "recommendation": "Somente exibição.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json", "kind": "repo" }],
+      "limitations": ["Dupla contagem se usada junto com M2."],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Regra de exibição sem contagem aprovada"],
+      "effects": [{ "feature": "Cobertura LIDERANÇA", "effect": "Permanece 'não coberto' para o índice." }],
+      "depends_on": ["D3", "M2"]
+    },
+    {
+      "id": "M4", "kind": "mapping", "title": "Padrão de Vida → nenhuma dimensão (inadequada)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": "padrao_de_vida", "dimension": null, "nature": "inadequada" },
+      "proposal": "Manter como leitura nativa, sem contribuição às quatro dimensões.",
+      "rationale": "Itens de contexto de vida (moradia, renda, viagens, cultura); só os itens 2, 27 e 32 tocam crescimento. Alimentar um índice de gestão com renda/moradia é injusto e cria pressão indevida.",
+      "alternatives": ["Mapear para EU (crescimento)"],
+      "recommendation": "Rejeitar como contribuição ao índice.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json", "kind": "repo" }],
+      "limitations": [],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Decisão registrada"],
+      "effects": [{ "feature": "Leitura Q2", "effect": "Nenhum efeito: a leitura nativa continua exibida." }],
+      "depends_on": ["D3"]
+    },
+    {
+      "id": "M5", "kind": "mapping", "title": "NÓS — lacuna de cobertura (insuficiente)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": null, "dimension": "nos", "nature": "insuficiente" },
+      "proposal": "Declarar NÓS como não coberta pela FIB-T.",
+      "rationale": "Nenhum item mede relações de trabalho entre pares; os itens 19 e 5 referem-se à vida pessoal ou são atípicos.",
+      "alternatives": ["Associar Bem-Estar a NÓS (ver M6)"],
+      "recommendation": "Registrar a lacuna e tratá-la em D2.",
+      "sources": [{ "ref": "docs/vitalos/ivo-methodology-dossier.md §6", "kind": "repo" }],
+      "limitations": [],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Lacuna reconhecida pelo responsável"],
+      "effects": [{ "feature": "Cobertura NÓS", "effect": "'Não coberto' até existir medida (D2)." }],
+      "depends_on": ["D2"]
+    },
+    {
+      "id": "M6", "kind": "mapping", "title": "Bem-Estar → NÓS (insuficiente; rejeitar)", "version": "0.1.0", "state": "proposta",
+      "mapping": { "lens": "fibt", "sourceConstructId": "bem_estar", "dimension": "nos", "nature": "insuficiente" },
+      "proposal": "Rejeitar: apenas 1 dos 12 itens (19) toca vínculos.",
+      "rationale": "Associar o fator inteiro por causa de um item distorceria o significado de NÓS.",
+      "alternatives": ["Aprovar como complementar"],
+      "recommendation": "Rejeitar.",
+      "sources": [{ "ref": "src/domain/instruments/fibt/fibt-instrument.v1.json", "kind": "repo" }],
+      "limitations": [],
+      "owner": null, "reviewer": null, "approval": null,
+      "approval_criteria": ["Decisão registrada"],
+      "effects": [{ "feature": "Cobertura NÓS", "effect": "Nenhum efeito se rejeitada." }],
+      "depends_on": ["D3"]
+    }
+  ]
+}

@@ -229,6 +229,16 @@ const PACOTE_TASK_10_1 = [
  * replay verifica isso reaplicando-a.
  */
 const PACOTE_IVO_R6 = ["20261002120000_fibt_action_provenance.sql"] as const;
+/**
+ * PACOTE IVO C8 — protocolo de eficácia, observações e pareceres.
+ *
+ * Preparado para REVISÃO; nunca aplicado remotamente. Depende apenas da TABELA
+ * action_items (FK composta); as RPCs do ledger NÃO importam, e por isso ela
+ * aplica também sobre o estado produtivo observado (tabelas presentes, RPCs
+ * ausentes). Idempotente; sem função nova em public (gatilhos no schema ivo_c8)
+ * para não ser abortada pela M6A.
+ */
+const PACOTE_IVO_C8 = ["20261005120000_ivo_efficacy_protocols.sql"] as const;
 
 const IDEMPOTENTES = new Set([
     // G1-v2.
@@ -970,9 +980,9 @@ async function caracterizarAtualizacaoR6(pacoteR6: string[]): Promise<void> {
 // que R6 funciona num ambiente assim. Num CLONE local, aplica a promoção
 // mínima na ordem do runbook (ledger 20260705100000 → R6), confere o corpo da
 // RPC, reconcilia a M6A e roda a suíte 07 exigindo o caminho de RPC PROVADO.
-async function provarPromocaoActionPlan(pacoteR6: string[]): Promise<void> {
+async function provarPromocaoActionPlan(pacoteR6: string[], pacoteC8: string[]): Promise<void> {
     await comCloneLocal("r6_action_plan_promotion", async (database) => {
-        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6]) {
+        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6, ...pacoteC8]) {
             const r = await psql(lerSql("supabase", "migrations", nome), database);
             if (r.code !== 0) {
                 registrar(`R6 promoção: ${nome} no clone produtivo`, false, r.err.trim().split("\n").slice(0, 6).join(" | "));
@@ -995,6 +1005,13 @@ async function provarPromocaoActionPlan(pacoteR6: string[]): Promise<void> {
             "R6 promoção: suíte 07 com caminho de RPC PROVADO (não SKIP) no clone produtivo promovido",
             suite.code === 0 && rpcProvado,
             suite.code !== 0 ? suite.err.split("\n").filter((l) => l.includes("FAILED") || l.includes("ERROR") || l.includes("  - ")).slice(0, 12).join(" | ") : `rpc_provado=${rpcProvado}`,
+        );
+        const c8 = await psql(lerSql("supabase", "tests", "08_ivo_efficacy_protocols.sql"), database);
+        const c8Provado = c8.err.includes("C8_PATH=PROVED") && !c8.err.includes("C8_PATH=SKIP");
+        registrar(
+            "C8 promoção: suíte 08 com caminho completo PROVADO (não SKIP) no clone produtivo promovido",
+            c8.code === 0 && c8Provado,
+            c8.code !== 0 ? c8.err.split("\n").filter((l) => l.includes("FALHOU") || l.includes("ERROR")).slice(0, 8).join(" | ") : `c8_provado=${c8Provado}`,
         );
     });
 }
@@ -1200,6 +1217,28 @@ try {
             : `ausentes=${r6Ausentes.join(",") || "0"} · fora_da_linhagem=${r6ForaDaLinhagem.join(",") || "0"} · sobrepõe=${r6Sobrepoe.join(",") || "0"}`,
     );
     if (!r6Valido) throw new Error("custódia do pacote IVO R6 inválida");
+    // ── Custódia do pacote IVO C8 ───────────────────────────────────────────
+    const pacoteC8 = [...PACOTE_IVO_C8];
+    const c8Ausentes = pacoteC8.filter((nome) => !todasOrdenadas.includes(nome));
+    const c8ForaDaLinhagem = pacoteC8.filter((nome) => !todas.includes(nome));
+    const c8Sobrepoe = pacoteC8.filter(
+        (nome) => pacoteG1.includes(nome as never) || pacote10.includes(nome as never) || pacoteR6.includes(nome as never),
+    );
+    const c8OrdemOk = pacoteR6.every((r6) => pacoteC8.every((c8) => r6 < c8));
+    const c8Valido =
+        pacoteC8.length === 1 &&
+        c8Ausentes.length === 0 &&
+        c8ForaDaLinhagem.length === 0 &&
+        c8Sobrepoe.length === 0 &&
+        c8OrdemOk;
+    registrar(
+        "custódia do pacote IVO C8 explícito (1 arquivo, depois do R6, sem sobreposição)",
+        c8Valido,
+        c8Valido
+            ? undefined
+            : `ausentes=${c8Ausentes.join(",") || "0"} · fora_da_linhagem=${c8ForaDaLinhagem.join(",") || "0"} · sobrepõe=${c8Sobrepoe.join(",") || "0"} · ordem_apos_R6=${c8OrdemOk}`,
+    );
+    if (!c8Valido) throw new Error("custódia do pacote IVO C8 inválida");
 
     // Reconciliação aritmética explícita: nenhum arquivo da linhagem de
     // produção fica sem classificação. Se alguém adicionar uma migration nova
@@ -1213,11 +1252,12 @@ try {
         ...pacoteG1,
         ...pacote10,
         ...pacoteR6,
+        ...pacoteC8,
         ORIGINAL_M6_HISTORICA,
     ]);
     const semClassificacao = todas.filter((nome) => !classificadas.has(nome));
     registrar(
-        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + 1 M6 histórico)`,
+        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + ${pacoteC8.length} IVO C8 + 1 M6 histórico)`,
         semClassificacao.length === 0 && classificadas.size === todas.length,
         semClassificacao.length > 0
             ? `sem classificação: ${semClassificacao.join(", ")}`
@@ -1313,6 +1353,19 @@ try {
         ) {
             throw new Error("pacote IVO R6 falhou");
         }
+        // IVO C8 — depende só da tabela action_items (presente no estado produtivo observado).
+        if (
+            !(await aplicarCadeia(
+                pacoteC8,
+                "pacote IVO C8 aplicado sobre o estado real (tabelas do ledger presentes, RPCs ausentes)",
+            ))
+        ) {
+            throw new Error("pacote IVO C8 falhou");
+        }
+        const tabelasC8 = await scalar(
+            "SELECT (to_regclass('public.efficacy_protocols') IS NOT NULL AND to_regclass('public.efficacy_observations') IS NOT NULL AND to_regclass('public.efficacy_verdicts') IS NOT NULL AND to_regprocedure('public.create_action_plan(uuid,text,text,uuid,uuid,jsonb)') IS NULL)::TEXT;",
+        );
+        registrar("C8 no baseline produtivo: tabelas de eficácia criadas sem depender das RPCs do ledger (ausentes)", tabelasC8 === "true", `tabelas presentes e RPC ausente=${tabelasC8}`);
 
         // O inventário produtivo é 0 respostas (3 ondas legadas seladas), então
         // o bootstrap tem de ser comprovadamente no-op AQUI — e não por
@@ -1358,6 +1411,14 @@ try {
             r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
         );
     }
+    for (const nome of pacoteC8) {
+        const r = await psql(lerSql("supabase", "migrations", nome));
+        registrar(
+            `idempotente ao reaplicar: ${nome}`,
+            r.code === 0,
+            r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
+        );
+    }
     await caracterizarAtualizacaoR6(pacoteR6);
 
     // 20260825022411 já foi aplicada dentro de `antes` (linhagem de
@@ -1390,7 +1451,7 @@ try {
     }
 
     await rodarProvas();
-    if (modo === "preprod") await provarPromocaoActionPlan(pacoteR6);
+    if (modo === "preprod") await provarPromocaoActionPlan(pacoteR6, pacoteC8);
     await rodarMatrizNegativaM6A();
 
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria

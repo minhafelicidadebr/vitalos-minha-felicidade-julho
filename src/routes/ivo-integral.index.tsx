@@ -140,6 +140,14 @@ function IvoIntegralPage() {
 
         <IvoLensMatrix matrix={matrix} />
         <IvoCoveragePanel coverage={coverage} />
+        <p className="text-sm">
+          <a
+            href="/ivo-integral/governanca"
+            className="inline-flex min-h-11 items-center text-primary underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Ver governança metodológica: decisões D1–D10 e mapeamentos M1–M6
+          </a>
+        </p>
         <p className="text-xs text-muted-foreground">
           A FIB-T é a primeira lente funcional (Q2). COPSOQ, PERMA+V e VIA-T estão planejadas e não
           produzem leitura. Associações entre lentes e dimensões dependem de aprovação metodológica;

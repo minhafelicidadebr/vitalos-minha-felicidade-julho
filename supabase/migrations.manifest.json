@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 60,
-  "rollupSha256": "0261d7424e6c609a3b99ade42e687206473b792a26bbe303490999beec94aca3",
+  "migrationCount": 61,
+  "rollupSha256": "fe77c884a4af7bef31f7b5520e115fc25aabecdceba2a526f7adeddf07af15de",
   "migrations": [
     {
       "order": 1,
@@ -362,6 +362,12 @@
       "name": "20261002120000_fibt_action_provenance.sql",
       "sha256": "e201dc313da535bb42d1664cf8ee94cceadbcbc44d9c054d0d4032d95f7617b7",
       "bytes": 14494
+    },
+    {
+      "order": 61,
+      "name": "20261005120000_ivo_efficacy_protocols.sql",
+      "sha256": "58b83c02c7eb1204d15b65d65ecfd9e30a9861f0d4d57cef224400cd90d8d56d",
+      "bytes": 23125
     }
   ]
 }

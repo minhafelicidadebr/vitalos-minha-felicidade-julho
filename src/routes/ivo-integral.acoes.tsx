@@ -2,9 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/app/shell/AppShell";
+import { ActionTimelinePanel, EducationPanel, PlanSummaryPanel } from "@/components/ivo/ActionFollowUp";
+import { EfficacyPanel, type EfficacyCallbacks } from "@/components/ivo/EfficacyPanel";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
 import {
   FibtActionPlanSection,
+  type ActionEnhancements,
   PriorityPlanner,
   type ActionCallbacks,
   type EvidenceSubmitResult,
@@ -13,6 +16,15 @@ import {
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import {
+  loadEfficacyFn,
+  recordEfficacyObservationFn,
+  recordEfficacyVerdictFn,
+  registerEfficacyProtocolFn,
+  saveEfficacyDraftFn,
+  startEfficacyRevisionFn,
+} from "@/lib/api/ivo-efficacy.functions";
+import { loadEducationFn } from "@/lib/api/ivo-governance.functions";
+import {
   activateFibtActionPlanFn,
   createFibtPriorityActionsFn,
   loadFibtActionLoopFn,
@@ -20,7 +32,16 @@ import {
   recordFibtActionStatusFn,
   setFibtActionAccountabilityFn,
 } from "@/lib/api/ivo-action-loop.functions";
-import type { IvoQ2Outcome, LedgerWriteOutcome, LoadFibtActionLoopOutcome } from "@/lib/ivo/ivo-views";
+import { buildActionTimeline, summarizePlan } from "@/lib/ivo/action-follow-up";
+import { parseContentRef } from "@/lib/ivo/content-ref";
+import type {
+  FibtActionPlanView,
+  IvoQ2Outcome,
+  LedgerWriteOutcome,
+  LoadEducationOutcome,
+  LoadEfficacyOutcome,
+  LoadFibtActionLoopOutcome,
+} from "@/lib/ivo/ivo-views";
 import { todayInSaoPaulo } from "@/lib/ivo/local-date";
 
 // Prioridades e ações do ciclo a partir do resultado FIB-T publicado (R6).
@@ -39,7 +60,7 @@ export const Route = createFileRoute("/ivo-integral/acoes")({
   component: IvoAcoesPage,
 });
 
-type Loaded = { q2: IvoQ2Outcome; loop: LoadFibtActionLoopOutcome };
+type Loaded = { q2: IvoQ2Outcome; loop: LoadFibtActionLoopOutcome; education: LoadEducationOutcome; efficacy: LoadEfficacyOutcome };
 type PageState = { state: "loading" } | { state: "network_error" } | { state: "done"; data: Loaded };
 type Feedback = { tone: "ok" | "error"; text: string } | null;
 
@@ -55,11 +76,13 @@ function IvoAcoesPage() {
     try {
       const accessToken = await currentIvoAccessToken();
       setToken(accessToken);
-      const [q2, loop] = await Promise.all([
+      const [q2, loop, education, efficacy] = await Promise.all([
         loadIvoQ2Reading({ data: { accessToken, waveId: search.wave } }),
         loadFibtActionLoopFn({ data: { accessToken } }),
+        loadEducationFn({ data: { accessToken } }),
+        loadEfficacyFn({ data: { accessToken } }),
       ]);
-      setPage({ state: "done", data: { q2, loop } });
+      setPage({ state: "done", data: { q2, loop, education, efficacy } });
     } catch {
       setPage({ state: "network_error" });
     }
@@ -103,10 +126,64 @@ function IvoAcoesPage() {
       ),
   };
 
+  // Protocolo de eficácia: toda escrita volta ao formulário que a enviou (erro/sucesso junto dele).
+  const efficacyCallbacks: EfficacyCallbacks = {
+    saveDraft: (itemId, fields, useSourceAsBaseline) =>
+      write(
+        () => saveEfficacyDraftFn({ data: { accessToken: token, itemId, fields: fields as never, useSourceAsBaseline } }),
+        "Rascunho do protocolo salvo.",
+        { inline: true },
+      ),
+    startRevision: (itemId) =>
+      write(() => startEfficacyRevisionFn({ data: { accessToken: token, itemId } }), "Nova revisão aberta em rascunho.", { inline: true }),
+    register: (itemId) =>
+      write(() => registerEfficacyProtocolFn({ data: { accessToken: token, itemId } }), "Protocolo registrado. Ele não pode mais ser alterado; use uma nova revisão.", { inline: true }),
+    observe: (itemId, input) =>
+      write(() => recordEfficacyObservationFn({ data: { accessToken: token, itemId, ...input } }), "Observação registrada.", { inline: true }),
+    verdict: (itemId, input) =>
+      write(() => recordEfficacyVerdictFn({ data: { accessToken: token, itemId, ...input } }), "Parecer registrado.", { inline: true }),
+  };
+
   const data = page.state === "done" ? page.data : null;
   const view = data?.q2.ok && data.q2.state === "ready" ? data.q2.view : null;
   const plans = data?.loop.ok ? data.loop.plans : [];
   const hasPlanForCycle = !!view && plans.some((p) => p.cycleKeyCanonical === view.cycleKey);
+  const education = data?.education.ok ? data.education : null;
+  const efficacy = data?.efficacy.ok ? data.efficacy : null;
+
+  function enhancementsFor(plan: FibtActionPlanView): ActionEnhancements {
+    const contentTitle = (contentId: string): string | null => {
+      for (const list of Object.values(education?.byFactor ?? {})) {
+        const found = list.find((c) => c.contentId === contentId);
+        if (found) return found.title;
+      }
+      return null;
+    };
+    const itemOf = (actionId: string) => efficacy?.items.find((i) => i.itemId === actionId) ?? null;
+    return {
+      summary: (
+        <PlanSummaryPanel
+          cycle={plan.cycleKeyCanonical ?? plan.cycleKey}
+          summary={summarizePlan(plan, efficacy ? efficacy.items.filter((i) => plan.actions.some((a) => a.id === i.itemId)) : [])}
+        />
+      ),
+      educationOptions: (action) =>
+        (education?.byFactor[action.source.factorId] ?? []).map((c) => ({ contentId: c.contentId, title: c.title, status: c.status })),
+      extras: (action) => (
+        <>
+          {education ? (
+            <EducationPanel factorName={action.source.factorName} content={education.byFactor[action.source.factorId] ?? []} catalog={education.catalog} />
+          ) : null}
+          <ActionTimelinePanel entries={buildActionTimeline(action, plan, itemOf(action.id), parseContentRef)} contentTitle={contentTitle} />
+        </>
+      ),
+      efficacy: efficacy
+        ? (action) => (
+            <EfficacyPanel action={action} item={itemOf(action.id)} governance={efficacy.governance} busy={busy} today={today} callbacks={efficacyCallbacks} />
+          )
+        : undefined,
+    };
+  }
 
   return (
     <AppShell>
@@ -117,6 +194,9 @@ function IvoAcoesPage() {
           </a>
           <a href="/ivo-integral/q2" className="inline-flex min-h-11 items-center text-primary underline-offset-2 hover:underline">
             Leitura Q2 · FIB-T
+          </a>
+          <a href="/ivo-integral/governanca" className="inline-flex min-h-11 items-center text-primary underline-offset-2 hover:underline">
+            Governança metodológica
           </a>
         </nav>
         <header>
@@ -164,6 +244,13 @@ function IvoAcoesPage() {
           />
         ) : null}
 
+        {data?.loop.ok && (!data.education.ok || !data.efficacy.ok) ? (
+          <p role="note" className="text-sm text-muted-foreground">
+            {!data.efficacy.ok ? "Os protocolos de avaliação não puderam ser carregados agora; o estado de eficácia aparece como não avaliado." : null}{" "}
+            {!data.education.ok ? "O catálogo de aprendizagem não pôde ser carregado agora." : null}
+          </p>
+        ) : null}
+
         {data?.loop.ok && plans.length === 0 && !view ? (
           <p className="text-sm text-muted-foreground">Nenhuma ação de origem FIB-T registrada.</p>
         ) : null}
@@ -176,6 +263,7 @@ function IvoAcoesPage() {
             today={today}
             onActivate={(planId) => void write(() => activateFibtActionPlanFn({ data: { accessToken: token, planId } }), "Plano ativado.")}
             callbacks={callbacks}
+            enhancements={enhancementsFor(plan)}
           />
         ))}
       </div>

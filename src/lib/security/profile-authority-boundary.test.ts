@@ -231,7 +231,7 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as sete suítes existem", () => {
+    test("as oito suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
@@ -249,6 +249,11 @@ describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => 
             // 20261002120000, não aplicada remotamente). Prova cross-tenant,
             // escrita direta e RLS/RPC como authenticated de duas orgs + anon.
             "07_fibt_action_provenance.sql",
+            // IVO C8 — protocolos, observações e pareceres de eficácia (migration local
+            // 20261005120000, não aplicada remotamente). Ciclo rascunho→registrado, parecer
+            // conclusivo só com governança registrada no próprio parecer, revisor independente,
+            // sem DELETE, duas organizações + anon.
+            "08_ivo_efficacy_protocols.sql",
         ]);
     });
 

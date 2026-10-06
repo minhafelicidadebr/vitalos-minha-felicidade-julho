@@ -5,6 +5,8 @@
 import type { ManagerAnalytics } from "@/lib/fibt/fibt-manager-control-center";
 import type { IvoDimensionId, NormalizedLensReading } from "@/engine/ivo/lens-contract";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
+import type { EfficacyState, EfficacyVerdict, EvidenceGrade, IndicatorKind, IndicatorOrigin, ObservedChange, PublicationRef, WindowStatus } from "@/engine/ivo/efficacy-protocol";
+import type { GovernanceEntry, GovernanceState } from "@/engine/ivo/governance-decision";
 
 // ─── R5 · leitura Q2 ─────────────────────────────────────────────────────────
 
@@ -135,3 +137,157 @@ export const EFFICACY_NOT_EVALUATED_REASON =
   "Concluir a ação ou registrar evidência mostra que ela aconteceu — não que o indicador melhorou, " +
   "nem que a melhora foi causada por ela. O critério de eficácia (comparação entre leituras publicadas " +
   "de ciclos diferentes) ainda depende de decisão metodológica.";
+
+// ─── C8 · protocolo de eficácia (rascunho → registrado → observação → parecer) ───
+/** Campos do protocolo; TODOS anuláveis para permitir rascunho incompleto. */
+export interface EfficacyProtocolFields {
+  objective: string | null;
+  indicatorLabel: string | null;
+  indicatorKind: IndicatorKind | null;
+  indicatorOrigin: IndicatorOrigin | null;
+  unit: string | null;
+  direction: "aumentar" | "diminuir" | null;
+  baselineObservedOn: string | null;
+  baselinePopulation: string | null;
+  baselineSource: string | null;
+  /** Só `medida_da_organizacao`. Em leitura publicada é SEMPRE null (nunca se persiste valor protegido). */
+  baselineValue: number | null;
+  /** Só `leitura_publicada`: referência (coorte, ciclo, versões), nunca valor. */
+  baselineRef: PublicationRef | null;
+  targetKind: "numerico" | "qualitativo" | null;
+  targetValue: number | null;
+  targetCriterion: string | null;
+  meaningfulDifference: number | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+  source: string | null;
+  comparisonRule: { sameCohort: boolean; sameInstrumentVersion: boolean; sameCalculationVersion: boolean } | null;
+  responsibleRole: string | null;
+  reviewerRole: string | null;
+  limitations: string[];
+}
+export interface EfficacyProtocolView extends EfficacyProtocolFields {
+  id: string;
+  itemId: string;
+  revision: number;
+  status: "draft" | "registered";
+  supersedesId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  registeredAt: string | null;
+}
+export interface EfficacyObservationView {
+  id: string;
+  protocolId: string;
+  observedOn: string;
+  /** Só `medida_da_organizacao`. */
+  value: number | null;
+  ref: PublicationRef | null;
+  note: string;
+  recordedAt: string;
+}
+export interface EfficacyVerdictView {
+  id: string;
+  protocolId: string;
+  observationId: string | null;
+  verdict: EfficacyVerdict;
+  claimScope: IndicatorKind;
+  evidenceGrade: EvidenceGrade;
+  observedChange: ObservedChange;
+  targetReached: boolean | null;
+  attribution: { status: "nao_avaliada" | "nao_sustentada" | "sustentada_por_desenho"; design: string | null };
+  reason: string;
+  limitations: string[];
+  reviewerRole: string;
+  governance: { decision: string; state: string; source: "registro_canonico" | "teste_sintetico" };
+  createdAt: string;
+}
+/** Cálculo da última observação com valor resolvido (só `medida_da_organizacao`). */
+export interface EfficacyAssessmentView {
+  observationId: string;
+  observedChange: ObservedChange;
+  delta: number | null;
+  changeIsDescriptiveOnly: boolean;
+  targetReached: boolean | null;
+  comparable: boolean;
+  reasons: string[];
+}
+export interface EfficacyItemView {
+  itemId: string;
+  /** Rascunho aberto (editável), se houver. Não vale como protocolo até ser registrado. */
+  draft: EfficacyProtocolView | null;
+  /** Última revisão REGISTRADA — a que vale para observações e pareceres. */
+  registered: EfficacyProtocolView | null;
+  /** Revisões registradas anteriores à vigente (somente contagem; a história fica no banco). */
+  previousRevisions: number;
+  observations: EfficacyObservationView[];
+  verdict: EfficacyVerdictView | null;
+  state: EfficacyState;
+  stateLabel: string;
+  windowStatus: WindowStatus | null;
+  /** Do rascunho aberto: o que falta para registrar (vazio ⇒ pode registrar). */
+  registrationIssues: string[];
+  assessment: EfficacyAssessmentView | null;
+}
+export interface EfficacyGovernanceView {
+  decisionId: "D9";
+  state: GovernanceState;
+  source: "registro_canonico" | "teste_sintetico";
+  conclusiveAllowed: boolean;
+  reason: string | null;
+}
+export type LoadEfficacyOutcome =
+  | { ok: true; items: EfficacyItemView[]; governance: EfficacyGovernanceView }
+  | LedgerFailure;
+export type EfficacyWriteOutcome =
+  | { ok: true; accepted: true; id: string | null }
+  | { ok: true; accepted: false; reason: string; message: string; errors: string[] }
+  | LedgerFailure;
+
+// ─── R8 · governança metodológica ────────────────────────────────────────────
+export interface GovernanceAuthorityView {
+  configured: boolean;
+  canApprove: boolean;
+  reason: string | null;
+}
+export type LoadGovernanceOutcome =
+  | {
+      ok: true;
+      registryVersion: string;
+      authorityPolicy: string;
+      entries: GovernanceEntry[];
+      counts: Record<GovernanceState, number>;
+      authority: GovernanceAuthorityView;
+      efficacyGate: EfficacyGovernanceView;
+    }
+  | LedgerFailure;
+export type PrepareGovernanceDecisionOutcome =
+  | { ok: true; accepted: true; entry: GovernanceEntry; audit: { entryId: string; from: GovernanceState; to: GovernanceState; by: string; at: string; test: boolean }; note: string }
+  | { ok: true; accepted: false; reason: string; message: string; errors: string[] }
+  | LedgerFailure;
+
+// ─── R7 · educação (catálogo curatorial fator → conteúdo) ───────────────────
+export interface EducationContentView {
+  contentId: string;
+  factorId: string;
+  status: "APROVADO" | "TESTE";
+  version: string;
+  title: string;
+  objective: string;
+  audience: string;
+  format: string;
+  estimatedMinutes: number;
+  body: string[];
+  evidenceCodes: string[];
+  safeClaimIds: string[];
+}
+export interface EducationCatalogView {
+  curationStatus: string;
+  curationDecision: string;
+  approvedCount: number;
+  /** true quando conteúdo de TESTE está visível (runtime local descartável). */
+  testVisible: boolean;
+}
+export type LoadEducationOutcome =
+  | { ok: true; catalog: EducationCatalogView; byFactor: Record<string, EducationContentView[]> }
+  | LedgerFailure;

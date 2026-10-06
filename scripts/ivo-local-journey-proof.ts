@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // ═══════════════════════════════════════════════════════════════════════════
-// PROVA DE INTEGRAÇÃO LOCAL DA JORNADA IVO (R5/R6)
+// PROVA DE INTEGRAÇÃO LOCAL DA JORNADA IVO (R5/R6 + C8/R7/R8 em scripts/ivo-local-c8-proof.ts)
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // Roda o código de SERVIDOR real (authorizeIvoSession, leitor FIB-T, ledger)
@@ -211,14 +211,23 @@ async function writePhase(): Promise<void> {
   const forgedRow = Array.isArray(forged.data) ? forged.data[0] : forged.data;
   check("R6.3 banco recusa proveniência entre organizações mesmo via service_role", forgedRow?.accepted === false && forgedRow?.reason === "provenance_cross_tenant_denied");
 
-  const created = await loop.createFibtPriorityActions({ accessToken: alfa, waveId: WAVE_ALFA, priorities: [priority] });
-  check("R6.4 admin Alfa cria a ação a partir de Operações publicada", created.ok && created.accepted === true);
+  // Três prioridades de Operações (um fator cada): a primeira segue a jornada R6; as outras duas
+  // alimentam os três desfechos de eficácia da prova C8 (favorável, desfavorável, inconclusivo).
+  const second = { ...priority, factorId: "satisfacao_empresa", title: "Alinhamento de metas do turno", description: "Reunião mensal de alinhamento." };
+  const third = { ...priority, factorId: "padrao_de_vida", title: "Revisão do plano de benefícios", description: "Oficina com a equipe." };
+  const created = await loop.createFibtPriorityActions({ accessToken: alfa, waveId: WAVE_ALFA, priorities: [priority, second, third] });
+  check("R6.4 admin Alfa cria as ações a partir de Operações publicada", created.ok && created.accepted === true);
   const first = await loop.loadFibtActionLoop({ accessToken: alfa });
   const action = first.ok ? first.plans[0]?.actions[0] : undefined;
   check("R6.5 ação guarda origem FIB-T (versão e publicação derivadas do banco) e ciclo canônico", !!action && first.ok && first.plans[0]!.cycleKeyCanonical === ready?.cycleKey && CANONICAL_CYCLE.test(ready?.cycleKey ?? "") && action.source.instrumentVersion === "1.0.0" && action.source.cohortLabel === "Operações" && !!action.source.publishedAt && action.dimension.status === "mapping_pending");
   if (!action || !first.ok) throw new Error("sem ação criada");
 
   const acc = await loop.setFibtActionAccountability({ accessToken: alfa, itemId: action.id, ownerRoleLabel: "Coordenação de Operações", dueOn: "2026-09-30", executionMetric: { label: "Encontros realizados", baseline: 0, target: 4, unit: "encontros" } });
+  const others = first.plans[0]!.actions.filter((a) => a.id !== action.id);
+  for (const other of others) {
+    const r = await loop.setFibtActionAccountability({ accessToken: alfa, itemId: other.id, ownerRoleLabel: "Coordenação de Operações", dueOn: "2026-09-30", executionMetric: { label: "Entregas realizadas", baseline: 0, target: 2, unit: "entregas" } });
+    if (!r.ok || !r.accepted) throw new Error("responsabilidade das ações adicionais não foi gravada");
+  }
   const act = await loop.activateFibtActionPlan({ accessToken: alfa, planId: action.planId });
   const st = await loop.recordFibtActionStatus({ accessToken: alfa, itemId: action.id, toStatus: "em_execucao" });
   const ev = await loop.recordFibtActionEvidence({ accessToken: alfa, itemId: action.id, scope: "execucao", kind: "texto", content: "Ata do 1º encontro (sem nomes)", occurredOn: "2026-06-12" });
@@ -241,7 +250,7 @@ async function writePhase(): Promise<void> {
   const restBetaItems = await rest(`/action_items?org_id=eq.${ORG_ALFA}&select=id`, beta);
   const restBetaEvidence = await rest(`/evidence_records?org_id=eq.${ORG_ALFA}&select=id`, beta);
   const restAlfaItems = await rest(`/action_items?org_id=eq.${ORG_ALFA}&select=id,source_lens_id`, alfa);
-  check("R6.10 RLS via PostgREST: JWT da Beta lê 0 linhas da Alfa; JWT da Alfa lê as suas", Array.isArray(restBetaItems.body) && (restBetaItems.body as unknown[]).length === 0 && Array.isArray(restBetaEvidence.body) && (restBetaEvidence.body as unknown[]).length === 0 && Array.isArray(restAlfaItems.body) && (restAlfaItems.body as unknown[]).length === 1);
+  check("R6.10 RLS via PostgREST: JWT da Beta lê 0 linhas da Alfa; JWT da Alfa lê as suas", Array.isArray(restBetaItems.body) && (restBetaItems.body as unknown[]).length === 0 && Array.isArray(restBetaEvidence.body) && (restBetaEvidence.body as unknown[]).length === 0 && Array.isArray(restAlfaItems.body) && (restAlfaItems.body as unknown[]).length === 3);
   const restInsert = await rest("/evidence_records", beta, { method: "POST", body: JSON.stringify({ org_id: ORG_ALFA, item_id: action.id, lever_id: "x", evidence_kind: "texto", content_ref: "forjada", occurred_on: "2026-06-01", recorded_by: "00000000-0000-4000-8000-000000000000" }) });
   const restUpdate = await rest(`/action_items?id=eq.${action.id}`, alfa, { method: "PATCH", body: JSON.stringify({ title: "alterado direto" }) });
   const restRpc = await rest("/rpc/record_evidence", alfa, { method: "POST", body: JSON.stringify({ p_item_id: action.id, p_evidence_kind: "texto", p_content_ref: "direto", p_source_kind: "direct", p_consent_ref: null, p_occurred_on: "2026-06-01", p_recorded_by: null, p_actor_role_label: "x" }) });
@@ -259,11 +268,12 @@ async function writePhase(): Promise<void> {
   const responseIds = (await psql(`SELECT string_agg(id::TEXT, ',') FROM public.wave_responses WHERE wave_id = '${WAVE_ALFA}';`)).split(",");
   const means = (ready?.sectors ?? []).flatMap((s) => s.factors ?? []).map((f) => String(f.mean)).filter((m) => m.includes("."));
   check("R6.14 ledger não contém ids de resposta individual", responseIds.every((id) => !ledgerJson.includes(id)));
-  check("R6.15 ledger não copia médias publicadas nem respostas", means.every((m) => !ledgerJson.includes(m)) && !ledgerJson.includes("answers") && !ledgerJson.includes("item_means"));
+  check("R6.15 ledger não copia médias publicadas nem respostas", means.every((m) => !new RegExp(`(?<![\\d.])${m.replace(".", "\\.")}(?!\\d)`).test(ledgerJson)) && !ledgerJson.includes("answers") && !ledgerJson.includes("item_means"));
   const opsJson = await psql(`SELECT COALESCE(json_agg(o), '[]')::TEXT FROM public.ops_events o WHERE created_at >= '${startedAt}';`).catch(() => "[]");
   check("R6.16 eventos operacionais do período não carregam token nem resposta", !opsJson.includes(alfa) && !opsJson.includes(beta) && !opsJson.includes("answers"));
 
-  writeFileSync(STATE_FILE, JSON.stringify({ itemId: action.id, planId: action.planId }));
+  const byFactor = Object.fromEntries(first.plans[0]!.actions.map((a) => [a.source.factorId, a.id]));
+  writeFileSync(STATE_FILE, JSON.stringify({ itemId: action.id, planId: action.planId, byFactor }));
 }
 
 // ── Fase READ (processo novo) ───────────────────────────────────────────────
@@ -292,18 +302,24 @@ try {
   else if (phase === "read") await readPhase();
   else {
     // Orquestra as duas fases em processos separados.
-    console.log("PROVA DE INTEGRAÇÃO LOCAL — jornada IVO R5/R6 (Supabase local, sessões reais)");
-    for (const p of ["write", "read"]) {
-      const proc = Bun.spawn([process.execPath, join(ROOT, "scripts", "ivo-local-journey-proof.ts"), p], {
+    console.log("PROVA DE INTEGRAÇÃO LOCAL — jornada IVO R5/R6 e C8/R7/R8 (Supabase local, sessões reais)");
+    const steps: Array<[string, string]> = [
+      ["ivo-local-journey-proof.ts", "write"],
+      ["ivo-local-journey-proof.ts", "read"],
+      ["ivo-local-c8-proof.ts", "write"],
+      ["ivo-local-c8-proof.ts", "read"],
+    ];
+    for (const [file, p] of steps) {
+      const proc = Bun.spawn([process.execPath, join(ROOT, "scripts", file), p], {
         stdout: "inherit",
         stderr: "inherit",
       });
       if ((await proc.exited) !== 0) {
-        console.error(`\n❌ fase ${p} falhou`);
+        console.error(`\n❌ fase ${file} ${p} falhou`);
         process.exit(1);
       }
     }
-    console.log("\n✅ PROVA LOCAL OK — duas fases, processos separados");
+    console.log("\n✅ PROVA LOCAL OK — escrita e releitura em processos separados (jornada + C8)");
     process.exit(0);
   }
 } catch (error) {

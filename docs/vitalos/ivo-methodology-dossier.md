@@ -132,6 +132,8 @@ lote (marca d'água como em `cohort_capsules`).
 
 Pré-requisito: **nomear o responsável metodológico** (papel; sem nome neste repositório) e o revisor independente.
 
+**Pacote consolidado (gerado do registro canônico, com recomendação, alternativas, fontes, critérios e efeito da pendência por decisão):** `docs/vitalos/ivo-decision-package.md`. O estado de cada decisão é consultável em `/ivo-integral/governanca`. **Todas continuam em proposta** — esta tabela segue como resumo de leitura, não como aprovação.
+
 | ID | Decisão | Alternativas | Recomendação |
 |---|---|---|---|
 | D1 | Finalidade e usos do IVO | (a) índice composto de **gestão** (agregado, interno) · (b) só perfil · (c) benchmark/selo | (a) piloto experimental identificado; (c) vedado (claims proibidos); nunca avaliação de desempenho |
