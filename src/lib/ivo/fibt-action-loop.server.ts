@@ -62,6 +62,9 @@ export interface FibtLedgerPlanRow {
   status: "draft" | "active" | "closed";
   createdAt: string;
   activatedAt: string | null;
+  /** PI-13 (ausente em stores anteriores à migration): encerramento operacional. */
+  closedAt?: string | null;
+  closedByRole?: string | null;
 }
 
 export interface FibtLedgerItemRow {
@@ -86,6 +89,9 @@ export interface FibtLedgerItemRow {
   sourceFactorId: string | null;
   sourceInstrumentVersion: string | null;
   sourcePublishedAt: string | null;
+  /** PI-13 (ausentes em stores anteriores à migration): quando e por qual papel a ação foi incluída depois do plano. */
+  createdAt?: string;
+  addedByRole?: string | null;
 }
 
 export interface FibtLedgerEvidenceRow {
@@ -115,6 +121,8 @@ export interface FibtLedgerSnapshot {
   evidence: FibtLedgerEvidenceRow[];
   events: FibtLedgerEventRow[];
   cohortLabels: Record<string, string>;
+  /** `false` quando o banco ainda não tem as colunas do PI-13 (código publicado antes da migration). Ausente = disponível. */
+  composition?: boolean;
 }
 
 export interface FibtCreatePlanInput {
@@ -292,6 +300,7 @@ export function buildFibtActionPlanViews(
             timeline: events
               .filter((e) => e.itemId === item.id)
               .map((e) => ({ id: e.id, kind: e.kind, toStatus: e.toStatus, note: e.note, occurredAt: e.occurredAt })),
+            addedLater: item.addedByRole && item.createdAt ? { at: item.createdAt, byRole: item.addedByRole } : null,
           };
         });
       return {
@@ -301,6 +310,9 @@ export function buildFibtActionPlanViews(
         status: plan.status,
         createdAt: plan.createdAt,
         activatedAt: plan.activatedAt,
+        closedAt: plan.closedAt ?? null,
+        closedByRole: plan.closedByRole ?? null,
+        composition: snapshot.composition === false ? ("unavailable" as const) : ("available" as const),
         missingAccountability: actions.filter((a) => !a.owner || !a.dueOn || !a.executionMetric).length,
         actions,
       };
@@ -540,6 +552,16 @@ function isIsoDate(value: string): boolean {
 
 const ITEM_COLUMNS =
   "id, plan_id, org_id, rank, title, description, effort, status, owner_user_id, owner_role_label, due_on, metric_label, metric_baseline, metric_target, metric_unit, source_lens_id, source_wave_id, source_cohort_id, source_factor_id, source_instrument_version, source_published_at";
+// PI-13: colunas da migration 20261016120000 (podem não existir ainda no banco).
+const ITEM_COLUMNS_PI13 = `${ITEM_COLUMNS}, created_at, added_by_role`;
+const PLAN_COLUMNS = "id, org_id, cycle_key, season_name, status, created_at, activated_at";
+const PLAN_COLUMNS_PI13 = `${PLAN_COLUMNS}, closed_at, closed_by_role`;
+
+/** Coluna ausente: o código novo foi publicado antes da migration (PostgREST 42703/PGRST204). */
+export function isUndefinedColumnError(error: { code?: string; message?: string } | null | undefined): boolean {
+  if (!error) return false;
+  return error.code === "42703" || error.code === "PGRST204" || /column .* does not exist/i.test(error.message ?? "");
+}
 
 function createSupabaseLedgerStore(): FibtActionLedgerStore {
   async function admin() {
@@ -552,12 +574,17 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
   return {
     async loadFibtLedger(orgId) {
       const db = await admin();
-      const { data: items, error: itemErr } = await db
-        .from("action_items")
-        .select(ITEM_COLUMNS)
-        .eq("org_id", orgId)
-        .eq("source_lens_id", "fibt")
-        .order("rank", { ascending: true });
+      // PI-13: tenta as colunas novas; se o banco ainda não as tem, lê as antigas e sinaliza
+      // `composition: false` (a interface então não oferece incluir/encerrar).
+      let composition = true;
+      const readItems = (columns: string) =>
+        db.from("action_items").select(columns).eq("org_id", orgId).eq("source_lens_id", "fibt").order("rank", { ascending: true });
+      let itemsRead = await readItems(ITEM_COLUMNS_PI13);
+      if (itemsRead.error && isUndefinedColumnError(itemsRead.error)) {
+        composition = false;
+        itemsRead = await readItems(ITEM_COLUMNS);
+      }
+      const { data: items, error: itemErr } = itemsRead;
       if (itemErr) throw new Error("IVO_LEDGER_ITEMS_READ_FAILED");
       const itemRows = (items ?? []) as Array<Record<string, unknown>>;
       const planIds = [...new Set(itemRows.map((r) => String(r.plan_id)))];
@@ -565,14 +592,17 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
       const cohortIds = [...new Set(itemRows.map((r) => r.source_cohort_id).filter(Boolean).map(String))];
 
       const empty = { data: [], error: null };
+      const readPlans = (columns: string) =>
+        db.from("action_plans").select(columns).eq("org_id", orgId).in("id", planIds).order("created_at", { ascending: false });
       const [plans, evidence, events, cohorts] = await Promise.all([
         planIds.length
-          ? db
-            .from("action_plans")
-            .select("id, org_id, cycle_key, season_name, status, created_at, activated_at")
-            .eq("org_id", orgId)
-            .in("id", planIds)
-            .order("created_at", { ascending: false })
+          ? readPlans(composition ? PLAN_COLUMNS_PI13 : PLAN_COLUMNS).then(async (r: { data: unknown; error: { code?: string; message?: string } | null }) => {
+            if (r.error && composition && isUndefinedColumnError(r.error)) {
+              composition = false;
+              return readPlans(PLAN_COLUMNS);
+            }
+            return r;
+          })
           : empty,
         itemIds.length
           ? db
@@ -607,6 +637,8 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
           status: p.status as FibtLedgerPlanRow["status"],
           createdAt: String(p.created_at),
           activatedAt: (p.activated_at as string | null) ?? null,
+          closedAt: (p.closed_at as string | null | undefined) ?? null,
+          closedByRole: (p.closed_by_role as string | null | undefined) ?? null,
         })),
         items: itemRows.map((r) => ({
           id: String(r.id),
@@ -630,6 +662,8 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
           sourceFactorId: (r.source_factor_id as string | null) ?? null,
           sourceInstrumentVersion: (r.source_instrument_version as string | null) ?? null,
           sourcePublishedAt: (r.source_published_at as string | null) ?? null,
+          createdAt: r.created_at == null ? undefined : String(r.created_at),
+          addedByRole: (r.added_by_role as string | null | undefined) ?? null,
         })),
         evidence: (evidence.data as Array<Record<string, unknown>>).map((e) => ({
           id: String(e.id),
@@ -653,6 +687,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
         cohortLabels: Object.fromEntries(
           (cohorts.data as Array<Record<string, unknown>>).map((c) => [String(c.id), String(c.label)]),
         ),
+        composition,
       };
     },
 

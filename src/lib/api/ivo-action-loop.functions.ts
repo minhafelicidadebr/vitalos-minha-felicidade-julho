@@ -11,6 +11,14 @@ import { z } from "zod";
 const token = z.string().min(10).optional();
 const factorId = z.string().regex(/^[a-z][a-z_]{0,39}$/);
 const planStatus = z.enum(["planejada", "em_execucao", "concluida", "em_vigilancia", "interrompida"]);
+const executionMetric = z
+  .object({
+    label: z.string().trim().min(2).max(120),
+    baseline: z.number().finite(),
+    target: z.number().finite(),
+    unit: z.string().trim().max(20),
+  })
+  .strict();
 
 export const ivoActionLoopSchemas = {
   load: z.object({ accessToken: token }).strict(),
@@ -40,17 +48,35 @@ export const ivoActionLoopSchemas = {
       itemId: z.string().uuid(),
       ownerRoleLabel: z.string().trim().min(2).max(80),
       dueOn: z.string().date(),
-      executionMetric: z
-        .object({
-          label: z.string().trim().min(2).max(120),
-          baseline: z.number().finite(),
-          target: z.number().finite(),
-          unit: z.string().trim().max(20),
-        })
-        .strict(),
+      executionMetric,
     })
     .strict(),
   activate: z.object({ accessToken: token, planId: z.string().uuid() }).strict(),
+  // PI-13 · incluir ação em plano existente. planId/waveId/cohortId são REFERÊNCIAS: a
+  // organização vem da sessão; o servidor relê o plano e revalida a origem publicada.
+  addAction: z
+    .object({
+      accessToken: token,
+      planId: z.string().uuid(),
+      requestId: z.string().uuid(),
+      waveId: z.string().uuid(),
+      cohortId: z.string().uuid(),
+      factorId,
+      title: z.string().trim().min(3).max(200),
+      description: z.string().trim().max(1000).default(""),
+      effort: z.enum(["baixo", "medio", "alto"]),
+      accountability: z
+        .object({
+          ownerRoleLabel: z.string().trim().min(2).max(80),
+          dueOn: z.string().date(),
+          executionMetric,
+        })
+        .strict()
+        .optional(),
+    })
+    .strict(),
+  // PI-13 · encerramento operacional. `confirm: true` é o aceite explícito do efeito (sem reabertura).
+  closePlan: z.object({ accessToken: token, planId: z.string().uuid(), confirm: z.literal(true) }).strict(),
   status: z
     .object({
       accessToken: token,
@@ -91,6 +117,18 @@ export const setFibtActionAccountabilityFn = createServerFn({ method: "POST" })
 export const activateFibtActionPlanFn = createServerFn({ method: "POST" })
   .inputValidator(ivoActionLoopSchemas.activate)
   .handler(async ({ data }) => (await loop()).activateFibtActionPlan(data));
+
+async function composition() {
+  return import("@/lib/ivo/fibt-plan-composition.server");
+}
+
+export const addFibtActionToPlanFn = createServerFn({ method: "POST" })
+  .inputValidator(ivoActionLoopSchemas.addAction)
+  .handler(async ({ data }) => (await composition()).addFibtActionToPlan(data));
+
+export const closeFibtActionPlanFn = createServerFn({ method: "POST" })
+  .inputValidator(ivoActionLoopSchemas.closePlan)
+  .handler(async ({ data }) => (await composition()).closeFibtActionPlan({ accessToken: data.accessToken, planId: data.planId }));
 
 export const recordFibtActionStatusFn = createServerFn({ method: "POST" })
   .inputValidator(ivoActionLoopSchemas.status)

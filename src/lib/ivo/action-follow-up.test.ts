@@ -34,10 +34,11 @@ const action: FibtActionView = {
     { id: "log-2", kind: "evidence_recorded", toStatus: null, note: null, occurredAt: "2026-10-05T01:10:00.000Z" },
     { id: "log-3", kind: "status_change", toStatus: "concluida", note: null, occurredAt: "2026-10-05T01:30:00.000Z" },
   ],
+  addedLater: null,
 };
 const plan: FibtActionPlanView = {
   id: "plan-1", cycleKey: "2026-T4", cycleKeyCanonical: "2026-T4", status: "active",
-  createdAt: "2026-10-04T23:50:00.000Z", activatedAt: "2026-10-04T23:59:00.000Z", missingAccountability: 0, actions: [action],
+  createdAt: "2026-10-04T23:50:00.000Z", activatedAt: "2026-10-04T23:59:00.000Z", closedAt: null, closedByRole: null, composition: "available", missingAccountability: 0, actions: [action],
 };
 const emptyEfficacy = (over: Partial<EfficacyItemView> = {}): EfficacyItemView => ({
   itemId: "item-1", draft: null, registered: null, previousRevisions: 0, observations: [], verdict: null,

@@ -44,6 +44,7 @@ const action: FibtActionView = {
   dimension: { status: "mapping_pending", dimensionIds: [] },
   evidence: { execution: [], learning: [] },
   efficacy: { status: "not_evaluated", reason: "Motivo estático de eficácia não avaliada." },
+  addedLater: null,
   timeline: [],
 };
 
@@ -279,6 +280,9 @@ describe("Acompanhamento da ação (resumo, linha do tempo, educação)", () => 
     status: "active",
     createdAt: "2026-09-01T10:00:00Z",
     activatedAt: "2026-09-02T10:00:00Z",
+    closedAt: null,
+    closedByRole: null,
+    composition: "available",
     missingAccountability: 0,
     actions: [
       {

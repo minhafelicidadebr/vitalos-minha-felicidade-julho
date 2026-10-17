@@ -245,20 +245,33 @@ async function setup(): Promise<void> {
 }
 
 const C8_MIGRATION = "20261005120000_ivo_efficacy_protocols.sql";
-/** Atualização a partir do schema local anterior: aplica a migration C8 se ainda ausente. */
+const PI13_MIGRATION = "20261016120000_ivo_plan_composition_and_closure.sql";
+/**
+ * Atualização a partir do schema local anterior: aplica, em ordem, as migrations que ainda
+ * faltam (C8 e PI-13). Ambas são idempotentes; a checagem de presença só evita ruído.
+ */
 async function upgrade(): Promise<void> {
   console.log("\nDEMONSTRAÇÃO LOCAL IVO — upgrade (alvo: Supabase local descartável)\n");
   const stack = await stackStatus();
   if (!stack) fail("stack local não está rodando. Rode: bun run demo:ivo:setup");
   await assertLocalTarget(stack);
-  const present = await scalar("SELECT (to_regclass('public.efficacy_protocols') IS NOT NULL)::TEXT;");
-  if (present === "true") {
-    console.log("  ok   protocolos de eficácia (C8) já presentes neste stack local (nada reaplicado)");
-    return;
+  const steps: Array<{ name: string; presentSql: string; label: string }> = [
+    { name: C8_MIGRATION, presentSql: "SELECT (to_regclass('public.efficacy_protocols') IS NOT NULL)::TEXT;", label: "protocolos de eficácia (C8)" },
+    {
+      name: PI13_MIGRATION,
+      presentSql: "SELECT (to_regnamespace('ivo_ledger') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='action_plans' AND column_name='closed_at'))::TEXT;",
+      label: "inclusão de ação e encerramento de plano (PI-13)",
+    },
+  ];
+  for (const step of steps) {
+    if ((await scalar(step.presentSql)) === "true") {
+      console.log(`  ok   ${step.label} já presente neste stack local (nada reaplicado)`);
+      continue;
+    }
+    const r = await psql(readFileSync(join(ROOT, "supabase", "migrations", step.name), "utf8"));
+    if (r.code !== 0) fail(`migration ${step.name}: ${r.err.trim().split("\n").slice(0, 6).join(" | ")}`);
+    console.log(`  ok   migration ${step.name} aplicada sobre o schema local anterior`);
   }
-  const r = await psql(readFileSync(join(ROOT, "supabase", "migrations", C8_MIGRATION), "utf8"));
-  if (r.code !== 0) fail(`migration ${C8_MIGRATION}: ${r.err.trim().split("\n").slice(0, 6).join(" | ")}`);
-  console.log(`  ok   migration ${C8_MIGRATION} aplicada sobre o schema local anterior`);
 }
 async function dev(): Promise<void> {
   const env = readDemoEnv();

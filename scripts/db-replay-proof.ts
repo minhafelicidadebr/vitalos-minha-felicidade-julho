@@ -239,6 +239,19 @@ const PACOTE_IVO_R6 = ["20261002120000_fibt_action_provenance.sql"] as const;
  * para não ser abortada pela M6A.
  */
 const PACOTE_IVO_C8 = ["20261005120000_ivo_efficacy_protocols.sql"] as const;
+/**
+ * PACOTE IVO PI-13 — inclusão de ação em plano existente e encerramento operacional.
+ *
+ * Preparado para REVISÃO; nunca aplicado remotamente. Migration ADITIVA nova
+ * (nenhuma migration anterior é reescrita): colunas de auditoria, índice de
+ * idempotência e gatilhos no schema ivo_ledger. Sem função nova em public, para
+ * não ser abortada pela M6A; o replay reaplica a M6A depois dela e exige que a
+ * reconciliação passe. Depende só das TABELAS do ledger e das colunas do R6.
+ * Idempotente.
+ */
+const PACOTE_IVO_PI13 = ["20261016120000_ivo_plan_composition_and_closure.sql"] as const;
+/** Clone do estado produtivo observado ANTES do PI-13 (ensaio de atualização com dados do ledger). */
+const CLONE_PI13_ANTERIOR = "pi13_estado_anterior";
 
 const IDEMPOTENTES = new Set([
     // G1-v2.
@@ -980,9 +993,9 @@ async function caracterizarAtualizacaoR6(pacoteR6: string[]): Promise<void> {
 // que R6 funciona num ambiente assim. Num CLONE local, aplica a promoção
 // mínima na ordem do runbook (ledger 20260705100000 → R6), confere o corpo da
 // RPC, reconcilia a M6A e roda a suíte 07 exigindo o caminho de RPC PROVADO.
-async function provarPromocaoActionPlan(pacoteR6: string[], pacoteC8: string[]): Promise<void> {
+async function provarPromocaoActionPlan(pacoteR6: string[], pacoteC8: string[], pacotePI13: string[]): Promise<void> {
     await comCloneLocal("r6_action_plan_promotion", async (database) => {
-        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6, ...pacoteC8]) {
+        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6, ...pacoteC8, ...pacotePI13]) {
             const r = await psql(lerSql("supabase", "migrations", nome), database);
             if (r.code !== 0) {
                 registrar(`R6 promoção: ${nome} no clone produtivo`, false, r.err.trim().split("\n").slice(0, 6).join(" | "));
@@ -1013,7 +1026,182 @@ async function provarPromocaoActionPlan(pacoteR6: string[], pacoteC8: string[]):
             c8.code === 0 && c8Provado,
             c8.code !== 0 ? c8.err.split("\n").filter((l) => l.includes("FALHOU") || l.includes("ERROR")).slice(0, 8).join(" | ") : `c8_provado=${c8Provado}`,
         );
+        const pi13 = await psql(lerSql("supabase", "tests", "09_ivo_plan_composition_closure.sql"), database);
+        const pi13Provado = pi13.err.includes("PI13_PATH=PROVED") && !pi13.err.includes("PI13_PATH=SKIP");
+        registrar(
+            "PI-13 promoção: suíte 09 com caminho completo PROVADO (não SKIP) no clone produtivo promovido",
+            pi13.code === 0 && pi13Provado,
+            pi13.code !== 0 ? pi13.err.split("\n").filter((l) => l.includes("FAILED") || l.includes("ERROR") || l.includes("  - ")).slice(0, 12).join(" | ") : `pi13_provado=${pi13Provado}`,
+        );
+        // A M6A reconcilia a superfície DEPOIS do PI-13: gatilhos em ivo_ledger e nenhuma função nova em public.
+        const m6aDepois = await psql(lerSql("supabase", "migrations", M6A_ATUAL), database);
+        registrar(
+            "PI-13: M6A reaplicada com o PI-13 presente reconcilia a superfície (sem função nova em public)",
+            m6aDepois.code === 0,
+            m6aDepois.code === 0 ? undefined : m6aDepois.err.trim().slice(0, 300),
+        );
     });
+}
+
+// ── IVO PI-13 — atualização a partir do estado anterior, com dados do ledger ─
+//
+// O clone CLONE_PI13_ANTERIOR guarda o estado ANTES da migration nova. Aqui o
+// módulo Action Plan é promovido nele (ledger → R6 → C8), um plano real é criado
+// e movimentado pelas RPCs EXISTENTES, e só então a migration PI-13 é aplicada
+// por cima. Provas: (1) nenhuma linha anterior muda; (2) as RPCs existentes
+// seguem funcionando sobre o banco atualizado, inclusive criar plano e ativar
+// (o gatilho de plano admite draft→active); (3) o encerramento recusa
+// pendência, aceita quando tudo está em estado de saída e passa a barrar as RPCs
+// de escrita sobre o plano encerrado; (4) a avaliação C8 não é tocada.
+const PI13_ESTADO_ANTERIOR_SQL = `
+CREATE SCHEMA IF NOT EXISTS _proof;
+CREATE TABLE IF NOT EXISTS _proof.pi13_state (k TEXT PRIMARY KEY, v TEXT);
+DO $anterior$
+DECLARE
+  c_org  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a1';
+  c_usr  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a9';
+  c_wave CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a2';
+  c_coh  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a3';
+  v_ok BOOLEAN; v_reason TEXT; v_plan UUID; v_i1 UUID; v_i2 UUID; v_ev UUID;
+BEGIN
+  INSERT INTO public.organizations (id, slug, name) VALUES (c_org, 'org-ficticia-pi13-up', 'Org Fictícia PI13 Upgrade');
+  INSERT INTO auth.users (id, email) VALUES (c_usr, 'admin-pi13-up@exemplo.invalid');
+  INSERT INTO public.profiles (id, org_id, role, display_name) VALUES (c_usr, c_org, 'RH_ADMIN', 'Admin Upgrade');
+  INSERT INTO public.waves (id, org_id, instrument, instrument_version, label, status) VALUES (c_wave, c_org, 'FIB_T', '1.0.0', 'Onda upgrade', 'collecting');
+  INSERT INTO public.wave_cohorts (id, org_id, wave_id, key, label) VALUES (c_coh, c_org, c_wave, 'up-1', 'Setor Upgrade');
+  INSERT INTO public.cohort_capsules (org_id, wave_id, cohort_id, published_response_count, published_response_ids, item_means, published_at)
+    VALUES (c_org, c_wave, c_coh, 7, '{}', '{"1": 2.5}', '2026-06-20T12:00:00Z');
+
+  SELECT accepted, reason, plan_id INTO v_ok, v_reason, v_plan FROM public.create_action_plan(c_org, '2026-T2', 'Plano anterior', NULL, c_usr,
+    jsonb_build_array(
+      jsonb_build_object('rank', 1, 'lever_id', 'fibt:up-1:bem_estar', 'title', 'Ação anterior 1', 'effort', 'medio', 'start_week', 1, 'end_week', 13,
+        'milestone_week', 7, 'weeks_budget', 13, 'source_lens_id', 'fibt', 'source_wave_id', c_wave, 'source_cohort_id', c_coh, 'source_factor_id', 'bem_estar'),
+      jsonb_build_object('rank', 2, 'lever_id', 'fibt:up-1:bem_estar', 'title', 'Ação anterior 2', 'effort', 'baixo', 'start_week', 1, 'end_week', 13,
+        'milestone_week', 7, 'weeks_budget', 13, 'source_lens_id', 'fibt', 'source_wave_id', c_wave, 'source_cohort_id', c_coh, 'source_factor_id', 'bem_estar')));
+  IF NOT v_ok THEN RAISE EXCEPTION 'estado anterior: create_action_plan recusou (%)', v_reason; END IF;
+  SELECT id INTO v_i1 FROM public.action_items WHERE plan_id = v_plan AND rank = 1;
+  SELECT id INTO v_i2 FROM public.action_items WHERE plan_id = v_plan AND rank = 2;
+  PERFORM public.set_action_item_accountability(v_i1, c_usr, 'Gestão', '2026-12-15', 'Encontros', 0, 4, 'enc', NULL, NULL, NULL, NULL);
+  PERFORM public.set_action_item_accountability(v_i2, c_usr, 'Gestão', '2026-12-15', 'Oficinas', 0, 2, 'of', NULL, NULL, NULL, NULL);
+  PERFORM public.activate_action_plan(v_plan);
+  PERFORM public.record_action_event(v_i1, 'status_change', c_usr, 'RH_ADMIN', 'em_execucao', NULL, NULL);
+  PERFORM public.record_action_event(v_i1, 'status_change', c_usr, 'RH_ADMIN', 'concluida', NULL, 'feito');
+  SELECT evidence_id INTO v_ev FROM public.record_evidence(v_i1, 'texto', 'Ata do encontro', 'direct', NULL, '2026-07-10', c_usr, 'RH_ADMIN');
+  INSERT INTO public.efficacy_protocols (org_id, item_id, revision, created_by, objective)
+    VALUES (c_org, v_i1, 1, c_usr, 'Objetivo sintético do estado anterior');
+  INSERT INTO _proof.pi13_state VALUES ('plan', v_plan::TEXT), ('i1', v_i1::TEXT), ('i2', v_i2::TEXT);
+END
+$anterior$;`;
+
+// Fotografia só das colunas que JÁ existiam (as novas nascem nulas).
+const PI13_CHECKSUM_SQL = `
+SELECT md5(
+  COALESCE((SELECT string_agg((to_jsonb(p) - 'closed_at' - 'closed_by' - 'closed_by_role')::TEXT, '|' ORDER BY p.id) FROM public.action_plans p WHERE p.org_id = 'aa000000-0000-4000-8000-0000000000a1'), '') ||
+  COALESCE((SELECT string_agg((to_jsonb(i) - 'add_request_id' - 'added_by' - 'added_by_role')::TEXT, '|' ORDER BY i.id) FROM public.action_items i WHERE i.org_id = 'aa000000-0000-4000-8000-0000000000a1'), '') ||
+  COALESCE((SELECT string_agg(to_jsonb(e)::TEXT, '|' ORDER BY e.id) FROM public.evidence_records e WHERE e.org_id = 'aa000000-0000-4000-8000-0000000000a1'), '') ||
+  COALESCE((SELECT string_agg(to_jsonb(l)::TEXT, '|' ORDER BY l.id) FROM public.action_log l WHERE l.org_id = 'aa000000-0000-4000-8000-0000000000a1'), '') ||
+  COALESCE((SELECT string_agg(to_jsonb(c)::TEXT, '|' ORDER BY c.id) FROM public.efficacy_protocols c WHERE c.org_id = 'aa000000-0000-4000-8000-0000000000a1'), ''));`;
+
+async function provarAtualizacaoPI13(pacoteR6: string[], pacoteC8: string[], pacotePI13: string[]): Promise<void> {
+    const database = CLONE_PI13_ANTERIOR;
+    try {
+        for (const nome of ["20260705100000_action_plan_ledger.sql", ...pacoteR6, ...pacoteC8]) {
+            const r = await psql(lerSql("supabase", "migrations", nome), database);
+            if (r.code !== 0) {
+                registrar(`PI-13 atualização: ${nome} no estado anterior`, false, r.err.trim().split("\n").slice(0, 6).join(" | "));
+                return;
+            }
+        }
+        const semPI13 = await scalar("SELECT (to_regnamespace('ivo_ledger') IS NULL AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='action_plans' AND column_name='closed_at'))::TEXT;", database);
+        registrar("PI-13 atualização: o estado anterior não tem o schema ivo_ledger nem as colunas novas", semPI13 === "true", semPI13);
+
+        const seed = await psql(PI13_ESTADO_ANTERIOR_SQL, database);
+        registrar("PI-13 atualização: plano real criado e movimentado pelas RPCs existentes (ativo, 1 ação concluída, evidência, protocolo C8)", seed.code === 0, seed.code === 0 ? undefined : seed.err.trim().split("\n").slice(0, 6).join(" | "));
+        if (seed.code !== 0) return;
+        const antes = await scalar(PI13_CHECKSUM_SQL, database);
+
+        for (const nome of pacotePI13) {
+            const r = await psql(lerSql("supabase", "migrations", nome), database);
+            registrar(`PI-13 atualização: ${nome} aplicada por cima do estado anterior`, r.code === 0, r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 6).join(" | "));
+            if (r.code !== 0) return;
+        }
+        const depois = await scalar(PI13_CHECKSUM_SQL, database);
+        registrar("PI-13 atualização: nenhuma linha anterior (plano, ações, evidência, log, protocolo C8) foi alterada", antes === depois, `${antes} → ${depois}`);
+
+        const novas = await scalar(
+            `SELECT (SELECT COUNT(*) FROM public.action_plans WHERE closed_at IS NOT NULL OR closed_by IS NOT NULL OR closed_by_role IS NOT NULL)::TEXT || '|' ||
+                    (SELECT COUNT(*) FROM public.action_items WHERE add_request_id IS NOT NULL OR added_by IS NOT NULL OR added_by_role IS NOT NULL)::TEXT;`,
+            database,
+        );
+        registrar("PI-13 atualização: colunas novas nascem nulas nas linhas anteriores", novas === "0|0", novas);
+
+        // As RPCs existentes continuam funcionando sobre o banco atualizado.
+        const rpcs = await psql(`
+DO $rpcs$
+DECLARE
+  c_org  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a1';
+  c_usr  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a9';
+  c_wave CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a2';
+  c_coh  CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a3';
+  v_i2 UUID := (SELECT v::UUID FROM _proof.pi13_state WHERE k = 'i2');
+  v_ok BOOLEAN; v_reason TEXT; v_plan2 UUID; v_n UUID; v_acc BOOLEAN;
+BEGIN
+  SELECT accepted, reason INTO v_ok, v_reason FROM public.record_action_event(v_i2, 'status_change', c_usr, 'RH_ADMIN', 'em_execucao', NULL, NULL);
+  IF NOT v_ok THEN RAISE EXCEPTION 'record_action_event recusou após PI-13 (%)', v_reason; END IF;
+  SELECT accepted, reason INTO v_ok, v_reason FROM public.record_evidence(v_i2, 'aprendizagem', 'Aprendizado', 'direct', NULL, '2026-07-12', c_usr, 'RH_ADMIN') AS r(accepted, reason, evidence_id);
+  IF NOT v_ok THEN RAISE EXCEPTION 'record_evidence recusou após PI-13 (%)', v_reason; END IF;
+  SELECT accepted, reason, plan_id INTO v_ok, v_reason, v_plan2 FROM public.create_action_plan(c_org, '2026-T3', 'Segundo plano', NULL, c_usr,
+    jsonb_build_array(jsonb_build_object('rank', 1, 'lever_id', 'fibt:up-1:bem_estar', 'title', 'Nova ação', 'effort', 'medio', 'start_week', 1, 'end_week', 13,
+      'milestone_week', 7, 'weeks_budget', 13, 'source_lens_id', 'fibt', 'source_wave_id', c_wave, 'source_cohort_id', c_coh, 'source_factor_id', 'bem_estar')));
+  IF NOT v_ok THEN RAISE EXCEPTION 'create_action_plan recusou após PI-13 (%)', v_reason; END IF;
+  SELECT id INTO v_n FROM public.action_items WHERE plan_id = v_plan2;
+  PERFORM public.set_action_item_accountability(v_n, c_usr, 'Gestão', '2026-12-15', 'Encontros', 0, 4, 'enc', NULL, NULL, NULL, NULL);
+  SELECT accepted INTO v_acc FROM public.activate_action_plan(v_plan2);
+  IF NOT v_acc THEN RAISE EXCEPTION 'activate_action_plan recusou após PI-13'; END IF;
+END
+$rpcs$;`, database);
+        registrar("PI-13 atualização: RPCs existentes (evento, evidência, criar plano, §13, ativar) seguem funcionando", rpcs.code === 0, rpcs.code === 0 ? undefined : rpcs.err.trim().split("\n").slice(0, 6).join(" | "));
+
+        // Encerramento do plano anterior: pendência recusa; concluindo a última, encerra; RPCs passam a recusar.
+        const fecha = await psql(`
+DO $fecha$
+DECLARE
+  c_usr CONSTANT UUID := 'aa000000-0000-4000-8000-0000000000a9';
+  v_plan UUID := (SELECT v::UUID FROM _proof.pi13_state WHERE k = 'plan');
+  v_i1 UUID := (SELECT v::UUID FROM _proof.pi13_state WHERE k = 'i1');
+  v_i2 UUID := (SELECT v::UUID FROM _proof.pi13_state WHERE k = 'i2');
+  v_ok BOOLEAN; v_reason TEXT; v_msg TEXT;
+BEGIN
+  BEGIN
+    UPDATE public.action_plans SET status = 'closed', closed_by = c_usr, closed_by_role = 'RH_ADMIN' WHERE id = v_plan AND status = 'active';
+    RAISE EXCEPTION 'encerrou com ação em execução';
+  EXCEPTION WHEN SQLSTATE '55000' THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'ivo_plan_close_pending' THEN RAISE EXCEPTION 'motivo inesperado: %', v_msg; END IF;
+  END;
+  SELECT accepted, reason INTO v_ok, v_reason FROM public.record_action_event(v_i2, 'status_change', c_usr, 'RH_ADMIN', 'concluida', NULL, NULL);
+  IF NOT v_ok THEN RAISE EXCEPTION 'record_action_event recusou (%)', v_reason; END IF;
+  UPDATE public.action_plans SET status = 'closed', closed_by = c_usr, closed_by_role = 'RH_ADMIN' WHERE id = v_plan AND status = 'active';
+  IF NOT FOUND THEN RAISE EXCEPTION 'encerramento não gravou'; END IF;
+  BEGIN
+    PERFORM public.record_action_event(v_i1, 'status_change', c_usr, 'RH_ADMIN', 'em_vigilancia', NULL, NULL);
+    RAISE EXCEPTION 'RPC de evento aceitou escrita em plano encerrado';
+  EXCEPTION WHEN SQLSTATE '55000' THEN NULL;
+  END;
+  BEGIN
+    PERFORM public.record_evidence(v_i1, 'texto', 'tarde', 'direct', NULL, '2026-07-13', c_usr, 'RH_ADMIN');
+    RAISE EXCEPTION 'RPC de evidência aceitou escrita em plano encerrado';
+  EXCEPTION WHEN SQLSTATE '55000' THEN NULL;
+  END;
+  -- O protocolo C8 do estado anterior segue legível e a avaliação segue possível.
+  UPDATE public.efficacy_protocols SET objective = 'Avaliação segue possível depois do encerramento' WHERE item_id = v_i1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'protocolo C8 inacessível após o encerramento'; END IF;
+END
+$fecha$;`, database);
+        registrar("PI-13 atualização: encerramento recusa pendência, aceita com tudo em estado de saída, e as RPCs existentes passam a recusar o plano encerrado (C8 segue)", fecha.code === 0, fecha.code === 0 ? undefined : fecha.err.trim().split("\n").slice(0, 8).join(" | "));
+    } finally {
+        await docker(["exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER, "dropdb", "--if-exists", "--force", "-U", PGUSER, CLONE_PI13_ANTERIOR]);
+    }
 }
 
 async function rodarMatrizNegativaM6A(): Promise<void> {
@@ -1240,6 +1428,33 @@ try {
     );
     if (!c8Valido) throw new Error("custódia do pacote IVO C8 inválida");
 
+    // ── Custódia do pacote IVO PI-13 ────────────────────────────────────────
+    const pacotePI13 = [...PACOTE_IVO_PI13];
+    const pi13Ausentes = pacotePI13.filter((nome) => !todasOrdenadas.includes(nome));
+    const pi13ForaDaLinhagem = pacotePI13.filter((nome) => !todas.includes(nome));
+    const pi13Sobrepoe = pacotePI13.filter(
+        (nome) =>
+            pacoteG1.includes(nome as never) ||
+            pacote10.includes(nome as never) ||
+            pacoteR6.includes(nome as never) ||
+            pacoteC8.includes(nome as never),
+    );
+    const pi13OrdemOk = pacoteC8.every((c8) => pacotePI13.every((pi13) => c8 < pi13));
+    const pi13Valido =
+        pacotePI13.length === 1 &&
+        pi13Ausentes.length === 0 &&
+        pi13ForaDaLinhagem.length === 0 &&
+        pi13Sobrepoe.length === 0 &&
+        pi13OrdemOk;
+    registrar(
+        "custódia do pacote IVO PI-13 explícito (1 arquivo aditivo, depois do C8, sem sobreposição)",
+        pi13Valido,
+        pi13Valido
+            ? undefined
+            : `ausentes=${pi13Ausentes.join(",") || "0"} · fora_da_linhagem=${pi13ForaDaLinhagem.join(",") || "0"} · sobrepõe=${pi13Sobrepoe.join(",") || "0"} · ordem_apos_C8=${pi13OrdemOk}`,
+    );
+    if (!pi13Valido) throw new Error("custódia do pacote IVO PI-13 inválida");
+
     // Reconciliação aritmética explícita: nenhum arquivo da linhagem de
     // produção fica sem classificação. Se alguém adicionar uma migration nova
     // sem decidir a que pacote ela pertence, este passo falha — em vez de o
@@ -1253,11 +1468,12 @@ try {
         ...pacote10,
         ...pacoteR6,
         ...pacoteC8,
+        ...pacotePI13,
         ORIGINAL_M6_HISTORICA,
     ]);
     const semClassificacao = todas.filter((nome) => !classificadas.has(nome));
     registrar(
-        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + ${pacoteC8.length} IVO C8 + 1 M6 histórico)`,
+        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + ${pacoteC8.length} IVO C8 + ${pacotePI13.length} IVO PI-13 + 1 M6 histórico)`,
         semClassificacao.length === 0 && classificadas.size === todas.length,
         semClassificacao.length > 0
             ? `sem classificação: ${semClassificacao.join(", ")}`
@@ -1367,6 +1583,34 @@ try {
         );
         registrar("C8 no baseline produtivo: tabelas de eficácia criadas sem depender das RPCs do ledger (ausentes)", tabelasC8 === "true", `tabelas presentes e RPC ausente=${tabelasC8}`);
 
+        // O estado ANTERIOR ao PI-13 é preservado num clone para o ensaio de
+        // atualização (dados do ledger criados pelas RPCs existentes, depois a
+        // migration nova por cima).
+        await docker(["exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER, "dropdb", "--if-exists", "--force", "-U", PGUSER, CLONE_PI13_ANTERIOR]);
+        const clonePI13 = await docker([
+            "exec", "-e", `PGPASSWORD=${PGPASSWORD}`, CONTAINER,
+            "createdb", "-U", PGUSER, "-T", DB, CLONE_PI13_ANTERIOR,
+        ]);
+        registrar(
+            "estado anterior ao PI-13 preservado em clone (para o ensaio de atualização)",
+            clonePI13.code === 0,
+            clonePI13.code === 0 ? undefined : clonePI13.err.trim() || clonePI13.out.trim(),
+        );
+
+        // IVO PI-13 — depende só das tabelas do ledger e das colunas do R6.
+        if (
+            !(await aplicarCadeia(
+                pacotePI13,
+                "pacote IVO PI-13 aplicado sobre o estado real (tabelas do ledger presentes, RPCs ausentes)",
+            ))
+        ) {
+            throw new Error("pacote IVO PI-13 falhou");
+        }
+        const gatilhosPI13 = await scalar(
+            "SELECT (to_regnamespace('ivo_ledger') IS NOT NULL AND (SELECT COUNT(*) FROM pg_trigger WHERE NOT tgisinternal AND tgname LIKE 'ivo_ledger\\_%') = 6 AND to_regprocedure('public.create_action_plan(uuid,text,text,uuid,uuid,jsonb)') IS NULL)::TEXT;",
+        );
+        registrar("PI-13 no baseline produtivo: 6 gatilhos instalados sem depender das RPCs do ledger (ausentes)", gatilhosPI13 === "true", `gatilhos e RPC ausente=${gatilhosPI13}`);
+
         // O inventário produtivo é 0 respostas (3 ondas legadas seladas), então
         // o bootstrap tem de ser comprovadamente no-op AQUI — e não por
         // suposição: o estado é conferido no banco.
@@ -1419,6 +1663,14 @@ try {
             r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
         );
     }
+    for (const nome of pacotePI13) {
+        const r = await psql(lerSql("supabase", "migrations", nome));
+        registrar(
+            `idempotente ao reaplicar: ${nome}`,
+            r.code === 0,
+            r.code === 0 ? undefined : r.err.trim().split("\n").slice(0, 4).join(" | "),
+        );
+    }
     await caracterizarAtualizacaoR6(pacoteR6);
 
     // 20260825022411 já foi aplicada dentro de `antes` (linhagem de
@@ -1451,7 +1703,8 @@ try {
     }
 
     await rodarProvas();
-    if (modo === "preprod") await provarPromocaoActionPlan(pacoteR6, pacoteC8);
+    if (modo === "preprod") await provarPromocaoActionPlan(pacoteR6, pacoteC8, pacotePI13);
+    if (modo === "preprod") await provarAtualizacaoPI13(pacoteR6, pacoteC8, pacotePI13);
     await rodarMatrizNegativaM6A();
 
     // Deixado para o fim: uma migration one-shot que recusa aborta a própria

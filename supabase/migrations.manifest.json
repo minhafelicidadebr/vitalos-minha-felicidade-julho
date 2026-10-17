@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 61,
-  "rollupSha256": "fe77c884a4af7bef31f7b5520e115fc25aabecdceba2a526f7adeddf07af15de",
+  "migrationCount": 62,
+  "rollupSha256": "4ee716e70e410d1e563a2307bcaf7517954f27b455b83cf58753e3ec0fa5ecbb",
   "migrations": [
     {
       "order": 1,
@@ -368,6 +368,12 @@
       "name": "20261005120000_ivo_efficacy_protocols.sql",
       "sha256": "58b83c02c7eb1204d15b65d65ecfd9e30a9861f0d4d57cef224400cd90d8d56d",
       "bytes": 23125
+    },
+    {
+      "order": 62,
+      "name": "20261016120000_ivo_plan_composition_and_closure.sql",
+      "sha256": "718de8d78f30bc5916aa9b3273bd5e5367680a10f6c12a18e7b747c0c8e71de4",
+      "bytes": 16331
     }
   ]
 }

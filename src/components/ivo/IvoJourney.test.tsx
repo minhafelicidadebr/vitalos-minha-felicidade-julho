@@ -152,6 +152,9 @@ const plan: FibtActionPlanView = {
   status: "active",
   createdAt: "2026-06-30T15:00:00Z",
   activatedAt: "2026-06-30T15:10:00Z",
+  closedAt: null,
+  closedByRole: null,
+  composition: "available",
   missingAccountability: 0,
   actions: [
     {
@@ -182,6 +185,7 @@ const plan: FibtActionPlanView = {
       },
       efficacy: { status: "not_evaluated", reason: EFFICACY_NOT_EVALUATED_REASON },
       timeline: [],
+      addedLater: null,
     },
   ],
 };
@@ -323,7 +327,7 @@ describe("FibtActionPlanSection", () => {
     expect(due.tagName).toBe("TIME");
     expect(due.getAttribute("datetime")).toBe("2026-10-11");
     expect(screen.queryByText("11/10/2026")).toBeNull();
-  });  test("plano em rascunho com pendências não pode ser ativado", () => {
+  }); test("plano em rascunho com pendências não pode ser ativado", () => {
     const draft: FibtActionPlanView = { ...plan, status: "draft", missingAccountability: 1 };
     render(
       <FibtActionPlanSection

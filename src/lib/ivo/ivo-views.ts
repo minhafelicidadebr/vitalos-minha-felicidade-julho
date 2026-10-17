@@ -111,6 +111,8 @@ export interface FibtActionView {
   evidence: { execution: FibtEvidenceView[]; learning: FibtEvidenceView[] };
   efficacy: { status: "not_evaluated"; reason: string };
   timeline: Array<{ id: string; kind: string; toStatus: PlanActionStatus | null; note: string | null; occurredAt: string }>;
+  /** PI-13: preenchido quando a ação foi incluída DEPOIS da criação do plano (quando e por qual papel). */
+  addedLater: { at: string; byRole: string } | null;
 }
 
 export interface FibtActionPlanView {
@@ -120,6 +122,14 @@ export interface FibtActionPlanView {
   status: "draft" | "active" | "closed";
   createdAt: string;
   activatedAt: string | null;
+  /** PI-13: encerramento OPERACIONAL (instante definido pelo banco e papel de quem encerrou). Não indica eficácia. */
+  closedAt: string | null;
+  closedByRole: string | null;
+  /**
+   * PI-13: `unavailable` quando o banco ainda não tem a migration de inclusão/encerramento
+   * (código novo publicado antes dela): a interface não oferece as duas operações.
+   */
+  composition: "available" | "unavailable";
   missingAccountability: number;
   actions: FibtActionView[];
 }
@@ -129,7 +139,8 @@ export type LedgerFailure = { ok: false; category: IvoFailureCategory; error: st
 export type LoadFibtActionLoopOutcome = { ok: true; plans: FibtActionPlanView[] } | LedgerFailure;
 
 export type LedgerWriteOutcome =
-  | { ok: true; accepted: true; id: string | null }
+  /** `replayed`: o mesmo pedido já havia sido aplicado antes; nada foi gravado de novo. */
+  | { ok: true; accepted: true; id: string | null; replayed?: true }
   | { ok: true; accepted: false; reason: string; message: string }
   | LedgerFailure;
 
@@ -252,14 +263,14 @@ export interface GovernanceAuthorityView {
 }
 export type LoadGovernanceOutcome =
   | {
-      ok: true;
-      registryVersion: string;
-      authorityPolicy: string;
-      entries: GovernanceEntry[];
-      counts: Record<GovernanceState, number>;
-      authority: GovernanceAuthorityView;
-      efficacyGate: EfficacyGovernanceView;
-    }
+    ok: true;
+    registryVersion: string;
+    authorityPolicy: string;
+    entries: GovernanceEntry[];
+    counts: Record<GovernanceState, number>;
+    authority: GovernanceAuthorityView;
+    efficacyGate: EfficacyGovernanceView;
+  }
   | LedgerFailure;
 export type PrepareGovernanceDecisionOutcome =
   | { ok: true; accepted: true; entry: GovernanceEntry; audit: { entryId: string; from: GovernanceState; to: GovernanceState; by: string; at: string; test: boolean }; note: string }

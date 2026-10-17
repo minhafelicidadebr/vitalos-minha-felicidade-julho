@@ -13,6 +13,7 @@ import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import type { EfficacyState } from "@/engine/ivo/efficacy-protocol";
 import type { EfficacyItemView, FibtActionPlanView, FibtActionView } from "./ivo-views";
 import { isTestContentId } from "./content-ref";
+import { OPERATIONAL_EXIT } from "./plan-closure";
 import { formatIsoDateLong, todayInSaoPaulo } from "./local-date";
 
 export const TIMELINE_NOTE =
@@ -20,6 +21,8 @@ export const TIMELINE_NOTE =
 
 export type TimelineKind =
   | "priority_origin"
+  | "action_added"
+  | "plan_closed"
   | "plan_created"
   | "plan_activated"
   | "status_change"
@@ -56,6 +59,8 @@ const STATUS_LABEL: Record<PlanActionStatus, string> = {
 
 const ORDER: Record<TimelineKind, number> = {
   priority_origin: 0,
+  action_added: 1,
+  plan_closed: 9,
   plan_created: 1,
   plan_activated: 2,
   status_change: 3,
@@ -74,7 +79,8 @@ const VERDICT_LABEL = { meta_atingida: "meta atingida", meta_nao_atingida: "meta
 
 export function buildActionTimeline(
   action: FibtActionView,
-  plan: Pick<FibtActionPlanView, "createdAt" | "activatedAt" | "cycleKeyCanonical" | "cycleKey">,
+  plan: Pick<FibtActionPlanView, "createdAt" | "activatedAt" | "cycleKeyCanonical" | "cycleKey"> &
+    Partial<Pick<FibtActionPlanView, "closedAt" | "closedByRole">>,
   efficacy: EfficacyItemView | null,
   parseContentRef: ContentRefParser = () => null,
 ): TimelineEntry[] {
@@ -82,15 +88,34 @@ export function buildActionTimeline(
   const add = (e: Omit<TimelineEntry, "detail" | "factualDate" | "content" | "test"> & Partial<Pick<TimelineEntry, "detail" | "factualDate" | "content" | "test">>) =>
     entries.push({ detail: null, factualDate: null, content: null, test: false, ...e });
 
+  // Ação incluída depois da criação do plano: a prioridade nasce no instante da inclusão.
   add({
     id: `${action.id}:origin`,
-    at: plan.createdAt,
+    at: action.addedLater?.at ?? plan.createdAt,
     kind: "priority_origin",
     label: "Prioridade definida a partir de leitura publicada",
     detail: `FIB-T ${action.source.instrumentVersion} · ${action.source.cohortLabel ?? "setor"} · fator ${action.source.factorName} · leitura publicada em ${formatIsoDateLong(todayInSaoPaulo(new Date(action.source.publishedAt)))}`,
   });
   add({ id: `${action.id}:plan`, at: plan.createdAt, kind: "plan_created", label: `Plano do ciclo ${plan.cycleKeyCanonical ?? plan.cycleKey} criado em rascunho` });
   if (plan.activatedAt) add({ id: `${action.id}:activated`, at: plan.activatedAt, kind: "plan_activated", label: "Plano ativado" });
+  if (action.addedLater) {
+    add({
+      id: `${action.id}:added`,
+      at: action.addedLater.at,
+      kind: "action_added",
+      label: "Ação incluída em plano já existente",
+      detail: `Incluída por ${action.addedLater.byRole}. O plano e as demais ações não foram alterados.`,
+    });
+  }
+  if (plan.closedAt) {
+    add({
+      id: `${action.id}:closed`,
+      at: plan.closedAt,
+      kind: "plan_closed",
+      label: "Plano encerrado operacionalmente",
+      detail: `${plan.closedByRole ? `Encerrado por ${plan.closedByRole}. ` : ""}Não indica eficácia nem altera o IVO.`,
+    });
+  }
 
   for (const t of action.timeline) {
     if (t.kind === "evidence_recorded") continue; // o próprio registro de evidência aparece abaixo, com o conteúdo
@@ -167,8 +192,6 @@ export interface PlanFollowUp {
   /** Sempre presente: separa encerramento operacional de eficácia. */
   closingNote: string;
 }
-
-const OPERATIONAL_EXIT: readonly PlanActionStatus[] = ["concluida", "em_vigilancia", "interrompida"];
 
 export function summarizePlan(plan: FibtActionPlanView, efficacy: readonly EfficacyItemView[]): PlanFollowUp {
   const byStatus: Record<PlanActionStatus, number> = { planejada: 0, em_execucao: 0, concluida: 0, em_vigilancia: 0, interrompida: 0 };

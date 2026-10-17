@@ -308,6 +308,9 @@ try {
       ["ivo-local-journey-proof.ts", "read"],
       ["ivo-local-c8-proof.ts", "write"],
       ["ivo-local-c8-proof.ts", "read"],
+      // PI-13: incluir ação em plano existente e encerrar plano, sobre o estado deixado acima.
+      ["ivo-local-plan-proof.ts", "write"],
+      ["ivo-local-plan-proof.ts", "read"],
     ];
     for (const [file, p] of steps) {
       const proc = Bun.spawn([process.execPath, join(ROOT, "scripts", file), p], {
@@ -319,7 +322,7 @@ try {
         process.exit(1);
       }
     }
-    console.log("\n✅ PROVA LOCAL OK — escrita e releitura em processos separados (jornada + C8)");
+    console.log("\n✅ PROVA LOCAL OK — escrita e releitura em processos separados (jornada + C8 + PI-13)");
     process.exit(0);
   }
 } catch (error) {

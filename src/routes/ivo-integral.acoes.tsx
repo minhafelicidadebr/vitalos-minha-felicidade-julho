@@ -13,6 +13,7 @@ import {
   type EvidenceSubmitResult,
   type PriorityDraft,
 } from "@/components/ivo/FibtActionLoop";
+import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, type AddActionFormInput } from "@/components/ivo/PlanComposition";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import {
@@ -26,6 +27,8 @@ import {
 import { loadEducationFn } from "@/lib/api/ivo-governance.functions";
 import {
   activateFibtActionPlanFn,
+  addFibtActionToPlanFn,
+  closeFibtActionPlanFn,
   createFibtPriorityActionsFn,
   loadFibtActionLoopFn,
   recordFibtActionEvidenceFn,
@@ -94,7 +97,11 @@ function IvoAcoesPage() {
 
   // `inline`: o desfecho volta ao formulário que enviou (sucesso/erro junto dele, com
   // anúncio próprio) em vez de ir para a faixa global no topo da página.
-  async function write(run: () => Promise<LedgerWriteOutcome>, okText: string, options?: { inline?: boolean }): Promise<EvidenceSubmitResult> {
+  async function write(
+    run: () => Promise<LedgerWriteOutcome>,
+    okText: string,
+    options?: { inline?: boolean; replayedText?: string },
+  ): Promise<EvidenceSubmitResult> {
     setBusy(true);
     if (!options?.inline) setFeedback(null);
     let outcome: EvidenceSubmitResult;
@@ -102,7 +109,8 @@ function IvoAcoesPage() {
       const r = await run();
       if (!r.ok) outcome = { ok: false, message: r.error };
       else if (!r.accepted) outcome = { ok: false, message: r.message };
-      else outcome = { ok: true, message: okText };
+      // `replayed`: o mesmo pedido já tinha sido aplicado; nada foi gravado de novo.
+      else outcome = { ok: true, message: r.replayed && options?.replayedText ? options.replayedText : okText };
       await load();
     } catch {
       outcome = { ok: false, message: "Falha de comunicação com o servidor. Nada foi confirmado." };
@@ -124,6 +132,24 @@ function IvoAcoesPage() {
         input.scope === "aprendizagem" ? "Aprendizagem registrada." : "Evidência de execução registrada.",
         { inline: true },
       ),
+  };
+
+  // PI-13: incluir ação em plano existente (desfecho junto do formulário) e encerrar plano
+  // (o painel some quando o plano encerra: o sucesso também é anunciado na faixa do topo).
+  const addAction = (planId: string, input: AddActionFormInput) =>
+    write(
+      () => addFibtActionToPlanFn({ data: { accessToken: token, planId, ...input } }),
+      "Ação incluída no plano.",
+      { inline: true, replayedText: "Este pedido já havia sido aplicado: a ação já está no plano e nada foi duplicado." },
+    );
+  const closePlan = async (planId: string) => {
+    const result = await write(
+      () => closeFibtActionPlanFn({ data: { accessToken: token, planId, confirm: true } }),
+      "Plano encerrado. Ele não aceita mais ações nem registros; o histórico continua legível.",
+      { inline: true, replayedText: "Este plano já estava encerrado; nada foi alterado." },
+    );
+    if (result.ok) setFeedback({ tone: "ok", text: result.message });
+    return result;
   };
 
   // Protocolo de eficácia: toda escrita volta ao formulário que a enviou (erro/sucesso junto dele).
@@ -161,6 +187,10 @@ function IvoAcoesPage() {
     };
     const itemOf = (actionId: string) => efficacy?.items.find((i) => i.itemId === actionId) ?? null;
     return {
+      planClosure:
+        plan.status === "closed" ? <ClosedPlanNotice plan={plan} /> : <ClosePlanPanel plan={plan} busy={busy} onClose={closePlan} />,
+      planAddAction:
+        plan.status === "closed" ? undefined : <AddActionToPlanForm plan={plan} view={view} busy={busy} onSubmit={addAction} />,
       summary: (
         <PlanSummaryPanel
           cycle={plan.cycleKeyCanonical ?? plan.cycleKey}
@@ -179,8 +209,8 @@ function IvoAcoesPage() {
       ),
       efficacy: efficacy
         ? (action) => (
-            <EfficacyPanel action={action} item={itemOf(action.id)} governance={efficacy.governance} busy={busy} today={today} callbacks={efficacyCallbacks} />
-          )
+          <EfficacyPanel action={action} item={itemOf(action.id)} governance={efficacy.governance} busy={busy} today={today} callbacks={efficacyCallbacks} />
+        )
         : undefined,
     };
   }

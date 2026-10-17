@@ -231,7 +231,7 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as oito suítes existem", () => {
+    test("as nove suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
@@ -254,6 +254,11 @@ describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => 
             // conclusivo só com governança registrada no próprio parecer, revisor independente,
             // sem DELETE, duas organizações + anon.
             "08_ivo_efficacy_protocols.sql",
+            // IVO PI-13 — inclusão de ação em plano existente e encerramento operacional
+            // (migration local 20261016120000, aditiva, não aplicada remotamente). Gatilhos no
+            // schema ivo_ledger (sem função nova em public): plano encerrado é terminal,
+            // plano ativo só recebe ação com §13, repetição do mesmo pedido não duplica.
+            "09_ivo_plan_composition_closure.sql",
         ]);
     });
 

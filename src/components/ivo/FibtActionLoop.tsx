@@ -231,6 +231,10 @@ export interface EducationOption {
 /** Pontos de extensão da página de ações (C8, educação, acompanhamento) sem acoplar este arquivo a eles. */
 export interface ActionEnhancements {
   summary?: ReactNode;
+  /** PI-13: encerramento do plano (painel de encerrar ou aviso de plano encerrado), logo após o resumo. */
+  planClosure?: ReactNode;
+  /** PI-13: formulário de inclusão de ação, depois da lista de ações do plano. */
+  planAddAction?: ReactNode;
   educationOptions?: (action: FibtActionView) => EducationOption[];
   /** Substitui o aviso estático "Eficácia: não avaliada" quando fornecido. */
   efficacy?: (action: FibtActionView) => ReactNode;
@@ -559,6 +563,15 @@ export function FibtActionCard({
             FIB-T {action.source.instrumentVersion} · {action.source.cohortLabel ?? "setor"} · fator {action.source.factorName} · leitura publicada em {formatDateBR(action.source.publishedAt)}
           </dd>
         </div>
+        {action.addedLater ? (
+          <div>
+            <dt className="inline text-muted-foreground">Inclusão: </dt>
+            <dd className="inline">
+              incluída depois da criação do plano, em{" "}
+              <time dateTime={action.addedLater.at}>{formatDateBR(action.addedLater.at)}</time> por {action.addedLater.byRole}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt className="inline text-muted-foreground">Dimensão IVO: </dt>
           <dd className="inline">
@@ -584,6 +597,12 @@ export function FibtActionCard({
           </dd>
         </div>
       </dl>
+
+      {planStatus === "closed" ? (
+        <p role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm text-muted-foreground">
+          Plano encerrado: o estado e os registros de execução e aprendizagem desta ação estão somente para leitura. A avaliação de eficácia, abaixo, é independente do encerramento.
+        </p>
+      ) : null}
 
       {planStatus === "draft" ? (
         <div>
@@ -690,9 +709,11 @@ export function FibtActionPlanSection({
         </div>
       ) : null}
       {enhancements?.summary}
+      {enhancements?.planClosure}
       {plan.actions.map((action) => (
         <FibtActionCard key={action.id} action={action} planStatus={plan.status} busy={busy} today={today} callbacks={callbacks} enhancements={enhancements} />
       ))}
+      {enhancements?.planAddAction}
     </section>
   );
 }
