@@ -64,13 +64,19 @@ export function assessPlanClosure(plan: {
 
 /** "2 planejada(s) · 1 em execução" — contagem das pendências por estado, na ordem do ciclo. */
 export function describePending(pending: PlanClosureAssessment["pending"]): string {
-  const order: PlanActionStatus[] = ["planejada", "em_execucao"];
+  // Estados pendentes = complemento de OPERATIONAL_EXIT (a fonte única que o gatilho SQL também
+  // usa) sobre todos os PlanActionStatus. PLAN_STATUS_LABEL é Record<PlanActionStatus, …>: o
+  // compilador exige uma chave por estado, e a ordem de declaração é a do ciclo.
+  const order = (Object.keys(PLAN_STATUS_LABEL) as PlanActionStatus[]).filter((status) => !OPERATIONAL_EXIT.includes(status));
   return order
     .map((status) => ({ status, n: pending.filter((p) => p.status === status).length }))
     .filter((x) => x.n > 0)
     .map((x) => `${x.n} ${PLAN_STATUS_LABEL[x.status]}${x.status === "planejada" ? "(s)" : ""}`)
     .join(" · ");
 }
+
+/** Plano ativo sem ações: ainda não há o que encerrar. Mesmo texto no servidor (motivo `plan_empty`) e na interface. */
+export const PLAN_EMPTY_MESSAGE = "Um plano sem ações não pode ser encerrado.";
 
 /** Texto fixo que acompanha o encerramento: separa execução de aprendizagem e de avaliação. */
 export const CLOSURE_NOT_EVALUATION_NOTE =

@@ -16,8 +16,10 @@
 //     fator FIB-T, sem copiar nenhum valor; e deve ser do MESMO ciclo do plano
 //     (resolução de outro ciclo é PI-14, subordinada a D7–D9, e não é feita aqui);
 //   · idempotência: `requestId` (uuid gerado pela interface por tentativa). O
-//     mesmo pedido repetido devolve a ação já criada, sem duplicar; pedidos
-//     distintos, ainda que parecidos, criam ações distintas;
+//     mesmo pedido repetido devolve a ação já criada, sem duplicar; a mesma chave
+//     com QUALQUER conteúdo diferente (inclusive responsável, prazo e indicador)
+//     é conflito e não grava; pedidos distintos, ainda que parecidos, criam
+//     ações distintas;
 //   · plano ativo exige responsável, prazo e indicador de execução NA inclusão (o
 //     plano ativo nunca contém ação sem accountability); plano em rascunho aceita
 //     a ação e segue o fluxo normal de §13 antes de ativar; plano encerrado recusa;
@@ -30,7 +32,7 @@ import { sameCycle } from "@/domain/ivo/cycle-key";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { loadIvoQ2ForOrg } from "./ivo-q2-reading.server";
 import { authorizeLedger, type FibtActionLoopDeps } from "./fibt-action-loop.server";
-import { assessPlanClosure, describePending } from "./plan-closure";
+import { PLAN_EMPTY_MESSAGE, assessPlanClosure, describePending } from "./plan-closure";
 import type { LedgerWriteOutcome } from "./ivo-views";
 
 // ─── Contrato da store ──────────────────────────────────────────────────────
@@ -54,6 +56,14 @@ export interface AddedActionRow {
   effort: "baixo" | "medio" | "alto";
   sourceCohortId: string | null;
   sourceFactorId: string | null;
+  /** Bloco de accountability (§13) gravado na inclusão; nulo quando a ação entrou em rascunho sem ele. */
+  ownerRoleLabel: string | null;
+  dueOn: string | null;
+  metricLabel: string | null;
+  /** `numeric` do banco: pode chegar como número ou como texto ("10.00"). */
+  metricBaseline: number | string | null;
+  metricTarget: number | string | null;
+  metricUnit: string | null;
 }
 
 export interface AddActionInput {
@@ -120,7 +130,7 @@ const REASON_MESSAGE: Record<string, string> = {
     "Este pedido já foi usado para uma ação diferente. Recarregue a página e tente de novo.",
   invalid_date: "Data inválida.",
   close_requires_active: "Só um plano ativo pode ser encerrado.",
-  plan_empty: "Um plano sem ações não pode ser encerrado.",
+  plan_empty: PLAN_EMPTY_MESSAGE,
   pending_actions:
     "Ainda há ações em andamento. Conclua, mantenha em vigilância ou interrompa cada uma antes de encerrar.",
   db_error: "O registro não pôde ser gravado agora. Nada foi alterado.",
@@ -236,13 +246,80 @@ async function resolveReplay(
 ): Promise<LedgerWriteOutcome | null> {
   const existing = await store.findAddedAction(orgId, planId, input.requestId);
   if (!existing) return null;
-  const same =
-    existing.title === input.title &&
-    existing.description === input.description &&
-    existing.effort === input.effort &&
-    existing.sourceCohortId === input.cohortId &&
-    existing.sourceFactorId === input.factorId;
-  return same ? { ok: true, accepted: true, id: existing.id, replayed: true } : rejected("request_conflict");
+  const accountability = input.accountability;
+  const requested = additionIdentity({
+    title: input.title,
+    description: input.description,
+    effort: input.effort,
+    cohortId: input.cohortId,
+    factorId: input.factorId,
+    ownerRoleLabel: accountability?.ownerRoleLabel,
+    dueOn: accountability?.dueOn,
+    metricLabel: accountability?.executionMetric.label,
+    metricBaseline: accountability?.executionMetric.baseline,
+    metricTarget: accountability?.executionMetric.target,
+    metricUnit: accountability?.executionMetric.unit,
+  });
+  const stored = additionIdentity({
+    title: existing.title,
+    description: existing.description,
+    effort: existing.effort,
+    cohortId: existing.sourceCohortId,
+    factorId: existing.sourceFactorId,
+    ownerRoleLabel: existing.ownerRoleLabel,
+    dueOn: existing.dueOn,
+    metricLabel: existing.metricLabel,
+    metricBaseline: existing.metricBaseline,
+    metricTarget: existing.metricTarget,
+    metricUnit: existing.metricUnit,
+  });
+  return requested === stored ? { ok: true, accepted: true, id: existing.id, replayed: true } : rejected("request_conflict");
+}
+
+/** Texto como o gravado: aparado (o validador da server function aplica `trim`); vazio ≡ ausente. */
+function textKey(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  return text === "" ? null : text;
+}
+
+/** `numeric` do banco pode chegar como texto ("10.00"): compara pelo valor, nunca pela grafia. */
+function numberKey(value: unknown): string | null {
+  const text = textKey(value);
+  return text === null ? null : String(Number(text));
+}
+
+/**
+ * Identidade de uma inclusão: tudo o que o pedido grava (conteúdo, origem e o bloco §13 de
+ * accountability). A MESMA normalização vale para o pedido e para a linha gravada, de modo que o
+ * mesmo pedido nunca vire falso conflito (nulo ≡ ausente; número ≡ texto numérico).
+ */
+function additionIdentity(v: {
+  title: unknown;
+  description: unknown;
+  effort: unknown;
+  cohortId: unknown;
+  factorId: unknown;
+  ownerRoleLabel: unknown;
+  dueOn: unknown;
+  metricLabel: unknown;
+  metricBaseline: unknown;
+  metricTarget: unknown;
+  metricUnit: unknown;
+}): string {
+  return JSON.stringify([
+    textKey(v.title),
+    textKey(v.description),
+    textKey(v.effort),
+    textKey(v.cohortId),
+    textKey(v.factorId),
+    textKey(v.ownerRoleLabel),
+    textKey(v.dueOn),
+    textKey(v.metricLabel),
+    numberKey(v.metricBaseline),
+    numberKey(v.metricTarget),
+    textKey(v.metricUnit),
+  ]);
 }
 
 // ─── Encerrar plano ─────────────────────────────────────────────────────────
@@ -341,7 +418,10 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
       const db = await admin();
       const { data, error } = await db
         .from("action_items")
-        .select("id, title, description, effort, source_cohort_id, source_factor_id")
+        // As colunas de accountability têm os MESMOS nomes que o INSERT de addAction grava.
+        .select(
+          "id, title, description, effort, source_cohort_id, source_factor_id, owner_role_label, due_on, metric_label, metric_baseline, metric_target, metric_unit",
+        )
         .eq("org_id", orgId)
         .eq("plan_id", planId)
         .eq("add_request_id", requestId)
@@ -355,6 +435,13 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
           effort: data.effort as AddedActionRow["effort"],
           sourceCohortId: (data.source_cohort_id as string | null) ?? null,
           sourceFactorId: (data.source_factor_id as string | null) ?? null,
+          ownerRoleLabel: (data.owner_role_label as string | null) ?? null,
+          dueOn: (data.due_on as string | null) ?? null,
+          metricLabel: (data.metric_label as string | null) ?? null,
+          // `numeric` pode voltar como texto; resolveReplay compara pelo valor.
+          metricBaseline: (data.metric_baseline as number | string | null) ?? null,
+          metricTarget: (data.metric_target as number | string | null) ?? null,
+          metricUnit: (data.metric_unit as string | null) ?? null,
         }
         : null;
     },

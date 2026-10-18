@@ -28,7 +28,7 @@ import {
   type PlanCompositionPlan,
   type PlanCompositionStore,
 } from "./fibt-plan-composition.server";
-import { OPERATIONAL_EXIT, assessPlanClosure, describePending } from "./plan-closure";
+import { OPERATIONAL_EXIT, PLAN_STATUS_LABEL, assessPlanClosure, describePending } from "./plan-closure";
 
 const manifest = getFibtManifest();
 const VERSION = manifest.instrument_version;
@@ -128,6 +128,13 @@ interface FakeItem {
   addedByRole: string | null;
   rank: number;
   hasAccountability: boolean;
+  /** Bloco §13 como a linha o guarda (ausente ou nulo quando a ação entrou sem accountability). */
+  ownerRoleLabel?: string | null;
+  dueOn?: string | null;
+  metricLabel?: string | null;
+  metricBaseline?: number | null;
+  metricTarget?: number | null;
+  metricUnit?: string | null;
 }
 
 interface FakeOptions {
@@ -180,7 +187,11 @@ function memoryStore(options: FakeOptions = {}) {
       calls.push("findAddedAction");
       const found = items.find((i) => i.orgId === orgId && i.planId === planId && i.requestId === requestId);
       return found
-        ? { id: found.id, title: found.title, description: found.description, effort: found.effort, sourceCohortId: found.sourceCohortId, sourceFactorId: found.sourceFactorId }
+        ? {
+          id: found.id, title: found.title, description: found.description, effort: found.effort, sourceCohortId: found.sourceCohortId, sourceFactorId: found.sourceFactorId,
+          ownerRoleLabel: found.ownerRoleLabel ?? null, dueOn: found.dueOn ?? null, metricLabel: found.metricLabel ?? null,
+          metricBaseline: found.metricBaseline ?? null, metricTarget: found.metricTarget ?? null, metricUnit: found.metricUnit ?? null,
+        }
         : null;
     },
     addAction: async (input) => {
@@ -196,6 +207,8 @@ function memoryStore(options: FakeOptions = {}) {
         id: `added-${++seq}`, planId: plan.id, orgId: plan.orgId, title: input.title, description: input.description, effort: input.effort,
         status: "planejada", sourceCohortId: input.source.cohortId, sourceFactorId: input.source.factorId, requestId: input.requestId,
         addedByRole: input.role, rank: Math.max(0, ...items.map((i) => i.rank)) + 1, hasAccountability: input.accountability !== null,
+        ownerRoleLabel: input.accountability?.ownerRoleLabel ?? null, dueOn: input.accountability?.dueOn ?? null, metricLabel: input.accountability?.metric.label ?? null,
+        metricBaseline: input.accountability?.metric.baseline ?? null, metricTarget: input.accountability?.metric.target ?? null, metricUnit: input.accountability?.metric.unit ?? null,
       };
       items.push(item);
       return { accepted: true, itemId: item.id };
@@ -394,6 +407,64 @@ describe("PI-13 · incluir ação em plano existente", () => {
     expect(s.items).toHaveLength(2);
   });
 
+  // A identidade do replay é o pedido INTEIRO: conteúdo, origem e o bloco §13 (responsável, prazo,
+  // indicador). Um campo alterado SOZINHO já é outro pedido: nada é gravado e a ação não muda.
+  const ACC = ADD.accountability!;
+  const metricWith = (patch: Partial<typeof ACC.executionMetric>) => ({ ...ACC, executionMetric: { ...ACC.executionMetric, ...patch } });
+  const CHANGED_ALONE: Array<[string, Partial<AddActionToPlanRequest>]> = [
+    ["título", { title: "Outra ação inteiramente diferente" }],
+    ["descrição", { description: "Três oficinas curtas por mês." }],
+    ["esforço", { effort: "alto" }],
+    ["coorte", { cohortId: ID.a2 }],
+    ["fator", { factorId: "padrao_de_vida" }],
+    ["responsável", { accountability: { ...ACC, ownerRoleLabel: "Gestão de pessoas" } }],
+    ["prazo", { accountability: { ...ACC, dueOn: "2026-10-31" } }],
+    ["rótulo do indicador", { accountability: metricWith({ label: "Pausas realizadas" }) }],
+    ["linha de base", { accountability: metricWith({ baseline: 1 }) }],
+    ["meta", { accountability: metricWith({ target: 3 }) }],
+    ["unidade", { accountability: metricWith({ unit: "encontros" }) }],
+    ["accountability (removida do pedido)", { accountability: undefined }],
+  ];
+
+  test.each(CHANGED_ALONE)("a mesma chave com %s alterado SOZINHO é conflito: nada é gravado e a ação existente não muda", async (_campo, patch) => {
+    const s = memoryStore();
+    expect(await addFibtActionToPlan(ADD, depsOf(s))).toMatchObject({ accepted: true });
+    const before = JSON.stringify({ items: s.items, written: s.written });
+    expect(await addFibtActionToPlan({ ...ADD, ...patch }, depsOf(s))).toMatchObject({ ok: true, accepted: false, reason: "request_conflict" });
+    expect(JSON.stringify({ items: s.items, written: s.written })).toBe(before);
+  });
+
+  test("repetição idêntica continua repetição: numeric do banco como texto, zero, unidade vazia e espaços nas pontas não geram falso conflito", async () => {
+    const accountability = { ...ACC, executionMetric: { label: "Oficinas realizadas", baseline: 0, target: 12.5, unit: "" } };
+    const s = memoryStore();
+    const first = await addFibtActionToPlan({ ...ADD, accountability }, depsOf(s));
+    // O banco pode devolver `numeric` como texto ("0.00", "12.50"): a comparação é pelo valor.
+    const findAdded = s.store.findAddedAction;
+    s.store.findAddedAction = async (...args) => {
+      const row = await findAdded(...args);
+      const asText = (n: number | string | null) => (n === null ? null : Number(n).toFixed(2));
+      return row && { ...row, metricBaseline: asText(row.metricBaseline), metricTarget: asText(row.metricTarget) };
+    };
+    const again = await addFibtActionToPlan({ ...ADD, title: `  ${ADD.title}  `, accountability }, depsOf(s));
+    expect(again).toMatchObject({ ok: true, accepted: true, replayed: true, id: first.ok && first.accepted ? first.id : null });
+    expect(s.written).toHaveLength(1);
+    expect(s.items).toHaveLength(2);
+    // Escrever o número como texto não esconde diferença de valor.
+    const otherTarget = { ...accountability, executionMetric: { ...accountability.executionMetric, target: 12.6 } };
+    expect(await addFibtActionToPlan({ ...ADD, accountability: otherTarget }, depsOf(s))).toMatchObject({ accepted: false, reason: "request_conflict" });
+    expect(s.written).toHaveLength(1);
+  });
+
+  test("rascunho sem accountability: nulos da linha ≡ pedido sem o bloco (repetição); com o bloco é outro pedido (conflito)", async () => {
+    const draft = memoryStore({ plan: { status: "draft" } });
+    const { accountability: _omit, ...withoutAccountability } = ADD;
+    expect(await addFibtActionToPlan(withoutAccountability, depsOf(draft))).toMatchObject({ accepted: true });
+    expect(await addFibtActionToPlan(withoutAccountability, depsOf(draft))).toMatchObject({ accepted: true, replayed: true });
+    expect(await addFibtActionToPlan(ADD, depsOf(draft))).toMatchObject({ accepted: false, reason: "request_conflict" });
+    expect(draft.written).toHaveLength(1);
+    expect(draft.items).toHaveLength(2);
+  });
+
   test("corrida com o encerramento: o plano encerrou depois da leitura e o banco recusa; nada é gravado", async () => {
     const s = memoryStore({
       beforeDbAdd: (st) => {
@@ -555,6 +626,23 @@ describe("PI-13 · visão, regra pura e contratos", () => {
     expect(describePending(pending.pending)).toBe("2 planejada(s) · 1 em execução");
     const ok = assessPlanClosure({ status: "active", actions: [act("a", "concluida"), act("b", "em_vigilancia"), act("c", "interrompida")] });
     expect(ok).toMatchObject({ canClose: true, block: null, finished: { concluida: 1, em_vigilancia: 1, interrompida: 1 } });
+  });
+
+  test("describePending deriva os estados pendentes do complemento de OPERATIONAL_EXIT, sem lista paralela", () => {
+    // Todo estado fora de OPERATIONAL_EXIT é descrito, na ordem do ciclo, com a mensagem de sempre.
+    const states = Object.keys(PLAN_STATUS_LABEL) as PlanActionStatus[];
+    const pendingStates = states.filter((status) => !OPERATIONAL_EXIT.includes(status));
+    expect(describePending(pendingStates.map((status) => ({ id: status, title: status, status })))).toBe("1 planejada(s) · 1 em execução");
+    // Se a regra de saída mudar (aqui, "interrompida" volta a ser pendente), a descrição acompanha.
+    const exit = OPERATIONAL_EXIT as PlanActionStatus[];
+    const at = exit.indexOf("interrompida");
+    exit.splice(at, 1);
+    try {
+      expect(describePending([{ id: "i", title: "i", status: "interrompida" }])).toBe("1 interrompida");
+    } finally {
+      exit.splice(at, 0, "interrompida");
+    }
+    expect([...OPERATIONAL_EXIT]).toEqual(["concluida", "em_vigilancia", "interrompida"]);
   });
 
   test("os estados de saída do TypeScript são os mesmos do gatilho SQL", () => {

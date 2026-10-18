@@ -221,6 +221,24 @@ describe("ClosePlanPanel", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  test("plano ativo SEM ações explica o bloqueio: nota visível, ligada ao botão por aria-describedby, e o botão não aciona", () => {
+    const onClose = mock(async () => ({ ok: true, message: "ok" }));
+    render(<ClosePlanPanel plan={plan("active", [])} busy={false} onClose={onClose} />);
+    const note = screen.getByRole("note");
+    expect(note.textContent).toContain("Um plano sem ações não pode ser encerrado.");
+    expect(note.textContent).toContain("Inclua ao menos uma ação neste plano e volte aqui.");
+    // Não reaproveita a nota de pendências: não há ação em andamento para listar.
+    expect(note.textContent).not.toMatch(/em andamento/);
+    const trigger = screen.getByRole("button", { name: /^Revisar encerramento/ });
+    expect(trigger.getAttribute("aria-disabled")).toBe("true");
+    const describedBy = trigger.getAttribute("aria-describedby");
+    expect(describedBy).toBe(note.id);
+    expect(document.getElementById(describedBy!)).toBe(note);
+    fireEvent.click(trigger);
+    expect(screen.queryByRole("group", { name: /Confirmar o encerramento/ })).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   test("com tudo em estado de saída mostra o efeito do encerramento ANTES de confirmar e move o foco para ele", () => {
     render(<ClosePlanPanel plan={finishedPlan} busy={false} onClose={async () => ({ ok: true, message: "ok" })} />);
     expect(screen.queryByRole("note")).toBeNull();

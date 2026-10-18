@@ -5,6 +5,7 @@ import {
   CLOSED_PLAN_EXPLANATION,
   CLOSED_PLAN_NO_REOPEN,
   CLOSURE_NOT_EVALUATION_NOTE,
+  PLAN_EMPTY_MESSAGE,
   PLAN_STATUS_LABEL,
   assessPlanClosure,
   describePending,
@@ -400,13 +401,20 @@ export function ClosePlanPanel({
         </div>
       ) : null}
 
+      {assessment.block === "plan_empty" ? (
+        <div id={`${p}-pending`} role="note" className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+          <p className="font-medium text-foreground">{PLAN_EMPTY_MESSAGE}</p>
+          <p className="mt-1 text-muted-foreground">Inclua ao menos uma ação neste plano e volte aqui.</p>
+        </div>
+      ) : null}
+
       {!confirming ? (
         <button
           ref={trigger}
           type="button"
           className={buttonSecondary}
           aria-disabled={!assessment.canClose || blocked}
-          aria-describedby={assessment.block === "pending_actions" ? `${p}-pending` : undefined}
+          aria-describedby={assessment.block === "pending_actions" || assessment.block === "plan_empty" ? `${p}-pending` : undefined}
           onClick={() => {
             if (assessment.canClose && !blocked) setConfirming(true);
           }}

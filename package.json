@@ -28,6 +28,7 @@
     "demo:ivo:dev": "bun run scripts/ivo-local-demo.ts dev",
     "demo:ivo:proof": "bun run scripts/ivo-local-journey-proof.ts",
     "demo:ivo:proof:plan": "bun run scripts/ivo-local-plan-proof.ts",
+    "demo:ivo:visual:plan": "bun run scripts/ivo-local-plan-visual-check.ts",
     "demo:ivo:visual": "bun run scripts/ivo-local-visual-check.ts",
     "demo:ivo:visual:c8": "bun run scripts/ivo-local-c8-visual-check.ts",
     "demo:ivo:stop": "bun run scripts/ivo-local-demo.ts stop",
