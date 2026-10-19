@@ -455,6 +455,32 @@ describe("PI-13 · incluir ação em plano existente", () => {
     expect(s.written).toHaveLength(1);
   });
 
+  // `due_on` é DATE no banco, mas o formato devolvido nunca foi observado contra um banco real
+  // (a prova local PP.6 o exercita quando reexecutada): a comparação é pela data civil, não pela grafia.
+  test.each([
+    ["timestamp com fuso", "2026-11-30T00:00:00+00:00"],
+    ["data e hora sem fuso", "2026-11-30 00:00:00"],
+  ])("prazo (due_on) devolvido pelo banco como %s é a mesma data do pedido: repetição, não conflito", async (_formato, serializado) => {
+    const accountability = { ...ACC, dueOn: "2026-11-30" };
+    const s = memoryStore();
+    const first = await addFibtActionToPlan({ ...ADD, accountability }, depsOf(s));
+    expect(first).toMatchObject({ accepted: true });
+    const findAdded = s.store.findAddedAction;
+    s.store.findAddedAction = async (...args) => {
+      const row = await findAdded(...args);
+      return row && { ...row, dueOn: row.dueOn === null ? null : serializado };
+    };
+    const again = await addFibtActionToPlan({ ...ADD, accountability }, depsOf(s));
+    expect(again).toMatchObject({ ok: true, accepted: true, replayed: true, id: first.ok && first.accepted ? first.id : null });
+    expect(s.written).toHaveLength(1);
+    expect(s.items).toHaveLength(2);
+    // Outra data continua sendo outro pedido, qualquer que seja a grafia devolvida pelo banco.
+    const otherDay = await addFibtActionToPlan({ ...ADD, accountability: { ...accountability, dueOn: "2026-12-01" } }, depsOf(s));
+    expect(otherDay).toMatchObject({ ok: true, accepted: false, reason: "request_conflict" });
+    expect(s.written).toHaveLength(1);
+    expect(s.items).toHaveLength(2);
+  });
+
   test("rascunho sem accountability: nulos da linha ≡ pedido sem o bloco (repetição); com o bloco é outro pedido (conflito)", async () => {
     const draft = memoryStore({ plan: { status: "draft" } });
     const { accountability: _omit, ...withoutAccountability } = ADD;

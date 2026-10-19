@@ -215,6 +215,8 @@ describe("ClosePlanPanel", () => {
     expect(note.textContent).toContain("Rodas de conversa — em execução");
     const trigger = screen.getByRole("button", { name: /^Revisar encerramento/ });
     expect(trigger.getAttribute("aria-disabled")).toBe("true");
+    // O id da nota de pendências não muda (quem o referencia continua valendo).
+    expect(note.id).toBe("close-plan-1-pending");
     expect(trigger.getAttribute("aria-describedby")).toBe(note.id);
     fireEvent.click(trigger);
     expect(screen.queryByRole("group", { name: /Confirmar o encerramento/ })).toBeNull();
@@ -234,6 +236,9 @@ describe("ClosePlanPanel", () => {
     const describedBy = trigger.getAttribute("aria-describedby");
     expect(describedBy).toBe(note.id);
     expect(document.getElementById(describedBy!)).toBe(note);
+    // Id próprio: a nota de plano vazio não reaproveita o id da nota de pendências.
+    expect(note.id).toBe("close-plan-1-empty");
+    expect(document.getElementById("close-plan-1-pending")).toBeNull();
     fireEvent.click(trigger);
     expect(screen.queryByRole("group", { name: /Confirmar o encerramento/ })).toBeNull();
     expect(onClose).not.toHaveBeenCalled();

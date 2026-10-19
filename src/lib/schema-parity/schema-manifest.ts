@@ -136,4 +136,16 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "action_items", column: "due_on", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "organizations", column: "pack_id", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "organizations", column: "plan", usedBy: "customer-health.server.ts listAccountHealth" },
+
+  // IVO PI-13 — replay da inclusão de ação em plano existente: colunas que a leitura de
+  // findAddedAction exige (identidade do pedido: bloco §13 e chave de idempotência).
+  // Cobertura: só os NOMES, conferidos contra as migrations versionadas (a store real não é
+  // exercitada contra banco no gate). source_cohort_id e source_factor_id também são lidas, mas
+  // nascem em ALTER TABLE com várias ADD COLUMN e o parser só reconhece a primeira — ficam de fora.
+  { table: "action_items", column: "owner_role_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_baseline", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_target", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_unit", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "add_request_id", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
 ];

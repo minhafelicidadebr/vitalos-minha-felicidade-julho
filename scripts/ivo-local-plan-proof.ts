@@ -70,6 +70,8 @@ const COHORT = {
   logistica: manifest.orgs.alfa.cohorts.logistica!.cohortId,
   producao: manifest.orgs.beta.cohorts.producao!.cohortId,
 };
+/** Bloco §13 do pedido R1: gravado na fase write e reenviado IDÊNTICO na fase read (PP.6). A identidade do replay inclui o §13. */
+const ADD_ACCOUNTABILITY = { ownerRoleLabel: "Gestão de pessoas", dueOn: "2026-12-15", executionMetric: { label: "Oficinas realizadas", baseline: 0, target: 2, unit: "oficinas" } };
 const API = env.SUPABASE_URL!;
 const ANON = env.SUPABASE_PUBLISHABLE_KEY!;
 const users = JSON.parse(readFileSync(USERS_FILE, "utf8")) as Array<{ key: string; email: string; password: string }>;
@@ -191,7 +193,7 @@ async function writePhase(): Promise<void> {
     cohortId: COHORT.operacoes,
     factorId: "bem_estar",
     effort: "baixo" as const,
-    accountability: { ownerRoleLabel: "Gestão de pessoas", dueOn: "2026-12-15", executionMetric: { label: "Oficinas realizadas", baseline: 0, target: 2, unit: "oficinas" } },
+    accountability: ADD_ACCOUNTABILITY,
   };
   const R1 = crypto.randomUUID();
   const R2 = crypto.randomUUID();
@@ -476,11 +478,13 @@ async function readPhase(): Promise<void> {
   check("PP.5 Beta continua sem ver nada da Alfa", betaView.ok && betaView.plans.length === 0);
 
   console.log("\n── 10 · Idempotência e imutabilidade depois de recarregar ──");
+  // O replay reenvia o pedido COMPLETO de R1, inclusive o bloco §13 gravado: a identidade do replay compara
+  // responsável, prazo e indicador, então um pedido sem eles seria request_conflict, não repetição.
   const replayAdd = await comp.addFibtActionToPlan({
     accessToken: alfa, planId: state.planId, requestId: state.requestD, waveId: manifest.orgs.alfa.waveId, cohortId: COHORT.operacoes, factorId: "bem_estar",
-    title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês.", effort: "baixo",
+    title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês.", effort: "baixo", accountability: ADD_ACCOUNTABILITY,
   });
-  check("PP.6 repetir, em processo novo, o pedido de inclusão já aplicado devolve a mesma ação (a chave persistiu no banco)", replayAdd.ok && replayAdd.accepted === true && replayAdd.replayed === true && replayAdd.id === state.idD);
+  check("PP.6 repetir, em processo novo, o MESMO pedido de inclusão já aplicado (com o bloco §13 de accountability) devolve a mesma ação (a chave persistiu no banco)", replayAdd.ok && replayAdd.accepted === true && replayAdd.replayed === true && replayAdd.id === state.idD);
   const lateAdd = await comp.addFibtActionToPlan({
     accessToken: alfa, planId: state.planId, requestId: crypto.randomUUID(), waveId: manifest.orgs.alfa.waveId, cohortId: COHORT.operacoes, factorId: "bem_estar",
     title: "Nova ação em plano encerrado", description: "", effort: "baixo",

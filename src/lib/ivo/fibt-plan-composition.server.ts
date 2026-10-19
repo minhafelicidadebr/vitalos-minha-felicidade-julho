@@ -16,10 +16,17 @@
 //     fator FIB-T, sem copiar nenhum valor; e deve ser do MESMO ciclo do plano
 //     (resolução de outro ciclo é PI-14, subordinada a D7–D9, e não é feita aqui);
 //   · idempotência: `requestId` (uuid gerado pela interface por tentativa). O
-//     mesmo pedido repetido devolve a ação já criada, sem duplicar; a mesma chave
-//     com QUALQUER conteúdo diferente (inclusive responsável, prazo e indicador)
-//     é conflito e não grava; pedidos distintos, ainda que parecidos, criam
-//     ações distintas;
+//     mesmo pedido repetido devolve a ação já criada, sem duplicar; pedidos
+//     distintos, ainda que parecidos, criam ações distintas. O que se compara,
+//     contra o ESTADO ATUAL da linha gravada, é EXATAMENTE este conjunto: título,
+//     descrição, esforço, coorte e fator de origem e o bloco §13 (responsável,
+//     prazo e rótulo, linha de base, meta e unidade do indicador). A mesma chave
+//     com diferença em qualquer um deles é conflito e não grava. `waveId` NÃO é
+//     comparado: pela interface é inalcançável (vem de view.wave.id e a chave
+//     gira a cada sucesso); por script ou chamador futuro é alcançável, e é
+//     benigno (devolve a ação existente e não grava nada). Aberto: incluí-lo
+//     depois de validar source_wave_id em banco local; e a comparação com o
+//     estado mutável da linha (§13 preenchido depois) — ver ivo-roadmap.md §8;
 //   · plano ativo exige responsável, prazo e indicador de execução NA inclusão (o
 //     plano ativo nunca contém ação sem accountability); plano em rascunho aceita
 //     a ação e segue o fluxo normal de §13 antes de ativar; plano encerrado recusa;
@@ -290,9 +297,21 @@ function numberKey(value: unknown): string | null {
 }
 
 /**
- * Identidade de uma inclusão: tudo o que o pedido grava (conteúdo, origem e o bloco §13 de
- * accountability). A MESMA normalização vale para o pedido e para a linha gravada, de modo que o
- * mesmo pedido nunca vire falso conflito (nulo ≡ ausente; número ≡ texto numérico).
+ * `date` do banco pode chegar com hora ou fuso ("2026-11-30T00:00:00+00:00", "2026-11-30 00:00:00"):
+ * compara só a data civil AAAA-MM-DD. Valor que não começa com uma data fica como o texto aparado.
+ */
+function dateKey(value: unknown): string | null {
+  const text = textKey(value);
+  if (text === null) return null;
+  return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : text;
+}
+
+/**
+ * Identidade de uma inclusão, comparada com o ESTADO ATUAL da linha: título, descrição, esforço,
+ * coorte e fator de origem e o bloco §13 de accountability (responsável, prazo e rótulo, linha de
+ * base, meta e unidade do indicador). `waveId` NÃO entra (ver o cabeçalho do arquivo). A MESMA
+ * normalização vale para o pedido e para a linha gravada, de modo que o mesmo pedido nunca vire
+ * falso conflito (nulo ≡ ausente; número ≡ texto numérico; prazo ≡ data civil).
  */
 function additionIdentity(v: {
   title: unknown;
@@ -314,7 +333,7 @@ function additionIdentity(v: {
     textKey(v.cohortId),
     textKey(v.factorId),
     textKey(v.ownerRoleLabel),
-    textKey(v.dueOn),
+    dateKey(v.dueOn),
     textKey(v.metricLabel),
     numberKey(v.metricBaseline),
     numberKey(v.metricTarget),
