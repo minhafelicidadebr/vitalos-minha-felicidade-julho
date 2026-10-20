@@ -455,8 +455,10 @@ describe("PI-13 · incluir ação em plano existente", () => {
     expect(s.written).toHaveLength(1);
   });
 
-  // `due_on` é DATE no banco, mas o formato devolvido nunca foi observado contra um banco real
-  // (a prova local PP.6 o exercita quando reexecutada): a comparação é pela data civil, não pela grafia.
+  // `due_on` é DATE no banco e o PostgREST o serializa como AAAA-MM-DD: as duas formas com hora abaixo são
+  // DEFENSIVAS, simuladas pela store falsa; o formato real NUNCA foi observado contra um banco. A prova local
+  // PP.6 (`demo:ivo:proof:plan`), quando reexecutada, deve registrar o formato efetivamente observado.
+  // A tolerância vale só para o lado da LINHA gravada: a comparação é pela data civil, não pela grafia.
   test.each([
     ["timestamp com fuso", "2026-11-30T00:00:00+00:00"],
     ["data e hora sem fuso", "2026-11-30 00:00:00"],
@@ -477,6 +479,32 @@ describe("PI-13 · incluir ação em plano existente", () => {
     // Outra data continua sendo outro pedido, qualquer que seja a grafia devolvida pelo banco.
     const otherDay = await addFibtActionToPlan({ ...ADD, accountability: { ...accountability, dueOn: "2026-12-01" } }, depsOf(s));
     expect(otherDay).toMatchObject({ ok: true, accepted: false, reason: "request_conflict" });
+    expect(s.written).toHaveLength(1);
+    expect(s.items).toHaveLength(2);
+  });
+
+  // O lado do PEDIDO é texto contratual (aparado, sem truncar): um prazo mal grafado que apenas COMEÇA com a
+  // data gravada não pode virar repetição, nem quando o banco devolve a data com hora (forma simulada, acima).
+  test.each([
+    ["2026-11-30", "2026-11-30qualquer-coisa"],
+    ["2026-11-30", "2026-11-30T12:00:00Z"],
+    ["2026-11-30T00:00:00+00:00", "2026-11-30qualquer-coisa"],
+    ["2026-11-30T00:00:00+00:00", "2026-11-30T12:00:00Z"],
+  ])("prazo gravado como %s e pedido com prazo mal grafado %s: a mesma chave é recusada, nunca repetição", async (gravado, malGrafado) => {
+    const accountability = { ...ACC, dueOn: "2026-11-30" };
+    const s = memoryStore();
+    const first = await addFibtActionToPlan({ ...ADD, accountability }, depsOf(s));
+    expect(first).toMatchObject({ accepted: true });
+    const findAdded = s.store.findAddedAction;
+    s.store.findAddedAction = async (...args) => {
+      const row = await findAdded(...args);
+      return row && { ...row, dueOn: row.dueOn === null ? null : gravado };
+    };
+    const bad = await addFibtActionToPlan({ ...ADD, accountability: { ...accountability, dueOn: malGrafado } }, depsOf(s));
+    // Rejeição (request_conflict ou invalid_date), jamais a ação original devolvida como se fosse este pedido.
+    expect(bad).toMatchObject({ ok: true, accepted: false });
+    expect(["request_conflict", "invalid_date"]).toContain(bad.ok && !bad.accepted ? bad.reason : "(aceito)");
+    expect(bad.ok && bad.accepted && bad.replayed).toBeFalsy();
     expect(s.written).toHaveLength(1);
     expect(s.items).toHaveLength(2);
   });

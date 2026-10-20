@@ -22,9 +22,10 @@
 //     descrição, esforço, coorte e fator de origem e o bloco §13 (responsável,
 //     prazo e rótulo, linha de base, meta e unidade do indicador). A mesma chave
 //     com diferença em qualquer um deles é conflito e não grava. `waveId` NÃO é
-//     comparado: pela interface é inalcançável (vem de view.wave.id e a chave
-//     gira a cada sucesso); por script ou chamador futuro é alcançável, e é
-//     benigno (devolve a ação existente e não grava nada). Aberto: incluí-lo
+//     comparado: pelo fluxo normal da interface não é alcançável (vem de
+//     view.wave.id e a chave gira a cada sucesso); por script, chamador futuro
+//     ou resposta perdida (exceção: ivo-roadmap.md §8, item 17) é alcançável, e
+//     é benigno (devolve a ação existente e não grava nada). Aberto: incluí-lo
 //     depois de validar source_wave_id em banco local; e a comparação com o
 //     estado mutável da linha (§13 preenchido depois) — ver ivo-roadmap.md §8;
 //   · plano ativo exige responsável, prazo e indicador de execução NA inclusão (o
@@ -261,7 +262,7 @@ async function resolveReplay(
     cohortId: input.cohortId,
     factorId: input.factorId,
     ownerRoleLabel: accountability?.ownerRoleLabel,
-    dueOn: accountability?.dueOn,
+    dueOn: accountability?.dueOn, // texto contratual: aparado, SEM truncar (a tolerância é só da linha)
     metricLabel: accountability?.executionMetric.label,
     metricBaseline: accountability?.executionMetric.baseline,
     metricTarget: accountability?.executionMetric.target,
@@ -274,7 +275,7 @@ async function resolveReplay(
     cohortId: existing.sourceCohortId,
     factorId: existing.sourceFactorId,
     ownerRoleLabel: existing.ownerRoleLabel,
-    dueOn: existing.dueOn,
+    dueOn: dateKey(existing.dueOn), // a tolerância de serialização vale SÓ aqui, no lado da linha
     metricLabel: existing.metricLabel,
     metricBaseline: existing.metricBaseline,
     metricTarget: existing.metricTarget,
@@ -297,8 +298,15 @@ function numberKey(value: unknown): string | null {
 }
 
 /**
- * `date` do banco pode chegar com hora ou fuso ("2026-11-30T00:00:00+00:00", "2026-11-30 00:00:00"):
- * compara só a data civil AAAA-MM-DD. Valor que não começa com uma data fica como o texto aparado.
+ * Prazo (`due_on`, coluna `date`) COMO A LINHA GRAVADA O DEVOLVE; o lado do PEDIDO não passa por aqui.
+ * O banco pode serializá-lo com hora ou fuso ("2026-11-30T00:00:00+00:00", "2026-11-30 00:00:00"):
+ * compara só a data civil AAAA-MM-DD (os 10 primeiros caracteres). Valor que não começa com uma data
+ * fica como o texto aparado.
+ * Limite: cortar o prefixo só dá a data civil CORRETA se a store devolver a própria data civil (o
+ * PostgREST serializa `date` como AAAA-MM-DD) ou um instante em UTC ou sem fuso. Um instante com
+ * deslocamento ("2026-11-29T21:00:00-03:00", o mesmo instante que 2026-11-30T00:00:00Z) NÃO é
+ * convertido: se o formato real vier a ser um instante com fuso, derive a data civil do instante em
+ * vez de cortar o prefixo.
  */
 function dateKey(value: unknown): string | null {
   const text = textKey(value);
@@ -311,7 +319,9 @@ function dateKey(value: unknown): string | null {
  * coorte e fator de origem e o bloco §13 de accountability (responsável, prazo e rótulo, linha de
  * base, meta e unidade do indicador). `waveId` NÃO entra (ver o cabeçalho do arquivo). A MESMA
  * normalização vale para o pedido e para a linha gravada, de modo que o mesmo pedido nunca vire
- * falso conflito (nulo ≡ ausente; número ≡ texto numérico; prazo ≡ data civil).
+ * falso conflito (nulo ≡ ausente; número ≡ texto numérico). Única exceção, o prazo: a tolerância à
+ * serialização do banco (`dateKey`) é aplicada por quem chama SÓ à linha; o pedido entra como texto
+ * contratual aparado, sem truncar, para que um prazo mal grafado nunca vire repetição.
  */
 function additionIdentity(v: {
   title: unknown;
@@ -333,7 +343,7 @@ function additionIdentity(v: {
     textKey(v.cohortId),
     textKey(v.factorId),
     textKey(v.ownerRoleLabel),
-    dateKey(v.dueOn),
+    textKey(v.dueOn),
     textKey(v.metricLabel),
     numberKey(v.metricBaseline),
     numberKey(v.metricTarget),

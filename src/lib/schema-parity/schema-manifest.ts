@@ -137,11 +137,13 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "organizations", column: "pack_id", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "organizations", column: "plan", usedBy: "customer-health.server.ts listAccountHealth" },
 
-  // IVO PI-13 — replay da inclusão de ação em plano existente: colunas que a leitura de
-  // findAddedAction exige (identidade do pedido: bloco §13 e chave de idempotência).
+  // IVO PI-13 — replay da inclusão de ação em plano existente. As entradas abaixo cobrem só o bloco §13
+  // e a chave de idempotência lidos por findAddedAction (owner_role_label, metric_label, metric_baseline,
+  // metric_target, metric_unit e add_request_id; due_on já consta acima, em Customer Health). NÃO cobrem
+  // id, title, description e effort (lacuna pré-existente do manifesto manual) nem source_cohort_id e
+  // source_factor_id (nascem em ALTER TABLE com várias ADD COLUMN e o parser só reconhece a primeira).
   // Cobertura: só os NOMES, conferidos contra as migrations versionadas (a store real não é
-  // exercitada contra banco no gate). source_cohort_id e source_factor_id também são lidas, mas
-  // nascem em ALTER TABLE com várias ADD COLUMN e o parser só reconhece a primeira — ficam de fora.
+  // exercitada contra banco no gate).
   { table: "action_items", column: "owner_role_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
   { table: "action_items", column: "metric_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
   { table: "action_items", column: "metric_baseline", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
