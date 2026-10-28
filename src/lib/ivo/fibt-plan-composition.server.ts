@@ -164,6 +164,40 @@ export function mapPlanCompositionDbError(error: { code?: string; message?: stri
   return "db_error";
 }
 
+/**
+ * Tokens de gatilho do PI-13 SEM motivo público próprio. O usuário continua vendo `db_error` ("O registro
+ * não pôde ser gravado agora. Nada foi alterado."): são defesas de integridade (identidade e auditoria
+ * imutáveis, transição inválida) que o servidor não aciona no fluxo normal, não um erro que ele possa
+ * corrigir. Cada uma tem diagnóstico interno próprio, que vai SÓ ao log do servidor. Todo `ivo_plan_*` que a
+ * migration levanta precisa estar aqui OU em `mapPlanCompositionDbError` (teste de deriva em
+ * plan-composition.server.test.ts).
+ */
+export const PLAN_TRIGGER_DIAGNOSTICS = {
+  ivo_plan_identity_immutable: "plan_identity_immutable",
+  ivo_plan_item_identity_immutable: "item_identity_immutable",
+  ivo_plan_item_audit_immutable: "item_audit_immutable",
+  ivo_plan_insert_must_be_draft: "insert_must_be_draft",
+  ivo_plan_status_transition_invalid: "status_transition_invalid",
+  ivo_plan_close_needs_actor: "close_needs_actor",
+  ivo_plan_closure_audit_immutable: "closure_audit_immutable",
+} as const;
+
+/**
+ * Recusa vinda do banco: motivo público estável (`mapPlanCompositionDbError`) e, se for uma das defesas de
+ * `PLAN_TRIGGER_DIAGNOSTICS`, o diagnóstico interno no log. Só o código estático é registrado: nunca a
+ * mensagem crua do banco (pode trazer DETAIL), identificadores nem texto digitado pelo usuário.
+ */
+export function planCompositionDbRejection(
+  error: { code?: string; message?: string } | null | undefined,
+): { accepted: false; reason: string } {
+  const message = error?.message ?? "";
+  const token = (Object.keys(PLAN_TRIGGER_DIAGNOSTICS) as Array<keyof typeof PLAN_TRIGGER_DIAGNOSTICS>).find((t) => message.includes(t));
+  if (token) {
+    console.warn("[ivo-plan-composition] gravação recusada por regra de integridade do banco", { diagnostic: PLAN_TRIGGER_DIAGNOSTICS[token] });
+  }
+  return { accepted: false, reason: mapPlanCompositionDbError(error) };
+}
+
 /** Data civil AAAA-MM-DD que existe no calendário (31/02 não passa: o Date do JS o "rola" para março). */
 function isIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -516,7 +550,7 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
         });
       }
       const { data, error } = await db.from("action_items").insert(row).select("id").single();
-      if (error || !data) return { accepted: false, reason: mapPlanCompositionDbError(error) };
+      if (error || !data) return planCompositionDbRejection(error);
       return { accepted: true, itemId: String(data.id) };
     },
 
@@ -531,7 +565,7 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
         .eq("org_id", input.orgId)
         .eq("status", "active")
         .select("id");
-      if (error) return { accepted: false, reason: mapPlanCompositionDbError(error) };
+      if (error) return planCompositionDbRejection(error);
       if (!data || data.length === 0) return { accepted: false, reason: "no_row" };
       return { accepted: true };
     },

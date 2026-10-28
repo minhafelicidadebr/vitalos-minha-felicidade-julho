@@ -23,6 +23,8 @@ import {
   addFibtActionToPlan,
   closeFibtActionPlan,
   mapPlanCompositionDbError,
+  PLAN_TRIGGER_DIAGNOSTICS,
+  planCompositionDbRejection,
   type AddActionToPlanRequest,
   type PlanCompositionDeps,
   type PlanCompositionPlan,
@@ -734,6 +736,72 @@ describe("PI-13 · visão, regra pura e contratos", () => {
     expect(isUndefinedColumnError({ message: 'column action_plans.closed_at does not exist' })).toBe(true);
     expect(isUndefinedColumnError({ code: "23505" })).toBe(false);
     expect(isUndefinedColumnError(null)).toBe(false);
+  });
+
+  /** Executa `run` com console.warn capturado (restaurado sempre); serve a código síncrono e assíncrono. */
+  async function withCapturedWarnings<T>(run: () => T | Promise<T>): Promise<{ result: T; warnings: unknown[][] }> {
+    const original = console.warn;
+    const warnings: unknown[][] = [];
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args);
+    };
+    try {
+      return { result: await run(), warnings };
+    } finally {
+      console.warn = original;
+    }
+  }
+
+  test("deriva: todo token ivo_plan_* que a migration levanta tem motivo público próprio OU diagnóstico interno explícito", () => {
+    const sql = readFileSync(join(process.cwd(), "supabase/migrations/20261016120000_ivo_plan_composition_and_closure.sql"), "utf8");
+    const raised = [...new Set([...sql.matchAll(/'(ivo_plan_[a-z_]+)'/g)].map((m) => m[1]!))].sort();
+    // O extrator precisa enxergar tokens dos dois grupos; sem isto, um regex quebrado aprovaria tudo.
+    expect(raised).toContain("ivo_plan_closed");
+    expect(raised).toContain("ivo_plan_close_needs_actor");
+    const treated = (token: string) => mapPlanCompositionDbError({ message: token }) !== "db_error" || token in PLAN_TRIGGER_DIAGNOSTICS;
+    expect(raised.filter((token) => !treated(token))).toEqual([]);
+    // Um token novo, sem tratamento, seria apontado.
+    expect(treated("ivo_plan_token_novo")).toBe(false);
+    // A lista explícita não guarda token que a migration deixou de levantar nem token que já tem motivo próprio.
+    for (const token of Object.keys(PLAN_TRIGGER_DIAGNOSTICS)) {
+      expect(raised).toContain(token);
+      expect(mapPlanCompositionDbError({ message: token })).toBe("db_error");
+    }
+  });
+
+  test("os tokens sem motivo próprio seguem como db_error para o usuário, mas cada um deixa um diagnóstico interno distinto e sem PII", async () => {
+    const tokens = Object.keys(PLAN_TRIGGER_DIAGNOSTICS) as Array<keyof typeof PLAN_TRIGGER_DIAGNOSTICS>;
+    const { result, warnings } = await withCapturedWarnings(() =>
+      tokens.map((token) => planCompositionDbRejection({ code: "42501", message: `${token} DETAIL: org-secreta-123` })),
+    );
+    // Motivo público: o `db_error` de sempre (não é um erro que o usuário possa corrigir).
+    expect(result).toEqual(tokens.map(() => ({ accepted: false, reason: "db_error" })));
+    // Diagnóstico interno: um por token, todos distintos; só o código estático, nada da mensagem do banco.
+    const diagnostics = warnings.map(([, context]) => (context as { diagnostic: string }).diagnostic);
+    expect(diagnostics).toEqual(tokens.map((token) => PLAN_TRIGGER_DIAGNOSTICS[token]));
+    expect(new Set(diagnostics).size).toBe(tokens.length);
+    expect(JSON.stringify(warnings)).not.toContain("org-secreta-123");
+    // Quem já tem motivo próprio, o erro genérico e a ausência de erro não geram diagnóstico.
+    const quiet = await withCapturedWarnings(() => [
+      planCompositionDbRejection({ message: "ivo_plan_closed" }),
+      planCompositionDbRejection({ code: "23505", message: "duplicate key" }),
+      planCompositionDbRejection({ message: "qualquer coisa" }),
+      planCompositionDbRejection(null),
+    ]);
+    expect(quiet.result.map((r) => r.reason)).toEqual(["plan_closed", "duplicate_request", "db_error", "db_error"]);
+    expect(quiet.warnings).toEqual([]);
+  });
+
+  test("pelo serviço, a recusa do banco por esses tokens continua sendo o db_error genérico: mesmo motivo, mesma mensagem", async () => {
+    const GENERIC = "O registro não pôde ser gravado agora. Nada foi alterado.";
+    const { result } = await withCapturedWarnings(async () => {
+      const add = memoryStore();
+      add.store.addAction = async () => planCompositionDbRejection({ code: "23514", message: "ivo_plan_insert_must_be_draft" });
+      const close = memoryStore();
+      close.store.closePlan = async () => planCompositionDbRejection({ code: "55000", message: "ivo_plan_status_transition_invalid" });
+      return [await addFibtActionToPlan(ADD, depsOf(add)), await closeFibtActionPlan(CLOSE, depsOf(close))];
+    });
+    for (const outcome of result) expect(outcome).toEqual({ ok: true, accepted: false, reason: "db_error", message: GENERIC });
   });
 
   test("schemas estritos: organização do cliente é recusada e o encerramento exige aceite explícito", () => {

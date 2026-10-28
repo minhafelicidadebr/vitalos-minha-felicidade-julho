@@ -13,7 +13,7 @@ import {
   type EvidenceSubmitResult,
   type PriorityDraft,
 } from "@/components/ivo/FibtActionLoop";
-import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, type AddActionFormInput } from "@/components/ivo/PlanComposition";
+import { AddActionToPlanForm, PlanClosure, type AddActionFormInput } from "@/components/ivo/PlanComposition";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import {
@@ -187,8 +187,7 @@ function IvoAcoesPage() {
     };
     const itemOf = (actionId: string) => efficacy?.items.find((i) => i.itemId === actionId) ?? null;
     return {
-      planClosure:
-        plan.status === "closed" ? <ClosedPlanNotice plan={plan} /> : <ClosePlanPanel plan={plan} busy={busy} onClose={closePlan} />,
+      planClosure: <PlanClosure plan={plan} busy={busy} onClose={closePlan} />,
       planAddAction:
         plan.status === "closed" ? undefined : <AddActionToPlanForm plan={plan} view={view} busy={busy} onSubmit={addAction} />,
       summary: (

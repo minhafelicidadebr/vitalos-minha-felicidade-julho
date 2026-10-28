@@ -1,11 +1,12 @@
 /** @jsxImportSource react */
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { useState } from "react";
 import { IVO_LENS_READING_CONTRACT } from "@/engine/ivo/lens-contract";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { EFFICACY_NOT_EVALUATED_REASON, type FibtActionPlanView, type FibtActionView, type IvoQ2View } from "@/lib/ivo/ivo-views";
-import { FibtActionPlanSection } from "./FibtActionLoop";
-import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, type AddActionFormInput } from "./PlanComposition";
+import { FibtActionPlanSection, buttonPrimary, buttonSecondary } from "./FibtActionLoop";
+import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, PlanClosure, type AddActionFormInput } from "./PlanComposition";
 
 afterEach(cleanup);
 
@@ -383,4 +384,83 @@ describe("plano encerrado", () => {
     expect(text.indexOf("PAINEL-ENCERRAR")).toBeLessThan(text.indexOf("Rodas de conversa"));
     expect(text.indexOf("FORM-INCLUIR")).toBeGreaterThan(text.indexOf("Pausas ativas"));
   });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Foco depois de encerrar (WCAG 2.4.3)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("PlanClosure — foco depois de encerrar", () => {
+  const finished = plan("active", [action("a1", "Rodas de conversa", "concluida"), action("a2", "Pausas ativas", "em_vigilancia")]);
+  const closedNow = plan("closed", finished.actions, { closedAt: "2026-10-14T12:00:00Z", closedByRole: "RH_ADMIN" });
+  const noop = async () => ({ ok: true, message: "ok" });
+
+  /** Imita a rota: o sucesso do encerramento troca o plano (ativo → encerrado) na MESMA montagem. */
+  function Closing() {
+    const [current, setCurrent] = useState(finished);
+    return (
+      <PlanClosure
+        plan={current}
+        busy={false}
+        onClose={async () => {
+          setCurrent(closedNow);
+          return { ok: true, message: "Plano encerrado." };
+        }}
+      />
+    );
+  }
+
+  test("após encerrar com sucesso o foco vai para o aviso (o botão que o tinha saiu de cena)", async () => {
+    render(<Closing />);
+    fireEvent.click(screen.getByRole("button", { name: /^Revisar encerramento/ }));
+    const confirm = screen.getByRole("button", { name: "Confirmar encerramento" });
+    act(() => confirm.focus());
+    expect(document.activeElement).toBe(confirm);
+    fireEvent.click(confirm);
+    const notice = await screen.findByRole("note", { name: "Plano encerrado" });
+    await waitFor(() => expect(document.activeElement).toBe(notice));
+    // Papel e rótulo preservados; focável só por programa (fora da ordem do Tab); o painel saiu de cena.
+    expect(notice.getAttribute("tabindex")).toBe("-1");
+    expect(screen.queryByRole("button", { name: "Confirmar encerramento" })).toBeNull();
+  });
+
+  test("montar com o plano já encerrado não move o foco", async () => {
+    render(<PlanClosure plan={closedNow} busy={false} onClose={noop} />);
+    expect(screen.getByRole("note", { name: "Plano encerrado" })).toBeTruthy();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  test("a passagem a encerrado por outro caminho não tira o foco de quem está em outro campo", async () => {
+    const tree = (p: FibtActionPlanView) => (
+      <>
+        <input aria-label="Outro campo" />
+        <PlanClosure plan={p} busy={false} onClose={noop} />
+      </>
+    );
+    const { rerender } = render(tree(finished));
+    const other = screen.getByLabelText("Outro campo");
+    act(() => other.focus());
+    rerender(tree(closedNow));
+    expect(screen.getByRole("note", { name: "Plano encerrado" })).toBeTruthy();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(document.activeElement).toBe(other);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Estilos de bloqueio e de foco dos botões
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("buttonPrimary e buttonSecondary — bloqueio e foco", () => {
+  // O bloqueio é por aria-disabled (o foco fica no botão), então `disabled:` nunca vale: o estilo vem de
+  // `aria-disabled:`. O anel de foco ganha o afastamento do fundo, como nos demais botões do loop.
+  for (const [name, classes] of [["buttonPrimary", buttonPrimary], ["buttonSecondary", buttonSecondary]] as const) {
+    test(`${name} sinaliza o bloqueio por aria-disabled e afasta o anel de foco do fundo`, () => {
+      const tokens = classes.split(/\s+/);
+      for (const cls of ["aria-disabled:cursor-not-allowed", "aria-disabled:opacity-60", "focus-visible:ring-offset-2", "focus-visible:ring-offset-background"]) {
+        expect(tokens).toContain(cls);
+      }
+    });
+  }
 });

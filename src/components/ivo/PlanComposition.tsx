@@ -463,10 +463,28 @@ export function ClosePlanPanel({
 // ─── Plano encerrado ─────────────────────────────────────────────────────────
 
 export function ClosedPlanNotice({ plan }: { plan: FibtActionPlanView }) {
+  const notice = useRef<HTMLElement>(null);
+  const previousStatus = useRef(plan.status);
+
+  // Foco (WCAG 2.4.3): ao encerrar, o botão que o tinha sai de cena e o foco cairia no body. Só quando o
+  // plano passa de ativo a encerrado NESTA montagem (resultado do encerramento) o aviso o recebe, e só se
+  // o foco ficou sem dono: quem está em outro campo o mantém. Montar com o plano já encerrado não o move.
+  useEffect(() => {
+    const justClosed = previousStatus.current === "active" && plan.status === "closed";
+    previousStatus.current = plan.status;
+    if (justClosed && document.activeElement === document.body) notice.current?.focus();
+  }, [plan.status]);
+
   if (plan.status !== "closed") return null;
   const date = civilDate(plan.closedAt);
   return (
-    <section aria-label="Plano encerrado" role="note" className="space-y-2 rounded-md border-2 border-foreground/50 bg-muted/30 p-4 text-sm">
+    <section
+      ref={notice}
+      tabIndex={-1}
+      aria-label="Plano encerrado"
+      role="note"
+      className="space-y-2 rounded-md border-2 border-foreground/50 bg-muted/30 p-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
       <p className="font-semibold text-foreground">
         Plano encerrado
         {date && plan.closedAt ? (
@@ -481,5 +499,18 @@ export function ClosedPlanNotice({ plan }: { plan: FibtActionPlanView }) {
         {CLOSED_PLAN_NO_REOPEN} {CLOSURE_NOT_EVALUATION_NOTE}
       </p>
     </section>
+  );
+}
+
+/**
+ * Painel de encerrar e aviso de encerrado lado a lado: cada um se oculta fora do próprio estado. O aviso
+ * fica montado enquanto o plano está ativo e por isso percebe a passagem a "encerrado" (foco, acima).
+ */
+export function PlanClosure({ plan, busy, onClose }: { plan: FibtActionPlanView; busy: boolean; onClose: (planId: string) => Promise<EvidenceSubmitResult> }) {
+  return (
+    <>
+      <ClosePlanPanel plan={plan} busy={busy} onClose={onClose} />
+      <ClosedPlanNotice plan={plan} />
+    </>
   );
 }

@@ -25,9 +25,9 @@ const EFFORT_LABEL = { baixo: "Baixo", medio: "Médio", alto: "Alto" } as const;
 export const inputClass =
   "mt-1 block min-h-11 w-full rounded-md border border-foreground/55 bg-background px-3 text-sm text-foreground outline-none [color-scheme:light] focus:border-primary focus:ring-2 focus:ring-primary/30 dark:[color-scheme:dark]";
 export const buttonPrimary =
-  "inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 export const buttonSecondary =
-  "inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 // Ação principal do registro de execução: dourado institucional com texto verde-escuro
 // (contraste ≈10,4:1 medido; hover ≈11,1:1). Borda escura mantém o contorno no tema claro.
