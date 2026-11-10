@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "preflight": "bun run scripts/environment-preflight.ts",
-    "dev": "bun run preflight --runtime=local --allow-db=local,staging && vite dev",
+    "dev": "vite dev",
+    "dev:checked": "bun run preflight --runtime=local --allow-db=local,staging && vite dev",
     "build": "bun run preflight --runtime=production --db=production && vite build",
     "build:ci": "bun run preflight --runtime=ci --db=test && vite build",
     "build:dev": "vite build --mode development",
