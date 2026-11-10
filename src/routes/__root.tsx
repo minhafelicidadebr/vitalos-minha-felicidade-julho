@@ -14,6 +14,7 @@ import { A11yProvider } from "../app/shell/A11yProvider";
 import { MockDataProvider } from "../app/shell/MockDataProvider";
 import { PackProvider } from "../app/composition/PackProvider";
 import { AuthGate } from "../app/auth/AuthGate";
+import { ConciergeWidget } from "../components/concierge/ConciergeWidget";
 
 function NotFoundComponent() {
   return (
@@ -156,6 +157,7 @@ function RootComponent() {
           <MockDataProvider>
             <AuthGate>
               <Outlet />
+              <ConciergeWidget />
             </AuthGate>
           </MockDataProvider>
         </PackProvider>
