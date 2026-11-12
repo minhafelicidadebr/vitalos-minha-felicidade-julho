@@ -166,16 +166,16 @@ function TeamHeader({
 
       <div className="mt-5 flex flex-wrap items-end gap-6">
         <div>
-          <p className="font-serif text-5xl font-semibold leading-none text-foreground">
+          <p className="font-serif text-5xl font-semibold leading-none tabular-nums text-foreground">
             {teamScore}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">IVO da equipe · {maturityName}</p>
         </div>
-        <div className={`text-xl font-semibold ${deltaColor}`}>
+        <div className={`text-xl font-semibold tabular-nums ${deltaColor}`}>
           {delta > 0 ? "↑" : delta < 0 ? "↓" : "→"} {Math.abs(delta)} pts
           <p className="text-xs font-normal text-muted-foreground">vs T4/2025</p>
         </div>
-        <div className="text-xl font-semibold text-foreground">
+        <div className="text-xl font-semibold tabular-nums text-foreground">
           {MOCK_LEADER.teamRespondents}/{MOCK_LEADER.teamSize}
           <p className="text-xs font-normal text-muted-foreground">respondentes</p>
         </div>
