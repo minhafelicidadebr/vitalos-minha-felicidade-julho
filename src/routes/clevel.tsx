@@ -116,7 +116,7 @@ function CLevelPage() {
                   <Line
                     type="monotone"
                     dataKey="score"
-                    stroke="#0B3D2E"
+                    stroke="var(--chart-current)"
                     strokeWidth={2.5}
                     dot={{ r: 3 }}
                   />

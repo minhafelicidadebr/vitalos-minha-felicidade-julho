@@ -278,7 +278,7 @@ function StatChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col rounded-lg bg-muted/50 px-3 py-2">
       <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
-      <span className="text-sm font-semibold text-foreground">{value}</span>
+      <span className="text-sm font-semibold tabular-nums text-foreground">{value}</span>
     </div>
   );
 }
@@ -481,7 +481,7 @@ function NudgesCard({
               >
                 Dispensar
               </button>
-              <span className="ml-auto text-[9px] text-muted-foreground">
+              <span className="ml-auto text-[10px] text-muted-foreground">
                 máx. {nudge.frequencyCapPerWeek}×/semana · opt-out no Trust Ledger
               </span>
             </div>

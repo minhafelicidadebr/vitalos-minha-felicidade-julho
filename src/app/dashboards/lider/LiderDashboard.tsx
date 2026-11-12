@@ -365,8 +365,7 @@ function TeamVigilanciaCard({ warning }: { warning: EarlyWarningResult }) {
           </p>
         </div>
         <span
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium"
-          style={{ color: status.dot }}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium ${status.color}`}
         >
           <span
             className="h-1.5 w-1.5 rounded-full"

@@ -39,7 +39,7 @@ export const Route = createFileRoute("/ivo")({
 
 // Chart colors: design-system primary (#0B3D2E) e accent (#C9A227)
 // Used as SVG attr strings for Recharts — CSS vars unreliable in SVG attrs cross-browser
-const CHART_CURRENT = "#0B3D2E";
+const CHART_CURRENT = "var(--chart-current)";
 const CHART_PREV = "#C9A227";
 
 const MATURITY_ZONE_COLORS: Record<string, string> = {

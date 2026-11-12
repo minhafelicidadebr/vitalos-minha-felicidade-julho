@@ -378,7 +378,7 @@ function SignalsCard() {
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-card-foreground">{p.pillarName}</p>
               <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-medium ${
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                   p.reading === "divergente"
                     ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                     : "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
@@ -521,7 +521,7 @@ function KanbanCard({ columns }: { columns: KanbanColumn[] }) {
                   <div className="mt-2 flex items-center justify-between gap-1">
                     <span className="text-xs text-muted-foreground">{item.ownerName}</span>
                     <span
-                      className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${EVIDENCE_STYLE[item.evidence]}`}
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${EVIDENCE_STYLE[item.evidence]}`}
                     >
                       {item.evidence}
                     </span>

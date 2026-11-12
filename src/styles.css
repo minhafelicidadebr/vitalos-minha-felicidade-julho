@@ -552,3 +552,7 @@ html:not(.dark) .text-accent:not([data-on-dark] *) {
     text-decoration: none;
   }
 }
+
+/* Dataviz: série atual legível nos dois temas (WCAG ≥3:1 para gráficos) */
+:root { --chart-current: #0B3D2E; }
+.dark { --chart-current: #34D399; }
