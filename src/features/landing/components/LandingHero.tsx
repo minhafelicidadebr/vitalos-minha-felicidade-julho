@@ -19,7 +19,7 @@ const CTA_CLASS: Record<string, string> = {
 
 export function LandingHero({ onAction }: { onAction: (action: CtaAction) => void }) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#03100f] text-white">
+    <section data-on-dark className="relative isolate overflow-hidden border-b border-white/10 bg-[#03100f] text-white">
       <div
         aria-hidden
         className="absolute inset-0 -z-30 bg-cover bg-center opacity-95"

@@ -140,7 +140,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           </div>
         </div>
 
-        <div className="relative mt-10 overflow-hidden rounded-3xl border border-white/10 bg-institutional-deep p-5 text-white shadow-2xl shadow-black/15 sm:p-7">
+        <div data-on-dark className="relative mt-10 overflow-hidden rounded-3xl border border-white/10 bg-institutional-deep p-5 text-white shadow-2xl shadow-black/15 sm:p-7">
           <div
             aria-hidden
             className="absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(201,162,39,0.17),transparent_32%),radial-gradient(circle_at_88%_76%,rgba(16,185,129,0.14),transparent_34%),linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:auto,auto,52px_52px,52px_52px]"
@@ -307,7 +307,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
           </motion.div>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div data-on-dark className="mt-10 grid gap-4 rounded-[2rem] bg-institutional-deep p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4">
           {LENSES.items.map((lens, index) => {
             const tone = TONE_CLASS[lens.tone] ?? TONE_CLASS.sky!;
             const modal = lens.modal as Extract<CtaAction, { kind: "modal" }>["modal"];

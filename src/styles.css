@@ -2,7 +2,9 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Seções .landing-light-grid são claras nos dois temas: utilitários dark: não se aplicam dentro delas. */
+@custom-variant dark (&:is(.dark *, [data-on-dark] *):not(.landing-light-grid, .landing-light-grid *));
+/* [data-on-dark] marca superfícies escuras fixas: usam as variantes dark: também no tema claro. */
 
 /*
  * 4 Lentes VitalOS™ — Design System
@@ -292,6 +294,13 @@
     --muted-foreground: oklch(0.45 0.018 160);
     --border: oklch(0.86 0.012 120);
     --input: oklch(0.88 0.01 120);
+    --primary: oklch(0.32 0.062 155);
+    --primary-foreground: oklch(0.98 0.005 95);
+    --secondary: oklch(0.93 0.018 150);
+    --secondary-foreground: oklch(0.28 0.05 155);
+    --accent: oklch(0.74 0.135 85);
+    --accent-foreground: oklch(0.22 0.04 80);
+    --ring: oklch(0.32 0.062 155);
     position: relative;
     isolation: isolate;
     background-color: oklch(0.985 0.006 95);
@@ -403,6 +412,16 @@
       0 14px 34px rgba(11, 61, 46, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
+}
+
+/* Accent como TEXTO precisa de contraste AA: dourado escuro no claro, dourado vivo no escuro. */
+.landing-light-grid .text-accent,
+html:not(.dark) .text-accent:not([data-on-dark] *) {
+  color: oklch(0.5 0.11 75);
+}
+.dark .text-accent:not(.landing-light-grid *),
+[data-on-dark] .text-accent {
+  color: var(--institutional-gold);
 }
 
 .print-only {
