@@ -13,6 +13,7 @@ import type { OrgInviteSummary } from "@/lib/api/org-invite.server";
 import { adminListLeads, adminListAccountHealth } from "@/lib/api/lead-capture.functions";
 import type { LeadRow } from "@/lib/growth/lead-capture.server";
 import type { AccountHealthRow } from "@/lib/growth/customer-health.server";
+import { FirstAdminInvites } from "@/components/identity/FirstAdminInvites";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -147,6 +148,7 @@ function PlataformaPage() {
         </p>
       </motion.div>
 
+      {accessToken && <FirstAdminInvites accessToken={accessToken} />}
       {/* Formulário de criação */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

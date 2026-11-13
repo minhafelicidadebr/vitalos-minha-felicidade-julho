@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 62,
-  "rollupSha256": "4ee716e70e410d1e563a2307bcaf7517954f27b455b83cf58753e3ec0fa5ecbb",
+  "migrationCount": 64,
+  "rollupSha256": "841dbcebcf5dcd523e850b0a28ac97c6eb9563e00cc56216c487cb804b5debf8",
   "migrations": [
     {
       "order": 1,
@@ -374,6 +374,18 @@
       "name": "20261016120000_ivo_plan_composition_and_closure.sql",
       "sha256": "718de8d78f30bc5916aa9b3273bd5e5367680a10f6c12a18e7b747c0c8e71de4",
       "bytes": 16331
+    },
+    {
+      "order": 63,
+      "name": "20261113195527_institutional_first_admin.sql",
+      "sha256": "c9ea4f7024ab716baa55cf9713daf62ed004598b779af7800bce657c68bfc41f",
+      "bytes": 5435
+    },
+    {
+      "order": 64,
+      "name": "20261113202253_institutional_first_admin_private_identity.sql",
+      "sha256": "f1b416fa61b8c07dd35c226c9642640762368ea1416e7434bf7f82dd05a4a021",
+      "bytes": 3483
     }
   ]
 }
