@@ -20,6 +20,14 @@ Verificação desta árvore de código: 10 testes direcionados aprovados; `bun r
 
 **Próxima fatia única:** consolidar convite/aceite do primeiro administrador e vínculo preexistente sobre `org-invite`/`onboarding`/`member-invite`, com regressões de identidade, retry e organização alheia; depois demonstrar em stack novo descartável, sem executar os scripts de reset do demo preservado. Para repetir só a prova desta fatia: `bun test src/app/identity/real-org-session.test.ts src/app/identity/InstitutionalAccessNotice.test.tsx src/components/ivo/CopsoqPreparationNotice.test.tsx`.
 
+### Continuidade institucional — 2026-11-13
+
+A fatia de dez arquivos acima foi consolidada no commit local `3bbff28`; gate anterior reaproveitado para esse commit. Continuação: `verifyPlatformAdmin` agora devolve a identidade autenticada somente no resultado autorizado; a emissão de convite usa esse mesmo `userId`, sem repetir `getUser` e sem risco de desreferenciar usuário ausente na segunda consulta. Nenhuma conta recebeu autoridade nova e a allowlist existente foi preservada.
+
+Validação da correção: 33 testes direcionados de convites/onboarding aprovados; novo gate integrado 4228 pass / 0 fail, paridade, TypeScript e secret-scan aprovados; log `%TEMP%/vitalos-institutional-invite-gate.log`. Nenhum build novo, migration ou escrita remota. Docker Desktop foi iniciado e a consulta autorizada ao daemon retornou versão `29.9.2`, com zero containers listados. Nenhum stack descartável foi criado ainda; nenhuma prova de banco ou navegador executada.
+
+Entrega obrigatória ainda incompleta: `member_invites` exige admin da organização para emissão e não resolve o primeiro admin de uma empresa existente; falta a extensão restrita pela autoridade de plataforma, com estado/revogação/idempotência transacional e prova integrada. Próxima ação única: implementar essa extensão sobre os convites canônicos, sem sobrescrever vínculo preexistente, e testá-la em stack descartável próprio. Não classificar esta continuação como jornada ponta a ponta concluída.
+
 ## Estado operacional (registro de outubro)
 - Branch `feat/ivo-fibt-platform-foundation`, PR #51 **draft**, sem merge. Código em staging: `8859c01` (versão `8da81ce2-6de4-4819-aa09-ddbacfa74928`, 100%; anterior `98b1a4db-…` para rollback). S1 (edge-check 7/7) e S9 (preflight 50/0/0) aprovados.
 - **Smoke S2–S8 PENDENTE** (navegador autenticado do operador). Smoke completo **não** aprovado. Não bloqueia o desenvolvimento local.

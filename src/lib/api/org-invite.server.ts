@@ -7,10 +7,9 @@
 // Supabase, e o servidor verifica a identidade de verdade via
 // supabaseAdmin.auth.getUser(accessToken) antes de qualquer ação privilegiada.
 
-export interface PlatformAdminCheck {
-  authorized: boolean;
-  email?: string;
-}
+export type PlatformAdminCheck =
+  | { authorized: true; userId: string; email: string }
+  | { authorized: false };
 
 /** Parseia PLATFORM_ADMIN_EMAILS ("a@x.com, B@Y.com") numa allowlist normalizada. */
 export function parsePlatformAdminAllowlist(envValue: string | undefined): string[] {
@@ -33,10 +32,11 @@ export async function verifyPlatformAdmin(accessToken: string): Promise<Platform
   const admin = supabaseAdmin as any;
 
   const { data, error } = await admin.auth.getUser(accessToken);
-  if (error || !data?.user?.email) return { authorized: false };
+  if (error || !data?.user?.email || !data.user.id) return { authorized: false };
 
   const email = data.user.email as string;
-  return { authorized: isAllowedPlatformAdminEmail(email, process.env.PLATFORM_ADMIN_EMAILS), email };
+  if (!isAllowedPlatformAdminEmail(email, process.env.PLATFORM_ADMIN_EMAILS)) return { authorized: false };
+  return { authorized: true, userId: data.user.id, email };
 }
 
 export interface OrgInviteSummary {

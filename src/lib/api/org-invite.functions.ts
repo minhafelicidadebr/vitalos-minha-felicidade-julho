@@ -21,11 +21,8 @@ export const createOrgInviteLink = createServerFn({ method: "POST" })
     const check = await verifyPlatformAdmin(data.accessToken);
     if (!check.authorized) return { ok: false, error: "Acesso restrito ao administrador da plataforma." };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = supabaseAdmin as any;
-    const { data: userData } = await admin.auth.getUser(data.accessToken);
-
-    const result = await createOrgInvite(userData.user.id, data.email, data.plan);
+    // A proveniência usa a MESMA identidade verificada pela autorização.
+    const result = await createOrgInvite(check.userId, data.email, data.plan);
     if ("error" in result) return { ok: false, error: result.error };
     return { ok: true, invite: result };
   });
