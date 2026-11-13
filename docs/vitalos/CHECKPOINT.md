@@ -1,6 +1,26 @@
 # Checkpoint de retomada — VitalOS IVO (2026-10-29, após a retomada local do PI-13, três rodadas de revisão independente, a validação local da Fase 2, o lote independente de decisão, a prova e o visual locais do PI-13, as verificações finais locais de `due_on` e das capturas S10 e a publicação dos commits na PR #51 (draft); base: segunda macro-onda de 2026-10-05)
 
-## Estado operacional
+## Macro-onda empresarial — fatia local de entrada (2026-11-13)
+
+Base confirmada: `feat/ivo-fibt-platform-foundation`, HEAD `2ea7dcf079399ba0edd1947b777bca7e5cacd42f`, sem alterações rastreadas antes desta fatia. Alterações abaixo ainda no workspace, sem commit, push ou promoção. As seções de outubro abaixo são históricas, não nova observação dos ambientes.
+
+| Capacidade | Implementado nesta fatia | Evidência e limite |
+| --- | --- | --- |
+| Entrada institucional | Sessão ausente, vínculo ausente, erro de consulta e organização disponível são estados distintos. Erro/sem vínculo não caem na demonstração. Retry disponível. | `real-org-session.ts`, `useRealOrgSession.ts`, `InstitutionalAccessNotice.tsx`, integração em `AppShell.tsx`; testes de resolução e apresentação. Navegador e login reais não executados. |
+| Mudança de sessão | Atualiza a resolução em eventos de autenticação; limpa o estado durante consulta e descarta respostas antigas após logout/troca de sessão/desmontagem. | Testes sintéticos de corrida e retry; não é revogação de autorização no servidor. |
+| Primeiro administrador | Preservado acesso de conta sem vínculo a `/plataforma`, `/ativar/:token` e `/aceitar-convite/:token`; essas rotas mantêm seus próprios controles de servidor. | Testes de fronteira de caminho; provisionamento real não executado. |
+| Preparação Q1 | Visão IVO mostra versão/identidade do manifesto servido e requisito de correspondência à fonte brasileira aprovada. Q2 permanece independente. | `CopsoqPreparationNotice.tsx`; nenhum cálculo, coleta ou publicação Q1 adicionado. |
+| Q2 / C8 / PI-13 | Contratos, método e persistência preservados; nenhuma alteração de SQL. | Gate integrado verde; nenhuma prova nova de banco/duas empresas, recuperação ou navegador. |
+
+Verificação desta árvore de código: 10 testes direcionados aprovados; `bun run gate` aprovado (4228 pass / 0 fail / 327 arquivos; paridade, TypeScript e varredura de segredos aprovados). Bun `1.3.14`, caminho local adicionado somente ao processo. Log local em `%TEMP%/vitalos-enterprise-gate.log`. A varredura incluiu o artefato já existente: nenhum build novo foi gerado e `.output/` foi preservado. Revisão `git diff --check` sem erros. Esta atualização documental posterior não modifica os inputs desses testes; gate não repetido.
+
+**Não alcançado:** LOCAL_INTEGRATED da macro-onda, gestão completa/desativação de vínculos, módulos Q1/Q2 controlados no servidor, isolamento novo em HTTP/DB, bloqueio completo de superfícies legadas demonstrativas para empresas, Q1 operacional, conteúdo editorial aprovado, homologação e liberação comercial. Não se presume suporte a conta suspensa: esse estado precisa de contrato vigente no servidor. Nenhuma migration criada/aplicada; nenhuma escrita remota; `.q.out` e `.q.sql` não abertos nem alterados.
+
+**Bloqueios agrupados:** fonte exata da COPSOQ aprovada ainda não disponível (já solicitada ao operador nesta conversa; não escolher 9/14 dimensões); curadoria aprovada e decisões metodológicas/retention/autoridade permanecem humanas. A falta da fonte Q1 não bloqueia trabalho institucional independente.
+
+**Próxima fatia única:** consolidar convite/aceite do primeiro administrador e vínculo preexistente sobre `org-invite`/`onboarding`/`member-invite`, com regressões de identidade, retry e organização alheia; depois demonstrar em stack novo descartável, sem executar os scripts de reset do demo preservado. Para repetir só a prova desta fatia: `bun test src/app/identity/real-org-session.test.ts src/app/identity/InstitutionalAccessNotice.test.tsx src/components/ivo/CopsoqPreparationNotice.test.tsx`.
+
+## Estado operacional (registro de outubro)
 - Branch `feat/ivo-fibt-platform-foundation`, PR #51 **draft**, sem merge. Código em staging: `8859c01` (versão `8da81ce2-6de4-4819-aa09-ddbacfa74928`, 100%; anterior `98b1a4db-…` para rollback). S1 (edge-check 7/7) e S9 (preflight 50/0/0) aprovados.
 - **Smoke S2–S8 PENDENTE** (navegador autenticado do operador). Smoke completo **não** aprovado. Não bloqueia o desenvolvimento local.
 - **Nada da segunda macro-onda nem do PI-13 está em staging**: as migrations `20261005120000` (C8) e `20261016120000` (PI-13) e todo o código novo existem só na branch/PR (o PI-13: os commits até `597ca14` estão publicados em `origin/feat/ivo-fibt-platform-foundation`/PR #51, draft, desde 2026-10-20 11:43 (-03:00); os commits posteriores, até `984b66e`, foram publicados em 2026-10-29 às 18:44 (-03:00), por push fast-forward `597ca14..984b66e`) e no banco local descartável.

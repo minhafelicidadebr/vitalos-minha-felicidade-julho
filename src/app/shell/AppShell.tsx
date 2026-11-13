@@ -17,6 +17,8 @@ import { PackSwitcher } from "./PackSwitcher";
 import { DemoGateScreen } from "./DemoGate";
 import { useDemoGate } from "./demo-gate";
 import { DemoRouteGuard } from "@/app/identity/DemoRouteGuard";
+import { institutionalEntry } from "@/app/identity/real-org-session";
+import { InstitutionalAccessNotice } from "@/app/identity/InstitutionalAccessNotice";
 import { usePersona } from "@/app/identity/persona-store";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -348,8 +350,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Cliente REAL (organização provisionada via /ativar/:token) nunca precisa
   // da senha de demonstração — a fronteira de acesso dele é a autenticação
   // Supabase + RLS, não uma senha compartilhada de marketing.
-  const { loading: realOrgLoading, org: realOrg } = useRealOrgSession();
-  if (realOrgLoading) {
+  const { status: orgStatus, org: realOrg, retry } = useRealOrgSession();
+  const entry = institutionalEntry(orgStatus, pathname);
+  if (entry === "loading") {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
         <p className="animate-pulse text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -358,7 +361,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!realOrg && (!gateHydrated || !gateUnlocked)) {
+  if (entry === "notice") {
+    return <InstitutionalAccessNotice status={orgStatus === "unlinked" ? "unlinked" : "unavailable"} onRetry={retry} />;
+  }
+  if (entry === "demo" && (!gateHydrated || !gateUnlocked)) {
     return <DemoGateScreen />;
   }
 

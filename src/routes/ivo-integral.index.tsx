@@ -12,6 +12,7 @@ import { getDimensionMappings } from "@/domain/ivo/dimension-mappings";
 import { ivoDimensionsForPack, ivoLensCatalog } from "@/domain/ivo/lens-catalog";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import type { IvoQ2Outcome } from "@/lib/ivo/ivo-views";
+import { CopsoqPreparationNotice } from "@/components/ivo/CopsoqPreparationNotice";
 
 // Visão IVO (ADR-004, spec ivo-dashboard.md).
 //
@@ -138,6 +139,7 @@ function IvoIntegralPage() {
           ) : null}
         </section>
 
+        <CopsoqPreparationNotice />
         <IvoLensMatrix matrix={matrix} />
         <IvoCoveragePanel coverage={coverage} />
         <p className="text-sm">
