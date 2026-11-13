@@ -3,6 +3,7 @@ import type { FibtActionPlanView, IvoQ2View } from "@/lib/ivo/ivo-views";
 import { formatIsoDateLong, todayInSaoPaulo } from "@/lib/ivo/local-date";
 import {
   CLOSED_PLAN_EXPLANATION,
+  CLOSE_CONFIRMATION_EXPLANATION,
   CLOSED_PLAN_NO_REOPEN,
   CLOSURE_NOT_EVALUATION_NOTE,
   PLAN_EMPTY_MESSAGE,
@@ -86,10 +87,24 @@ export function AddActionToPlanForm({
   const [target, setTarget] = useState("");
   const [unit, setUnit] = useState("");
   const [pending, setPending] = useState(false);
-  const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  // O aviso de uma tentativa leva o contexto em que nasceu (plano, ciclo e onda do destino): em outro contexto ele não aparece.
+  const contextKey = `${plan.id}|${cycle}|${view?.wave.id ?? ""}`;
+  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string; context: string } | null>(null);
+  const feedback = notice && notice.context === contextKey ? notice : null;
+  const say = (tone: "ok" | "error", text: string) => setNotice({ tone, text, context: contextKey });
   // Uma chave por tentativa: só muda depois de um sucesso. Reenviar após falha usa a MESMA chave.
   const requestId = useRef(newRequestId());
   const inFlight = useRef(false);
+
+  // O sucesso pertence ao pedido que o gerou: quando OUTRA operação da página começa (busy sobe sem este formulário estar
+  // enviando), o aviso antigo sai de cena e não volta. A falha fica: descreve o rascunho que foi mantido para nova tentativa.
+  useEffect(() => {
+    if (busy && !pending) setNotice((current) => (current?.tone === "ok" ? null : current));
+  }, [busy, pending]);
+  // Contexto novo (outro plano, ciclo ou onda): o aviso antigo é descartado, não só escondido, e não reaparece se o contexto voltar.
+  useEffect(() => {
+    setNotice(null);
+  }, [contextKey]);
 
   const heading = (
     <h3 id={`${p}-title`} className="text-sm font-semibold text-foreground">
@@ -140,7 +155,7 @@ export function AddActionToPlanForm({
     event.preventDefault();
     if (inFlight.current || busy) return;
     if (title.trim().length < 3) {
-      setFeedback({ tone: "error", text: "Descreva a ação com ao menos 3 caracteres." });
+      say("error", "Descreva a ação com ao menos 3 caracteres.");
       return;
     }
     let accountability: AddActionFormInput["accountability"];
@@ -148,14 +163,14 @@ export function AddActionToPlanForm({
       const b = Number(baseline.replace(",", "."));
       const t = Number(target.replace(",", "."));
       if (!role.trim() || !dueOn || !metricLabel.trim() || !Number.isFinite(b) || !Number.isFinite(t) || target.trim() === "") {
-        setFeedback({ tone: "error", text: "Plano ativo: informe responsável, prazo e indicador de execução (linha de base e meta) da nova ação." });
+        say("error", "Plano ativo: informe responsável, prazo e indicador de execução (linha de base e meta) da nova ação.");
         return;
       }
       accountability = { ownerRoleLabel: role.trim(), dueOn, executionMetric: { label: metricLabel.trim(), baseline: b, target: t, unit: unit.trim() } };
     }
     inFlight.current = true;
     setPending(true);
-    setFeedback(null);
+    setNotice(null);
     try {
       const result = await onSubmit(plan.id, {
         requestId: requestId.current,
@@ -178,13 +193,13 @@ export function AddActionToPlanForm({
         setTarget("");
         setUnit("");
         requestId.current = newRequestId();
-        setFeedback({ tone: "ok", text: result.message });
+        say("ok", result.message);
       } else {
         // Falha: tudo fica como está (inclusive a chave) para uma nova tentativa segura.
-        setFeedback({ tone: "error", text: result.message });
+        say("error", result.message);
       }
     } catch {
-      setFeedback({ tone: "error", text: GENERIC_ERROR });
+      say("error", GENERIC_ERROR);
     } finally {
       inFlight.current = false;
       setPending(false);
@@ -245,7 +260,7 @@ export function AddActionToPlanForm({
             minLength={3}
             onChange={(e) => {
               setTitle(e.target.value);
-              if (feedback) setFeedback(null);
+              if (notice) setNotice(null);
             }}
           />
         </Field>
@@ -437,7 +452,7 @@ export function ClosePlanPanel({
             <li>
               {total} {total === 1 ? "ação" : "ações"}: {finished.concluida} concluída(s), {finished.em_vigilancia} em vigilância, {finished.interrompida} interrompida(s).
             </li>
-            <li>{CLOSED_PLAN_EXPLANATION}</li>
+            <li>{CLOSE_CONFIRMATION_EXPLANATION}</li>
             <li>{CLOSED_PLAN_NO_REOPEN}</li>
             <li>{CLOSURE_NOT_EVALUATION_NOTE}</li>
           </ul>

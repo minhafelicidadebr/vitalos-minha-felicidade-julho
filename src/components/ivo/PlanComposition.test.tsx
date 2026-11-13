@@ -5,6 +5,7 @@ import { useState } from "react";
 import { IVO_LENS_READING_CONTRACT } from "@/engine/ivo/lens-contract";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { EFFICACY_NOT_EVALUATED_REASON, type FibtActionPlanView, type FibtActionView, type IvoQ2View } from "@/lib/ivo/ivo-views";
+import { CLOSED_PLAN_EXPLANATION, CLOSE_CONFIRMATION_EXPLANATION } from "@/lib/ivo/plan-closure";
 import { FibtActionPlanSection, buttonPrimary, buttonSecondary } from "./FibtActionLoop";
 import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, PlanClosure, type AddActionFormInput } from "./PlanComposition";
 
@@ -155,6 +156,79 @@ describe("AddActionToPlanForm", () => {
     expect(onSubmit.mock.calls[1]![1].requestId).not.toBe(onSubmit.mock.calls[0]![1].requestId);
   });
 
+  describe("aviso de sucesso ligado ao pedido que o gerou", () => {
+    const draft = plan("draft", activePlan.actions);
+    const otherWave = { ...view, wave: { ...view.wave, id: "22222222-2222-4222-8222-222222222222" } };
+    const ok: Submit = async () => ({ ok: true, message: "Ação incluída no plano." });
+
+    async function includeOne() {
+      fireEvent.change(screen.getByLabelText("Título da nova ação"), { target: { value: "Oficina de pausas" } });
+      fireEvent.click(screen.getByRole("button", { name: /^Incluir ação/ }));
+      await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Ação incluída no plano."));
+    }
+
+    test("some quando OUTRA operação da página começa (ex.: mudar o estado de uma ação) e não volta quando ela termina", async () => {
+      const tree = (busy: boolean) => <AddActionToPlanForm plan={draft} view={view} busy={busy} onSubmit={ok} />;
+      const { rerender } = render(tree(false));
+      await includeOne();
+      rerender(tree(true));
+      expect(screen.getByRole("status").textContent).toBe("");
+      rerender(tree(false));
+      expect(screen.getByRole("status").textContent).toBe("");
+    });
+
+    test("a operação do próprio formulário (a página marca busy durante o envio) não apaga o aviso dele", async () => {
+      function Page() {
+        const [busy, setBusy] = useState(false);
+        return (
+          <AddActionToPlanForm
+            plan={draft}
+            view={view}
+            busy={busy}
+            onSubmit={async () => {
+              setBusy(true); // como a rota: busy sobe com o envio...
+              await new Promise((resolve) => setTimeout(resolve, 0));
+              setBusy(false); // ...e desce antes de devolver o desfecho ao formulário
+              return { ok: true, message: "Ação incluída no plano." };
+            }}
+          />
+        );
+      }
+      render(<Page />);
+      await includeOne();
+      await new Promise((resolve) => setTimeout(resolve, 25)); // tempo para qualquer efeito tardio
+      expect(screen.getByRole("status").textContent).toContain("Ação incluída no plano.");
+    });
+
+    test("não vale em outro contexto (outra onda ou outro plano) e não reaparece quando o contexto volta", async () => {
+      const tree = (p: FibtActionPlanView, v: IvoQ2View) => <AddActionToPlanForm plan={p} view={v} busy={false} onSubmit={ok} />;
+      const { rerender } = render(tree(draft, view));
+      await includeOne();
+      rerender(tree(draft, otherWave));
+      expect(screen.getByRole("status").textContent).toBe("");
+      rerender(tree(draft, view));
+      expect(screen.getByRole("status").textContent).toBe("");
+
+      await includeOne();
+      rerender(tree({ ...draft, id: "plan-2" }, view));
+      expect(screen.getByRole("status").textContent).toBe("");
+      rerender(tree(draft, view));
+      expect(screen.getByRole("status").textContent).toBe("");
+    });
+
+    test("a falha não é apagada por outra operação: ela descreve o rascunho mantido, e o texto digitado fica", async () => {
+      const fail: Submit = async () => ({ ok: false, message: "Não foi possível incluir agora." });
+      const tree = (busy: boolean) => <AddActionToPlanForm plan={draft} view={view} busy={busy} onSubmit={fail} />;
+      const { rerender } = render(tree(false));
+      fireEvent.change(screen.getByLabelText("Título da nova ação"), { target: { value: "Oficina de pausas" } });
+      fireEvent.click(screen.getByRole("button", { name: /^Incluir ação/ }));
+      expect((await screen.findByRole("alert")).textContent).toContain("Não foi possível incluir agora.");
+      rerender(tree(true));
+      expect(screen.getByRole("alert").textContent).toContain("Não foi possível incluir agora.");
+      expect((screen.getByLabelText("Título da nova ação") as HTMLInputElement).value).toBe("Oficina de pausas");
+    });
+  });
+
   test("envio pendente não duplica (clique duplo e submit), mantém o foco no botão e o rótulo muda", async () => {
     let finish: (r: { ok: boolean; message: string }) => void = () => {};
     const onSubmit = mock<Submit>(() => new Promise((resolve) => (finish = resolve)));
@@ -258,6 +332,41 @@ describe("ClosePlanPanel", () => {
     expect(within(group).getByRole("button", { name: "Confirmar encerramento" })).toBeTruthy();
   });
 
+  test("ANTES de confirmar o texto é prospectivo (o plano ainda não está encerrado); a redação factual fica para depois do sucesso", () => {
+    render(<ClosePlanPanel plan={finishedPlan} busy={false} onClose={async () => ({ ok: true, message: "ok" })} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Revisar encerramento/ }));
+    const group = screen.getByRole("group", { name: /Confirmar o encerramento/ });
+    const items = within(group).getAllByRole("listitem").map((li) => li.textContent);
+    expect(items[1]).toBe(CLOSE_CONFIRMATION_EXPLANATION);
+    expect(items[1]).toMatch(
+      /^Você está prestes a encerrar este plano\. Depois de encerrado, ele não aceita novas ações, mudanças de estado nem novos registros de execução ou aprendizagem\./,
+    );
+    // Nada na confirmação afirma que o encerramento já aconteceu.
+    expect(group.textContent).not.toContain(CLOSED_PLAN_EXPLANATION);
+    expect(group.textContent).not.toMatch(/Plano encerrado/);
+    // O que muda depois do encerramento é o mesmo nas duas redações (fonte única): futuro antes, fato depois.
+    expect(CLOSE_CONFIRMATION_EXPLANATION.endsWith(CLOSED_PLAN_EXPLANATION.replace(/^Plano encerrado: /, ""))).toBe(true);
+    // Reabertura, separação entre encerramento e eficácia e a contagem seguem como estavam.
+    expect(items[0]).toBe("3 ações: 1 concluída(s), 1 em vigilância, 1 interrompida(s).");
+    expect(items[2]).toBe("Não há reabertura nesta versão: o encerramento é definitivo.");
+    expect(items[3]).toMatch(/^Encerrar o plano é um ato operacional\. Não avalia eficácia, não altera o IVO, não valida o método/);
+  });
+
+  test("a confirmação é explícita: abrir a revisão, Enter no resumo e Cancelar não encerram; só 'Confirmar encerramento' chama o encerramento", async () => {
+    const onClose = mock(async (_planId: string) => ({ ok: true, message: "ok" }));
+    render(<ClosePlanPanel plan={finishedPlan} busy={false} onClose={onClose} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Revisar encerramento/ }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.keyDown(screen.getByRole("group", { name: /Confirmar o encerramento/ }), { key: "Enter" });
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /^Revisar encerramento/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar encerramento" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(onClose.mock.calls[0]![0]).toBe("plan-1");
+  });
+
   test("confirmar chama o encerramento UMA vez, mesmo com clique duplo, e sinaliza o envio", async () => {
     let finish: (r: { ok: boolean; message: string }) => void = () => {};
     const onClose = mock((_planId: string) => new Promise<{ ok: boolean; message: string }>((resolve) => (finish = resolve)));
@@ -333,6 +442,14 @@ describe("plano encerrado", () => {
     expect(notice.textContent).toMatch(/não aceita novas ações, mudanças de estado nem novos registros/);
     expect(notice.textContent).toContain("Não há reabertura nesta versão");
     expect(notice.textContent).toMatch(/Não avalia eficácia/);
+  });
+
+  test("DEPOIS do encerramento a redação é factual: o plano está encerrado, sem o texto prospectivo da confirmação", () => {
+    render(<ClosedPlanNotice plan={closed} />);
+    const notice = screen.getByRole("note", { name: "Plano encerrado" });
+    expect(notice.textContent).toMatch(/^Plano encerrado em 13 de outubro de 2026 por RH_ADMIN/);
+    expect(notice.textContent).toContain(CLOSED_PLAN_EXPLANATION);
+    expect(notice.textContent).not.toMatch(/prestes a encerrar/);
   });
 
   test("não aparece em plano ativo", () => {
@@ -422,6 +539,18 @@ describe("PlanClosure — foco depois de encerrar", () => {
     // Papel e rótulo preservados; focável só por programa (fora da ordem do Tab); o painel saiu de cena.
     expect(notice.getAttribute("tabindex")).toBe("-1");
     expect(screen.queryByRole("button", { name: "Confirmar encerramento" })).toBeNull();
+  });
+
+  test("do pedido ao sucesso: a confirmação é prospectiva; depois do sucesso só o aviso factual permanece", async () => {
+    render(<Closing />);
+    expect(screen.queryByRole("note", { name: "Plano encerrado" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /^Revisar encerramento/ }));
+    expect(screen.getByText(/Você está prestes a encerrar este plano/)).toBeTruthy();
+    expect(screen.queryByRole("note", { name: "Plano encerrado" })).toBeNull(); // nada de "encerrado" antes de confirmar
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar encerramento" }));
+    const notice = await screen.findByRole("note", { name: "Plano encerrado" });
+    expect(notice.textContent).toContain("Plano encerrado: não aceita novas ações");
+    expect(screen.queryByText(/Você está prestes a encerrar/)).toBeNull();
   });
 
   test("montar com o plano já encerrado não move o foco", async () => {

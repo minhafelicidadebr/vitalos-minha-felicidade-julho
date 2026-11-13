@@ -92,6 +92,8 @@ function IvoAcoesPage() {
   }, [search.wave]);
 
   useEffect(() => {
+    // Contexto novo (onda escolhida na URL): o aviso de uma operação do contexto anterior não vale mais.
+    setFeedback(null);
     void load();
   }, [load]);
 
@@ -103,7 +105,9 @@ function IvoAcoesPage() {
     options?: { inline?: boolean; replayedText?: string },
   ): Promise<EvidenceSubmitResult> {
     setBusy(true);
-    if (!options?.inline) setFeedback(null);
+    // O aviso da faixa pertence ao pedido que o gerou: qualquer operação nova (inline ou não) o descarta ao começar, e um
+    // sucesso antigo (ex.: "Estado atualizado.") não fica na tela enquanto outra operação roda ou depois que ela falha.
+    setFeedback(null);
     let outcome: EvidenceSubmitResult;
     try {
       const r = await run();

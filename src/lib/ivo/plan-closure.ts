@@ -82,7 +82,14 @@ export const PLAN_EMPTY_MESSAGE = "Um plano sem ações não pode ser encerrado.
 export const CLOSURE_NOT_EVALUATION_NOTE =
   "Encerrar o plano é um ato operacional. Não avalia eficácia, não altera o IVO, não valida o método e não aprova nenhum protocolo ou parecer de avaliação.";
 
-export const CLOSED_PLAN_EXPLANATION =
-  "Plano encerrado: não aceita novas ações, mudanças de estado nem novos registros de execução ou aprendizagem. O histórico e as evidências continuam legíveis, e a avaliação de eficácia segue independente do encerramento.";
+/** O que muda quando o plano está encerrado: uma só fonte para a redação factual (depois) e a prospectiva (antes). */
+const CLOSED_PLAN_EFFECTS =
+  "não aceita novas ações, mudanças de estado nem novos registros de execução ou aprendizagem. O histórico e as evidências continuam legíveis, e a avaliação de eficácia segue independente do encerramento.";
+
+/** DEPOIS do encerramento (aviso do plano encerrado): factual, o plano já está encerrado. */
+export const CLOSED_PLAN_EXPLANATION = `Plano encerrado: ${CLOSED_PLAN_EFFECTS}`;
+
+/** ANTES da confirmação (painel de confirmação): prospectivo, nada foi encerrado ainda. */
+export const CLOSE_CONFIRMATION_EXPLANATION = `Você está prestes a encerrar este plano. Depois de encerrado, ele ${CLOSED_PLAN_EFFECTS}`;
 
 export const CLOSED_PLAN_NO_REOPEN = "Não há reabertura nesta versão: o encerramento é definitivo.";

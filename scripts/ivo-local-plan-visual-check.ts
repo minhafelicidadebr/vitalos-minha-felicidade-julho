@@ -75,6 +75,21 @@ const setv = (el, v) => {
   el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
 };
 const txt = (el) => el ? el.innerText.replace(/\\s+/g, ' ').toLowerCase() : '';
+const strip = () => [...document.querySelectorAll('[role="status"]')].find((x) => x.className.includes('min-h-6'));
+// Fração do elemento em foco que fica atrás de uma barra fixa/sticky (cabeçalho, barra inferior móvel): 5x3 pontos dentro da viewport.
+const focusCover = () => {
+  const el = document.activeElement; if (!el || el === document.body) return 1;
+  const bars = [...document.querySelectorAll('body *')].filter((e) => { const cs = getComputedStyle(e); if (cs.position !== 'fixed' && cs.position !== 'sticky') return false; const b = e.getBoundingClientRect(); return b.width > 120 && b.height > 8 && cs.visibility === 'visible'; });
+  const r = el.getBoundingClientRect();
+  const x0 = Math.max(r.left, 0), x1 = Math.min(r.right, window.innerWidth), y0 = Math.max(r.top, 0), y1 = Math.min(r.bottom, window.innerHeight);
+  if (x1 - x0 < 2 || y1 - y0 < 2) return 1;
+  let n = 0, c = 0;
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) {
+    const t = document.elementFromPoint(x0 + ((x1 - x0) * (i + 0.5)) / 5, y0 + ((y1 - y0) * (j + 0.5)) / 3); n++;
+    if (t && !el.contains(t) && !t.contains(el) && bars.some((b) => b.contains(t))) c++;
+  }
+  return c / n;
+};
 `;
 const expr = (body: string) => `(() => { ${H} ${body} })()`;
 const page = <R,>(cdp: Cdp, body: string) => cdp.eval<R>(expr(body));
@@ -96,6 +111,20 @@ async function pressTabEnter(cdp: Cdp, key: "Tab" | "Enter") {
   const code = key === "Tab" ? 9 : 13;
   await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: code, ...(key === "Enter" ? { text: "\r" } : {}) });
   await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: code });
+}
+// html tem scroll-behavior: smooth: a rolagem provocada pelo foco é animada. Só mede depois que scrollY parar.
+async function settle(cdp: Cdp) {
+  let last = -1;
+  let stable = 0;
+  for (let i = 0; i < 40 && stable < 3; i++) {
+    const y = await cdp.eval<number>("Math.round(window.scrollY)");
+    if (y === last) stable += 1;
+    else {
+      stable = 0;
+      last = y;
+    }
+    await Bun.sleep(70);
+  }
 }
 const stateOf = (cdp: Cdp, title: string) => page<string>(cdp, `return txt(art(${J(title)}));`);
 async function setStatus(cdp: Cdp, title: string, button: string, expectedState: string) {
@@ -160,6 +189,16 @@ async function main(): Promise<void> {
       await snap(cdp, "pi13-02-mobile-formulario-inclusao");
       check("390px sem rolagem horizontal da página", !(await cdp.eval<boolean>("document.documentElement.scrollWidth > window.innerWidth + 1")));
       check("390px: botões de enviar e de revisar o encerramento têm alvo de toque ≥ 44px", await page<boolean>(cdp, `const a = btn(addSec(), 'Incluir ação'); const b = btn(closeSec(), 'Revisar encerramento'); return a.getBoundingClientRect().height >= 44 && b.getBoundingClientRect().height >= 44;`));
+      // Teclado em 390px (WCAG 2.2 · 2.4.11): a rolagem do foco para ACIMA da barra inferior fixa. Sem scroll-padding-bottom o
+      // campo em foco ficava 100% atrás dela. Mede com a rolagem assentada (scroll-behavior: smooth) e em viewport real.
+      await page(cdp, `const el = byLabel(addSec(), 'Setor com leitura publicada'); el.scrollIntoView({ block: 'center', behavior: 'instant' }); el.focus();`);
+      let coverWorst = 0;
+      for (let i = 0; i < 13; i++) {
+        await pressTabEnter(cdp, "Tab");
+        await settle(cdp);
+        coverWorst = Math.max(coverWorst, await page<number>(cdp, `return focusCover();`));
+      }
+      check(`390px: em 13 Tab pelo formulário de inclusão nenhum controle em foco fica totalmente atrás do cabeçalho ou da barra inferior (pior caso ${Math.round(coverWorst * 100)}% coberto)`, coverWorst < 0.99, `pior caso ${coverWorst}`);
       await viewport(cdp, 1280, 900, false);
       await Bun.sleep(400);
 
@@ -196,6 +235,8 @@ async function main(): Promise<void> {
       log("\n── 4 · Encerrar: pendências → estados de saída → confirmação ──");
       check("com 3 ações em andamento o encerramento segue recusado e a lista diz quais", (await has(cdp, "close", "3 ações estão em andamento")) && (await has(cdp, "close", `${T.A.toLowerCase()} — em execução`)) && (await has(cdp, "close", `${NEW_TITLE.toLowerCase()} — planejada`)));
       await setStatus(cdp, T.A, "Concluída", "Concluída");
+      await waitFor(cdp, expr(`return txt(strip()) === 'estado atualizado.';`), "faixa do topo com 'Estado atualizado.'");
+      check("mensagens ligadas ao pedido: ao começar outra operação, 'Ação incluída no plano.' sai do formulário e a faixa do topo mostra só 'Estado atualizado.'", !(await has(cdp, "add", "ação incluída no plano.")));
       await setStatus(cdp, T.C, "Interrompida", "Interrompida");
       await setStatus(cdp, NEW_TITLE, "Interrompida", "Interrompida");
       await waitHas(cdp, "close", "revisar encerramento do plano", "painel pronto para encerrar");
@@ -203,6 +244,7 @@ async function main(): Promise<void> {
       await clickReal(cdp, expr(`return btn(closeSec(), 'Revisar encerramento');`), "revisar encerramento");
       await waitHas(cdp, "close", "confirmar o encerramento do plano", "resumo do efeito");
       check("resumo do efeito ANTES de confirmar: contagem por estado, o que deixa de existir, sem reabertura, não é eficácia", (await has(cdp, "close", "4 ações: 2 concluída(s), 0 em vigilância, 2 interrompida(s)")) && (await has(cdp, "close", "não aceita novas ações, mudanças de estado nem novos registros")) && (await has(cdp, "close", "não há reabertura nesta versão")) && (await has(cdp, "close", "não avalia eficácia, não altera o ivo, não valida o método")));
+      check("o texto de ANTES é prospectivo ('Você está prestes a encerrar este plano') e não afirma que o plano já está encerrado", (await has(cdp, "close", "você está prestes a encerrar este plano. depois de encerrado, ele não aceita")) && !(await has(cdp, "close", "plano encerrado:")));
       check("o foco vai para o título da confirmação", await page<boolean>(cdp, `return document.activeElement && document.activeElement.id.includes('confirm-title');`));
       await snap(cdp, "pi13-04-desktop-confirmacao");
       await pressEscape(cdp);
@@ -212,11 +254,16 @@ async function main(): Promise<void> {
       await waitHas(cdp, "close", "confirmar o encerramento do plano", "confirmação reaberta");
       await pressTabEnter(cdp, "Tab");
       check("teclado: o primeiro Tab desde o título leva a 'Confirmar encerramento'", await page<boolean>(cdp, `return document.activeElement && document.activeElement.textContent.trim().startsWith('Confirmar encerramento');`));
+      // Registra a faixa do topo durante o encerramento: o aviso antigo ("Estado atualizado.") sai quando a operação começa.
+      await page(cdp, `window.__strip = [txt(strip())]; new MutationObserver(() => window.__strip.push(txt(strip()))).observe(strip(), { childList: true, subtree: true, characterData: true });`);
       await pressTabEnter(cdp, "Enter");
       await waitFor(cdp, expr(`return !!document.querySelector('section[aria-label="Plano encerrado"]');`), "aviso de plano encerrado", 60000);
 
       log("\n── 5 · Plano encerrado (desktop) ──");
       await Bun.sleep(600);
+      const stripHistory = await page<string[]>(cdp, `return window.__strip;`);
+      check("a faixa do topo descarta 'Estado atualizado.' quando o encerramento começa e termina só com a confirmação factual", stripHistory[0] === "estado atualizado." && stripHistory.indexOf("") > 0 && (stripHistory[stripHistory.length - 1] ?? "").startsWith("plano encerrado."), JSON.stringify(stripHistory));
+      check("foco depois de encerrar: document.activeElement é o aviso 'Plano encerrado' (tabindex -1, com indicador de foco), não o body", await page<boolean>(cdp, `const n = document.querySelector('section[aria-label="Plano encerrado"]'); return !!n && document.activeElement === n && n.getAttribute('tabindex') === '-1' && n.matches(':focus-visible') && getComputedStyle(n).boxShadow !== 'none';`));
       check("a faixa do topo anuncia o encerramento (região de status)", await page<boolean>(cdp, `const s = [...document.querySelectorAll('[role="status"]')].find((x) => x.innerText.includes('Plano encerrado.')); return !!s;`));
       check("aviso: data civil, papel de quem encerrou, o que deixa de existir e que não há reabertura", (await has(cdp, "plan", "plano encerrado em")) && (await has(cdp, "plan", "por rh_admin")) && (await has(cdp, "plan", "não aceita novas ações, mudanças de estado nem novos registros")) && (await has(cdp, "plan", "não há reabertura nesta versão")) && (await has(cdp, "plan", "o encerramento é definitivo")));
       check("a data do aviso é a data civil de hoje no fuso do produto", await page<boolean>(cdp, `const t = document.querySelector('section[aria-label="Plano encerrado"] time'); if (!t) return false; const d = new Date(t.getAttribute('datetime')); const today = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: 'numeric', month: 'long', year: 'numeric' }); return t.textContent.trim() === today;`));

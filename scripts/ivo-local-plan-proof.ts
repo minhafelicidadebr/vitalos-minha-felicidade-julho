@@ -26,6 +26,14 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { isLocalUrl } from "../src/lib/env/environment-contract";
+import {
+  buildPlanAdditionRequest,
+  checkPlanAdditionBeforeRetry,
+  planAdditionBase,
+  planAdditionContent,
+  type PlanAdditionContent,
+  type PlanAdditionRefs,
+} from "./ivo-local-plan-request";
 
 const ROOT = process.cwd();
 const WORKDIR = join(ROOT, ".ivo-demo.local");
@@ -70,8 +78,8 @@ const COHORT = {
   logistica: manifest.orgs.alfa.cohorts.logistica!.cohortId,
   producao: manifest.orgs.beta.cohorts.producao!.cohortId,
 };
-/** Bloco §13 do pedido R1: gravado na fase write e reenviado IDÊNTICO na fase read (PP.6). A identidade do replay inclui o §13. */
-const ADD_ACCOUNTABILITY = { ownerRoleLabel: "Gestão de pessoas", dueOn: "2026-12-15", executionMetric: { label: "Oficinas realizadas", baseline: 0, target: 2, unit: "oficinas" } };
+// O pedido de inclusão de PP.6 (campos comuns, bloco §13 e texto de R1) vive em ./ivo-local-plan-request: as duas fases o
+// constroem do MESMO módulo e a fase read confere o pedido gravado no estado, campo a campo, antes do retry.
 const API = env.SUPABASE_URL!;
 const ANON = env.SUPABASE_PUBLISHABLE_KEY!;
 const users = JSON.parse(readFileSync(USERS_FILE, "utf8")) as Array<{ key: string; email: string; password: string }>;
@@ -186,21 +194,17 @@ async function writePhase(): Promise<void> {
   check("PI13.0b história C8 presente (protocolos, observações, pareceres) e estados lidos", effBefore.ok && Object.keys(statesBefore).length >= 3 && c8Before.length === 32);
 
   const countItems = async (planId = PLAN) => Number(await psql(`SELECT COUNT(*) FROM public.action_items WHERE plan_id = '${planId}';`));
-  const baseAdd = {
-    accessToken: alfa,
-    planId: PLAN,
-    waveId: WAVE_ALFA,
-    cohortId: COHORT.operacoes,
-    factorId: "bem_estar",
-    effort: "baixo" as const,
-    accountability: ADD_ACCOUNTABILITY,
-  };
+  // Pedido de inclusão: campos comuns, bloco §13 e texto de R1 vêm de ./ivo-local-plan-request (fonte única, também usada na fase read).
+  const refs: PlanAdditionRefs = { planId: PLAN, waveId: WAVE_ALFA, cohortId: COHORT.operacoes };
+  const baseAdd = { accessToken: alfa, ...planAdditionBase(refs) };
+  const requestFor = (requestId: string, overrides?: Partial<PlanAdditionContent>) => buildPlanAdditionRequest(refs, { accessToken: alfa, requestId }, overrides);
   const R1 = crypto.randomUUID();
   const R2 = crypto.randomUUID();
   const R3 = crypto.randomUUID();
 
   console.log("\n── 1 · Incluir ação em plano existente ──");
-  const addD = await comp.addFibtActionToPlan({ ...baseAdd, requestId: R1, title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês." });
+  const requestD = requestFor(R1);
+  const addD = await comp.addFibtActionToPlan(requestD);
   const idD = addD.ok && addD.accepted ? addD.id : null;
   check("PI13.1 ação incluída no plano ativo (origem Operações × Bem-Estar, accountability completa)", addD.ok && addD.accepted === true && !!idD);
   const afterD = await loop.loadFibtActionLoop({ accessToken: alfa });
@@ -212,17 +216,15 @@ async function writePhase(): Promise<void> {
     !!viewD && viewD.source.factorId === "bem_estar" && viewD.source.cohortLabel === "Operações" && viewD.addedLater?.byRole === "RH_ADMIN" && viewD.efficacy.status === "not_evaluated" && viewD.owner?.roleLabel === "Gestão de pessoas",
   );
 
-  const repeat = await comp.addFibtActionToPlan({ ...baseAdd, requestId: R1, title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês." });
+  const repeat = await comp.addFibtActionToPlan(requestFor(R1));
   check("PI13.4 repetir o MESMO pedido devolve a ação existente, sem duplicar", repeat.ok && repeat.accepted === true && repeat.replayed === true && repeat.id === idD && (await countItems()) === 4);
-  const conflict = await comp.addFibtActionToPlan({ ...baseAdd, requestId: R1, title: "Outro título totalmente diferente", description: "x" });
+  const conflict = await comp.addFibtActionToPlan(requestFor(R1, { title: "Outro título totalmente diferente", description: "x" }));
   check("PI13.5 a mesma chave com outro conteúdo é conflito, nada gravado", conflict.ok && !conflict.accepted && conflict.reason === "request_conflict" && (await countItems()) === 4);
-  const addE = await comp.addFibtActionToPlan({ ...baseAdd, requestId: R2, title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês." });
+  const addE = await comp.addFibtActionToPlan(requestFor(R2));
   const idE = addE.ok && addE.accepted ? addE.id : null;
   check("PI13.6 mesmo conteúdo com pedido DISTINTO vira segunda ação (ações parecidas coexistem)", addE.ok && addE.accepted === true && !addE.replayed && !!idE && idE !== idD && (await countItems()) === 5);
-  const [par1, par2] = await Promise.all([
-    comp.addFibtActionToPlan({ ...baseAdd, requestId: R3, title: "Mural de reconhecimento", description: "Painel mensal." }),
-    comp.addFibtActionToPlan({ ...baseAdd, requestId: R3, title: "Mural de reconhecimento", description: "Painel mensal." }),
-  ]);
+  const requestMural = requestFor(R3, { title: "Mural de reconhecimento", description: "Painel mensal." });
+  const [par1, par2] = await Promise.all([comp.addFibtActionToPlan(requestMural), comp.addFibtActionToPlan(requestMural)]);
   const idF = par1.ok && par1.accepted ? par1.id : null;
   check(
     "PI13.7 dois envios SIMULTÂNEOS do mesmo pedido resultam em UMA ação no banco",
@@ -439,7 +441,10 @@ async function writePhase(): Promise<void> {
       itemIds: finalPlan?.actions.map((a) => a.id) ?? [],
       addedIds: finalPlan?.actions.filter((a) => a.addedLater).map((a) => a.id) ?? [],
       idD,
+      // Chave de idempotência (UUID aleatório, sem privilégio) e o conteúdo COMPLETO do pedido R1, sem sessão nem chave de API:
+      // a fase read o confere campo a campo antes de repetir o pedido (PP.6a).
       requestD: R1,
+      addRequest: planAdditionContent(requestD),
       c8Checksum: c8After,
       c8History: history,
       statesBefore,
@@ -458,7 +463,7 @@ async function readPhase(): Promise<void> {
   const eff = await import("../src/lib/ivo/efficacy-protocol.server");
   const { buildActionTimeline } = await import("../src/lib/ivo/action-follow-up");
   const state = JSON.parse(readFileSync(PLAN_STATE, "utf8")) as {
-    planId: string; closedAt: string; itemIds: string[]; addedIds: string[]; idD: string; requestD: string; c8Checksum: string; c8History: string;
+    planId: string; closedAt: string; itemIds: string[]; addedIds: string[]; idD: string; requestD: string; addRequest?: unknown; c8Checksum: string; c8History: string;
     statesBefore: Record<string, string>; protocolsCount: number; logAfterClose: number; A: string;
   };
   const alfa = await signIn("alfa_admin");
@@ -479,12 +484,25 @@ async function readPhase(): Promise<void> {
 
   console.log("\n── 10 · Idempotência e imutabilidade depois de recarregar ──");
   // O replay reenvia o pedido COMPLETO de R1, inclusive o bloco §13 gravado: a identidade do replay compara
-  // responsável, prazo e indicador, então um pedido sem eles seria request_conflict, não repetição.
-  const replayAdd = await comp.addFibtActionToPlan({
-    accessToken: alfa, planId: state.planId, requestId: state.requestD, waveId: manifest.orgs.alfa.waveId, cohortId: COHORT.operacoes, factorId: "bem_estar",
-    title: "Oficina de pausas ativas", description: "Duas oficinas curtas por mês.", effort: "baixo", accountability: ADD_ACCOUNTABILITY,
-  });
-  check("PP.6 repetir, em processo novo, o MESMO pedido de inclusão já aplicado (com o bloco §13 de accountability) devolve a mesma ação (a chave persistiu no banco)", replayAdd.ok && replayAdd.accepted === true && replayAdd.replayed === true && replayAdd.id === state.idD);
+  // responsável, prazo e indicador, então um pedido sem eles seria request_conflict, não repetição. O pedido vem do
+  // MESMO módulo da fase write e, antes do retry, é conferido campo a campo contra o conteúdo que a fase write gravou
+  // no estado: se o script derivou entre as duas fases, a prova diz isso (e qual campo) em vez de parecer defeito do produto.
+  const replayRequest = buildPlanAdditionRequest(
+    { planId: state.planId, waveId: manifest.orgs.alfa.waveId, cohortId: COHORT.operacoes },
+    { accessToken: alfa, requestId: state.requestD },
+  );
+  const gate = checkPlanAdditionBeforeRetry(state.addRequest, planAdditionContent(replayRequest));
+  check(
+    `PP.6a o pedido do retry é igual ao gravado pela fase write${gate.ok ? ` (${gate.fields} campos conferidos um a um, sem sessão nem chave de API no estado)` : ""}`,
+    gate.ok,
+    gate.ok ? undefined : gate.message,
+  );
+  const replayAdd = gate.ok ? await comp.addFibtActionToPlan(replayRequest) : null;
+  check(
+    "PP.6 repetir, em processo novo, o MESMO pedido de inclusão já aplicado (com o bloco §13 de accountability) devolve a mesma ação (a chave persistiu no banco)",
+    !!replayAdd && replayAdd.ok && replayAdd.accepted === true && replayAdd.replayed === true && replayAdd.id === state.idD,
+    replayAdd ? undefined : "não reenviado: deriva do script de prova (PP.6a)",
+  );
   const lateAdd = await comp.addFibtActionToPlan({
     accessToken: alfa, planId: state.planId, requestId: crypto.randomUUID(), waveId: manifest.orgs.alfa.waveId, cohortId: COHORT.operacoes, factorId: "bem_estar",
     title: "Nova ação em plano encerrado", description: "", effort: "baixo",
