@@ -5,7 +5,7 @@
 O inventário estático encontrou 88 componentes de rota TSX: 76 usam `AppShell` e 12 são páginas independentes de acesso, convite/token, marketing, FIB-T piloto ou administração. O `AppShell` agora mostra um aviso de “Modo demonstração” no começo de todas as páginas servidas por esse shell quando a sessão é exploratória. O aviso orienta conferir origem/limites em cada página; não declara que todo dado dentro da sessão seja sintético nem substitui os avisos específicos dos módulos. Sessões com organização institucional não recebem o aviso.
 
 Correções pontuais nas páginas fora do shell:
-- `/plataforma`: estado de verificação anunciado, campo de e-mail associado ao rótulo, seleção de plano agrupada semanticamente e anunciada via `aria-pressed`, controles com área mínima de toque e erros anunciados.
+- `/plataforma`: estado de verificação anunciado, campo de e-mail associado ao rótulo, seleção de plano em grupo nativo de rádios, controles com área mínima de toque e erros anunciados.
 - `/entrar`: sucesso e erro anunciados, ação de retomar com foco/área de toque claros.
 - `/onboarding`: título principal semântico, ícone decorativo e CTA acessível.
 - `/auth/callback`: estado de navegação anunciado ao leitor de tela.

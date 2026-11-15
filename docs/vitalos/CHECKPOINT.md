@@ -1,5 +1,9 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## Orientação de consolidação Q1/Q2 e expansão Q3/Q4 — 2026-11-15
+
+Base conferida `b46737a`, sem alterações rastreadas anteriores. Criado [dossiê de superprompts e critérios de entrega](SUPERPROMPTS_CONSOLIDACAO_Q1_Q2_SAAS_Q3_Q4.md): comparação de seis caminhos, Q2 empresarial completo como primeira unidade de serviço, Q1 em trilha paralela sobre fonte já aprovada, operação SaaS/piloto e expansão por lente. **Proposta de desenvolvimento, sem implementação nova ou aprovação metodológica/comercial.** Decisões humanas agrupadas; conteúdo Q2 continua TESTE, RELs ESG pendentes e Q3/Q4 planejados. CI/staging atuais não consultados. Corrigida somente a descrição documental da seleção de plano em `/plataforma` (rádios nativos já implementados). Verificação documental, sem repetir testes/build/gates/HTTP/DB ou executar operação remota; `.q.out`/`.q.sql` preservados sem abertura.
+
 ## Matriz METE × drivers × evidências ESG — 2026-11-15
 
 Base `1e801f1` preservada. Executado primeiro incremento do superprompt: cinco casos sintéticos independentes com eventos METE/papéis, vínculos propostos E/S/G, evidência, mudança descritiva ou retenção explícita. Sem nota ESG, pesos de perfil, IC ou estimador causal. Projeção protegida omite detalhes; contagem de transformação deduplica evento entre temas/perfis/linhas. Vínculos não foram aprovados e schema canônico não foi alterado.
