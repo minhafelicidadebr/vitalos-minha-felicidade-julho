@@ -1,5 +1,19 @@
 # Auditoria dirigida de design instrucional e organização visual
 
+## Sexta onda — fronteiras do relatório global
+
+`GlobalReportContext.tsx` explicita quatro operações em `/relatorio-global`: corpo demonstrativo, consulta institucional condicional, impressão do navegador e solicitação de snapshot ao servidor. `isRealMode` continua derivado da capability, configuração e vínculo existentes; “habilitada” não significa consulta bem-sucedida. Não se alterou o controle de acesso, payload ou handler de snapshot. Nenhuma operação foi executada contra ambiente remoto.
+
+O botão de exportação passa a descrever a implementação existente (`window.print`): “Imprimir / salvar PDF da página”. A capa de impressão recebe aviso de dados de exemplo e anexo separado. Os cards de prontidão, experimentos e selo identificam seu caráter demonstrativo junto dos valores. A introdução do anexo não declara que todo dado já está disponível ou que verificações implementadas equivalem a asseguração independente. A fórmula histórica derivada de COPSOQ e os critérios do anexo foram preservados, sem aprovação metodológica nova; uma origem institucional não homologa interpretação, equivalência ou conformidade.
+
+Mobile, revisão estática: linhagem em uma coluna antes de `sm`, identificadores quebram em vez de truncar, campos com área de toque de 44px, entrada de papel com nome acessível contextual e grade de materialidade empilhada até `xl`. Não foi feita prova visual de impressão, mobile, foco ou leitor de tela; a validação no navegador permanece adiada pelo operador.
+
+Verificação: 38 testes direcionados aprovados (novo contexto, relatório anual e anexo), TypeScript e revisão de diff. O teste novo garante que habilitação institucional não elimina o aviso demonstrativo nem confirma persistência/impressão. Testes de engines não validam critérios científicos. Build inerte isolado integra a nova importação; resultado no fechamento desta etapa. Logs locais ignorados: `instructional-global-report-tests.log` e `instructional-global-report-build.log`. Não houve geração de PDF, snapshot, migration, seed ou alteração de dados reais.
+
+Próxima revisão independente: página do selo e demais destinos ainda não inspecionados de certificação. As seis ondas cobrem uma seleção de superfícies; não constituem auditoria ou homologação integral do aplicativo.
+
+Build final aprovado em `module-build-1794767770965`, com `.output` original preservada e varredura de 671 fontes/302 artefatos sem credencial ou identificador de projeto real. Metadados genéricos locais do helper atualizados, diretórios anteriores preservados. Sem deploy.
+
 ## Quinta onda — P&L, ESG e galeria de relatórios
 
 As rotas `/pnl`, `/esg` e `/relatorios` reutilizam o aviso de origem/limites antes dos indicadores. P&L identifica parâmetros editáveis, base demonstrativa e natureza estimada dos custos; não se altera a fórmula nem se valida a relação entre variação IVO e economia. ESG identifica prontidão/cobertura demonstrativas, sem alegação de conformidade, certificação ou impacto observado. Galeria identifica evidências/selo/relatórios de exemplo. A ação que apenas atualiza estado React passa de “Gerar PDF” para “Simular geração de PDF”, com retorno anunciado por `role=status` e mensagem de que nenhum arquivo foi gerado; removida promessa de prazo/fase futura não comprovada.
