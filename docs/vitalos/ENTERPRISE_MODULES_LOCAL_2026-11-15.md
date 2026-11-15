@@ -1,5 +1,22 @@
 # Habilitação empresarial Q1/Q2 — evidência local de 2026-11-15
 
+## Fechamento dirigido após 1e2d8a0
+
+HEAD conferido em `1e2d8a0`, sem alterações rastreadas posteriores. A lista visual de três SQL inclui o rascunho `20261114010000_enterprise_module_entitlements.sql`: ele não existe na árvore nem no histórico Git; foi substituído, antes do commit, pelo arquivo gerado pelo CLI `20261115135955`. Não constitui terceira migration aplicada. Nesta onda foram aplicadas as ordens 65/66 abaixo; 63/64 pertencem à onda anterior. Não há inconsistência no manifesto a corrigir, nem migration a reorganizar.
+
+Cobertura preservada: upgrade do stack sintético já provisionado e instalação vazia **da fatia** sobre schema copiado, com ambas as migrations 65/66, não replay completo desde o bootstrap. Nenhuma reaplicação nesta retomada; gate, build e provas HTTP/DB anteriores não foram repetidos.
+
+Diagnóstico suportado do navegador: inicialização de `@oai/sky`, inventário e seleção de janela retornada; captura de estado disponível. Na tentativa de abrir uma guia de teste, a ferramenta interrompeu a automação com: “could not determine the current browser URL on Windows with enough confidence to enforce policy”. Nenhuma navegação local ou alteração de módulos foi executada nesta retomada. Não foram alteradas permissões/validação, nem tentado outro mecanismo para contornar a interrupção. A prova visual e a confirmação persistida de suas futuras alterações permanecem pendentes.
+
+Roteiro manual curto, exclusivamente no stack próprio (API 57621, DB 57622, app 8091; conferir identidade antes de escrever):
+
+1. Entrar em `http://localhost:8091/plataforma` com a identidade sintética `platform@institutional.test`, pelo e-mail local no Mailpit `http://127.0.0.1:57624`. Registrar o estado inicial de Beta, sem tokens ou links de login.
+2. Selecionar Alfa pelo nome/slug/ID. Habilitar Q1 e desabilitar Q2, confirmando cada alteração. Com `alfa@institutional.test`, conferir `/rh`: Q1 metodologicamente pendente e Q2 desabilitado. Tentar `/ivo-integral/q2` diretamente e recarregar: dados devem continuar recusados.
+3. Manter a sessão Alfa aberta em navegador separado. Pela plataforma, desabilitar Q1 e habilitar Q2. Atualizar Alfa: Q2 deve abrir sem exigir Q1. Desabilitar Q2 novamente pela plataforma; na sessão Alfa já aberta, repetir a operação e recarregar a URL direta: acesso deve ser recusado.
+4. Conferir Beta com `beta@institutional.test`: estado inicial inalterado. Reabrir o inventário da plataforma e conferir revisões/estados de Alfa/Beta em nova leitura; registrar apenas estados, revisão e resultado das tentativas. Não presumir confirmação de persistência pela aparência de um botão.
+
+Menor marco Q2: após fechar essa interação, demonstrar pelo produto uma única empresa sintética da configuração do ciclo à leitura protegida e criação/acompanhamento de uma ação, reutilizando as provas válidas de coleta, publicação, isolamento, PI-13/C8 e concorrência. A fonte COPSOQ é dependência específica de Q1 e não impede esse marco Q2.
+
 Base preservada: branch `feat/ivo-fibt-platform-foundation`, HEAD anterior `0d95791be00944818f2cd7e84a2067ceabc87847`. Esta documentação acompanha a implementação; não há publicação remota.
 
 ## Contrato implementado

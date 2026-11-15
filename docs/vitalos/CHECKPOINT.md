@@ -2,6 +2,10 @@
 
 ## Habilitação empresarial independente Q1/Q2 — 2026-11-15
 
+Retomada dirigida de `1e2d8a0`: sem mudanças rastreadas posteriores. Reconciliada a lista visual de SQL: `20261114010000` era rascunho substituído por `20261115135955`, ausente da árvore/histórico; novas migrations efetivas são 65/66, anteriores de primeiro administrador 63/64. Nenhuma migration alterada ou reaplicada. Instalação vazia é da fatia sobre schema copiado, não replay integral. Gate/build/HTTP/DB válidos preservados sem repetição.
+
+Nova tentativa pelo procedimento suportado de Computer Use: inventário/seleção/captura funcionaram, mas abrir guia foi interrompido por impossibilidade de determinar a URL atual com confiança suficiente para aplicar a política. Nenhum teste visual local, alteração de entitlement ou confirmação nova de persistência foi concluído; sem contorno da proteção. Roteiro manual sanitizado e próximo marco Q2 no fechamento dirigido do registro técnico abaixo. Prova de navegador continua pendente.
+
 Base preservada: `feat/ivo-fibt-platform-foundation`, HEAD anterior `0d95791be00944818f2cd7e84a2067ceabc87847`. Implementação desta fatia acompanha este checkpoint. Nenhum push, deploy ou alteração de PR/ambiente remoto.
 
 Implementados contrato persistido por empresa/módulo, ator/data/revisão, audit trail transacional, retry/CAS, autoridade de plataforma separada de RH_ADMIN, consulta central no servidor, RLS/triggers/publicador canônico protegido e interface em `/plataforma` + `/rh`. Ausência/falha nega; desabilitar preserva registros e bloqueia novas operações sem logout. Q1 habilitado continua metodologicamente bloqueado; Q2 funciona sem Q1. Não foram aprovados índice, mapeamentos ou eficácia.
