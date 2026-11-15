@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Info } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
 import { useIvo, useOrg } from "@/mocks/hooks";
@@ -67,13 +68,19 @@ function SeloPage() {
     return (
       <AppShell>
         <div className="flex min-h-[50vh] items-center justify-center">
-          <p className="animate-pulse text-muted-foreground">Auditando a certificação…</p>
+          <p role="status" className="text-muted-foreground">Preparando a prévia demonstrativa…</p>
         </div>
       </AppShell>
     );
   }
 
   const style = TIER_STYLE[result.tier];
+  const essentialCriteria = result.criteria.filter((criterion) => criterion.essential);
+  const complementaryCriteria = result.criteria.filter((criterion) => !criterion.essential);
+  const complementaryMet = complementaryCriteria.filter((criterion) => criterion.status === "cumprido").length;
+  const essentialProgress = essentialCriteria.length
+    ? Math.round((result.essentialMet / essentialCriteria.length) * 100)
+    : 0;
 
   return (
     <AppShell>
@@ -88,11 +95,11 @@ function SeloPage() {
               <span className="text-sm font-medium text-foreground">4 Lentes VitalOS™</span>
             </div>
             <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Certificado de Conselho
+              Prévia demonstrativa · sem validade de certificação
             </span>
           </div>
           <p className="mt-1.5 text-[10px] text-muted-foreground">
-            {org.name} · Selo Empresa Viva · Emitido em {formatReportDate()}
+            Exemplo institucional · Selo Empresa Viva · Gerado em {formatReportDate()}
           </p>
         </div>
 
@@ -105,23 +112,49 @@ function SeloPage() {
         >
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              {SEAL_INTRO.eyebrow}
+              Prévia demonstrativa · {SEAL_INTRO.eyebrow}
             </p>
-            <h1 className="mt-1 font-serif text-3xl text-foreground">{SEAL_INTRO.title}</h1>
+            <h1 className="mt-1 font-serif text-3xl text-foreground">Selo Empresa Viva</h1>
             <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              {SEAL_INTRO.lead}
+              Explore como os critérios organizam uma avaliação. Os dados atuais são demonstrativos e não representam uma certificação emitida para uma organização.
             </p>
           </div>
           <button
             onClick={() => window.print()}
-            title="Na caixa de impressão, escolha “Salvar como PDF” em tamanho A4."
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
+            title="Imprime esta prévia demonstrativa; não é um certificado."
+            aria-label="Imprimir prévia demonstrativa"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring print:hidden"
           >
-            <span aria-hidden>⤓</span> Exportar certificado
+            <span aria-hidden>⤓</span> Imprimir prévia
           </button>
         </motion.div>
 
-        {/* O selo — emblema visual (no print: certificado emoldurado) */}
+        <aside aria-label="Aviso sobre os dados" className="flex items-start gap-3 rounded-xl border border-sky-300/50 bg-sky-50/60 p-4 text-sm leading-relaxed text-sky-950 dark:border-sky-800/50 dark:bg-sky-950/20 dark:text-sky-100">
+          <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+          <p><strong>Ambiente demonstrativo.</strong> Os cálculos abaixo usam dados simulados. Não comprovam resultados, não concedem selo e não podem ser apresentados como certificação.</p>
+        </aside>
+
+        <section aria-label="Resumo da elegibilidade demonstrativa" className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs font-medium text-muted-foreground">Critérios essenciais</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-foreground">{result.essentialMet} <span className="text-base text-muted-foreground">de {essentialCriteria.length}</span></p>
+            <div role="progressbar" aria-label="Critérios essenciais cumpridos no exemplo" aria-valuemin={0} aria-valuemax={essentialCriteria.length} aria-valuenow={result.essentialMet} className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${essentialProgress}%` }} />
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs font-medium text-muted-foreground">Critérios complementares</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-foreground">{complementaryMet} <span className="text-base text-muted-foreground">de {complementaryCriteria.length}</span></p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Diferenciam o nível de referência dentro desta simulação.</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs font-medium text-muted-foreground">Nível calculado no exemplo</p>
+            <p className={`mt-1 font-serif text-xl ${style.color}`}>{result.tierLabel}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Regra demonstrativa, sem validade de certificação.</p>
+          </div>
+        </section>
+
+        {/* O selo — emblema visual da simulação, sem emissão certificativa. */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -133,7 +166,7 @@ function SeloPage() {
             className={`pointer-events-none absolute inset-x-0 top-0 h-40 ${style.bg} opacity-60 blur-2xl print:hidden`}
           />
           <p className="print-only mb-4 font-serif text-[11px] uppercase tracking-[0.3em] text-primary">
-            Certificado Empresa Viva
+            Prévia · sem validade de certificação
           </p>
           <div className="relative">
             {/* halo externo */}
@@ -158,7 +191,7 @@ function SeloPage() {
             {result.tierLabel}
           </p>
           <p className="relative mt-1 text-xs text-muted-foreground">
-            {org.name} · {result.essentialMet}/{result.essentialTotal} critérios essenciais
+            Exemplo institucional · {result.essentialMet}/{result.essentialTotal} critérios essenciais no exemplo
           </p>
           <span
             className={`relative mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${style.bg} ${style.color}`}
@@ -169,10 +202,10 @@ function SeloPage() {
                 result.granted ? "bg-emerald-500" : "bg-muted-foreground/60"
               }`}
             />
-            {result.granted ? "Selo concedido" : "Selo não concedido"}
+            {result.granted ? "Elegibilidade atingida no exemplo" : "Elegibilidade não atingida no exemplo"}
           </span>
           <p className="relative mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
-            {result.granted ? SEAL_INTRO.grantedNote : SEAL_INTRO.pendingNote}
+            O nível exibido ilustra a regra de cálculo. Uma emissão real exigiria dados verificados, governança aprovada e processo formal de certificação.
           </p>
 
           {/* Linha de assinatura/validade — só impressão */}
@@ -180,13 +213,13 @@ function SeloPage() {
             <div>
               <div className="h-px w-full bg-foreground/60" />
               <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Assinatura do conselho
+                Sem assinatura · exemplo demonstrativo
               </p>
             </div>
             <div>
               <div className="h-px w-full bg-foreground/60" />
               <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Emitido em {formatReportDate()} · válido por 12 meses
+                Gerado em {formatReportDate()} · sem validade certificativa
               </p>
             </div>
           </div>
@@ -195,26 +228,25 @@ function SeloPage() {
         {/* Critérios auditáveis */}
         <section className="rounded-2xl border border-border/70 bg-card shadow-sm">
           <header className="border-b border-border/50 px-5 py-4">
-            <h2 className="font-serif text-lg text-foreground">Critérios auditáveis</h2>
+            <h2 className="font-serif text-lg text-foreground">Como o exemplo é avaliado</h2>
             <p className="text-xs text-muted-foreground">
-              Cada linha é rastreável até a sua evidência — o auditor refaz a conta.
+              Os critérios mostram a regra e o estado na simulação. As fontes desta versão são dados de demonstração, não evidências auditáveis de uma organização.
             </p>
           </header>
           <div className="divide-y divide-border/40">
-            {result.criteria.map((c) => (
-              <CriterionRow key={c.id} criterion={c} />
-            ))}
+            <CriterionGroup title="Essenciais para o nível Empresa Viva (no exemplo)" criteria={essentialCriteria} />
+            <CriterionGroup title="Complementares para o nível Referência (no exemplo)" criteria={complementaryCriteria} />
           </div>
         </section>
 
-        {/* Proveniência do Domínio B — como o selo foi GANHO (da Prova de Ciclo real) */}
+        {/* Proveniência sintética: não representa prova real de ciclo. */}
         {earned && <ProvenanceCard earned={earned} />}
 
         {/* O que falta */}
         {result.gaps.length > 0 && (
           <section className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
             <h2 className="mb-2 font-serif text-base text-amber-900 dark:text-amber-200">
-              O que falta para {result.granted ? "elevar o selo" : "conquistar o selo"}
+              Próximas etapas ilustrativas
             </h2>
             <ul className="space-y-1.5">
               {result.gaps.map((g, i) => (
@@ -234,14 +266,14 @@ function SeloPage() {
 
         {/* Nota pública + honestidade */}
         <div className="rounded-2xl border border-border/60 bg-muted/30 p-5">
-          <p className="text-xs leading-relaxed text-muted-foreground">{SEAL_INTRO.publicNote}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">Esta demonstração não é certificação, não tem validade pública ou comercial e não deve ser usada para declarar conformidade ou impacto.</p>
         </div>
 
         {/* Rodapé institucional — só na impressão */}
         <div className="print-only mt-4 border-t border-border pt-3">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-            <span>Confidencial — uso interno do conselho. Dados agregados (k≥5).</span>
-            <span>Gerado pelo 4 Lentes VitalOS™ · VitalOS</span>
+            <span>Exemplo demonstrativo · não representa dados de cliente.</span>
+            <span>Prévia do Selo Empresa Viva · VitalOS</span>
           </div>
         </div>
 
@@ -287,7 +319,7 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
       }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-serif text-lg text-foreground">Como o Domínio B foi conquistado</h2>
+        <h2 className="font-serif text-lg text-foreground">Prova de ciclo no exemplo</h2>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
             ready
@@ -299,18 +331,18 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
             aria-hidden
             className={`h-1.5 w-1.5 rounded-full ${ready ? "bg-emerald-500" : "bg-muted-foreground/60"}`}
           />
-          Prova de Ciclo: {VERDICT_LABEL[earned.cycleVerdict] ?? earned.cycleVerdict}
+          Resultado simulado: {VERDICT_LABEL[earned.cycleVerdict] ?? "indisponível"}
         </span>
       </div>
 
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{earned.provenanceNote}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Este resultado foi calculado com dados demonstrativos disponíveis no aplicativo. Não comprova a execução de intervenções nem efeitos em uma organização real.</p>
 
       {ready && (
         <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Metric label="Intervenções com efeito" value={String(earned.interventionsWithEffect)} />
-          <Metric label="Redução atribuível" value={`${earned.attributableReductionPts}`} suffix="pts" />
+          <Metric label="Intervenções no exemplo" value={String(earned.interventionsWithEffect)} />
+          <Metric label="Redução calculada no exemplo" value={`${earned.attributableReductionPts}`} suffix="pts" />
           <Metric
-            label="Custo evitado (ano)"
+            label="Estimativa ilustrativa de custo anual"
             value={
               earned.avoidedCostYear != null
                 ? earned.avoidedCostYear.toLocaleString("pt-BR")
@@ -324,9 +356,7 @@ function ProvenanceCard({ earned }: { earned: EarnedSeal }) {
       )}
 
       <p className="mt-4 border-t border-border/40 pt-3 text-[11px] leading-relaxed text-muted-foreground">
-        O selo reconhece <strong>evidência medida</strong>, não atividade declarada. A eficácia é
-        associação orientativa (indicativa, drift-adjusted), nunca prova causal; custos são
-        estimativas com fórmula visível.
+        Os indicadores acima ilustram a apresentação visual e não representam evidência, eficácia ou economia comprovadas.
       </p>
     </motion.section>
   );
@@ -400,5 +430,14 @@ function CriterionRow({ criterion }: { criterion: CriterionResult }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function CriterionGroup({ title, criteria }: { title: string; criteria: CriterionResult[] }) {
+  return (
+    <section aria-label={title}>
+      <h3 className="bg-muted/30 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+      {criteria.map((criterion) => <CriterionRow key={criterion.id} criterion={criterion} />)}
+    </section>
   );
 }
