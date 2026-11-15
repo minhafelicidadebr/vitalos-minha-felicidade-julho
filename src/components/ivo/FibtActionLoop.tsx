@@ -219,10 +219,12 @@ export interface EvidenceInput {
   occurredOn: string;
   /** Só aprendizagem: conteúdo educativo estudado (referência do catálogo curatorial). */
   contentId?: string;
+  contentVersion?: string;
 }
 
 /** Opção do catálogo curatorial exibida no registro de aprendizagem. */
 export interface EducationOption {
+  version?: string;
   contentId: string;
   title: string;
   status: "APROVADO" | "TESTE";
@@ -368,7 +370,7 @@ function EvidenceForm({
         kind: scope === "execucao" ? kind : undefined,
         content: content.trim(),
         occurredOn,
-        ...(scope === "aprendizagem" && contentId ? { contentId } : {}),
+        ...(scope === "aprendizagem" && contentId ? { contentId, contentVersion: education?.find(c => c.contentId === contentId)?.version } : {}),
       });
       if (result && !result.ok) {
         // Falha: o texto digitado fica no campo para nova tentativa.
@@ -554,7 +556,7 @@ export function FibtActionCard({
           Estado: {STATUS_LABEL[action.status]}
         </span>
       </div>
-      {action.description ? <p className="text-sm text-muted-foreground">{action.description}</p> : null}
+      {action.description ? <p className="text-sm text-muted-foreground">{parseContentRef(action.description)?.text ?? action.description}</p> : null}
 
       <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
         <div>

@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## Aprendizagem → aplicação Q2 — 2026-11-15
+
+Base `ed971e93e64df9529c1b2fe391a53ff225a3eac5` preservada na branch `feat/ivo-fibt-platform-foundation`, inicialmente sem alterações rastreadas. Implementada composição local TESTE na jornada de ações: recuperação com feedback e revisão em sessão, preparação explícita de aplicação, conteúdo/atividade versionados e inclusão no plano pelo contrato PI-13. Execução e aprendizagem continuam registros distintos; rastro é descritivo, sem conclusão C8/eficácia ou relatório ESG homologado. Respostas/notas não são persistidas. Não houve migration, novo ledger, aprovação editorial D10, expansão de papéis, RAG/LLM ou mudança metodológica.
+
+**Evidências novas:** 20 verificações HTTP/Auth/DB em Alfa/Beta sintéticas e 4 de releitura em processo independente; concorrência com um único efeito na inclusão, versões/fator adulterados recusados, RLS entre empresas, novo login e recusa de sessão já aberta após desabilitar Q2. Origem Q2 publicada foi reutilizada, com Q1 desligado. Stack próprio preservado, sem reset. Gate integrado: **4.284 pass / 0 fail / 330 arquivos**, paridade, TypeScript e secret-scan; build inerte isolado aprovado, `.output` original preservada. Primeira execução do gate expôs flake de relógio na fronteira TTL de teste de survey: corrigido somente o teste com instante fixo, seguido do gate final. Nenhuma mudança de produção nesse engine.
+
+**Limites:** conteúdo apenas TESTE e escrita administrativa institucional existente; demais personas e validação com clientes não concluídas. Tentativa de navegador novamente interrompida pela ferramenta ao abrir guia, por confiança insuficiente na URL atual para aplicar a política; sem contorno. Assim, integração HTTP/DB/build está demonstrada localmente, mas a prova visual permanece incompleta. CI/staging não confirmados; nenhuma liberação comercial. `.q.out` e `.q.sql` preservados e não lidos.
+
+Fechamento único da onda, comandos, evidências sanitizadas e roteiro visual em [LEARNING_Q2_LOCAL_2026-11-15.md](LEARNING_Q2_LOCAL_2026-11-15.md). [Protocolo de futura validação com clientes](LEARNING_Q2_CLIENT_VALIDATION_PROTOCOL.md) é proposta, sem autorização de coleta/piloto. Próximo marco único: concluir a interação real no navegador local reaproveitando as provas válidas. Fonte COPSOQ permanece dependência específica de Q1, sem bloquear trabalho independente Q2. Seções abaixo são histórico e não o estado cumulativo atual.
+
 ## Habilitação empresarial independente Q1/Q2 — 2026-11-15
 
 Retomada dirigida de `1e2d8a0`: sem mudanças rastreadas posteriores. Reconciliada a lista visual de SQL: `20261114010000` era rascunho substituído por `20261115135955`, ausente da árvore/histórico; novas migrations efetivas são 65/66, anteriores de primeiro administrador 63/64. Nenhuma migration alterada ou reaplicada. Instalação vazia é da fatia sobre schema copiado, não replay integral. Gate/build/HTTP/DB válidos preservados sem repetição.

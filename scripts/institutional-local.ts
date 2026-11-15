@@ -94,6 +94,7 @@ async function dev() {
   // Ausência é o perfil canônico default; string vazia significa perfil inválido.
   // Não herda flags de staging/HML, nem deixa o Bun recarregar arquivos .env.
   const childEnv = Object.fromEntries(Object.entries({ ...process.env, ...env }).filter(([key]) => !/^(VITALOS_IVO_|FIBT_HML_|VITE_FIBT_HML_|STAGING_)/.test(key))) as Record<string,string>;
+  if (process.argv.includes("--learning")) childEnv.VITALOS_LOCAL_FIXTURE_CAPABILITIES = "ACTION_PLAN";
   const preflight = Bun.spawn(["bun", "--no-env-file", "run", "scripts/environment-preflight.ts", "--runtime=local", "--db=local"], { env: childEnv, stdout: "inherit", stderr: "inherit" });
   if (await preflight.exited) throw new Error("Preflight local recusou o harness.");
   const child = Bun.spawn(["node", join(root, "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "8091"], {

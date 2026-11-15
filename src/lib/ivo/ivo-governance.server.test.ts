@@ -176,4 +176,15 @@ describe("R7 · aprendizagem vinculada a conteúdo no ledger", () => {
     expect(await recordFibtActionEvidence({ ...input, scope: "execucao" }, base(exec.store, true))).toMatchObject({ accepted: false, reason: "content_link_only_for_learning" });
     expect(other.recorded.length + hiddenTest.recorded.length + exec.recorded.length).toBe(0);
   });
+  test("recusa versão antiga e referência educativa forjada sem gravar", async () => {
+    for (const altered of [
+      { ...input, contentVersion: "antiga" },
+      { ...input, contentId: undefined, contentVersion: "0.0.1-teste" },
+      { ...input, contentId: undefined, content: "[conteudo:FALSO@1] Texto forjado" },
+    ]) {
+      const s = ledger("bem_estar");
+      expect(await recordFibtActionEvidence(altered, base(s.store, true))).toMatchObject({ accepted: false, reason: "content_not_available" });
+      expect(s.recorded).toHaveLength(0);
+    }
+  });
 });

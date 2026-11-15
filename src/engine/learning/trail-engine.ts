@@ -41,7 +41,7 @@ export interface QuizGrade {
   perItem: QuizItemResult[];
 }
 
-export function gradeQuiz(items: readonly QuizItem[], answers: Record<string, string>): QuizGrade {
+export function gradeQuiz(items: readonly Pick<QuizItem, "id" | "correctOptionId">[], answers: Record<string, string>): QuizGrade {
   const perItem = items.map((item) => {
     const answer = answers[item.id];
     return {

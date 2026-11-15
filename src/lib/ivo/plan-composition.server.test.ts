@@ -31,6 +31,8 @@ import {
   type PlanCompositionStore,
 } from "./fibt-plan-composition.server";
 import { OPERATIONAL_EXIT, PLAN_STATUS_LABEL, assessPlanClosure, describePending } from "./plan-closure";
+import { createLearningApplication } from "./learning-application.server";
+import { learningApplicationSchema } from "@/lib/api/ivo-learning-application.functions";
 
 const manifest = getFibtManifest();
 const VERSION = manifest.instrument_version;
@@ -255,6 +257,43 @@ const ADD: AddActionToPlanRequest = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PI-13 · incluir ação em plano existente", () => {
+  const learning = () => ({ ...ADD, contentId: "TESTE-bem_estar-001", contentVersion: "0.0.1-teste", activityVersion: "0.0.1-teste" });
+  test("aprendizagem: aplicação versionada reutiliza retry do PI-13 sem respostas pedagógicas", async () => {
+    const s = memoryStore();
+    const deps = depsOf(s, { testContent: true });
+    expect(await createLearningApplication(learning(), deps)).toMatchObject({ ok: true, accepted: true });
+    expect(await createLearningApplication(learning(), deps)).toMatchObject({ ok: true, accepted: true, replayed: true });
+    expect(s.written).toHaveLength(1);
+    expect(s.written[0]!.description).toContain("[conteudo:TESTE-bem_estar-001@0.0.1-teste] Atividade 0.0.1-teste.");
+    expect(JSON.stringify(s.written)).not.toMatch(/correctCount|answers|quizScore/);
+  });
+  test("aprendizagem: versão/fator/teste não autorizado recusam antes da escrita", async () => {
+    for (const change of [{ contentVersion: "antiga" }, { activityVersion: "antiga" }, { factorId: "satisfacao_empresa" }]) {
+      const s = memoryStore();
+      expect(await createLearningApplication({ ...learning(), ...change }, depsOf(s, { testContent: true }))).toMatchObject({ ok: true, accepted: false });
+      expect(s.written).toHaveLength(0);
+    }
+    const s = memoryStore();
+    expect(await createLearningApplication(learning(), depsOf(s, { testContent: false }))).toMatchObject({ accepted: false, reason: "content_not_available" });
+  });
+  test("aprendizagem: Beta, sem papel e módulo desabilitado não criam aplicação", async () => {
+    for (const accessToken of ["token-beta-admin", "token-alfa-membro", "invalido"]) {
+      const s = memoryStore();
+      const result = await createLearningApplication({ ...learning(), accessToken }, depsOf(s, { testContent: true }));
+      expect(result.ok && result.accepted).toBe(false);
+      expect(s.written).toHaveLength(0);
+    }
+    const s = memoryStore();
+    expect(await createLearningApplication(learning(), depsOf(s, { testContent: true, moduleAccess: async () => ({ ok: false, reason: "disabled", error: "Desabilitado" }) }))).toMatchObject({ ok: false, category: "module_disabled" });
+    expect(s.written).toHaveLength(0);
+  });
+  test("aprendizagem: cliente não forja referência nem envia respostas/empresa", async () => {
+    const s = memoryStore();
+    expect(await addFibtActionToPlan({ ...ADD, description: "[conteudo:FALSO@1] falso" }, depsOf(s))).toMatchObject({ accepted: false, reason: "reserved_content_reference" });
+    expect(s.written).toHaveLength(0);
+    expect(learningApplicationSchema.safeParse({ ...learning(), answers: { a: "b" } }).success).toBe(false);
+    expect(learningApplicationSchema.safeParse({ ...learning(), organizationId: "alheia" }).success).toBe(false);
+  });
   test("ação válida entra no plano ativo com origem por referência e papel vindo da sessão", async () => {
     const s = memoryStore();
     const r = await addFibtActionToPlan(ADD, depsOf(s));

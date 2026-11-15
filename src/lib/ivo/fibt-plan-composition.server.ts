@@ -42,6 +42,7 @@ import { loadIvoQ2ForOrg } from "./ivo-q2-reading.server";
 import { authorizeLedger, type FibtActionLoopDeps } from "./fibt-action-loop.server";
 import { PLAN_EMPTY_MESSAGE, assessPlanClosure, describePending } from "./plan-closure";
 import type { LedgerWriteOutcome } from "./ivo-views";
+import { encodeContentRef } from "./content-ref";
 
 // ─── Contrato da store ──────────────────────────────────────────────────────
 
@@ -225,9 +226,12 @@ export interface AddActionToPlanRequest {
 export async function addFibtActionToPlan(
   input: AddActionToPlanRequest,
   deps: PlanCompositionDeps = {},
+  learningReference?: { id: string; version: string },
 ): Promise<LedgerWriteOutcome> {
   const auth = await authorizeLedger(input.accessToken, deps);
   if (!auth.ok) return auth;
+  if (/^\s*\[conteudo:/i.test(input.description)) return rejected("reserved_content_reference", "A referência educativa é definida pelo servidor. Use a jornada de aprendizagem.");
+  if (learningReference) input = { ...input, description: encodeContentRef(learningReference, input.description) };
   try {
     const store = compositionOf(deps);
     const plan = await store.loadPlan(auth.orgId, input.planId);

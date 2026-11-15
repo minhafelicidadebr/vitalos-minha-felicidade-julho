@@ -94,6 +94,7 @@ export const ivoActionLoopSchemas = {
       content: z.string().trim().min(3).max(2000),
       occurredOn: z.string().date(),
       contentId: z.string().regex(/^[A-Za-z0-9_.-]{1,80}$/).optional(),
+      contentVersion: z.string().regex(/^[A-Za-z0-9_.-]{1,40}$/).optional(),
     })
     .strict(),
 };

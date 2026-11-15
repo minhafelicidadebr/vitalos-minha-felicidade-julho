@@ -9,6 +9,7 @@
 import { authorizeLedger, type FibtActionLoopDeps } from "./fibt-action-loop.server";
 import { isDisposableLocalRuntime, type GovernanceGateEnv } from "./ivo-governance-gate.server";
 import { getFactorContentCatalog, getFactorContentMeta } from "@/domain/ivo/factor-content";
+import { getFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
 import type { EducationContentView, LoadEducationOutcome } from "./ivo-views";
 
 export async function loadEducationForSession(input: { accessToken?: string }, deps: FibtActionLoopDeps = {}): Promise<LoadEducationOutcome> {
@@ -31,6 +32,7 @@ export async function loadEducationForSession(input: { accessToken?: string }, d
       body: [...c.body],
       evidenceCodes: [...c.evidenceCodes],
       safeClaimIds: [...c.safeClaimIds],
+      ...(c.status === "TESTE" ? { activity: getFactorLearningActivity(c.id, c.version) } : {}),
     });
   }
   const meta = getFactorContentMeta();

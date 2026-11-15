@@ -37,6 +37,8 @@ import {
 } from "@/lib/api/ivo-action-loop.functions";
 import { buildActionTimeline, summarizePlan } from "@/lib/ivo/action-follow-up";
 import { parseContentRef } from "@/lib/ivo/content-ref";
+import { createLearningApplicationFn } from "@/lib/api/ivo-learning-application.functions";
+import { LearningApplicationJourney, LearningApplicationTrace } from "@/components/ivo/LearningApplicationJourney";
 import type {
   FibtActionPlanView,
   IvoQ2Outcome,
@@ -201,12 +203,15 @@ function IvoAcoesPage() {
         />
       ),
       educationOptions: (action) =>
-        (education?.byFactor[action.source.factorId] ?? []).map((c) => ({ contentId: c.contentId, title: c.title, status: c.status })),
+        (education?.byFactor[action.source.factorId] ?? []).map((c) => ({ contentId: c.contentId, title: c.title, status: c.status, version: c.version })),
       extras: (action) => (
         <>
           {education ? (
-            <EducationPanel factorName={action.source.factorName} content={education.byFactor[action.source.factorId] ?? []} catalog={education.catalog} />
+            <EducationPanel factorName={action.source.factorName} content={education.byFactor[action.source.factorId] ?? []} catalog={education.catalog}
+              renderActivity={content => <LearningApplicationJourney key={`${action.id}:${content.contentId}:${content.version}`} content={content} action={action} plan={plan} view={view} busy={busy}
+                onSubmit={(planId, application, binding) => write(() => createLearningApplicationFn({ data: { accessToken: token, planId, ...application, ...binding } }), "Aplicação planejada registrada. Aprendizagem e eficácia não foram inferidas.", { inline: true, replayedText: "Esta aplicação já estava registrada; nenhum efeito duplicado." })} />} />
           ) : null}
+          <LearningApplicationTrace action={action} />
           <ActionTimelinePanel entries={buildActionTimeline(action, plan, itemOf(action.id), parseContentRef)} contentTitle={contentTitle} />
         </>
       ),

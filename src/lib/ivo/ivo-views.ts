@@ -280,6 +280,7 @@ export type PrepareGovernanceDecisionOutcome =
 
 // ─── R7 · educação (catálogo curatorial fator → conteúdo) ───────────────────
 export interface EducationContentView {
+  activity?: import("./learning-application").LearningActivity;
   contentId: string;
   factorId: string;
   status: "APROVADO" | "TESTE";

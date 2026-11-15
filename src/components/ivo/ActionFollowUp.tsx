@@ -1,6 +1,7 @@
 import { TIMELINE_NOTE, type PlanFollowUp, type TimelineEntry } from "@/lib/ivo/action-follow-up";
 import type { EducationCatalogView, EducationContentView } from "@/lib/ivo/ivo-views";
 import { EFFICACY_STATE_LABEL } from "@/engine/ivo/efficacy-protocol";
+import type { ReactNode } from "react";
 
 // Acompanhamento das ações FIB-T: resumo do plano, linha do tempo e educação.
 // Apresentação apenas — tudo vem de visões já autorizadas no servidor. Nada aqui
@@ -103,7 +104,7 @@ const FORMAT_LABEL: Record<string, string> = {
   missao_real: "Missão real",
 };
 
-export function EducationPanel({ factorName, content, catalog }: { factorName: string; content: EducationContentView[]; catalog: EducationCatalogView }) {
+export function EducationPanel({ factorName, content, catalog, renderActivity }: { factorName: string; content: EducationContentView[]; catalog: EducationCatalogView; renderActivity?: (content: EducationContentView) => ReactNode }) {
   return (
     <section aria-label={`Aprendizagem sobre o fator ${factorName}`} className="space-y-2 rounded-md border border-border p-3">
       <h4 className="text-sm font-semibold text-foreground">Para aprender sobre este fator</h4>
@@ -138,6 +139,7 @@ export function EducationPanel({ factorName, content, catalog }: { factorName: s
                       Fontes: {c.evidenceCodes.join(", ")} · afirmações permitidas: {c.safeClaimIds.join(", ")}
                     </p>
                   ) : null}
+                    {renderActivity?.(c)}
                 </div>
               </details>
             </li>

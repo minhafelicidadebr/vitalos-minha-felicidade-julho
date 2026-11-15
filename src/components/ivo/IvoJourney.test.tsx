@@ -6,6 +6,9 @@ import { EFFICACY_NOT_EVALUATED_REASON, type FibtActionPlanView, type IvoQ2View 
 import { IvoQ2Detail } from "./IvoQ2Detail";
 import { FibtActionPlanSection, PriorityPlanner } from "./FibtActionLoop";
 import { IvoAccessNotice } from "./IvoAccessNotice";
+import { LearningApplicationJourney, LearningApplicationTrace } from "./LearningApplicationJourney";
+import { getFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
+import { learningApplicationTrace } from "@/lib/ivo/learning-application";
 
 afterEach(cleanup);
 
@@ -197,6 +200,32 @@ const plan: FibtActionPlanView = {
 };
 
 describe("FibtActionPlanSection", () => {
+  test("atividade Q2: feedback privado, consentimento de aplicação e revisão reiniciável", () => {
+    const activity = getFactorLearningActivity("TESTE-bem_estar-001", "0.0.1-teste")!;
+    const content = { contentId: "TESTE-bem_estar-001", factorId: "bem_estar", status: "TESTE" as const, version: "0.0.1-teste", title: "[TESTE] Roteiro", objective: "Praticar", audience: "Gestores", format: "microlearning", estimatedMinutes: 5, body: [], evidenceCodes: [], safeClaimIds: [], activity };
+    const action = { ...plan.actions[0]!, source: { ...plan.actions[0]!.source, waveId: view.wave.id, cohortId: view.sectors[0]!.cohortId } };
+    const submit = mock(async () => ({ ok: true, message: "Registrado" }));
+    render(<LearningApplicationJourney content={content} action={action} plan={plan} view={view} busy={false} onSubmit={submit} />);
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    fireEvent.click(screen.getByRole("radio", { name: activity.checks[0]!.options[1]!.label }));
+    expect(screen.getByText(/Revise o roteiro/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: activity.checks[1]!.options[1]!.label }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByText("Incluir ação neste plano")).toBeTruthy();
+    expect(submit).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Revisar sem consulta" }));
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.queryByText("Incluir ação neste plano")).toBeNull();
+  });
+  test("rastro persistido não infere aprendizagem ou eficácia e exclui respostas", () => {
+    const action = { ...plan.actions[0]!, description: "[conteudo:TESTE-bem_estar-001@0.0.1-teste] Atividade 0.0.1-teste. Aplicação planejada." };
+    const trace = learningApplicationTrace(action)!;
+    expect(trace.content.test).toBe(true);
+    expect(JSON.stringify(trace)).not.toMatch(/answers|quizScore|correctCount/);
+    render(<LearningApplicationTrace action={action} />);
+    expect(screen.getByText(/não comprovam aprendizagem, eficácia ou causalidade/)).toBeTruthy();
+    expect(screen.getByText(/Não é relatório ESG homologado/)).toBeTruthy();
+  });
   test("separa execução, aprendizagem e eficácia; dimensão pendente explícita", () => {
     render(
       <FibtActionPlanSection

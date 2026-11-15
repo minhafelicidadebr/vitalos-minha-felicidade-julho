@@ -64,19 +64,23 @@ export function AddActionToPlanForm({
   view,
   busy,
   onSubmit,
+  initialSource,
+  idSuffix,
 }: {
   plan: FibtActionPlanView;
   view: IvoQ2View | null;
   busy: boolean;
   onSubmit: (planId: string, input: AddActionFormInput) => Promise<EvidenceSubmitResult>;
+  initialSource?: { cohortId: string; factorId: string };
+  idSuffix?: string;
 }) {
   const cycle = plan.cycleKeyCanonical ?? plan.cycleKey;
   const needsAccountability = plan.status === "active";
-  const p = `add-${plan.id}`;
+  const p = `add-${plan.id}${idSuffix ? `-${idSuffix}` : ""}`;
 
   const published = (view?.sectors ?? []).filter((s) => s.group === "available" && s.factors && s.factors.length > 0);
-  const [cohortId, setCohortId] = useState(published[0]?.cohortId ?? "");
-  const [factorId, setFactorId] = useState(published[0]?.factors?.[0]?.id ?? "");
+  const [cohortId, setCohortId] = useState(initialSource?.cohortId ?? published[0]?.cohortId ?? "");
+  const [factorId, setFactorId] = useState(initialSource?.factorId ?? published[0]?.factors?.[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [effort, setEffort] = useState<AddActionFormInput["effort"]>("medio");

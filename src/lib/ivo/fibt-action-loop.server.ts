@@ -191,6 +191,7 @@ const REASON_MESSAGE: Record<string, string> = {
   invalid_date: "Data inválida ou no futuro.",
   content_link_only_for_learning: "O vínculo com conteúdo educativo vale somente para registros de aprendizagem.",
   content_not_available: "Esse conteúdo não está disponível para o fator desta ação.",
+  reserved_content_reference: "A referência educativa é definida pelo servidor. Use a jornada de aprendizagem.",
   db_error: "O registro não pôde ser gravado agora. Nada foi alterado.",
 };
 
@@ -358,6 +359,7 @@ export async function createFibtPriorityActions(
   if (!auth.ok) return auth;
 
   const keys = input.priorities.map((p) => `${p.cohortId}|${p.factorId}`);
+  if (input.priorities.some(p => /^\s*\[conteudo:/i.test(p.description))) return rejected("reserved_content_reference");
   if (new Set(keys).size !== keys.length) return rejected("duplicate_priority");
 
   // A fonte é revalidada aqui, com a organização da SESSÃO.
@@ -509,6 +511,7 @@ export async function recordFibtActionEvidence(
     occurredOn: string;
     /** Só aprendizagem: referência estruturada ao conteúdo educativo estudado (catálogo curatorial). */
     contentId?: string;
+    contentVersion?: string;
   },
   deps: FibtActionLoopDeps = {},
 ): Promise<LedgerWriteOutcome> {
@@ -522,6 +525,7 @@ export async function recordFibtActionEvidence(
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
     if (item.planStatus !== "active") return rejected("plan_not_active");
     let contentRef = input.content;
+    if (/^\s*\[conteudo:/i.test(input.content) || (input.contentVersion !== undefined && !input.contentId)) return rejected("content_not_available");
     if (input.contentId) {
       if (input.scope !== "aprendizagem") return rejected("content_link_only_for_learning");
       const content = getFactorContentById(input.contentId);
@@ -529,6 +533,7 @@ export async function recordFibtActionEvidence(
         !!content &&
         (content.status === "APROVADO" || (content.status === "TESTE" && (deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv))));
       if (!content || !visible || content.factorId !== (item.sourceFactorId ?? null)) return rejected("content_not_available");
+      if (input.contentVersion !== undefined && input.contentVersion !== content.version) return rejected("content_not_available");
       contentRef = encodeContentRef(content, input.content);
     }
     const r = await ledger.recordEvidence({
