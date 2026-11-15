@@ -22,7 +22,6 @@ import {
 } from "@/engine/signals/signals-engine";
 import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
-import { CapsuleInsightsCard } from "./CapsuleInsightsCard";
 import { InstitutionalModules } from "@/components/identity/EnterpriseModules";
 
 export function RHDashboard() {
@@ -56,7 +55,7 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
         <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />Ambiente institucional da sua organização. Habilitação do módulo, coleta e publicação são etapas distintas.</p>
       </motion.div>
 
-      {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
+      {/* Estado institucional e publicação Q2 vêm do contrato autorizado por módulo. */}
       <InstitutionalModules key={org.orgId} />
       <section aria-label="Como seguir na jornada institucional" className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
         <h2 className="font-serif text-xl text-foreground">Da leitura à aplicação</h2>
@@ -66,7 +65,6 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
           <li><ClipboardList aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>3. Aplicar e revisar</strong><p className="mt-1 text-muted-foreground">Prepare ações e acompanhe execução e aprendizagem separadamente. Isso não comprova eficácia.</p></li>
         </ol>
       </section>
-      <CapsuleInsightsCard />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}

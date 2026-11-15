@@ -22,6 +22,7 @@ import {
  * listOrgWaves/listOrgCapsules; mensagem honesta caso apareça mesmo assim. */
 function describeOrgReadFailure(reason: OrgScopedReadFailure): string {
   if (reason === "org_mismatch") return "A sessão não corresponde a esta organização.";
+  if (reason === "read_unavailable") return "Não foi possível consultar os registros da organização. Tente atualizar.";
   return describeAuthFailure(reason);
 }
 
@@ -119,7 +120,10 @@ export const adminListWaves = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { waves: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const { createOrgReadClient } = await import("@/lib/auth/org-read-client.server");
+    const client = await createOrgReadClient(data.accessToken);
     const result = await listOrgWaves(data.accessToken, auth.membership.orgId, {
+      client,
       resolveMembership: resolveOrgMembership,
     });
     if (!result.ok) return { waves: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };
@@ -150,7 +154,10 @@ export const adminListCapsules = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { capsules: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const { createOrgReadClient } = await import("@/lib/auth/org-read-client.server");
+    const client = await createOrgReadClient(data.accessToken);
     const result = await listOrgCapsules(data.accessToken, auth.membership.orgId, {
+      client,
       resolveMembership: resolveOrgMembership,
     });
     if (!result.ok) return { capsules: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };

@@ -1,5 +1,7 @@
 # Q2 — aprendizagem, aplicação e acompanhamento local
 
+**Continuidade após `7bae2bc`:** a prova de navegador antes parcial foi concluída para o escopo de habilitação/aplicação TESTE desta onda: login normal por e-mail local, recusa após desabilitar Q2 em sessão já aberta, formulário educativo enviado pelo produto, execução/aprendizagem separadas, conclusão sem eficácia, novo login/recarga e respostas privadas reiniciadas. Acrescentadas prova pública de coleta/publicação, regressões de leitura autenticada/mensagens e correção de overflow em 320/360 px. Gate final 4.315/0 e build inerte aprovados. Conteúdo/atividade aprovados e validação com clientes continuam pendentes. Fechamento único e detalhes em [Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md](Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md). As seções seguintes preservam o histórico da entrega anterior.
+
 Data: 2026-11-15. Base preservada: `ed971e93e64df9529c1b2fe391a53ff225a3eac5`, branch `feat/ivo-fibt-platform-foundation`. O commit que introduz este registro contém o candidato integrado. Antes da onda não havia alterações rastreadas; `.q.out` e `.q.sql` permaneceram não lidos e fora do Git.
 
 ## Objetivo e decisão de escopo

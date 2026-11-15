@@ -269,51 +269,38 @@ const REAL_ROLE_LABEL: Record<string, string> = {
 /** Indicador de sessão real — substitui os seletores de demonstração (persona
  * e setor) quando o usuário é um cliente pago, não um explorador da demo. */
 function RealOrgBadge({ org }: { org: import("@/app/identity/useRealOrgSession").RealOrgSession }) {
-  const [open, setOpen] = useState(false);
-
   async function handleSignOut() {
     await supabase.auth.signOut();
     window.location.assign("/");
   }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        className="flex h-10 items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 text-xs font-medium text-foreground transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
-        <span className="hidden max-w-[10rem] truncate xl:inline">{org.orgName}</span>
-        <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
-      </button>
-
-      {open && (
-        <ul
-          role="listbox"
-          aria-label="Conta"
-          className="absolute right-0 z-50 mt-1 w-56 rounded-xl border border-border bg-popover p-1 shadow-lg"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Conta institucional — ${org.orgName}`}
+          className="flex min-h-11 items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 text-xs font-medium text-foreground transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <li className="px-3 py-2">
-            <p className="truncate text-sm font-medium text-popover-foreground">{org.orgName}</p>
-            <p className="text-xs text-muted-foreground">
-              {REAL_ROLE_LABEL[org.role] ?? org.role}
-            </p>
-          </li>
-          <li role="separator" className="my-1 border-t border-border/60" />
-          <li>
-            <button
-              onClick={handleSignOut}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-3.5 w-3.5" aria-hidden />
-              Sair
-            </button>
-          </li>
-        </ul>
-      )}
-    </div>
+          <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
+          <span className="hidden max-w-[10rem] truncate xl:inline">{org.orgName}</span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent aria-label="Conta institucional" align="end" className="w-56">
+        <DropdownMenuLabel>
+          <p className="truncate text-sm font-medium text-popover-foreground">{org.orgName}</p>
+          <p className="text-xs text-muted-foreground">{REAL_ROLE_LABEL[org.role] ?? org.role}</p>
+        </DropdownMenuLabel>
+        <DropdownMenuItem
+          onSelect={handleSignOut}
+          className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-muted-foreground focus:bg-destructive/10 focus:text-destructive"
+        >
+          <LogOut className="h-3.5 w-3.5" aria-hidden />
+          Sair
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -562,10 +549,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <Link
               to="/painel"
-              className="group flex min-w-0 shrink-0 items-center gap-3"
+              className="group flex min-h-11 min-w-0 shrink-0 items-center gap-3"
               aria-label="4 Lentes VitalOS™ — painel"
             >
-              <VitalOSBrand variant="horizontal" size="md" />
+              <span className="sm:hidden">
+                <VitalOSBrand variant="mark" size="sm" />
+              </span>
+              <span className="hidden sm:inline-flex">
+                <VitalOSBrand variant="horizontal" size="md" />
+              </span>
             </Link>
 
             {/* Desktop grouped nav */}

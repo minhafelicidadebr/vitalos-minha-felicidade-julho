@@ -1,3 +1,7 @@
+# Prova visual dirigida Q2 — continuidade de 2026-11-15
+
+Após `7bae2bc`, comprovadas as superfícies de aplicação/habilitação Q2 pelo navegador local, com novo login, estados reais do stack sintético e recarga. Identificados e corrigidos overflow do cabeçalho a 360 px, nome/semântica/foco do menu da conta, falso vazio administrativo, aviso legado de RH e identificação incorreta do instrumento no formulário público. Reflow conferido em 320/360/768/1280, formulário educativo aberto em 320, temas claro/escuro e Enter/Escape com retorno de foco. Não é auditoria visual das 88 rotas, teste formal de leitor de tela/contraste/zoom/impressão ou validação pedagógica. Registro, capturas sanitizadas e limites em [Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md](Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md). Os bloqueios de navegador nas seções anteriores da história não descrevem esta prova posterior.
+
 # Cobertura transversal de páginas — fechamento local, 2026-11-15
 
 ## Onda de contexto de sessão e continuidade visual

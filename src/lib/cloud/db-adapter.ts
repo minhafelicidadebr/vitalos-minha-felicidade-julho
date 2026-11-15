@@ -183,13 +183,18 @@ export type ResolveOrgMembershipFn = (accessToken: string) => Promise<
 >;
 
 export interface OrgScopedReadDeps {
-  /** Injeção de teste — nunca fornecida em produção. Ausente, usa o client real (db). */
+  /** Cliente da identidade do chamador no servidor; obrigatório para a leitura.
+   * Ausência recusa, sem fallback para o singleton sem sessão. Testes injetam fake. */
   client?: typeof db;
   /** Validação autoritativa de membership — sempre a real (resolveOrgMembership) em produção. */
   resolveMembership: ResolveOrgMembershipFn;
 }
 
-export type OrgScopedReadFailure = "invalid_session" | "no_profile" | "org_mismatch";
+export type OrgScopedReadFailure =
+  | "invalid_session"
+  | "no_profile"
+  | "org_mismatch"
+  | "read_unavailable";
 
 export type OrgScopedListResult<T> =
   | { ok: true; items: T[] }
@@ -221,12 +226,14 @@ export async function listOrgWaves(
   const authz = await authorizeOrgRead(accessToken, orgId, deps.resolveMembership);
   if (!authz.ok) return authz;
 
-  const client = deps.client ?? db;
-  const { data } = await client
+  const client = deps.client;
+  if (!client) return { ok: false, reason: "read_unavailable" };
+  const { data, error } = await client
     .from("waves")
     .select("id, instrument, label, status, invited_count, closes_at, created_at, sealed_at")
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
+  if (error || !Array.isArray(data)) return { ok: false, reason: "read_unavailable" };
 
   const items = ((data ?? []) as Array<{
     id: string; instrument: string; label: string | null; status: WaveStatus;
@@ -247,12 +254,14 @@ export async function listOrgCapsules(
   const authz = await authorizeOrgRead(accessToken, orgId, deps.resolveMembership);
   if (!authz.ok) return authz;
 
-  const client = deps.client ?? db;
-  const { data } = await client
+  const client = deps.client;
+  if (!client) return { ok: false, reason: "read_unavailable" };
+  const { data, error } = await client
     .from("wave_capsules")
     .select("id, wave_id, instrument, participant_count, aggregated_at, dimensions, outcomes")
     .eq("org_id", orgId)
     .order("aggregated_at", { ascending: false });
+  if (error || !Array.isArray(data)) return { ok: false, reason: "read_unavailable" };
 
   const items = ((data ?? []) as Array<{
     id: string; wave_id: string; instrument: string; participant_count: number;

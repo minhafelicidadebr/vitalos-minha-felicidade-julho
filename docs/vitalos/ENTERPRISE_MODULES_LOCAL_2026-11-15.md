@@ -1,5 +1,7 @@
 # Habilitação empresarial Q1/Q2 — evidência local de 2026-11-15
 
+**Prova visual posterior a `7bae2bc`:** conector Chrome validou a URL local e permitiu a jornada antes bloqueada. Autoridade sintética da plataforma alterou Q1/Q2 de Alfa; administrador conferiu os estados, teve escrita recusada em sessão já aberta e leitura recusada por URL direta; Q1 habilitado continuou pendente e Q2 voltou a funcionar com Q1 desligado. Alfa terminou Q1 off/rev44 e Q2 on/rev87; Beta permaneceu off/rev9 e off/rev13, confirmados também em processo independente. Nenhuma migration/manifesto foi alterado ou reaplicado. Prova dirigida, correções alcançáveis, gate/build e limites em [Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md](Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md). O bloqueio abaixo é histórico, não o estado desta nova prova; CI/staging/comercial continuam sem confirmação.
+
 ## Fechamento dirigido após 1e2d8a0
 
 HEAD conferido em `1e2d8a0`, sem alterações rastreadas posteriores. A lista visual de três SQL inclui o rascunho `20261114010000_enterprise_module_entitlements.sql`: ele não existe na árvore nem no histórico Git; foi substituído, antes do commit, pelo arquivo gerado pelo CLI `20261115135955`. Não constitui terceira migration aplicada. Nesta onda foram aplicadas as ordens 65/66 abaixo; 63/64 pertencem à onda anterior. Não há inconsistência no manifesto a corrigir, nem migration a reorganizar.

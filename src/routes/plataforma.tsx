@@ -37,6 +37,7 @@ function PlataformaPage() {
   const [invites, setInvites] = useState<OrgInviteSummary[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [accounts, setAccounts] = useState<AccountHealthRow[]>([]);
+  const [accountsStatus, setAccountsStatus] = useState<"loading" | "ready" | "error">("loading");
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanId>("pilot");
   const [creating, setCreating] = useState(false);
@@ -67,9 +68,17 @@ function PlataformaPage() {
       setInvites(result.invites);
       setStatus("ready");
       adminListLeads({ data: { accessToken: token } }).then((r) => setLeads(r.leads));
-      adminListAccountHealth({ data: { accessToken: token } }).then((r) =>
-        setAccounts(r.accounts),
-      );
+      adminListAccountHealth({ data: { accessToken: token } })
+        .then((r) => {
+          if (!active) return;
+          setAccounts(r.accounts);
+          setAccountsStatus("ready");
+        })
+        .catch(() => {
+          if (!active) return;
+          setAccounts([]);
+          setAccountsStatus("error");
+        });
     });
     return () => {
       active = false;
@@ -144,8 +153,8 @@ function PlataformaPage() {
         </div>
         <h1 className="mt-1 font-serif text-3xl text-foreground">Convites de organização</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Gere um link de acesso único para cada cliente que contratou o serviço.
-          Ao clicar, a pessoa faz login com o próprio e-mail e cadastra a empresa dela.
+          Gere um link de acesso único para cada cliente que contratou o serviço. Ao clicar, a
+          pessoa faz login com o próprio e-mail e cadastra a empresa dela.
         </p>
       </motion.div>
 
@@ -158,7 +167,10 @@ function PlataformaPage() {
         transition={{ delay: 0.05 }}
         className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
       >
-        <label htmlFor="invite-email" className="mb-2 block text-sm font-medium text-muted-foreground">
+        <label
+          htmlFor="invite-email"
+          className="mb-2 block text-sm font-medium text-muted-foreground"
+        >
           E-mail do cliente (opcional — trava o convite a este e-mail)
         </label>
         <input
@@ -228,10 +240,10 @@ function PlataformaPage() {
           </p>
         )}
         <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-          Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com
-          e-mail, só quem logar com aquele endereço específico consegue completar o cadastro.
-          O setor (empresa/escola/governo/condomínio/saúde) é escolhido pelo próprio
-          cliente ao ativar o link.
+          Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com e-mail, só quem
+          logar com aquele endereço específico consegue completar o cadastro. O setor
+          (empresa/escola/governo/condomínio/saúde) é escolhido pelo próprio cliente ao ativar o
+          link.
         </p>
       </motion.div>
 
@@ -314,16 +326,27 @@ function PlataformaPage() {
       >
         <div className="mb-1 flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <p className="font-medium text-card-foreground">Saúde das contas</p>
+          <h2 className="font-medium text-card-foreground">Acompanhamento operacional legado</h2>
         </div>
-        <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
-          Leitura de cada conta contra o próprio arco medir→aprender→transformar→evoluir —
-          nunca comparação entre contas. Só contagens de operação; nenhum conteúdo.
+        <p role="note" className="mb-4 text-sm leading-relaxed text-muted-foreground">
+          Contagens das tabelas do fluxo legado; publicações protegidas de Q2 e aprendizagem
+          vinculada às ações não estão integralmente contempladas. Zero neste quadro não significa
+          ausência dessas atividades. A pontuação resume uso operacional, sem medir vitalidade,
+          aprendizagem ou eficácia. Consulte a jornada específica antes de encaminhar uma ação.
         </p>
 
-        {accounts.length === 0 ? (
+        {accountsStatus === "loading" ? (
+          <p role="status" className="py-4 text-sm text-muted-foreground">
+            Consultando registros operacionais…
+          </p>
+        ) : accountsStatus === "error" ? (
+          <p role="alert" className="py-4 text-sm text-destructive">
+            Não foi possível consultar o acompanhamento. Nenhuma pontuação foi calculada. Recarregue
+            a página para tentar novamente.
+          </p>
+        ) : accounts.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            Nenhuma organização ativa ainda.
+            Nenhuma organização disponível neste inventário.
           </p>
         ) : (
           <div className="space-y-3">
@@ -332,40 +355,64 @@ function PlataformaPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">{acc.orgName}</p>
                   <div className="flex items-center gap-2">
-                    {acc.health.northStarMet && (
+                    {acc.health?.northStarMet && (
                       <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                        ★ Equipes Florescendo
+                        Marcos operacionais do modelo atingidos
                       </span>
                     )}
                     <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                       {acc.packId} · {acc.plan}
                     </span>
-                    <span className="text-sm font-semibold tabular-nums text-foreground">
-                      {acc.health.score}
-                      <span className="text-[10px] font-normal text-muted-foreground">/100</span>
-                    </span>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {acc.health.band}
-                    </span>
+                    {acc.health ? (
+                      <>
+                        <span
+                          aria-label="Pontuação operacional legada"
+                          className="text-sm font-semibold tabular-nums text-foreground"
+                        >
+                          {acc.health.score}
+                          <span className="text-[10px] font-normal text-muted-foreground">
+                            /100
+                          </span>
+                        </span>
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {acc.health.band}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Consulta indisponível</span>
+                    )}
                   </div>
                 </div>
-                <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-                  {acc.health.dimensions.map((dim) => (
-                    <div key={dim.id} className="rounded-lg border border-border/50 px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-foreground">{dim.label}</p>
-                        <span className="text-xs tabular-nums text-muted-foreground">
-                          {dim.score}/25
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">{dim.evidence}</p>
+                {acc.health ? (
+                  <>
+                    <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                      {acc.health.dimensions.map((dim) => (
+                        <div key={dim.id} className="rounded-lg border border-border/50 px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-medium text-foreground">{dim.label}</p>
+                            <span className="text-xs tabular-nums text-muted-foreground">
+                              {dim.score}/25
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                            {dim.evidence}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <p className="mt-2.5 text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground">Próxima melhor ação:</span>{" "}
-                  {acc.health.nextBestAction}
-                </p>
+                    <p className="mt-2.5 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Sugestão do modelo legado:
+                      </span>{" "}
+                      {acc.health.nextBestAction}
+                    </p>
+                  </>
+                ) : (
+                  <p role="status" className="mt-3 text-sm text-muted-foreground">
+                    Não foi possível conferir todas as contagens desta conta. Nenhuma pontuação
+                    parcial foi calculada. Recarregue a página para tentar novamente.
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -391,10 +438,7 @@ function PlataformaPage() {
         ) : (
           <div className="space-y-2">
             {leads.map((lead) => (
-              <div
-                key={lead.id}
-                className="rounded-xl border border-border/60 bg-background p-3.5"
-              >
+              <div key={lead.id} className="rounded-xl border border-border/60 bg-background p-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">
                     {lead.name} · {lead.company}
