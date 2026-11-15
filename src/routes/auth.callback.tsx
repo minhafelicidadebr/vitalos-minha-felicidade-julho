@@ -94,7 +94,7 @@ function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="text-center">
+      <div role="status" aria-live="polite" className="text-center">
         <p className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">
           4 Lentes VitalOS™
         </p>

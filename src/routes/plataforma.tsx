@@ -108,8 +108,8 @@ function PlataformaPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
+          <p role="status" className="text-sm text-muted-foreground">
             Verificando permissão…
           </p>
         </div>
@@ -121,8 +121,8 @@ function PlataformaPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-3xl border border-dashed border-border/70 bg-card p-8 text-center">
-          <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-4 font-serif text-xl text-foreground">Acesso restrito</p>
+          <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
+          <h1 className="mt-4 font-serif text-xl text-foreground">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Esta área é exclusiva do administrador da plataforma. Se você acredita
             que deveria ter acesso, confirme se seu e-mail está na lista
@@ -158,10 +158,11 @@ function PlataformaPage() {
         transition={{ delay: 0.05 }}
         className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
       >
-        <label className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <label htmlFor="invite-email" className="mb-2 block text-sm font-medium text-muted-foreground">
           E-mail do cliente (opcional — trava o convite a este e-mail)
         </label>
         <input
+          id="invite-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -169,41 +170,63 @@ function PlataformaPage() {
           className="w-full rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
 
-        <label className="mb-2 mt-4 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-          Plano contratado
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {PLAN_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setPlan(opt.id)}
-              className={`rounded-xl border px-4 py-2 text-left text-sm font-medium transition-all ${
-                plan === opt.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/60 bg-background text-foreground hover:border-primary/40"
-              }`}
-            >
-              {opt.label}
-              <span
-                className={`ml-1.5 text-[10px] font-normal ${
-                  plan === opt.id ? "text-primary-foreground/80" : "text-muted-foreground"
-                }`}
-              >
-                {opt.hint}
-              </span>
-            </button>
-          ))}
-        </div>
+        <fieldset className="mt-4">
+          <legend className="mb-2 block text-sm font-medium text-muted-foreground">
+            Plano contratado
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {PLAN_OPTIONS.map((opt) => {
+              const selected = plan === opt.id;
+              return (
+                <label
+                  key={opt.id}
+                  htmlFor={`plan-${opt.id}`}
+                  className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-4 py-2 text-left text-sm font-medium transition-all focus-within:ring-2 focus-within:ring-ring ${
+                    selected
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-background text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <input
+                    id={`plan-${opt.id}`}
+                    type="radio"
+                    name="plan"
+                    value={opt.id}
+                    checked={selected}
+                    onChange={() => setPlan(opt.id)}
+                    className="size-4 shrink-0 accent-primary"
+                  />
+                  <span>
+                    {opt.label}
+                    <span
+                      className={`ml-1.5 text-xs font-normal ${
+                        selected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      }`}
+                    >
+                      {opt.hint}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+          className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           {creating ? "Gerando…" : "Gerar link de convite"}
         </button>
-        {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+        {error && (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          >
+            {error}
+          </p>
+        )}
         <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
           Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com
           e-mail, só quem logar com aquele endereço específico consegue completar o cadastro.

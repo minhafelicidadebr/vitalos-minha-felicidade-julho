@@ -691,7 +691,7 @@ function ActionCard({
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
         <div>
-          <dt className="uppercase tracking-[0.12em] text-muted-foreground">Lift IVO</dt>
+          <dt className="uppercase tracking-[0.12em] text-muted-foreground">Lift IVO previsto</dt>
           <dd className="mt-0.5 font-serif text-lg font-semibold tabular-nums text-primary">
             +{item.expectedIvoLift}
           </dd>
@@ -723,6 +723,9 @@ function ActionCard({
           </div>
         )}
       </dl>
+      <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+        Projeção do modelo legado; não comprova mudança observada nem eficácia desta ação.
+      </p>
 
       <div className="mt-4">
         <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -981,10 +984,13 @@ function RealPlanSection({
               <dd className="mt-0.5 font-serif text-2xl text-foreground">{plan.quickWinCount}</dd>
             </div>
             <div className="text-center">
-              <dt className="uppercase tracking-[0.12em] text-muted-foreground">Lift IVO total</dt>
+              <dt className="uppercase tracking-[0.12em] text-muted-foreground">Soma de lifts previstos</dt>
               <dd className="mt-0.5 font-serif text-2xl text-primary">+{plan.scheduledIvoLift}</dd>
             </div>
           </dl>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Soma do modelo legado; não é impacto observado nem resultado aprovado.
+          </p>
         </div>
 
         <div className="mt-4">
@@ -1495,10 +1501,13 @@ function PlanoAcao() {
                     <dd className="mt-0.5 font-serif text-2xl text-foreground">{demoPlan.quickWinCount}</dd>
                   </div>
                   <div className="text-center">
-                    <dt className="uppercase tracking-[0.12em] text-muted-foreground">Lift IVO total</dt>
+                    <dt className="uppercase tracking-[0.12em] text-muted-foreground">Soma de lifts previstos</dt>
                     <dd className="mt-0.5 font-serif text-2xl text-primary">+{demoPlan.scheduledIvoLift}</dd>
                   </div>
                 </dl>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  Soma ilustrativa do modelo legado; não é impacto observado nem resultado aprovado.
+                </p>
               </div>
 
               <div className="mt-4">

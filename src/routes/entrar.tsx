@@ -84,8 +84,12 @@ function EntrarPage() {
         </div>
 
         {status === "sent" ? (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center">
-            <p className="font-serif text-xl text-foreground">Verifique seu e-mail</p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center"
+          >
+            <h2 className="font-serif text-xl text-foreground">Verifique seu e-mail</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Enviamos um link de acesso para{" "}
               <span className="font-medium text-foreground">{email}</span>. Abra o e-mail no mesmo
@@ -94,7 +98,7 @@ function EntrarPage() {
             <button
               type="button"
               onClick={() => setStatus("idle")}
-              className="mt-5 text-xs uppercase tracking-[0.2em] text-primary hover:underline"
+              className="mt-5 inline-flex min-h-11 items-center justify-center px-3 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Usar outro e-mail
             </button>
@@ -119,11 +123,19 @@ function EntrarPage() {
                 className="mt-2 h-12 w-full rounded-md border border-input bg-background px-4 font-serif text-lg text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            {errorMsg ? <p className="text-sm text-destructive">{errorMsg}</p> : null}
+            {errorMsg ? (
+              <p
+                role="alert"
+                className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+              >
+                {errorMsg}
+              </p>
+            ) : null}
             <button
               type="submit"
               disabled={status === "sending"}
-              className="inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-5 text-sm font-medium uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+              aria-busy={status === "sending"}
+              className="inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-5 text-sm font-medium uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
             >
               {status === "sending" ? "Enviando…" : "Entrar com link mágico"}
             </button>

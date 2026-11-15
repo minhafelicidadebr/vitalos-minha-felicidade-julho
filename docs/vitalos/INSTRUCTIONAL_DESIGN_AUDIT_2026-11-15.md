@@ -1,3 +1,23 @@
+# Cobertura transversal de páginas — fechamento local, 2026-11-15
+
+## Onda de contexto de sessão e continuidade visual
+
+O inventário estático encontrou 88 componentes de rota TSX: 76 usam `AppShell` e 12 são páginas independentes de acesso, convite/token, marketing, FIB-T piloto ou administração. O `AppShell` agora mostra um aviso de “Modo demonstração” no começo de todas as páginas servidas por esse shell quando a sessão é exploratória. O aviso orienta conferir origem/limites em cada página; não declara que todo dado dentro da sessão seja sintético nem substitui os avisos específicos dos módulos. Sessões com organização institucional não recebem o aviso.
+
+Correções pontuais nas páginas fora do shell:
+- `/plataforma`: estado de verificação anunciado, campo de e-mail associado ao rótulo, seleção de plano agrupada semanticamente e anunciada via `aria-pressed`, controles com área mínima de toque e erros anunciados.
+- `/entrar`: sucesso e erro anunciados, ação de retomar com foco/área de toque claros.
+- `/onboarding`: título principal semântico, ícone decorativo e CTA acessível.
+- `/auth/callback`: estado de navegação anunciado ao leitor de tela.
+- `/plano-acao`: lifts legados rotulados como previstos, com limite explícito junto às métricas agregadas e individuais.
+- `/selo`: prévia demonstrativa reorganizada em resumo, critérios essenciais/complementares e etapas ilustrativas; certificado/validade fictícios retirados.
+
+As ondas documentadas anteriormente já melhoraram preparação Q1, leitura Q2, governança, eficácia, aprendizagem, painel RH, Academia, prioridades, experimentos, trajetória, P&L, ESG, relatórios e relatório global. A trilha `/voz-segura` já organiza a jornada em etapas pedagógicas e conserva fontes, estados e limites; não foi duplicada por uma segunda navegação. Páginas independentes de ativação, convite e questionário já têm seus próprios estados transacionais e não receberam moldura genérica.
+
+Isso é cobertura estrutural de UX e conteúdo para superfícies identificadas, não redesign gráfico pixel a pixel de cada uma das 88 rotas. A inspeção em navegador/mobile continua necessária para overflow, contraste renderizado, zoom, foco e impressão; uma tentativa de prévia local foi bloqueada pela permissão do ambiente ao socket localhost, portanto não há evidência visual nova nem homologação integral ou melhoria percentual. Mudanças de cópia não aprovam instrumentos, critérios de eficácia, mappings ou certificações.
+
+Verificação desta onda: 22 testes direcionados passaram (59 assertions); TypeScript por Node passou; lint direcionado terminou sem erros e com um aviso Fast Refresh já existente em `AppShell.tsx`. A nova tentativa de build inerte falhou ao iniciar subprocesso no diretório isolado (`CouldntReadCurrentDirectory`), por isso o build anterior ao último ajuste não comprova este candidato. A prévia do navegador também não pôde abrir o socket localhost nas permissões do ambiente. Sem operações remotas. `.q.out` e `.q.sql` preservados sem abertura.
+
 # Auditoria dirigida de design instrucional e organização visual
 
 ## Sexta onda — fronteiras do relatório global

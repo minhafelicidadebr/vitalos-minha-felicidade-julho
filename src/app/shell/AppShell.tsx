@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import { DemoModeNotice } from "./DemoModeNotice";
 
 /**
  * AppShell — header institucional + navegação dirigida pelo pack × papel,
@@ -710,6 +711,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main id="main" tabIndex={-1} className="flex-1 pb-24 outline-none xl:pb-0">
+          {entry === "demo" ? <DemoModeNotice /> : null}
           {guardedNavId ? (
             <DemoRouteGuard navId={guardedNavId}>{children}</DemoRouteGuard>
           ) : (
