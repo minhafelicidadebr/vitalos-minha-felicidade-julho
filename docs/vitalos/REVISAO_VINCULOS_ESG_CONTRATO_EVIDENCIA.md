@@ -58,9 +58,18 @@ Os rótulos B2/C1/C2/L1 existentes descrevem decisões registradas anteriormente
 
 **Primeira fatia recomendada para decisão:** REL-01 no eixo S, exclusivamente como relação temática da prática de voz/escuta, com linguagem de prática implementada e sem desfecho causal. G permanece condicionado à evidência de processo de resposta e aprovação específica. Não preencher a fixture com esses IDs: são cenários independentes, sem custódia de projeto/evento real. A preparação técnica atual continua bloqueando sua emissão.
 
-**Registro a preencher pelo responsável:** relação/eixo e versão; uso permitido; decisão (aprovar/ajustar/rejeitar); revisor metodológico designado; data; ressalvas; referências revisadas. Recomenda-se decidir REL-01/S primeiro, manter REL-02/04 em curadoria, REL-03 protegida e REL-05/E sem sustentação. Esses são encaminhamentos propostos, não decisões já tomadas.
+### Registro de revisão — REL-01/S
 
-Revisor metodológico designado pelo responsável deve registrar, por REL-01 a REL-05: aprovar para uso definido / solicitar ajuste / rejeitar; eixo e escopo permitido; evidência e linguagem liberadas; ressalvas; nome/autoridade, data e versão. Nenhuma identidade revisora foi inventada. RH de empresa não recebe autoridade metodológica global por participar do processo.
+- **Responsável metodológico designado pelo operador:** João Paulo Brandão Barboza, cientista da felicidade.
+- **Relação/versão:** REL-01, vínculo temático com S, proposta v1.
+- **Uso submetido à revisão:** organizar evidências da prática de voz e escuta no relatório empresarial; descrever prática implementada. Não afirmar efeito, causalidade, melhora de saúde/produtividade, certificação ou impacto ESG demonstrado.
+- **Evidência de referência a revisar:** mecanismo `MECH-VOICE-001`; `TRU-006`; claims `CLAIM-EDMONDSON1999-VOICE-003` (organizar evidências) e, apenas para consideração com sua ressalva de analogia, claim de liderança `LDR-007`. Verificar resolução canônica de `EDMONDSON-1999` e pertinência dos claims para o contexto exato.
+- **Decisão:** pendente — não foi fornecida pelo responsável.
+- **Data, ressalvas e versão aprovada:** pendentes.
+
+O nome e a função acima foram informados pelo operador nesta conversa; não representam assinatura, revisão concluída ou aprovação atribuída ao responsável. A proposta REL-01/S é um item pronto para avaliação, não uma decisão metodológica já tomada. REL-02/04 permanecem em curadoria, REL-03 protegida e REL-05/E sem sustentação no caso atual.
+
+O responsável metodológico designado deve registrar, por REL-01 a REL-05: aprovar para uso definido / solicitar ajuste / rejeitar; eixo e escopo permitido; evidência e linguagem liberadas; ressalvas; confirmação de autoria da decisão, data e versão. RH de empresa não recebe autoridade metodológica global por participar do processo.
 
 Decisões agrupadas: (A) aceitar ou ajustar as cinco recomendações da tabela; (B) aprovar os requisitos de evidência e linguagem acima; (C) manter horas fora do contrato canônico ou solicitar proposta separada de extensão. Até registro explícito, todos permanecem pendentes. A autorização para desenvolver este dossiê não equivale à aprovação das relações.
 
