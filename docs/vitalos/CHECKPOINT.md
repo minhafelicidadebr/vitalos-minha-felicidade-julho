@@ -1,5 +1,13 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## Protótipo editorial institucional METE — 2026-11-15
+
+Base `685881e` preservada. Implementado contrato editorial puro e fixture sintética com estados explícitos, apresentação institucional, guia METE, síntese, análises, limites ESG e continuidade. Preview expansível em `/relatorio-global`, separado do corpo legado e do anexo; sem dados reais ou comando de emissão. Logos oficiais do Instituto fornecidos pelo operador obtidos, inspecionados e preservados com hashes; capa da impressão existente reutiliza marca VitalOS e logo completo do Instituto. Sem aprovação de titularidade, método, índice, mapping ou eficácia.
+
+PDF sintético de sete páginas gerado por renderizador estático sobre o mesmo modelo de conteúdo e inspecionado página a página via Poppler. Não é impressão do app, snapshot nem emissão institucional homologada. Navegador/mobile e impressão HTML continuam adiados. Gate integrado **4.289 pass / 0 fail / 333 arquivos**, paridade, TypeScript e secret-scan; build inerte isolado aprovado, `.output` original preservada. Nenhuma migration, publicação, consulta de dados reais ou escrita remota. .q.out/.q.sql preservados e não abertos.
+
+Detalhes, reprodução, fonte→bloco e decisões humanas agrupadas em [RELATORIO_METE_IMPLEMENTACAO.md](RELATORIO_METE_IMPLEMENTACAO.md); artefato em [RELATORIO_METE_PROTOTIPO.pdf](artifacts/RELATORIO_METE_PROTOTIPO.pdf). Próximo marco: validar blueprint/contrato de emissão com responsáveis, então integrar uma projeção Q2 autorizada em fatia própria. Fonte COPSOQ é dependência específica de Q1, sem bloquear desenvolvimento editorial/Q2 independente. Seções abaixo preservam o histórico.
+
 ## Aprendizagem → aplicação Q2 — 2026-11-15
 
 **Continuidade após `a738bde`:** navegador abriu a rota de ações e mostrou plano ativo, duas ações e registros persistidos separados (uma execução/uma aprendizagem), com curadoria pendente e eficácia não avaliada. É evidência visual parcial em sessão preexistente, sem novo login ou envio educacional comprovado. Controle novamente interrompido pela validação de URL; roteiro manual segue pendente. Processo web anterior e containers preservados; duplicado do launcher encerrado após identificação, porta 8091 respondeu HTTP 200. Sem mudança de código ou repetição de gate/build/HTTP/DB. Detalhes no registro da onda abaixo.

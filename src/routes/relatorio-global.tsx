@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GlobalReportContext } from "@/components/GlobalReportContext";
+import { InstitutionalEditorialPreview } from "@/components/InstitutionalEditorialPreview";
+import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
@@ -369,9 +371,7 @@ function RelatorioGlobalPage() {
         >
           <div className="flex h-full min-h-[230mm] flex-col justify-between py-10">
             <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded bg-primary font-serif text-2xl text-primary-foreground">
-                4
-              </span>
+              <VitalOSBrand surface="light" size="lg" decorative={false} />
               <span className="text-sm font-medium tracking-wide text-foreground">
                 4 Lentes VitalOS™ · VitalOS
               </span>
@@ -386,6 +386,7 @@ function RelatorioGlobalPage() {
               </h1>
               <p className="mt-6 text-base text-foreground">{report.orgName}</p>
               <p className="mt-1 text-sm text-muted-foreground">Ano {report.year}</p>
+              <img src="/brand/instituto/instituto-full-original.png" width={1198} height={481} alt="Instituto Felicidade para Todos — organização idealizadora" className="mx-auto mt-6 h-auto w-52 object-contain" />
               <p className="mt-4 text-sm font-semibold">Corpo demonstrativo — dados de exemplo. Anexo institucional separado, quando disponível. Este documento não comprova certificação ou asseguração.</p>
               <div className="mx-auto mt-10 h-px w-24 bg-border" />
               <p className="mt-6 text-[11px] uppercase tracking-[0.22em] text-primary">
@@ -420,6 +421,10 @@ function RelatorioGlobalPage() {
 
         {/* Capa */}
         <GlobalReportContext institutionalEnabled={isRealMode} />
+        <details className="min-w-0 space-y-4 rounded-xl border border-border p-4 print:hidden">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">Explorar o protótipo editorial METE · dados sintéticos</summary>
+          <InstitutionalEditorialPreview />
+        </details>
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
