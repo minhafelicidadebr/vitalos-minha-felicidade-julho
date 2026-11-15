@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Waves, ArrowRight } from "lucide-react";
+import { Waves, ArrowRight, ShieldCheck, BookOpen, ClipboardList } from "lucide-react";
 import { calculateIVO, K_ANONYMITY_MIN } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
 import { ivoCurrentCycle, ivoPreviousCycle } from "@/mocks/ivo-mock";
@@ -52,11 +52,20 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Visão Executiva
         </p>
-        <h1 className="mt-1 font-serif text-2xl text-foreground">{org.orgName}</h1>
+        <h1 className="mt-1 break-words font-serif text-2xl text-foreground">{org.orgName}</h1>
+        <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />Ambiente institucional da sua organização. Habilitação do módulo, coleta e publicação são etapas distintas.</p>
       </motion.div>
 
       {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
       <InstitutionalModules key={org.orgId} />
+      <section aria-label="Como seguir na jornada institucional" className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <h2 className="font-serif text-xl text-foreground">Da leitura à aplicação</h2>
+        <ol className="grid gap-3 text-sm leading-relaxed sm:grid-cols-3 [&>li]:min-w-0 [&>li]:rounded-lg [&>li]:border [&>li]:border-border [&>li]:p-3">
+          <li><Waves aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>1. Mensurar</strong><p className="mt-1 text-muted-foreground">Confira o estado dos módulos acima. Coleta não significa resultado publicado.</p></li>
+          <li><BookOpen aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>2. Compreender</strong><p className="mt-1 text-muted-foreground">Consulte a origem, a escala e os limites da leitura disponível.</p></li>
+          <li><ClipboardList aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>3. Aplicar e revisar</strong><p className="mt-1 text-muted-foreground">Prepare ações e acompanhe execução e aprendizagem separadamente. Isso não comprova eficácia.</p></li>
+        </ol>
+      </section>
       <CapsuleInsightsCard />
 
       <motion.div
@@ -69,15 +78,14 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Waves className="h-5 w-5" aria-hidden />
           </span>
-          <div className="flex-1">
-            <p className="font-medium text-card-foreground">Comece medindo sua organização</p>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-card-foreground">Organize a coleta da sua organização</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              Crie sua primeira onda de medição e gere os links para seus colaboradores.
-              Os resultados aparecem aqui automaticamente quando 5 ou mais pessoas responderem.
+              Acesse a gestão de ondas para preparar a coleta e os convites. A exibição de resultados depende das regras de privacidade, da geração dos resultados e da publicação aplicáveis a cada instrumento; a quantidade de respostas, sozinha, não garante sua disponibilidade.
             </p>
             <Link
               to="/admin"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              className="mt-4 inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Criar onda de medição
               <ArrowRight className="h-4 w-4" aria-hidden />

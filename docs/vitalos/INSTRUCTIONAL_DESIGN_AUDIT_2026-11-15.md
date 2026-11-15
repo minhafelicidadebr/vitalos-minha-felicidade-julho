@@ -1,5 +1,17 @@
 # Auditoria dirigida de design instrucional e organização visual
 
+## Terceira onda — orientação RH e transparência educacional
+
+`RHDashboard.tsx`: ramo institucional recebe roteiro mensurar → compreender → aplicar/revisar, aviso de diferença entre habilitação, coleta e publicação, quebra do nome da organização e foco visível no CTA. Corrigida a promessa de resultados automáticos após cinco respostas: quantidade sozinha não garante geração/publicação. Não houve mudança da seleção de ramo real/demo, permissões ou serviços. Esta onda não auditou nem alterou os cálculos da cápsula legada.
+
+`academia.tsx`: aviso anterior à curadoria identifica catálogo e sinais demonstrativos, distingue participação de domínio/transferência e explica que sincronização depende de sessão/serviço. Corrigida a afirmação absoluta de que conclusões ficam apenas na sessão: o código existente usa `useParticipationSync` e pode sincronizar eventos autenticados. Nenhuma integração ou persistência nova foi criada.
+
+`LearningDynamicCard.tsx`: persistência declarada pelo registro canônico é exibida sem representar confirmação de envio; todos os seis estados tipados têm rótulo. Cards permitem quebra de título e badge em linhas distintas. CTA e divulgação “Em evolução” no rail passam a 44px de altura mínima. Conteúdo, papel, exposure e regras de CTA permanecem derivados dos contratos anteriores.
+
+Verificação: 39 testes direcionados aprovados em learning-dynamics DOM, registro canônico e engine da Academia; regressão distingue sessão de organização e mantém aviso de ausência de confirmação de envio. TypeScript detectou inicialmente o estado NOT_APPLICABLE ausente no mapa; corrigido antes do candidato final. Testes DOM não exercitam o painel RH ou a rota completa da Academia. Prova visual mobile/desktop e execução integrada dessas rotas permanecem adiadas; nenhuma alegação de contraste/overflow validado. Não houve escrita remota, seed, migration, build novo ou gate amplo.
+
+Próxima frente independente: transparência em Prioridades, Experimentos e Trajetória, revisando exemplos, hipóteses e projeções junto dos números, sem transformar mocks em resultados reais.
+
 ## Segunda onda — governança detalhada e protocolo de eficácia
 
 Por orientação do operador, a comprovação de navegador fica adiada; não constitui gate para estas alterações independentes de apresentação. `IvoGovernanceView.tsx` organiza fundamentação, fontes, responsabilidades, efeitos da pendência e preparação da decisão em blocos com títulos e ícones decorativos. O texto distingue preparação de aprovação/registro. `EfficacyPanel.tsx` acrescenta roteiro estático de preenchimento, estado do documento, pendências em grade e explicação das ações salvar/registrar. O roteiro não simula progresso persistido. No mobile, metadados e botões empilham; textos podem quebrar. Campos, validações, permissões e chamadas existentes foram preservados.

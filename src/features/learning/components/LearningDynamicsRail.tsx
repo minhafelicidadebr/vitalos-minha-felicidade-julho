@@ -53,7 +53,7 @@ export function LearningDynamicsRail({
 
       {roadmap.length > 0 && (
         <Collapsible className="mt-3">
-          <CollapsibleTrigger className="group flex min-h-9 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+          <CollapsibleTrigger className="group flex min-h-11 items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
             <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" aria-hidden />
             Em evolução ({roadmap.length})
           </CollapsibleTrigger>

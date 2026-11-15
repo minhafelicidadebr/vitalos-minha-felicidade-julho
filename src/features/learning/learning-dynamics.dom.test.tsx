@@ -52,6 +52,17 @@ function makeDynamic(overrides: Partial<CanonicalLearningDynamic> = {}): Canonic
 
 const noop = () => {};
 
+test("persistência declarada distingue sessão de organização sem confirmar envio", () => {
+  const { container, rerender, unmount } = render(<LearningDynamicCard dynamic={makeDynamic({ persistenceStatus: "SESSION_ONLY" })} />);
+  expect(container.textContent).toContain("Somente na sessão");
+  expect(container.textContent).toContain("não confirma um envio");
+  rerender(<LearningDynamicCard dynamic={makeDynamic({ persistenceStatus: "PERSISTED_TENANT" })} />);
+  expect(container.textContent).toContain("Registro da organização");
+  expect(container.textContent).not.toContain("Somente na sessão");
+  expect(container.textContent).toContain("não confirma um envio");
+  unmount();
+});
+
 describe("LearningMethodDialog — item 2 (modal abre, fecha, foco)", () => {
   test("expõe role=dialog com o título correto quando aberto", () => {
     render(<LearningMethodDialog open onOpenChange={noop} />);
