@@ -23,6 +23,7 @@ import {
 import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { CapsuleInsightsCard } from "./CapsuleInsightsCard";
+import { InstitutionalModules } from "@/components/identity/EnterpriseModules";
 
 export function RHDashboard() {
   const { org: realOrg } = useRealOrgSession();
@@ -55,6 +56,7 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
       </motion.div>
 
       {/* Dados reais: aparece quando n≥5 respondentes + capsule gerada */}
+      <InstitutionalModules key={org.orgId} />
       <CapsuleInsightsCard />
 
       <motion.div

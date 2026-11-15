@@ -31,7 +31,7 @@ const fakeSaveWaveResponse = async (input: SubmitResponseInput) => {
   lastSaveWaveResponseInput = input;
   return saveWaveResponseResult;
 };
-const deps = { saveWaveResponse: fakeSaveWaveResponse };
+const deps = { saveWaveResponse: fakeSaveWaveResponse, moduleAccess: async () => true };
 
 // ── Fake do supabaseAdmin — resolve o vínculo token→onda→instrumento no
 // momento do envio (P0-07: refeito aqui, nunca herdado da resolução da tela).

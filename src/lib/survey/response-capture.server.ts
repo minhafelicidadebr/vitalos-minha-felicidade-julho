@@ -24,6 +24,7 @@ export interface ServerCaptureInput extends BlindSurveySubmission {
 }
 
 export interface CaptureSurveySubmissionDeps {
+  moduleAccess?: (waveId: string) => Promise<boolean>;
   /**
    * Injeção de teste — nunca fornecida em produção. Ausente, usa a
    * implementação real de saveWaveResponse (db-adapter.ts), mesmo caminho
@@ -104,6 +105,11 @@ export async function captureSurveySubmission(
       logCloudRejection("unknown_wave", { waveId: input.waveId });
       return { accepted: false, reason: "unknown_wave" };
     }
+    const allowed = await (deps.moduleAccess ?? (async waveId => {
+      const { data } = await admin.from("waves").select("org_id").eq("id", waveId).maybeSingle();
+      return !!data && (await (await import("@/lib/identity/module-access.server")).checkWave(data.org_id, waveId)).ok;
+    }))(input.waveId);
+    if (!allowed) return { accepted: false, reason: "unknown_wave" };
 
     if (hmlBoundary.hmlDeclared) {
       const waveJoin = inviteRow.waves as { organizations?: { slug?: string } | null; label?: string } | null;

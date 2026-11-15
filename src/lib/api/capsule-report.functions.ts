@@ -50,6 +50,8 @@ export const loadLatestOrgCapsule = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (error || !capsule) return { found: false, reason: "no_capsule" };
+    const access = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, capsule.wave_id);
+    if (!access.ok) return { found: false, reason: access.error };
 
     return {
       found: true,

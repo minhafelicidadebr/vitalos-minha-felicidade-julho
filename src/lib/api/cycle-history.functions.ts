@@ -42,6 +42,8 @@ export const loadCycleHistory = createServerFn({ method: "GET" })
     const auth = await resolveOrgMembership(data.accessToken);
     if (!auth.ok) return { cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const access = await (await import("@/lib/identity/module-access.server")).checkInstrument(auth.membership.orgId, data.instrument);
+    if (!access.ok) return { cloudReady: true, error: access.error };
     const history = await loadOrgCycleHistory(auth.membership.orgId, data.instrument);
     const registeredCycles = history.map((c) => ({
       cycleKey: c.cohortId,
@@ -72,6 +74,8 @@ export const listRegisterableCapsules = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const access = await (await import("@/lib/identity/module-access.server")).checkInstrument(auth.membership.orgId, data.instrument);
+    if (!access.ok) return { cloudReady: true, error: access.error };
     const capsules = await listRegisterableCapsulesForOrg(auth.membership.orgId, data.instrument);
     return { cloudReady: true, capsules };
   });
@@ -97,6 +101,11 @@ export const registerOrgCycle = createServerFn({ method: "POST" })
       return { accepted: false as const, reason: describeAuthFailure(auth.reason), registryId: null };
     }
 
+    // O registrador também confere a cápsula; resolve-se aqui sua onda persistida.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const capsule = await (supabaseAdmin as any).from("wave_capsules").select("wave_id").eq("id", data.capsuleId).eq("org_id", auth.membership.orgId).maybeSingle();
+    const source = capsule.data && !capsule.error ? await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, capsule.data.wave_id) : { ok: false as const, error: "Cápsula indisponível nesta empresa." };
+    if (!source.ok) return { accepted: false as const, reason: source.error, registryId: null };
     return registerOrgCycleAsAdmin(
       auth.membership.orgId,
       data.instrument,

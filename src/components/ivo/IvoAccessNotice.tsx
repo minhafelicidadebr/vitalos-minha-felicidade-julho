@@ -79,7 +79,7 @@ export function IvoAccessNotice({
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
         <div>
           <p className="font-medium text-foreground">
-            {category === "forbidden" ? "Acesso não autorizado" : "Leitura indisponível neste ambiente"}
+            {category === "module_disabled" ? "Módulo indisponível para esta empresa" : category === "forbidden" ? "Acesso não autorizado" : "Leitura indisponível neste ambiente"}
           </p>
           <p className="mt-1 text-muted-foreground">{message}</p>
           <p className="mt-2 text-xs text-muted-foreground">Nenhum dado de demonstração substitui a leitura real.</p>

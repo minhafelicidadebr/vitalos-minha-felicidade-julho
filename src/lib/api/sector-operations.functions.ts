@@ -16,6 +16,8 @@ export const adminListWaveSectorOperations = createServerFn({ method: "GET" })
     if (pilotDisabled()) return { ok: false as const, error: FIBT_PILOT_DISABLED_REASON };
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { ok: false as const, error: describeAuthFailure(auth.reason) };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, data.waveId);
+    if (!moduleAccess.ok) return { ok: false as const, error: moduleAccess.error };
 
     const { listWaveSectorOperationsAsAdmin } =
       await import("@/lib/survey/sector-operations-admin.server");
@@ -33,6 +35,8 @@ export const adminCreateWaveSector = createServerFn({ method: "POST" })
     if (pilotDisabled()) return { created: false as const, error: FIBT_PILOT_DISABLED_REASON };
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { created: false as const, error: describeAuthFailure(auth.reason) };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, data.waveId);
+    if (!moduleAccess.ok) return { created: false as const, error: moduleAccess.error };
 
     const { createWaveSectorAsAdmin } = await import("@/lib/survey/sector-operations-admin.server");
     return createWaveSectorAsAdmin(auth.membership.orgId, data.waveId, {
@@ -52,6 +56,8 @@ export const adminIssueWaveSectorLink = createServerFn({ method: "POST" })
     if (pilotDisabled()) return { created: false as const, error: FIBT_PILOT_DISABLED_REASON };
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { created: false as const, error: describeAuthFailure(auth.reason) };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, data.waveId);
+    if (!moduleAccess.ok) return { created: false as const, error: moduleAccess.error };
 
     const { issueWaveSectorLinkAsAdmin } =
       await import("@/lib/survey/sector-operations-admin.server");
@@ -67,6 +73,8 @@ export const adminRevokeWaveSectorLink = createServerFn({ method: "POST" })
     if (pilotDisabled()) return { revoked: false as const, error: FIBT_PILOT_DISABLED_REASON };
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { revoked: false as const, error: describeAuthFailure(auth.reason) };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, data.waveId);
+    if (!moduleAccess.ok) return { revoked: false as const, error: moduleAccess.error };
 
     const { revokeWaveSectorLinkAsAdmin } =
       await import("@/lib/survey/sector-operations-admin.server");

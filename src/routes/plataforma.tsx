@@ -14,6 +14,7 @@ import { adminListLeads, adminListAccountHealth } from "@/lib/api/lead-capture.f
 import type { LeadRow } from "@/lib/growth/lead-capture.server";
 import type { AccountHealthRow } from "@/lib/growth/customer-health.server";
 import { FirstAdminInvites } from "@/components/identity/FirstAdminInvites";
+import { PlatformModules } from "@/components/identity/EnterpriseModules";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -149,6 +150,7 @@ function PlataformaPage() {
       </motion.div>
 
       {accessToken && <FirstAdminInvites accessToken={accessToken} />}
+      {accessToken && <PlatformModules accessToken={accessToken} />}
       {/* Formulário de criação */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

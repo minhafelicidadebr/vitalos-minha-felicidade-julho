@@ -63,6 +63,7 @@ function deps(env: IvoProfileEnv) {
   const seen: string[] = [];
   return {
     seen,
+    moduleAccess: async () => ({ ok: true as const }),
     profile: () => resolveIvoRuntimeProfile(env),
     boundary: () => ({ hmlDeclared: false, attested: false, code: "HML_NOT_ENABLED" }) as const,
     identity: () => ({ requestedMode: "cloud", state: "cloud", realAuthentication: true, serverEnforced: true, reason: "cloud_ready" }) as const,

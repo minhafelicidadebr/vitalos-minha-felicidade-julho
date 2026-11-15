@@ -1,4 +1,16 @@
-# Checkpoint de retomada — VitalOS IVO (2026-10-29, após a retomada local do PI-13, três rodadas de revisão independente, a validação local da Fase 2, o lote independente de decisão, a prova e o visual locais do PI-13, as verificações finais locais de `due_on` e das capturas S10 e a publicação dos commits na PR #51 (draft); base: segunda macro-onda de 2026-10-05)
+# Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
+
+## Habilitação empresarial independente Q1/Q2 — 2026-11-15
+
+Base preservada: `feat/ivo-fibt-platform-foundation`, HEAD anterior `0d95791be00944818f2cd7e84a2067ceabc87847`. Implementação desta fatia acompanha este checkpoint. Nenhum push, deploy ou alteração de PR/ambiente remoto.
+
+Implementados contrato persistido por empresa/módulo, ator/data/revisão, audit trail transacional, retry/CAS, autoridade de plataforma separada de RH_ADMIN, consulta central no servidor, RLS/triggers/publicador canônico protegido e interface em `/plataforma` + `/rh`. Ausência/falha nega; desabilitar preserva registros e bloqueia novas operações sem logout. Q1 habilitado continua metodologicamente bloqueado; Q2 funciona sem Q1. Não foram aprovados índice, mapeamentos ou eficácia.
+
+**Evidências:** 43 verificações HTTP/DB aprovadas; 3 verificações de releitura em processo independente; instalação vazia da fatia em DB separado e upgrade sintético preservando os primeiros administradores; gate 4273 pass / 0 fail / 330 arquivos, paridade/TypeScript/secret-scan; build inerte isolado com varredura de artefato e `.output` original preservada. Após ajuste exclusivo do launcher local (perfil ausente em vez de vazio; Vite/Node), 123 testes de guards e a jornada HTTP final passaram. As migrations anteriores de primeiro administrador (ordens 63/64) foram preservadas; novas ordens 65/66 aplicadas somente no stack descartável próprio. Sem backfill de habilitação.
+
+**Limite real:** navegador desta onda não comprovado: Computer Use interrompeu o controle por não conseguir validar a URL atual no Windows. Não se contornou a restrição. Portanto, implementação + prova HTTP/DB/build locais estão concluídas; comprovação integrada com interação visual ainda incompleta. CI deste candidato não confirmado, nenhuma homologação remota ou liberação comercial. Fonte Q1 exata segue pendente de correspondência ao artefato já aprovado, sem repetir a pergunta ao operador. `.q.out`/`.q.sql` preservados e não lidos/indexados.
+
+Inventário de operações protegidas, exceções legadas fechadas, protocolos de concorrência, comandos, evidências e riscos em [ENTERPRISE_MODULES_LOCAL_2026-11-15.md](ENTERPRISE_MODULES_LOCAL_2026-11-15.md). Próximo marco único: prova de navegador operador → módulos → administrador → recarga/tentativa protegida após recuperação da validação de URL da ferramenta.
 
 ## Macro-onda empresarial — fatia local de entrada (2026-11-13)
 

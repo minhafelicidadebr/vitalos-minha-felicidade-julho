@@ -133,6 +133,7 @@ function q2Deps(spy: StoreSpy = { participationReads: [] }, extra: Partial<IvoQ2
   const sessionsSeen: string[] = [];
   return {
     sessionsSeen,
+    moduleAccess: async () => ({ ok: true }),
     boundary: () => ({ hmlDeclared: false, attested: false, code: "HML_NOT_ENABLED" }),
     identity: () => ({
       requestedMode: "cloud",
@@ -155,6 +156,17 @@ function q2Deps(spy: StoreSpy = { participationReads: [] }, extra: Partial<IvoQ2
     ...extra,
   };
 }
+
+test("habilitação e falha técnica são distintas e negam antes dos dados Q2", async () => {
+  for (const [reason, category] of [["disabled", "module_disabled"], ["unavailable", "backend"]] as const) {
+    const spy: StoreSpy = { participationReads: [] };
+    const result = await loadIvoQ2ReadingForSession({ accessToken: "token-alfa-admin" }, q2Deps(spy, {
+      moduleAccess: async () => ({ ok: false, reason, error: "Recusa verificada" }),
+    }));
+    expect(result).toMatchObject({ ok: false, category });
+    expect(spy.participationReads).toEqual([]);
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // R5 — leitura Q2 autenticada

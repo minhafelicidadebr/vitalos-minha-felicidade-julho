@@ -96,7 +96,10 @@ const fakeAdmin = {
 
 mock.module("@/integrations/supabase/client.server", () => ({ supabaseAdmin: fakeAdmin }));
 
-const { triggerCapsuleAggregation, triggerCapsuleAggregationByToken } = await import("./capsule-aggregator.server");
+const { triggerCapsuleAggregation: aggregate, triggerCapsuleAggregationByToken: byToken } = await import("./capsule-aggregator.server");
+const triggerCapsuleAggregationByToken = (token: string) => byToken(token, async () => true);
+// Estes casos isolam a matemática/publicação legada; habilitação real é provada separadamente.
+const triggerCapsuleAggregation = (wave: string, instrument: string, org?: string) => aggregate(wave, instrument, org, async () => true);
 
 const HML_ENV_KEYS = [
   "VITE_FIBT_HML_ENABLED",

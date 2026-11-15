@@ -9,6 +9,12 @@ import { IvoAccessNotice } from "./IvoAccessNotice";
 
 afterEach(cleanup);
 
+test("falta de módulo tem mensagem própria e não se apresenta como falta de papel", () => {
+  render(<IvoAccessNotice category="module_disabled" message="Módulo não habilitado." redirectTo="/ivo-integral/q2" />);
+  expect(screen.getByText("Módulo indisponível para esta empresa")).toBeTruthy();
+  expect(screen.queryByText("Acesso não autorizado")).toBeNull();
+});
+
 const view: IvoQ2View = {
   organizationName: "Organização Fictícia Alfa",
   cycleKey: "2026-T2",

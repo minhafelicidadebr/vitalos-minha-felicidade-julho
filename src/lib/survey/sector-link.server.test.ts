@@ -55,8 +55,11 @@ const fakeAdmin = {
 
 mock.module("@/integrations/supabase/client.server", () => ({ supabaseAdmin: fakeAdmin }));
 
-const { captureSectorLinkResponse, resolveToken, hashSectorToken } =
+const { captureSectorLinkResponse: capture, resolveToken: resolve, hashSectorToken } =
   await import("./sector-link.server");
+// Habilitação/método são dependências explícitas nestes testes da captura legada.
+const captureSectorLinkResponse = (input: Parameters<typeof capture>[0], now?: string) => capture(input, now, async () => true);
+const resolveToken = (token: string, now?: string) => resolve(token, now, async () => true);
 
 function setBoundary(state: "demo" | "cloud" | "blocked") {
   mockBoundary.mockImplementation(() => ({

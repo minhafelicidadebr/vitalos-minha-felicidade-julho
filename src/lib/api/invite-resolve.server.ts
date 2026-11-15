@@ -71,6 +71,10 @@ export async function resolveInviteToken(token: string, packId: string): Promise
     if (!wave || wave.status === "sealed" || wave.status === "cancelled" || wave.status === "archived") {
       return { valid: false, reason: "wave_closed" };
     }
+    const { data: owner } = await admin.from("waves").select("org_id").eq("id", invite.wave_id).maybeSingle();
+    if (!owner || !(await (await import("@/lib/identity/module-access.server")).checkWave(owner.org_id, invite.wave_id)).ok) {
+      return { valid: false, reason: "cloud_adapter_missing" };
+    }
 
     return {
       valid: true,

@@ -178,6 +178,7 @@ export type FibtManagerLoadOutcome =
   | { ok: false; category: "feature_gate" | "validation" | "backend"; error: string };
 
 export interface FibtManagerServiceDeps {
+  moduleAccess?: (orgId: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   store?: FibtManagerStore;
   now?: () => Date;
   pilotEnabled?: () => boolean;
@@ -404,6 +405,8 @@ export async function loadFibtManagerControlCenterAsAdmin(
   }
 
   const store = managerStore(deps);
+  const access = await (deps.moduleAccess ?? (async org => (await import("@/lib/identity/module-access.server")).checkInstrument(org, "FIB_T")))(orgId);
+  if (!access.ok) return { ok: false, category: "feature_gate", error: access.error };
   const wave = await store.findWave(orgId, waveId);
   if (!wave || wave.instrument !== "FIB_T") {
     return {

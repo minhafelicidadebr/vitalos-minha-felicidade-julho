@@ -103,6 +103,7 @@ function q2Deps(): IvoQ2Deps {
   return {
     boundary: () => ({ hmlDeclared: false, attested: false, code: "HML_NOT_ENABLED" }),
     identity: () => ({ requestedMode: "cloud", state: "cloud", realAuthentication: true, serverEnforced: true, reason: "cloud_ready" }),
+    moduleAccess: async () => ({ ok: true }),
     requireAdmin: async (accessToken) => SESSIONS[accessToken] ?? { ok: false, reason: "invalid_session" },
     store: fibtStore(),
     now: () => NOW,

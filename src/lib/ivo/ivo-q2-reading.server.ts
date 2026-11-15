@@ -41,6 +41,7 @@ import type { IvoQ2Failure, IvoQ2Outcome, IvoQ2Sector, IvoQ2SectorGroup, IvoQ2Vi
 export type { IvoQ2Failure, IvoQ2Outcome, IvoQ2Sector, IvoQ2SectorGroup, IvoQ2View } from "./ivo-views";
 
 export interface IvoSessionDeps {
+  moduleAccess?: (orgId: string) => Promise<{ ok: true } | { ok: false; error: string; reason?: string }>;
   profile?: () => IvoRuntimeProfile;
   env?: HmlBackendBoundaryEnv;
   boundary?: (env: HmlBackendBoundaryEnv) => HmlBackendBoundaryResult;
@@ -256,6 +257,8 @@ export async function loadIvoQ2ForOrg(
   deps: IvoQ2Deps = {},
 ): Promise<IvoQ2Outcome> {
   try {
+    const access = await (deps.moduleAccess ?? (async org => (await import("@/lib/identity/module-access.server")).checkInstrument(org, "FIB_T")))(orgId);
+    if (!access.ok) return { ok: false, category: access.reason === "unavailable" ? "backend" : "module_disabled", error: access.error };
     let targetWave = waveId;
     if (!targetWave) {
       const latest = await (deps.locateLatestWave ?? locateLatestFibtWave)(orgId);
@@ -268,7 +271,7 @@ export async function loadIvoQ2ForOrg(
       targetWave,
       { environment: "application", hmlAttested: false },
       // Sem advancePublication: leitura somente do já publicado.
-      { store: deps.store, now: deps.now, pilotEnabled: deps.pilotEnabled },
+      { store: deps.store, now: deps.now, pilotEnabled: deps.pilotEnabled, moduleAccess: deps.moduleAccess },
     );
     if (!outcome.ok) {
       if (outcome.category === "feature_gate") {

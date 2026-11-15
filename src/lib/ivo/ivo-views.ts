@@ -64,6 +64,7 @@ export interface IvoQ2View {
 export type IvoFailureCategory =
   | "unauthenticated"
   | "forbidden"
+  | "module_disabled"
   | "unavailable"
   | "hml_boundary"
   | "validation"

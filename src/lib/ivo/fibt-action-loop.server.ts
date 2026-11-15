@@ -217,7 +217,10 @@ export async function authorizeLedger(accessToken: string | undefined, deps: Fib
   if (!capability.enabled) {
     return { ok: false as const, category: "unavailable" as const, error: CAPABILITY_DISABLED_REASON };
   }
-  return authorizeIvoSession(accessToken, deps);
+  const auth = await authorizeIvoSession(accessToken, deps);
+  if (!auth.ok) return auth;
+  const access = await (deps.moduleAccess ?? (async org => (await import("@/lib/identity/module-access.server")).checkInstrument(org, "FIB_T")))(auth.orgId);
+  return access.ok ? auth : { ok: false as const, category: access.reason === "unavailable" ? "backend" as const : "module_disabled" as const, error: access.error };
 }
 
 export function ledgerOf(deps: FibtActionLoopDeps): FibtActionLedgerStore {

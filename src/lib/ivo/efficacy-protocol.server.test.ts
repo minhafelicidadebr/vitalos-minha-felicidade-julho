@@ -96,6 +96,7 @@ function deps(store: EfficacyStore, gate: GovernanceGate = PENDING, extra: Parti
   return {
     boundary: () => ({ hmlDeclared: false, attested: false, code: "HML_NOT_ENABLED" }),
     identity: () => ({ requestedMode: "cloud", state: "cloud", realAuthentication: true, serverEnforced: true, reason: "cloud_ready" }),
+    moduleAccess: async () => ({ ok: true }),
     requireAdmin: async (token) => SESSIONS[token] ?? { ok: false, reason: "invalid_session" },
     capability: () => ({ enabled: true, source: "local_fixture" }),
     now: () => new Date("2026-11-20T15:00:00.000Z"),

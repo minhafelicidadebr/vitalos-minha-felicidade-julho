@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 64,
-  "rollupSha256": "841dbcebcf5dcd523e850b0a28ac97c6eb9563e00cc56216c487cb804b5debf8",
+  "migrationCount": 66,
+  "rollupSha256": "5c21db1c23962b15bdbb5396a27ee6bf14c855ae8dc64e4f5d9f98da2b85e640",
   "migrations": [
     {
       "order": 1,
@@ -386,6 +386,18 @@
       "name": "20261113202253_institutional_first_admin_private_identity.sql",
       "sha256": "f1b416fa61b8c07dd35c226c9642640762368ea1416e7434bf7f82dd05a4a021",
       "bytes": 3483
+    },
+    {
+      "order": 65,
+      "name": "20261115135955_enterprise_module_entitlements.sql",
+      "sha256": "ac0598f33b6e98f6ac3d55aeb86d2949532c884032d5842d8f6364dcf60ec5a8",
+      "bytes": 10394
+    },
+    {
+      "order": 66,
+      "name": "20261115142320_enterprise_module_pack_compatibility.sql",
+      "sha256": "752c712bcb26df0d97c465210ac0b2b9b00b7ece383dc5f43420243f29d2f4f2",
+      "bytes": 6061
     }
   ]
 }

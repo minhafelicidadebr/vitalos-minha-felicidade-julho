@@ -69,6 +69,14 @@ async function setup() {
     await institutionalSql(readFileSync(join(root, "supabase/migrations/20261113202253_institutional_first_admin_private_identity.sql"), "utf8"));
     console.log("Migration aditiva de identidade privada aplicada no stack exclusivo.");
   }
+  if ((await institutionalSql("SELECT (to_regclass('public.org_module_entitlements') IS NOT NULL)::text")) !== "true") {
+    await institutionalSql(readFileSync(join(root, "supabase/migrations/20261115135955_enterprise_module_entitlements.sql"), "utf8"));
+    console.log("Habilitação Q1/Q2 aplicada exclusivamente no stack descartável; sem backfill.");
+  }
+  if ((await institutionalSql("SELECT coalesce(obj_description('public.aggregate_cohort_responses(uuid,uuid)'::regprocedure,'pg_proc'),'')")) !== "enterprise_modules_v2_pack_compatibility") {
+    await institutionalSql(readFileSync(join(root, "supabase/migrations/20261115142320_enterprise_module_pack_compatibility.sql"), "utf8"));
+    console.log("Compatibilidade dos packs aplicada somente no stack descartável.");
+  }
   for (const [name, slug] of [["Empresa Fictícia Alfa", "institutional-alfa"], ["Empresa Fictícia Beta", "institutional-beta"]]) {
     await institutionalSql(`INSERT INTO public.organizations(name,slug,pack_id,plan) VALUES ('${name}','${slug}','enterprise','pilot') ON CONFLICT (slug) DO NOTHING;`);
   }
@@ -83,8 +91,13 @@ async function setup() {
 }
 async function dev() {
   const env = await institutionalEnv();
-  const child = Bun.spawn(["bun", "run", "dev", "--host", "127.0.0.1", "--port", "8091"], {
-    env: { ...process.env, ...env, VITALOS_IVO_PROFILE: "", VITALOS_IVO_TEST_GOVERNANCE: "", VITE_FIBT_HML_ENABLED: "false" }, stdout: "inherit", stderr: "inherit",
+  // Ausência é o perfil canônico default; string vazia significa perfil inválido.
+  // Não herda flags de staging/HML, nem deixa o Bun recarregar arquivos .env.
+  const childEnv = Object.fromEntries(Object.entries({ ...process.env, ...env }).filter(([key]) => !/^(VITALOS_IVO_|FIBT_HML_|VITE_FIBT_HML_|STAGING_)/.test(key))) as Record<string,string>;
+  const preflight = Bun.spawn(["bun", "--no-env-file", "run", "scripts/environment-preflight.ts", "--runtime=local", "--db=local"], { env: childEnv, stdout: "inherit", stderr: "inherit" });
+  if (await preflight.exited) throw new Error("Preflight local recusou o harness.");
+  const child = Bun.spawn(["node", join(root, "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "8091"], {
+    env: childEnv, stdout: "inherit", stderr: "inherit",
   });
   process.exit(await child.exited);
 }

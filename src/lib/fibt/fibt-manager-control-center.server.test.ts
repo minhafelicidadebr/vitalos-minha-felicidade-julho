@@ -79,6 +79,7 @@ const deps = (store: FibtManagerStore, extra: Record<string, unknown> = {}) => (
   store,
   now: () => NOW,
   pilotEnabled: () => true,
+  moduleAccess: async () => ({ ok: true as const }),
   ...extra,
 });
 

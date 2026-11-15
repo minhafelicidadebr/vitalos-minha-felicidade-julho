@@ -114,6 +114,7 @@ describe("R7 · catálogo curatorial fator → conteúdo", () => {
     const base: Parameters<typeof loadEducationForSession>[1] = {
       boundary: () => ({ hmlDeclared: false, attested: false, code: "HML_NOT_ENABLED" }),
       identity: () => ({ requestedMode: "cloud", state: "cloud", realAuthentication: true, serverEnforced: true, reason: "cloud_ready" }),
+      moduleAccess: async () => ({ ok: true }),
       requireAdmin: async (t) => SESSIONS[t] ?? { ok: false, reason: "invalid_session" },
       capability: () => ({ enabled: true, source: "local_fixture" }),
     };
@@ -150,6 +151,7 @@ describe("R7 · aprendizagem vinculada a conteúdo no ledger", () => {
   const base = (store: FibtActionLedgerStore, testContent: boolean) => ({
     boundary: () => ({ hmlDeclared: false as const, attested: false as const, code: "HML_NOT_ENABLED" as const }),
     identity: () => ({ requestedMode: "cloud" as const, state: "cloud" as const, realAuthentication: true, serverEnforced: true, reason: "cloud_ready" as const }),
+    moduleAccess: async () => ({ ok: true as const }),
     requireAdmin: async (t: string) => SESSIONS[t] ?? ({ ok: false, reason: "invalid_session" } as const),
     capability: () => ({ enabled: true as const, source: "local_fixture" as const }),
     now: () => new Date("2026-10-06T15:00:00.000Z"),
