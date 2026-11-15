@@ -2,6 +2,7 @@ import { TIMELINE_NOTE, type PlanFollowUp, type TimelineEntry } from "@/lib/ivo/
 import type { EducationCatalogView, EducationContentView } from "@/lib/ivo/ivo-views";
 import { EFFICACY_STATE_LABEL } from "@/engine/ivo/efficacy-protocol";
 import type { ReactNode } from "react";
+import { ClipboardList, CheckCheck, BookOpen, ScanSearch, Info, ShieldCheck, type LucideIcon } from "lucide-react";
 
 // Acompanhamento das ações FIB-T: resumo do plano, linha do tempo e educação.
 // Apresentação apenas — tudo vem de visões já autorizadas no servidor. Nada aqui
@@ -13,25 +14,26 @@ function formatInstant(iso: string): string {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
 }
 
-const Stat = ({ label, value }: { label: string; value: number | string }) => (
-  <div className="rounded-md border border-border px-3 py-2">
-    <dt className="text-xs text-muted-foreground">{label}</dt>
-    <dd className="text-lg font-semibold text-foreground">{value}</dd>
+const Stat = ({ label, value, icon: Icon }: { label: string; value: number | string; icon: LucideIcon }) => (
+  <div className="rounded-xl border border-border bg-background/60 p-4">
+    <dt className="flex items-center gap-2 text-sm text-muted-foreground"><Icon aria-hidden="true" className="size-4 shrink-0 text-primary" />{label}</dt>
+    <dd className="mt-2 text-3xl font-semibold tabular-nums text-foreground">{value}</dd>
   </div>
 );
 
 export function PlanSummaryPanel({ summary, cycle }: { summary: PlanFollowUp; cycle: string }) {
   const states = (Object.keys(EFFICACY_STATE_LABEL) as Array<keyof typeof EFFICACY_STATE_LABEL>).filter((k) => summary.evaluations[k] > 0);
   return (
-    <section aria-label={`Resumo de acompanhamento do plano ${cycle}`} className="space-y-3 rounded-md border border-border bg-muted/20 p-4">
+    <section aria-label={`Resumo de acompanhamento do plano ${cycle}`} className="space-y-5 rounded-xl border border-border bg-muted/20 p-4 sm:p-6">
       <h3 className="text-sm font-semibold text-foreground">Acompanhamento do plano {cycle}</h3>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="Ações" value={summary.actions} />
-        <Stat label="Execuções registradas" value={summary.executionRecords} />
-        <Stat label="Aprendizagens registradas" value={summary.learningRecords} />
-        <Stat label="Avaliações pendentes" value={summary.evaluationsPending} />
+        <Stat icon={ClipboardList} label="Ações" value={summary.actions} />
+        <Stat icon={CheckCheck} label="Execuções registradas" value={summary.executionRecords} />
+        <Stat icon={BookOpen} label="Aprendizagens registradas" value={summary.learningRecords} />
+        <Stat icon={ScanSearch} label="Avaliações pendentes" value={summary.evaluationsPending} />
       </dl>
-      <ul className="space-y-1 text-sm text-muted-foreground">
+      <h4 className="text-sm font-semibold">Situação e próximos registros</h4>
+      <ul className="grid gap-3 text-sm leading-relaxed text-muted-foreground sm:grid-cols-2 [&>li]:rounded-lg [&>li]:border [&>li]:border-border [&>li]:bg-background/40 [&>li]:p-3">
         <li>
           Estados: {summary.byStatus.planejada} planejada(s) · {summary.byStatus.em_execucao} em execução · {summary.byStatus.concluida} concluída(s) ·{" "}
           {summary.byStatus.em_vigilancia} em vigilância · {summary.byStatus.interrompida} interrompida(s).
@@ -45,13 +47,18 @@ export function PlanSummaryPanel({ summary, cycle }: { summary: PlanFollowUp; cy
         {summary.actionsWithoutExecution > 0 ? <li>{summary.actionsWithoutExecution} ação(ões) sem execução registrada.</li> : null}
         {summary.actionsWithoutLearning > 0 ? <li>{summary.actionsWithoutLearning} ação(ões) sem aprendizagem registrada.</li> : null}
       </ul>
-      <p className="text-sm text-foreground">
+      <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+      <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold"><Info aria-hidden="true" className="size-4 shrink-0 text-primary" />Como interpretar este acompanhamento</h4>
+      <p className="text-sm leading-relaxed text-foreground">
         {summary.operationallyFinished
           ? "Todas as ações estão em estado operacional de saída (concluída, em vigilância ou interrompida)."
           : "Há ações ainda em andamento."}{" "}
         <span className="text-muted-foreground">{summary.closingNote}</span>
       </p>
-      <p className="text-xs text-muted-foreground">
+      </div>
+      <div className="space-y-2 border-t border-border pt-4">
+      <h4 className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck aria-hidden="true" className="size-4 shrink-0 text-primary" />Origem e transparência metodológica</h4>
+      <p className="text-sm leading-relaxed text-muted-foreground">
         Origem: leitura publicada FIB-T. Cobertura dimensional: mapeamento pendente — nenhuma dimensão recebe valor.{" "}
         <a href="/ivo-integral" className="underline underline-offset-2">
           Ver cobertura
@@ -61,6 +68,7 @@ export function PlanSummaryPanel({ summary, cycle }: { summary: PlanFollowUp; cy
           Ver governança metodológica
         </a>
       </p>
+      </div>
     </section>
   );
 }

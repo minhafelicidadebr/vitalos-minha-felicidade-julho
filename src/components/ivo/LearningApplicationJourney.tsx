@@ -50,7 +50,7 @@ export function LearningApplicationJourney({
   return (
     <section
       aria-label={`Praticar e aplicar: ${content.title}`}
-      className="space-y-4 rounded-md border border-primary/30 p-4"
+      className="min-w-0 space-y-4 break-words rounded-xl border border-primary/30 bg-primary/5 p-4 sm:p-5"
     >
       <h5 className="font-semibold">Compreender, praticar e preparar uma aplicação</h5>
       <p className="text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export function LearningApplicationJourney({
         publicada de {action.source.cohortLabel ?? "seu setor"}. Isso não prova a causa do resultado
         nem indica uma deficiência individual.
       </p>
-      <p className="text-sm">
+      <p className="rounded-lg border border-border bg-background/60 p-3 text-sm leading-relaxed">
         {content.status === "TESTE"
           ? "Exercício de TESTE, sem recomendação científica aprovada. "
           : ""}
@@ -95,12 +95,12 @@ export function LearningApplicationJourney({
           )}
         </fieldset>
       ))}
-      <p className="text-sm">{activity.practicePrompt}</p>
-      <p className="text-sm text-muted-foreground">
+      <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3"><h6 className="text-sm font-semibold">Preparar a aplicação</h6><p className="text-sm leading-relaxed">{activity.practicePrompt}</p></div>
+      <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3"><h6 className="text-sm font-semibold">Retomar e revisar</h6><p className="text-sm leading-relaxed text-muted-foreground">
         {activity.reviewPrompt} Você pode retornar aqui em outra sessão; as respostas serão
         reiniciadas. Combine o momento da revisão conforme o contexto, sem intervalo universal
         presumido.
-      </p>
+      </p></div>
       <button
         type="button"
         className="min-h-11 rounded border px-3 text-sm focus-visible:ring-2"

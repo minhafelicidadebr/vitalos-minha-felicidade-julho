@@ -55,7 +55,7 @@ function List({ title, items }: { title: string; items: readonly string[] }) {
   return (
     <div>
       <p className="font-medium text-foreground">{title}</p>
-      <ul className="list-disc space-y-0.5 pl-5 text-muted-foreground">
+      <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
         {items.map((i) => (
           <li key={i}>{i}</li>
         ))}
@@ -213,7 +213,7 @@ function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry
       ) : null}
       <div>
         <p className="font-medium text-foreground">Fontes</p>
-        <ul className="list-disc space-y-0.5 pl-5 text-muted-foreground">
+        <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
           {entry.sources.map((s) => (
             <li key={s.ref}>
               {s.ref}
@@ -229,7 +229,7 @@ function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry
       <List title="Critérios para aprovar" items={entry.approvalCriteria} />
       <div>
         <p className="font-medium text-foreground">Efeito enquanto estiver pendente</p>
-        <ul className="list-disc space-y-0.5 pl-5 text-muted-foreground">
+        <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
           {entry.effects.map((e) => (
             <li key={`${e.feature}:${e.effect}`}>
               <span className="text-foreground">{e.feature}:</span> {e.effect}
@@ -284,7 +284,7 @@ export function IvoGovernanceView({
   const anyApproved = view.counts.aprovado_para_piloto + view.counts.validado_para_uso_definido > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6 break-words">
       <section aria-label="Resumo da governança" className="space-y-2 rounded-md border border-border bg-muted/20 p-4">
         <h2 className="text-base font-semibold text-foreground">Situação do registro metodológico</h2>
         <p className="text-sm text-muted-foreground">
@@ -336,7 +336,7 @@ export function IvoGovernanceView({
 
       <section aria-label="Estados de uma decisão" className="rounded-md border border-border p-4 text-sm">
         <h2 className="text-base font-semibold text-foreground">O que cada estado significa</h2>
-        <dl className="mt-2 space-y-2">
+        <dl className="mt-3 grid gap-3 sm:grid-cols-2 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-muted/20 [&>div]:p-3">
           {STATE_GLOSSARY.map((g) => (
             <div key={g.state}>
               <dt>

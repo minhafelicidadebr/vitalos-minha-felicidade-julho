@@ -1,5 +1,6 @@
 import type { IvoQ2Sector, IvoQ2SectorGroup, IvoQ2View } from "@/lib/ivo/ivo-views";
 import { FIBT_MANAGER_PANEL_ROUTE } from "@/domain/ivo/lens-catalog";
+import { Fingerprint, Shield, Info } from "lucide-react";
 
 // Detalhe da lente Q2 (FIB-T) — spec docs/vitalos/specs/fibt-q2-integration.md.
 // Mostra o resultado NATIVO da FIB-T (fatores 0–4, escore bruto 0–12) somente
@@ -43,12 +44,13 @@ export function formatDateBR(iso: string | null): string {
 function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string }) {
   const headingId = `setor-${sector.key}`;
   return (
-    <article aria-labelledby={headingId} className={`rounded-md border bg-background p-4 ${GROUP_TONE[sector.group]}`}>
+    <article aria-labelledby={headingId} className={`min-w-0 space-y-3 break-words rounded-xl border bg-background p-4 sm:p-5 ${GROUP_TONE[sector.group]}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 id={headingId} className="font-medium text-foreground">
           {sector.label}
         </h3>
-        <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground">
+          <Shield aria-hidden="true" className="size-4 shrink-0" />
           {SECTOR_GROUP_LABEL[sector.group]}
         </span>
       </div>
@@ -59,7 +61,8 @@ function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string })
 
       {sector.group === "available" && sector.factors ? (
         <>
-          <table className="mt-3 w-full text-sm">
+          <div role="region" aria-label={`Resultados publicados de ${sector.label}`} tabIndex={0} className="max-w-full overflow-x-auto rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          <table className="w-full min-w-[20rem] text-sm">
             <caption className="text-left text-xs text-muted-foreground">
               Médias publicadas em {formatDateBR(sector.publishedAt)} — escala do instrumento de 0 a 4
             </caption>
@@ -75,8 +78,8 @@ function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string })
             <tbody>
               {sector.factors.map((factor) => (
                 <tr key={factor.id} className="border-t border-border/60">
-                  <th scope="row" className="py-1.5 text-left font-normal">{factor.name}</th>
-                  <td className="py-1.5 text-right tabular-nums">{formatMean(factor.mean)}</td>
+                  <th scope="row" className="py-3 pr-3 text-left font-normal">{factor.name}</th>
+                  <td className="px-2 py-3 text-right font-semibold tabular-nums">{formatMean(factor.mean)}</td>
                   <td className="py-1.5 text-right">
                     <a
                       href={`/ivo-integral/acoes?wave=${waveId}&setor=${sector.cohortId}&fator=${factor.id}`}
@@ -90,14 +93,15 @@ function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string })
               ))}
             </tbody>
           </table>
+          </div>
           {sector.rawScore !== null ? (
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm leading-relaxed text-muted-foreground">
               Escore bruto publicado: <span className="tabular-nums text-foreground">{formatMean(sector.rawScore)}</span> (escala de 0 a 12)
             </p>
           ) : null}
         </>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">{sector.message}</p>
+        <p className="rounded-lg bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">{sector.message}</p>
       )}
     </article>
   );
@@ -106,10 +110,10 @@ function SectorCard({ sector, waveId }: { sector: IvoQ2Sector; waveId: string })
 export function IvoQ2Detail({ view }: { view: IvoQ2View }) {
   const m = view.methodology;
   return (
-    <div className="space-y-6">
-      <section aria-labelledby="q2-metodologia" className="rounded-md border border-border bg-muted/20 p-4 text-sm">
-        <h2 id="q2-metodologia" className="font-medium text-foreground">Identidade metodológica</h2>
-        <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+    <div className="min-w-0 space-y-6">
+      <section aria-labelledby="q2-metodologia" className="min-w-0 space-y-4 rounded-xl border border-border bg-muted/20 p-4 text-sm sm:p-6">
+        <h2 id="q2-metodologia" className="flex items-center gap-2 font-semibold text-foreground"><Fingerprint aria-hidden="true" className="size-5 shrink-0 text-primary" />Identidade metodológica</h2>
+        <dl className="grid gap-3 sm:grid-cols-2 [&>div]:min-w-0 [&>div]:break-words [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:p-3 [&_dt]:mb-1 [&_dt]:block [&_dd]:block">
           <div><dt className="inline text-muted-foreground">Instrumento: </dt><dd className="inline">{m.instrumentName}</dd></div>
           <div><dt className="inline text-muted-foreground">Versão aplicada na onda: </dt><dd className="inline">{m.waveInstrumentVersion}</dd></div>
           <div><dt className="inline text-muted-foreground">Versão do manifesto: </dt><dd className="inline">{m.manifestVersion} ({m.manifestStatus})</dd></div>
@@ -117,6 +121,7 @@ export function IvoQ2Detail({ view }: { view: IvoQ2View }) {
           <div><dt className="inline text-muted-foreground">Limiar de publicação: </dt><dd className="inline">mínimo de {m.kMin} participações por recorte</dd></div>
           <div><dt className="inline text-muted-foreground">Escalas: </dt><dd className="inline">fatores {m.factorScale.min}–{m.factorScale.max}; escore bruto 0–{m.rawScoreMax}</dd></div>
         </dl>
+        <div className="flex items-start gap-3 rounded-lg border border-primary/25 bg-primary/5 p-3"><Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-relaxed">As médias dos fatores e o escore bruto têm escalas diferentes. Proteção e ausência de dados são estados; não representam uma nota zero.</p></div>
         <p className="mt-2 text-xs text-muted-foreground">{m.citation}</p>
       </section>
 
@@ -134,7 +139,7 @@ export function IvoQ2Detail({ view }: { view: IvoQ2View }) {
           Onda “{view.wave.label}” · {WAVE_STATUS_LABEL[view.wave.status] ?? view.wave.status} · ciclo {view.cycleKey}.
           A publicação acontece por setor e em lote protegido; esta tela mostra apenas o que já foi publicado.
         </p>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-2">
           {view.sectors.map((sector) => (
             <SectorCard key={sector.cohortId} sector={sector} waveId={view.wave.id} />
           ))}

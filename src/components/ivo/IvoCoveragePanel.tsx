@@ -1,4 +1,5 @@
 import { DIMENSION_COVERAGE_LABEL, type DimensionCoverageState, type IvoCoverage } from "@/engine/ivo/ivo-coverage";
+import { Layers, Info } from "lucide-react";
 
 // Cobertura por dimensão (ADR-005). Mostra ESTADO e MOTIVO, nunca número: enquanto
 // não houver mapeamento aprovado e método aprovado, o IVO não tem valor. Estado é
@@ -15,9 +16,10 @@ const TONE: Record<DimensionCoverageState, string> = {
 
 export function IvoCoveragePanel({ coverage }: { coverage: IvoCoverage }) {
   return (
-    <section aria-labelledby="ivo-cobertura-title" className="space-y-3 rounded-md border border-border bg-background p-4">
+    <section aria-labelledby="ivo-cobertura-title" className="min-w-0 space-y-4 rounded-xl border border-border bg-background p-4 sm:p-6">
       <div>
-        <h2 id="ivo-cobertura-title" className="font-serif text-xl text-foreground">
+        <h2 id="ivo-cobertura-title" className="flex items-center gap-2 font-serif text-xl text-foreground">
+          <Layers aria-hidden="true" className="size-5 shrink-0 text-primary" />
           Cobertura por dimensão
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -26,7 +28,7 @@ export function IvoCoveragePanel({ coverage }: { coverage: IvoCoverage }) {
       </div>
       <ul className="grid gap-3 md:grid-cols-2">
         {coverage.dimensions.map((d) => (
-          <li key={d.dimension} className={`rounded-md border p-3 text-sm ${TONE[d.state]}`}>
+          <li key={d.dimension} className={`min-w-0 space-y-2 break-words rounded-lg border bg-muted/10 p-4 text-sm leading-relaxed ${TONE[d.state]}`}>
             <p className="font-medium text-foreground">{d.label}</p>
             <p className="mt-1 text-foreground">
               <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Situação: </span>
@@ -36,7 +38,8 @@ export function IvoCoveragePanel({ coverage }: { coverage: IvoCoverage }) {
           </li>
         ))}
       </ul>
-      <div role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm">
+      <div role="note" className="space-y-2 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 p-4 text-sm leading-relaxed">
+        <div className="flex items-center gap-2 font-semibold"><Info aria-hidden="true" className="size-4 shrink-0 text-primary" />Limites de interpretação</div>
         <p className="font-medium text-foreground">
           {coverage.indexEligible ? "Índice IVO: elegível para cálculo pelo método aprovado" : "Índice IVO: sem número"}
         </p>

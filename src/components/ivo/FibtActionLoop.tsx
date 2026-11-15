@@ -558,41 +558,41 @@ export function FibtActionCard({
       </div>
       {action.description ? <p className="text-sm text-muted-foreground">{parseContentRef(action.description)?.text ?? action.description}</p> : null}
 
-      <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 text-sm sm:grid-cols-2 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-muted/20 [&>div]:p-3">
         <div>
-          <dt className="inline text-muted-foreground">Origem: </dt>
-          <dd className="inline">
+          <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Origem: </dt>
+          <dd className="leading-relaxed text-foreground">
             FIB-T {action.source.instrumentVersion} · {action.source.cohortLabel ?? "setor"} · fator {action.source.factorName} · leitura publicada em {formatDateBR(action.source.publishedAt)}
           </dd>
         </div>
         {action.addedLater ? (
           <div>
-            <dt className="inline text-muted-foreground">Inclusão: </dt>
-            <dd className="inline">
+            <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Inclusão: </dt>
+            <dd className="leading-relaxed text-foreground">
               incluída depois da criação do plano, em{" "}
               <time dateTime={action.addedLater.at}>{formatDateBR(action.addedLater.at)}</time> por {action.addedLater.byRole}
             </dd>
           </div>
         ) : null}
         <div>
-          <dt className="inline text-muted-foreground">Dimensão IVO: </dt>
-          <dd className="inline">
+          <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Dimensão IVO: </dt>
+          <dd className="leading-relaxed text-foreground">
             {action.dimension.status === "mapping_pending"
               ? "mapeamento pendente — a ação se refere ao resultado nativo da FIB-T"
               : action.dimension.dimensionIds.join(", ")}
           </dd>
         </div>
         <div>
-          <dt className="inline text-muted-foreground">Responsável: </dt>
-          <dd className="inline">{action.owner ? `${action.owner.roleLabel}${action.owner.isCurrentUser ? " (accountable: você)" : ""}` : "não definido"}</dd>
+          <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsável: </dt>
+          <dd className="leading-relaxed text-foreground">{action.owner ? `${action.owner.roleLabel}${action.owner.isCurrentUser ? " (accountable: você)" : ""}` : "não definido"}</dd>
         </div>
         <div>
-          <dt className="inline text-muted-foreground">Prazo: </dt>
-          <dd className="inline">{action.dueOn ? <time dateTime={action.dueOn}>{formatIsoDateLong(action.dueOn)}</time> : "não definido"}</dd>
+          <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Prazo: </dt>
+          <dd className="leading-relaxed text-foreground">{action.dueOn ? <time dateTime={action.dueOn}>{formatIsoDateLong(action.dueOn)}</time> : "não definido"}</dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="inline text-muted-foreground">Indicador de execução: </dt>
-          <dd className="inline">
+          <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Indicador de execução: </dt>
+          <dd className="leading-relaxed text-foreground">
             {action.executionMetric
               ? `${action.executionMetric.label}: de ${action.executionMetric.baseline} para ${action.executionMetric.target} ${action.executionMetric.unit}`.trim()
               : "não definido"}
