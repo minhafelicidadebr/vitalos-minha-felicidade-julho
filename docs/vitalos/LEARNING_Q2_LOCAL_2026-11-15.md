@@ -96,6 +96,14 @@ Roteiro pendente, apenas no ambiente sintético acima:
 
 ## Maturidade e próximo marco
 
+### Continuidade: evidência visual parcial
+
+Na tentativa posterior ao commit `a738bde`, a navegação suportada abriu `/ivo-integral/acoes` em `localhost:8091`. Foram observados plano ativo, duas ações, um registro de execução e um de aprendizagem, avisos de curadoria D10 pendente e eficácia não avaliada. Isso comprova renderização desses registros na sessão já aberta; não comprova novo login, envio do formulário educacional, recuperação ou revogação visual de acesso.
+
+Os cinco containers do harness exclusivo estavam ativos. O launcher adicional passou pelo preflight, mas o Vite escolheu 8092 porque 8091 já estava ocupada. O processo anterior foi identificado e preservado; somente o duplicado desta tentativa foi encerrado. O endereço 8091 respondeu HTTP 200. Nenhum setup, reset, seed ou migration foi executado. A constatação anterior de indisponibilidade não descreve esse momento posterior.
+
+O controle voltou a ser interrompido pela validação de URL durante uma ação de localização na página. Não se tentou contorno. A prova permanece parcial, com o mesmo roteiro manual acima. Não repetir automaticamente a tentativa bloqueada sem sinal de recuperação da ferramenta. Gate, build e provas HTTP/DB anteriores não foram repetidos, pois não houve mudança de código.
+
 **Implementado e integrado em HTTP/DB local descartável, com conteúdo TESTE.** Jornada visual integrada ainda não comprovada; conteúdo científico aprovado, cobertura completa de personas, validação de retenção/transferência e valor com clientes permanecem pendentes. Não há declaração de prontidão comercial ou homologação remota.
 
 Próximo marco operacional único: concluir a interação real no navegador do roteiro acima, reutilizando o gate/build/HTTP/DB válidos. A curadoria D10 pode avançar de forma independente por decisão humana. O protocolo em [LEARNING_Q2_CLIENT_VALIDATION_PROTOCOL.md](LEARNING_Q2_CLIENT_VALIDATION_PROTOCOL.md) prepara uma futura avaliação; não autoriza piloto, coleta real ou publicação.
