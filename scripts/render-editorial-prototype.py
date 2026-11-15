@@ -3,6 +3,7 @@ Uso: python scripts/render-editorial-prototype.py
 Requer reportlab/pypdf/Pillow no ambiente de artefatos, não no runtime do app.
 """
 import json
+import argparse
 from pathlib import Path
 from html import escape
 from reportlab.pdfgen import canvas
@@ -15,10 +16,18 @@ from reportlab.pdfbase.ttfonts import TTFont
 from pypdf import PdfReader
 
 ROOT = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('--matrix', action='store_true', help='Acrescenta matriz sintética e preserva o PDF anterior.')
+args = parser.parse_args()
 model = json.loads((ROOT / '.institutional-admin.local/editorial-mete-model.json').read_text(encoding='utf-8'))
 if model['mode'] != 'synthetic':
     raise ValueError('Somente fixture sintética é permitida neste renderizador.')
-OUT = ROOT / 'docs/vitalos/artifacts/RELATORIO_METE_PROTOTIPO.pdf'
+matrix = None
+if args.matrix:
+    matrix = json.loads((ROOT / '.institutional-admin.local/editorial-esg-matrix.json').read_text(encoding='utf-8'))
+    if matrix.get('mode') != 'synthetic' or len(matrix.get('rows', [])) != 5:
+        raise ValueError('Matriz deve ser a fixture sintética de cinco casos.')
+OUT = ROOT / ('docs/vitalos/artifacts/RELATORIO_METE_MATRIZ_PROTOTIPO.pdf' if args.matrix else 'docs/vitalos/artifacts/RELATORIO_METE_PROTOTIPO.pdf')
 OUT.parent.mkdir(parents=True, exist_ok=True)
 FONT = Path('C:/Windows/Fonts')
 pdfmetrics.registerFont(TTFont('Editorial', str(FONT / 'arial.ttf')))
@@ -94,7 +103,33 @@ for i, block in enumerate(model['blocks']):
     evidence_block(block)
     add('EXEMPLO SINTÉTICO - NÃO É RESULTADO DE CLIENTE','KickerE')
 
-page('Continuidade, ESG e expediente','06 / RASTREABILIDADE')
+if matrix:
+    page('Matriz de contribuição proposta','06 / MATRIZ SINTÉTICA')
+    add('METE x papéis x drivers x temas ESG','H2E')
+    add(matrix['note'])
+    add('As relações abaixo são hipóteses de organização da evidência, não mapeamentos aprovados. O papel não concede acesso nem mede mérito causal.','SmallE')
+    matrix_rows = [[p(x,'SmallE') for x in ['Ação / driver','Etapas e perfis','Vínculo temático','Evidência / mudança']]]
+    for row in matrix['rows']:
+        matrix_rows.append([
+            p(row['title']+'\n'+row['driver'],'SmallE'),
+            p(row['phases']+'\n'+row['roles'],'SmallE'),
+            p(row['links'],'SmallE'),
+            p(row['state']+'\n'+row['change']['text'],'SmallE'),
+        ])
+    matrix_table = Table(matrix_rows,colWidths=[110,126,116,135],repeatRows=1,hAlign='LEFT')
+    matrix_table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),PALE),('VALIGN',(0,0),(-1,-1),'TOP'),('GRID',(0,0),(-1,-1),0.4,colors.HexColor('#d8dfd8')),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),7)]))
+    story.extend([matrix_table,Spacer(1,12)])
+    add(f"{matrix['uniqueExecutionEvents']} registros únicos de transformação visíveis no exemplo. Perfis e temas adicionais não duplicam a execução. Não é taxa de impacto.",'SmallE')
+    page('Mudança observada não é efeito atribuível','07 / LEITURA CRÍTICA')
+    adverse = next(row for row in matrix['rows'] if row['id'] == 'SYN-02')
+    note('Exemplo desfavorável - '+adverse['title'], adverse['change']['text'])
+    for title,value in [('Fonte',adverse['source']),('Interpretação permitida',adverse['change']['attribution']),('Explicações alternativas e limites',adverse['limitation']),('Próxima decisão',adverse['nextStep'])]:
+        add(title,'H2E'); add(value)
+    note('Por que não há uma nota única de impacto?', 'Relação temática, sustentação da evidência e magnitude são perguntas diferentes. Não se somam pessoas, aprendizagem, horas ou emissões numa pontuação ESG. Sem medição física, a proposta ambiental permanece sem sustentação quantitativa.')
+    add('Regras para a revisão','H2E')
+    add('Proposto não significa aprovado. Protegido não significa zero. Participação não comprova aprendizagem. Execução não comprova eficácia. Mudança antes/depois não elimina explicações alternativas. Privacidade não assegura potência estatística.','SmallE')
+
+page('Continuidade, ESG e expediente','08 / RASTREABILIDADE' if matrix else '06 / RASTREABILIDADE')
 note('Contribuições ESG: evidência antes da afirmação','Não há impacto ESG demonstrado neste protótipo. Participação, execução, mudança observada e causalidade são afirmações distintas. Não se atribuem notas E/S/G, conformidade ou equivalências GRI/ODS automaticamente.')
 add('Compromissos propostos - não assumidos','H2E')
 rows = [[p(x,'SmallE') for x in ['Próxima ação','Papel / revisão','Evidência esperada']]]
@@ -130,7 +165,7 @@ class NumberedCanvas(canvas.Canvas):
 doc=SimpleDocTemplate(str(OUT),pagesize=(595.28,841.89),rightMargin=54,leftMargin=54,topMargin=46,bottomMargin=59,title='Protótipo sintético METE - VitalOS',author='VitalOS / Instituto Felicidade para Todos')
 doc.build(story,canvasmaker=NumberedCanvas)
 reader=PdfReader(str(OUT))
-if len(reader.pages)!=7:
+if len(reader.pages)!=(9 if matrix else 7):
     raise ValueError(f'Paginação inesperada: {len(reader.pages)}; revisar antes de entregar.')
 for index,pg in enumerate(reader.pages):
     txt=pg.extract_text()

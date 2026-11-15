@@ -1,5 +1,6 @@
 import { BookOpen, Waves, ClipboardList, RefreshCw, Info } from "lucide-react";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import { MeteEsgMatrixPreview } from "./MeteEsgMatrixPreview";
 import { REPORT_INSTITUTION, SYNTHETIC_EDITORIAL, projectEditorialEvidence } from "@/lib/reports/institutional-editorial";
 
 const ICON = { Mensurar: Waves, Educar: BookOpen, Transformar: ClipboardList, Evoluir: RefreshCw };
@@ -52,6 +53,7 @@ export function InstitutionalEditorialPreview() {
         <p className="flex items-start gap-2 text-sm leading-relaxed"><Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />Não há impacto ESG demonstrado neste protótipo. Execução, participação e mudança observada são evidências diferentes; nenhuma delas isoladamente comprova causalidade, conformidade ou certificação.</p>
         <p className="text-sm">Não se atribuem notas E/S/G, dupla materialidade ou equivalências GRI/ODS automaticamente. Esses vínculos dependem de escopo e revisão humana.</p>
       </section>
+      <MeteEsgMatrixPreview />
       <section className={panel} aria-label="Continuidade proposta no exemplo">
         <h3 className="font-serif text-xl">Compromissos propostos · não assumidos</h3>
         <div className="overflow-x-auto" role="region" aria-label="Tabela de continuidade sintética" tabIndex={0}>

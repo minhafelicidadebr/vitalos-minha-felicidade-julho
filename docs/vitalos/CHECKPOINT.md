@@ -1,5 +1,13 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## Matriz METE × drivers × evidências ESG — 2026-11-15
+
+Base `1e801f1` preservada. Executado primeiro incremento do superprompt: cinco casos sintéticos independentes com eventos METE/papéis, vínculos propostos E/S/G, evidência, mudança descritiva ou retenção explícita. Sem nota ESG, pesos de perfil, IC ou estimador causal. Projeção protegida omite detalhes; contagem de transformação deduplica evento entre temas/perfis/linhas. Vínculos não foram aprovados e schema canônico não foi alterado.
+
+Preview integrado ao protótipo editorial e novo PDF sintético de nove páginas inspecionado, mantendo o PDF anterior por hash. Gate final **4.294 pass / 0 fail / 334 arquivos**, paridade/TypeScript/secret-scan; build inerte isolado aprovado, `.output` preservada. Navegador/mobile permanecem adiados. Nenhuma migration, publicação, conta/dado real ou operação remota. .q.out/.q.sql não abertos.
+
+Detalhes e limites em [MATRIZ_METE_ESG_IMPLEMENTACAO.md](MATRIZ_METE_ESG_IMPLEMENTACAO.md); artefato [RELATORIO_METE_MATRIZ_PROTOTIPO.pdf](artifacts/RELATORIO_METE_MATRIZ_PROTOTIPO.pdf). Próximo marco: revisão humana concreta das cinco relações e contrato de emissão, antes de conexão a uma prática Q2 autorizada. Não equivale a completar todas as ondas do superprompt ou homologar estatística/ESG.
+
 ## Protótipo editorial institucional METE — 2026-11-15
 
 Base `685881e` preservada. Implementado contrato editorial puro e fixture sintética com estados explícitos, apresentação institucional, guia METE, síntese, análises, limites ESG e continuidade. Preview expansível em `/relatorio-global`, separado do corpo legado e do anexo; sem dados reais ou comando de emissão. Logos oficiais do Instituto fornecidos pelo operador obtidos, inspecionados e preservados com hashes; capa da impressão existente reutiliza marca VitalOS e logo completo do Instituto. Sem aprovação de titularidade, método, índice, mapping ou eficácia.

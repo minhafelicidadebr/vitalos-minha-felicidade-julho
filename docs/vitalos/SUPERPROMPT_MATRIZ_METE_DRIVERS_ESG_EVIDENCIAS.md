@@ -1,6 +1,6 @@
 # Superprompt — matriz METE × perfis × drivers × evidências ESG
 
-Versão 0.1.0 — PROPOSTA PARA REVISÃO, 2026-11-15. Base local observada: `0c6746783cdf49cccb7e248bfdd6af5152093360`, branch `feat/ivo-fibt-platform-foundation`. Não aprova metodologia, pesos, critérios de eficácia, mapeamentos ou alegações ESG. Este entregável é um prompt orientador; seus comandos não foram executados como nova implementação.
+Versão 0.1.0 — PROPOSTA PARA REVISÃO, 2026-11-15. Base local observada na elaboração: `0c6746783cdf49cccb7e248bfdd6af5152093360`, branch `feat/ivo-fibt-platform-foundation`. Não aprova metodologia, pesos, critérios de eficácia, mapeamentos ou alegações ESG. Execução local parcial autorizada posteriormente pelo operador: matriz/preview/PDF sintéticos, descritos em [MATRIZ_METE_ESG_IMPLEMENTACAO.md](MATRIZ_METE_ESG_IMPLEMENTACAO.md). Demais ondas e gates continuam pendentes.
 
 ## Decisão de desenho — síntese ToT
 
@@ -257,4 +257,4 @@ Consultada em 2026-11-15. As referências orientam método; nenhuma valida autom
 - `src/domain/packs/enterprise/enterprise.pack.json:41`: papéis/escopos; não autoriza ampliar acesso ao cruzar dimensões.
 - `src/domain/ivo/methodology-governance.json:148`: D9 em proposta na base lida; estados e limitações precisam ser rechecados na execução futura.
 
-Entrega desta solicitação: documento orientador. Nenhum motor, mapping, schema, pontuação ou PDF foi alterado; nenhuma análise estatística de cliente foi executada. O PDF sintético anterior permanece preservado.
+Entrega original: documento orientador. Na execução posterior foi criada uma matriz sintética e nova edição do PDF, preservando o anterior; ver registro vinculado no início. Sem alteração de mappings aprovados, schema canônico ou pontuação; nenhuma análise estatística de cliente foi executada.

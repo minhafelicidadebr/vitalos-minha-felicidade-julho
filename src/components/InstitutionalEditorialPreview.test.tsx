@@ -24,7 +24,7 @@ test("preview mantém marcação sintética, METE e limitação junto de evidên
     expect(section.textContent).toContain("Próxima revisão");
   }
   expect(within(article).getByRole("img", { name: "Instituto Felicidade para Todos" })).toBeTruthy();
-  expect(within(article).getByRole("table")).toBeTruthy();
+  expect(within(article).getByRole("table", { name: "Exemplo de acompanhamento, sem compromissos reais registrados." })).toBeTruthy();
   expect(within(article).queryByRole("button")).toBeNull();
   expect(article.textContent).toContain("Compromissos propostos · não assumidos");
   expect(article.textContent).toContain("Não há impacto ESG demonstrado");
