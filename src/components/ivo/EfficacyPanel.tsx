@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Route, FilePenLine, ListChecks, Info } from "lucide-react";
 import type { EvidenceGrade, ObservedChange } from "@/engine/ivo/efficacy-protocol";
 import { GOVERNANCE_STATE_LABEL, type GovernanceState } from "@/engine/ivo/governance-decision";
 import { efficacyIssueLabel } from "@/lib/ivo/efficacy-labels";
@@ -191,10 +192,23 @@ function ProtocolDraftForm({ action, item, busy, callbacks }: { action: FibtActi
   );
 
   return (
-    <form className="space-y-3" onSubmit={save} aria-label="Protocolo de avaliação em rascunho">
-      <p className="text-sm text-muted-foreground">
+    <form className="min-w-0 space-y-5 break-words" onSubmit={save} aria-label="Protocolo de avaliação em rascunho">
+      <div className="space-y-3 rounded-lg border border-primary/25 bg-primary/5 p-4">
+      <h4 className="flex items-center gap-2 text-sm font-semibold"><Route aria-hidden="true" className="size-4 shrink-0 text-primary" />Roteiro para preparar a avaliação</h4>
+      <ol className="grid gap-2 text-sm leading-relaxed sm:grid-cols-2 [&>li]:rounded-md [&>li]:border [&>li]:border-border [&>li]:bg-background/60 [&>li]:p-3">
+        <li>1. Defina o objetivo e o indicador.</li>
+        <li>2. Identifique a linha de base e a meta.</li>
+        <li>3. Combine a janela, a fonte e a comparação.</li>
+        <li>4. Revise os papéis, as limitações e as pendências.</li>
+      </ol>
+      <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground"><Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />O roteiro orienta o preenchimento; não indica progresso salvo nem comprova eficácia.</p>
+      </div>
+      <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-4">
+      <h4 className="flex items-center gap-2 text-sm font-semibold"><FilePenLine aria-hidden="true" className="size-4 shrink-0 text-primary" />Estado do documento</h4>
+      <p className="text-sm leading-relaxed text-muted-foreground">
         Rascunho {draft ? `(revisão ${draft.revision})` : "novo"}: pode ficar incompleto. Ele só vale como protocolo depois de registrado; registrado, não pode ser alterado (nova revisão).
       </p>
+      </div>
       <Field id={`${p}-objetivo`} label="Objetivo da avaliação" hint="O que a ação pretende mudar. Sem nomes de pessoas.">
         <textarea id={`${p}-objetivo`} aria-describedby={`${p}-objetivo-hint`} rows={2} maxLength={500} className={`${inputClass} min-h-16 py-2`} value={f.objective} onChange={(e) => set("objective", e.target.value)} />
       </Field>
@@ -267,9 +281,9 @@ function ProtocolDraftForm({ action, item, busy, callbacks }: { action: FibtActi
         <textarea id={`${p}-limit`} aria-describedby={`${p}-limit-hint`} rows={2} className={`${inputClass} min-h-16 py-2`} value={f.limitations} onChange={(e) => set("limitations", e.target.value)} />
       </Field>
       {issues.length > 0 ? (
-        <div role="note" className="rounded-md border border-dashed border-muted-foreground/40 p-3 text-sm">
-          <p className="font-medium text-foreground">Para registrar, falta:</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
+        <div role="note" className="space-y-3 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 p-4 text-sm leading-relaxed">
+          <p className="flex items-center gap-2 font-semibold text-foreground"><ListChecks aria-hidden="true" className="size-4 shrink-0 text-primary" />Para registrar, falta:</p>
+          <ul className="grid list-disc gap-x-6 gap-y-2 pl-5 text-muted-foreground sm:grid-cols-2">
             {issues.map((code) => (
               <li key={code}>{efficacyIssueLabel(code)}</li>
             ))}
@@ -278,13 +292,16 @@ function ProtocolDraftForm({ action, item, busy, callbacks }: { action: FibtActi
         </div>
       ) : null}
       {localError ? <p role="alert" className="text-sm font-medium text-destructive">{localError}</p> : null}
-      <div className="flex flex-wrap gap-2">
+      <div className="space-y-3 rounded-lg border border-border p-4">
+      <p className="text-sm leading-relaxed text-muted-foreground">Salvar preserva o rascunho incompleto. Registrar cria o protocolo para acompanhamento; não emite um parecer de eficácia.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button type="submit" className={buttonSecondary} aria-disabled={blocked}>
           {pending ? "Salvando…" : "Salvar rascunho"}
         </button>
         <button type="button" className={buttonPrimary} aria-disabled={blocked} onClick={() => void register()}>
           Registrar protocolo
         </button>
+      </div>
       </div>
       <Feedback feedback={feedback} />
     </form>

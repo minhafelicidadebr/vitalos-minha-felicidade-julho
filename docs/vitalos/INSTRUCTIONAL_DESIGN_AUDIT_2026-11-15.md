@@ -1,5 +1,11 @@
 # Auditoria dirigida de design instrucional e organização visual
 
+## Segunda onda — governança detalhada e protocolo de eficácia
+
+Por orientação do operador, a comprovação de navegador fica adiada; não constitui gate para estas alterações independentes de apresentação. `IvoGovernanceView.tsx` organiza fundamentação, fontes, responsabilidades, efeitos da pendência e preparação da decisão em blocos com títulos e ícones decorativos. O texto distingue preparação de aprovação/registro. `EfficacyPanel.tsx` acrescenta roteiro estático de preenchimento, estado do documento, pendências em grade e explicação das ações salvar/registrar. O roteiro não simula progresso persistido. No mobile, metadados e botões empilham; textos podem quebrar. Campos, validações, permissões e chamadas existentes foram preservados.
+
+Verificação: 39 testes aprovados em `IvoC8Panels.test.tsx` e `IvoJourney.test.tsx`; TypeScript e revisão de diff. Não houve prova de navegador, build novo, gate amplo ou acesso a banco. A revisão renderizada mobile/desktop continua pendente. Próxima frente independente: orientação institucional RH e aprendizagem, distinguindo dados reais, demonstração, sessão e persistência.
+
 ## Execução posterior — primeira onda de apresentação
 
 Implementados: identidade/preparação Q1 com blocos de metadados e aviso de efeito operacional; leitura Q2 com identidade agrupada, explicação das escalas, estados textuais e tabela em região rolável identificada/focável; cobertura com limites destacados; glossário de governança em grade responsiva e listas mais espaçadas; prática educativa com privacidade, preparação e revisão em blocos separados. Alterações anteriores de resumo e metadados das ações foram preservadas.

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import { FileText, BookOpen, Users, ShieldAlert, ClipboardCheck } from "lucide-react";
 import {
   GOVERNANCE_STATE_LABEL,
   GOVERNANCE_STATES,
@@ -53,7 +54,7 @@ export function StateBadge({ state }: { state: GovernanceState }) {
 function List({ title, items }: { title: string; items: readonly string[] }) {
   if (items.length === 0) return null;
   return (
-    <div>
+    <div className="min-w-0 space-y-2 rounded-lg border border-border bg-muted/10 p-3">
       <p className="font-medium text-foreground">{title}</p>
       <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
         {items.map((i) => (
@@ -191,7 +192,9 @@ function PrepareDecisionForm({
 
 function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry; canApprove: boolean; onPrepare: (input: PrepareInput) => Promise<PrepareGovernanceDecisionOutcome> }) {
   return (
-    <div className="space-y-3 px-3 pb-3 text-sm">
+    <div className="min-w-0 space-y-4 break-words px-3 pb-4 text-sm leading-relaxed sm:px-4">
+      <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+      <h3 className="flex items-center gap-2 font-semibold"><FileText aria-hidden="true" className="size-4 shrink-0 text-primary" />Proposta e fundamentação</h3>
       <p className="text-foreground">
         <span className="font-medium">Proposta: </span>
         {entry.proposal}
@@ -205,14 +208,15 @@ function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry
         {entry.recommendation}
       </p>
       <List title="Alternativas consideradas" items={entry.alternatives} />
+      </div>
       {entry.mapping ? (
         <p className="text-muted-foreground">
           Mapeamento: lente {entry.mapping.lens}
           {entry.mapping.sourceConstructId ? ` · construto ${entry.mapping.sourceConstructId}` : ""} → {entry.mapping.dimension ?? "nenhuma dimensão"} ({NATURE_LABEL[entry.mapping.nature]})
         </p>
       ) : null}
-      <div>
-        <p className="font-medium text-foreground">Fontes</p>
+      <div className="space-y-2 rounded-lg border border-border bg-background/60 p-4">
+        <h3 className="flex items-center gap-2 font-semibold text-foreground"><BookOpen aria-hidden="true" className="size-4 shrink-0 text-primary" />Fontes</h3>
         <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
           {entry.sources.map((s) => (
             <li key={s.ref}>
@@ -223,12 +227,16 @@ function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry
         </ul>
       </div>
       <List title="Limitações" items={entry.limitations} />
-      <p className="text-muted-foreground">
-        Responsável: <span className="text-foreground">{entry.owner ?? "não designado"}</span> · Revisor: <span className="text-foreground">{entry.reviewer ?? "não designado"}</span>
-      </p>
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <h3 className="flex items-center gap-2 font-semibold"><Users aria-hidden="true" className="size-4 shrink-0 text-primary" />Responsabilidades</h3>
+        <dl className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0"><dt className="text-muted-foreground">Responsável:</dt><dd className="font-medium text-foreground">{entry.owner ?? "não designado"}</dd></div>
+          <div className="min-w-0"><dt className="text-muted-foreground">Revisor:</dt><dd className="font-medium text-foreground">{entry.reviewer ?? "não designado"}</dd></div>
+        </dl>
+      </div>
       <List title="Critérios para aprovar" items={entry.approvalCriteria} />
-      <div>
-        <p className="font-medium text-foreground">Efeito enquanto estiver pendente</p>
+      <div className="space-y-2 rounded-lg border border-primary/25 bg-primary/5 p-4">
+        <h3 className="flex items-start gap-2 font-semibold text-foreground"><ShieldAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />Efeito enquanto estiver pendente</h3>
         <ul className="list-disc space-y-2 break-words pl-5 leading-relaxed text-muted-foreground">
           {entry.effects.map((e) => (
             <li key={`${e.feature}:${e.effect}`}>
@@ -246,8 +254,9 @@ function EntryDetails({ entry, canApprove, onPrepare }: { entry: GovernanceEntry
       ) : (
         <p className="text-muted-foreground">Sem decisão registrada.</p>
       )}
-      <div className="rounded-md border border-dashed border-muted-foreground/40 p-3">
-        <p className="mb-2 font-medium text-foreground">Decisão</p>
+      <div className="space-y-3 rounded-lg border border-dashed border-muted-foreground/40 p-4">
+        <h3 className="flex items-center gap-2 font-semibold text-foreground"><ClipboardCheck aria-hidden="true" className="size-4 shrink-0 text-primary" />Decisão</h3>
+        <p className="text-muted-foreground">Preparar uma decisão não altera seu estado. A aprovação depende da revisão e do registro versionado.</p>
         {canApprove ? (
           <PrepareDecisionForm entry={entry} onPrepare={onPrepare} />
         ) : (
