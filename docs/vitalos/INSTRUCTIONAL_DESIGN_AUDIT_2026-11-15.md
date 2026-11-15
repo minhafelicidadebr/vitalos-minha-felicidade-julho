@@ -1,5 +1,15 @@
 # Auditoria dirigida de design instrucional e organização visual
 
+## Quarta onda — prioridades, experimentos e projeções
+
+As rotas `/prioridades`, `/experimentos` e `/trajetoria` recebem `DemonstrationContext`, componente informativo com origem e limites específicos por superfície, antes dos indicadores. Rótulos de alavancagem/pontos e cards de IVO/custo/ESG identificam simulação, exemplo ou hipótese. “Comprovados” foi substituído por “Casos concluídos · demonstração”; a contagem de hipóteses confirmadas é qualificada como exemplo. Faixas de três KPIs empilham abaixo de `sm`. Nenhum cálculo, parâmetro, mock, permissão, contrato de registro ou export foi alterado. Aviso não equivale à homologação dos modelos históricos, das faixas ou das bandas de projeção.
+
+Validação direcionada: 55 testes aprovados em `DemonstrationContext.test.tsx`, forecast, priority e evidence engines; TypeScript e revisão de diff. O teste novo verifica os limites distintos de diagnóstico, eficácia e projeção. Os testes dos engines são regressões dos cálculos preservados, não validação científica dos modelos. Build inerte isolado executado pelo helper existente, sem publicação e preservando a `.output` original; resultado e log registrados no fechamento desta etapa. Navegador/mobile real continuam adiados por orientação do operador.
+
+Log local ignorado: `.institutional-admin.local/instructional-projections-tests.log` e `instructional-projections-build.log`. A próxima revisão independente deve verificar consistência dessa transparência nas páginas de destino dos links (P&L, ESG e relatórios), sem supor que esta onda já cobriu esses módulos.
+
+Resultado do build: aprovado em `module-build-1794767397303`; varredura de 670 fontes e 301 artefatos sem credencial ou identificador de projeto real. Nenhum deploy executado. O helper atualizou seus metadados genéricos locais de build; diretórios/logs anteriores foram preservados.
+
 ## Terceira onda — orientação RH e transparência educacional
 
 `RHDashboard.tsx`: ramo institucional recebe roteiro mensurar → compreender → aplicar/revisar, aviso de diferença entre habilitação, coleta e publicação, quebra do nome da organização e foco visível no CTA. Corrigida a promessa de resultados automáticos após cinco respostas: quantidade sozinha não garante geração/publicação. Não houve mudança da seleção de ramo real/demo, permissões ou serviços. Esta onda não auditou nem alterou os cálculos da cápsula legada.

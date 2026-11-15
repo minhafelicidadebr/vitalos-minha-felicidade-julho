@@ -1,3 +1,4 @@
+import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,7 +60,7 @@ function PrioridadesPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-6">
+      <div className="mx-auto min-w-0 max-w-5xl space-y-7 px-4 py-8 sm:px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -75,17 +76,19 @@ function PrioridadesPage() {
           </p>
         </motion.div>
 
+        <DemonstrationContext kind="priorities" />
+
         {/* Faixa de destaques numéricos */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
-          className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/40"
+          className="grid grid-cols-1 gap-px sm:grid-cols-3 overflow-hidden rounded-2xl border border-border/60 bg-border/40"
         >
           {[
             { icon: Target, label: "Intervenções rankeadas", value: result.items.length, tint: "text-primary" },
             { icon: Zap, label: "Vitórias rápidas", value: quickWins, tint: "text-amber-600 dark:text-amber-400" },
-            { icon: TrendingUp, label: "Alavancagem total (pts IVO)", value: `+${totalLift}`, tint: "text-emerald-600 dark:text-emerald-400" },
+            { icon: TrendingUp, label: "Alavancagem simulada (pts IVO)", value: `+${totalLift}`, tint: "text-emerald-600 dark:text-emerald-400" },
           ].map((s) => {
             const Icon = s.icon;
             return (
@@ -220,11 +223,11 @@ function HeroPriority({ item, pillarsMoved }: { item: PriorityItem; pillarsMoved
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Alavancagem</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Alavancagem simulada</p>
           <p className="font-serif text-4xl text-emerald-600 dark:text-emerald-400">
             +{item.expectedIvoLift}
           </p>
-          <p className="text-xs text-muted-foreground">pts de IVO / temporada</p>
+          <p className="text-xs text-muted-foreground">pts de IVO / temporada · exemplo</p>
         </div>
       </div>
 

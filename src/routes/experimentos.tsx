@@ -1,3 +1,4 @@
+import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
@@ -102,7 +103,7 @@ function ExperimentosPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-6">
+      <div className="mx-auto min-w-0 max-w-5xl space-y-7 px-4 py-8 sm:px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -118,16 +119,18 @@ function ExperimentosPage() {
           </p>
         </motion.div>
 
+        <DemonstrationContext kind="experiments" />
+
         {/* Resumo */}
         <div className="grid gap-4 sm:grid-cols-3">
           <StatCard value={concluded.length} label="Experimentos concluídos" />
-          <StatCard value={confirmedCount} label="Hipóteses confirmadas ou superadas" accent />
+          <StatCard value={confirmedCount} label="Hipóteses confirmadas no exemplo" accent />
           <StatCard value={running.length} label="Em curso" />
         </div>
 
         {/* Concluídos — a prova */}
         <section className="space-y-4">
-          <h2 className="font-serif text-xl text-foreground">Comprovados</h2>
+          <h2 className="font-serif text-xl text-foreground">Casos concluídos · demonstração</h2>
           {concluded.map((c) => (
             <ConcludedCard key={c.case.id} vm={c} />
           ))}
@@ -331,7 +334,7 @@ function ConcludedCard({ vm }: { vm: CaseVM }) {
               {v.netEffect >= 0 ? "+" : ""}
               {v.netEffect}
             </p>
-            <p className="text-xs text-muted-foreground">pts no pilar</p>
+            <p className="text-xs text-muted-foreground">pts no pilar · exemplo</p>
           </div>
         )}
       </div>
@@ -421,7 +424,7 @@ function RunningCard({ vm }: { vm: CaseVM }) {
             <p className="font-serif text-2xl text-foreground">
               +{vm.design.expectedLiftBand.low}–{vm.design.expectedLiftBand.high}
             </p>
-            <p className="text-xs text-muted-foreground">pts esperados</p>
+            <p className="text-xs text-muted-foreground">pts esperados · hipótese</p>
           </div>
         )}
       </div>
