@@ -49,6 +49,9 @@ test("cinco casos exibem limites locais sem nota ESG ou comando de emissão", ()
   expect(region.textContent).toContain("Protegido");
   expect(region.textContent).toContain("vínculo proposto");
   expect(region.textContent).toContain("sem atribuição causal");
+  expect(region.textContent).toContain("Revisão bloqueada");
+  expect(region.textContent).toContain("Unidade fora do contrato canônico");
+  expect(region.textContent).not.toContain("Pronto para emissão");
   expect(within(region).queryByRole("button")).toBeNull();
   unmount();
 });

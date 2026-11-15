@@ -1,5 +1,5 @@
 import { Network, Info } from "lucide-react";
-import { buildSyntheticMatrix } from "@/lib/reports/mete-esg-matrix";
+import { buildSyntheticMatrix, reviewSyntheticMatrix } from "@/lib/reports/mete-esg-matrix";
 
 export function MeteEsgMatrixPreview() {
   const matrix = buildSyntheticMatrix();
@@ -9,6 +9,11 @@ export function MeteEsgMatrixPreview() {
       <h3 className="flex items-start gap-2 font-serif text-xl"><Network aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />Da ação à evidência: intersecções propostas</h3>
       <p className="text-sm leading-relaxed">{matrix.note} Papéis abaixo são ilustrativos; sua presença não concede acesso nem atribui mérito causal.</p>
       <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm">{matrix.uniqueExecutionEvents} registros únicos de transformação visíveis no exemplo. Vários perfis ou temas ESG não duplicam uma execução. Não é uma taxa de impacto.</p>
+      <section aria-label="Pré-revisão do contrato de evidência" className="space-y-3 rounded-lg border border-border p-3 text-sm">
+        <h4 className="font-semibold">O que falta para revisar a emissão</h4>
+        <p>Verificação estrutural sintética. Não autentica revisores, resolve fontes ou autoriza emissão. Cada eixo exige decisão própria; os exemplos não têm aprovação registrada.</p>
+        <div className="grid gap-3 sm:grid-cols-2">{reviewSyntheticMatrix().map((item, index) => <div key={index} className="min-w-0 rounded-lg bg-muted/20 p-3"><p className="font-semibold">{item.title}</p>{item.reviews.map((review, i) => <div key={i} className="mt-2"><p className="font-medium">{review.axis} · {review.result.status === "protected" ? "Protegido" : "Revisão bloqueada"}</p><ul className="mt-1 list-disc space-y-1 pl-5">{review.result.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul></div>)}</div>)}</div>
+      </section>
       <div role="region" aria-label="Matriz resumida de cinco casos sintéticos" tabIndex={0} className="max-w-full overflow-x-auto rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">
         <table className="w-full min-w-[46rem] text-left text-sm leading-relaxed"><caption className="pb-3 text-left text-muted-foreground">Relação temática, evidência e mudança são campos diferentes. Detalhes e fontes abaixo.</caption><thead><tr>{["Ação e driver", "Etapa e perfil", "Vínculo ESG", "Evidência e mudança"].map(label => <th scope="col" key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{matrix.rows.map((row,index) => <tr key={index} className="border-t border-border align-top"><th scope="row" className="p-3 font-medium">{row.title}<p className="mt-1 font-normal text-muted-foreground">{row.driver}</p></th><td className="p-3">{row.phases}<p className="mt-2 text-muted-foreground">{row.roles}</p></td><td className="p-3">{row.links}</td><td className="p-3">{row.state}<p className="mt-2">{row.change.text}</p></td></tr>)}</tbody></table>
       </div>

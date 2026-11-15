@@ -1,4 +1,5 @@
 import type { MeteAxis } from "./institutional-editorial";
+import { reviewEsgEvidence } from "./esg-evidence-review";
 
 export const MATRIX_VERSION = "0.1.0-sintetica";
 type EsgAxis = "E" | "S" | "G";
@@ -118,4 +119,24 @@ export function buildSyntheticMatrix() {
     uniqueExecutionEvents: countVisibleExecutionEvents(SYNTHETIC_MATRIX_CASES),
     note: "Cinco cenários sintéticos independentes para revisão, sem representar totais do ciclo. Vínculos propostos não são mapeamentos aprovados, nota ESG, certificação ou estimativa causal.",
   };
+}
+
+/** Pré-revisão somente das fixtures: ausências explícitas, nunca IDs científicos inventados. */
+export function reviewSyntheticMatrix() {
+  return SYNTHETIC_MATRIX_CASES.map(row => ({
+    title: row.state === "protected" ? "Conteúdo protegido" : row.title,
+    reviews: (row.state === "protected" ? [undefined] : row.links).map(link => ({
+      axis: row.state === "protected" ? "Não exibido" : link!.axis,
+      result: reviewEsgEvidence({
+        relation: { id: row.state === "protected" ? "" : row.id, version: MATRIX_VERSION, axis: link?.axis ?? "S", use: "pratica_implementada" },
+        evidence: {
+          state: row.state === "protected" ? "protected" : row.state === "absent" ? "absent" : "available",
+          projectRef: "", mechanismRef: "", studyIds: [],
+          executionRefs: row.events.filter(event => event.phase === "Transformar" && event.status === "recorded").map(event => event.eventRef),
+          limitations: [row.limitation], nextCycle: row.nextStep,
+          valueKind: row.comparison ? row.comparison.unitBefore : "contagem_agregada", language: "mudanca_observada",
+        },
+      }),
+    })),
+  }));
 }
