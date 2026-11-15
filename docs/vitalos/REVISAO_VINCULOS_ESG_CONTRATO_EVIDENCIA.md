@@ -42,6 +42,24 @@ FIB-T conserva escore bruto e fatores autorizados. Dimensão IVO, índice compos
 
 ## Pacote de decisão humana
 
+### Reconciliação com os registros existentes — revisão local posterior
+
+Base de código: `3761470`. Esta verificação confirma conteúdo dos registros locais, não revalida artigos, licenças ou retratações em fontes externas. Os registros congelados não foram alterados. `claim-registry.json` 1.1.0 é a fonte oficial de claims para código novo; os campos de claim do Evidence Registry são legados. A carga de produção deve reutilizar `src/domain/evidence/registries.ts` e os gates existentes, sem um segundo carregador paralelo.
+
+| Relação | Referências locais concretas | Maturidade e decisão recomendada |
+| --- | --- | --- |
+| REL-01, voz/escuta | `MECH-VOICE-001`; estudos `TRU-006` e `LDR-007`; claim `CLAIM-EDMONDSON1999-VOICE-003`, uso `organize_evidence`, contexto `organizar-esg`, perfis líder/RH/CHRO, segmento empresarial | Melhor candidato à primeira fatia. O claim declara evidência correlacional de equipes de manufatura e proíbe usar o piloto como prova de redução de adoecimento ou aumento de produtividade. O ID de estudo legível `EDMONDSON-1999` exige resolução canônica existente para `TRU-006`. Não substituir IDs por semelhança textual. Relação temática S e eventual G ainda dependem de decisão própria. |
+| REL-02, autonomia | Estudos candidatos `ACH-001` (participação no desenho), `MGT-005` (desenho participativo do trabalho), `OPD-002` (job crafting) | Candidatos de curadoria, sem equivalência automática com autonomia ou tempo de espera. O Mechanism Registry consultado só contém `MECH-VOICE-001`; não há mecanismo formal registrado para esta relação. Elaborar recorte e claim de uso antes de conectar. |
+| REL-03, inclusão | Candidato `INC-022`, mecanismo textual `inclusion_climate` no Evidence Registry | Existência de estudo não libera conteúdo protegido nem cria mecanismo formal/claim ESG específico. Manter caso retido. |
+| REL-04, crescimento | Candidatos `LRN-001` a `LRN-007`, com temas distintos (cognição, conhecimento, demandas, flexibilidade psicológica, aprendizagem/bem-estar, cultura/retenção) | O conjunto não é uma validação única de retenção ou transferência. Selecionar um desfecho e população, revisar claim/contexto e formalizar mecanismo antes de integração. |
+| REL-05, futuro/bem comum | `PUR-001` trata de ajudar outras pessoas e trabalho com significado no registro local | Não sustenta redução de energia, consumo ou emissões. Não reutilizar propósito como evidência ambiental. Sem vínculo E sustentado para o caso atual. |
+
+Os rótulos B2/C1/C2/L1 existentes descrevem decisões registradas anteriormente; não são aprovação atual de um novo uso no relatório. O claim específico de voz/escuta tem alcance limitado e não deve ser estendido automaticamente a colaborador, outro segmento, causalidade ou certificação. Outros claims de passaporte (`explain_mechanism`) não autorizam por si uso `organize_evidence`.
+
+**Primeira fatia recomendada para decisão:** REL-01 no eixo S, exclusivamente como relação temática da prática de voz/escuta, com linguagem de prática implementada e sem desfecho causal. G permanece condicionado à evidência de processo de resposta e aprovação específica. Não preencher a fixture com esses IDs: são cenários independentes, sem custódia de projeto/evento real. A preparação técnica atual continua bloqueando sua emissão.
+
+**Registro a preencher pelo responsável:** relação/eixo e versão; uso permitido; decisão (aprovar/ajustar/rejeitar); revisor metodológico designado; data; ressalvas; referências revisadas. Recomenda-se decidir REL-01/S primeiro, manter REL-02/04 em curadoria, REL-03 protegida e REL-05/E sem sustentação. Esses são encaminhamentos propostos, não decisões já tomadas.
+
 Revisor metodológico designado pelo responsável deve registrar, por REL-01 a REL-05: aprovar para uso definido / solicitar ajuste / rejeitar; eixo e escopo permitido; evidência e linguagem liberadas; ressalvas; nome/autoridade, data e versão. Nenhuma identidade revisora foi inventada. RH de empresa não recebe autoridade metodológica global por participar do processo.
 
 Decisões agrupadas: (A) aceitar ou ajustar as cinco recomendações da tabela; (B) aprovar os requisitos de evidência e linguagem acima; (C) manter horas fora do contrato canônico ou solicitar proposta separada de extensão. Até registro explícito, todos permanecem pendentes. A autorização para desenvolver este dossiê não equivale à aprovação das relações.
