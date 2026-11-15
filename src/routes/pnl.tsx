@@ -1,3 +1,4 @@
+import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -48,7 +49,7 @@ function PnLPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <div className="mx-auto min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -62,6 +63,8 @@ function PnLPage() {
           </p>
         </motion.div>
 
+        <DemonstrationContext kind="pnl" />
+
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Inputs */}
           <motion.div
@@ -70,7 +73,7 @@ function PnLPage() {
             transition={{ duration: 0.45, delay: 0.05 }}
             className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm lg:col-span-2"
           >
-            <p className="mb-4 font-medium text-card-foreground">Inputs editáveis</p>
+            <p className="mb-4 font-medium text-card-foreground">Parâmetros da simulação</p>
             <div className="space-y-3">
               {inputFields.map(({ field, label, step }) => (
                 <label key={field} className="block">
@@ -81,7 +84,7 @@ function PnLPage() {
                     step={step ?? 1}
                     value={inputs[field]}
                     onChange={(e) => setField(field, e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="mt-1 min-h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                 </label>
               ))}
@@ -94,7 +97,7 @@ function PnLPage() {
                   key={s}
                   onClick={() => setScenario(s)}
                   aria-pressed={scenario === s}
-                  className={`flex-1 rounded-lg px-2 py-2 text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`min-h-11 flex-1 rounded-lg px-2 py-2 text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     scenario === s
                       ? "bg-primary text-primary-foreground"
                       : "border border-border/60 text-muted-foreground hover:bg-muted/40"
@@ -114,10 +117,10 @@ function PnLPage() {
             className="space-y-4 lg:col-span-3"
           >
             {/* Headline numbers */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                  Custo corrente/ano
+                  Custo corrente/ano · estimado
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
                   {brl(result.totalCurrentCost)}
@@ -125,7 +128,7 @@ function PnLPage() {
               </div>
               <div className="rounded-2xl border border-green-300/50 bg-green-50/50 p-4 shadow-sm dark:border-green-800/50 dark:bg-green-950/20">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                  Custo evitável
+                  Custo evitável · estimado
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-green-700 dark:text-green-400 sm:text-2xl">
                   {brl(result.avoidedCost)}
@@ -133,7 +136,7 @@ function PnLPage() {
               </div>
               <div className="rounded-2xl border border-red-300/50 bg-red-50/50 p-4 shadow-sm dark:border-red-900/50 dark:bg-red-950/20">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                  Inação (12m)
+                  Inação (12m) · estimada
                 </p>
                 <p className="mt-1 font-serif text-xl font-semibold tabular-nums text-red-600 dark:text-red-400 sm:text-2xl">
                   {brl(result.inactionCost12m)}
@@ -152,7 +155,7 @@ function PnLPage() {
                     key={line.id}
                     className="rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors"
                   >
-                    <div className="flex items-baseline justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline justify-between gap-3">
                       <p className="text-sm text-card-foreground">{line.label}</p>
                       <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
                         {brl(line.value)}

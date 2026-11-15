@@ -1,6 +1,18 @@
 import { FlaskConical, Database, Info } from "lucide-react";
 
 const CONTEXT = {
+  pnl: {
+    source: "Valores iniciais e variação de IVO de demonstração. Os campos editáveis alteram os parâmetros da simulação nesta tela.",
+    limit: "Editar os valores não transforma a estimativa em economia observada ou retorno garantido. As relações usadas pelo modelo precisam de validação para o contexto de uso.",
+  },
+  esg: {
+    source: "Leitura de IVO e mapeamentos ESG de demonstração, usados para ilustrar a tradução entre indicadores e frameworks.",
+    limit: "Pontuação, faixa e cobertura ilustram o modelo. Não atestam conformidade, certificação, impacto observado ou um relatório ESG homologado.",
+  },
+  reports: {
+    source: "Evidências, requisitos do selo e relatórios de exemplo nesta galeria. Os estados apresentados pertencem à demonstração.",
+    limit: "Esta galeria não comprova aprovação de evidências ou concessão de selo à sua organização. A ação de PDF é simulada e não gera um arquivo.",
+  },
   priorities: {
     source: "Prioridades calculadas sobre dados e alavancas de demonstração.",
     limit: "A ordem e os pontos de alavancagem ilustram o modelo. Não são um diagnóstico da sua empresa nem uma promessa de melhora do IVO.",

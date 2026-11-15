@@ -4,6 +4,9 @@ import { DemonstrationContext } from "./DemonstrationContext";
 
 test("avisos distinguem prioridade, eficácia e projeção sem apresentar dados reais", () => {
   const cases = [
+    ["pnl", "não transforma a estimativa em economia observada"],
+    ["esg", "Não atestam conformidade"],
+    ["reports", "não gera um arquivo"],
     ["priorities", "Não são um diagnóstico da sua empresa"],
     ["experiments", "não comprova eficácia na sua organização"],
     ["trajectory", "Não representam impacto observado"],

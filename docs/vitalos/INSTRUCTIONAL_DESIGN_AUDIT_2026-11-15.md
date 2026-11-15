@@ -1,5 +1,17 @@
 # Auditoria dirigida de design instrucional e organização visual
 
+## Quinta onda — P&L, ESG e galeria de relatórios
+
+As rotas `/pnl`, `/esg` e `/relatorios` reutilizam o aviso de origem/limites antes dos indicadores. P&L identifica parâmetros editáveis, base demonstrativa e natureza estimada dos custos; não se altera a fórmula nem se valida a relação entre variação IVO e economia. ESG identifica prontidão/cobertura demonstrativas, sem alegação de conformidade, certificação ou impacto observado. Galeria identifica evidências/selo/relatórios de exemplo. A ação que apenas atualiza estado React passa de “Gerar PDF” para “Simular geração de PDF”, com retorno anunciado por `role=status` e mensagem de que nenhum arquivo foi gerado; removida promessa de prazo/fase futura não comprovada.
+
+Mobile, revisão estática: KPIs P&L empilham abaixo de `sm`; linhas de fórmula permitem quebra e controles recebem altura mínima de 44px. Botões de relatório empilham com o texto em telas estreitas. Prova visual e testes assistivos continuam adiados, sem alegação de ausência de overflow ou conformidade de acessibilidade.
+
+Verificação: 23 testes direcionados aprovados (aviso compartilhado, engine P&L e engine ESG), TypeScript e revisão de diff. Testes de engines comprovam regressão, não validação econômica/científica. O teste de aviso cobre os limites específicos dessas três novas variantes; não renderiza as rotas inteiras. Build inerte isolado integra as importações, com resultado no fechamento da etapa e log local `instructional-esg-reports-build.log`.
+
+Fronteira: `/relatorio-global` não foi alterado. A inspeção dirigida encontrou prévia baseada em hooks/mocks e operações de servidor na mesma rota; exige revisão específica para distinguir simulação, persistência e geração real. Não aplicar aviso genérico de que toda operação ali é simulada. Nenhum modelo/critério ESG, selo, metodologia, dado ou permissão foi aprovado por esta onda. Próxima revisão independente: essa fronteira no relatório global, antes de propagar o padrão a exportações e snapshots reais.
+
+Build final aprovado em `module-build-1794767562371`: varredura de 670 fontes e 301 artefatos sem credencial ou identificador de projeto real; `.output` original preservada pelo helper. Metadados genéricos locais do helper atualizados. Sem publicação.
+
 ## Quarta onda — prioridades, experimentos e projeções
 
 As rotas `/prioridades`, `/experimentos` e `/trajetoria` recebem `DemonstrationContext`, componente informativo com origem e limites específicos por superfície, antes dos indicadores. Rótulos de alavancagem/pontos e cards de IVO/custo/ESG identificam simulação, exemplo ou hipótese. “Comprovados” foi substituído por “Casos concluídos · demonstração”; a contagem de hipóteses confirmadas é qualificada como exemplo. Faixas de três KPIs empilham abaixo de `sm`. Nenhum cálculo, parâmetro, mock, permissão, contrato de registro ou export foi alterado. Aviso não equivale à homologação dos modelos históricos, das faixas ou das bandas de projeção.
