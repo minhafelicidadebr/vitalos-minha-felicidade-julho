@@ -1,6 +1,9 @@
-// Exercícios editoriais TESTE sobre os roteiros sintéticos existentes.
-// Sem estudo/claim fictício, equivalência dimensional, promessa científica ou aprovação D10.
+// Exercícios TESTE preservados e primeira atividade Q2 PROPOSTA para D10.
+// Aprovação da unidade não aprova a atividade; vínculo educativo não altera escore.
 import type { LearningActivity } from "@/lib/ivo/learning-application";
+import proposedActivity from "./q2-learning-activity-001.json";
+import { getFactorContentCatalog, type FactorContent, type FactorContentStatus } from "./factor-content";
+import { validateQ2LearningCuration, Q2_LEARNING_REGISTRIES, type LearningRegistries, type Q2LearningCuration } from "./q2-learning-curation";
 const activities: Record<string, LearningActivity> = {
   "TESTE-bem_estar-001": {
     id: "TESTE-pratica-bem-estar",
@@ -79,10 +82,77 @@ const activities: Record<string, LearningActivity> = {
       "Retome sem consulta o checklist e diferencie comunicação realizada, aprendizagem e eventual mudança observada.",
   },
 };
+export interface FactorLearningActivity extends LearningActivity {
+  contentId: string;
+  status: FactorContentStatus;
+  evidenceCodes: readonly string[];
+  safeClaimIds: readonly string[];
+  curation: Q2LearningCuration | null;
+}
+
+export function validateFactorLearningActivities(
+  entries: readonly FactorLearningActivity[],
+  contents: readonly FactorContent[] = getFactorContentCatalog(),
+  registries: LearningRegistries = Q2_LEARNING_REGISTRIES,
+): readonly FactorLearningActivity[] {
+  const ids = new Set<string>();
+  const bindings = new Set<string>();
+  return Object.freeze(entries.map((a) => {
+    function fail(reason: string): never { throw new Error(`[q2-activity] ${a.id}: ${reason}`); }
+    const content = contents.find((c) => c.id === a.contentId && c.version === a.contentVersion);
+    const binding = `${a.contentId}@${a.contentVersion}`;
+    if (!a.id?.trim() || ids.has(a.id) || bindings.has(binding)) fail("id ou vínculo duplicado");
+    ids.add(a.id); bindings.add(binding);
+    if (!content || !["TESTE", "PROPOSTO", "APROVADO"].includes(a.status)) fail("conteúdo/versão/status incompatível");
+    if ((a.status === "TESTE") !== a.id.startsWith("TESTE-") || (a.status === "TESTE") !== (content.status === "TESTE")) fail("TESTE não pode ser convertido por herança");
+    if (!a.practicePrompt?.trim() || !a.reviewPrompt?.trim() || !a.version?.trim()) fail("prática/revisão/versão ausente");
+    if (a.status !== "TESTE" && (!a.recallPrompt?.trim() || a.checks.length < 3 || a.checks.length > 6)) fail("recuperação e 3–6 questões obrigatórias");
+    if (!a.checks.length) fail("questões ausentes");
+    const checkIds = new Set<string>();
+    for (const check of a.checks) {
+      const optionIds = check.options.map((o) => o.id);
+      if (!check.id?.trim() || checkIds.has(check.id) || !check.question?.trim() || !check.explanation?.trim() ||
+        optionIds.length < 2 || new Set(optionIds).size !== optionIds.length ||
+        check.options.some((o) => !o.id?.trim() || !o.label?.trim()) || !optionIds.includes(check.correctOptionId)) fail("questão/alternativas inválidas");
+      checkIds.add(check.id);
+    }
+    const curation = a.status === "TESTE" ? null : validateQ2LearningCuration({ ...a, status: a.status }, registries);
+    if (a.status === "TESTE" && (a.evidenceCodes.length || a.safeClaimIds.length || a.curation)) fail("TESTE não recebe fontes/aprovação");
+    if (a.status === "APROVADO" && (content.status !== "APROVADO" ||
+      a.evidenceCodes.some((id) => !content.evidenceCodes.includes(id)) ||
+      a.safeClaimIds.some((id) => !content.safeClaimIds.includes(id)))) fail("aprovação da atividade não cobre esta unidade");
+    return Object.freeze({ ...a, curation,
+      evidenceCodes: Object.freeze([...a.evidenceCodes]), safeClaimIds: Object.freeze([...a.safeClaimIds]),
+      checks: Object.freeze(a.checks.map((check) => Object.freeze({ ...check,
+        options: Object.freeze(check.options.map((option) => Object.freeze({ ...option }))),
+      }))),
+    });
+  }));
+}
+
+const CATALOG = validateFactorLearningActivities([
+  ...Object.entries(activities).map(([contentId, activity]) => ({
+    ...activity, contentId, status: "TESTE" as const, evidenceCodes: [], safeClaimIds: [], curation: null,
+  })),
+  proposedActivity as FactorLearningActivity,
+]);
+
+// Consulta editorial inclui propostas; serviços de produto usam somente o resolvedor abaixo.
 export function getFactorLearningActivity(
   contentId: string,
   contentVersion: string,
-): LearningActivity | undefined {
-  const activity = activities[contentId];
-  return activity?.contentVersion === contentVersion ? activity : undefined;
+): FactorLearningActivity | undefined {
+  return CATALOG.find((a) => a.contentId === contentId && a.contentVersion === contentVersion);
+}
+
+export function getAvailableFactorLearningActivity(
+  content: FactorContent,
+  testVisible: boolean,
+  entries: readonly FactorLearningActivity[] = CATALOG,
+): FactorLearningActivity | undefined {
+  return entries.find((a) => a.contentId === content.id && a.contentVersion === content.version && (
+    (content.status === "TESTE" && a.status === "TESTE" && testVisible) ||
+    (content.status === "APROVADO" && a.status === "APROVADO" &&
+      content.curation?.approval?.version === content.version && a.curation?.approval?.version === a.version)
+  ));
 }

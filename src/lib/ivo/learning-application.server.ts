@@ -1,5 +1,6 @@
-import { getFactorContentById } from "@/domain/ivo/factor-content";
-import { getFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
+import { getFactorContentCatalog } from "@/domain/ivo/factor-content";
+import { getAvailableFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
+import type { EducationDeps } from "./ivo-education.server";
 import { authorizeLedger } from "./fibt-action-loop.server";
 import {
   addFibtActionToPlan,
@@ -13,18 +14,19 @@ export type LearningApplicationRequest = AddActionToPlanRequest & {
   contentVersion: string;
   activityVersion: string;
 };
+export type LearningApplicationDeps = PlanCompositionDeps & Pick<EducationDeps, "contentCatalog" | "activityCatalog">;
 export async function createLearningApplication(
   input: LearningApplicationRequest,
-  deps: PlanCompositionDeps = {},
+  deps: LearningApplicationDeps = {},
 ): Promise<LedgerWriteOutcome> {
   const auth = await authorizeLedger(input.accessToken, deps);
   if (!auth.ok) return auth;
-  const content = getFactorContentById(input.contentId);
+  const content = (deps.contentCatalog ?? getFactorContentCatalog)().find((c) => c.id === input.contentId);
+  const testVisible = deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv);
   const visible =
     content &&
     (content.status === "APROVADO" ||
-      (content.status === "TESTE" &&
-        (deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv))));
+      (content.status === "TESTE" && testVisible));
   if (!visible || !content || content.factorId !== input.factorId)
     return {
       ok: true,
@@ -32,7 +34,7 @@ export async function createLearningApplication(
       reason: "content_not_available",
       message: "Conteúdo indisponível para esta aplicação. Atualize a jornada.",
     };
-  const activity = getFactorLearningActivity(content.id, content.version);
+  const activity = getAvailableFactorLearningActivity(content, testVisible, deps.activityCatalog);
   if (
     content.version !== input.contentVersion ||
     !activity ||
@@ -52,8 +54,10 @@ export async function createLearningApplication(
     ...application
   } = input;
   // Sem respostas/nota/atestado de conclusão. Só a aplicação confirmada pelo gestor.
+  // TESTE mantém a descrição histórica para não invalidar retries anteriores.
+  const activityRef = activity.status === "APROVADO" ? `Referência da atividade: ${activity.id}. ` : "";
   return addFibtActionToPlan(
-    { ...application, description: `Atividade ${activity.version}. ${application.description}` },
+    { ...application, description: `Atividade ${activity.version}. ${activityRef}${application.description}` },
     deps,
     { id: content.id, version: content.version },
   );

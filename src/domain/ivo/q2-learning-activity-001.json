@@ -1,0 +1,87 @@
+{
+  "id": "Q2-pratica-aprendizagem-equipe-001",
+  "contentId": "Q2-bem_estar-aprendizagem-equipe-001",
+  "contentVersion": "0.1.0",
+  "version": "0.1.0",
+  "status": "PROPOSTO",
+  "evidenceCodes": ["TRU-006"],
+  "safeClaimIds": ["CLAIM-EDMONDSON1999-VOICE-001"],
+  "curation": {
+    "decision": "D10",
+    "reviewRef": "docs/vitalos/Q2_D10_UNIT_001_REVIEW.md",
+    "evidenceRegistryVersion": "1.0.0",
+    "claimRegistryVersion": "1.1.0",
+    "context": {
+      "intendedUse": "explain_mechanism",
+      "role": "rh",
+      "segment": "enterprise",
+      "targetContext": "q2-educacao"
+    },
+    "approval": null
+  },
+  "recallPrompt": "Antes de abrir as alternativas, recupere mentalmente, sem consultar o roteiro: o que a leitura coletiva permite concluir, que proteção deve existir e o que um acordo executado ainda não comprova? Não escreva nomes nem relatos pessoais. Se precisar, volte ao conteúdo e depois tente novamente.",
+  "checks": [
+    {
+      "id": "interpretar",
+      "question": "O setor tem leitura publicada de bem-estar. Qual uso é compatível com a unidade?",
+      "options": [
+        {
+          "id": "conversa",
+          "label": "Escolher um tema coletivo e combinar uma conversa voluntária sobre condições de trabalho."
+        },
+        {
+          "id": "causa",
+          "label": "Usar a média para concluir que a dificuldade de pedir ajuda causou o resultado do setor."
+        },
+        {
+          "id": "individual",
+          "label": "Direcionar a atividade às pessoas que a liderança acredita terem respondido com notas menores."
+        }
+      ],
+      "correctOptionId": "conversa",
+      "explanation": "A leitura orienta uma prioridade coletiva. Não identifica respondentes nem estabelece causa. A ligação entre o fator e a prática é editorial; o estudo de base é correlacional."
+    },
+    {
+      "id": "proteger",
+      "question": "A equipe teme exposição e não tem tempo de trabalho reservado. Como preparar a prática?",
+      "options": [
+        {
+          "id": "anonimizar",
+          "label": "Pedir relatos escritos sem assinatura e começar, mesmo sem acordo sobre proteção e tempo."
+        },
+        {
+          "id": "condicoes",
+          "label": "Combinar tempo e proteção com a gestão; interromper se houver risco de exposição ou retaliação."
+        },
+        {
+          "id": "adesao",
+          "label": "Tratar a participação como evidência de adesão e registrar quem não participou para acompanhamento."
+        }
+      ],
+      "correctOptionId": "condicoes",
+      "explanation": "Não se exige exposição nem se transfere uma barreira de trabalho à pessoa. A prática depende de condições combinadas e de participação voluntária. Registros do plano não incluem relatos pessoais."
+    },
+    {
+      "id": "distinguir",
+      "question": "O acordo foi executado e a equipe registrou uma aprendizagem. O que pode constar na prestação de contas?",
+      "options": [
+        {
+          "id": "eficacia",
+          "label": "Que a ação foi eficaz, pois a execução e o registro de aprendizagem foram concluídos."
+        },
+        {
+          "id": "impacto",
+          "label": "Que a atividade gerou impacto social ESG, usando a associação do estudo como estimativa local."
+        },
+        {
+          "id": "registros",
+          "label": "O acordo, sua execução e a aprendizagem relatada, distinguindo-os de eficácia e impacto ainda não avaliados."
+        }
+      ],
+      "correctOptionId": "registros",
+      "explanation": "São evidências descritivas diferentes. Nem a execução nem o exercício comprovam domínio, causalidade, melhora do indicador ou impacto ESG. D9 e relações ESG não são aprovados por esta atividade."
+    }
+  ],
+  "practicePrompt": "Prepare um acordo coletivo pequeno: condição de trabalho a ajustar, função responsável, tempo e apoio disponíveis, prazo e indicador observável de execução. Combine voluntariedade e proteção. Compartilhe apenas o acordo confirmado no plano existente, sem respostas pedagógicas ou relatos pessoais. Se as condições não existirem, registre a barreira organizacional e prepare apoio antes de executar.",
+  "reviewPrompt": "No momento combinado com a equipe, retome sem consulta as proteções e os limites do estudo. Confira separadamente o que foi executado e o que foi aprendido; registre a barreira restante e decida se ajusta ou interrompe a prática. Não presuma intervalo universal de revisão nem eficácia por conclusão operacional."
+}

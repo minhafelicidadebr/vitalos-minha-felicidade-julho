@@ -170,7 +170,7 @@
         { "ref": "src/domain/evidence/learning-patterns.json", "kind": "repo" },
         { "ref": "src/domain/ivo/factor-content.json", "kind": "repo" }
       ],
-      "limitations": ["O catálogo atual contém apenas conteúdo de TESTE identificado."],
+      "limitations": ["O catálogo contém TESTE identificado e uma unidade/atividade Q2 PROPOSTA 0.1.0 para revisão D10. Não há conteúdo ou atividade APROVADOS; o claim educativo específico ainda precisa de registro deliberado."],
       "owner": null, "reviewer": null, "approval": null,
       "approval_criteria": ["Responsável pela curadoria nomeado", "Conteúdo aprovado com fontes e safe_claim por fator"],
       "effects": [

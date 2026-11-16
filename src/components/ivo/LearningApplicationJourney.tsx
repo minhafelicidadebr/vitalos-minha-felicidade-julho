@@ -15,14 +15,7 @@ export interface LearningBinding {
   contentVersion: string;
   activityVersion: string;
 }
-export function LearningApplicationJourney({
-  content,
-  action,
-  plan,
-  view,
-  busy,
-  onSubmit,
-}: {
+interface LearningApplicationJourneyProps {
   content: EducationContentView;
   action: FibtActionView;
   plan: FibtActionPlanView;
@@ -33,9 +26,30 @@ export function LearningApplicationJourney({
     application: AddActionFormInput,
     binding: LearningBinding,
   ) => Promise<EvidenceSubmitResult>;
-}) {
+}
+
+export function LearningApplicationJourney(props: LearningApplicationJourneyProps) {
+  const { content, action } = props;
+  if (!content.activity) return null;
+  return (
+    <LearningApplicationExercise
+      key={`${action.id}:${content.contentId}@${content.version}:${content.activity.id}@${content.activity.version}`}
+      {...props}
+    />
+  );
+}
+
+function LearningApplicationExercise({
+  content,
+  action,
+  plan,
+  view,
+  busy,
+  onSubmit,
+}: LearningApplicationJourneyProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [ready, setReady] = useState(false);
+  const [alternativesOpened, setAlternativesOpened] = useState(!content.activity?.recallPrompt);
   const activity = content.activity;
   if (!activity) return null;
   const grade = gradeQuiz(activity.checks, answers);
@@ -65,48 +79,76 @@ export function LearningApplicationJourney({
         Respostas ficam somente nesta sessão e não são enviadas à empresa. Preparar a aplicação não
         comprova conclusão, domínio ou eficácia.
       </p>
-      {activity.checks.map((check) => (
-        <fieldset key={check.id} className="space-y-2 rounded border p-3">
-          <legend className="px-1 text-sm font-medium">{check.question}</legend>
-          {check.options.map((option) => (
-            <label
-              key={option.id}
-              className="flex min-h-11 cursor-pointer items-center gap-2 text-sm"
-            >
-              <input
-                type="radio"
-                name={`${action.id}-${content.contentId}-${check.id}`}
-                checked={answers[check.id] === option.id}
-                onChange={() => {
-                  setAnswers((a) => ({ ...a, [check.id]: option.id }));
-                  setReady(false);
-                }}
-              />
-              {option.label}
-            </label>
-          ))}
-          {answers[check.id] && (
-            <p role="status" className="text-sm">
-              {answers[check.id] === check.correctOptionId
-                ? "Alinhado ao roteiro. "
-                : "Revise o roteiro. "}
-              {check.explanation}
-            </p>
-          )}
-        </fieldset>
-      ))}
-      <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3"><h6 className="text-sm font-semibold">Preparar a aplicação</h6><p className="text-sm leading-relaxed">{activity.practicePrompt}</p></div>
-      <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3"><h6 className="text-sm font-semibold">Retomar e revisar</h6><p className="text-sm leading-relaxed text-muted-foreground">
-        {activity.reviewPrompt} Você pode retornar aqui em outra sessão; as respostas serão
-        reiniciadas. Combine o momento da revisão conforme o contexto, sem intervalo universal
-        presumido.
-      </p></div>
+      {!alternativesOpened && (
+        <div
+          className="space-y-3 rounded-lg border border-border bg-background/60 p-3"
+          aria-label="Recuperar sem consulta"
+        >
+          <h6 className="text-sm font-semibold">1. Recuperar antes das alternativas</h6>
+          <p className="text-sm leading-relaxed">{activity.recallPrompt}</p>
+          <button
+            type="button"
+            className="min-h-11 rounded border px-3 text-sm focus-visible:ring-2"
+            onClick={() => setAlternativesOpened(true)}
+          >
+            Abrir questões e praticar
+          </button>
+        </div>
+      )}
+      {alternativesOpened &&
+        activity.checks.map((check) => (
+          <fieldset key={check.id} className="space-y-2 rounded border p-3">
+            <legend className="px-1 text-sm font-medium">{check.question}</legend>
+            {check.options.map((option) => (
+              <label
+                key={option.id}
+                className="flex min-h-11 cursor-pointer items-center gap-2 text-sm"
+              >
+                <input
+                  type="radio"
+                  name={`${action.id}-${content.contentId}-${check.id}`}
+                  checked={answers[check.id] === option.id}
+                  onChange={() => {
+                    setAnswers((a) => ({ ...a, [check.id]: option.id }));
+                    setReady(false);
+                  }}
+                />
+                {option.label}
+              </label>
+            ))}
+            {answers[check.id] && (
+              <p role="status" className="text-sm">
+                {answers[check.id] === check.correctOptionId
+                  ? "Alinhado ao roteiro. "
+                  : "Revise o roteiro. "}
+                {check.explanation}
+              </p>
+            )}
+          </fieldset>
+        ))}
+      {alternativesOpened && (
+        <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3">
+          <h6 className="text-sm font-semibold">Preparar a aplicação</h6>
+          <p className="text-sm leading-relaxed">{activity.practicePrompt}</p>
+        </div>
+      )}
+      {alternativesOpened && (
+        <div className="space-y-2 rounded-lg border border-border bg-background/60 p-3">
+          <h6 className="text-sm font-semibold">Retomar e revisar</h6>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {activity.reviewPrompt} Você pode retornar aqui em outra sessão; as respostas serão
+            reiniciadas. Combine o momento da revisão conforme o contexto, sem intervalo universal
+            presumido.
+          </p>
+        </div>
+      )}
       <button
         type="button"
         className="min-h-11 rounded border px-3 text-sm focus-visible:ring-2"
         onClick={() => {
           setAnswers({});
           setReady(false);
+          setAlternativesOpened(!activity.recallPrompt);
         }}
       >
         Revisar sem consulta
@@ -131,7 +173,7 @@ export function LearningApplicationJourney({
           combinados com a gestão.
         </label>
       )}
-      {ready && sourceAvailable && (
+      {ready && sourceAvailable && plan.status !== "closed" && (
         <AddActionToPlanForm
           plan={plan}
           view={view}

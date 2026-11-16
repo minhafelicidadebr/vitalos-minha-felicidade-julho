@@ -83,7 +83,8 @@ describe("R7 · catálogo curatorial fator → conteúdo", () => {
   test("nenhum conteúdo aprovado; conteúdo de teste identificado e sem afirmação científica", () => {
     const all = getFactorContentCatalog();
     expect(all.filter((c) => c.status === "APROVADO")).toHaveLength(0);
-    for (const c of all) {
+    expect(all.filter((c) => c.status === "PROPOSTO")).toHaveLength(1);
+    for (const c of all.filter((c) => c.status === "TESTE")) {
       expect(c.status).toBe("TESTE");
       expect(c.title.startsWith("[TESTE]")).toBe(true);
       expect(c.evidenceCodes).toEqual([]);

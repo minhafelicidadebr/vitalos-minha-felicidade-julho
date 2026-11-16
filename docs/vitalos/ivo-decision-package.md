@@ -340,7 +340,7 @@ Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designad
 - src/domain/ivo/factor-content.json
 
 **Limitações**
-- O catálogo atual contém apenas conteúdo de TESTE identificado.
+- O catálogo contém TESTE identificado e uma unidade/atividade Q2 PROPOSTA 0.1.0 para revisão D10. Não há conteúdo ou atividade APROVADOS; o claim educativo específico ainda precisa de registro deliberado.
 
 **Critérios para aprovar**
 - Responsável pela curadoria nomeado

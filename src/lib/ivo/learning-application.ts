@@ -4,7 +4,7 @@ import { parseContentRef } from "./content-ref";
 export interface LearningCheck {
   id: string;
   question: string;
-  options: Array<{ id: string; label: string }>;
+  options: ReadonlyArray<{ id: string; label: string }>;
   correctOptionId: string;
   explanation: string;
 }
@@ -12,7 +12,8 @@ export interface LearningActivity {
   id: string;
   version: string;
   contentVersion: string;
-  checks: LearningCheck[];
+  checks: readonly LearningCheck[];
+  recallPrompt?: string;
   practicePrompt: string;
   reviewPrompt: string;
 }

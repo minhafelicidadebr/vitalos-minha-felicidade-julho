@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.0.0",
+  "registry_version": "1.1.0",
   "description": "Catálogo curatorial fator FIB-T → conteúdo educativo (R7). O vínculo educativo NÃO é mapeamento dimensional e NÃO altera escore. Nenhum conteúdo está APROVADO: a curadoria é a decisão D10 (pendente). As entradas de status TESTE servem só para demonstrar o fluxo; aparecem apenas em runtime local descartável, sempre identificadas, e não trazem afirmação científica.",
   "curation": { "status": "pendente", "decision": "D10" },
   "entries": [
@@ -39,6 +39,38 @@
       "body": [
         "Conteúdo de TESTE para demonstração do software. Não é recomendação aprovada e não afirma efeito algum.",
         "Checklist: listar as metas do trimestre; marcar as que a equipe já conhece; combinar quando e como compartilhar as demais; registrar a combinação."
+      ]
+    },
+    {
+      "id": "Q2-bem_estar-aprendizagem-equipe-001",
+      "factor_id": "bem_estar",
+      "status": "PROPOSTO",
+      "version": "0.1.0",
+      "title": "Aprender com dificuldades de trabalho sem expor pessoas",
+      "objective": "Distinguir leitura coletiva de diagnóstico individual e preparar uma conversa voluntária sobre condições de trabalho, com um acordo observável e limites de interpretação.",
+      "audience": "RH_ADMIN empresarial; aplicação com a liderança somente após combinar tempo, apoio e proteção dos participantes",
+      "format": "microlearning",
+      "estimated_minutes": 7,
+      "evidence_codes": ["TRU-006"],
+      "safe_claim_ids": ["CLAIM-EDMONDSON1999-VOICE-001"],
+      "owner": null,
+      "approved_at": null,
+      "curation": {
+        "decision": "D10",
+        "reviewRef": "docs/vitalos/Q2_D10_UNIT_001_REVIEW.md",
+        "evidenceRegistryVersion": "1.0.0",
+        "claimRegistryVersion": "1.1.0",
+        "context": { "intendedUse": "explain_mechanism", "role": "rh", "segment": "enterprise", "targetContext": "q2-educacao" },
+        "approval": null
+      },
+      "body": [
+        "PROPOSTA PARA REVISÃO D10. A unidade não está liberada para recomendação. O claim abaixo é insumo do passaporte científico; seu uso educativo Q2 requer revisão específica antes da publicação.",
+        "Ponto de partida: uma leitura FIB-T publicada do setor permite escolher um tema coletivo. O fator bem-estar orienta a conversa; não identifica a causa do resultado nem avalia uma pessoa. A ligação com esta prática é uma hipótese editorial para revisão, sem equivalência dimensional IVO.",
+        "Base registrada — Edmondson (1999), Psychological safety and learning behavior in work teams. DOI: 10.2307/2666999. Em equipes estudadas, segurança psicológica associa-se a mais comportamentos de aprendizagem (perguntar, admitir erro, pedir ajuda) e, por essa via, a melhor desempenho da equipe — estudo fundacional correlacional, não experimento.",
+        "Limite: o estudo em equipes de manufatura não comprova que esta atividade melhore bem-estar, satisfação ou desempenho na sua empresa. O desenho de sete minutos e a transferência para RH são propostas pedagógicas, sem dose ou eficácia validada. Segurança psicológica não significa ausência de responsabilização.",
+        "Preparar: combine com a liderança tempo de trabalho, apoio e possibilidade de não participar. Use uma dificuldade de processo sem nomes. Não peça relatos de saúde, respostas do questionário ou identificação de quem discordou. Se houver risco de exposição ou retaliação, interrompa a dinâmica e use o canal institucional apropriado.",
+        "Conduzir: convide a equipe a apontar uma condição de trabalho que dificulte pedir ajuda. Escute antes de julgar, permita passar a vez e escolha somente um ajuste viável. Combine a função responsável, recurso necessário, prazo e como observar se o ajuste ocorreu. Falta de tempo ou autonomia é barreira organizacional, não falha de aprendizagem individual.",
+        "Registrar e revisar: compartilhe no plano apenas o acordo coletivo confirmado, sem nomes ou relatos pessoais. Registre execução e aprendizagem separadamente. Retome o acordo no momento combinado, diferencie o que ocorreu do que ainda é hipótese e revise sem consulta. Participação, acerto no exercício e ação concluída não comprovam domínio, causalidade, eficácia ou impacto ESG."
       ]
     }
   ]

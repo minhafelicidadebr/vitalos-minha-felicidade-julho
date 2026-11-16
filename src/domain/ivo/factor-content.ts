@@ -10,8 +10,8 @@
 //     dimensão IVO nem altera escore.
 import raw from "./factor-content.json";
 import learningPatterns from "@/domain/evidence/learning-patterns.json";
-import { EVIDENCE_REGISTRY } from "@/domain/evidence/registries";
 import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
+import { validateQ2LearningCuration, Q2_LEARNING_REGISTRIES, type LearningRegistries, type Q2LearningCuration } from "./q2-learning-curation";
 
 export type FactorContentStatus = "PROPOSTO" | "APROVADO" | "TESTE";
 
@@ -30,6 +30,7 @@ export interface FactorContent {
   owner: string | null;
   approvedAt: string | null;
   body: readonly string[];
+  curation?: Q2LearningCuration;
 }
 
 interface RawEntry {
@@ -47,6 +48,7 @@ interface RawEntry {
   owner: string | null;
   approved_at: string | null;
   body: string[];
+  curation?: Q2LearningCuration;
 }
 interface RawCatalog {
   registry_version: string;
@@ -66,10 +68,9 @@ const STATUSES: readonly FactorContentStatus[] = ["PROPOSTO", "APROVADO", "TESTE
 const nonEmpty = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-export function validateFactorContent(catalog: RawCatalog): FactorContent[] {
+export function validateFactorContent(catalog: RawCatalog, registries: LearningRegistries = Q2_LEARNING_REGISTRIES): FactorContent[] {
   const factors = new Set(getFibtManifest().factors.map((f) => f.id));
   const formats = new Set((learningPatterns as unknown as { patterns: Array<{ pattern_id: string }> }).patterns.map((p) => p.pattern_id));
-  const registry = JSON.stringify(EVIDENCE_REGISTRY);
   const ids = new Set<string>();
   return catalog.entries.map((e) => {
     if (!nonEmpty(e.id) || ids.has(e.id)) throw new FactorContentError(`id ausente ou duplicado: ${e.id}`);
@@ -87,7 +88,7 @@ export function validateFactorContent(catalog: RawCatalog): FactorContent[] {
       if (!nonEmpty(e.owner) || !e.approved_at || !ISO_DATE.test(e.approved_at)) throw new FactorContentError(`${e.id}: aprovado exige responsável e data`);
       if (e.evidence_codes.length === 0 || e.safe_claim_ids.length === 0) throw new FactorContentError(`${e.id}: aprovado exige evidência e safe_claim`);
       for (const code of e.evidence_codes) {
-        if (!registry.includes(`"${code}"`)) throw new FactorContentError(`${e.id}: código ${code} não existe no registro de evidências`);
+        if (!registries.evidence.studies.some((study) => study.study_id === code || study.aliases.includes(code))) throw new FactorContentError(`${e.id}: código ${code} não existe no registro de evidências`);
       }
     } else {
       if (e.owner !== null || e.approved_at !== null) throw new FactorContentError(`${e.id}: só conteúdo APROVADO carrega responsável/data`);
@@ -97,6 +98,19 @@ export function validateFactorContent(catalog: RawCatalog): FactorContent[] {
     if (e.status === "TESTE") {
       if (!e.title.startsWith("[TESTE]")) throw new FactorContentError(`${e.id}: conteúdo de teste precisa de título '[TESTE]'`);
       if (e.evidence_codes.length > 0 || e.safe_claim_ids.length > 0) throw new FactorContentError(`${e.id}: conteúdo de teste não cita evidência nem safe_claim`);
+      if (e.curation) throw new FactorContentError(`${e.id}: TESTE não recebe revisão de produção`);
+    }
+    const curation = e.status === "TESTE" ? undefined : validateQ2LearningCuration({
+      status: e.status as "PROPOSTO" | "APROVADO", version: e.version,
+      evidenceCodes: e.evidence_codes, safeClaimIds: e.safe_claim_ids, curation: e.curation,
+    }, registries);
+    if (e.status === "APROVADO" && (e.owner !== curation?.approval?.reviewer || e.approved_at !== curation?.approval?.approvedOn))
+      throw new FactorContentError(`${e.id}: responsável/data divergem da revisão D10`);
+    if (e.status === "APROVADO") for (const id of e.safe_claim_ids) {
+      const claim = registries.claims.claims.find((entry) => entry.claim_id === id)!;
+      if (!e.body.some((paragraph) => paragraph.includes(claim.safe_claim)) ||
+        (claim.caveat && !e.body.some((paragraph) => paragraph.includes(claim.caveat!))))
+        throw new FactorContentError(`${e.id}: corpo precisa apresentar safe_claim e ressalva registrados`);
     }
     return Object.freeze({
       id: e.id,
@@ -113,6 +127,7 @@ export function validateFactorContent(catalog: RawCatalog): FactorContent[] {
       owner: e.owner,
       approvedAt: e.approved_at,
       body: Object.freeze([...e.body]),
+      ...(curation ? { curation } : {}),
     });
   });
 }

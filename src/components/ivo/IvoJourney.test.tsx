@@ -9,6 +9,7 @@ import { IvoAccessNotice } from "./IvoAccessNotice";
 import { LearningApplicationJourney, LearningApplicationTrace } from "./LearningApplicationJourney";
 import { getFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
 import { learningApplicationTrace } from "@/lib/ivo/learning-application";
+import { approvedQ2Fixture } from "@/test/fixtures/q2-learning";
 
 afterEach(cleanup);
 
@@ -200,6 +201,32 @@ const plan: FibtActionPlanView = {
 };
 
 describe("FibtActionPlanSection", () => {
+  test("Q2 revisado SINTÉTICO: recuperação precede pistas e feedback; versão nova limpa respostas", () => {
+    const f = approvedQ2Fixture();
+    const content = { contentId: f.unit.id, factorId: f.unit.factorId, status: "APROVADO" as const, version: f.unit.version, title: f.unit.title, objective: f.unit.objective, audience: f.unit.audience, format: f.unit.format, estimatedMinutes: f.unit.estimatedMinutes, body: [...f.unit.body], evidenceCodes: [...f.unit.evidenceCodes], safeClaimIds: [...f.unit.safeClaimIds], activity: f.activities[0]! };
+    const action = { ...plan.actions[0]!, source: { ...plan.actions[0]!.source, waveId: view.wave.id, cohortId: view.sectors[0]!.cohortId } };
+    const submit = mock(async () => ({ ok: true, message: "Registrado" }));
+    const props = { content, action, plan, view, busy: false, onSubmit: submit };
+    const rendered = render(<LearningApplicationJourney {...props} />);
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(screen.queryAllByRole("status")).toHaveLength(0);
+    expect(screen.queryByText(f.activity.practicePrompt)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Abrir questões e praticar" }));
+    for (const check of f.activity.checks) fireEvent.click(screen.getByRole("radio", { name: check.options[0]!.label }));
+    expect(screen.getAllByRole("status")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByText("Incluir ação neste plano")).toBeTruthy();
+    expect(submit).not.toHaveBeenCalled();
+    rendered.rerender(<LearningApplicationJourney {...props} plan={{ ...plan, status: "closed" }} />);
+    expect(screen.queryByText("Incluir ação neste plano")).toBeNull();
+    rendered.rerender(<LearningApplicationJourney {...props} content={{ ...content, activity: { ...content.activity, version: "0.2.0" } }} />);
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Abrir questões e praticar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Revisar sem consulta" }));
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(submit).not.toHaveBeenCalled();
+  });
   test("atividade Q2: feedback privado, consentimento de aplicação e revisão reiniciável", () => {
     const activity = getFactorLearningActivity("TESTE-bem_estar-001", "0.0.1-teste")!;
     const content = { contentId: "TESTE-bem_estar-001", factorId: "bem_estar", status: "TESTE" as const, version: "0.0.1-teste", title: "[TESTE] Roteiro", objective: "Praticar", audience: "Gestores", format: "microlearning", estimatedMinutes: 5, body: [], evidenceCodes: [], safeClaimIds: [], activity };

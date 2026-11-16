@@ -8,15 +8,21 @@
 // Conteúdo mock da Academia não é usado aqui como recomendação real.
 import { authorizeLedger, type FibtActionLoopDeps } from "./fibt-action-loop.server";
 import { isDisposableLocalRuntime, type GovernanceGateEnv } from "./ivo-governance-gate.server";
-import { getFactorContentCatalog, getFactorContentMeta } from "@/domain/ivo/factor-content";
-import { getFactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
+import { getFactorContentCatalog, getFactorContentMeta, type FactorContent } from "@/domain/ivo/factor-content";
+import { getAvailableFactorLearningActivity, type FactorLearningActivity } from "@/domain/ivo/factor-learning-activities";
 import type { EducationContentView, LoadEducationOutcome } from "./ivo-views";
 
-export async function loadEducationForSession(input: { accessToken?: string }, deps: FibtActionLoopDeps = {}): Promise<LoadEducationOutcome> {
+export interface EducationDeps extends FibtActionLoopDeps {
+  contentCatalog?: () => readonly FactorContent[];
+  activityCatalog?: readonly FactorLearningActivity[];
+}
+
+export async function loadEducationForSession(input: { accessToken?: string }, deps: EducationDeps = {}): Promise<LoadEducationOutcome> {
   const auth = await authorizeLedger(input.accessToken, deps);
   if (!auth.ok) return auth;
   const testVisible = deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv);
-  const visible = getFactorContentCatalog().filter((c) => c.status === "APROVADO" || (c.status === "TESTE" && testVisible));
+  const catalog = (deps.contentCatalog ?? getFactorContentCatalog)();
+  const visible = catalog.filter((c) => c.status === "APROVADO" || (c.status === "TESTE" && testVisible));
   const byFactor: Record<string, EducationContentView[]> = {};
   for (const c of visible) {
     (byFactor[c.factorId] ??= []).push({
@@ -32,7 +38,7 @@ export async function loadEducationForSession(input: { accessToken?: string }, d
       body: [...c.body],
       evidenceCodes: [...c.evidenceCodes],
       safeClaimIds: [...c.safeClaimIds],
-      ...(c.status === "TESTE" ? { activity: getFactorLearningActivity(c.id, c.version) } : {}),
+      activity: getAvailableFactorLearningActivity(c, testVisible, deps.activityCatalog),
     });
   }
   const meta = getFactorContentMeta();
@@ -41,7 +47,7 @@ export async function loadEducationForSession(input: { accessToken?: string }, d
     catalog: {
       curationStatus: meta.curationStatus,
       curationDecision: meta.curationDecision,
-      approvedCount: getFactorContentCatalog().filter((c) => c.status === "APROVADO").length,
+      approvedCount: catalog.filter((c) => c.status === "APROVADO").length,
       testVisible,
     },
     byFactor,
