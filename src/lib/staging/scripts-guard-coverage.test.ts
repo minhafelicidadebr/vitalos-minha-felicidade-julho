@@ -52,7 +52,7 @@ describe("cobertura do guard nos scripts", () => {
       const c = codigo(src);
       // Harnesses exclusivamente locais usam uma fronteira mais restritiva:
       // API, DB e container exatos; guard testado contra alvos remotos e o demo preservado.
-      if (["institutional-local.ts", "institutional-first-admin-proof.ts", "institutional-readback-proof.ts", "institutional-module-proof.ts", "institutional-learning-proof.ts"].includes(nome)) {
+      if (["institutional-local.ts", "institutional-first-admin-proof.ts", "institutional-readback-proof.ts", "institutional-module-proof.ts", "institutional-learning-proof.ts", "institutional-approved-learning-readback.ts"].includes(nome)) {
         expect(/import\s*\{[^}]*requireInstitutionalLocalTarget[^}]*\}\s*from\s*["'][^"']*institutional-local-target["']/.test(c)).toBe(true);
         expect(/requireInstitutionalLocalTarget\s*\(/.test(c)).toBe(true);
         return;

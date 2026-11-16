@@ -8,8 +8,8 @@ import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 
 function IvoBrandMark() {
   return (
-    <div className="flex flex-col gap-5 rounded-3xl border border-accent/25 bg-background/65 p-5 shadow-xl shadow-primary/5 backdrop-blur">
-      <div className="flex items-center gap-4">
+    <div className="flex min-w-0 flex-col gap-5 rounded-3xl border border-accent/25 bg-background/65 p-5 shadow-xl shadow-primary/5 backdrop-blur">
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
         <VitalOSBrand
           variant="mark"
           size="ivo"
@@ -23,7 +23,7 @@ function IvoBrandMark() {
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{IVO_BRAND.promise}</p>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
         {IVO_BRAND.axes.map((axis) => (
           <span
             key={axis}
@@ -59,7 +59,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
 
         {/* IVO — 4 Dimensões da Vitalidade Organizacional */}
         <div className="mt-12 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
-          <div className="grid gap-0 lg:grid-cols-[0.9fr_1.4fr]">
+          <div className="grid min-w-0 grid-cols-1 gap-0 lg:grid-cols-[0.9fr_1.4fr]">
             <div className="border-b border-border/60 bg-primary/5 p-6 sm:p-8 lg:border-r lg:border-b-0">
               <IvoBrandMark />
               <p className="mt-7 text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -78,7 +78,7 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
               </div>
             </div>
 
-            <ol className="grid gap-3 bg-background/45 p-4 sm:grid-cols-2 sm:p-5">
+            <ol className="grid min-w-0 grid-cols-1 gap-3 bg-background/45 p-4 sm:grid-cols-2 sm:p-5">
               {IVO_DIMENSIONS.dimensions.map((dimension, index) => {
                 const tone = TONE_CLASS[dimension.tone] ?? TONE_CLASS.sky!;
                 return (
@@ -128,9 +128,9 @@ export function FourLensesSection({ onAction }: { onAction: (action: CtaAction) 
                           modal: dimension.modal,
                         })
                       }
-                      className="relative mt-5 w-full justify-between gap-3 bg-background/55 text-card-foreground backdrop-blur hover:bg-background/85"
+                      className="relative mt-5 h-auto min-h-11 w-full justify-between gap-3 whitespace-normal bg-background/55 py-2 text-left text-card-foreground backdrop-blur hover:bg-background/85"
                     >
-                      {dimension.cta}
+                      <span className="min-w-0 break-words">{dimension.cta}</span>
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                     </Button>
                   </li>

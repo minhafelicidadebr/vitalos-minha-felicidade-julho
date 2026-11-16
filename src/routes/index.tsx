@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ import { DemoGateForm } from "@/app/shell/DemoGate";
 import { useDemoGate } from "@/app/shell/demo-gate";
 import { ThemeToggle } from "@/app/shell/ThemeToggle";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import { InstitutionalAccessLink } from "@/features/landing/components/InstitutionalAccessLink";
 
 const LANDING_NAV = [
   ["Solução", "#solucao"],
@@ -59,13 +60,16 @@ function LandingPage() {
 
   const unlocked = useDemoGate((s) => s.unlocked);
   const [gateOpen, setGateOpen] = useState(false);
-  const enterApp = () => {
+  const demoTrigger = useRef<HTMLButtonElement | null>(null);
+  const exploreDemo = (event: MouseEvent<HTMLButtonElement>) => {
+    demoTrigger.current = event.currentTarget;
     if (unlocked) navigate({ to: "/painel" });
     else setGateOpen(true);
   };
 
+  // Grades implícitas e controles respeitam o viewport somente nesta página pública.
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div className="min-h-dvh break-words bg-background text-foreground [&_.grid]:auto-cols-fr [&_.grid>*]:min-w-0 [&_button]:h-auto [&_button]:min-h-11 [&_button]:max-w-full [&_button]:whitespace-normal">
       <a
         href="#landing-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-background"
@@ -78,10 +82,15 @@ function LandingPage() {
         <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link
             to="/"
-            className="flex min-w-0 shrink-0 items-center transition-transform duration-300 hover:-translate-y-0.5"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-transform duration-300 hover:-translate-y-0.5"
             aria-label="Programa VitalOS — página inicial"
           >
-            <VitalOSBrand variant="horizontal" size="md" />
+            <span className="sm:hidden">
+              <VitalOSBrand variant="mark" size="md" />
+            </span>
+            <span className="hidden sm:block">
+              <VitalOSBrand variant="horizontal" size="md" />
+            </span>
           </Link>
 
           <nav
@@ -92,7 +101,7 @@ function LandingPage() {
               <a
                 key={href}
                 href={href}
-                className="rounded-full px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground"
+                className="inline-flex min-h-11 items-center rounded-full px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground"
               >
                 {label}
               </a>
@@ -100,13 +109,13 @@ function LandingPage() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" className="hidden xl:inline-flex" onClick={enterApp}>
-              Entrar no app
-            </Button>
+            <span className="[&>button]:size-11">
+              <ThemeToggle />
+            </span>
+            <InstitutionalAccessLink compact />
             <Button
               size="sm"
-              className="rounded-full px-3 shadow-md shadow-primary/15 sm:px-4"
+              className="min-h-11 rounded-full px-3 shadow-md shadow-primary/15 sm:px-4"
               onClick={() => onAction({ kind: "modal", modal: "executive" })}
             >
               <span className="sm:hidden">Agendar</span>
@@ -127,12 +136,12 @@ function LandingPage() {
         <Nr1Section onAction={onAction} />
         <ProductModulesSection />
         <EcosystemApplicationsSection onAction={onAction} />
-        
+
         <PersonaPathwaysSection />
         <TrustSection />
         <ProofNumbersSection />
         <InstituteSection />
-        <LandingCtaSection onAction={onAction} onEnterApp={enterApp} />
+        <LandingCtaSection onAction={onAction} onEnterApp={exploreDemo} />
       </main>
 
       <footer className="border-t border-border/50 py-10">
@@ -141,15 +150,28 @@ function LandingPage() {
             Programa VitalOS™ · Felicidade e Crescimento para Todos — Sistema Operacional da
             Vitalidade Organizacional.
           </p>
-          <nav className="flex flex-wrap gap-4 text-xs text-muted-foreground" aria-label="Rodapé">
-            <Link to="/metodologia" className="hover:text-foreground">
+          <nav
+            className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"
+            aria-label="Rodapé"
+          >
+            <Link
+              to="/metodologia"
+              className="inline-flex min-h-11 items-center hover:text-foreground"
+            >
               Metodologia
             </Link>
-            <Link to="/programa" className="hover:text-foreground">
+            <Link
+              to="/programa"
+              className="inline-flex min-h-11 items-center hover:text-foreground"
+            >
               O Programa
             </Link>
-            <button onClick={enterApp} className="hover:text-foreground">
-              Entrar no app
+            <InstitutionalAccessLink />
+            <button
+              onClick={exploreDemo}
+              className="min-h-11 rounded-md px-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Explorar demonstração
             </button>
           </nav>
         </div>
@@ -159,8 +181,16 @@ function LandingPage() {
 
       {/* Portão de senha do demo */}
       <Dialog open={gateOpen} onOpenChange={setGateOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent
+          className="w-[calc(100%-2rem)] max-w-md [&>button]:flex [&>button]:size-11 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-lg"
+          onCloseAutoFocus={(event) => {
+            if (demoTrigger.current?.isConnected) {
+              event.preventDefault();
+              demoTrigger.current.focus();
+            }
+          }}
+        >
+          <DialogHeader className="pr-10">
             <DialogTitle className="font-serif text-xl">Acesso à demonstração</DialogTitle>
             <DialogDescription>
               Informe a senha para explorar o app navegável com dados fictícios.

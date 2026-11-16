@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Entrada institucional explícita e responsiva — 2026-11-16
+
+Base `c30260a`, sem alterações rastreadas prévias. Entrada nativa `/entrar` agora aparece no cabeçalho, bloco principal e rodapé, separada de “Explorar demonstração”. Destino existente por sessão/vínculo preservado: Alfa autenticada chegou a `/rh`; anônimo chegou ao formulário de link mágico pelos três pontos. Sem envio de e-mail ou mudança de identidade/permissão.
+
+Corrigidos cortes reais de texto e grades no mobile; layout conferido em 320/360/768/1280 px, sem overflow horizontal e controles de cabeçalho ≥44 px. Demo bloqueada, senha incorreta e retorno de foco por Escape/fechamento comprovados; ramo desbloqueado não reexecutado. Capturas reais desktop/mobile e medidas sanitizadas registradas. Não substitui a revisão visual pendente da página de ações Q2.
+
+Gate final **4.346 pass / 0 fail, 342 arquivos, 13.540 asserções**; TypeScript, paridade, secret-scan, lint dirigido e build inerte aprovados. Oito fontes/testes idênticos à cópia compilada; `.output` preservada. Gate identificou omissão estática do harness de releitura anterior: adicionados guard local explícito antes de consultas e registro na família local, sem bypass ou mudança de consultas. Evidência DB anterior preservada.
+
+Fechamento, arquivos, capturas e limites: [LANDING_INSTITUTIONAL_ACCESS_2026-11-16.md](LANDING_INSTITUTIONAL_ACCESS_2026-11-16.md). **Próximo incremento único:** revisar `/entrar` e os estados de recuperação de link mágico. Sem publicação, migration, dados reais ou mudança metodológica. `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
+
 ## Q2 D10 · prova funcional da unidade aprovada no navegador — 2026-11-16
 
 Base `84fa2d2` preservada; nenhuma alteração rastreada prévia. Stack descartável validado por API/DB/container/project_id, sem reset ou migration. Reutilizados Alfa, ciclo/plano e fonte publicada. Unidade/atividade `0.1.0` aprovada exibida com fonte e escopo local; recuperação, feedback, revisão que limpa respostas e compartilhamento explícito percorridos no navegador. Criada uma aplicação sintética do par aprovado, com uma execução e uma aprendizagem separadas, concluída operacionalmente e ainda com eficácia não avaliada.

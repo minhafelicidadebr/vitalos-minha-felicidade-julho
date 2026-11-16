@@ -73,3 +73,9 @@ Na página pública, **“Entrar no app”** abriu a demonstração restrita por
 Nenhum arquivo de `src/` mudou. O gate de **4.339 testes**, TypeScript, paridade e build de `84fa2d2` continuam válidos e não foram repetidos. Para o novo harness: execução real da baseline/releitura, 12 verificações, recusa de sobrescrita, Prettier, ESLint, secret-scan e revisão de diff aprovados.
 
 Arquivos deste fechamento: este registro; `scripts/institutional-approved-learning-readback.ts`; evidência JSON e captura JPG acima; atualização do checkpoint e do marco no dossiê D10. Sem push, deploy, e-mail externo, conta real, migration ou alteração metodológica. `.q.out` e `.q.sql` não foram abertos ou alterados.
+
+## Adendo de fechamento posterior — entrada institucional e cobertura do harness
+
+A entrada pública foi implementada e comprovada no incremento seguinte: [registro](LANDING_INSTITUTIONAL_ACCESS_2026-11-16.md). O próximo incremento indicado acima está concluído; o novo próximo passo único é revisar `/entrar` e a recuperação de link mágico.
+
+Correção da abrangência da evidência anterior: o gate histórico de 4.339 testes não havia exercitado a descoberta estática do novo script de releitura. O gate seguinte detectou a ausência de registro na família local e da chamada direta ao guard. O helper já verificava o alvo local; foram adicionados `requireInstitutionalLocalTarget` explícito antes de consultas e o registro correspondente, sem bypass ou mudança de SQL. Gate final seguinte: 4.346 aprovados, zero falhas. As 12 verificações DB deste registro continuam válidas para o cenário executado; não foram repetidas.

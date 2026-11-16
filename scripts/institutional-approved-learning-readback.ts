@@ -3,10 +3,17 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { institutionalEnv, institutionalSql, institutionalWorkdir } from "./institutional-local";
+import {
+  institutionalContainer,
+  institutionalEnv,
+  institutionalSql,
+  institutionalWorkdir,
+} from "./institutional-local";
+import { requireInstitutionalLocalTarget } from "../src/lib/env/institutional-local-target";
 
 const TITLE = "Aplicação Q2 aprovada — D10 0.1.0 — ensaio local";
 const env = await institutionalEnv(); // Confere API, DB, container e project_id antes de consultas.
+requireInstitutionalLocalTarget(env.SUPABASE_URL, env.INSTITUTIONAL_DB_URL, institutionalContainer);
 const path = join(institutionalWorkdir, "q2-d10-browser-baseline.json");
 if (process.argv.includes("--baseline") && existsSync(path))
   throw new Error("Baseline D10 já existe; preservada. Use a releitura sem --baseline.");
