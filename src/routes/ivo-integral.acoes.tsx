@@ -48,6 +48,7 @@ import type {
   LoadFibtActionLoopOutcome,
 } from "@/lib/ivo/ivo-views";
 import { todayInSaoPaulo } from "@/lib/ivo/local-date";
+import { publishedActionSource } from "@/lib/ivo/published-action-source";
 
 // Prioridades e ações do ciclo a partir do resultado FIB-T publicado (R6).
 // Toda escrita passa pelo servidor, que confere sessão, papel, organização,
@@ -184,6 +185,7 @@ function IvoAcoesPage() {
   const efficacy = data?.efficacy.ok ? data.efficacy : null;
 
   function enhancementsFor(plan: FibtActionPlanView): ActionEnhancements {
+    const preferredSource = publishedActionSource(view, { cohortId: search.setor, factorId: search.fator });
     const contentTitle = (contentId: string): string | null => {
       for (const list of Object.values(education?.byFactor ?? {})) {
         const found = list.find((c) => c.contentId === contentId);
@@ -195,7 +197,7 @@ function IvoAcoesPage() {
     return {
       planClosure: <PlanClosure plan={plan} busy={busy} onClose={closePlan} />,
       planAddAction:
-        plan.status === "closed" ? undefined : <AddActionToPlanForm plan={plan} view={view} busy={busy} onSubmit={addAction} />,
+        plan.status === "closed" ? undefined : <AddActionToPlanForm key={`${plan.id}:${preferredSource?.cohortId ?? ""}:${preferredSource?.factorId ?? ""}`} plan={plan} view={view} busy={busy} onSubmit={addAction} initialSource={preferredSource} />,
       summary: (
         <PlanSummaryPanel
           cycle={plan.cycleKeyCanonical ?? plan.cycleKey}

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-16",
+  "login": "normal_mailpit",
+  "syntheticInstitution": "Alfa",
+  "newEmailRequestsTotal": 2,
+  "source": {
+    "label": "Bem-Estar",
+    "selected": "bem_estar"
+  },
+  "submitted": false,
+  "newBusinessWrites": 0,
+  "route": "leitura Q2 → definir prioridade Bem-Estar → plano existente"
+}

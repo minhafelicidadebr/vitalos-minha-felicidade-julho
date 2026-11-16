@@ -8,6 +8,7 @@ import { EFFICACY_NOT_EVALUATED_REASON, type FibtActionPlanView, type FibtAction
 import { CLOSED_PLAN_EXPLANATION, CLOSE_CONFIRMATION_EXPLANATION } from "@/lib/ivo/plan-closure";
 import { FibtActionPlanSection, buttonPrimary, buttonSecondary } from "./FibtActionLoop";
 import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, PlanClosure, type AddActionFormInput } from "./PlanComposition";
+import { publishedActionSource } from "@/lib/ivo/published-action-source";
 
 afterEach(cleanup);
 
@@ -83,6 +84,18 @@ function fillAccountability() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("AddActionToPlanForm", () => {
+  test("origem do link mantém Bem-Estar no plano existente sem assumir o primeiro fator", () => {
+    const initialSource = publishedActionSource(view, { cohortId: A1, factorId: "bem_estar" });
+    render(<AddActionToPlanForm plan={activePlan} view={view} busy={false} initialSource={initialSource} onSubmit={async () => ({ ok: true, message: "ok" })} />);
+    expect((screen.getByLabelText("Fator FIB-T") as HTMLSelectElement).value).toBe("bem_estar");
+    expect((screen.getByLabelText("Setor com leitura publicada") as HTMLSelectElement).value).toBe(A1);
+  });
+  test("preferência incompleta, alheia ou de setor protegido não é origem elegível", () => {
+    for (const preferred of [{ cohortId: A1 }, { factorId: "bem_estar" }, { cohortId: A1, factorId: "inventado" }, { cohortId: "other-org", factorId: "bem_estar" }, { cohortId: view.sectors[1]!.cohortId, factorId: "bem_estar" }]) {
+      expect(publishedActionSource(view, preferred)).toBeUndefined();
+    }
+    expect(publishedActionSource(null, { cohortId: A1, factorId: "bem_estar" })).toBeUndefined();
+  });
   test("mostra o plano de destino e o estado ANTES de confirmar, e só oferece setores publicados", () => {
     render(<AddActionToPlanForm plan={activePlan} view={view} busy={false} onSubmit={async () => ({ ok: true, message: "ok" })} />);
     const destination = screen.getByRole("group", { name: "Destino da nova ação" });

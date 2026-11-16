@@ -15,8 +15,8 @@ function formatInstant(iso: string): string {
 }
 
 const Stat = ({ label, value, icon: Icon }: { label: string; value: number | string; icon: LucideIcon }) => (
-  <div className="rounded-xl border border-border bg-background/60 p-4">
-    <dt className="flex items-center gap-2 text-sm text-muted-foreground"><Icon aria-hidden="true" className="size-4 shrink-0 text-primary" />{label}</dt>
+  <div className="min-w-0 rounded-xl border border-border bg-background/60 p-4">
+    <dt className="flex items-start gap-2 text-sm text-muted-foreground"><Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><span className="min-w-0 break-words">{label}</span></dt>
     <dd className="mt-2 text-3xl font-semibold tabular-nums text-foreground">{value}</dd>
   </div>
 );
@@ -26,7 +26,7 @@ export function PlanSummaryPanel({ summary, cycle }: { summary: PlanFollowUp; cy
   return (
     <section aria-label={`Resumo de acompanhamento do plano ${cycle}`} className="space-y-5 rounded-xl border border-border bg-muted/20 p-4 sm:p-6">
       <h3 className="text-sm font-semibold text-foreground">Acompanhamento do plano {cycle}</h3>
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <dl className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 sm:grid-cols-4">
         <Stat icon={ClipboardList} label="Ações" value={summary.actions} />
         <Stat icon={CheckCheck} label="Execuções registradas" value={summary.executionRecords} />
         <Stat icon={BookOpen} label="Aprendizagens registradas" value={summary.learningRecords} />

@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Macro-onda autônoma · recuperação institucional e continuidade Q2 — 2026-11-16
+
+Base `c30260a` preservada; entrada pública anterior fechada em **ff8c933**. Implementados formulário/callback com identidade VitalOS, erros sanitizados, espera finita, recuperação e retry explícitos. Erro de perfil não vira onboarding. A prova de login revelou dependência indevida do gate na hidratação do demo; sessão institucional agora independe disso, com testes de política e recuperação finita. Autorizações de servidor/RLS preservadas.
+
+Novo login normal pelo Mailpit levou à Alfa, com recarga e leitura publicada Q2 enquanto Q1 estava desligado. Corrigidos rótulos sobrepostos do resumo em 320 px; medidas finais sem overflow em 320/360. Entrada conferida também em 768/1280. Captura mobile detalhada do cartão aprovado ainda retornou quadro vazio; resumo e formulário têm capturas válidas. Contexto de Bem-Estar/setor agora segue do link de prioridade ao formulário do plano existente; comprovado após segundo login normal, sem enviar nova ação.
+
+**Gate final: 4.366 pass / 0 fail, 345 arquivos, 13.591 asserções**; paridade, TypeScript, secret-scan e build inerte aprovados. Treze fontes/testes idênticos por SHA-256 à cópia final, `.output` preservada. Lint semântico aprovado; formatação legada e avisos de testes DOM explicitados no fechamento, sem declaração de lint global verde. Provas antigas HTTP/DB/concorrência reutilizadas, sem repetição ou alegação de nova passagem Beta.
+
+Fechamento e arquivos: [MACRO_ONDA_AUTONOMA_FECHAMENTO_2026-11-16.md](MACRO_ONDA_AUTONOMA_FECHAMENTO_2026-11-16.md). [Decisões para retorno](MACRO_ONDA_AUTONOMA_DECISOES.md): fonte exata Q1, vínculos/contrato ESG e delimitação de piloto real; aprovação local D10 0.1.0 de ambas as revisoras preservada, sem nova solicitação. **Próximo marco único:** revisão do pacote local para delimitar piloto Q2. CI/staging/clientes/eficácia não confirmados. Dois e-mails só locais; zero novas ações/evidências; sem migration/reset/publicação. `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
+
 ## Entrada institucional explícita e responsiva — 2026-11-16
 
 Base `c30260a`, sem alterações rastreadas prévias. Entrada nativa `/entrar` agora aparece no cabeçalho, bloco principal e rodapé, separada de “Explorar demonstração”. Destino existente por sessão/vínculo preservado: Alfa autenticada chegou a `/rh`; anônimo chegou ao formulário de link mágico pelos três pontos. Sem envio de e-mail ou mudança de identidade/permissão.
