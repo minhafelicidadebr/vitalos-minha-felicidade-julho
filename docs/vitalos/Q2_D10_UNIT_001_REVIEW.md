@@ -1,7 +1,7 @@
 # Q2 · primeira unidade e atividade para revisão D10
 
 Data: 2026-11-15. Base preservada: `0157740`, branch `feat/ivo-fibt-platform-foundation`.
-**Estado: PROPOSTO, versão 0.1.0. Não publicado nem aprovado.** Responsável metodológico designado: João Paulo Brandão Barboza, cientista da felicidade. A designação não é assinatura, aprovação ou habilitação de conta.
+**Estado dos artefatos: PROPOSTO, versão 0.1.0.** Em 2026-11-15, João Paulo Brandão Barboza declarou neste diálogo: “Chat, considere aprovado.” O parecer é registrado aqui como favorável à unidade, à atividade e à ponte educativa descritas neste dossiê. João Paulo é o responsável metodológico designado. Esta declaração não é assinatura digital nem habilita, por si só, o estado formal `aprovado_para_piloto` do registro metodológico.
 
 ## Entrega e fonte de verdade
 
@@ -9,7 +9,7 @@ Data: 2026-11-15. Base preservada: `0157740`, branch `feat/ivo-fibt-platform-fou
 | --- | --- | --- |
 | Unidade | `Q2-bem_estar-aprendizagem-equipe-001` · 0.1.0 | [factor-content.json](../../src/domain/ivo/factor-content.json) |
 | Atividade | `Q2-pratica-aprendizagem-equipe-001` · 0.1.0; vinculada à unidade 0.1.0 | [q2-learning-activity-001.json](../../src/domain/ivo/q2-learning-activity-001.json) |
-| Decisão | D10 segue `proposta`, sem responsável/revisor/assinatura atribuídos pelo agente | [methodology-governance.json](../../src/domain/ivo/methodology-governance.json) |
+| Decisão | Parecer metodológico favorável de João Paulo registrado abaixo; D10 canônico segue `proposta` até atender à governança do piloto | [methodology-governance.json](../../src/domain/ivo/methodology-governance.json) |
 
 Título: **Aprender com dificuldades de trabalho sem expor pessoas**. Objetivo observável: distinguir leitura coletiva de diagnóstico individual e preparar uma conversa voluntária sobre condições de trabalho, com um acordo observável e limites de interpretação. Público operacional atual: RH_ADMIN empresarial. Liderança pode apoiar a prática combinada; não ganhou nova permissão de sistema. Colaborador não recebe avaliação individual nem obrigação de revelar respostas.
 
@@ -64,6 +64,12 @@ As três questões canônicas estão no JSON da atividade, com alternativas, gab
 Na aplicação aprovada, servidor deriva a organização/papel da sessão, revalida módulo, fonte publicada, ciclo, fator, plano e versões. O ledger existente recebe referência da unidade/versão, ID/versão da atividade e texto confirmado, sem questionário/nota. O PI-13 conserva seus controles transacionais e de idempotência; nenhuma migration ou segundo ledger foi criado. TESTE mantém o formato histórico da descrição para preservar retries.
 
 ## Pacote único de decisões para o responsável
+
+### Parecer recebido
+
+João Paulo aprovou, em uma manifestação conjunta, o conteúdo apresentado nas versões `0.1.0` da unidade e da atividade, bem como a ponte educativa de discussão sobre aprendizagem em equipe no contexto da prioridade coletiva FIB-T. O registro não estende essa aprovação a outros fatores, dimensões IVO, alegações causais, resultados ou impacto ESG. Os artefatos continuam com estado `PROPOSTO` no catálogo até a decisão formal ser registrada no fluxo canônico.
+
+O registro metodológico exige, para `aprovado_para_piloto`, um responsável e um revisor com identificações distintas, evidência da decisão e critérios atendidos. João Paulo está designado como responsável metodológico; não foi indicado outro responsável editorial ou revisor humano. Também não foi identificada uma empresa/coorte para delimitar o piloto. Por isso o parecer favorável fica documentado, enquanto a transição formal e a exposição no produto permanecem bloqueadas. Isso preserva o significado da aprovação sem fabricar uma segunda pessoa nem ampliar o público autorizado.
 
 | Item a revisar | Resposta/registro necessário antes da publicação |
 | --- | --- |
