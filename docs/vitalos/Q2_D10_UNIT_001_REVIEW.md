@@ -69,7 +69,17 @@ Na aplicação aprovada, servidor deriva a organização/papel da sessão, reval
 
 João Paulo aprovou, em uma manifestação conjunta, o conteúdo apresentado nas versões `0.1.0` da unidade e da atividade, bem como a ponte educativa de discussão sobre aprendizagem em equipe no contexto da prioridade coletiva FIB-T. O registro não estende essa aprovação a outros fatores, dimensões IVO, alegações causais, resultados ou impacto ESG. Os artefatos continuam com estado `PROPOSTO` no catálogo até a decisão formal ser registrada no fluxo canônico.
 
-O registro metodológico exige, para `aprovado_para_piloto`, um responsável e um revisor com identificações distintas, evidência da decisão e critérios atendidos. João Paulo está designado como responsável metodológico; não foi indicado outro responsável editorial ou revisor humano. Também não foi identificada uma empresa/coorte para delimitar o piloto. Por isso o parecer favorável fica documentado, enquanto a transição formal e a exposição no produto permanecem bloqueadas. Isso preserva o significado da aprovação sem fabricar uma segunda pessoa nem ampliar o público autorizado.
+O registro metodológico exige, para `aprovado_para_piloto`, um responsável e um revisor com identificações distintas, evidência da decisão e critérios atendidos. João Paulo está designado como responsável metodológico. Em manifestação posterior, indicou a equipe técnica dos cofundadores do Instituto Felicidade para Todos para a revisão desta unidade e atividade:
+
+| Pessoa | Qualificação informada por João Paulo | Papel nesta revisão |
+| --- | --- | --- |
+| João Paulo | Cientista da felicidade | Responsável metodológico; parecer favorável já registrado |
+| Olga Mariano | Cientista da felicidade | Revisora indicada, distinta do responsável; parecer ainda não recebido |
+| Ana Paula Barbalho | Cientista da felicidade, pesquisadora com pós-doutorado em Direitos Humanos e Felicidade | Revisora indicada, distinta do responsável; parecer ainda não recebido |
+
+A indicação atende à identificação de pessoas distintas para a revisão. Trata-se de revisão interna à equipe cofundadora; não se declarou independência externa ou ausência de conflitos institucionais. As qualificações são registradas conforme informadas, sem verificação curricular nesta etapa. João Paulo participa da equipe, mas sua própria aprovação não será contada como segunda revisão.
+
+O próximo registro necessário é o parecer identificado de Olga e/ou Ana Paula sobre unidade e atividade `0.1.0`, incluindo fonte, limites e ponte educativa. Pode ser fornecido neste diálogo por João Paulo como relato explícito de uma decisão efetivamente tomada, com autoria, data, versões, ajustes e escopo; a indicação atual não atribui aprovação às revisoras. A regra existente não exige duas revisoras. Nenhuma empresa/coorte de piloto foi delimitada. Até formalizar o parecer e o uso permitido, preservam-se o estado dos artefatos e a aprovação metodológica já recebida.
 
 | Item a revisar | Resposta/registro necessário antes da publicação |
 | --- | --- |
