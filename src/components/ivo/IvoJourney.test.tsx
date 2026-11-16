@@ -201,6 +201,28 @@ const plan: FibtActionPlanView = {
 };
 
 describe("FibtActionPlanSection", () => {
+  test("atalhos apontam para títulos focáveis e não executam transições nem registros", () => {
+    const status = mock(() => {});
+    const evidence = mock(() => {});
+    const multiple = { ...plan, actions: [plan.actions[0]!, { ...plan.actions[0]!, id: "item-2", title: "Aplicação aprovada", status: "concluida" as const }] };
+    render(<FibtActionPlanSection plan={multiple} busy={false} today="2026-06-30" onActivate={() => {}} callbacks={{ onAccountability: () => {}, onStatus: status, onEvidence: evidence }} />);
+    const nav = screen.getByRole("navigation", { name: "Navegar pelas ações do ciclo 2026-T2" });
+    const links = within(nav).getAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["#acao-item-1", "#acao-item-2"]);
+    expect(nav.textContent).toContain("Em execução");
+    expect(nav.textContent).toContain("Concluída");
+    for (const link of links) {
+      const target = document.getElementById(link.getAttribute("href")!.slice(1));
+      expect(target?.getAttribute("tabindex")).toBe("-1");
+      fireEvent.click(link);
+    }
+    expect(status).not.toHaveBeenCalled();
+    expect(evidence).not.toHaveBeenCalled();
+  });
+  test("plano sem ações não apresenta atalhos vazios", () => {
+    render(<FibtActionPlanSection plan={{ ...plan, actions: [] }} busy={false} today="2026-06-30" onActivate={() => {}} callbacks={{ onAccountability: () => {}, onStatus: () => {}, onEvidence: () => {} }} />);
+    expect(screen.queryByRole("navigation", { name: /Navegar pelas ações/ })).toBeNull();
+  });
   test("Q2 revisado SINTÉTICO: recuperação precede pistas e feedback; versão nova limpa respostas", () => {
     const f = approvedQ2Fixture();
     const content = { contentId: f.unit.id, factorId: f.unit.factorId, status: "APROVADO" as const, version: f.unit.version, title: f.unit.title, objective: f.unit.objective, audience: f.unit.audience, format: f.unit.format, estimatedMinutes: f.unit.estimatedMinutes, body: [...f.unit.body], evidenceCodes: [...f.unit.evidenceCodes], safeClaimIds: [...f.unit.safeClaimIds], activity: f.activities[0]! };

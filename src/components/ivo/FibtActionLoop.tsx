@@ -4,6 +4,7 @@ import type { FibtActionPlanView, FibtActionView, IvoQ2View } from "@/lib/ivo/iv
 import { formatIsoDateLong } from "@/lib/ivo/local-date";
 import { parseContentRef } from "@/lib/ivo/content-ref";
 import { formatDateBR } from "./IvoQ2Detail";
+import { ArrowDownRight, ListOrdered } from "lucide-react";
 
 // Ciclo resultado FIB-T → prioridade → ação → evidência → aprendizagem
 // (spec docs/vitalos/specs/action-learning-loop.md). Componentes de
@@ -549,7 +550,7 @@ export function FibtActionCard({
   return (
     <article aria-labelledby={headingId} className="space-y-4 rounded-md border border-border bg-background p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 id={headingId} className="font-medium text-foreground">
+        <h3 id={headingId} tabIndex={-1} className="scroll-mt-24 rounded font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           {action.title}
         </h3>
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
@@ -692,6 +693,23 @@ export function FibtActionPlanSection({
           {plan.status === "draft" ? "Rascunho" : plan.status === "active" ? "Ativo" : "Encerrado"}
         </span>
       </div>
+      {plan.actions.length > 0 ? (
+        <nav aria-label={`Navegar pelas ações do ciclo ${plan.cycleKeyCanonical ?? plan.cycleKey}`} className="min-w-0 space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><ListOrdered aria-hidden="true" className="size-4 shrink-0 text-primary" />Ir direto a uma ação</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">Escolha pelo título e estado. O atalho apenas leva ao cartão; não altera a ação.</p>
+          <ol className="grid gap-2 sm:grid-cols-2">
+            {plan.actions.map((action, index) => (
+              <li key={action.id} className="min-w-0">
+                <a href={`#acao-${action.id}`} className="flex min-h-11 min-w-0 items-start gap-3 rounded-lg border border-border bg-background p-3 text-sm text-foreground hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <span aria-hidden="true" className="shrink-0 font-medium text-primary">{index + 1}.</span>
+                  <span className="min-w-0 flex-1 break-words"><span className="block font-medium">{action.title}</span><span className="mt-1 block text-xs text-muted-foreground">{STATUS_LABEL[action.status]}</span></span>
+                  <ArrowDownRight aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      ) : null}
       {plan.status === "draft" ? (
         <div role="note" className="rounded-md border border-border bg-muted/30 p-3 text-sm">
           <p className="text-foreground">

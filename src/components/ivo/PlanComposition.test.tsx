@@ -509,10 +509,10 @@ describe("plano encerrado", () => {
         }}
       />,
     );
-    const text = document.body.textContent ?? "";
-    expect(text.indexOf("PAINEL-ENCERRAR")).toBeGreaterThan(-1);
-    expect(text.indexOf("PAINEL-ENCERRAR")).toBeLessThan(text.indexOf("Rodas de conversa"));
-    expect(text.indexOf("FORM-INCLUIR")).toBeGreaterThan(text.indexOf("Pausas ativas"));
+    const firstCard = screen.getByRole("article", { name: "Rodas de conversa" });
+    const lastCard = screen.getByRole("article", { name: "Pausas ativas" });
+    expect(screen.getByText("PAINEL-ENCERRAR").compareDocumentPosition(firstCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(lastCard.compareDocumentPosition(screen.getByText("FORM-INCLUIR")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
 

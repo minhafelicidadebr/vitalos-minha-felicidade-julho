@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Q2 · atalhos acessíveis no plano longo — 2026-11-16
+
+Base `576c464` preservada, sem alterações rastreadas prévias. A revisão residual confirmou um cartão com cerca de 3.810 px de altura após mais de 12 mil px de conteúdo mobile. Implementado índice **Ir direto a uma ação** por plano, com títulos/estados existentes, links nativos e títulos focáveis. Mantidos formulários, rascunhos e callbacks de escrita. Dois testes novos; teste de ordem corrigido para comparar cartões semânticos em vez da primeira ocorrência textual do título.
+
+Login normal no Mailpit local, alvo validado pelo harness sem reset/migration. Atalho por Enter colocou fragmento e foco no título da aplicação aprovada em 320 e 360 px; nenhuma ação/evidência enviada. Captura desktop válida. A captura mobile detalhada ainda retornou quadro vazio/timeout CDP; não se declara prova visual concluída. Viewport restaurado, procedimento suportado e roteiro manual registrados.
+
+**Gate: 4.381 pass / 0 fail, 346 arquivos, 13.686 asserções**; 53 testes direcionados; paridade, TypeScript, secret-scan e build inerte aprovados. Três fontes/testes idênticos por SHA-256 à cópia compilada; `.output` preservada. Lint semântico aprovado com aviso legado de Fast Refresh, sem declaração de lint global verde. Provas DB/HTTP/concorrência anteriores não repetidas.
+
+Fechamento: [Q2_ACTION_NAVIGATION_2026-11-16.md](Q2_ACTION_NAVIGATION_2026-11-16.md). Pacote de piloto anterior mantido como snapshot do produto `517c206`; seu check selecionado não cobre este incremento. **Próximo marco único:** respostas PIL-01–PIL-08, incluindo candidato escolhido, para delimitar piloto Q2. Aprovação editorial local, Q1 e ESG preservados. Sem CI/staging novo, publicação ou dados reais; `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
+
 ## Q2 · pacote verificável para revisão do piloto — 2026-11-16
 
 Base `517c206`, branch esperada, sem alterações rastreadas prévias. Preparados [dossiê único Q2](Q2_PILOT_REVIEW_2026-11-16.md) e índice JSON com candidato, curadoria canônica, referências de evidência/claim e SHA-256 de 31 arquivos selecionados, incluindo o próprio dossiê. Novo gerador offline com `--check` somente leitura por padrão e `--write` exclusivamente local; não consulta serviços nem altera disponibilidade. Resultado distingue **INTEGRIDADE_LOCAL_OK** de **PILOTO_REAL_NAO_AUTORIZADO**. Integridade não é autenticidade, prova nova ou autorização.
