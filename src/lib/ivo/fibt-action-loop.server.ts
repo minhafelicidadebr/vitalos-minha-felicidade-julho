@@ -39,7 +39,7 @@ import { canTransition } from "@/engine/action-plan/action-log-engine";
 import { normalizeCycleKey, sameCycle } from "@/domain/ivo/cycle-key";
 import { getDimensionMappings } from "@/domain/ivo/dimension-mappings";
 import { encodeContentRef, getFactorContentById } from "@/domain/ivo/factor-content";
-import { isDisposableLocalRuntime, type GovernanceGateEnv } from "./ivo-governance-gate.server";
+import { resolveEducationAvailability, isEducationContentAvailable, type EducationRuntimeDeps } from "./education-availability.server";
 import { isMappingApproved } from "@/engine/ivo/ivo-matrix";
 import { getFibtManifest } from "@/domain/instruments/fibt/fibt-instrument";
 import type { IvoDimensionId } from "@/engine/ivo/lens-contract";
@@ -166,7 +166,7 @@ export type {
 } from "./ivo-views";
 export { EFFICACY_NOT_EVALUATED_REASON } from "./ivo-views";
 
-export interface FibtActionLoopDeps extends IvoQ2Deps {
+export interface FibtActionLoopDeps extends IvoQ2Deps, EducationRuntimeDeps {
   capability?: () => ServerCapabilityDecision;
   ledger?: FibtActionLedgerStore;
   /** Mostra/aceita conteúdo de TESTE (padrão: só em runtime local descartável). */
@@ -529,9 +529,7 @@ export async function recordFibtActionEvidence(
     if (input.contentId) {
       if (input.scope !== "aprendizagem") return rejected("content_link_only_for_learning");
       const content = getFactorContentById(input.contentId);
-      const visible =
-        !!content &&
-        (content.status === "APROVADO" || (content.status === "TESTE" && (deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv))));
+      const visible = isEducationContentAvailable(content, resolveEducationAvailability(deps));
       if (!content || !visible || content.factorId !== (item.sourceFactorId ?? null)) return rejected("content_not_available");
       if (input.contentVersion !== undefined && input.contentVersion !== content.version) return rejected("content_not_available");
       contentRef = encodeContentRef(content, input.content);

@@ -1,5 +1,17 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## D10 · autoria confirmada e caminho aprovado integrado — 2026-11-15
+
+Base `55cd466` preservada, sem alterações rastreadas prévias. João Paulo confirmou **“Olga Mariano e Ana Paula Barbalho — ambas”**, identificando as revisoras do parecer favorável sem ajustes de 15/11/2026. Autoria concluída, sem nova aprovação pendente dos mesmos artefatos. D10 registrado em v0.3.0 como `aprovado_para_piloto` **somente para ensaio técnico local do par Q2 0.1.0**; outras 15 entradas, inclusive D9 e mapeamentos, preservadas. C2–C5/C7 fora desta unidade permanecem pendentes. Sem criação de contas, IDs de autoridade ou assinatura digital presumida.
+
+Unidade e atividade `0.1.0` passam a `APROVADO`, cada qual com responsável João Paulo, ambas as revisoras, data, referência do parecer e `scope: local_descartavel`. Claim Registry v1.2.0 congelado após adição deliberada de `CLAIM-EDMONDSON1999-Q2-001` para RH empresarial em `q2-educacao`, texto e proibições sem ampliação. Os 50 claims anteriores e todo o Evidence Registry ficaram inalterados. Conteúdo pedagógico e questões preservados; aviso antigo de proposta movido para metadado histórico, sem ajuste científico ou de gabarito.
+
+Controle comum de runtime/endpoints protege leitura, criação de aplicação e vínculo direto de aprendizagem: apenas ambiente local descartável completo, sem declaração HML. Flag TESTE não libera conteúdo aprovado fora desse escopo. Interface informa ensaio local e restringe o significado da aprovação editorial. Caminho canônico comprovado em testes de servidor com stores simuladas, inclusive retry com um efeito e ausência de respostas no ledger; sem nova prova HTTP/DB/navegador.
+
+**Gate final: 4.339 pass / 0 fail, 341 arquivos, 13.516 asserções**; paridade, TypeScript, secret-scan, lint dirigido e diff aprovados. Primeiro gate identificou expectativa antiga “todos em proposta” no teste da governança; apresentação e teste corrigidos, seguidos do gate final. Build inerte final aprovado, `.output` preservada e 21 fontes/testes idênticos por SHA-256 à cópia compilada. Registros e arquivos em [Q2_D10_UNIT_001_REVIEW.md](Q2_D10_UNIT_001_REVIEW.md), decisão e hashes em [D10_UNIT_001_2026-11-15.md](decisions/D10_UNIT_001_2026-11-15.md).
+
+**Próximo marco único:** demonstrar a unidade/atividade aprovadas pela interface do ambiente local descartável, reutilizando ciclo/fonte e evidências válidas. Sem novo bloqueio humano de autoria; disponibilidade remota, piloto com clientes e validação de eficácia não foram autorizados por este fechamento. Nenhuma migration, reinicialização do stack, dado real, push ou deploy; `.q.out` e `.q.sql` intocados. Seções abaixo preservam a evolução documental anterior.
+
 ## D10 · parecer de revisão recebido, 15/11/2026
 
 Base `5bcde52` conferida, sem alterações rastreadas prévias. João Paulo comunicou que “Olga Mariano e/ou Ana Paula Barbalho” revisaram a unidade e a atividade `0.1.0` em 15/11/2026 e aprovaram sem ajustes. Parecer favorável recebido e vinculado aos dois artefatos por versão e hash em [D10_UNIT_001_2026-11-15.md](decisions/D10_UNIT_001_2026-11-15.md). Falta somente identificar se a autoria do parecer é de Olga, Ana Paula ou ambas; o modelo anterior do agente usava “e/ou”, e foi solicitada identificação sem pedir nova aprovação do conteúdo. A regra não exige duas revisoras.

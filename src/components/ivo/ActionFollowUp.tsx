@@ -137,6 +137,7 @@ export function EducationPanel({ factorName, content, catalog, renderActivity }:
                     {FORMAT_LABEL[c.format] ?? c.format} · {c.estimatedMinutes} min · para {c.audience} · versão {c.version}
                   </p>
                   <p className="text-foreground">{c.objective}</p>
+                  {c.usageNotice && <p role="note" className="text-sm text-muted-foreground">{c.usageNotice}</p>}
                   {c.body.map((paragraph) => (
                     <p key={paragraph} className="text-muted-foreground">
                       {paragraph}

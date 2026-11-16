@@ -90,8 +90,20 @@ describe("claim-registry × evidence-registry — congelado real", () => {
     }
     expect(coveredCanonical.size).toBe(EVIDENCE.studies.length); // 46 estudos, todos cobertos
     expect([...coveredCanonical.values()].every((n) => n === 1)).toBe(true); // exatamente um cada
-    expect(CLAIMS.claims).toHaveLength(50); // 6 Voz Segura + 44 passaporte
-    expect(CLAIMS.version).toBe("1.1.0");
+    expect(CLAIMS.claims).toHaveLength(51); // 50 anteriores + uso Q2 deliberado
+    expect(CLAIMS.version).toBe("1.2.0");
+  });
+
+  test("claim Q2 conserva texto e proibições, com contexto e papel próprios", () => {
+    const previous = CLAIMS.claims.find((c) => c.claim_id === "CLAIM-EDMONDSON1999-VOICE-001")!;
+    const q2 = CLAIMS.claims.find((c) => c.claim_id === "CLAIM-EDMONDSON1999-Q2-001")!;
+    expect(q2.safe_claim).toBe(previous.safe_claim);
+    expect(q2.prohibited_claims).toEqual(previous.prohibited_claims);
+    expect(q2.target_context).toBe("q2-educacao");
+    const study = resolveCanonicalStudy(EVIDENCE, q2.study_id)!;
+    expect(trustGate(study, q2, { intendedUse: "explain_mechanism", role: "rh", segment: "enterprise", targetContext: "q2-educacao" }).trusted).toBe(true);
+    expect(trustGate(study, q2, { ...MATCHING_CONTEXT, targetContext: "q2-educacao" }).trusted).toBe(false);
+    expect(trustGate(study, q2, MATCHING_CONTEXT).trusted).toBe(false);
   });
 
   test("EDMONDSON-1999 resolve para o nó canônico TRU-006 sem tocar o JSON congelado", () => {

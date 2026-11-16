@@ -30,6 +30,7 @@ export interface FactorContent {
   owner: string | null;
   approvedAt: string | null;
   body: readonly string[];
+  reviewNotice?: string;
   curation?: Q2LearningCuration;
 }
 
@@ -48,6 +49,7 @@ interface RawEntry {
   owner: string | null;
   approved_at: string | null;
   body: string[];
+  review_notice?: string;
   curation?: Q2LearningCuration;
 }
 interface RawCatalog {
@@ -104,7 +106,7 @@ export function validateFactorContent(catalog: RawCatalog, registries: LearningR
       status: e.status as "PROPOSTO" | "APROVADO", version: e.version,
       evidenceCodes: e.evidence_codes, safeClaimIds: e.safe_claim_ids, curation: e.curation,
     }, registries);
-    if (e.status === "APROVADO" && (e.owner !== curation?.approval?.reviewer || e.approved_at !== curation?.approval?.approvedOn))
+    if (e.status === "APROVADO" && (e.owner !== curation?.approval?.responsible || e.approved_at !== curation?.approval?.approvedOn))
       throw new FactorContentError(`${e.id}: responsável/data divergem da revisão D10`);
     if (e.status === "APROVADO") for (const id of e.safe_claim_ids) {
       const claim = registries.claims.claims.find((entry) => entry.claim_id === id)!;
@@ -127,6 +129,7 @@ export function validateFactorContent(catalog: RawCatalog, registries: LearningR
       owner: e.owner,
       approvedAt: e.approved_at,
       body: Object.freeze([...e.body]),
+      ...(e.review_notice ? { reviewNotice: e.review_notice } : {}),
       ...(curation ? { curation } : {}),
     });
   });

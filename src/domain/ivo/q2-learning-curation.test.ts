@@ -8,28 +8,42 @@ import {
   validateFactorLearningActivities,
   type FactorLearningActivity,
 } from "./factor-learning-activities";
-import { approvedQ2Fixture } from "@/test/fixtures/q2-learning";
+import { approvedQ2Fixture, proposedQ2Fixture } from "@/test/fixtures/q2-learning";
 
 describe("Q2 D10 · aprovação por contexto e por artefato", () => {
-  test("proposta original permanece oculta mesmo no runtime TESTE", () => {
+  test("proposta permanece oculta; par canônico tem revisão explícita com escopo local", () => {
     const unit = getFactorContentById(rawActivity.contentId)!;
-    expect(unit.status).toBe("PROPOSTO");
-    expect(unit.curation?.approval).toBeNull();
-    expect(getFactorLearningActivity(unit.id, unit.version)?.status).toBe("PROPOSTO");
-    expect(getAvailableFactorLearningActivity(unit, true)).toBeUndefined();
+    expect(unit.status).toBe("APROVADO");
+    expect(unit.curation?.approval).toMatchObject({
+      version: "0.1.0",
+      scope: "local_descartavel",
+      reviewer: "Olga Mariano; Ana Paula Barbalho",
+    });
+    expect(getFactorLearningActivity(unit.id, unit.version)?.status).toBe("APROVADO");
+    const pending = proposedQ2Fixture();
+    const contents = validateFactorContent(pending.raw);
+    const activities = validateFactorLearningActivities([pending.activity], contents);
+    expect(
+      getAvailableFactorLearningActivity(
+        contents.find((c) => c.id === unit.id)!,
+        true,
+        activities,
+      ),
+    ).toBeUndefined();
   });
 
   test("promover por rótulo não autoriza claim de passaporte na educação", () => {
-    const raw = structuredClone(rawContent) as Parameters<typeof validateFactorContent>[0];
-    const unit = raw.entries.find((c) => c.id === rawActivity.contentId)!;
+    const { raw, unit } = proposedQ2Fixture();
     unit.status = "APROVADO";
     unit.owner = "Revisor sintético";
     unit.approved_at = "2026-11-15";
     unit.curation!.approval = {
       version: unit.version,
-      reviewer: unit.owner,
+      responsible: unit.owner,
+      reviewer: "Outro revisor sintético",
       approvedOn: unit.approved_at,
       decisionRef: "SINTETICO",
+      scope: "local_descartavel",
     };
     expect(() => validateFactorContent(raw)).toThrow(/não autorizado para este contexto/);
   });
@@ -56,6 +70,16 @@ describe("Q2 D10 · aprovação por contexto e por artefato", () => {
       if (change === "date") unit.curation!.approval!.approvedOn = "2026-02-31";
       if (change === "missing") unit.curation!.approval = null;
       if (change === "claim-text") unit.body = ["Uma garantia não autorizada de bem-estar."];
+      expect(() => validateFactorContent(f.raw, f.registries)).toThrow();
+    }
+  });
+
+  test("escopo desconhecido e auto-revisão não validam aprovação", () => {
+    for (const mutation of ["scope", "reviewer"] as const) {
+      const f = approvedQ2Fixture();
+      const unit = f.raw.entries.find((c) => c.id === f.unit.id)!;
+      if (mutation === "scope") Object.assign(unit.curation!.approval!, { scope: "global" });
+      else unit.curation!.approval!.reviewer = unit.curation!.approval!.responsible;
       expect(() => validateFactorContent(f.raw, f.registries)).toThrow();
     }
   });

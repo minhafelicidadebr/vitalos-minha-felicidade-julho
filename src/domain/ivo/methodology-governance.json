@@ -1,6 +1,6 @@
 {
-  "registry_version": "1.0.0",
-  "description": "Registro canônico das decisões metodológicas do IVO (R8). Transcreve o dossiê docs/vitalos/ivo-methodology-dossier.md §5 e §11 sem aprová-lo. TODAS as entradas estão em 'proposta'. Somente uma autoridade metodológica configurada no servidor pode preparar uma aprovação; RH_ADMIN de organização não aprova método global. 'aprovado_para_piloto' autoriza uma experiência delimitada e identificada; 'validado_para_uso_definido' exige evidência de validação para o uso declarado — são estados distintos.",
+  "registry_version": "1.1.0",
+  "description": "Registro canônico das decisões metodológicas do IVO (R8). Transcreve o dossiê docs/vitalos/ivo-methodology-dossier.md §5 e §11 sem aprová-lo. D10 está aprovado para ensaio local exclusivamente do par Q2 0.1.0 documentado; as demais entradas continuam em proposta. Somente uma autoridade metodológica configurada no servidor pode preparar uma aprovação; RH_ADMIN de organização não aprova método global. 'aprovado_para_piloto' autoriza uma experiência delimitada e identificada; 'validado_para_uso_definido' exige evidência de validação para o uso declarado — são estados distintos.",
   "authority_policy": "A autoridade metodológica é configurada no servidor (VITALOS_IVO_METHOD_AUTHORITY_USER_IDS). Sem configuração, a aprovação fica indisponível. O papel RH_ADMIN de uma organização não concede essa autoridade.",
   "states": [
     { "id": "proposta", "label": "Proposta", "meaning": "Preparada para revisão. Não produz efeito no produto." },
@@ -161,20 +161,57 @@
       "depends_on": []
     },
     {
-      "id": "D10", "kind": "decision", "title": "Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7)", "version": "0.1.0", "state": "proposta",
-      "proposal": "Curadoria pelo responsável metodológico com o orçamento de evidência existente; C2–C5 resolvidos em nota curta; C7 adiado.",
-      "rationale": "Conteúdo só pode afirmar o que o registro de evidências permite (safe_claim); hoje não existe conteúdo curado para fatores FIB-T.",
-      "alternatives": ["Conteúdo gerado sem curadoria (vedado)", "Reutilizar conteúdo mock da Academia (vedado como recomendação real)"],
-      "recommendation": "Curadoria pelo metodológico; catálogo versionado por fator.",
-      "sources": [
-        { "ref": "src/domain/evidence/learning-patterns.json", "kind": "repo" },
-        { "ref": "src/domain/ivo/factor-content.json", "kind": "repo" }
+      "id": "D10",
+      "kind": "decision",
+      "title": "Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7)",
+      "version": "0.3.0",
+      "state": "aprovado_para_piloto",
+      "proposal": "Aprovação editorial delimitada da unidade Q2-bem_estar-aprendizagem-equipe-001 0.1.0 e atividade Q2-pratica-aprendizagem-equipe-001 0.1.0 para ensaio técnico no ambiente local descartável. Outras unidades e conflitos C2–C5/C7 conservam suas pendências próprias.",
+      "rationale": "Parecer metodológico favorável de João Paulo e revisão sem ajustes de Olga Mariano e Ana Paula Barbalho em 15/11/2026, comunicada pelo responsável neste diálogo. Fonte TRU-006 reutilizada e claim educativo específico registrado sem ampliar o texto científico.",
+      "alternatives": [
+        "Conteúdo gerado sem curadoria (vedado)",
+        "Reutilizar conteúdo mock da Academia (vedado como recomendação real)"
       ],
-      "limitations": ["O catálogo contém TESTE identificado e uma unidade/atividade Q2 PROPOSTA 0.1.0 para revisão D10. Não há conteúdo ou atividade APROVADOS; o claim educativo específico ainda precisa de registro deliberado."],
-      "owner": null, "reviewer": null, "approval": null,
-      "approval_criteria": ["Responsável pela curadoria nomeado", "Conteúdo aprovado com fontes e safe_claim por fator"],
+      "recommendation": "Usar somente as duas versões aprovadas no ensaio local; a oferta educativa e qualquer piloto com clientes exigem escopo e autorização próprios.",
+      "sources": [
+        {
+          "ref": "src/domain/evidence/learning-patterns.json",
+          "kind": "repo"
+        },
+        {
+          "ref": "src/domain/ivo/factor-content.json",
+          "kind": "repo"
+        },
+        {
+          "ref": "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md",
+          "kind": "repo"
+        }
+      ],
+      "limitations": [
+        "Escopo desta decisão: apenas o par Q2 0.1.0 citado, prioridade editorial bem_estar, RH_ADMIN empresarial e ambiente local descartável. Não libera staging, produção ou clientes reais.",
+        "Revisão interna da equipe cofundadora, distinta do responsável metodológico; relato de João Paulo, sem assinatura digital ou autenticação de conta das revisoras.",
+        "Não valida eficácia, causalidade, impacto ESG, índice IVO ou mapeamentos dimensionais. C2–C5/C7 fora desta unidade seguem pendentes."
+      ],
+      "owner": "João Paulo",
+      "reviewer": "Olga Mariano; Ana Paula Barbalho",
+      "approval": {
+        "decided_by": "João Paulo (parecer comunicado neste diálogo)",
+        "decided_at": "2026-11-15",
+        "evidence": [
+          "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md"
+        ],
+        "intended_use": "Ensaio técnico da unidade e atividade Q2 0.1.0 em ambiente local descartável, RH_ADMIN de empresas fictícias.",
+        "test": false
+      },
+      "approval_criteria": [
+        "Responsável pela curadoria nomeado",
+        "Conteúdo aprovado com fontes e safe_claim por fator"
+      ],
       "effects": [
-        { "feature": "Conteúdo educativo por fator", "effect": "Sem conteúdo aprovado, a interface mostra 'curadoria pendente'." }
+        {
+          "feature": "Unidade e atividade Q2 0.1.0",
+          "effect": "Aprovadas editorialmente para ensaio local; servidor bloqueia disponibilidade fora desse ambiente. Demais conteúdos exigem aprovação própria."
+        }
       ],
       "depends_on": []
     },

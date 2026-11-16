@@ -13,11 +13,12 @@ type Registry = Parameters<typeof validateGovernanceRegistry>[0];
 const clone = () => JSON.parse(JSON.stringify(rawRegistry)) as Registry;
 
 describe("registro canônico de governança", () => {
-  test("transcreve o dossiê: D1–D10 e M1–M6, todos em proposta", () => {
+  test("D10 aprovado no escopo local; demais decisões e mapeamentos preservados", () => {
     const entries = getGovernanceEntries();
     expect(entries.filter((e) => e.kind === "decision").map((e) => e.id)).toEqual(["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"]);
     expect(entries.filter((e) => e.kind === "mapping").map((e) => e.id)).toEqual(["M1", "M2", "M3", "M4", "M5", "M6"]);
-    expect(entries.every((e) => e.state === "proposta" && e.approval === null && e.owner === null)).toBe(true);
+    expect(entries.filter((e) => e.id !== "D10").every((e) => e.state === "proposta" && e.approval === null && e.owner === null)).toBe(true);
+    expect(getGovernanceEntry("D10")).toMatchObject({ state: "aprovado_para_piloto", reviewer: "Olga Mariano; Ana Paula Barbalho", approval: { decidedAt: "2026-11-15", test: false } });
     expect(entries.every((e) => e.approvalCriteria.length > 0 && e.effects.length > 0 && e.sources.length > 0)).toBe(true);
   });
 

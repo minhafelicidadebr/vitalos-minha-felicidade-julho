@@ -16,9 +16,11 @@ export interface Q2LearningCuration {
   context: RequestContext;
   approval: null | {
     version: string;
+    responsible: string;
     reviewer: string;
     approvedOn: string;
     decisionRef: string;
+    scope: "local_descartavel";
   };
 }
 
@@ -89,8 +91,17 @@ export function validateQ2LearningCuration(
   }
   if (artifact.status === "APROVADO") {
     const a = c.approval;
-    if (!a || a.version !== artifact.version || !nonEmpty(a.reviewer) || !nonEmpty(a.decisionRef))
+    if (
+      !a ||
+      a.version !== artifact.version ||
+      !nonEmpty(a.responsible) ||
+      !nonEmpty(a.reviewer) ||
+      !nonEmpty(a.decisionRef)
+    )
       fail("aprovação explícita da versão ausente");
+    if (a.responsible.trim().toLowerCase() === a.reviewer.trim().toLowerCase())
+      fail("revisor deve ser distinto do responsável");
+    if (a.scope !== "local_descartavel") fail("escopo de disponibilidade não autorizado");
     if (
       !/^\d{4}-\d{2}-\d{2}$/.test(a.approvedOn) ||
       !Number.isFinite(Date.parse(`${a.approvedOn}T00:00:00Z`)) ||

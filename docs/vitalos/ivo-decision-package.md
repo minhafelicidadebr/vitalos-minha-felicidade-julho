@@ -1,17 +1,17 @@
 # Pacote único de decisões metodológicas — IVO
 
-> **Gerado** de `src/domain/ivo/methodology-governance.json` (registro v1.0.0) por `bun run ivo:decision-package`.
+> **Gerado** de `src/domain/ivo/methodology-governance.json` (registro v1.1.0) por `bun run ivo:decision-package`.
 > Não edite à mão: `bun run ivo:decision-package --check` (e o teste `scripts/ivo-decision-package.test.ts`) falham se este arquivo divergir do registro.
 
 ## Como ler
 
-- Situação: Proposta: 16 · Em revisão: 0 · Aprovado para piloto: 0 · Validado para uso definido: 0 · Rejeitada: 0 · Retirada: 0. **Nada está aprovado.** Enquanto for assim, nenhuma dimensão recebe valor, nenhum índice composto é calculado e o parecer conclusivo de eficácia (D9) só existe em ambiente local de teste, identificado como tal.
+- Situação: Proposta: 15 · Em revisão: 0 · Aprovado para piloto: 1 · Validado para uso definido: 0 · Rejeitada: 0 · Retirada: 0. **Aprovações restritas ao escopo de cada entrada.** Mapeamentos, índice composto e eficácia (D9) dependem de suas próprias decisões; aprovação editorial de conteúdo não os aprova.
 - Estados distintos: _Proposta_ (sem efeito no produto) · _Em revisão_ · _Aprovado para piloto_ (uso experimental delimitado e identificado; **não** é validação) · _Validado para uso definido_ (evidência de validação para o uso declarado, e só ele).
 - A autoridade metodológica é configurada no servidor (VITALOS_IVO_METHOD_AUTHORITY_USER_IDS). Sem configuração, a aprovação fica indisponível. O papel RH_ADMIN de uma organização não concede essa autoridade.
 
 ## Como decidir (fluxo técnico já pronto)
 
-1. Nomear o responsável metodológico e o revisor independente (papéis; nomes não ficam neste repositório).
+1. Identificar o responsável metodológico e revisor distinto, com autoria, versões e evidência da decisão; registrar nomes somente no escopo institucional autorizado.
 2. Configurar no servidor a autoridade (`VITALOS_IVO_METHOD_AUTHORITY_USER_IDS`, lista de ids de usuário). Sem configuração, `/ivo-integral/governanca` continua consultável e a aprovação fica indisponível com o motivo.
 3. Na mesma página, a autoridade usa **Preparar decisão**: o servidor valida transição, responsável ≠ revisor, evidência e critérios, e devolve o registro resultante **sem gravar nada**.
 4. O registro resultante é revisto por pessoa e entra por commit em `methodology-governance.json` (versão nova + trilha). Só então o produto passa a tratar a decisão como aprovada.
@@ -29,7 +29,7 @@
 | D7 | Elegibilidade, janela de validade e comparabilidade | Proposta | Janela do ciclo; sem redistribuição. | D6 |
 | D8 | Privacidade das saídas derivadas e controle temporal | Proposta | Somente por recorte publicado + liberação em lote. | D6 |
 | D9 | Parâmetros do protocolo de eficácia (C8) | Proposta | Adotar a spec; piloto com caso identificado. | — |
-| D10 | Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7) | Proposta | Curadoria pelo metodológico; catálogo versionado por fator. | — |
+| D10 | Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7) | Aprovado para piloto | Usar somente as duas versões aprovadas no ensaio local; a oferta educativa e qualquer piloto com clientes exigem escopo e autorização próprios. | — |
 | M1 | Bem-Estar → EU (complementar, bem-estar geral) | Proposta | Aprovar com rótulo explícito. | D3 |
 | M2 | Satisfação com a Empresa → ORGANIZAÇÃO (direta, parcial) | Proposta | Aprovar como percepção de governança. | D3 |
 | M3 | Satisfação com a Empresa → LIDERANÇA (complementar; só exibição) | Proposta | Somente exibição. | D3, M2 |
@@ -323,13 +323,13 @@ Depende de: —
 
 ### D10 — Curadoria de conteúdo educativo e conflitos operacionais (C2–C5, C7)
 
-Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designado · revisor: não designado
+Estado: **Aprovado para piloto** · versão do registro 0.3.0 · responsável: João Paulo · revisor: Olga Mariano; Ana Paula Barbalho
 
-**Proposta.** Curadoria pelo responsável metodológico com o orçamento de evidência existente; C2–C5 resolvidos em nota curta; C7 adiado.
+**Proposta.** Aprovação editorial delimitada da unidade Q2-bem_estar-aprendizagem-equipe-001 0.1.0 e atividade Q2-pratica-aprendizagem-equipe-001 0.1.0 para ensaio técnico no ambiente local descartável. Outras unidades e conflitos C2–C5/C7 conservam suas pendências próprias.
 
-**Justificativa.** Conteúdo só pode afirmar o que o registro de evidências permite (safe_claim); hoje não existe conteúdo curado para fatores FIB-T.
+**Justificativa.** Parecer metodológico favorável de João Paulo e revisão sem ajustes de Olga Mariano e Ana Paula Barbalho em 15/11/2026, comunicada pelo responsável neste diálogo. Fonte TRU-006 reutilizada e claim educativo específico registrado sem ampliar o texto científico.
 
-**Recomendação.** Curadoria pelo metodológico; catálogo versionado por fator.
+**Recomendação.** Usar somente as duas versões aprovadas no ensaio local; a oferta educativa e qualquer piloto com clientes exigem escopo e autorização próprios.
 
 **Alternativas consideradas**
 - Conteúdo gerado sem curadoria (vedado)
@@ -338,16 +338,19 @@ Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designad
 **Evidência e fontes**
 - src/domain/evidence/learning-patterns.json
 - src/domain/ivo/factor-content.json
+- docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md
 
 **Limitações**
-- O catálogo contém TESTE identificado e uma unidade/atividade Q2 PROPOSTA 0.1.0 para revisão D10. Não há conteúdo ou atividade APROVADOS; o claim educativo específico ainda precisa de registro deliberado.
+- Escopo desta decisão: apenas o par Q2 0.1.0 citado, prioridade editorial bem_estar, RH_ADMIN empresarial e ambiente local descartável. Não libera staging, produção ou clientes reais.
+- Revisão interna da equipe cofundadora, distinta do responsável metodológico; relato de João Paulo, sem assinatura digital ou autenticação de conta das revisoras.
+- Não valida eficácia, causalidade, impacto ESG, índice IVO ou mapeamentos dimensionais. C2–C5/C7 fora desta unidade seguem pendentes.
 
 **Critérios para aprovar**
 - Responsável pela curadoria nomeado
 - Conteúdo aprovado com fontes e safe_claim por fator
 
 **Efeito enquanto estiver pendente**
-- Conteúdo educativo por fator: Sem conteúdo aprovado, a interface mostra 'curadoria pendente'.
+- Unidade e atividade Q2 0.1.0: Aprovadas editorialmente para ensaio local; servidor bloqueia disponibilidade fora desse ambiente. Demais conteúdos exigem aprovação própria.
 
 Depende de: —
 

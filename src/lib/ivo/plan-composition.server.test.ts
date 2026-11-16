@@ -33,7 +33,7 @@ import {
 import { OPERATIONAL_EXIT, PLAN_STATUS_LABEL, assessPlanClosure, describePending } from "./plan-closure";
 import { createLearningApplication } from "./learning-application.server";
 import { learningApplicationSchema } from "@/lib/api/ivo-learning-application.functions";
-import { approvedQ2Fixture } from "@/test/fixtures/q2-learning";
+import { approvedQ2Fixture, LOCAL_Q2_EDUCATION_ENV } from "@/test/fixtures/q2-learning";
 import { loadEducationForSession } from "./ivo-education.server";
 
 const manifest = getFibtManifest();
@@ -262,7 +262,7 @@ describe("PI-13 · incluir ação em plano existente", () => {
   test("Q2 aprovado SINTÉTICO: leitura e aplicação usam o mesmo par revisado; retry não duplica", async () => {
     const f = approvedQ2Fixture();
     const s = memoryStore();
-    const deps = { ...depsOf(s, { testContent: false }), contentCatalog: () => f.contents, activityCatalog: f.activities };
+    const deps = { ...depsOf(s, { testContent: false }), educationEnv: LOCAL_Q2_EDUCATION_ENV, contentCatalog: () => f.contents, activityCatalog: f.activities };
     const read = await loadEducationForSession({ accessToken: ADD.accessToken }, deps);
     expect(read).toMatchObject({ ok: true, catalog: { approvedCount: 1, testVisible: false } });
     if (!read.ok) throw new Error("leitura falhou");
@@ -280,25 +280,43 @@ describe("PI-13 · incluir ação em plano existente", () => {
     const f = approvedQ2Fixture();
     const s = memoryStore();
     const pending = { ...f.activity, status: "PROPOSTO" as const, curation: { ...f.activity.curation!, approval: null } };
-    const deps = { ...depsOf(s, { testContent: true }), contentCatalog: () => f.contents, activityCatalog: [pending] };
+    const deps = { ...depsOf(s, { testContent: true }), educationEnv: LOCAL_Q2_EDUCATION_ENV, contentCatalog: () => f.contents, activityCatalog: [pending] };
     const read = await loadEducationForSession({ accessToken: ADD.accessToken }, deps);
     expect(read.ok && read.byFactor.bem_estar?.find((c) => c.contentId === f.unit.id)?.activity).toBeUndefined();
     expect(await createLearningApplication({ ...ADD, contentId: f.unit.id, contentVersion: f.unit.version, activityVersion: pending.version }, deps)).toMatchObject({ accepted: false, reason: "content_version_changed" });
     expect(s.written).toHaveLength(0);
   });
 
-  test("Q2: proposta real, versões obsoletas e Beta recusadas sem escrita", async () => {
+  test("Q2: aprovação local não libera outro runtime; versões obsoletas e Beta recusadas", async () => {
     const f = approvedQ2Fixture();
     const input = { ...ADD, contentId: f.unit.id, contentVersion: f.unit.version, activityVersion: f.activity.version };
     const real = memoryStore();
-    expect(await createLearningApplication(input, depsOf(real, { testContent: true }))).toMatchObject({ accepted: false, reason: "content_not_available" });
+    expect(await createLearningApplication(input, { ...depsOf(real, { testContent: true }), educationEnv: {} })).toMatchObject({ accepted: false, reason: "content_not_available" });
     expect(real.written).toHaveLength(0);
     for (const change of [{ contentVersion: "0.0.1" }, { activityVersion: "0.0.1" }, { accessToken: "token-beta-admin" }]) {
       const s = memoryStore();
-      const deps = { ...depsOf(s), contentCatalog: () => f.contents, activityCatalog: f.activities };
+      const deps = { ...depsOf(s), educationEnv: LOCAL_Q2_EDUCATION_ENV, contentCatalog: () => f.contents, activityCatalog: f.activities };
       expect(await createLearningApplication({ ...input, ...change }, deps)).toMatchObject({ accepted: false });
       expect(s.written).toHaveLength(0);
     }
+  });
+
+  test("Q2 canônico aprovado: leitura e aplicação locais sem substituição do catálogo", async () => {
+    const s = memoryStore();
+    const deps = { ...depsOf(s, { testContent: false }), educationEnv: LOCAL_Q2_EDUCATION_ENV };
+    const read = await loadEducationForSession({ accessToken: ADD.accessToken }, deps);
+    if (!read.ok) throw new Error("leitura falhou");
+    const content = read.byFactor.bem_estar![0]!;
+    expect(content.status).toBe("APROVADO");
+    expect(content.usageNotice).toContain("ensaio local");
+    expect(content.body.join(" ")).not.toContain("PROPOSTA PARA REVISÃO");
+    expect(content.activity?.checks).toHaveLength(3);
+    const input = { ...ADD, contentId: content.contentId, contentVersion: content.version, activityVersion: content.activity!.version };
+    expect(await createLearningApplication(input, deps)).toMatchObject({ accepted: true });
+    expect(await createLearningApplication(input, deps)).toMatchObject({ accepted: true, replayed: true });
+    expect(s.written).toHaveLength(1);
+    expect(s.written[0]!.description).toContain(`Referência da atividade: ${content.activity!.id}`);
+    expect(JSON.stringify(s.written)).not.toMatch(/answers|quizScore|correctOptionId/);
   });
 
   const learning = () => ({ ...ADD, contentId: "TESTE-bem_estar-001", contentVersion: "0.0.1-teste", activityVersion: "0.0.1-teste" });

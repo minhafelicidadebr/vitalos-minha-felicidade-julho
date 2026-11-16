@@ -7,6 +7,7 @@ import rawContent from "@/domain/ivo/factor-content.json";
 import { ivoGovernanceSchemas } from "@/lib/api/ivo-governance.functions";
 import { loadGovernanceForSession, prepareGovernanceDecisionForSession, type GovernanceDeps } from "./ivo-governance.server";
 import { loadEducationForSession } from "./ivo-education.server";
+import { LOCAL_Q2_EDUCATION_ENV } from "@/test/fixtures/q2-learning";
 import { recordFibtActionEvidence, type FibtActionLedgerStore } from "./fibt-action-loop.server";
 
 const SESSIONS: Record<string, MembershipResult> = {
@@ -32,7 +33,7 @@ describe("R8 · consulta de governança", () => {
     const r = await loadGovernanceForSession({ accessToken: "token-rh-admin" }, deps([]));
     if (!r.ok) throw new Error("consulta falhou");
     expect(r.entries).toHaveLength(16);
-    expect(r.counts).toMatchObject({ proposta: 16, aprovado_para_piloto: 0, validado_para_uso_definido: 0 });
+    expect(r.counts).toMatchObject({ proposta: 15, aprovado_para_piloto: 1, validado_para_uso_definido: 0 });
     expect(r.efficacyGate).toMatchObject({ decisionId: "D9", state: "proposta", conclusiveAllowed: false });
   });
 
@@ -80,10 +81,10 @@ describe("R8 · consulta de governança", () => {
 });
 
 describe("R7 · catálogo curatorial fator → conteúdo", () => {
-  test("nenhum conteúdo aprovado; conteúdo de teste identificado e sem afirmação científica", () => {
+  test("um par aprovado para ensaio local; TESTE preservado sem afirmação científica", () => {
     const all = getFactorContentCatalog();
-    expect(all.filter((c) => c.status === "APROVADO")).toHaveLength(0);
-    expect(all.filter((c) => c.status === "PROPOSTO")).toHaveLength(1);
+    expect(all.filter((c) => c.status === "APROVADO")).toHaveLength(1);
+    expect(all.filter((c) => c.status === "PROPOSTO")).toHaveLength(0);
     for (const c of all.filter((c) => c.status === "TESTE")) {
       expect(c.status).toBe("TESTE");
       expect(c.title.startsWith("[TESTE]")).toBe(true);
@@ -122,7 +123,7 @@ describe("R7 · catálogo curatorial fator → conteúdo", () => {
     const hidden = await loadEducationForSession({ accessToken: "token-rh-admin" }, { ...base, testContent: false });
     if (!hidden.ok) throw new Error("falhou");
     expect(hidden.byFactor).toEqual({});
-    expect(hidden.catalog).toMatchObject({ curationStatus: "pendente", curationDecision: "D10", approvedCount: 0, testVisible: false });
+    expect(hidden.catalog).toMatchObject({ curationStatus: "aprovado_para_ensaio_local", curationDecision: "D10", approvedCount: 0, testVisible: false });
     const shown = await loadEducationForSession({ accessToken: "token-rh-admin" }, { ...base, testContent: true });
     if (!shown.ok) throw new Error("falhou");
     expect(shown.byFactor.bem_estar?.[0]).toMatchObject({ contentId: "TESTE-bem_estar-001", status: "TESTE" });
@@ -166,6 +167,16 @@ describe("R7 · aprendizagem vinculada a conteúdo no ledger", () => {
     expect(await recordFibtActionEvidence(input, base(store, true))).toMatchObject({ accepted: true });
     expect(recorded).toHaveLength(1);
     expect(recorded[0]).toMatchObject({ evidenceKind: "aprendizagem", contentRef: "[conteudo:TESTE-bem_estar-001@0.0.1-teste] Pauta curta ajudou" });
+  });
+
+  test("parecer local protege também vínculo de aprendizagem por escrita direta", async () => {
+    const approved = { ...input, contentId: "Q2-bem_estar-aprendizagem-equipe-001", contentVersion: "0.1.0" };
+    const outside = ledger("bem_estar");
+    expect(await recordFibtActionEvidence(approved, { ...base(outside.store, true), educationEnv: {} })).toMatchObject({ accepted: false, reason: "content_not_available" });
+    expect(outside.recorded).toHaveLength(0);
+    const local = ledger("bem_estar");
+    expect(await recordFibtActionEvidence(approved, { ...base(local.store, false), educationEnv: LOCAL_Q2_EDUCATION_ENV })).toMatchObject({ accepted: true });
+    expect(local.recorded).toHaveLength(1);
   });
 
   test("recusa conteúdo de outro fator, conteúdo de teste fora do runtime de teste e vínculo em execução", async () => {

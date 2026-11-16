@@ -311,7 +311,11 @@ export function IvoGovernanceView({
           <p className="text-sm text-foreground" role="note">
             Nenhuma decisão ou mapeamento foi aprovado. Por isso nenhuma dimensão recebe valor e nenhum índice composto é calculado.
           </p>
-        ) : null}
+        ) : (
+          <p className="text-sm text-foreground" role="note">
+            As aprovações valem somente no escopo documentado de cada entrada. Aprovação editorial de conteúdo não aprova mapeamentos, índice composto ou eficácia.
+          </p>
+        )}
       </section>
 
       <section aria-label="Quem pode decidir" className="space-y-1 rounded-md border border-border p-4 text-sm">

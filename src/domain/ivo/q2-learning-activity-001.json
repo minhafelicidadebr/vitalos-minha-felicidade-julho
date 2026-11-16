@@ -3,21 +3,32 @@
   "contentId": "Q2-bem_estar-aprendizagem-equipe-001",
   "contentVersion": "0.1.0",
   "version": "0.1.0",
-  "status": "PROPOSTO",
-  "evidenceCodes": ["TRU-006"],
-  "safeClaimIds": ["CLAIM-EDMONDSON1999-VOICE-001"],
+  "status": "APROVADO",
+  "evidenceCodes": [
+    "TRU-006"
+  ],
+  "safeClaimIds": [
+    "CLAIM-EDMONDSON1999-Q2-001"
+  ],
   "curation": {
     "decision": "D10",
     "reviewRef": "docs/vitalos/Q2_D10_UNIT_001_REVIEW.md",
     "evidenceRegistryVersion": "1.0.0",
-    "claimRegistryVersion": "1.1.0",
+    "claimRegistryVersion": "1.2.0",
     "context": {
       "intendedUse": "explain_mechanism",
       "role": "rh",
       "segment": "enterprise",
       "targetContext": "q2-educacao"
     },
-    "approval": null
+    "approval": {
+      "version": "0.1.0",
+      "responsible": "João Paulo",
+      "reviewer": "Olga Mariano; Ana Paula Barbalho",
+      "approvedOn": "2026-11-15",
+      "decisionRef": "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md",
+      "scope": "local_descartavel"
+    }
   },
   "recallPrompt": "Antes de abrir as alternativas, recupere mentalmente, sem consultar o roteiro: o que a leitura coletiva permite concluir, que proteção deve existir e o que um acordo executado ainda não comprova? Não escreva nomes nem relatos pessoais. Se precisar, volte ao conteúdo e depois tente novamente.",
   "checks": [

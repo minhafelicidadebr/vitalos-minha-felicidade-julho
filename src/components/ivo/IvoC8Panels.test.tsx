@@ -361,10 +361,11 @@ describe("IvoGovernanceView", () => {
   };
   const noop = async () => ({ ok: false as const, category: "backend" as const, error: "não chamado" });
 
-  test("lista decisões e mapeamentos, todos em proposta, e avisa que nenhuma dimensão recebe valor", () => {
+  test("lista D10 aprovado com escopo restrito e conserva as pendências de mapeamento e eficácia", () => {
     render(<IvoGovernanceView view={base} onPrepare={noop} />);
     expect(screen.getByText("16 de 16 entradas.")).toBeTruthy();
-    expect(screen.getByText(/Nenhuma decisão ou mapeamento foi aprovado/)).toBeTruthy();
+    expect(screen.queryByText(/Nenhuma decisão ou mapeamento foi aprovado/)).toBeNull();
+    expect(screen.getByText(/As aprovações valem somente no escopo documentado/)).toBeTruthy();
     expect(screen.getByText("O que cada estado significa")).toBeTruthy();
     expect(screen.getByText(/Não é validação científica/)).toBeTruthy();
   });

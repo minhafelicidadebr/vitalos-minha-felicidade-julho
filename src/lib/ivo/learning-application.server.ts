@@ -7,7 +7,7 @@ import {
   type AddActionToPlanRequest,
   type PlanCompositionDeps,
 } from "./fibt-plan-composition.server";
-import { isDisposableLocalRuntime, type GovernanceGateEnv } from "./ivo-governance-gate.server";
+import { resolveEducationAvailability, isEducationContentAvailable } from "./education-availability.server";
 import type { LedgerWriteOutcome } from "./ivo-views";
 export type LearningApplicationRequest = AddActionToPlanRequest & {
   contentId: string;
@@ -22,11 +22,9 @@ export async function createLearningApplication(
   const auth = await authorizeLedger(input.accessToken, deps);
   if (!auth.ok) return auth;
   const content = (deps.contentCatalog ?? getFactorContentCatalog)().find((c) => c.id === input.contentId);
-  const testVisible = deps.testContent ?? isDisposableLocalRuntime(process.env as GovernanceGateEnv);
-  const visible =
-    content &&
-    (content.status === "APROVADO" ||
-      (content.status === "TESTE" && testVisible));
+  const availability = resolveEducationAvailability(deps);
+  const { testVisible } = availability;
+  const visible = isEducationContentAvailable(content, availability);
   if (!visible || !content || content.factorId !== input.factorId)
     return {
       ok: true,

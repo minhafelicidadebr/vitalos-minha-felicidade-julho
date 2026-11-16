@@ -9,11 +9,12 @@ describe("pacote único de decisões", () => {
     expect(committed).toBe(renderDecisionPackage());
   });
 
-  test("cobre todas as entradas do registro e não afirma nenhuma aprovação", () => {
+  test("cobre o registro e restringe a aprovação editorial ao seu próprio escopo", () => {
     const text = renderDecisionPackage();
     for (const e of getGovernanceEntries()) expect(text).toContain(`### ${e.id} — ${e.title}`);
-    expect(text).toContain("**Nada está aprovado.**");
-    expect(text).not.toMatch(/Estado: \*\*(Aprovado|Validado)/);
+    expect(text).toContain("**Aprovações restritas ao escopo de cada entrada.**");
+    expect(text.match(/Estado: \*\*Aprovado para piloto\*\*/g)).toHaveLength(1);
+    expect(text).not.toContain("Estado: **Validado para uso definido**");
   });
 
   test("D4 e D5 só listam perguntas e dizem que nenhuma mensagem é enviada a terceiros", () => {

@@ -1,16 +1,16 @@
 {
   "$schema": "./claim-registry.schema.json",
   "registry": "Claim Registry VitalOS",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "frozen": true,
   "description": "Fonte OFICIAL de claims — substitui os campos safe_claim/prohibited_claims/claim_alignment/caveat do Evidence Registry para código novo (ver nota DEPRECATED em evidence-registry.schema.json). Cada claim é uma combinação estudo × uso pretendido × papel × segmento × contexto-alvo — o mesmo estudo pode ter claims diferentes para usos diferentes.",
   "provenance": {
     "sources": [
       "src/domain/evidence/evidence-registry.json (v1.0.0, campos de claim legacy)"
     ],
-    "scope": "v1.1.0: corpus completo — os 6 claims do corte Voz Segura (uso-especificos) + 44 claims de passaporte (explain_mechanism x evidencia-passaporte), um por estudo restante do Evidence Registry congelado, derivados VERBATIM dos campos de claim legacy (safe_claim/prohibited_claims/claim_alignment/caveat). Zero texto novo; role = profiles do estudo; segment = enterprise (unico segmento ativado). Claims uso-especificos para outras superficies continuam exigindo registro deliberado, nunca derivacao automatica.",
+    "scope": "v1.2.0: adição deliberada de um claim educativo Q2 (explain_mechanism × rh × enterprise × q2-educacao), texto permitido e proibições preservados de CLAIM-EDMONDSON1999-VOICE-001, conforme parecer de Olga Mariano e Ana Paula Barbalho em 15/11/2026 comunicado por João Paulo. Os 50 claims de v1.1.0 permanecem inalterados. Histórico: v1.1.0: corpus completo — os 6 claims do corte Voz Segura (uso-especificos) + 44 claims de passaporte (explain_mechanism x evidencia-passaporte), um por estudo restante do Evidence Registry congelado, derivados VERBATIM dos campos de claim legacy (safe_claim/prohibited_claims/claim_alignment/caveat). Zero texto novo; role = profiles do estudo; segment = enterprise (unico segmento ativado). Claims uso-especificos para outras superficies continuam exigindo registro deliberado, nunca derivacao automatica.",
     "canonical_study_names": "study_id aqui usa o nome canônico legível (ex.: EDMONDSON-1999), resolvido para o nó do Evidence Registry (TRU-006, aliases LDR-013/VOI-005) via tabela em código — o evidence-registry.json congelado não é alterado.",
-    "frozen_on": "2026-07-18 — v1.0.0 congelada com os 6 claims do corte Voz Segura; no mesmo dia, descongelamento formal com bump para v1.1.0 (expansao mecanica para o corpus completo, 44 claims de passaporte derivados verbatim do registro congelado) e re-congelamento imediato apos validacao. Alterar ou adicionar claim exige novo descongelamento formal com bump de versao, mesma disciplina do Evidence Registry."
+    "frozen_on": "2026-07-18 — v1.0.0 congelada com os 6 claims do corte Voz Segura; no mesmo dia, descongelamento formal com bump para v1.1.0 (expansao mecanica para o corpus completo, 44 claims de passaporte derivados verbatim do registro congelado) e re-congelamento imediato apos validacao. Alterar ou adicionar claim exige novo descongelamento formal com bump de versao, mesma disciplina do Evidence Registry. — 2026-11-15: descongelamento formal limitado à adição CLAIM-EDMONDSON1999-Q2-001, autorizado pelo parecer D10 documentado em docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md; versão 1.2.0 novamente congelada. Sem ampliação de texto científico, papel ou contexto dos claims anteriores."
   },
   "claims": [
     {
@@ -922,6 +922,24 @@
       "claim_alignment": "C1",
       "safe_claim": "Pilotos de redução de jornada com manutenção de salário associaram-se a melhora de bem-estar nas organizações participantes; amostras autosselecionadas — exige piloto controlado antes de generalizar.",
       "prohibited_claims": []
+    },
+    {
+      "claim_id": "CLAIM-EDMONDSON1999-Q2-001",
+      "study_id": "EDMONDSON-1999",
+      "intended_use": "explain_mechanism",
+      "role": [
+        "rh"
+      ],
+      "segment": [
+        "enterprise"
+      ],
+      "target_context": "q2-educacao",
+      "claim_alignment": "C1",
+      "safe_claim": "Em equipes estudadas, segurança psicológica associa-se a mais comportamentos de aprendizagem (perguntar, admitir erro, pedir ajuda) e, por essa via, a melhor desempenho da equipe — estudo fundacional correlacional, não experimento.",
+      "prohibited_claims": [
+        "segurança psicológica garante desempenho",
+        "segurança psicológica é ausência de cobrança ou responsabilização"
+      ]
     }
   ]
 }
