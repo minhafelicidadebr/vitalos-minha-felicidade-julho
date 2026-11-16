@@ -1,6 +1,6 @@
 # Proposta — validação futura de aprendizagem e aplicação Q2
 
-Estado: protocolo proposto, não executado nem aprovado como política operacional. Sem autorização de contato, recrutamento, coleta com clientes, publicação, uso de contas reais ou mudança metodológica. Complementa a [entrega local TESTE](LEARNING_Q2_LOCAL_2026-11-15.md).
+Estado: protocolo proposto, não executado nem aprovado como política operacional. Sem autorização de contato, recrutamento, coleta com clientes, publicação, uso de contas reais ou mudança metodológica. Complementa a [prova local do par Q2 aprovado](Q2_D10_APPROVED_LOCAL_PROOF_2026-11-16.md); a [entrega TESTE anterior](LEARNING_Q2_LOCAL_2026-11-15.md) conserva seu significado histórico. Delimitação e evidências para revisão em [Q2_PILOT_REVIEW_2026-11-16.md](Q2_PILOT_REVIEW_2026-11-16.md).
 
 ## Pergunta e critérios de interpretação
 
@@ -10,7 +10,7 @@ Conclusão de tela, acerto imediato, tempo de uso e satisfação são medidas di
 
 ## Pré-condições para uma avaliação autorizada
 
-1. Curadoria D10 de ao menos uma unidade: origem/licença, versão, responsáveis, público, afirmações permitidas, limites e revisão. TESTE não vira recomendação científica pela execução deste protocolo.
+1. Curadoria D10 de unidade e atividade, com origem, versão, responsáveis, público, afirmações permitidas, limites e revisão. O par 0.1.0 já tem aprovação editorial para ensaio local, com ambas as revisoras identificadas; não se pede nova aprovação dessas mesmas versões. Um piloto real exige decisão específica de extensão ao contexto delimitado e integração nos controles existentes. TESTE não vira recomendação científica pela execução deste protocolo.
 2. Concluir a prova visual local com login normal e componentes acessíveis. Definir a jornada por papel; apenas a autorização administrativa existente está implementada nesta fatia.
 3. Aprovar o desenho do piloto, informação aos participantes, participação voluntária/saída, responsabilidades e tratamento dos dados. Definir base aplicável, acesso, retenção e descarte com os responsáveis; este documento não estabelece uma política jurídica.
 4. Separar respostas privadas de aprendizagem dos registros explicitamente compartilhados no plano. Não presumir autorização para coletar notas individuais ou entregá-las ao empregador.

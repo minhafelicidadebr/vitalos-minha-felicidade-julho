@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "q2-pilot-review/0.1.0",
+  "generated": "nao_editar_a_mao_respostas_no_dossie_humano",
+  "purpose": "revisao_previa_de_piloto",
+  "productCandidate": "517c2066c9b6de0cfeb5914ca107296c1e96d29e",
+  "snapshotDate": "2026-11-16",
+  "realPilotAuthorization": "nao_concedida_por_este_pacote",
+  "evidenceScope": "local_descartavel",
+  "editorialApproval": {
+    "decisionId": "D10",
+    "decisionVersion": "0.3.0",
+    "decisionState": "aprovado_para_piloto",
+    "intendedUse": "Ensaio técnico da unidade e atividade Q2 0.1.0 em ambiente local descartável, RH_ADMIN de empresas fictícias.",
+    "unit": {
+      "id": "Q2-bem_estar-aprendizagem-equipe-001",
+      "version": "0.1.0",
+      "evidenceRefs": [
+        "TRU-006"
+      ],
+      "claimRefs": [
+        "CLAIM-EDMONDSON1999-Q2-001"
+      ],
+      "approval": {
+        "version": "0.1.0",
+        "responsible": "João Paulo",
+        "reviewer": "Olga Mariano; Ana Paula Barbalho",
+        "approvedOn": "2026-11-15",
+        "decisionRef": "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md",
+        "scope": "local_descartavel"
+      }
+    },
+    "activity": {
+      "id": "Q2-pratica-aprendizagem-equipe-001",
+      "version": "0.1.0",
+      "evidenceRefs": [
+        "TRU-006"
+      ],
+      "claimRefs": [
+        "CLAIM-EDMONDSON1999-Q2-001"
+      ],
+      "approval": {
+        "version": "0.1.0",
+        "responsible": "João Paulo",
+        "reviewer": "Olga Mariano; Ana Paula Barbalho",
+        "approvedOn": "2026-11-15",
+        "decisionRef": "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md",
+        "scope": "local_descartavel"
+      }
+    }
+  },
+  "reportedEvidence": [
+    {
+      "kind": "gate_local",
+      "reference": "docs/vitalos/MACRO_ONDA_AUTONOMA_FECHAMENTO_2026-11-16.md",
+      "tests": 4366,
+      "currentExecution": false
+    },
+    {
+      "kind": "browser_local",
+      "reference": "docs/vitalos/artifacts/MACRO_Q2_ORIGEM_PROVA_2026-11-16.json",
+      "currentExecution": false
+    },
+    {
+      "kind": "db_local_anterior",
+      "reference": "docs/vitalos/artifacts/Q2_D10_LOCAL_READBACK_2026-11-16.json",
+      "currentExecution": false
+    }
+  ],
+  "unresolvedEvidence": [
+    "Captura mobile detalhada do cartão aprovado; resumo mobile já registrado.",
+    "CI e homologação remota do candidato não confirmados.",
+    "Carga, SLA, recuperação operacional e validação com clientes não demonstrados por este pacote."
+  ],
+  "pilotScopeProposal": {
+    "state": "aguardando_delimitacao_humana",
+    "organizationReference": null,
+    "cohortReference": null,
+    "period": null,
+    "operationalResponsibleReference": null,
+    "participantInformationAndExitReference": null,
+    "dataAccessRetentionAndDeletionReference": null,
+    "evaluationDesignAndStopCriteriaReference": null,
+    "supportAndRecoveryReference": null,
+    "scopeExtensionDecisionReference": null,
+    "remoteReleaseAuthorizationReference": null
+  },
+  "independentDependencies": {
+    "q1ExactSource": "pendente_apenas_para_Q1",
+    "esgRelationsAndEvidenceContract": "pendentes_para_alegacoes_e_integracao_ESG",
+    "efficacyD9": "nao_aprovada_por_aprendizagem_ou_execucao"
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "textNormalization": "CRLF_to_LF_UTF8",
+    "meaning": "integridade_do_escopo_selecionado_nao_autenticidade_nem_autorizacao",
+    "attachments": [
+      {
+        "path": "package.json",
+        "format": "text_lf",
+        "sha256": "052c848b8ef575fc8f41335db9ea73c5e390afaf4d14f7a40b36ba01dd366697"
+      },
+      {
+        "path": "bun.lock",
+        "format": "text_lf",
+        "sha256": "beb25bc0dce4c78b516eecbe3d2e0a0cd59bc69165dd15fbbbcbeaae11982158"
+      },
+      {
+        "path": "src/app/auth/AuthGate.tsx",
+        "format": "text_lf",
+        "sha256": "17dde7bd2e76efa834e1bb6e5112d7df4fbd6125498ee75e82ddaec943f5d982"
+      },
+      {
+        "path": "src/app/auth/auth-gate-state.ts",
+        "format": "text_lf",
+        "sha256": "018956faf83091b7fa6b422b7314155d6722203b0a7850dea4e3accc40c623b9"
+      },
+      {
+        "path": "src/routes/entrar.tsx",
+        "format": "text_lf",
+        "sha256": "9ac1a13049fa22310b5595a343f04be1a74ab604c037d79c17f6926ae3c7a115"
+      },
+      {
+        "path": "src/routes/auth.callback.tsx",
+        "format": "text_lf",
+        "sha256": "ba56c3caddc803b8c8699994a5b4590a9c9181f666cd44dc00744e0a78f1253a"
+      },
+      {
+        "path": "src/routes/ivo-integral.acoes.tsx",
+        "format": "text_lf",
+        "sha256": "278af15c5173c8fd35d5556e5c956a8e0c4ad27a7b58ab3f5b4850542ff180b9"
+      },
+      {
+        "path": "src/features/auth/InstitutionalAuth.tsx",
+        "format": "text_lf",
+        "sha256": "3779d6e4e6503b0d25ff328109811e123bf7588a747d6940ff714e219d553a19"
+      },
+      {
+        "path": "src/lib/auth/auth-recovery.ts",
+        "format": "text_lf",
+        "sha256": "e5ae04cb30339b32c6871423564b72714a5a2e4d686b861ac8173b7a8038388b"
+      },
+      {
+        "path": "src/lib/ivo/published-action-source.ts",
+        "format": "text_lf",
+        "sha256": "dc3eff3cb090bb50838010d25db3b250fb0355e61bf8b226cc55b18a8afe0fcb"
+      },
+      {
+        "path": "src/components/ivo/ActionFollowUp.tsx",
+        "format": "text_lf",
+        "sha256": "c04bc29668f356ea7f79e0886f5d0a071003cb7a169dc9f2d0f8401d43c93027"
+      },
+      {
+        "path": "src/lib/ivo/education-availability.server.ts",
+        "format": "text_lf",
+        "sha256": "4fb558a4731da81246ec2499f3bbcaaf7fcd2ce2efcd07391a3087b1589c9a2d"
+      },
+      {
+        "path": "src/lib/ivo/learning-application.server.ts",
+        "format": "text_lf",
+        "sha256": "686f1c4af2444b7472a71bb8acd21ec6f650093302321f323bbd8728e45d2a74"
+      },
+      {
+        "path": "src/domain/ivo/factor-content.json",
+        "format": "text_lf",
+        "sha256": "060b0ae31e090c056a3e0ce5e744acbc7b9fe37def319c32e3066e32daab8306"
+      },
+      {
+        "path": "src/domain/ivo/q2-learning-activity-001.json",
+        "format": "text_lf",
+        "sha256": "6ccad64c472bf27b203ec052da40ca75f5d66615d8d72645f93851b5dda32be4"
+      },
+      {
+        "path": "src/domain/ivo/methodology-governance.json",
+        "format": "text_lf",
+        "sha256": "bad5491d910fd5a17ef5c4858aec033bb767bdb8efc5941599986bf2e82d32c7"
+      },
+      {
+        "path": "src/domain/instruments/fibt/fibt-instrument.v1.json",
+        "format": "text_lf",
+        "sha256": "71a596ab1ca3d15455f450a9a7091a09c2d47e059da281f3b458ebbe125bdb48"
+      },
+      {
+        "path": "src/domain/evidence/evidence-registry.json",
+        "format": "text_lf",
+        "sha256": "f9bee3229d8b396f140172d1c14ec6a69b32462875c0e20ec814ef2c72062c83"
+      },
+      {
+        "path": "src/domain/evidence/claim-registry.json",
+        "format": "text_lf",
+        "sha256": "d7661a835fb9f12c0d56c32b3830b68d7f0cd3b86d8456bc208a989a3147e0b9"
+      },
+      {
+        "path": "src/domain/evidence/mechanism-registry.json",
+        "format": "text_lf",
+        "sha256": "072dd5e21d7e79274cd6d2ad7366a6eca62515537e0b0851e1e682465abcd162"
+      },
+      {
+        "path": "docs/vitalos/decisions/D10_UNIT_001_2026-11-15.md",
+        "format": "text_lf",
+        "sha256": "0b92583b60947ffab3857b26f806b9d00de22eda7145eb034a04086db459ea18"
+      },
+      {
+        "path": "docs/vitalos/Q2_D10_APPROVED_LOCAL_PROOF_2026-11-16.md",
+        "format": "text_lf",
+        "sha256": "fae9bdcda02fac6f01f44acc17147615e76a0951526646a521285f1f4637848f"
+      },
+      {
+        "path": "docs/vitalos/MACRO_ONDA_AUTONOMA_FECHAMENTO_2026-11-16.md",
+        "format": "text_lf",
+        "sha256": "b0bae2f2e0d9e13ff0c841c1307b4fbf181a2d14de6abbb3cb473cf1929acac2"
+      },
+      {
+        "path": "docs/vitalos/LEARNING_Q2_CLIENT_VALIDATION_PROTOCOL.md",
+        "format": "text_lf",
+        "sha256": "7f4488f52216ecb11bc17fc9856780e9bb2f7a5ab90ce0408e03ceaadfbdd380"
+      },
+      {
+        "path": "docs/vitalos/Q2_PILOT_REVIEW_2026-11-16.md",
+        "format": "text_lf",
+        "sha256": "0615101f33ec07f0863424199fa360caec127fc532ffec681915f6efe5959467"
+      },
+      {
+        "path": "docs/vitalos/artifacts/Q2_D10_LOCAL_READBACK_2026-11-16.json",
+        "format": "text_lf",
+        "sha256": "6b18a997237e8a76d142a572d15c3bcc98eea0150994c338d1a4274c846e4bbe"
+      },
+      {
+        "path": "docs/vitalos/artifacts/MACRO_ONDA_AUTONOMA_BROWSER_2026-11-16.json",
+        "format": "text_lf",
+        "sha256": "f34860a7c237f52710cb91d60f21a5e6b7b7cb74ed22797e6454de40cf556c1c"
+      },
+      {
+        "path": "docs/vitalos/artifacts/MACRO_Q2_ORIGEM_PROVA_2026-11-16.json",
+        "format": "text_lf",
+        "sha256": "2f6e36fe213f61da8cb7ffc97d675edda6e784e92653539b11db02bdf4337105"
+      },
+      {
+        "path": "docs/vitalos/artifacts/MACRO_ACESSO_DESKTOP_2026-11-16.jpg",
+        "format": "binary",
+        "sha256": "7d7e0a6f11043a35556b87bb19efb2060ae2570887c3cce2222c6c854bc88572"
+      },
+      {
+        "path": "docs/vitalos/artifacts/MACRO_ACESSO_MOBILE_320_2026-11-16.jpg",
+        "format": "binary",
+        "sha256": "5e6b299b68221002d963fd6d9f047497318346fa1a7adc22eeb77d8c885bd778"
+      },
+      {
+        "path": "docs/vitalos/artifacts/MACRO_Q2_PLANO_MOBILE_320_2026-11-16.jpg",
+        "format": "binary",
+        "sha256": "92e42ed6a188400416a34ac19c99578a353423e97b4e196ffaccbaf7d9db4fbd"
+      }
+    ]
+  }
+}

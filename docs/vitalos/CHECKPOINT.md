@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Q2 · pacote verificável para revisão do piloto — 2026-11-16
+
+Base `517c206`, branch esperada, sem alterações rastreadas prévias. Preparados [dossiê único Q2](Q2_PILOT_REVIEW_2026-11-16.md) e índice JSON com candidato, curadoria canônica, referências de evidência/claim e SHA-256 de 31 arquivos selecionados, incluindo o próprio dossiê. Novo gerador offline com `--check` somente leitura por padrão e `--write` exclusivamente local; não consulta serviços nem altera disponibilidade. Resultado distingue **INTEGRIDADE_LOCAL_OK** de **PILOTO_REAL_NAO_AUTORIZADO**. Integridade não é autenticidade, prova nova ou autorização.
+
+Quadro PIL-01–PIL-08 organiza a delimitação, dados/voluntariedade, avaliação, operação e extensão/publicação; respostas continuam pendentes e vinculadas à fila OPS-PILOTO existente. D10 do par 0.1.0 e parecer de ambas as revisoras preservados; não se pede nova aprovação editorial. Protocolo atualizado apenas para refletir essa distinção. Checklist histórico de GO técnico e outro manifesto de branch não foram tratados como liberação do candidato atual.
+
+**Verificação nova: 10 testes dirigidos aprovados**, conferência do pacote, TypeScript, lint/Prettier dirigido, secret-scan e diff aprovados. Aviso EPERM do Bun documentado com saída zero e suítes aprovadas. Sem alteração do aplicativo; gate/build 4.366 e provas locais anteriores mantidos nos seus respectivos escopos, sem repetição ou nova confirmação de CI/staging. Sem banco, browser, migration, e-mail ou dados reais. `.q.out` e `.q.sql` intocados.
+
+**Próximo marco único:** receber e registrar as respostas PIL-01–PIL-08 para o piloto Q2 delimitado; só então preparar sua extensão no processo existente, sem liberação automática. Fonte exata COPSOQ permanece dependência específica de Q1. Seções abaixo são histórico.
+
 ## Macro-onda autônoma · recuperação institucional e continuidade Q2 — 2026-11-16
 
 Base `c30260a` preservada; entrada pública anterior fechada em **ff8c933**. Implementados formulário/callback com identidade VitalOS, erros sanitizados, espera finita, recuperação e retry explícitos. Erro de perfil não vira onboarding. A prova de login revelou dependência indevida do gate na hidratação do demo; sessão institucional agora independe disso, com testes de política e recuperação finita. Autorizações de servidor/RLS preservadas.
