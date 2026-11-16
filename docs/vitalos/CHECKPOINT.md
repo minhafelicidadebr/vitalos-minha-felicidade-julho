@@ -1,4 +1,16 @@
-# Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
+# Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
+
+## Q2 D10 · prova funcional da unidade aprovada no navegador — 2026-11-16
+
+Base `84fa2d2` preservada; nenhuma alteração rastreada prévia. Stack descartável validado por API/DB/container/project_id, sem reset ou migration. Reutilizados Alfa, ciclo/plano e fonte publicada. Unidade/atividade `0.1.0` aprovada exibida com fonte e escopo local; recuperação, feedback, revisão que limpa respostas e compartilhamento explícito percorridos no navegador. Criada uma aplicação sintética do par aprovado, com uma execução e uma aprendizagem separadas, concluída operacionalmente e ainda com eficácia não avaliada.
+
+Aplicação `3a798020-37f7-488c-9a5a-d56113e214bd`, título “Aplicação Q2 aprovada — D10 0.1.0 — ensaio local”. Estado antes/depois: 3 → 4 ações e 4 → 6 evidências. Hashes das ações/evidências anteriores e módulos Alfa/Beta preservados (Alfa Q1 off/rev44 e Q2 on/rev87; Beta Q1 off/rev9 e Q2 off/rev13). Releitura em processo independente com login normal e credencial pública: **12 verificações aprovadas**, incluindo RLS da ação/evidências e ausência de respostas/nota no ledger. Nova sessão pelo formulário do produto e link recebido no Mailpit comprovou persistência, uma única aplicação e zero respostas pedagógicas selecionadas, sem gerar sessão administrativa.
+
+Mobile: layout vivo em 360/320 px sem overflow, teclado e opt-in exercitados; viewport original restaurado. Capturas mobile retornaram quadros vazios ou timeout de `Page.captureScreenshot`; **validação visual por pixels permanece incompleta**, com roteiro manual curto. Captura desktop sanitizada recuperada após novo login. Sem contornar validação de URL/permissões; prova funcional não equivale a homologação visual/a11y completa.
+
+Novo harness somente de leitura `scripts/institutional-approved-learning-readback.ts`, proteção contra sobrescrita da baseline verificada, lint e secret-scan aprovados. Nenhum arquivo de produto em `src/` alterado; gate de 4.339 testes, TypeScript, paridade e build anteriores mantidos sem repetição. Fechamento, comandos, limites e artefatos: [Q2_D10_APPROVED_LOCAL_PROOF_2026-11-16.md](Q2_D10_APPROVED_LOCAL_PROOF_2026-11-16.md).
+
+**Próximo incremento técnico único:** explicitar a entrada institucional na página pública; “Entrar no app” abriu a demonstração restrita, enquanto a rota protegida conduziu corretamente ao login institucional usado nesta prova. Sem publicação, clientes reais, e-mails externos, alteração metodológica, push ou deploy. `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
 
 ## D10 · autoria confirmada e caminho aprovado integrado — 2026-11-15
 
