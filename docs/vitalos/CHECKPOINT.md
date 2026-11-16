@@ -1,5 +1,13 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## PIL-01–PIL-08 · registro parcial e candidato selecionado — 2026-11-16
+
+Base `2e9df54`, branch esperada e sem alterações rastreadas prévias. Em resposta à solicitação de registrar decisões e escolher candidato, selecionado tecnicamente **`2e9df5437abbd5d4da1b0af09e686e7096a12f1d`** para revisão de escopo Q2. Fontes `src/`, `package.json` e `bun.lock` iguais às desse commit; três hashes da prova de build conferidos. Evidência local de 4.381 testes/build reutilizada, sem nova execução. O commit deste registro é documental; o candidato de produto permanece identificado separadamente.
+
+[Registro PIL](decisions/Q2_PILOT_SCOPE_2026-11-16.md) e [artefato do candidato](artifacts/Q2_PILOT_CANDIDATE_2e9df54_2026-11-16.json) distinguem autoria técnica e decisão operacional. PIL-08 parcialmente registrada para a seleção; empresa/coorte, período, papéis, responsáveis, participação, dados, avaliação, extensão e ambiente/publicação ainda não foram definidos pelo usuário. Perguntas agrupadas em dois blocos, sem aprovação presumida. D10 0.1.0 local e parecer de ambas as revisoras preservados; sem alteração de registro metodológico, aplicativo ou acesso.
+
+Pacote anterior mantido como snapshot de `517c206`. Verificações proporcionais: estado Git, identidades e hashes, links e diff; gate/build/banco/browser não repetidos. Captura mobile detalhada e CI/staging continuam não confirmados. **Próximo marco único:** receber e incorporar as definições faltantes de PIL-01–PIL-08. Sem operação remota ou dado real; `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
+
 ## Q2 · atalhos acessíveis no plano longo — 2026-11-16
 
 Base `576c464` preservada, sem alterações rastreadas prévias. A revisão residual confirmou um cartão com cerca de 3.810 px de altura após mais de 12 mil px de conteúdo mobile. Implementado índice **Ir direto a uma ação** por plano, com títulos/estados existentes, links nativos e títulos focáveis. Mantidos formulários, rascunhos e callbacks de escrita. Dois testes novos; teste de ordem corrigido para comparar cartões semânticos em vez da primeira ocorrência textual do título.
