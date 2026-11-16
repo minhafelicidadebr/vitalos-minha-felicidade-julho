@@ -1,7 +1,7 @@
 # Q2 · primeira unidade e atividade para revisão D10
 
 Data: 2026-11-15. Base preservada: `0157740`, branch `feat/ivo-fibt-platform-foundation`.
-**Estado dos artefatos: PROPOSTO, versão 0.1.0.** Em 2026-11-15, João Paulo Brandão Barboza declarou neste diálogo: “Chat, considere aprovado.” O parecer é registrado aqui como favorável à unidade, à atividade e à ponte educativa descritas neste dossiê. João Paulo é o responsável metodológico designado. Esta declaração não é assinatura digital nem habilita, por si só, o estado formal `aprovado_para_piloto` do registro metodológico.
+**Estado dos artefatos no catálogo: PROPOSTO, versão 0.1.0. Parecer favorável sem ajustes recebido.** João Paulo aprovou a proposta e comunicou posteriormente que “Olga Mariano e/ou Ana Paula Barbalho” revisaram os dois artefatos em 15/11/2026 e aprovaram sem ajustes. O [registro de recebimento](decisions/D10_UNIT_001_2026-11-15.md) identifica versões, hashes e a declaração. Falta identificar se o parecer foi de Olga, Ana Paula ou ambas; a pergunta de autoria foi apresentada, sem solicitar nova aprovação. A integração canônica segue pendente; a indicação “PROPOSTO” no software não invalida o parecer recebido.
 
 ## Entrega e fonte de verdade
 
@@ -9,7 +9,7 @@ Data: 2026-11-15. Base preservada: `0157740`, branch `feat/ivo-fibt-platform-fou
 | --- | --- | --- |
 | Unidade | `Q2-bem_estar-aprendizagem-equipe-001` · 0.1.0 | [factor-content.json](../../src/domain/ivo/factor-content.json) |
 | Atividade | `Q2-pratica-aprendizagem-equipe-001` · 0.1.0; vinculada à unidade 0.1.0 | [q2-learning-activity-001.json](../../src/domain/ivo/q2-learning-activity-001.json) |
-| Decisão | Parecer metodológico favorável de João Paulo registrado abaixo; D10 canônico segue `proposta` até atender à governança do piloto | [methodology-governance.json](../../src/domain/ivo/methodology-governance.json) |
+| Decisão | Parecer favorável de João Paulo e relato de revisão sem ajustes recebidos; autoria individual a identificar e integração canônica pendente | [registro do parecer](decisions/D10_UNIT_001_2026-11-15.md) |
 
 Título: **Aprender com dificuldades de trabalho sem expor pessoas**. Objetivo observável: distinguir leitura coletiva de diagnóstico individual e preparar uma conversa voluntária sobre condições de trabalho, com um acordo observável e limites de interpretação. Público operacional atual: RH_ADMIN empresarial. Liderança pode apoiar a prática combinada; não ganhou nova permissão de sistema. Colaborador não recebe avaliação individual nem obrigação de revelar respostas.
 
@@ -74,12 +74,12 @@ O registro metodológico exige, para `aprovado_para_piloto`, um responsável e u
 | Pessoa | Qualificação informada por João Paulo | Papel nesta revisão |
 | --- | --- | --- |
 | João Paulo | Cientista da felicidade | Responsável metodológico; parecer favorável já registrado |
-| Olga Mariano | Cientista da felicidade | Revisora indicada, distinta do responsável; parecer ainda não recebido |
-| Ana Paula Barbalho | Cientista da felicidade, pesquisadora com pós-doutorado em Direitos Humanos e Felicidade | Revisora indicada, distinta do responsável; parecer ainda não recebido |
+| Olga Mariano | Cientista da felicidade | Revisora indicada, distinta do responsável; mencionada no relato “e/ou”, autoria individual a identificar |
+| Ana Paula Barbalho | Cientista da felicidade, pesquisadora com pós-doutorado em Direitos Humanos e Felicidade | Revisora indicada, distinta do responsável; mencionada no relato “e/ou”, autoria individual a identificar |
 
 A indicação atende à identificação de pessoas distintas para a revisão. Trata-se de revisão interna à equipe cofundadora; não se declarou independência externa ou ausência de conflitos institucionais. As qualificações são registradas conforme informadas, sem verificação curricular nesta etapa. João Paulo participa da equipe, mas sua própria aprovação não será contada como segunda revisão.
 
-O próximo registro necessário é o parecer identificado de Olga e/ou Ana Paula sobre unidade e atividade `0.1.0`, incluindo fonte, limites e ponte educativa. Pode ser fornecido neste diálogo por João Paulo como relato explícito de uma decisão efetivamente tomada, com autoria, data, versões, ajustes e escopo; a indicação atual não atribui aprovação às revisoras. A regra existente não exige duas revisoras. Nenhuma empresa/coorte de piloto foi delimitada. Até formalizar o parecer e o uso permitido, preservam-se o estado dos artefatos e a aprovação metodológica já recebida.
+João Paulo já comunicou o parecer favorável de 15/11/2026 sobre os dois artefatos `0.1.0`, sem ajustes. Falta identificar qual revisora efetivamente o emitiu: o modelo fornecido pelo agente usava “e/ou” e foi reproduzido na comunicação. A regra existente não exige duas revisoras. Nenhuma empresa/coorte de piloto foi delimitada; a continuidade técnica autorizada é local. A próxima formalização deve identificar a autoria recebida, registrar o claim educativo e aplicar um escopo de disponibilidade antes de alterar estados do software. Não se pede nova aprovação do mesmo conteúdo.
 
 | Item a revisar | Resposta/registro necessário antes da publicação |
 | --- | --- |
@@ -127,4 +127,4 @@ Arquivos desta entrega, agrupados pelo motivo:
 - Testes/fixture: `src/domain/ivo/q2-learning-curation.test.ts`, `src/lib/ivo/ivo-governance.server.test.ts`, `plan-composition.server.test.ts`, `src/components/ivo/IvoJourney.test.tsx`, `src/test/fixtures/q2-learning.ts` — cenários positivos sintéticos e recusas, sem autorização real.
 - Registro/documentação: `src/domain/ivo/methodology-governance.json`, `docs/vitalos/ivo-decision-package.md`, este dossiê e `docs/vitalos/CHECKPOINT.md` — corrigida descrição desatualizada de D10, sem alterar seu estado ou aprovar método.
 
-**Menor próximo marco:** parecer D10 consolidado sobre esta unidade/atividade e autorização do claim educativo específico; então integrar somente as versões aprovadas e demonstrar a aplicação pela interface local. Enquanto isso, a engenharia está preparada e a oferta educativa permanece bloqueada.
+**Menor próximo marco:** completar a autoria do parecer já recebido e sua integração canônica, com claim educativo específico e disponibilidade limitada ao escopo autorizado; então demonstrar a aplicação pela interface local. As versões `0.1.0` permanecem sem ajustes; não se presume publicação ou oferta comercial pela aprovação editorial.

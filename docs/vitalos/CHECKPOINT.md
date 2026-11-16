@@ -1,5 +1,11 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-15; registros históricos preservados)
 
+## D10 · parecer de revisão recebido, 15/11/2026
+
+Base `5bcde52` conferida, sem alterações rastreadas prévias. João Paulo comunicou que “Olga Mariano e/ou Ana Paula Barbalho” revisaram a unidade e a atividade `0.1.0` em 15/11/2026 e aprovaram sem ajustes. Parecer favorável recebido e vinculado aos dois artefatos por versão e hash em [D10_UNIT_001_2026-11-15.md](decisions/D10_UNIT_001_2026-11-15.md). Falta somente identificar se a autoria do parecer é de Olga, Ana Paula ou ambas; o modelo anterior do agente usava “e/ou”, e foi solicitada identificação sem pedir nova aprovação do conteúdo. A regra não exige duas revisoras.
+
+Nenhum texto pedagógico, questão, catálogo, claim congelado ou estado de runtime alterado. Continuidade técnica autorizada no ambiente local; nenhuma empresa/coorte real ou publicação foi autorizada. Próximo marco: completar a autoria e integrar o parecer no registro canônico, com claim educativo específico e disponibilidade limitada ao escopo autorizado, antes da prova local do caminho aprovado. Aprovação editorial não implica eficácia D9, relações ESG ou validação em clientes. Atualização documental com revisão de diff, sem repetir testes/builds válidos. `.q.out` e `.q.sql` intocados. As seções abaixo preservam o histórico da entrega e das indicações anteriores.
+
 ## Primeira unidade/atividade Q2 para D10 — 2026-11-15
 
 Base `0157740` preservada, sem alterações rastreadas prévias. Preparadas unidade `Q2-bem_estar-aprendizagem-equipe-001` e atividade `Q2-pratica-aprendizagem-equipe-001`, ambas **PROPOSTO 0.1.0**, sobre aprendizagem em equipe, sem converter TESTE. Fonte TRU-006 e claim existente reutilizados como insumos de revisão. Encontrada e fechada a lacuna técnica que permitia aprovar conteúdo sem validar o escopo do claim: o uso `evidencia-passaporte` **não autoriza** `q2-educacao`. Registros científicos congelados preservados; uso educativo específico ainda exige registro deliberado. João Paulo Brandão Barboza é o responsável metodológico designado, sem assinatura/aprovação atribuída pelo agente.
