@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -15,7 +16,13 @@ import {
   Users,
   Clock3,
 } from "lucide-react";
-import type { PresentationCard, PresentationIcon, PresentationSlide } from "./types";
+import teamPhoto from "@/assets/presentation/team-cherrydeck.jpg";
+import type {
+  PresentationCard,
+  PresentationIcon,
+  PresentationMetric,
+  PresentationSlide,
+} from "./types";
 
 const icons = {
   heart: Heart,
@@ -35,18 +42,12 @@ const icons = {
 };
 export function PresentationSymbol({ name }: { name: PresentationIcon }) {
   const Icon = icons[name];
-  return <Icon aria-hidden="true" strokeWidth={1.6} />;
+  return <Icon aria-hidden="true" strokeWidth={1.7} />;
 }
-
 export function PresentationCardView({ card }: { card: PresentationCard }) {
   return (
     <div className="presentation-card">
-      <div className="presentation-card-top">
-        <span className="presentation-icon">
-          <PresentationSymbol name={card.icon} />
-        </span>
-        <span className="presentation-card-label">{card.label}</span>
-      </div>
+      <span className="presentation-card-label">{card.label}</span>
       <h3>{card.title}</h3>
       <p>{card.body}</p>
       {card.status && <span className="presentation-status">{card.status}</span>}
@@ -54,48 +55,246 @@ export function PresentationCardView({ card }: { card: PresentationCard }) {
   );
 }
 
-export function PresentationVisual({ slide }: { slide: PresentationSlide }) {
-  if (slide.kind === "hero" || slide.kind === "closing")
-    return (
+export function MetricView({ metric }: { metric: PresentationMetric }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(metric.value);
+  useEffect(() => {
+    let frame = 0;
+    let started = false;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      setShown(metric.value);
+    };
+    const animate = () => {
+      if (started || media.matches) return;
+      started = true;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - start) / 850);
+        setShown(metric.value * (1 - Math.pow(1 - progress, 3)));
+        if (progress < 1) frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
+    };
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            (entries) => {
+              if (entries.some((e) => e.isIntersecting)) {
+                animate();
+                observer?.disconnect();
+              }
+            },
+            { threshold: 0.35 },
+          );
+    if (ref.current) observer?.observe(ref.current);
+    media.addEventListener("change", stop);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      media.removeEventListener("change", stop);
+    };
+  }, [metric.value]);
+  const format = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: metric.decimals ?? 0,
+      maximumFractionDigits: metric.decimals ?? 0,
+    }).format(value);
+  return (
+    <div className="presentation-metric" ref={ref}>
+      <strong>
+        <span aria-hidden="true">
+          {metric.prefix}
+          {format(shown)}
+          <span>{metric.suffix}</span>
+        </span>
+        <span className="sr-only">
+          {metric.prefix}
+          {format(metric.value)}
+          {metric.suffix}
+        </span>
+      </strong>
+      <h3>{metric.label}</h3>
+      <p>{metric.context}</p>
+    </div>
+  );
+}
+function Sequence({ slide }: { slide: PresentationSlide }) {
+  const [selected, setSelected] = useState(0);
+  const card = slide.cards[selected]!;
+  const delivery =
+    slide.id === "trimestre"
+      ? ["Uma prioridade discutida", "Uma aplicação preparada", "Uma decisão para continuar"]
+      : [
+          "Uma pergunta de trabalho",
+          "Repertório para interpretar",
+          "Um acordo com condições",
+          "Aprendizagem para o próximo ciclo",
+        ];
+  return (
+    <div className="presentation-sequence">
+      <div className="presentation-sequence-top">
+        <span>
+          {slide.id === "trimestre" ? "Ao longo de um trimestre" : "Exemplo fictício · Alfa"}
+        </span>
+        <Clock3 size={20} />
+      </div>
+      <div className="presentation-step-buttons" aria-label="Etapas da jornada">
+        {slide.cards.map((c, i) => (
+          <button key={c.label} aria-pressed={selected === i} onClick={() => setSelected(i)}>
+            <span>{String(i + 1).padStart(2, "0")}</span>
+            {c.label}
+          </button>
+        ))}
+      </div>
       <div
-        className="presentation-orbit"
-        aria-label="Da leitura ao desenvolvimento e ao acompanhamento"
+        className="presentation-step-content"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
       >
-        <div className="presentation-orbit-center">
-          <img src="/brand/vitalos/vitalos-mark-256.png" alt="" width="256" height="256" />
+        <PresentationSymbol name={card.icon} />
+        <h3>{card.title}</h3>
+        <p>{card.body}</p>
+        <div className="presentation-delivery">
+          <Check size={18} aria-hidden="true" />
+          <span>{delivery[selected]}</span>
+        </div>
+      </div>
+      {slide.id === "trimestre" && (
+        <div className="presentation-year" aria-label="Lentes de foco ao longo do ano">
           <span>
-            Vitalidade
-            <br />
-            em movimento
+            Q1 <b>COPSOQ</b>
+          </span>
+          <span>
+            Q2 <b>FIB-T</b>
+          </span>
+          <span>
+            Q3 <b>PERMA+V</b>
+          </span>
+          <span>
+            Q4 <b>VIA-T</b>
           </span>
         </div>
-        <div className="presentation-orbit-cards">
-          {slide.cards.map((card) => (
-            <PresentationCardView key={card.label} card={card} />
-          ))}
+      )}
+    </div>
+  );
+}
+function LearningSample() {
+  const [answer, setAnswer] = useState<number | null>(null);
+  return (
+    <div className="presentation-practice">
+      <span className="presentation-sample-label">Uma pequena experiência de aprendizagem</span>
+      <BookOpen size={32} aria-hidden="true" />
+      <h3>Uma leitura coletiva abre qual conversa?</h3>
+      <p>Escolha uma interpretação para explorar o exemplo.</p>
+      <div role="group" aria-label="Respostas do exemplo">
+        {[
+          "Que condições ajudariam a equipe a pedir apoio?",
+          "Quem da equipe está com dificuldade?",
+        ].map((a, i) => (
+          <button aria-pressed={answer === i} key={a} onClick={() => setAnswer(i)}>
+            {a}
+            <ArrowUpRight size={18} aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+      {answer !== null && (
+        <div className="presentation-feedback" role="status">
+          <strong>
+            {answer === 0 ? "Uma pergunta para a gestão." : "Retome o contexto coletivo."}
+          </strong>
+          <p>
+            {answer === 0
+              ? "A leitura ajuda a discutir condições de trabalho. A equipe pode combinar uma prática com tempo e apoio."
+              : "O resultado coletivo orienta uma conversa sobre condições. Uma nova tentativa pode partir do que a equipe precisa para participar."}
+          </p>
+          <button onClick={() => setAnswer(null)}>Explorar novamente</button>
         </div>
-        <span className="presentation-orbit-caption">
-          <Sparkles size={15} aria-hidden="true" /> Um ecossistema conectado
-        </span>
+      )}
+      <small>Exemplo didático da apresentação · suas escolhas ficam apenas nesta tela.</small>
+    </div>
+  );
+}
+export function PresentationVisual({
+  slide,
+  onExplore,
+}: {
+  slide: PresentationSlide;
+  onExplore?: (card: PresentationCard, element?: HTMLButtonElement) => void;
+}) {
+  if (slide.kind === "hero" || slide.kind === "closing")
+    return (
+      <figure className="presentation-human">
+        <img
+          src={teamPhoto}
+          alt="Pessoas reunidas em torno de um computador, colaborando no trabalho"
+          width="1440"
+          height="960"
+          fetchPriority={slide.kind === "hero" ? "high" : undefined}
+          loading={slide.kind === "hero" ? "eager" : "lazy"}
+        />
+        <figcaption>
+          <span>Conhecimento que encontra pessoas.</span>
+          <small>Imagem ilustrativa · Cherrydeck / Unsplash</small>
+        </figcaption>
+        <div className="presentation-human-mark" aria-hidden="true">
+          <span>Escutar</span>
+          <span>Aprender</span>
+          <span>Evoluir</span>
+        </div>
+      </figure>
+    );
+  if (slide.id === "trimestre" || slide.id === "jornada" || slide.kind === "action")
+    return <Sequence slide={slide} />;
+  if (slide.kind === "learning") return <LearningSample />;
+  if (slide.kind === "cycle")
+    return (
+      <div className="presentation-cycle">
+        <div className="presentation-cycle-center">
+          <img src="/brand/vitalos/vitalos-mark-256.png" alt="" width="80" height="80" />
+          <strong>
+            Desenvolver
+            <br />
+            com continuidade
+          </strong>
+        </div>
+        {slide.cards.map((card, i) => (
+          <button
+            key={card.label}
+            onClick={(event) => onExplore?.(card, event.currentTarget)}
+            className={`presentation-cycle-stage stage-${i}`}
+          >
+            <PresentationSymbol name={card.icon} />
+            <span>{card.label}</span>
+            <small>{card.title}</small>
+            <ArrowUpRight size={16} />
+          </button>
+        ))}
       </div>
     );
   if (slide.kind === "lenses")
     return (
-      <div className="presentation-lenses">
-        <div className="presentation-matrix-caption">
-          <span>Perspectivas IVO</span>
-          <span>Organização conceitual</span>
-        </div>
-        <div className="presentation-matrix-perspectives">
-          {["EU", "NÓS", "LIDERANÇA", "ORGANIZAÇÃO"].map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
-        <div className="presentation-cards">
-          {slide.cards.map((card) => (
-            <PresentationCardView key={card.label} card={card} />
-          ))}
-        </div>
+      <div className="presentation-lens-grid">
+        {slide.cards.map((card) => (
+          <button
+            key={card.label}
+            className="presentation-lens"
+            onClick={(event) => onExplore?.(card, event.currentTarget)}
+            aria-label={`Explorar ${card.label}`}
+          >
+            <span className="presentation-lens-top">
+              <PresentationSymbol name={card.icon} />
+              <ArrowUpRight size={20} />
+            </span>
+            <span className="presentation-card-label">{card.label}</span>
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+            <span className="presentation-status">{card.status}</span>
+          </button>
+        ))}
       </div>
     );
   if (slide.kind === "report")
@@ -103,44 +302,87 @@ export function PresentationVisual({ slide }: { slide: PresentationSlide }) {
       <div className="presentation-report">
         <div className="presentation-report-cover">
           <span>VitalOS™</span>
-          <FileText size={42} strokeWidth={1} aria-hidden="true" />
+          <FileText size={38} />
           <h3>
-            Relatório
+            O percurso
             <br />
-            Global ESG
+            da sua
+            <br />
+            organização.
           </h3>
-          <p>
-            Uma narrativa do ciclo
-            <br />
-            com origem e limites
-          </p>
-          <span className="presentation-report-badge">PRÉVIA DEMONSTRATIVA</span>
+          <p>Relatório global ESG</p>
+          <small>Prévia ilustrativa</small>
         </div>
-        <div className="presentation-report-records">
+        <ol className="presentation-report-records">
           {slide.cards.map((card) => (
-            <div className="presentation-record" key={card.label}>
+            <li key={card.label}>
               <PresentationSymbol name={card.icon} />
               <div>
-                <span>{card.label}</span>
-                <h3>{card.title}</h3>
+                <strong>{card.label}</strong>
                 <p>{card.body}</p>
               </div>
-            </div>
+            </li>
           ))}
+        </ol>
+      </div>
+    );
+  if (slide.kind === "trust")
+    return (
+      <div className="presentation-science">
+        <div className="presentation-science-heading">
+          <BookOpen size={28} />
+          <span>
+            Referências que informam
+            <br />
+            nossa abordagem
+          </span>
+        </div>
+        <div className="presentation-institution">
+          <small>Uma referência de curadoria</small>
+          <h3>
+            Work Wellbeing
+            <br />
+            Playbook 2.0
+          </h3>
+          <p>World Wellbeing Movement</p>
+        </div>
+        <div className="presentation-academic">
+          <span>Com apoio à elaboração do Playbook</span>
+          <strong>Wellbeing Research Centre</strong>
+          <p>University of Oxford</p>
+          <span>e Indeed</span>
+        </div>
+        <div className="presentation-science-path">
+          <span>Pesquisa</span>
+          <MoveRight />
+          <span>Aprendizagem</span>
+          <MoveRight />
+          <span>Prática</span>
         </div>
       </div>
     );
-  const isFlow = ["cycle", "action", "learning", "onboarding"].includes(slide.kind);
   return (
-    <div
-      className={`presentation-cards presentation-visual--${slide.kind} ${isFlow ? "presentation-flow" : ""}`}
-    >
-      {slide.cards.map((card, index) => (
-        <div className="presentation-card-wrap" key={card.label}>
-          <PresentationCardView card={card} />
-          {isFlow && index < slide.cards.length - 1 && (
-            <ArrowUpRight className="presentation-flow-arrow" size={18} aria-hidden="true" />
-          )}
+    <div className={`presentation-cards presentation-visual--${slide.kind}`}>
+      {slide.metrics?.length ? (
+        <div className="presentation-metrics">
+          {slide.metrics.map((m) => (
+            <MetricView key={m.label} metric={m} />
+          ))}
+        </div>
+      ) : null}
+      {slide.cards.map((card, i) => (
+        <div className="presentation-editorial-row" key={card.label}>
+          <span className="presentation-row-symbol">
+            <PresentationSymbol name={card.icon} />
+          </span>
+          <div>
+            <span className="presentation-card-label">{card.label}</span>
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+          </div>
+          <span className="presentation-row-number" aria-hidden="true">
+            {String(i + 1).padStart(2, "0")}
+          </span>
         </div>
       ))}
     </div>

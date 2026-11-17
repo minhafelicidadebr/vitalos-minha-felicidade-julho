@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-11-17T03:10:13.663Z",
+  "base": "b1227f8",
+  "inert": true,
+  "preservedRootOutput": true,
+  "sources": [
+    {
+      "file": "src/features/presentation/EnterprisePresentation.tsx",
+      "sha256": "f362fe9449cf3167e2399dba966545e7a13eecded3f2cd5a58ba9c8673b60bbb",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/PresentationVisual.tsx",
+      "sha256": "c1622a1926de876b4d3675596ce34da701111bf1f77170bf60df78fb0e08ad1e",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/types.ts",
+      "sha256": "74b5a5f81487658ee15e7f105263047446dfd0a08d50bbbb4d7543d5c46fea0a",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/navigation.ts",
+      "sha256": "1cc8b3bb0744c5599b9b937356d7f8d3bd630061501e53466cfb5ed20738b5f1",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/presentation.css",
+      "sha256": "dee3bd614760169ee23c1074e8987eba96ee1289bf79f051ba40b05eb09d3b70",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/lib/presentation/content.server.ts",
+      "sha256": "f0b321c371103c3563b670e37bb63fbd4ab91d44e8edbc2cf4fb785371cb0fa4",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/lib/presentation/statistics.server.ts",
+      "sha256": "7dd9b2db7c6e6cad72f28ff6de6a7f43a26debb83b0ef5748eb0c9f44c26df73",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/domain/commercial-claims/commercial-claims-registry.json",
+      "sha256": "a5e9d992fdf1b265249a9885e7a6c68536c5c19331ff9c14efcca18cd63d872c",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/domain/commercial-claims/commercial-claims-public-projection.json",
+      "sha256": "f00e1346998c0142a42bc40c3d7f557ba46e661cfcb089dda6635b6bee8a181f",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/domain/commercial-claims/commercial-surface-ids.ts",
+      "sha256": "241845cc0d4e64c034d12830c3aa18416d6bc82321803cf188dfe89273aa0c0f",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/assets/presentation/team-cherrydeck.jpg",
+      "sha256": "6a8fc2559888391001e3167c287c3afa436a9fd480f1e543f5921bb3c0e15706",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    }
+  ],
+  "publicAssetsChecked": 316,
+  "protectedMarkersFound": false,
+  "legacyEightClaimsUnchanged": true,
+  "publicProjectionEntriesUnchanged": true
+}

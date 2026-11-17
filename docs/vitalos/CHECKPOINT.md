@@ -1,5 +1,14 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Nova apresentação empresarial V3 — 2026-11-17
+
+Base `b1227f8` preservada. Implementadas 15 cenas e percurso executivo de 7; nova narrativa, fotografia real, fichas científicas, trimestre/jornada interativos, exemplo didático e relatório. Números selecionados da mensagem do usuário conferidos em fontes diretas, registrados por superfície no registry 1.1.0; oito claims antigos e sete entradas públicas preservados. Portais dentro da raiz de fullscreen e rolagem própria, com testes de estado.
+
+**Gate: 4.415 pass / 0 fail**, paridade, TypeScript, secret-scan; lint dirigido, build inerte e 11 provas HTTP aprovados. Prova visual **parcial**: a ferramenta encerrou o controle por não conseguir confirmar a URL atual do Chrome com confiança. Sem contorno de proteção. Fullscreen nativo/mobile ainda não demonstrados na V3. Nenhum CI/staging/deploy novo.
+
+Fechamento: [APRESENTACAO_EMPRESARIAL_V3_FECHAMENTO_2026-11-17.md](APRESENTACAO_EMPRESARIAL_V3_FECHAMENTO_2026-11-17.md). Próxima ação: completar a prova visual em sessão autorizada, preservando as verificações válidas. Registros abaixo são históricos.
+
+
 ## Apresentação empresarial V2 — 2026-11-16
 
 Base `bbb7d55` preservada. Implementados 18 capítulos: valor empresarial, curadoria científica, Playbook/Oxford com atribuição, caso externo Heineken/PERMA-V e fontes ODS. Micro-CTAs explícitos e fechar painel durante rolagem. Números OMS/Gallup/Heineken preparados em composição local de revisão, sem liberação presumida no registry frozen. Q1, Q3/Q4 e limites metodológicos preservados.

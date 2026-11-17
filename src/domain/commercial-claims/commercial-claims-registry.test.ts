@@ -54,8 +54,8 @@ describe("commercial-claims-registry — carga válida (registry real)", () => {
     expect(valid).toBe(true);
   });
 
-  test("getCommercialClaimsRegistry() devolve os 8 claims do MVP", () => {
-    expect(registry.claims.length).toBe(8);
+  test("registry conserva os 8 claims do MVP e acrescenta 2 autorizações da apresentação", () => {
+    expect(registry.claims.length).toBe(10);
     expect(registry.frozen).toBe(true);
   });
 

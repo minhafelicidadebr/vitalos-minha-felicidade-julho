@@ -35,6 +35,25 @@ export interface PresentationCard {
   body: string;
   icon: PresentationIcon;
   status?: string;
+  detail?: PresentationDetail;
+}
+export interface PresentationDetail {
+  title: string;
+  introduction: string;
+  blocks: PresentationCard[];
+  sources?: PresentationSource[];
+}
+export interface PresentationSource {
+  label: string;
+  href: string;
+}
+export interface PresentationMetric {
+  value: number;
+  suffix: string;
+  label: string;
+  context: string;
+  prefix?: string;
+  decimals?: number;
 }
 export interface PresentationSlide {
   id: string;
@@ -45,14 +64,11 @@ export interface PresentationSlide {
   kind: VisualKind;
   note: string;
   cards: PresentationCard[];
-  detail: {
-    title: string;
-    introduction: string;
-    blocks: PresentationCard[];
-    sources?: Array<{ label: string; href: string }>;
-  };
+  detail: PresentationDetail;
   detailCta: string;
-  references?: Array<{ label: string; href: string }>;
+  references?: PresentationSource[];
+  executive?: boolean;
+  metrics?: PresentationMetric[];
 }
 export interface PresentationDeck {
   edition: string;

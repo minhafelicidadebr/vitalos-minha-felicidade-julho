@@ -34,6 +34,86 @@ afterEach(() => {
 });
 
 describe("enterprise presentation experience", () => {
+  test("fullscreen refusal leaves the scene usable and offers a clear recovery message", async () => {
+    fakeFetch(() => ({ state: "ready", deck: fixture, ttlMs: 100_000 }));
+    render(<EnterprisePresentation />);
+    const heading = await screen.findByRole("heading", { name: "Fixture slide 1" });
+    const root = heading.closest(".enterprise-presentation")!;
+    Object.defineProperty(root, "requestFullscreen", {
+      configurable: true,
+      value: async () => {
+        throw new Error("Synthetic unsupported fullscreen");
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Entrar em tela cheia" }));
+    await screen.findByText(
+      "Tela cheia indisponível neste navegador. Continue explorando nesta janela.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Próximo slide" }));
+    expect(screen.getByRole("heading", { name: "Fixture slide 2" })).toBeDefined();
+  });
+  test("fullscreen state follows browser events while portals remain descendants of its root", async () => {
+    fakeFetch(() => ({ state: "ready", deck: fixture, ttlMs: 100_000 }));
+    const descriptor = Object.getOwnPropertyDescriptor(document, "fullscreenElement");
+    render(<EnterprisePresentation />);
+    const heading = await screen.findByRole("heading", { name: "Fixture slide 1" });
+    const root = heading.closest(".enterprise-presentation")!;
+    try {
+      Object.defineProperty(document, "fullscreenElement", { configurable: true, value: root });
+      fireEvent(document, new Event("fullscreenchange"));
+      expect(
+        screen.getByRole("button", { name: "Sair da tela cheia" }).getAttribute("aria-pressed"),
+      ).toBe("true");
+      fireEvent.click(screen.getByRole("button", { name: "Open fixture 1" }));
+      const dialog = await screen.findByRole("dialog");
+      expect(root.contains(dialog)).toBe(true);
+      fireEvent.click(within(dialog).getByRole("button", { name: "Fechar painel" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      Object.defineProperty(document, "fullscreenElement", { configurable: true, value: null });
+      fireEvent(document, new Event("fullscreenchange"));
+      expect(
+        screen.getByRole("button", { name: "Entrar em tela cheia" }).getAttribute("aria-pressed"),
+      ).toBe("false");
+    } finally {
+      if (descriptor) Object.defineProperty(document, "fullscreenElement", descriptor);
+      else Reflect.deleteProperty(document, "fullscreenElement");
+    }
+  });
+  test("session recheck removes an open panel together with its protected scene", async () => {
+    let locked = false;
+    fakeFetch(() =>
+      locked ? { state: "locked" } : { state: "ready", deck: fixture, ttlMs: 100_000 },
+    );
+    render(<EnterprisePresentation />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open fixture 1" }));
+    await screen.findByRole("dialog");
+    locked = true;
+    fireEvent(window, new Event("focus"));
+    await screen.findByLabelText("Senha da apresentação");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByText("Detail body")).toBeNull();
+  });
+  test("executive route updates location and normal dialogs stay inside the presentation root", async () => {
+    const routeFixture = {
+      ...fixture,
+      slides: fixture.slides.map((s, i) => ({ ...s, executive: i === 0 })),
+    };
+    fakeFetch(() => ({ state: "ready", deck: routeFixture, ttlMs: 100_000 }));
+    render(<EnterprisePresentation />);
+    await screen.findByRole("heading", { name: "Fixture slide 1" });
+    fireEvent.click(screen.getByRole("button", { name: "Usar percurso executivo" }));
+    expect(window.location.search).toContain("percurso=executivo");
+    expect(screen.getByRole("button", { name: "Próximo slide" }).hasAttribute("disabled")).toBe(
+      true,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open fixture 1" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.closest(".enterprise-presentation")).not.toBeNull();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Fechar painel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: "Usar percurso completo" }));
+    expect(window.location.search).not.toContain("percurso=executivo");
+  });
   test("anonymous entry renders only access; submitted password is cleared and not in location", async () => {
     let requestBody = "";
     fakeFetch((init) => {

@@ -42,7 +42,7 @@ const html = await shell.text();
 check(
   "SSR shell has no protected slide content",
   shell.ok &&
-    !html.includes("O próximo passo do bem-estar é fazer parte do trabalho.") &&
+    !html.includes("Pessoas que florescem. Organizações que evoluem.") &&
     html.includes("noindex"),
 );
 const wrong = await call("POST", { password: "wrong-synthetic-http-fixture" });
@@ -71,8 +71,8 @@ const cookie = header.split(";")[0]!;
 const content = await call("GET", { cookie });
 const payload = (await content.json()) as { state?: string; deck?: { slides?: unknown[] } };
 check(
-  "authenticated API delivers 18 V2 slides",
-  content.ok && payload.state === "ready" && payload.deck?.slides?.length === 18,
+  "authenticated API delivers 15 V3 scenes",
+  content.ok && payload.state === "ready" && payload.deck?.slides?.length === 15,
 );
 check("logout is accepted", (await call("DELETE", { cookie })).ok);
 check("old cookie cannot read after logout", (await call("GET", { cookie })).status === 401);
@@ -90,7 +90,7 @@ check(
 );
 mkdirSync("docs/vitalos/artifacts", { recursive: true });
 writeFileSync(
-  "docs/vitalos/artifacts/PRESENTATION_V2_HTTP_2026-11-16.json",
+  "docs/vitalos/artifacts/PRESENTATION_V3_HTTP_2026-11-17.json",
   JSON.stringify(
     {
       recordedAt: new Date().toISOString(),
