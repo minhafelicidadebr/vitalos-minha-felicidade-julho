@@ -14,6 +14,7 @@ import { A11yProvider } from "../app/shell/A11yProvider";
 import { MockDataProvider } from "../app/shell/MockDataProvider";
 import { PackProvider } from "../app/composition/PackProvider";
 import { AuthGate } from "../app/auth/AuthGate";
+import { SplashScreen } from "../components/SplashScreen";
 import { ConciergeWidget } from "../components/concierge/ConciergeWidget";
 
 function NotFoundComponent() {
@@ -158,6 +159,7 @@ function RootComponent() {
             <AuthGate>
               <Outlet />
               <ConciergeWidget />
+              <SplashScreen />
             </AuthGate>
           </MockDataProvider>
         </PackProvider>

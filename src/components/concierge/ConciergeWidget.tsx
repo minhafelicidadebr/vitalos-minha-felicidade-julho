@@ -109,7 +109,7 @@ export function ConciergeWidget() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3 print:hidden">
+      <div className={`fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-5 z-[60] flex-col items-end gap-3 print:hidden ${open ? "hidden sm:flex" : "flex"}`}>
         <a
           href={whatsappLink("Olá! Quero falar com um consultor VitalOS.")}
           target="_blank" rel="noopener noreferrer"
@@ -203,10 +203,10 @@ export function ConciergeWidget() {
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={submit} className="flex items-center gap-2 border-t border-border p-3">
+          <form onSubmit={submit} className="flex items-center gap-2 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <label htmlFor="concierge-input" className="sr-only">Sua pergunta</label>
             <input id="concierge-input" value={input} onChange={(e) => setInput(e.target.value)} autoFocus placeholder="Pergunte sobre NR-1, metodologia, planos…" className="flex-1 rounded-full border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <button type="submit" aria-label="Enviar" className="rounded-full bg-primary p-3 text-primary-foreground"><Send className="h-4 w-4" /></button>
+            <button type="submit" aria-label="Enviar" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Send className="h-4 w-4" /></button>
           </form>
           <p className="px-4 pb-2 text-center text-[10px] text-muted-foreground">Conteúdo educativo. Não substitui PGR nem profissional habilitado.</p>
         </section>
