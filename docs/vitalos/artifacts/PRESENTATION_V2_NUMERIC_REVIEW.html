@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="pt-BR">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VitalOS · composição de evidências para revisão</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f4f3ed;
+      color: #143e35;
+      font:
+        17px/1.6 system-ui,
+        sans-serif;
+    }
+    main {
+      max-width: 1180px;
+      margin: auto;
+      padding: 28px;
+    }
+    header {
+      border-bottom: 1px solid #b8c9bf;
+      padding: 20px 0 32px;
+    }
+    h1,
+    h2 {
+      font-family: Georgia, serif;
+      font-weight: 400;
+      line-height: 1.13;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      max-width: 22ch;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 44px);
+    }
+    small {
+      display: block;
+      font-size: 14px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 8px 14px;
+      background: #fff1cc;
+      border: 1px solid #9e7e26;
+      border-radius: 9px;
+      font-size: 14px;
+    }
+    section {
+      margin: 36px 0;
+      background: white;
+      padding: clamp(20px, 4vw, 48px);
+      border: 1px solid #c5d1c9;
+      border-radius: 22px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .card {
+      padding: 22px;
+      background: #edf4ef;
+      border-radius: 14px;
+    }
+    .card strong {
+      display: block;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .card p {
+      font-size: 16px;
+    }
+    .limit {
+      padding-left: 16px;
+      border-left: 3px solid #a6812e;
+      margin-top: 28px;
+      font-size: 15px;
+    }
+    a {
+      color: #17634d;
+      overflow-wrap: anywhere;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      text-underline-offset: 4px;
+    }
+    a:focus-visible {
+      outline: 3px solid #9e7e26;
+      outline-offset: 4px;
+    }
+    .bar {
+      height: 20px;
+      background: #e4ebe5;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 7px 0 18px;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      background: #24634e;
+    }
+    .barlabel {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 15px;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 12px 4px;
+      border-bottom: 1px solid #c5d1c9;
+    }
+    footer {
+      font-size: 14px;
+      padding-bottom: 30px;
+    }
+    @media (max-width: 700px) {
+      main {
+        padding: 16px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      section {
+        padding: 22px;
+      }
+      .card strong {
+        font-size: 38px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+  <main>
+    <header>
+      <strong>VitalOS™ · Instituto Felicidade para Todos</strong>
+      <p class="tag">PROPOSTA EDITORIAL · NÃO LIBERADA PARA PUBLICAÇÃO COMERCIAL</p>
+      <h1>Dados para compreender o desafio. Contexto para decidir melhor.</h1>
+      <p>
+        Três composições para a apresentação empresarial V2. Este arquivo é material local de
+        revisão: não integra a rota do aplicativo e não aprova os claims.
+      </p>
+    </header>
+    <section aria-labelledby="who">
+      <small>02 · Dimensão do problema · referência externa</small>
+      <h2 id="who">O desafio tem escala global. A resposta começa no contexto de cada empresa.</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>16%</strong>
+          <p>
+            dos adultos em idade de trabalhar tinham um transtorno mental, segundo estimativa global
+            referente a 2023.
+          </p>
+        </div>
+        <div class="card">
+          <strong>12 bilhões</strong>
+          <p>de dias de trabalho perdidos por ano, globalmente, por depressão e ansiedade.</p>
+        </div>
+        <div class="card">
+          <strong>US$ 1 trilhão</strong>
+          <p>por ano em produtividade perdida, na mesma estimativa global de carga.</p>
+        </div>
+      </div>
+      <p class="limit">
+        Os dois últimos valores descrevem a mesma carga em unidades distintas. Não são perdas
+        calculadas para sua empresa nem uma economia prometida pela VitalOS.
+      </p>
+      <a href="https://www.who.int/news-room/fact-sheets/detail/mental-health-at-work"
+        >OMS · Mental health at work · 15/09/2026</a
+      >
+    </section>
+    <section aria-labelledby="value">
+      <small>03 · Relevância empresarial · comparação observacional</small>
+      <h2 id="value">Engajamento e desempenho aparecem relacionados na literatura.</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>23%</strong>
+          <p>de diferença mediana em lucratividade.</p>
+        </div>
+        <div class="card">
+          <strong>18%</strong>
+          <p>de diferença mediana em produtividade de vendas.</p>
+        </div>
+        <div class="card">
+          <strong>Q12 · 2024</strong>
+          <p>Comparação entre unidades no quartil superior e inferior de engajamento.</p>
+        </div>
+      </div>
+      <p class="limit">
+        Meta-análise Gallup, 11ª edição. O construto é engajamento; não é uma medida PERMA nem um
+        estudo de retorno da VitalOS. Não aplicar estes percentuais à receita da empresa como
+        previsão.
+      </p>
+      <a href="https://www.gallup.com/workplace/321725/gallup-meta-analysis-first-generation.aspx"
+        >Gallup · método, comparação e fonte</a
+      >
+    </section>
+    <section aria-labelledby="br">
+      <small>09 · Exemplo brasileiro · relato empresarial externo</small>
+      <h2 id="br">Heineken: acompanhar a participação para sustentar a escuta.</h2>
+      <p>
+        Adesão à pesquisa na Jornada da Felicidade, conforme relato publicado pela Você RH. Escala
+        visual de 0 a 100%.
+      </p>
+      <div aria-hidden="true">
+        <div class="barlabel"><span>2022</span><strong>42,5%</strong></div>
+        <div class="bar"><span style="width: 42.5%"></span></div>
+        <div class="barlabel"><span>2025</span><strong>85,8%</strong></div>
+        <div class="bar"><span style="width: 85.8%"></span></div>
+        <div class="barlabel"><span>Relato de 2026</span><strong>82,6%</strong></div>
+        <div class="bar"><span style="width: 82.6%"></span></div>
+      </div>
+      <table>
+        <caption>
+          Adesão à pesquisa, em percentual
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Referência temporal</th>
+            <th scope="col">Adesão</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">2022</th>
+            <td>42,5%</td>
+          </tr>
+          <tr>
+            <th scope="row">2025</th>
+            <td>85,8%</td>
+          </tr>
+          <tr>
+            <th scope="row">Relato de 2026</th>
+            <td>82,6%</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>De 2022 a 2025: +43,3 pontos percentuais de adesão à pesquisa.</p>
+      <p class="limit">
+        Adesão não é felicidade ou eficácia. O ponto de 2026 é preservado. O relato não permite
+        atribuir causalidade ao PERMA-V. Heineken não é apresentada como cliente ou parceira da
+        VitalOS. A alegação de absenteísmo foi omitida por faltar base e período suficientes.
+      </p>
+      <a
+        href="https://vocerh.abril.com.br/melhores-empresas/conheca-os-cases-vencedores-de-futuro-do-bem-estar-no-premio-da-voce-rh/"
+        >Você RH · caso e premiação · 30/09/2026</a
+      >
+    </section>
+    <footer>
+      Integração pendente no registro canônico: contexto OMS, relevância Gallup e série Heineken
+      precisam de revisão por superfície. Não há autorização implícita pela senha da apresentação.
+      Referências verificadas em novembro de 2026.
+    </footer>
+  </main>
+</html>

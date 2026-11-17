@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-11-17T01:52:51.283Z",
+  "target": "http://localhost:8093",
+  "scope": "isolated-local-no-database",
+  "results": [
+    {
+      "check": "anonymous API refused with private no-store response",
+      "passed": true
+    },
+    {
+      "check": "SSR shell has no protected slide content",
+      "passed": true
+    },
+    {
+      "check": "wrong password refused without issuing cookie",
+      "passed": true
+    },
+    {
+      "check": "cross-origin login refused",
+      "passed": true
+    },
+    {
+      "check": "alternative unconfigured origin refused",
+      "passed": true
+    },
+    {
+      "check": "normal login issues HttpOnly scoped SameSite cookie",
+      "passed": true
+    },
+    {
+      "check": "authenticated API delivers 18 V2 slides",
+      "passed": true
+    },
+    {
+      "check": "logout is accepted",
+      "passed": true
+    },
+    {
+      "check": "old cookie cannot read after logout",
+      "passed": true
+    },
+    {
+      "check": "forged cookie is refused",
+      "passed": true
+    },
+    {
+      "check": "concurrent guessing is throttled",
+      "passed": true
+    }
+  ],
+  "secretsRecorded": false
+}

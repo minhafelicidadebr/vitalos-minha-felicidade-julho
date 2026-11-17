@@ -9,15 +9,30 @@ import { readFileSync } from "node:fs";
 
 describe("enterprise presentation editorial boundaries", () => {
   const deck = getPresentationDeck();
-  test("15 unique chapters have substantive details and institutional destination", () => {
-    expect(deck.slides).toHaveLength(15);
-    expect(new Set(deck.slides.map((s) => s.id)).size).toBe(15);
+  test("18 unique chapters have substantive details and institutional destination", () => {
+    expect(deck.slides).toHaveLength(18);
+    expect(new Set(deck.slides.map((s) => s.id)).size).toBe(18);
     for (const s of deck.slides) {
       expect(s.cards.length).toBeGreaterThan(1);
       expect(s.detail.blocks.length).toBeGreaterThan(1);
       expect(s.note.length).toBeGreaterThan(30);
     }
     expect(new URL(deck.contact.href).hostname).toBe("www.felicidadeparatodos.com.br");
+  });
+  test("external case, scientific curation and PERMA retain attribution and stage", () => {
+    const external = deck.slides.find((s) => s.id === "caso-brasil")!;
+    expect(external.note).toContain("Caso externo");
+    expect(external.note).toContain("evolução prevista");
+    expect(external.detail.sources?.map((s) => new URL(s.href).hostname)).toContain(
+      "www.heinekenbrasil.com.br",
+    );
+    expect(deck.slides.find((s) => s.id === "playbook")!.detail.blocks[0]!.body).toContain(
+      "não representa parceria ou chancela",
+    );
+    for (const slide of deck.slides)
+      for (const source of slide.references ?? []) {
+        expect(new URL(source.href).protocol).toBe("https:");
+      }
   });
   test("a home economic claim cannot inherit authorization on this new surface", () => {
     expect(() =>

@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-11-17T01:58:19.072Z",
+  "target": "http://localhost:8093/apresentacao/empresas",
+  "edition": "V2",
+  "normalPasswordLogin": true,
+  "panelsOpenedAndClosed": 18,
+  "keyboardEnterAndEscape": true,
+  "representativeFocusReturned": true,
+  "mobileModalScrolledToEnd": true,
+  "mobileCloseRemainedVisible": true,
+  "reflow": [
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 320
+    },
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 360
+    },
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 391
+    },
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 768
+    },
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 1024
+    },
+    {
+      "articles": 18,
+      "overflow": false,
+      "overflowCards": 0,
+      "width": 1440
+    }
+  ],
+  "staticPreviewIsNotInteractive": true,
+  "externalPublication": false
+}

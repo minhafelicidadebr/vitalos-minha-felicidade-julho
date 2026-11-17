@@ -1,5 +1,12 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Apresentação empresarial V2 — 2026-11-16
+
+Base `bbb7d55` preservada. Implementados 18 capítulos: valor empresarial, curadoria científica, Playbook/Oxford com atribuição, caso externo Heineken/PERMA-V e fontes ODS. Micro-CTAs explícitos e fechar painel durante rolagem. Números OMS/Gallup/Heineken preparados em composição local de revisão, sem liberação presumida no registry frozen. Q1, Q3/Q4 e limites metodológicos preservados.
+
+Gate: **4.407 pass / 0 fail**, paridade, TypeScript e secret-scan; build inerte, lint dirigido e 11 provas HTTP aprovados. Fontes compiladas/servidas conferidas. Sem CI/staging novo ou publicação. Fechamento: [APRESENTACAO_EMPRESARIAL_V2_FECHAMENTO_2026-11-16.md](APRESENTACAO_EMPRESARIAL_V2_FECHAMENTO_2026-11-16.md). Próxima decisão: revisão dos três conjuntos numéricos por superfície. Registros abaixo são históricos.
+
+
 ## Apresentação empresarial web protegida — 2026-11-16
 
 Base `0b35b8f` preservada. Implementada `/apresentacao/empresas`: quinze slides, índice, leitura contínua, painéis instrucionais, marca VitalOS/Instituto e CTA institucional. Composição exata independente de providers empresariais/demo; AuthGate final intacto. Conteúdo servido apenas por API autenticada, verificador scrypt privado, sessão opaca de 30 minutos, validação de origem e orçamento de tentativas por processo. Não cria vínculo/conta ou permissão empresarial. Configuração ausente fecha o acesso. Nenhum banco ou stack preservado foi iniciado/alterado.

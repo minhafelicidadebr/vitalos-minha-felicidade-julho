@@ -52,6 +52,7 @@ export interface PresentationSlide {
     sources?: Array<{ label: string; href: string }>;
   };
   detailCta: string;
+  references?: Array<{ label: string; href: string }>;
 }
 export interface PresentationDeck {
   edition: string;

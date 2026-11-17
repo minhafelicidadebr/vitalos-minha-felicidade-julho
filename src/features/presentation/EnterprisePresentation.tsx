@@ -47,10 +47,10 @@ function PresentationModal({
           }
         }}
       >
-        {children}
         <DialogPrimitive.Close className="presentation-modal-close" aria-label="Fechar painel">
           <X size={21} />
         </DialogPrimitive.Close>
+        {children}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
@@ -104,6 +104,7 @@ function Slide({
             )}
             <Dialog>
               <DialogTrigger className="presentation-detail-button">
+                <BookOpen size={18} aria-hidden="true" />
                 {slide.detailCta}
                 <ChevronRight size={18} aria-hidden="true" />
               </DialogTrigger>
@@ -142,6 +143,17 @@ function Slide({
               </PresentationModal>
             </Dialog>
           </div>
+          {slide.references && (
+            <nav className="presentation-inline-sources" aria-label="Referências deste capítulo">
+              {slide.references.map((source) => (
+                <a key={source.href} href={source.href} target="_blank" rel="noopener noreferrer">
+                  {source.label}
+                  <ExternalLink size={13} aria-hidden="true" />
+                  <span className="sr-only"> (abre em outra aba)</span>
+                </a>
+              ))}
+            </nav>
+          )}
         </div>
         <div className="presentation-visual">
           <PresentationVisual slide={slide} />

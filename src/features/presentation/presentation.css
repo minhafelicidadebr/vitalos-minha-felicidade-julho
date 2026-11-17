@@ -204,7 +204,38 @@
   font-weight: 600;
   border-bottom: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
   color: var(--primary);
-  padding: 5px 0;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+  border-radius: 12px;
+  background: color-mix(in oklch, var(--primary) 5%, transparent);
+}
+.presentation-detail-button:hover {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+}
+.presentation-inline-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 18px;
+}
+.presentation-inline-sources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
+.presentation-inline-sources svg {
+  flex-shrink: 0;
+}
+.presentation-card-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .presentation-slide--dark .presentation-detail-button {
   color: var(--presentation-gold);
@@ -810,9 +841,11 @@
   outline-offset: 3px;
 }
 .presentation-modal-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: -16px -16px 8px 8px;
+  z-index: 1;
   width: 44px;
   height: 44px;
   display: flex;

@@ -3,6 +3,7 @@ import {
   CommercialClaimResolutionError,
   resolveCommercialClaim,
 } from "@/domain/commercial-claims/commercial-claims-resolver";
+import { applyNarrativeV2 } from "./narrative-v2.server";
 import type {
   PresentationCard,
   PresentationDeck,
@@ -41,7 +42,7 @@ const slide = (value: PresentationSlide): PresentationSlide => value;
 
 export function getPresentationDeck(): PresentationDeck {
   const context = resolvePresentationContext();
-  return {
+  return applyNarrativeV2({
     edition: "Apresentação empresarial · novembro 2026",
     contact: { label: "Conversar com o Instituto", href: institute.href },
     slides: [
@@ -907,5 +908,5 @@ export function getPresentationDeck(): PresentationDeck {
         },
       }),
     ],
-  };
+  });
 }
