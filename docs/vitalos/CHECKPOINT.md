@@ -1,5 +1,15 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Apresentação empresarial web protegida — 2026-11-16
+
+Base `0b35b8f` preservada. Implementada `/apresentacao/empresas`: quinze slides, índice, leitura contínua, painéis instrucionais, marca VitalOS/Instituto e CTA institucional. Composição exata independente de providers empresariais/demo; AuthGate final intacto. Conteúdo servido apenas por API autenticada, verificador scrypt privado, sessão opaca de 30 minutos, validação de origem e orçamento de tentativas por processo. Não cria vínculo/conta ou permissão empresarial. Configuração ausente fecha o acesso. Nenhum banco ou stack preservado foi iniciado/alterado.
+
+**Gate integrado: 4.406 pass / 0 fail, 350 arquivos, 13.817 asserções**; paridade, TypeScript, secret-scan e build inerte aprovados. Cinco testes de UI repetidos após o último rótulo acessível; build com dez fontes finais idênticas e 316 arquivos públicos sem marcadores protegidos. Onze provas HTTP independentes aprovadas. Navegador real percorreu quinze slides/painéis; senha incorreta, recarga, logout e link direto verificados. Reflow dos quinze layouts sem overflow em 320/360/391/768/1024/1440 px; capturas desktop/mobile representativas. Sem declaração de auditoria assistiva completa.
+
+Claims da home não receberam autorização automática para a nova superfície: contexto qualitativo e link OMS; números comerciais pendem da revisão específica. D10 permanece síntese local, Q1 conserva a correspondência da fonte pendente, índice composto e impacto ESG não foram aprovados. O usuário delimitou somente ensaio Alfa/Beta fictício; não há piloto real/publicação decorrente desta etapa. Sessão e limite em memória exigem revisão de infraestrutura antes de destino distribuído. Pacote histórico Q2 preservado; sua conferência selecionada não cobre a apresentação nova.
+
+Fechamento único: [APRESENTACAO_EMPRESARIAL_FECHAMENTO_2026-11-16.md](APRESENTACAO_EMPRESARIAL_FECHAMENTO_2026-11-16.md), com arquivos, provas, configuração local e limites. **Próximo marco:** revisão editorial institucional da apresentação local. Sem CI/staging novo, push, deploy, migration, e-mail externo ou dado real. `.q.out` e `.q.sql` intocados. Seções abaixo são histórico.
+
 ## PIL-01–PIL-08 · registro parcial e candidato selecionado — 2026-11-16
 
 Base `2e9df54`, branch esperada e sem alterações rastreadas prévias. Em resposta à solicitação de registrar decisões e escolher candidato, selecionado tecnicamente **`2e9df5437abbd5d4da1b0af09e686e7096a12f1d`** para revisão de escopo Q2. Fontes `src/`, `package.json` e `bun.lock` iguais às desse commit; três hashes da prova de build conferidos. Evidência local de 4.381 testes/build reutilizada, sem nova execução. O commit deste registro é documental; o candidato de produto permanece identificado separadamente.

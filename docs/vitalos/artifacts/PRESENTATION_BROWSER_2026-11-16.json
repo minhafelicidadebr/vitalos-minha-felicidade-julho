@@ -1,0 +1,169 @@
+{
+  "recordedAt": "2026-11-17T00:34:57.057Z",
+  "target": "http://localhost:8093/apresentacao/empresas",
+  "scope": "isolated-local-no-database",
+  "desktopSlides": [
+    {
+      "overflow": false,
+      "title": "O próximo passo do bem-estar é fazer parte do trabalho.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "A saúde mental também é uma questão de como o trabalho acontece.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Entre ouvir e agir, a continuidade costuma se perder.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Um ciclo. Quatro movimentos que se conectam.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "A experiência é individual. As condições também são coletivas.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Uma arquitetura anual, com métodos e estágios próprios.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Papéis claros fazem a jornada acontecer.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Uma leitura útil abre uma pergunta de trabalho.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Aprender para aplicar. Recuperar antes de receber o feedback.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Um acordo sai da conversa e ganha acompanhamento.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "A evidência mais útil é a que esclarece a próxima decisão.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Uma narrativa institucional que mostra origem, aplicação e limites.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Confiança se constrói nas escolhas de acesso e uso.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "A melhor entrada é uma jornada com escopo combinado.",
+      "width": 1440,
+      "detailPresent": true
+    },
+    {
+      "overflow": false,
+      "title": "Qual é o próximo passo de vitalidade para sua organização?",
+      "width": 1440,
+      "detailPresent": true
+    }
+  ],
+  "responsive": [
+    {
+      "client": 300,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 300,
+      "slides": 15,
+      "width": 320
+    },
+    {
+      "client": 340,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 340,
+      "slides": 15,
+      "width": 360
+    },
+    {
+      "client": 371,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 371,
+      "slides": 15,
+      "width": 391
+    },
+    {
+      "client": 748,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 748,
+      "slides": 15,
+      "width": 768
+    },
+    {
+      "client": 1004,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 1004,
+      "slides": 15,
+      "width": 1024
+    },
+    {
+      "client": 1420,
+      "overflowCards": 0,
+      "overflowSlides": 0,
+      "scroll": 1420,
+      "slides": 15,
+      "width": 1440
+    }
+  ],
+  "checks": {
+    "wrongPasswordRefused": true,
+    "configuredPasswordAccepted": true,
+    "allFifteenDetailPanelsOpened": true,
+    "escapeRestoresMicroCtaFocus": true,
+    "indexKeyboardFocusesHeading": true,
+    "continuousReadingUsesFifteenSlides": true,
+    "reloadRetainsSessionAndChapter": true,
+    "logoutRemovesDeck": true,
+    "directFragmentLockedAfterLogout": true,
+    "loginResumesProtectedFragment": true,
+    "mobileExitHasAccessibleName": true,
+    "mobileDialogFocusContained": true,
+    "mobileDialogNoHorizontalOverflow": true,
+    "viewportRestored": true
+  },
+  "limits": [
+    "Measured 391 CSS px rather than 390 because viewport override accepts integers and existing browser scaling was preserved.",
+    "Representative pixel inspection; not a full screen-reader or multi-device certification.",
+    "Initial capture timeout and transition frame replaced by inspected stable captures."
+  ],
+  "secretsRecorded": false
+}

@@ -1,0 +1,60 @@
+{
+  "recordedAt": "2026-11-17T00:34:29.267Z",
+  "buildDirectory": ".institutional-admin.local\\module-build-1794875419174",
+  "preservedRootOutput": true,
+  "hashes": [
+    {
+      "path": "src/routes/__root.tsx",
+      "sha256": "de8fd9ab4069a518fe0aab8abf85537dd27b70071feff070825d84d820385d11",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/routes/apresentacao.empresas.tsx",
+      "sha256": "5382fdfe8f44c3d0735d94be4c2027632e2b899e49a8414a734f3882b1d175c0",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/routes/api.apresentacao.ts",
+      "sha256": "4eed011f3c33b8a5be5538a9940b91c7d5e1988974aecdf2bbd7a455d70b1603",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/features/presentation/EnterprisePresentation.tsx",
+      "sha256": "bf9ac72bb9975ac247ec1ff03a0a183a4e1f4cbd2a11168ee14b3abcaa97f33d",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/features/presentation/PresentationVisual.tsx",
+      "sha256": "4a10e3698d4ff9b6e741a8f21c7fc415756605561b415416802d68c4c70c4044",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/features/presentation/types.ts",
+      "sha256": "14155814632c246ddc3dfc0007e9a14cec41427649b6d0e2f619f0f21628c1f2",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/features/presentation/path.ts",
+      "sha256": "b1204df7dea05de421fb7347adfc954d2f5c067ed2e4df3112c110f7abc00aa2",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/features/presentation/presentation.css",
+      "sha256": "e58d3bdf341909c1491434278998dd09da7a579e5ab863e77aeb3abab8a02d6a",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/lib/presentation/access.server.ts",
+      "sha256": "9487e478214956633cc8f8103aabee44de1cb4581851b565a2d09ace44767070",
+      "matchesBuild": true
+    },
+    {
+      "path": "src/lib/presentation/content.server.ts",
+      "sha256": "3d6a28e2a0bb8f194787b1a1bf78ee6648a4000ff3439c837f16d1a7b2d8967b",
+      "matchesBuild": true
+    }
+  ],
+  "publicFilesScanned": 316,
+  "protectedMarkersAbsent": true,
+  "configuration": "inert ci/test; presentation credentials absent"
+}
