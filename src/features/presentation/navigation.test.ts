@@ -7,7 +7,7 @@ test("legacy links resolve to canonical scenes and executive paths choose the ne
     slides: [
       { id: "vitalidade", executive: true },
       { id: "jornada" },
-      { id: "servico" },
+      { id: "perfis" },
       { id: "conversa", executive: true },
     ],
   } as PresentationDeck;

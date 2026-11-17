@@ -85,7 +85,7 @@ function Slide({
   const [selected, setSelected] = useState<PresentationCard | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const Heading = continuous ? "h2" : "h1";
-  const dark = slide.kind === "hero" || slide.kind === "closing";
+  const dark = slide.kind === "hero" || slide.kind === "closing" || slide.kind === "transition";
   const panel =
     selected?.detail ??
     (selected
@@ -102,7 +102,8 @@ function Slide({
       className={
         "presentation-slide presentation-slide--" +
         slide.kind +
-        (dark ? " presentation-slide--dark" : "")
+        (dark ? " presentation-slide--dark" : "") +
+        (continuous ? " presentation-slide--continuous" : "")
       }
       aria-labelledby={"titulo-" + slide.id}
     >
@@ -118,64 +119,66 @@ function Slide({
             {slide.title}
           </Heading>
           <p className="presentation-summary">{slide.summary}</p>
-          <div className="presentation-slide-actions">
-            {slide.kind === "closing" && (
-              <a
-                href={contact.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="presentation-button presentation-button--gold"
+          {slide.kind !== "transition" && (
+            <div className="presentation-slide-actions">
+              {slide.kind === "closing" && (
+                <a
+                  href={contact.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="presentation-button presentation-button--gold"
+                >
+                  {contact.label}
+                  <ArrowRight size={18} />
+                </a>
+              )}
+              <Dialog
+                open={open}
+                onOpenChange={(value) => {
+                  setOpen(value);
+                  if (value) {
+                    setSelected(null);
+                    trigger.current = null;
+                  }
+                }}
               >
-                {contact.label}
-                <ArrowRight size={18} />
-              </a>
-            )}
-            <Dialog
-              open={open}
-              onOpenChange={(value) => {
-                setOpen(value);
-                if (value) {
-                  setSelected(null);
-                  trigger.current = null;
-                }
-              }}
-            >
-              <DialogTrigger className="presentation-detail-button">
-                <BookOpen size={18} aria-hidden="true" />
-                {slide.detailCta}
-                <ChevronRight size={18} aria-hidden="true" />
-              </DialogTrigger>
-              <PresentationModal returnFocus={trigger.current}>
-                <DialogTitle className="presentation-panel-title">{panel.title}</DialogTitle>
-                <DialogDescription className="presentation-panel-introduction">
-                  {panel.introduction}
-                </DialogDescription>
-                <div className="presentation-panel-grid">
-                  {panel.blocks.map((card) => (
-                    <PresentationCardView key={card.label} card={card} />
-                  ))}
-                </div>
-                {panel.sources && (
-                  <div className="presentation-sources">
-                    <h3>Para conhecer a ciência</h3>
-                    {panel.sources.map((source) => (
-                      <a
-                        key={source.href}
-                        href={source.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {source.label}
-                        <ExternalLink size={15} aria-hidden="true" />
-                        <span className="sr-only"> (abre em outra aba)</span>
-                      </a>
+                <DialogTrigger className="presentation-detail-button">
+                  <BookOpen size={18} aria-hidden="true" />
+                  {slide.detailCta}
+                  <ChevronRight size={18} aria-hidden="true" />
+                </DialogTrigger>
+                <PresentationModal returnFocus={trigger.current}>
+                  <DialogTitle className="presentation-panel-title">{panel.title}</DialogTitle>
+                  <DialogDescription className="presentation-panel-introduction">
+                    {panel.introduction}
+                  </DialogDescription>
+                  <div className="presentation-panel-grid">
+                    {panel.blocks.map((card) => (
+                      <PresentationCardView key={card.label} card={card} />
                     ))}
                   </div>
-                )}
-                <p className="presentation-panel-note">{slide.note}</p>
-              </PresentationModal>
-            </Dialog>
-          </div>
+                  {panel.sources && (
+                    <div className="presentation-sources">
+                      <h3>Para conhecer a ciência</h3>
+                      {panel.sources.map((source) => (
+                        <a
+                          key={source.href}
+                          href={source.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {source.label}
+                          <ExternalLink size={15} aria-hidden="true" />
+                          <span className="sr-only"> (abre em outra aba)</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  <p className="presentation-panel-note">{slide.note}</p>
+                </PresentationModal>
+              </Dialog>
+            </div>
+          )}
           {slide.references && (
             <nav className="presentation-inline-sources" aria-label="Referências deste capítulo">
               {slide.references.map((source) => (
@@ -343,6 +346,7 @@ export function EnterprisePresentation() {
 
   const select = (next: number) => {
     if (!deck || next < 0 || next >= deck.slides.length) return;
+    setNotice("");
     headingFocus.current = true;
     setIndex(next);
     window.history.pushState(null, "", `#${deck.slides[next]!.id}`);

@@ -10,7 +10,7 @@ const aliases: Record<string, string> = {
   evolucao: "transformacao",
   confianca: "servico",
   inicio: "servico",
-  papeis: "servico",
+  papeis: "perfis",
 };
 export function chapterIndex(deck: PresentationDeck, hash: string): number {
   const id = hash.replace(/^#/, "");

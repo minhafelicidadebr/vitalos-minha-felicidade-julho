@@ -16,7 +16,11 @@ import {
   Users,
   Clock3,
 } from "lucide-react";
-import teamPhoto from "@/assets/presentation/team-cherrydeck.jpg";
+import teamPhoto from "@/assets/presentation/v4-hero.jpg";
+import compreenderPhoto from "@/assets/presentation/v4-compreender.jpg";
+import agirPhoto from "@/assets/presentation/v4-agir.jpg";
+import evoluirPhoto from "@/assets/presentation/v4-evoluir.jpg";
+import { ActionTrail, DashboardJourney, IvoMap, RoleExplorer } from "./PresentationExperience";
 import type {
   PresentationCard,
   PresentationIcon,
@@ -225,20 +229,41 @@ export function PresentationVisual({
   slide: PresentationSlide;
   onExplore?: (card: PresentationCard, element?: HTMLButtonElement) => void;
 }) {
+  if (slide.kind === "transition") {
+    const photo = { compreender: compreenderPhoto, agir: agirPhoto, evoluir: evoluirPhoto }[
+      slide.transitionImage!
+    ];
+    const alt = {
+      compreender:
+        "Executivas e colegas de diferentes gerações analisam juntos uma situação de trabalho",
+      agir: "Equipe diversa prepara uma prática em conjunto ao redor de uma mesa",
+      evoluir:
+        "Duas executivas, uma delas de cabelos grisalhos, revisam um documento com seus colegas",
+    }[slide.transitionImage!];
+    return (
+      <figure className="presentation-transition-image">
+        <img src={photo} alt={alt} width="1672" height="941" loading="lazy" />
+      </figure>
+    );
+  }
+  if (slide.kind === "ivo") return <IvoMap slide={slide} />;
+  if (slide.kind === "profiles") return <RoleExplorer slide={slide} onExplore={onExplore} />;
+  if (slide.demoSteps?.length) return <DashboardJourney slide={slide} />;
+  if (slide.kind === "action") return <ActionTrail slide={slide} />;
   if (slide.kind === "hero" || slide.kind === "closing")
     return (
       <figure className="presentation-human">
         <img
-          src={teamPhoto}
-          alt="Pessoas reunidas em torno de um computador, colaborando no trabalho"
-          width="1440"
-          height="960"
+          src={slide.kind === "hero" ? teamPhoto : evoluirPhoto}
+          alt="Executivas e colegas de diferentes idades e tons de pele colaborando em um ambiente de trabalho brasileiro"
+          width="1672"
+          height="941"
           fetchPriority={slide.kind === "hero" ? "high" : undefined}
           loading={slide.kind === "hero" ? "eager" : "lazy"}
         />
         <figcaption>
           <span>Conhecimento que encontra pessoas.</span>
-          <small>Imagem ilustrativa · Cherrydeck / Unsplash</small>
+          <small>Imagem ilustrativa criada para a apresentação</small>
         </figcaption>
         <div className="presentation-human-mark" aria-hidden="true">
           <span>Escutar</span>
@@ -247,8 +272,7 @@ export function PresentationVisual({
         </div>
       </figure>
     );
-  if (slide.id === "trimestre" || slide.id === "jornada" || slide.kind === "action")
-    return <Sequence slide={slide} />;
+  if (slide.id === "trimestre") return <Sequence slide={slide} />;
   if (slide.kind === "learning") return <LearningSample />;
   if (slide.kind === "cycle")
     return (

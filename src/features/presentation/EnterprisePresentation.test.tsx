@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { EnterprisePresentation } from "./EnterprisePresentation";
 import type { PresentationDeck, PresentationReply } from "./types";
+import { getPresentationDeck } from "@/lib/presentation/content.server";
 
 const originalFetch = globalThis.fetch;
 const fixture: PresentationDeck = {
@@ -34,6 +35,39 @@ afterEach(() => {
 });
 
 describe("enterprise presentation experience", () => {
+  test("profile-specific panel uses the selected role and returns focus to its exploration button", async () => {
+    window.location.hash = "perfis";
+    fakeFetch(() => ({ state: "ready", deck: getPresentationDeck(), ttlMs: 100_000 }));
+    render(<EnterprisePresentation />);
+    await screen.findByRole("heading", {
+      name: "Cada pessoa participa. Cada acesso tem um propósito.",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Coordenação / RH" }));
+    const trigger = screen.getByRole("button", { name: "Explorar este perfil" });
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByRole("heading", { name: "Coordenação / RH na jornada Q2" }),
+    ).toBeDefined();
+    expect(within(dialog).getByText("Escopo da própria empresa")).toBeDefined();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Fechar painel" }));
+    await waitFor(() => expect(document.activeElement === trigger).toBe(true));
+  });
+  test("chapter transitions introduce content without an empty panel or additional entry action", async () => {
+    window.location.hash = "movimento";
+    fakeFetch(() => ({ state: "ready", deck: getPresentationDeck(), ttlMs: 100_000 }));
+    render(<EnterprisePresentation />);
+    const heading = await screen.findByRole("heading", {
+      name: "O conhecimento ganha vida na prática.",
+    });
+    const chapter = heading.closest("article")!;
+    expect(within(chapter).queryByRole("button")).toBeNull();
+    expect(within(chapter).getByRole("img", { name: /Equipe diversa/ })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Próximo slide" }));
+    expect(
+      screen.getByRole("heading", { name: "Cada pessoa participa. Cada acesso tem um propósito." }),
+    ).toBeDefined();
+  });
   test("fullscreen refusal leaves the scene usable and offers a clear recovery message", async () => {
     fakeFetch(() => ({ state: "ready", deck: fixture, ttlMs: 100_000 }));
     render(<EnterprisePresentation />);
@@ -51,6 +85,11 @@ describe("enterprise presentation experience", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Próximo slide" }));
     expect(screen.getByRole("heading", { name: "Fixture slide 2" })).toBeDefined();
+    expect(
+      screen.queryByText(
+        "Tela cheia indisponível neste navegador. Continue explorando nesta janela.",
+      ),
+    ).toBeNull();
   });
   test("fullscreen state follows browser events while portals remain descendants of its root", async () => {
     fakeFetch(() => ({ state: "ready", deck: fixture, ttlMs: 100_000 }));

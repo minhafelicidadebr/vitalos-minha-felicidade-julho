@@ -1,0 +1,145 @@
+{
+  "recordedAt": "2026-11-17T11:17:32.531Z",
+  "scope": "isolated-local-no-database",
+  "base": "http://localhost:8093",
+  "build": "C:\\Users\\FIB2030\\claude code\\vitalos-ivo-fibt-foundation\\.institutional-admin.local\\module-build-1794914187149",
+  "results": [
+    {
+      "check": "normal local password login",
+      "passed": true
+    },
+    {
+      "check": "authenticated V4 has 20 scenes and nine executive scenes",
+      "passed": true
+    },
+    {
+      "check": "all five V4 additions are served",
+      "passed": true
+    },
+    {
+      "check": "dashboard demo carries origin and prospective review",
+      "passed": true
+    },
+    {
+      "check": "build destination belongs to isolated harness",
+      "passed": true
+    },
+    {
+      "check": "all 11 runtime sources and assets match served and compiled copies",
+      "passed": true
+    }
+  ],
+  "sources": [
+    {
+      "file": "src/features/presentation/EnterprisePresentation.tsx",
+      "sha256": "a6d0141c085884a564adb940e88004431bde8c9de7498ece9b525d3b69a4084b",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/PresentationVisual.tsx",
+      "sha256": "9e8f1e886130ceb7d06d3752ed109f2a32c119d137291050b90640cbc3d8e094",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/PresentationExperience.tsx",
+      "sha256": "036bb4bcb60bbb046681fe7479e7fb528414f7dc56fc7ea042b9edf07e16f946",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/presentation.css",
+      "sha256": "48b833bc84f38998005e3fdd32bddda3a0267c7effdf7b89086aa3bb976b87c6",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/navigation.ts",
+      "sha256": "9739fdfe6af6193be3a4a595d7fe6acdc1780aa6ad5fa7fe976f2f47c2602c6f",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/types.ts",
+      "sha256": "23686028a2c663ddcf8fa3e3af15bd2791c7b337601b84838de3edd46e5a77e7",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/lib/presentation/content.server.ts",
+      "sha256": "11a642b60528edad413201073af32d0dd4ef79d21add428b4d9fac0f9418af58",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/assets/presentation/v4-hero.jpg",
+      "sha256": "ba3a83ac50525be7952b2acb50f2f5d9ce2d308bc2cf2648bf92674e462ae01e",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/assets/presentation/v4-compreender.jpg",
+      "sha256": "9a6ca9a7c36d81b07d66c4abbf5f083ce266aec34d13c4f86a8098caefbf8f86",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/assets/presentation/v4-agir.jpg",
+      "sha256": "70aa435f78341fa4fc66132e834aca63ae231ee6a8017b09d3bd7e2de756db3c",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    },
+    {
+      "file": "src/assets/presentation/v4-evoluir.jpg",
+      "sha256": "91a5d83651f18d4460c011b66227ab06308cafe2feed0aa16ec7d38e020faaed",
+      "servedCopyMatches": true,
+      "builtCopyMatches": true
+    }
+  ],
+  "responseBytes": 45954,
+  "assets": {
+    "v3": [
+      {
+        "file": "apresentacao-XUweNYua.css",
+        "bytes": 28299
+      },
+      {
+        "file": "apresentacao.empresas-Dmo4ksfj.js",
+        "bytes": 27970
+      },
+      {
+        "file": "team-cherrydeck-DzhWdO04.jpg",
+        "bytes": 177437
+      }
+    ],
+    "v4": [
+      {
+        "file": "apresentacao-B0sts1er.css",
+        "bytes": 36374
+      },
+      {
+        "file": "apresentacao.empresas-Btb2jdzH.js",
+        "bytes": 33580
+      },
+      {
+        "file": "v4-agir-CSxnExtV.jpg",
+        "bytes": 255595
+      },
+      {
+        "file": "v4-compreender--XfHf984.jpg",
+        "bytes": 228725
+      },
+      {
+        "file": "v4-evoluir-QCPSUQ-1.jpg",
+        "bytes": 250780
+      },
+      {
+        "file": "v4-hero-CpekPCHC.jpg",
+        "bytes": 221134
+      }
+    ]
+  },
+  "preservedRootOutput": true,
+  "secretsRecorded": false
+}

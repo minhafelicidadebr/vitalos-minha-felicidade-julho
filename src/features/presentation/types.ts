@@ -13,6 +13,9 @@ export type VisualKind =
   | "report"
   | "trust"
   | "onboarding"
+  | "transition"
+  | "ivo"
+  | "profiles"
   | "closing";
 export type PresentationIcon =
   | "heart"
@@ -55,6 +58,12 @@ export interface PresentationMetric {
   prefix?: string;
   decimals?: number;
 }
+export interface PresentationDemoStep {
+  area: "Medir" | "Agir" | "Provar";
+  title: string;
+  summary: string;
+  fields: { label: string; value: string }[];
+}
 export interface PresentationSlide {
   id: string;
   chapter: string;
@@ -69,6 +78,8 @@ export interface PresentationSlide {
   references?: PresentationSource[];
   executive?: boolean;
   metrics?: PresentationMetric[];
+  transitionImage?: "compreender" | "agir" | "evoluir";
+  demoSteps?: PresentationDemoStep[];
 }
 export interface PresentationDeck {
   edition: string;

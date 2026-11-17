@@ -1,4 +1,4 @@
-// Canonical V3 editorial content. Returned only by the authenticated presentation API.
+// Canonical V4 editorial content. Returned only by the authenticated presentation API.
 import type {
   PresentationCard,
   PresentationDeck,
@@ -97,6 +97,26 @@ const s = (
   note,
   executive,
   references,
+});
+const transition = (
+  id: string,
+  chapter: string,
+  title: string,
+  summary: string,
+  image: NonNullable<PresentationSlide["transitionImage"]>,
+): PresentationSlide => ({
+  ...s(
+    id,
+    chapter,
+    title,
+    summary,
+    "transition",
+    [],
+    "",
+    detail(title, summary, []),
+    "Imagem ilustrativa criada para a apresentação · pessoas e empresa fictícias.",
+  ),
+  transitionImage: image,
 });
 
 export function getPresentationDeck(): PresentationDeck {
@@ -396,6 +416,13 @@ export function getPresentationDeck(): PresentationDeck {
       true,
       [refs.burnout, refs.retention],
     ),
+    transition(
+      "compreender",
+      "01 / Compreender",
+      "Conhecer o contexto abre novas possibilidades.",
+      "Ciência e escuta para formular perguntas melhores.",
+      "compreender",
+    ),
     s(
       "ciclo",
       "O ecossistema VitalOS",
@@ -410,6 +437,67 @@ export function getPresentationDeck(): PresentationDeck {
         cycle,
       ),
       "O ciclo organiza o serviço e suas entregas conforme o escopo combinado.",
+      true,
+    ),
+    s(
+      "ivo",
+      "Uma bússola para o desenvolvimento",
+      "IVO: compreender o presente e acompanhar o percurso.",
+      "O Índice de Vitalidade Organizacional articula as leituras do ciclo em quatro perspectivas. Prioridades, aprendizagem e ações ganham contexto para a próxima decisão.",
+      "ivo",
+      [
+        c(
+          "Quatro lentes",
+          "Perguntas complementares",
+          "Q1 COPSOQ · Q2 FIB-T · Q3 PERMA+V · Q4 VIA-T. Cada lente mantém sua identidade e seu estágio de desenvolvimento.",
+          "chart",
+        ),
+        c(
+          "Quatro perspectivas",
+          "EU · NÓS · LIDERANÇA · ORGANIZAÇÃO",
+          "Uma estrutura para conversar sobre experiência individual, relações, liderança e condições organizacionais.",
+          "users",
+        ),
+        c(
+          "Acompanhamento",
+          "Da leitura à revisão",
+          "Uma prioridade orienta aprendizagem e aplicação. O registro da ação e uma nova leitura permitem examinar o percurso.",
+          "compass",
+          "Índice composto em desenvolvimento metodológico",
+        ),
+      ],
+      "Como as ações se conectam ao IVO?",
+      detail(
+        "Uma bússola com rastreabilidade",
+        "O valor está em conectar informação, decisões e revisão. O acompanhamento de uma ação documenta o percurso; a mudança nos resultados é uma pergunta de avaliação.",
+        [
+          c(
+            "Ponto de partida",
+            "Guardar a referência",
+            "Identificar lente, período e população da leitura que orientou a prioridade.",
+            "chart",
+          ),
+          c(
+            "Ação verificável",
+            "Reconstituir o que foi feito",
+            "Registrar responsável, condições, ocorrência, origem da evidência e aprendizagem.",
+            "file",
+          ),
+          c(
+            "Evolução",
+            "Comparar com critério",
+            "Uma nova leitura precisa de condições comparáveis para examinar mudanças. Execução, efeito e causalidade são interpretações distintas.",
+            "compass",
+          ),
+          c(
+            "Método",
+            "Preservar o significado das lentes",
+            "Mapeamentos entre lentes e dimensões e fórmula composta seguem em desenvolvimento. Concluir ações não adiciona pontos ao IVO.",
+            "shield",
+          ),
+        ],
+      ),
+      "Estrutura IVO 4×4 · acompanhamento de ações e avaliação de resultados com registros próprios.",
       true,
     ),
     s(
@@ -646,11 +734,178 @@ export function getPresentationDeck(): PresentationDeck {
       false,
       [refs.heineken, refs.brazil],
     ),
+    transition(
+      "movimento",
+      "02 / Colocar em movimento",
+      "O conhecimento ganha vida na prática.",
+      "Pessoas, aprendizagem e acordos que encontram o cotidiano.",
+      "agir",
+    ),
+    s(
+      "perfis",
+      "Pessoas & responsabilidades",
+      "Cada pessoa participa. Cada acesso tem um propósito.",
+      "Direção apoia. Coordenação organiza. Lideranças criam condições. Pessoas dão sentido à experiência. Conheça a participação de cada perfil na jornada empresarial.",
+      "profiles",
+      [
+        c(
+          "Direção",
+          "Dar direção e sustentar as condições",
+          "Definir finalidade, apoiar a jornada e revisar as decisões institucionais.",
+          "building",
+          "Papel no serviço · visão ilustrativa",
+          detail(
+            "Direção / patrocínio institucional",
+            "O compromisso da direção sustenta as condições de participação e continuidade.",
+            [
+              c(
+                "Participação",
+                "Priorizar e apoiar",
+                "Combinar finalidade, recursos e momentos de revisão da jornada.",
+                "target",
+              ),
+              c(
+                "Informação",
+                "Síntese institucional",
+                "Discutir resultados coletivos e o percurso acordado, conforme escopo e privacidade.",
+                "file",
+              ),
+              c(
+                "Situação",
+                "Papel no serviço",
+                "Esta apresentação ilustra a participação da direção; não concede um novo perfil de acesso.",
+                "shield",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Coordenação / RH",
+          "Orquestrar o ciclo",
+          "Articular leitura, aprendizagem, plano de ação e revisão do percurso.",
+          "compass",
+          "Jornada Q2 demonstrada localmente",
+          detail(
+            "Coordenação / RH na jornada Q2",
+            "A coordenação institucional conecta os contratos existentes de leitura, educação e acompanhamento.",
+            [
+              c(
+                "Participação",
+                "Conectar as etapas",
+                "Consultar a leitura coletiva, preparar a aprendizagem e acompanhar os acordos.",
+                "book",
+              ),
+              c(
+                "Informação",
+                "Escopo da própria empresa",
+                "Acessar os módulos habilitados e os registros institucionais autorizados da empresa vinculada.",
+                "lock",
+              ),
+              c(
+                "Situação",
+                "Ensaio Q2 local",
+                "A jornada institucional foi exercitada com empresas fictícias. Habilitar a plataforma é uma atribuição separada.",
+                "check",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Lideranças",
+          "Criar espaço para a prática",
+          "Apoiar conversas, combinar condições e retomar a experiência com a equipe.",
+          "users",
+          "Participação no serviço · interface demonstrativa",
+          detail(
+            "Lideranças / condições de aplicação",
+            "Liderar a aplicação exige tempo, apoio e uma pergunta útil à equipe.",
+            [
+              c(
+                "Participação",
+                "Apoiar o cotidiano",
+                "Combinar tempo, suporte e revisão de uma prática com a equipe.",
+                "users",
+              ),
+              c(
+                "Informação",
+                "Contexto coletivo",
+                "Discutir a síntese pertinente ao grupo; respostas individuais não integram esse exemplo de gestão.",
+                "shield",
+              ),
+              c(
+                "Situação",
+                "Interface demonstrativa",
+                "As telas de liderança não representam uma jornada institucional equivalente à coordenação Q2 já exercitada.",
+                "compass",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Pessoas participantes",
+          "Aprender e contribuir",
+          "Participar da escuta, explorar conteúdos e contribuir com a revisão das práticas.",
+          "heart",
+          "Academia implementada · ciclo Q2 a validar",
+          detail(
+            "Pessoas participantes / voz e aprendizagem",
+            "A experiência precisa de propósito compreensível e condições reais para participar.",
+            [
+              c(
+                "Participação",
+                "Escutar, aprender e experimentar",
+                "Contribuir com a leitura e com atividades de aprendizagem no escopo combinado.",
+                "book",
+              ),
+              c(
+                "Informação",
+                "Sua experiência",
+                "Consultar seu progresso na Academia. Atividades e privacidade seguem o escopo de cada jornada.",
+                "lock",
+              ),
+              c(
+                "Situação",
+                "Academia com progresso pessoal",
+                "Há uma área institucional de aprendizagem com progresso pessoal. A jornada Q2 completa deste perfil ainda precisa de validação específica.",
+                "compass",
+              ),
+            ],
+          ),
+        ),
+      ],
+      "Como participação e acesso se organizam?",
+      detail(
+        "Papéis que se complementam",
+        "O serviço distribui responsabilidades. O sistema aplica as permissões de cada vínculo e dos módulos habilitados.",
+        [
+          c(
+            "Plataforma",
+            "Habilitar a empresa",
+            "A autoridade da plataforma emite convites e configura módulos; não se confunde com a administração de uma empresa.",
+            "lock",
+          ),
+          c(
+            "Empresa",
+            "Coordenar a jornada",
+            "O administrador aceita o convite com sua identidade e atua dentro da empresa vinculada.",
+            "building",
+          ),
+          c(
+            "Participação",
+            "Respeitar o escopo",
+            "Os papéis no serviço ilustram responsabilidades. A disponibilização das telas depende da implementação e do escopo de acesso.",
+            "users",
+          ),
+        ],
+      ),
+      "Mapa de participação no serviço · estágios de implementação identificados por perfil.",
+      true,
+    ),
     s(
       "jornada",
       "Sua equipe na prática",
-      "Uma leitura. Uma conversa. Um acordo possível.",
-      "Na empresa fictícia Alfa, a equipe quer melhorar suas condições para pedir ajuda. Acompanhe como uma pergunta pode atravessar o ciclo.",
+      "Do resultado à prática. Acompanhe pelo dashboard.",
+      "Na Alfa fictícia, a coordenação conecta leitura, aprendizagem e uma prática de equipe. Explore Medir, Agir e Provar para acompanhar o mesmo exemplo.",
       "reading",
       [
         c(
@@ -765,13 +1020,28 @@ export function getPresentationDeck(): PresentationDeck {
       "Acordos ganham continuidade quando têm responsáveis, condições e momentos de revisão. A experiência gera registros para aprender e decidir.",
       "action",
       [
-        c("Acordo", "Uma prática viável", "Definir o que a equipe quer experimentar.", "target"),
-        c("Condições", "Tempo e apoio", "Combinar recursos e responsabilidade.", "building"),
-        c("Aplicação", "Registrar o que ocorreu", "Documentar execução e barreiras.", "check"),
         c(
-          "Revisão",
-          "Aprender e ajustar",
-          "Retomar a experiência e decidir como continuar.",
+          "Acordo",
+          "Combinar como pedir apoio",
+          "Alfa fictícia · experimentar uma conversa de equipe para combinar pedidos de ajuda.",
+          "target",
+        ),
+        c(
+          "Responsável & condições",
+          "Coordenação da equipe",
+          "Reservar 20 minutos; participação voluntária, com opção de passar a vez.",
+          "building",
+        ),
+        c(
+          "Registro de execução",
+          "Descrever a ocorrência",
+          "Exemplo: a coordenação relata a conversa realizada. Origem: registro fictício da coordenação; revisão após a primeira aplicação.",
+          "file",
+        ),
+        c(
+          "Aprendizagem & revisão",
+          "O que retomar no próximo encontro?",
+          "Exemplo: tornar o pedido mais claro. Nova leitura a realizar; resultado de bem-estar ainda não avaliado.",
           "compass",
         ),
       ],
@@ -801,6 +1071,13 @@ export function getPresentationDeck(): PresentationDeck {
         ],
       ),
       "Exemplo de acompanhamento · execução, aprendizagem e avaliação têm registros próprios.",
+    ),
+    transition(
+      "percurso",
+      "03 / Aprender com o percurso",
+      "Cada experiência pode orientar a próxima decisão.",
+      "Registros, revisão e continuidade para a gestão.",
+      "evoluir",
     ),
     s(
       "relatorio",
@@ -934,8 +1211,82 @@ export function getPresentationDeck(): PresentationDeck {
   ];
   slides.find((s) => s.id === "contexto")!.metrics = presentationStatistics("context");
   slides.find((s) => s.id === "valor")!.metrics = presentationStatistics("benefits");
+  slides.find((s) => s.id === "jornada")!.demoSteps = [
+    {
+      area: "Medir",
+      title: "Ler o contexto",
+      summary: "Uma leitura coletiva abre uma pergunta sobre condições de trabalho.",
+      fields: [
+        {
+          label: "Origem",
+          value: "Leitura Q2 FIB-T ilustrativa da Alfa; nenhum escore real nesta simulação.",
+        },
+        { label: "Prioridade", value: "O que facilitaria pedir apoio nesta equipe?" },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Preparar a aprendizagem",
+      summary: "A coordenação explora uma unidade e uma atividade antes de combinar a aplicação.",
+      fields: [
+        {
+          label: "Repertório",
+          value: "Interpretar o coletivo, tentar uma resposta e receber feedback.",
+        },
+        {
+          label: "Aplicação",
+          value: "Preparar uma conversa, respeitando privacidade e participação.",
+        },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Combinar a prática",
+      summary: "O plano dá forma à aplicação: uma prática com responsável e condições.",
+      fields: [
+        { label: "Ação", value: "Combinar como pedir ajuda no cotidiano da equipe." },
+        { label: "Responsável", value: "Coordenação da equipe fictícia." },
+        {
+          label: "Condições",
+          value: "20 minutos; participação voluntária e opção de passar a vez.",
+        },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Registrar e revisar",
+      summary: "Execução e aprendizagem têm registros próprios para retomar o combinado.",
+      fields: [
+        {
+          label: "Ocorrência / origem",
+          value: "Conversa realizada, segundo registro fictício da coordenação.",
+        },
+        {
+          label: "Aprendizagem",
+          value: "Experimentar uma formulação mais clara para o pedido de apoio.",
+        },
+        { label: "Revisão", value: "Após a primeira aplicação. Nova leitura a realizar." },
+      ],
+    },
+    {
+      area: "Provar",
+      title: "Organizar o percurso",
+      summary:
+        "Uma síntese reúne a origem da prioridade, a aplicação e o que ainda precisa ser avaliado.",
+      fields: [
+        {
+          label: "Relatório ilustrativo",
+          value: "Contexto → aprendizagem → ação → registro → revisão.",
+        },
+        {
+          label: "Resultado",
+          value: "Execução descrita; mudança no bem-estar depende de nova avaliação.",
+        },
+      ],
+    },
+  ];
   return {
-    edition: "VitalOS para empresas · nova apresentação · novembro 2026",
+    edition: "VitalOS para empresas · edição V4 · novembro 2026",
     contact: {
       label: "Conversar sobre minha empresa",
       href: "https://www.felicidadeparatodos.com.br/#contato",

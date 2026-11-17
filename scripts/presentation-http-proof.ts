@@ -71,8 +71,8 @@ const cookie = header.split(";")[0]!;
 const content = await call("GET", { cookie });
 const payload = (await content.json()) as { state?: string; deck?: { slides?: unknown[] } };
 check(
-  "authenticated API delivers 15 V3 scenes",
-  content.ok && payload.state === "ready" && payload.deck?.slides?.length === 15,
+  "authenticated API delivers 20 V4 scenes",
+  content.ok && payload.state === "ready" && payload.deck?.slides?.length === 20,
 );
 check("logout is accepted", (await call("DELETE", { cookie })).ok);
 check("old cookie cannot read after logout", (await call("GET", { cookie })).status === 401);
@@ -90,7 +90,7 @@ check(
 );
 mkdirSync("docs/vitalos/artifacts", { recursive: true });
 writeFileSync(
-  "docs/vitalos/artifacts/PRESENTATION_V3_HTTP_2026-11-17.json",
+  "docs/vitalos/artifacts/PRESENTATION_V4_HTTP_2026-11-17.json",
   JSON.stringify(
     {
       recordedAt: new Date().toISOString(),

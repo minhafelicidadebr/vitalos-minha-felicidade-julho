@@ -1,5 +1,13 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
 
+## Apresentação empresarial V4 — 2026-11-17
+
+Base `840e1c3` preservada. Executado o superprompt aprovado: **20 cenas / 9 executivas**, três transições com imagens ilustrativas de diversidade brasileira, explicação própria do IVO, explorador de quatro perfis, mini-dashboard Medir/Agir/Provar e acompanhamento rastreável da Alfa fictícia. Perfis distinguem coordenação Q2, Academia institucional existente e interfaces demonstrativas. Cálculo composto, eficácia, metodologia e autorização permanecem nos contratos existentes.
+
+**Gate final: 4.424 pass / 0 fail**, 353 arquivos, 13.932 asserções; paridade, TypeScript, secret-scan, lint e build inerte aprovados. Seis conferências focadas de conteúdo/fontes HTTP; 11 arquivos iguais entre workspace, build e cópia servida. Login normal, painéis/foco, etapas da jornada e percurso executivo demonstrados no navegador. Vinte layouts medidos sem overflow em sete viewports; **captura mobile bloqueada por timeout, fullscreen nativo não demonstrado**. Provas de autenticação V3 e banco reutilizadas, sem repetição desnecessária. Sem CI/staging/deploy novo; `.q.out` e `.q.sql` intocados.
+
+Fechamento e mapa de estágios: [APRESENTACAO_EMPRESARIAL_V4_FECHAMENTO_2026-11-17.md](APRESENTACAO_EMPRESARIAL_V4_FECHAMENTO_2026-11-17.md). Próxima ação única: concluir conferência visual mobile e fullscreen nativo, reutilizando os checks válidos. Seções abaixo são históricas.
+
 ## Nova apresentação empresarial V3 — 2026-11-17
 
 Base `b1227f8` preservada. Implementadas 15 cenas e percurso executivo de 7; nova narrativa, fotografia real, fichas científicas, trimestre/jornada interativos, exemplo didático e relatório. Números selecionados da mensagem do usuário conferidos em fontes diretas, registrados por superfície no registry 1.1.0; oito claims antigos e sete entradas públicas preservados. Portais dentro da raiz de fullscreen e rolagem própria, com testes de estado.
