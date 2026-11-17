@@ -46,10 +46,17 @@ function assertValidDate(field: string, claimId: string, value: string): void {
 export function validateCommercialClaimsRegistry(
   raw: unknown,
 ): CommercialClaimsRegistryFile {
-  const ajv = new Ajv({ allErrors: true, strict: false });
-  const validate = ajv.compile(registrySchema);
-  if (!validate(raw)) {
-    const messages = (validate.errors ?? [])
+  // Ajv compiles schemas with `new Function`, which the production server runtime
+  // forbids (EvalError). There the schema check is skipped; the same JSON is
+  // schema-validated in tests/CI and the manual checks below still run.
+  let validate: ReturnType<Ajv["compile"]> | null = null;
+  try {
+    validate = new Ajv({ allErrors: true, strict: false }).compile(registrySchema);
+  } catch (error) {
+    if (!(error instanceof EvalError)) throw error;
+  }
+  if (validate && !validate(raw)) {
+    const messages = (validate!.errors ?? [])
       .map((e) => `${e.instancePath || "/"} ${e.message}`)
       .join("; ");
     throw new Error(`[commercial-claims-registry] schema inválido: ${messages}`);
