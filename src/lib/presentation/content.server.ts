@@ -1,0 +1,1296 @@
+// Canonical V4 editorial content. Returned only by the authenticated presentation API.
+import type {
+  PresentationCard,
+  PresentationDeck,
+  PresentationDetail,
+  PresentationSlide,
+  PresentationSource,
+} from "@/features/presentation/types";
+import { presentationStatistics } from "./statistics.server";
+
+const source = (label: string, href: string): PresentationSource => ({ label, href });
+const refs = {
+  who: source(
+    "OMS · saúde mental no trabalho",
+    "https://www.who.int/news-room/fact-sheets/detail/mental-health-at-work",
+  ),
+  burnout: source(
+    "Gallup · bem-estar e burnout · 2019",
+    "https://www.gallup.com/workplace/268211/strategies-hospital-leaders-rounding-right.aspx",
+  ),
+  retention: source(
+    "Gallup · engajamento e rotatividade · 2017",
+    "https://news.gallup.com/businessjournal/204488/disrupting-hiring-process-part-two.aspx",
+  ),
+  playbook: source(
+    "World Wellbeing Movement · Playbook 2.0",
+    "https://worldwellbeingmovement.org/playbook-2025/",
+  ),
+  copsoq: source("COPSOQ International Network", "https://www.copsoq-network.org/"),
+  perma: source(
+    "Martin Seligman · Universidade da Pensilvânia",
+    "https://ppc.sas.upenn.edu/sites/default/files/permawellbeing.pdf",
+  ),
+  profiler: source(
+    "Butler e Kern · PERMA-Profiler",
+    "https://internationaljournalofwellbeing.org/index.php/ijow/article/view/526",
+  ),
+  via: source("VIA Institute · Peterson e Seligman", "https://www.viacharacter.org/faq"),
+  gnh: source(
+    "ONU · referência à Felicidade Interna Bruta do Butão",
+    "https://sdgs.un.org/partnerships/gross-national-happiness-index",
+  ),
+  heineken: source(
+    "Heineken Brasil · felicidade e positividade",
+    "https://www.heinekenbrasil.com.br/noticias/felicidade-x-positividade",
+  ),
+  brazil: source(
+    "Você RH · Jornada da Felicidade · 2026",
+    "https://vocerh.abril.com.br/melhores-empresas/conheca-os-cases-vencedores-de-futuro-do-bem-estar-no-premio-da-voce-rh/",
+  ),
+  sdg3: source("ONU · ODS 3: saúde e bem-estar", "https://sdgs.un.org/goals/goal3"),
+  sdg8: source("ONU · ODS 8: trabalho decente", "https://sdgs.un.org/goals/goal8"),
+};
+const c = (
+  label: string,
+  title: string,
+  body: string,
+  icon: PresentationCard["icon"] = "book",
+  status?: string,
+  detail?: PresentationDetail,
+): PresentationCard => ({
+  label,
+  title,
+  body,
+  icon,
+  ...(status ? { status } : {}),
+  ...(detail ? { detail } : {}),
+});
+const detail = (
+  title: string,
+  introduction: string,
+  blocks: PresentationCard[],
+  sources?: PresentationSource[],
+): PresentationDetail => ({ title, introduction, blocks, ...(sources ? { sources } : {}) });
+const s = (
+  id: string,
+  chapter: string,
+  title: string,
+  summary: string,
+  kind: PresentationSlide["kind"],
+  cards: PresentationCard[],
+  detailCta: string,
+  panel: PresentationDetail,
+  note: string,
+  executive = false,
+  references?: PresentationSource[],
+): PresentationSlide => ({
+  id,
+  chapter,
+  eyebrow: chapter,
+  title,
+  summary,
+  kind,
+  cards,
+  detailCta,
+  detail: panel,
+  note,
+  executive,
+  references,
+});
+const transition = (
+  id: string,
+  chapter: string,
+  title: string,
+  summary: string,
+  image: NonNullable<PresentationSlide["transitionImage"]>,
+): PresentationSlide => ({
+  ...s(
+    id,
+    chapter,
+    title,
+    summary,
+    "transition",
+    [],
+    "",
+    detail(title, summary, []),
+    "Imagem ilustrativa criada para a apresentação · pessoas e empresa fictícias.",
+  ),
+  transitionImage: image,
+});
+
+export function getPresentationDeck(): PresentationDeck {
+  const lenses = [
+    c(
+      "Q1 · COPSOQ",
+      "Compreender o trabalho",
+      "Fatores psicossociais e condições que influenciam a experiência de trabalhar.",
+      "shield",
+      "Preparação para implantação",
+      detail(
+        "COPSOQ: olhar para as condições de trabalho",
+        "O Copenhagen Psychosocial Questionnaire integra uma rede internacional de pesquisa sobre fatores psicossociais do trabalho.",
+        [
+          c(
+            "Conceito",
+            "Condições e relações",
+            "Investigar demandas, recursos e aspectos da organização do trabalho.",
+            "building",
+          ),
+          c(
+            "Origem",
+            "Pesquisa internacional",
+            "A rede COPSOQ reúne pesquisadores e equipes nacionais de adaptação e validação.",
+            "file",
+          ),
+          c(
+            "Sua jornada",
+            "Preparar a aplicação",
+            "O escopo brasileiro e sua correspondência documental orientam a preparação de Q1.",
+            "compass",
+          ),
+        ],
+        [refs.copsoq],
+      ),
+    ),
+    c(
+      "Q2 · FIB-T",
+      "Ampliar a leitura",
+      "Bem-estar no trabalho como ponto de partida para prioridades e aprendizagem.",
+      "chart",
+      "Jornada demonstrada localmente",
+      detail(
+        "FIB-T: uma leitura para orientar a conversa",
+        "A lente Q2 conecta leitura coletiva, aprendizagem contextualizada e ações acompanhadas.",
+        [
+          c(
+            "Conceito",
+            "Bem-estar e contexto",
+            "A inspiração na Felicidade Interna Bruta amplia a conversa sobre desenvolvimento.",
+            "heart",
+          ),
+          c(
+            "Instrumento",
+            "Construção específica FIB-T",
+            "A leitura nativa da VitalOS usa seus próprios fatores e regras; sua origem é apresentada no produto.",
+            "file",
+          ),
+          c(
+            "Exemplo disponível",
+            "Aprender e aplicar",
+            "A primeira unidade e atividade Q2 0.1.0 foram aprovadas para o ensaio local.",
+            "book",
+          ),
+        ],
+        [refs.gnh],
+      ),
+    ),
+    c(
+      "Q3 · PERMA+V",
+      "Explorar o bem-estar",
+      "Emoções positivas, engajamento, relações, significado, realização e vitalidade.",
+      "heart",
+      "Etapa prevista",
+      detail(
+        "PERMA: os elementos do bem-estar",
+        "Martin Seligman, referência da psicologia positiva, propôs cinco elementos mensuráveis do bem-estar.",
+        [
+          c(
+            "P · E",
+            "Sentir e se envolver",
+            "Emoções positivas e engajamento nas experiências.",
+            "heart",
+          ),
+          c(
+            "R · M · A",
+            "Conectar, encontrar sentido e realizar",
+            "Relações, significado e realização compõem o modelo.",
+            "users",
+          ),
+          c(
+            "Vitalidade",
+            "Energia para viver e trabalhar",
+            "A proposta ampliada inclui vitalidade; modelo, questionário e adaptação são identificados no desenho da aplicação.",
+            "spark",
+          ),
+        ],
+        [refs.perma, refs.profiler],
+      ),
+    ),
+    c(
+      "Q4 · VIA-T",
+      "Desenvolver forças",
+      "Forças de caráter como repertório para relações e desenvolvimento coletivo.",
+      "spark",
+      "Etapa prevista",
+      detail(
+        "VIA: reconhecer forças e colocá-las em prática",
+        "Christopher Peterson e Martin Seligman desenvolveram a classificação de forças de caráter e virtudes.",
+        [
+          c(
+            "Conceito",
+            "Recursos humanos positivos",
+            "Explorar qualidades como curiosidade, perseverança, gentileza e trabalho em equipe.",
+            "spark",
+          ),
+          c(
+            "Origem",
+            "Classificação VIA",
+            "Uma referência de pesquisa e desenvolvimento humano do VIA Institute.",
+            "file",
+          ),
+          c(
+            "No trabalho",
+            "Conversas de desenvolvimento",
+            "A proposta VIA-T explora forças percebidas no contexto do trabalho, com interpretação própria.",
+            "users",
+          ),
+        ],
+        [refs.via],
+      ),
+    ),
+  ];
+  const cycle = [
+    c(
+      "Mensurar",
+      "Escutar com método",
+      "Uma leitura contextualizada abre uma pergunta útil à gestão.",
+      "chart",
+    ),
+    c(
+      "Educar",
+      "Aprender com propósito",
+      "Repertório e atividades ligados ao contexto da equipe.",
+      "book",
+    ),
+    c(
+      "Transformar",
+      "Combinar uma prática",
+      "Responsabilidade, condições e acompanhamento da aplicação.",
+      "spark",
+    ),
+    c(
+      "Evoluir",
+      "Aprender com o percurso",
+      "Registros e revisão para decidir como continuar.",
+      "compass",
+    ),
+  ];
+  const slides: PresentationSlide[] = [
+    s(
+      "vitalidade",
+      "Pessoas & organizações",
+      "Pessoas que florescem. Organizações que evoluem.",
+      "Ciência, escuta e aprendizagem conectadas para transformar conhecimento em práticas de bem-estar no trabalho.",
+      "hero",
+      [
+        c("Ciência", "Compreender", "Conhecimento para olhar o contexto.", "chart"),
+        c("Aprendizagem", "Desenvolver", "Repertório que encontra a prática.", "book"),
+        c("Continuidade", "Evoluir", "Ações acompanhadas ao longo do ciclo.", "compass"),
+      ],
+      "Conheça a proposta",
+      detail(
+        "Uma jornada de desenvolvimento organizacional",
+        "A VitalOS organiza as conexões entre o que sua empresa escuta, aprende, aplica e acompanha.",
+        [
+          c(
+            "Para a gestão",
+            "Prioridades mais claras",
+            "Ler o contexto e escolher uma pergunta de trabalho.",
+            "target",
+          ),
+          c(
+            "Para as pessoas",
+            "Participação com sentido",
+            "Aprender, discutir e construir acordos possíveis.",
+            "users",
+          ),
+          c(
+            "Para a organização",
+            "Continuidade",
+            "Acompanhar responsáveis, condições e decisões.",
+            "building",
+          ),
+        ],
+      ),
+      "Uma iniciativa do Instituto Felicidade para Todos.",
+      true,
+    ),
+    s(
+      "contexto",
+      "Por que agora",
+      "O custo silencioso merece uma resposta estruturada.",
+      "A saúde mental faz parte da vida organizacional. Carga, autonomia, relações e condições de trabalho são temas de gestão.",
+      "context",
+      [
+        c(
+          "Condições",
+          "Como o trabalho acontece",
+          "Compreender demandas, recursos e possibilidades de participação.",
+          "building",
+        ),
+        c(
+          "Resposta",
+          "Cuidado com continuidade",
+          "Unir escuta, aprendizagem e ação sobre o cotidiano.",
+          "heart",
+        ),
+      ],
+      "Entenda os dados da OMS",
+      detail(
+        "A dimensão global do desafio",
+        "A OMS estima a carga de depressão e ansiedade em dias de trabalho e produtividade perdida.",
+        [
+          c(
+            "Escopo",
+            "Estimativas globais",
+            "Os valores descrevem depressão e ansiedade no mundo, em duas unidades da mesma carga.",
+            "chart",
+          ),
+          c(
+            "Aplicação",
+            "Começar pelo contexto",
+            "A jornada da empresa começa com uma leitura própria e prioridades discutidas com a gestão.",
+            "target",
+          ),
+        ],
+        [refs.who],
+      ),
+      "Estimativas globais sobre depressão e ansiedade · OMS, atualização de 2026.",
+      true,
+      [refs.who],
+    ),
+    s(
+      "valor",
+      "Valor para sua empresa",
+      "Cuidar das pessoas também desenvolve a organização.",
+      "Bem-estar, engajamento e condições de trabalho merecem uma agenda conectada às decisões de gestão. A VitalOS ajuda a organizar essa jornada.",
+      "gaps",
+      [
+        c(
+          "Clareza",
+          "Prioridades com contexto",
+          "Transformar informação dispersa em uma conversa de gestão.",
+          "target",
+        ),
+        c(
+          "Capacidade",
+          "Aprendizagem aplicável",
+          "Preparar pessoas para agir sobre situações do cotidiano.",
+          "book",
+        ),
+        c(
+          "Continuidade",
+          "Acompanhamento visível",
+          "Responsáveis, condições, registros e revisão.",
+          "compass",
+        ),
+      ],
+      "Explore a evidência e as entregas",
+      detail(
+        "Da relevância científica ao valor gerencial",
+        "Pesquisas de bem-estar e engajamento ajudam a compreender por que essa agenda importa. As entregas da VitalOS organizam o trabalho para aplicá-la.",
+        [
+          c(
+            "Bem-estar",
+            "Burnout",
+            "A Gallup relata menor probabilidade de sentir burnout em pessoas que prosperam em quatro ou mais de seus elementos de bem-estar.",
+            "heart",
+          ),
+          c(
+            "Engajamento",
+            "Retenção",
+            "A comparação de rotatividade da Gallup refere-se a unidades engajadas em organizações de baixa rotatividade.",
+            "users",
+          ),
+          c(
+            "Sua empresa",
+            "Acompanhamento combinado",
+            "Definir o que observar e revisar permite aprender com a aplicação no próprio contexto.",
+            "compass",
+          ),
+        ],
+        [refs.burnout, refs.retention],
+      ),
+      "Indicadores de estudos distintos · comparações externas de bem-estar e engajamento.",
+      true,
+      [refs.burnout, refs.retention],
+    ),
+    transition(
+      "compreender",
+      "01 / Compreender",
+      "Conhecer o contexto abre novas possibilidades.",
+      "Ciência e escuta para formular perguntas melhores.",
+      "compreender",
+    ),
+    s(
+      "ciclo",
+      "O ecossistema VitalOS",
+      "Uma escuta ganha força quando encontra o próximo passo.",
+      "Quatro movimentos conectam conhecimento e prática. Explore cada etapa e veja o que ela acrescenta à jornada.",
+      "cycle",
+      cycle,
+      "Explore o ciclo completo",
+      detail(
+        "Mensurar, Educar, Transformar e Evoluir",
+        "Um ciclo contínuo de desenvolvimento, com participação das pessoas e condições criadas pela organização.",
+        cycle,
+      ),
+      "O ciclo organiza o serviço e suas entregas conforme o escopo combinado.",
+      true,
+    ),
+    s(
+      "ivo",
+      "Uma bússola para o desenvolvimento",
+      "IVO: compreender o presente e acompanhar o percurso.",
+      "O Índice de Vitalidade Organizacional articula as leituras do ciclo em quatro perspectivas. Prioridades, aprendizagem e ações ganham contexto para a próxima decisão.",
+      "ivo",
+      [
+        c(
+          "Quatro lentes",
+          "Perguntas complementares",
+          "Q1 COPSOQ · Q2 FIB-T · Q3 PERMA+V · Q4 VIA-T. Cada lente mantém sua identidade e seu estágio de desenvolvimento.",
+          "chart",
+        ),
+        c(
+          "Quatro perspectivas",
+          "EU · NÓS · LIDERANÇA · ORGANIZAÇÃO",
+          "Uma estrutura para conversar sobre experiência individual, relações, liderança e condições organizacionais.",
+          "users",
+        ),
+        c(
+          "Acompanhamento",
+          "Da leitura à revisão",
+          "Uma prioridade orienta aprendizagem e aplicação. O registro da ação e uma nova leitura permitem examinar o percurso.",
+          "compass",
+          "Índice composto em desenvolvimento metodológico",
+        ),
+      ],
+      "Como as ações se conectam ao IVO?",
+      detail(
+        "Uma bússola com rastreabilidade",
+        "O valor está em conectar informação, decisões e revisão. O acompanhamento de uma ação documenta o percurso; a mudança nos resultados é uma pergunta de avaliação.",
+        [
+          c(
+            "Ponto de partida",
+            "Guardar a referência",
+            "Identificar lente, período e população da leitura que orientou a prioridade.",
+            "chart",
+          ),
+          c(
+            "Ação verificável",
+            "Reconstituir o que foi feito",
+            "Registrar responsável, condições, ocorrência, origem da evidência e aprendizagem.",
+            "file",
+          ),
+          c(
+            "Evolução",
+            "Comparar com critério",
+            "Uma nova leitura precisa de condições comparáveis para examinar mudanças. Execução, efeito e causalidade são interpretações distintas.",
+            "compass",
+          ),
+          c(
+            "Método",
+            "Preservar o significado das lentes",
+            "Mapeamentos entre lentes e dimensões e fórmula composta seguem em desenvolvimento. Concluir ações não adiciona pontos ao IVO.",
+            "shield",
+          ),
+        ],
+      ),
+      "Estrutura IVO 4×4 · acompanhamento de ações e avaliação de resultados com registros próprios.",
+      true,
+    ),
+    s(
+      "perspectivas",
+      "O olhar IVO",
+      "Uma organização é feita de experiências que se conectam.",
+      "EU, NÓS, LIDERANÇA e ORGANIZAÇÃO trazem quatro perspectivas para compreender a mesma situação de trabalho.",
+      "perspectives",
+      [
+        c(
+          "EU",
+          "A experiência de cada pessoa",
+          "Como participar, pedir apoio e encontrar sentido?",
+          "heart",
+        ),
+        c("NÓS", "A vida em equipe", "Como cooperar e aprender nas relações?", "users"),
+        c(
+          "LIDERANÇA",
+          "A prática da gestão",
+          "Que decisões criam tempo, clareza e apoio?",
+          "compass",
+        ),
+        c(
+          "ORGANIZAÇÃO",
+          "As condições do sistema",
+          "Que políticas e recursos sustentam o cotidiano?",
+          "building",
+        ),
+      ],
+      "Veja as perspectivas em uma situação",
+      detail(
+        "Uma equipe quer melhorar suas condições para pedir ajuda",
+        "As perspectivas IVO ajudam a formular perguntas complementares sobre pessoas, relações, gestão e organização.",
+        [
+          c("Pessoa", "Participação", "Posso pedir ajuda de uma forma confortável?", "heart"),
+          c("Equipe", "Cooperação", "Como combinamos uma resposta de apoio?", "users"),
+          c("Gestão", "Condições", "Há tempo e clareza para o acordo funcionar?", "compass"),
+          c(
+            "Sistema",
+            "Continuidade",
+            "O acordo encontra apoio em recursos e práticas da organização?",
+            "building",
+          ),
+        ],
+      ),
+      "IVO organiza perspectivas de desenvolvimento; o índice composto é uma construção metodológica específica.",
+    ),
+    s(
+      "lentes",
+      "Fundamento científico",
+      "Quatro lentes. Perguntas que ampliam a compreensão.",
+      "Condições de trabalho, bem-estar e forças humanas compõem uma arquitetura anual de desenvolvimento. Conheça a origem e a contribuição de cada lente.",
+      "lenses",
+      lenses,
+      "Conheça a arquitetura das lentes",
+      detail(
+        "Ciência para olhar o trabalho por diferentes perspectivas",
+        "Cada lente tem uma pergunta, uma referência e um estágio de aplicação. Selecione uma ficha para explorar sua origem.",
+        lenses,
+        [refs.copsoq, refs.gnh, refs.perma, refs.via],
+      ),
+      "Q2 demonstrado localmente · Q1 em preparação · Q3 e Q4 em etapas previstas.",
+      true,
+    ),
+    s(
+      "trimestre",
+      "Uma jornada trimestral",
+      "A cada três meses, um novo olhar. Um ciclo que continua.",
+      "A lente dá o foco do trimestre. Mensuração, aprendizagem, aplicação e revisão se conectam ao longo da jornada.",
+      "onboarding",
+      [
+        c(
+          "Escutar",
+          "Compreender o contexto",
+          "Leitura, interpretação e escolha de uma prioridade.",
+          "chart",
+        ),
+        c(
+          "Desenvolver",
+          "Aprender e preparar a aplicação",
+          "Repertório, atividade e um acordo de trabalho.",
+          "book",
+        ),
+        c(
+          "Acompanhar",
+          "Aplicar, rever e decidir",
+          "Condições, registros e próximos passos.",
+          "compass",
+        ),
+      ],
+      "O que acontece durante o trimestre?",
+      detail(
+        "O tempo da jornada encontra o contexto da empresa",
+        "Esta sequência ilustra a organização do serviço. As atividades se articulam; calendário e entregas são combinados na proposta.",
+        [
+          c(
+            "Início",
+            "Escuta e prioridade",
+            "Preparar participação, interpretar a leitura e discutir um foco.",
+            "chart",
+          ),
+          c(
+            "Desenvolvimento",
+            "Aprendizagem e aplicação",
+            "Trabalhar o tema, combinar recursos e iniciar uma prática.",
+            "book",
+          ),
+          c(
+            "Continuidade",
+            "Acompanhamento e revisão",
+            "Retomar o acordo, registrar barreiras e decidir o próximo ciclo.",
+            "compass",
+          ),
+        ],
+      ),
+      "Sequência ilustrativa de um trimestre; calendário e escopo definidos com a organização.",
+      true,
+    ),
+    s(
+      "ciencia",
+      "Conhecimento aplicável",
+      "A ciência precisa encontrar a realidade do trabalho.",
+      "O Work Wellbeing Playbook 2.0 é uma referência para expandir nossa curadoria de conhecimentos e práticas de bem-estar organizacional.",
+      "trust",
+      [
+        c(
+          "Pesquisa",
+          "World Wellbeing Movement",
+          "Síntese de literatura sobre intervenções no trabalho.",
+          "file",
+        ),
+        c(
+          "Colaboração acadêmica",
+          "Wellbeing Research Centre · Oxford",
+          "Contribuição acadêmica à elaboração do Playbook.",
+          "book",
+        ),
+        c(
+          "Da referência à prática",
+          "Curadoria e aprendizagem",
+          "Contexto, conteúdo e aplicação acompanhada.",
+          "compass",
+        ),
+      ],
+      "Como o conhecimento chega à prática?",
+      detail(
+        "Referências que informam nossa abordagem",
+        "O Playbook reúne pesquisa com apoio do Wellbeing Research Centre da Universidade de Oxford e da Indeed. A curadoria avalia o contexto de cada prática.",
+        [
+          c(
+            "Referência",
+            "Localizar conhecimento",
+            "Identificar autoria, edição e estudos pertinentes ao tema.",
+            "file",
+          ),
+          c(
+            "Interpretação",
+            "Compreender o contexto",
+            "Examinar população, desenho, desfecho e condições de aplicação.",
+            "chart",
+          ),
+          c(
+            "Aprendizagem",
+            "Preparar uma atividade",
+            "Conectar conteúdo, tentativa, feedback e aplicação.",
+            "book",
+          ),
+          c(
+            "Trabalho",
+            "Revisar a experiência",
+            "Acompanhar o que foi combinado e aprendido.",
+            "compass",
+          ),
+        ],
+        [refs.playbook],
+      ),
+      "Playbook 2.0 · referência para expansão da curadoria científica da VitalOS.",
+      false,
+      [refs.playbook],
+    ),
+    s(
+      "caso",
+      "Uma referência brasileira",
+      "Heineken: a felicidade entrou na conversa de gestão.",
+      "A Jornada da Felicidade combina escuta recorrente, PERMA-V e ações sobre a experiência de trabalhar. Um exemplo brasileiro para conhecer e aprender.",
+      "context",
+      [
+        c(
+          "Escuta",
+          "Pesquisas recorrentes",
+          "Perguntas sobre emoções, relações, engajamento, significado e vitalidade.",
+          "chart",
+        ),
+        c(
+          "Prática",
+          "Conversas e ações",
+          "Os resultados orientam mentorias e conversas com as equipes.",
+          "users",
+        ),
+        c(
+          "Reconhecimento",
+          "Jornada premiada",
+          "Programa reconhecido pela Você RH em 2026.",
+          "spark",
+        ),
+      ],
+      "Conheça a experiência brasileira",
+      detail(
+        "Uma agenda empresarial que conecta escuta e ação",
+        "O caso externo é descrito pela Heineken e pela publicação responsável pela premiação. A história mostra práticas e participação ao longo do tempo.",
+        [
+          c(
+            "Abordagem",
+            "PERMA-V",
+            "A companhia descreve os elementos de bem-estar como referência de sua jornada.",
+            "heart",
+          ),
+          c(
+            "Continuidade",
+            "Escuta que orienta conversas",
+            "O relato descreve pesquisas quinzenais e ações orientadas pelos resultados.",
+            "users",
+          ),
+          c(
+            "Aprendizado",
+            "Participação e contexto",
+            "Uma experiência empresarial ajuda a formular perguntas para outros contextos.",
+            "compass",
+          ),
+        ],
+        [refs.heineken, refs.brazil],
+      ),
+      "Heineken Brasil · caso empresarial externo · relato publicado pela Você RH em 2026.",
+      false,
+      [refs.heineken, refs.brazil],
+    ),
+    transition(
+      "movimento",
+      "02 / Colocar em movimento",
+      "O conhecimento ganha vida na prática.",
+      "Pessoas, aprendizagem e acordos que encontram o cotidiano.",
+      "agir",
+    ),
+    s(
+      "perfis",
+      "Pessoas & responsabilidades",
+      "Cada pessoa participa. Cada acesso tem um propósito.",
+      "Direção apoia. Coordenação organiza. Lideranças criam condições. Pessoas dão sentido à experiência. Conheça a participação de cada perfil na jornada empresarial.",
+      "profiles",
+      [
+        c(
+          "Direção",
+          "Dar direção e sustentar as condições",
+          "Definir finalidade, apoiar a jornada e revisar as decisões institucionais.",
+          "building",
+          "Papel no serviço · visão ilustrativa",
+          detail(
+            "Direção / patrocínio institucional",
+            "O compromisso da direção sustenta as condições de participação e continuidade.",
+            [
+              c(
+                "Participação",
+                "Priorizar e apoiar",
+                "Combinar finalidade, recursos e momentos de revisão da jornada.",
+                "target",
+              ),
+              c(
+                "Informação",
+                "Síntese institucional",
+                "Discutir resultados coletivos e o percurso acordado, conforme escopo e privacidade.",
+                "file",
+              ),
+              c(
+                "Situação",
+                "Papel no serviço",
+                "Esta apresentação ilustra a participação da direção; não concede um novo perfil de acesso.",
+                "shield",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Coordenação / RH",
+          "Orquestrar o ciclo",
+          "Articular leitura, aprendizagem, plano de ação e revisão do percurso.",
+          "compass",
+          "Jornada Q2 demonstrada localmente",
+          detail(
+            "Coordenação / RH na jornada Q2",
+            "A coordenação institucional conecta os contratos existentes de leitura, educação e acompanhamento.",
+            [
+              c(
+                "Participação",
+                "Conectar as etapas",
+                "Consultar a leitura coletiva, preparar a aprendizagem e acompanhar os acordos.",
+                "book",
+              ),
+              c(
+                "Informação",
+                "Escopo da própria empresa",
+                "Acessar os módulos habilitados e os registros institucionais autorizados da empresa vinculada.",
+                "lock",
+              ),
+              c(
+                "Situação",
+                "Ensaio Q2 local",
+                "A jornada institucional foi exercitada com empresas fictícias. Habilitar a plataforma é uma atribuição separada.",
+                "check",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Lideranças",
+          "Criar espaço para a prática",
+          "Apoiar conversas, combinar condições e retomar a experiência com a equipe.",
+          "users",
+          "Participação no serviço · interface demonstrativa",
+          detail(
+            "Lideranças / condições de aplicação",
+            "Liderar a aplicação exige tempo, apoio e uma pergunta útil à equipe.",
+            [
+              c(
+                "Participação",
+                "Apoiar o cotidiano",
+                "Combinar tempo, suporte e revisão de uma prática com a equipe.",
+                "users",
+              ),
+              c(
+                "Informação",
+                "Contexto coletivo",
+                "Discutir a síntese pertinente ao grupo; respostas individuais não integram esse exemplo de gestão.",
+                "shield",
+              ),
+              c(
+                "Situação",
+                "Interface demonstrativa",
+                "As telas de liderança não representam uma jornada institucional equivalente à coordenação Q2 já exercitada.",
+                "compass",
+              ),
+            ],
+          ),
+        ),
+        c(
+          "Pessoas participantes",
+          "Aprender e contribuir",
+          "Participar da escuta, explorar conteúdos e contribuir com a revisão das práticas.",
+          "heart",
+          "Academia implementada · ciclo Q2 a validar",
+          detail(
+            "Pessoas participantes / voz e aprendizagem",
+            "A experiência precisa de propósito compreensível e condições reais para participar.",
+            [
+              c(
+                "Participação",
+                "Escutar, aprender e experimentar",
+                "Contribuir com a leitura e com atividades de aprendizagem no escopo combinado.",
+                "book",
+              ),
+              c(
+                "Informação",
+                "Sua experiência",
+                "Consultar seu progresso na Academia. Atividades e privacidade seguem o escopo de cada jornada.",
+                "lock",
+              ),
+              c(
+                "Situação",
+                "Academia com progresso pessoal",
+                "Há uma área institucional de aprendizagem com progresso pessoal. A jornada Q2 completa deste perfil ainda precisa de validação específica.",
+                "compass",
+              ),
+            ],
+          ),
+        ),
+      ],
+      "Como participação e acesso se organizam?",
+      detail(
+        "Papéis que se complementam",
+        "O serviço distribui responsabilidades. O sistema aplica as permissões de cada vínculo e dos módulos habilitados.",
+        [
+          c(
+            "Plataforma",
+            "Habilitar a empresa",
+            "A autoridade da plataforma emite convites e configura módulos; não se confunde com a administração de uma empresa.",
+            "lock",
+          ),
+          c(
+            "Empresa",
+            "Coordenar a jornada",
+            "O administrador aceita o convite com sua identidade e atua dentro da empresa vinculada.",
+            "building",
+          ),
+          c(
+            "Participação",
+            "Respeitar o escopo",
+            "Os papéis no serviço ilustram responsabilidades. A disponibilização das telas depende da implementação e do escopo de acesso.",
+            "users",
+          ),
+        ],
+      ),
+      "Mapa de participação no serviço · estágios de implementação identificados por perfil.",
+      true,
+    ),
+    s(
+      "jornada",
+      "Sua equipe na prática",
+      "Do resultado à prática. Acompanhe pelo dashboard.",
+      "Na Alfa fictícia, a coordenação conecta leitura, aprendizagem e uma prática de equipe. Explore Medir, Agir e Provar para acompanhar o mesmo exemplo.",
+      "reading",
+      [
+        c(
+          "Leitura",
+          "Escolher uma pergunta",
+          "O que facilitaria pedir apoio nesta equipe?",
+          "chart",
+        ),
+        c(
+          "Aprendizagem",
+          "Preparar a conversa",
+          "Compreender a leitura coletiva e os cuidados com a participação.",
+          "book",
+        ),
+        c(
+          "Aplicação",
+          "Combinar uma prática",
+          "Uma forma de pedir ajuda, com tempo e apoio definidos.",
+          "users",
+        ),
+        c(
+          "Revisão",
+          "Retomar o combinado",
+          "O que funcionou? Que condição precisa de ajuste?",
+          "compass",
+        ),
+      ],
+      "Explore as decisões do exemplo",
+      detail(
+        "O percurso ilustrativo da Alfa",
+        "Um exemplo fictício mostra a ligação entre leitura, aprendizagem e trabalho. Nenhum registro é criado na empresa ao explorar esta apresentação.",
+        [
+          c(
+            "Origem",
+            "Leitura publicada",
+            "O contexto ajuda a formular a prioridade; a equipe participa da interpretação.",
+            "chart",
+          ),
+          c(
+            "Desenvolvimento",
+            "Unidade e atividade",
+            "A síntese educativa prepara a aplicação, respeitando privacidade e participação.",
+            "book",
+          ),
+          c(
+            "Gestão",
+            "Acordo e revisão",
+            "Responsável, condições e momento de retomar o acordo.",
+            "compass",
+          ),
+        ],
+      ),
+      "Demonstração ilustrativa · Alfa fictícia · jornada Q2 exercitada localmente.",
+    ),
+    s(
+      "aprendizagem",
+      "Educar para aplicar",
+      "Aprender faz mais sentido quando conversa com o cotidiano.",
+      "Uma leitura abre um tema. Conteúdo e atividade ajudam a compreendê-lo. A aplicação conecta esse repertório ao trabalho.",
+      "learning",
+      [
+        c(
+          "Compreender",
+          "Ler com contexto",
+          "Reconhecer o que uma leitura coletiva permite discutir.",
+          "chart",
+        ),
+        c(
+          "Recuperar",
+          "Tentar antes do feedback",
+          "Formular uma resposta antes de consultar a explicação.",
+          "book",
+        ),
+        c(
+          "Aplicar",
+          "Preparar uma conversa",
+          "Combinar uma prática viável e formas de participação.",
+          "users",
+        ),
+      ],
+      "Conheça o desenho de aprendizagem",
+      detail(
+        "Compreensão, recuperação e transferência",
+        "Síntese da unidade e atividade Q2 0.1.0 aprovadas para o ensaio local. O exemplo da apresentação não substitui a atividade completa.",
+        [
+          c(
+            "Compreensão",
+            "Dar sentido à leitura",
+            "Relacionar resultado, recorte e uma pergunta de trabalho.",
+            "chart",
+          ),
+          c(
+            "Recuperação",
+            "Explicar com suas palavras",
+            "A tentativa ajuda a perceber o que precisa ser revisto.",
+            "book",
+          ),
+          c(
+            "Transferência",
+            "Levar ao cotidiano",
+            "Preparar uma aplicação compatível com tempo, apoio e condições da equipe.",
+            "compass",
+          ),
+        ],
+      ),
+      "Síntese ilustrativa da unidade Q2 0.1.0 · aprovação editorial para ensaio local.",
+    ),
+    s(
+      "transformacao",
+      "Transformar & evoluir",
+      "O que foi combinado merece acompanhamento.",
+      "Acordos ganham continuidade quando têm responsáveis, condições e momentos de revisão. A experiência gera registros para aprender e decidir.",
+      "action",
+      [
+        c(
+          "Acordo",
+          "Combinar como pedir apoio",
+          "Alfa fictícia · experimentar uma conversa de equipe para combinar pedidos de ajuda.",
+          "target",
+        ),
+        c(
+          "Responsável & condições",
+          "Coordenação da equipe",
+          "Reservar 20 minutos; participação voluntária, com opção de passar a vez.",
+          "building",
+        ),
+        c(
+          "Registro de execução",
+          "Descrever a ocorrência",
+          "Exemplo: a coordenação relata a conversa realizada. Origem: registro fictício da coordenação; revisão após a primeira aplicação.",
+          "file",
+        ),
+        c(
+          "Aprendizagem & revisão",
+          "O que retomar no próximo encontro?",
+          "Exemplo: tornar o pedido mais claro. Nova leitura a realizar; resultado de bem-estar ainda não avaliado.",
+          "compass",
+        ),
+      ],
+      "Veja o acompanhamento de uma ação",
+      detail(
+        "Da intenção ao próximo ciclo",
+        "A plataforma organiza o acompanhamento. As pessoas e a gestão criam as condições para a prática acontecer.",
+        [
+          c(
+            "Execução",
+            "O que aconteceu?",
+            "Uma ação pode avançar, encontrar barreiras ou ser interrompida.",
+            "check",
+          ),
+          c(
+            "Aprendizagem",
+            "O que compreendemos?",
+            "Revisar a experiência ajuda a decidir o próximo passo.",
+            "book",
+          ),
+          c(
+            "Avaliação",
+            "Como acompanhar mudanças?",
+            "Critérios e desenho de avaliação são definidos para cada finalidade.",
+            "chart",
+          ),
+        ],
+      ),
+      "Exemplo de acompanhamento · execução, aprendizagem e avaliação têm registros próprios.",
+    ),
+    transition(
+      "percurso",
+      "03 / Aprender com o percurso",
+      "Cada experiência pode orientar a próxima decisão.",
+      "Registros, revisão e continuidade para a gestão.",
+      "evoluir",
+    ),
+    s(
+      "relatorio",
+      "Decisões & prestação de contas",
+      "O percurso vira uma narrativa que a gestão consegue acompanhar.",
+      "O relatório global reúne contexto, aprendizagem, ações e revisão. Uma base organizada para conversar sobre desenvolvimento e temas ESG.",
+      "report",
+      cycle,
+      "Explore o relatório e as conexões ESG",
+      detail(
+        "Uma história do ciclo com evidências",
+        "O relatório organiza o que foi desenvolvido, a origem das informações e os próximos passos da gestão.",
+        [
+          c(
+            "Social",
+            "Bem-estar e trabalho",
+            "Temas de saúde, aprendizagem e condições de trabalho podem dialogar com ODS 3 e 8.",
+            "heart",
+          ),
+          c(
+            "Governança",
+            "Responsabilidade e acompanhamento",
+            "Acordos, decisões e registros contribuem à prestação de contas.",
+            "building",
+          ),
+          c(
+            "Evidências",
+            "Origem e contexto",
+            "A interpretação de impacto depende dos vínculos e critérios específicos de avaliação.",
+            "file",
+          ),
+        ],
+        [refs.sdg3, refs.sdg8],
+      ),
+      "Prévia ilustrativa de relatório · conexões ESG/ODS por tema e evidência.",
+      false,
+      [refs.sdg3, refs.sdg8],
+    ),
+    s(
+      "servico",
+      "Começar com clareza",
+      "Uma jornada assistida, com participação da sua organização.",
+      "Tecnologia organiza. Conhecimento orienta. Pessoas e gestão fazem a aplicação acontecer. O serviço começa pelo seu contexto.",
+      "roles",
+      [
+        c(
+          "Direção",
+          "Definir a prioridade",
+          "Finalidade, apoio institucional e critérios de acompanhamento.",
+          "building",
+        ),
+        c(
+          "Gestão de pessoas",
+          "Coordenar a jornada",
+          "Articular leitura, aprendizagem, condições e responsáveis.",
+          "compass",
+        ),
+        c(
+          "Lideranças e equipes",
+          "Construir a aplicação",
+          "Participar das conversas, combinar práticas e revisar o percurso.",
+          "users",
+        ),
+      ],
+      "O que combinar na primeira conversa?",
+      detail(
+        "Desenhar uma primeira jornada viável",
+        "A conversa inicial delimita finalidade, participantes, módulos, recursos e suporte.",
+        [
+          c(
+            "Entrega",
+            "Uma jornada organizada",
+            "Leitura, desenvolvimento e acompanhamento conforme os módulos e o escopo combinados.",
+            "chart",
+          ),
+          c(
+            "Participação",
+            "Papéis e condições",
+            "Identificar coordenação, apoio da liderança e espaço para aprender.",
+            "users",
+          ),
+          c(
+            "Preparação",
+            "Ambiente e dados",
+            "Definir acessos, tratamento de dados e suporte antes de uma operação real.",
+            "shield",
+          ),
+        ],
+      ),
+      "Escopo assistido a combinar · demonstrações atuais em ambiente local.",
+    ),
+    s(
+      "conversa",
+      "O próximo passo",
+      "Que transformação sua organização quer começar?",
+      "Vamos desenhar uma jornada que conecte suas prioridades, as pessoas e as condições para o bem-estar florescer no trabalho.",
+      "closing",
+      [
+        c("Compreender", "Seu contexto", "Prioridades e condições de trabalho.", "heart"),
+        c("Desenhar", "Uma jornada viável", "Pessoas, recursos e entregas combinadas.", "users"),
+        c(
+          "Acompanhar",
+          "Decisões com evidência",
+          "Aprendizagem e revisão ao longo do percurso.",
+          "compass",
+        ),
+      ],
+      "Conheça o Instituto",
+      detail(
+        "Instituto Felicidade para Todos",
+        "Organização idealizadora da VitalOS, com a missão de ativar e animar ecossistemas sustentáveis de felicidade humana, socioambiental e organizacional.",
+        [
+          c(
+            "Propósito",
+            "Desenvolvimento humano",
+            "Ciência, aprendizagem e práticas organizacionais.",
+            "heart",
+          ),
+          c(
+            "Próximo passo",
+            "Uma conversa sobre sua empresa",
+            "Compreender a necessidade e avaliar um escopo de serviço.",
+            "users",
+          ),
+        ],
+        [source("Instituto Felicidade para Todos", "https://www.felicidadeparatodos.com.br/")],
+      ),
+      "VitalOS™ · uma iniciativa do Instituto Felicidade para Todos.",
+      true,
+    ),
+  ];
+  slides.find((s) => s.id === "contexto")!.metrics = presentationStatistics("context");
+  slides.find((s) => s.id === "valor")!.metrics = presentationStatistics("benefits");
+  slides.find((s) => s.id === "jornada")!.demoSteps = [
+    {
+      area: "Medir",
+      title: "Ler o contexto",
+      summary: "Uma leitura coletiva abre uma pergunta sobre condições de trabalho.",
+      fields: [
+        {
+          label: "Origem",
+          value: "Leitura Q2 FIB-T ilustrativa da Alfa; nenhum escore real nesta simulação.",
+        },
+        { label: "Prioridade", value: "O que facilitaria pedir apoio nesta equipe?" },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Preparar a aprendizagem",
+      summary: "A coordenação explora uma unidade e uma atividade antes de combinar a aplicação.",
+      fields: [
+        {
+          label: "Repertório",
+          value: "Interpretar o coletivo, tentar uma resposta e receber feedback.",
+        },
+        {
+          label: "Aplicação",
+          value: "Preparar uma conversa, respeitando privacidade e participação.",
+        },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Combinar a prática",
+      summary: "O plano dá forma à aplicação: uma prática com responsável e condições.",
+      fields: [
+        { label: "Ação", value: "Combinar como pedir ajuda no cotidiano da equipe." },
+        { label: "Responsável", value: "Coordenação da equipe fictícia." },
+        {
+          label: "Condições",
+          value: "20 minutos; participação voluntária e opção de passar a vez.",
+        },
+      ],
+    },
+    {
+      area: "Agir",
+      title: "Registrar e revisar",
+      summary: "Execução e aprendizagem têm registros próprios para retomar o combinado.",
+      fields: [
+        {
+          label: "Ocorrência / origem",
+          value: "Conversa realizada, segundo registro fictício da coordenação.",
+        },
+        {
+          label: "Aprendizagem",
+          value: "Experimentar uma formulação mais clara para o pedido de apoio.",
+        },
+        { label: "Revisão", value: "Após a primeira aplicação. Nova leitura a realizar." },
+      ],
+    },
+    {
+      area: "Provar",
+      title: "Organizar o percurso",
+      summary:
+        "Uma síntese reúne a origem da prioridade, a aplicação e o que ainda precisa ser avaliado.",
+      fields: [
+        {
+          label: "Relatório ilustrativo",
+          value: "Contexto → aprendizagem → ação → registro → revisão.",
+        },
+        {
+          label: "Resultado",
+          value: "Execução descrita; mudança no bem-estar depende de nova avaliação.",
+        },
+      ],
+    },
+  ];
+  return {
+    edition: "VitalOS para empresas · edição V4 · novembro 2026",
+    contact: {
+      label: "Conversar sobre minha empresa",
+      href: "https://www.felicidadeparatodos.com.br/#contato",
+    },
+    slides,
+  };
+}

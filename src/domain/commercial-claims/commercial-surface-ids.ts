@@ -7,6 +7,8 @@
 // "escopo regulatório" entre as superfícies a migrar agora.
 
 export const COMMERCIAL_SURFACE_IDS = {
+  PRESENTATION_CONTEXT: "marketing.presentation.enterprises.context",
+  PRESENTATION_BUSINESS_EVIDENCE: "marketing.presentation.enterprises.business-evidence",
   NR1_JOURNEY_T1_INSTRUMENT_LABEL: "marketing.nr1.journey.t1-instrument-label",
   NR1_METHODOLOGY_INSTRUMENT_DESCRIPTION: "marketing.nr1.methodology.instrument-description",
   MODAL_METHOD_DEEP_MENSURAR_PRIVACY_SUMMARY: "marketing.modal.method-deep.mensurar-privacy-summary",

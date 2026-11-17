@@ -15,6 +15,7 @@ const PUBLIC_PREFIXES = [
   "/quiosque",
   "/nr1",
   "/privacidade-comercial",
+  "/apresentacao",
 ];
 
 // Rotas que executam ações reais (provisionamento, escrita privilegiada) —

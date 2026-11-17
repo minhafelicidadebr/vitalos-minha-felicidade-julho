@@ -87,6 +87,8 @@ import { Route as ViatRouteImport } from './routes/viat'
 import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as VozSeguraRouteImport } from './routes/voz-segura'
 import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
+import { Route as ApiApresentacaoRouteImport } from './routes/api.apresentacao'
+import { Route as ApresentacaoEmpresasRouteImport } from './routes/apresentacao.empresas'
 import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
@@ -484,6 +486,16 @@ const AceitarConviteTokenRoute = AceitarConviteTokenRouteImport.update({
   path: '/aceitar-convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiApresentacaoRoute = ApiApresentacaoRouteImport.update({
+  id: '/api/apresentacao',
+  path: '/api/apresentacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApresentacaoEmpresasRoute = ApresentacaoEmpresasRouteImport.update({
+  id: '/apresentacao/empresas',
+  path: '/apresentacao/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AtivarTokenRoute = AtivarTokenRouteImport.update({
   id: '/ativar/$token',
   path: '/ativar/$token',
@@ -594,6 +606,8 @@ export interface FileRoutesByFullPath {
   '/vitrine': typeof VitrineRoute
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
+  '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -680,6 +694,8 @@ export interface FileRoutesByTo {
   '/vitrine': typeof VitrineRoute
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
+  '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -767,6 +783,8 @@ export interface FileRoutesById {
   '/vitrine': typeof VitrineRoute
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
+  '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -855,6 +873,8 @@ export interface FileRouteTypes {
     | '/vitrine'
     | '/voz-segura'
     | '/aceitar-convite/$token'
+    | '/api/apresentacao'
+    | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -941,6 +961,8 @@ export interface FileRouteTypes {
     | '/vitrine'
     | '/voz-segura'
     | '/aceitar-convite/$token'
+    | '/api/apresentacao'
+    | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -1027,6 +1049,8 @@ export interface FileRouteTypes {
     | '/vitrine'
     | '/voz-segura'
     | '/aceitar-convite/$token'
+    | '/api/apresentacao'
+    | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
@@ -1114,6 +1138,8 @@ export interface RootRouteChildren {
   VitrineRoute: typeof VitrineRoute
   VozSeguraRoute: typeof VozSeguraRoute
   AceitarConviteTokenRoute: typeof AceitarConviteTokenRoute
+  ApiApresentacaoRoute: typeof ApiApresentacaoRoute
+  ApresentacaoEmpresasRoute: typeof ApresentacaoEmpresasRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
@@ -1670,6 +1696,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AceitarConviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/apresentacao': {
+      id: '/api/apresentacao'
+      path: '/api/apresentacao'
+      fullPath: '/api/apresentacao'
+      preLoaderRoute: typeof ApiApresentacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apresentacao/empresas': {
+      id: '/apresentacao/empresas'
+      path: '/apresentacao/empresas'
+      fullPath: '/apresentacao/empresas'
+      preLoaderRoute: typeof ApresentacaoEmpresasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ativar/$token': {
       id: '/ativar/$token'
       path: '/ativar/$token'
@@ -1794,6 +1834,8 @@ const rootRouteChildren: RootRouteChildren = {
   VitrineRoute: VitrineRoute,
   VozSeguraRoute: VozSeguraRoute,
   AceitarConviteTokenRoute: AceitarConviteTokenRoute,
+  ApiApresentacaoRoute: ApiApresentacaoRoute,
+  ApresentacaoEmpresasRoute: ApresentacaoEmpresasRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
