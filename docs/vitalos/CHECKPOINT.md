@@ -1,5 +1,11 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-18; registros históricos preservados)
 
+## Q1 · conferência técnica da fonte brasileira — 2026-11-18
+
+Base `9759e8d`. Implementado um verificador local de identidade, hashes, correspondência dos itens e casos de cálculo. A triagem com o manual NCOPSII mostrou que a coincidência de 41 itens deixa a prova incompleta. O Anexo 3 do COPSOQ III padrão divergiu em edição e opções por item. O manifesto atual identifica a bateria demonstrativa. A [conferência e o comando de reprodução](Q1_COPSOQ_SOURCE_PARITY_2026-11-18.md) registram as referências e os resultados.
+
+A aprovação da adoção brasileira consta no registro de João Paulo Brandão Barboza. **Próximo marco** é identificar o artefato e a forma exatos para transcrever os itens e os casos do manual. A verificação não aciona a coleta empresarial. Q2 segue independente. A etapa anterior do Q2 está registrada abaixo.
+
 ## Q2 · revisão da prática e preparação Q1 — 2026-11-18
 
 Base `50027a6`. A aplicação aprovada D10 oferece recordação, um novo caso didático e decisões de revisão. A confirmação explícita da síntese cria um ajuste rastreável no mesmo plano, pela inclusão PI-13. Na Alfa, o navegador e uma leitura independente do banco confirmaram um ajuste ligado ao original após novo login. A Beta autenticada recebeu o bloqueio esperado. Reflow e teclado verificados a 320 e 390 px.

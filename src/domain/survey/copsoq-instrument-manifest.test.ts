@@ -80,6 +80,14 @@ describe("copsoq-instrument-manifest — paridade com a bateria servida", () => 
     expect([...manifest.reversed_items].sort()).toEqual(servedReversed);
   });
 
+  test("a escala de frequência servida mantém os valores e rótulos do manifesto, em ordem", () => {
+    const { scale_min, scale_max, scale_labels } = manifest.scoring;
+    expect(scale_labels.length).toBe(scale_max - scale_min + 1);
+    expect(survey!.scale.options).toEqual(
+      scale_labels.map((label, offset) => ({ value: scale_min + offset, label })),
+    );
+  });
+
   test("dimensions: item_ids e kind (exposure/outcome) batem com o servido", () => {
     const outcomeIds = new Set(manifest.outcome_dimension_ids);
     for (const dimension of manifest.dimensions) {
