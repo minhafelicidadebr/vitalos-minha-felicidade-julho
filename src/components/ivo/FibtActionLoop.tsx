@@ -3,6 +3,7 @@ import { canTransition, type PlanActionStatus } from "@/engine/action-plan/actio
 import type { FibtActionPlanView, FibtActionView, IvoQ2View } from "@/lib/ivo/ivo-views";
 import { formatIsoDateLong } from "@/lib/ivo/local-date";
 import { parseContentRef } from "@/lib/ivo/content-ref";
+import { reviewedLearningDescription } from "@/lib/ivo/learning-application";
 import { formatDateBR } from "./IvoQ2Detail";
 import { ArrowDownRight, ListOrdered } from "lucide-react";
 
@@ -491,8 +492,10 @@ function EvidenceCard({
   const isExecution = scope === "execucao";
   return (
     <section
+      id={`${scope}-registro-${action.id}`}
+      tabIndex={-1}
       aria-label={`${copy.title} — ${action.title}`}
-      className={`flex flex-col gap-3 rounded-lg border-2 p-4 ${isExecution ? "border-[var(--institutional-gold)] bg-card" : "border-border bg-secondary/40"}`}
+      className={`flex scroll-mt-20 flex-col gap-3 rounded-lg border-2 p-4 focus-visible:outline-2 focus-visible:outline-ring ${isExecution ? "border-[var(--institutional-gold)] bg-card" : "border-border bg-secondary/40"}`}
     >
       <header>
         <h4 className="text-sm font-semibold text-foreground">{copy.title}</h4>
@@ -557,7 +560,7 @@ export function FibtActionCard({
           Estado: {STATUS_LABEL[action.status]}
         </span>
       </div>
-      {action.description ? <p className="text-sm text-muted-foreground">{parseContentRef(action.description)?.text ?? action.description}</p> : null}
+      {action.description ? <p className="break-words text-sm text-muted-foreground">{reviewedLearningDescription(parseContentRef(action.description)?.text ?? action.description)}</p> : null}
 
       <dl className="grid gap-3 text-sm sm:grid-cols-2 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-muted/20 [&>div]:p-3">
         <div>
@@ -616,7 +619,7 @@ export function FibtActionCard({
 
       {planStatus === "active" ? (
         <div>
-          <h4 className="text-sm font-medium text-foreground">Mudar estado</h4>
+          <h4 id={`estado-acao-${action.id}`} tabIndex={-1} className="scroll-mt-20 text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">Mudar estado</h4>
           <div className="mt-2 flex flex-wrap gap-2">
             {next.map((status) => (
               <button key={status} type="button" className={buttonSecondary} disabled={busy} onClick={() => callbacks.onStatus(action.id, status)}>

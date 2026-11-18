@@ -66,6 +66,7 @@ export function AddActionToPlanForm({
   onSubmit,
   initialSource,
   idSuffix,
+  review,
 }: {
   plan: FibtActionPlanView;
   view: IvoQ2View | null;
@@ -73,6 +74,8 @@ export function AddActionToPlanForm({
   onSubmit: (planId: string, input: AddActionFormInput) => Promise<EvidenceSubmitResult>;
   initialSource?: { cohortId: string; factorId: string };
   idSuffix?: string;
+  /** O recorte chega reduzido à origem da revisão; a síntese será anexada à nova ação. */
+  review?: boolean;
 }) {
   const cycle = plan.cycleKeyCanonical ?? plan.cycleKey;
   const needsAccountability = plan.status === "active";
@@ -160,6 +163,10 @@ export function AddActionToPlanForm({
     if (inFlight.current || busy) return;
     if (title.trim().length < 3) {
       say("error", "Descreva a ação com ao menos 3 caracteres.");
+      return;
+    }
+    if (review && description.trim().length < 3) {
+      say("error", "Descreva o ajuste e como será acompanhado.");
       return;
     }
     let accountability: AddActionFormInput["accountability"];
@@ -278,13 +285,15 @@ export function AddActionToPlanForm({
           </select>
         </Field>
         <div className="md:col-span-2">
-          <Field id={`${p}-descricao`} label="O que será feito (opcional)" hint="Não inclua nomes de pessoas nem respostas individuais.">
+          <Field id={`${p}-descricao`} label={review ? "Síntese coletiva da revisão" : "O que será feito (opcional)"} hint={review ? "Descreva o ajuste, a condição necessária e como será acompanhado. Use informações da equipe sem identificar pessoas." : "Não inclua nomes de pessoas nem respostas individuais."}>
             <textarea
               id={`${p}-descricao`}
               aria-describedby={`${p}-descricao-hint`}
               className={`${inputClass} min-h-20 py-2`}
               value={description}
               maxLength={1000}
+              required={review}
+              minLength={review ? 3 : undefined}
               onChange={(e) => setDescription(e.target.value)}
             />
           </Field>
@@ -314,10 +323,17 @@ export function AddActionToPlanForm({
             </div>
           </fieldset>
         ) : null}
+        {review && description.trim().length >= 3 ? (
+          <section aria-label="Prévia da síntese compartilhada" className="min-w-0 space-y-1 break-words rounded-md border border-border bg-muted/30 p-3 text-sm md:col-span-2">
+            <p className="font-medium">O que ficará visível no plano</p>
+            {title.trim() && <p className="font-medium">{title.trim()}</p>}
+            <p className="whitespace-pre-wrap">{description.trim()}</p>
+          </section>
+        ) : null}
         <div className="md:col-span-2">
           {/* aria-disabled (e não disabled) mantém o foco do teclado no botão durante o envio. */}
           <button type="submit" className={buttonPrimary} aria-disabled={blocked}>
-            {pending ? "Incluindo ação…" : `Incluir ação no plano do ciclo ${cycle}`}
+            {pending ? "Incluindo ação…" : review ? "Confirmar síntese e incluir ajuste" : `Incluir ação no plano do ciclo ${cycle}`}
           </button>
         </div>
       </form>

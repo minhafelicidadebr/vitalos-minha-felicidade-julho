@@ -9,6 +9,11 @@ import { CLOSED_PLAN_EXPLANATION, CLOSE_CONFIRMATION_EXPLANATION } from "@/lib/i
 import { FibtActionPlanSection, buttonPrimary, buttonSecondary } from "./FibtActionLoop";
 import { AddActionToPlanForm, ClosedPlanNotice, ClosePlanPanel, PlanClosure, type AddActionFormInput } from "./PlanComposition";
 import { publishedActionSource } from "@/lib/ivo/published-action-source";
+import { Q2PracticeReview } from "./Q2PracticeReview";
+import rawActivity from "@/domain/ivo/q2-learning-activity-001.json";
+import { activityDescriptionPrefix } from "@/lib/ivo/learning-application";
+import { encodeContentRef } from "@/lib/ivo/content-ref";
+import type { EducationContentView } from "@/lib/ivo/ivo-views";
 
 afterEach(cleanup);
 
@@ -71,6 +76,75 @@ function plan(status: FibtActionPlanView["status"], actions: FibtActionView[], e
 const activePlan = plan("active", [action("a1", "Rodas de conversa", "em_execucao"), action("a2", "Pausas ativas", "concluida")]);
 
 type Submit = (planId: string, input: AddActionFormInput) => Promise<{ ok: boolean; message: string }>;
+
+describe("Revisar a aplicação Q2", () => {
+  const content: EducationContentView = {
+    contentId: rawActivity.contentId, factorId: "bem_estar", version: rawActivity.contentVersion,
+    title: "Aprender com dificuldades de trabalho", status: "APROVADO", audience: "RH",
+    objective: "Aprender com a equipe", format: "leitura", estimatedMinutes: 3, body: [],
+    evidenceCodes: rawActivity.evidenceCodes, safeClaimIds: rawActivity.safeClaimIds,
+    activity: rawActivity,
+  };
+  const original = action("10000000-0000-4000-8000-000000000001", "Acordo para pedir ajuda", "concluida", {
+    description: encodeContentRef({ id: content.contentId, version: content.version }, activityDescriptionPrefix(rawActivity) + "Acordo de equipe."),
+  });
+  const active = plan("active", [original]);
+
+  function openReview() {
+    const toggle = screen.getByText("Revisar a aplicação");
+    (toggle.closest("details") as HTMLDetailsElement).open = true;
+  }
+
+  test("exercício e espera não escrevem; ajuste envia só a síntese confirmada na origem correta", async () => {
+    const onConfirm = mock(async (_input: AddActionFormInput) => ({ ok: true, message: "Ajuste planejado." }));
+    render(<Q2PracticeReview action={original} plan={active} content={content} view={view} busy={false} onConfirm={onConfirm} />);
+    openReview();
+    fireEvent.click(screen.getByRole("button", { name: "Ver o novo caso" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Repetir a orientação a todos." }));
+    expect(screen.getByText(/Investigue o que impede a resposta/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: "Ainda não houve oportunidade de aplicar" }));
+    expect(screen.getByText(/A próxima revisão fica para quando houver oportunidade/)).toBeTruthy();
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("radio", { name: "Ajustar e preparar uma nova aplicação" }));
+    fireEvent.change(screen.getByLabelText("Título da nova ação"), { target: { value: "Ajustar troca de turno" } });
+    const summary = "Pactuar responsáveis na troca de turno e revisar a cobertura.";
+    fireEvent.change(screen.getByLabelText("Síntese coletiva da revisão"), { target: { value: summary } });
+    fillAccountability();
+    expect(screen.getByText("O que ficará visível no plano")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Prévia da síntese compartilhada" })).getByText(summary)).toBeTruthy();
+    expect(onConfirm).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Confirmar síntese e incluir ajuste" }));
+    });
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(1));
+    expect(onConfirm.mock.calls[0]?.[0]).toMatchObject({ cohortId: A1, factorId: "bem_estar", description: summary });
+    expect(JSON.stringify(onConfirm.mock.calls[0])).not.toContain("Repetir a orientação");
+  });
+
+  test("sem origem publicada ou com plano encerrado, só permite consulta e exercício", () => {
+    const onConfirm = mock(async () => ({ ok: true, message: "ok" }));
+    const { rerender } = render(<Q2PracticeReview action={original} plan={active} content={content} view={null} busy={false} onConfirm={onConfirm} />);
+    openReview();
+    fireEvent.click(screen.getByRole("radio", { name: "Ajustar e preparar uma nova aplicação" }));
+    expect(screen.getByText(/Carregue a leitura publicada da origem/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Confirmar síntese e incluir ajuste" })).toBeNull();
+    rerender(<Q2PracticeReview action={original} plan={plan("closed", [original])} content={content} view={view} busy={false} onConfirm={onConfirm} />);
+    expect(screen.getByText(/Revisão disponível para consulta/)).toBeTruthy();
+    expect(screen.queryByRole("radio", { name: "Ajustar e preparar uma nova aplicação" })).toBeNull();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  test("releitura mostra o ajuste vinculado, evitando links para outra ação ou plano", () => {
+    const followUp = action("10000000-0000-4000-8000-000000000002", "Orientação na troca de turno", "planejada", {
+      description: encodeContentRef({ id: content.contentId, version: content.version }, activityDescriptionPrefix(rawActivity) + `[revisao:${original.id}] Pactuar como receber o pedido.`),
+    });
+    render(<Q2PracticeReview action={original} plan={plan("active", [original, followUp])} content={content} view={view} busy={false} onConfirm={mock(async () => ({ ok: true, message: "ok" }))} />);
+    openReview();
+    expect(screen.getByRole("link", { name: followUp.title }).getAttribute("href")).toBe(`#acao-${followUp.id}`);
+    expect(screen.queryByRole("radio", { name: "Repetir a orientação a todos." })).toBeNull();
+  });
+});
 
 function fillAccountability() {
   fireEvent.change(screen.getByLabelText("Responsável (função que executa)"), { target: { value: "Gestão de pessoas" } });

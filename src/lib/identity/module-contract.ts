@@ -26,7 +26,7 @@ export const MODULE_MESSAGES = {
   unavailable:
     "Não foi possível verificar a habilitação. Nenhum dado foi liberado. Tente novamente.",
   method_pending:
-    "Q1 habilitado; fonte metodológica aprovada ainda pendente de incorporação. Coleta e resultados bloqueados.",
+    "Q1 habilitado. Versão brasileira aprovada; falta comprovar a correspondência com o instrumento servido. Coleta e resultados bloqueados.",
   forbidden: "Esta operação exige autoridade da plataforma.",
   revision_conflict: "A habilitação mudou em outra sessão. Atualize antes de tentar novamente.",
   request_conflict: "Este pedido já foi usado com outro conteúdo.",

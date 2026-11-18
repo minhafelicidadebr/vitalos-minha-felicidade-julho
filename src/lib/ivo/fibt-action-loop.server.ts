@@ -143,6 +143,9 @@ export interface FibtActionLedgerStore {
     sourceLensId: string | null;
     /** Fator FIB-T de origem (para validar o vínculo educativo). */
     sourceFactorId?: string | null;
+    sourceWaveId?: string | null;
+    sourceCohortId?: string | null;
+    description?: string;
     status: PlanActionStatus;
     planStatus: string;
   } | null>;
@@ -712,7 +715,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
       const db = await admin();
       const { data: item, error } = await db
         .from("action_items")
-        .select("id, org_id, plan_id, source_lens_id, source_factor_id, status")
+        .select("id, org_id, plan_id, source_lens_id, source_factor_id, source_wave_id, source_cohort_id, description, status")
         .eq("id", itemId)
         .eq("org_id", orgId)
         .maybeSingle();
@@ -732,6 +735,9 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
         planId: String(item.plan_id),
         sourceLensId: (item.source_lens_id as string | null) ?? null,
         sourceFactorId: (item.source_factor_id as string | null) ?? null,
+        sourceWaveId: (item.source_wave_id as string | null) ?? null,
+        sourceCohortId: (item.source_cohort_id as string | null) ?? null,
+        description: String(item.description ?? ""),
         status: item.status as PlanActionStatus,
         planStatus: String(plan.status),
       };

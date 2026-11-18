@@ -8,6 +8,9 @@ import { getGovernanceEntry } from "../src/domain/ivo/methodology-governance";
 
 export const REVIEW_PACKAGE_PATH = "docs/vitalos/Q2_PILOT_REVIEW_PACKAGE_2026-11-16.json";
 export const PRODUCT_CANDIDATE = "517c2066c9b6de0cfeb5914ca107296c1e96d29e";
+// Documento emitido em 576c464, verificado também contra os blobs daquela
+// árvore. A verificação do arquivo arquivado funciona em checkout raso.
+const ARCHIVED_PACKAGE_SHA256 = "a70c1a3ca8f86c7e834dd789cb2a8cd3d3b88f348b664c34a2a292263c5af952";
 
 // Lista fechada: não enumera repositório, arquivos pessoais, .env ou arquivos .q.
 // O escopo é selecionado, não uma prova de fechamento transitivo das dependências.
@@ -168,14 +171,29 @@ export function checkQ2PilotReviewPackage(current: string, read?: AttachmentRead
   return current.replace(/\r\n/g, "\n") === renderQ2PilotReviewPackage(read);
 }
 
+export function checkArchivedQ2PilotReviewPackage(current: string): boolean {
+  return createHash("sha256").update(current.replace(/\r\n/g, "\n")).digest("hex") === ARCHIVED_PACKAGE_SHA256;
+}
+
 if (import.meta.main) {
   const args = process.argv.slice(2);
-  if (args.length > 1 || args.some((arg) => !["--check", "--write"].includes(arg))) {
-    console.error("Use --check (padrão, somente leitura) ou --write (somente pacote local).");
+  if (args.length > 1 || args.some((arg) => !["--check", "--check-archive", "--write"].includes(arg))) {
+    console.error("Use --check para comparar o checkout, --check-archive para conferir o arquivo histórico ou --write para recompor exatamente a edição arquivada.");
     process.exit(1);
   }
-  if (args[0] === "--write") {
-    writeFileSync(REVIEW_PACKAGE_PATH, renderQ2PilotReviewPackage());
+  if (args[0] === "--check-archive") {
+    if (!existsSync(REVIEW_PACKAGE_PATH) || !checkArchivedQ2PilotReviewPackage(readFileSync(REVIEW_PACKAGE_PATH, "utf8"))) {
+      console.error("ARQUIVO_HISTORICO_DIVERGENTE — conferir o pacote emitido em 576c464.");
+      process.exit(1);
+    }
+    console.log("ARQUIVO_HISTORICO_INTEGRO — escopo do candidato 517c206; checkout atual e execução de provas fora desta verificação.");
+  } else if (args[0] === "--write") {
+    const rendered = renderQ2PilotReviewPackage();
+    if (!checkArchivedQ2PilotReviewPackage(rendered)) {
+      console.error("RECOMPOSICAO_DIVERGENTE — preservar o pacote arquivado e identificar um eventual novo candidato separadamente.");
+      process.exit(1);
+    }
+    writeFileSync(REVIEW_PACKAGE_PATH, rendered);
     console.log("PACOTE_LOCAL_GRAVADO — piloto real não autorizado.");
   } else {
     if (

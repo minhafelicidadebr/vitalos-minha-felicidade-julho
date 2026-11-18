@@ -1,4 +1,12 @@
-# Checkpoint de retomada — VitalOS IVO (2026-11-16; registros históricos preservados)
+# Checkpoint de retomada — VitalOS IVO (2026-11-18; registros históricos preservados)
+
+## Q2 · revisão da prática e preparação Q1 — 2026-11-18
+
+Base `50027a6`. A aplicação aprovada D10 oferece recordação, um novo caso didático e decisões de revisão. A confirmação explícita da síntese cria um ajuste rastreável no mesmo plano, pela inclusão PI-13. Na Alfa, o navegador e uma leitura independente do banco confirmaram um ajuste ligado ao original após novo login. A Beta autenticada recebeu o bloqueio esperado. Reflow e teclado verificados a 320 e 390 px.
+
+**Gate integrado de 4.430 testes aprovados**, paridade, TypeScript, secret-scan e build inerte. O pacote arquivado de piloto mantém a identidade histórica. [Fechamento local e capturas](Q2_PRACTICE_REVIEW_LOCAL_2026-11-18.md).
+
+**Q1** tem adoção da versão brasileira [aprovada por João Paulo Brandão Barboza](decisions/Q1_COPSOQ_BRAZIL_APPROVAL_2026-11-18.md). O painel apresenta a decisão e a prática preparatória; a bateria servida continua demonstrativa. **Próximo marco único** é vincular a edição e a forma exatas ao manifesto e provar a correspondência dos itens e do cálculo antes da coleta. Este ensaio foi local e fictício. As seções abaixo registram etapas históricas.
 
 ## Apresentação empresarial V4 — 2026-11-17
 

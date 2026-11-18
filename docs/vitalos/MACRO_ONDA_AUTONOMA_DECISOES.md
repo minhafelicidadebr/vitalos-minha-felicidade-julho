@@ -4,9 +4,9 @@ Nenhuma aprovação é presumida. João Paulo Brandão Barboza é o responsável
 
 ## MET-Q1 · Fonte exata e correspondência
 
-Estado: pendente. Pergunta: qual arquivo/versão da fonte brasileira já aprovada e suas regras devem ser vinculados ao manifesto servido? Evidência: src/domain/survey/copsoq-instrument-manifest.json declara bateria demonstrativa; docs/instrumentos/COPSOQ_NR1.md descreve estrutura histórica de nove dimensões, incompatível como especificação automática das quatorze dimensões servidas. Checkpoint atual e CopsoqPreparationNotice já registram que a confirmação informada não foi vinculada à fonte exata.
+**18/11/2026 · aprovação registrada.** João Paulo Brandão Barboza confirmou a adoção da versão brasileira para Q1 e autorizou a atribuição em seu nome. A [decisão e a conferência da fonte](decisions/Q1_COPSOQ_BRAZIL_APPROVAL_2026-11-18.md) documentam as edições encontradas e o que falta vincular ao instrumento servido.
 
-Recomendação: fornecer o artefato exato e os casos de referência já aprovados para correspondência versionada de itens/hash, escalas, reversões, ausência, cálculo e atribuição; não pedir nova decisão geral sobre direitos já confirmados. Sem decisão: coleta/publicação empresariais Q1 continuam bloqueadas nesta jornada. Preparado: notice existente e testes de proteção; Q2 segue independente. Não escolher nove ou quatorze dimensões pelo histórico.
+Pendência técnica: vincular a edição e a forma exatas e conferir itens/hash, escalas, reversões, ausência, cálculo e atribuição. Até essa conferência, coleta e publicação empresariais permanecem bloqueadas. O painel Q1 oferece um exercício fictício de preparação, e Q2 segue independente.
 
 ## MET-ESG · Vínculos e contrato do caso
 

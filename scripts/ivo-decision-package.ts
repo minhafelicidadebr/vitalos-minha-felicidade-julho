@@ -109,9 +109,9 @@ export function renderDecisionPackage(): string {
     "**D4 — perguntas abertas no manifesto da FIB-T (`governance.open_questions`)**",
     bullet(open),
     "",
-    "**D5 — COPSOQ: o que precisa estar respondido antes de qualquer uso no IVO**",
+    "**D5 — COPSOQ: vincular a fonte brasileira já aprovada**",
     bullet([
-      "Qual licença/condição de uso se aplica à organização e ao uso pretendido (e quem é o titular)?",
+      "Qual artefato versionado contém a edição, forma e regras de cálculo aprovadas para Q1?",
       "Qual versão do instrumento (II-Br ou III) será adotada e com que adaptação?",
       "Política dos Domínios A e B: entram no IVO, só em uma lente independente, ou de que forma?",
       "A fonte externa listada em D5 confere com o texto vigente? (marcada _a verificar_ no registro)",

@@ -35,6 +35,9 @@ import { createLearningApplication } from "./learning-application.server";
 import { learningApplicationSchema } from "@/lib/api/ivo-learning-application.functions";
 import { approvedQ2Fixture, LOCAL_Q2_EDUCATION_ENV } from "@/test/fixtures/q2-learning";
 import { loadEducationForSession } from "./ivo-education.server";
+import { activityDescriptionPrefix, learningReviewSource } from "./learning-application";
+import { encodeContentRef } from "./content-ref";
+import type { FibtActionLedgerStore } from "./fibt-action-loop.server";
 
 const manifest = getFibtManifest();
 const VERSION = manifest.instrument_version;
@@ -259,6 +262,65 @@ const ADD: AddActionToPlanRequest = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PI-13 · incluir ação em plano existente", () => {
+  function reviewFixture() {
+    const f = approvedQ2Fixture();
+    const s = memoryStore();
+    const parentId = "10000000-0000-4000-8000-000000000001";
+    const original = {
+      id: parentId, orgId: "org-alfa", planId: ID.planAlfa, sourceLensId: "fibt",
+      sourceWaveId: ID.waveAlfa, sourceCohortId: ID.a1, sourceFactorId: "bem_estar",
+      description: encodeContentRef(f.unit, activityDescriptionPrefix(f.activity) + "Prática original."),
+      status: "concluida" as const, planStatus: "active",
+    };
+    const ledger = { findItem: async (orgId: string, itemId: string) =>
+      orgId === original.orgId && itemId === parentId ? original : null } as FibtActionLedgerStore;
+    const deps = {
+      ...depsOf(s, { ledger }), educationEnv: LOCAL_Q2_EDUCATION_ENV,
+      contentCatalog: () => f.contents, activityCatalog: f.activities,
+    };
+    const request = {
+      ...ADD, reviewOfItemId: parentId, contentId: f.unit.id, contentVersion: f.unit.version,
+      activityVersion: f.activity.version, title: "Ajustar passagem de turno",
+      description: "Definir quem recebe o pedido e verificar a cobertura da troca de turno.",
+    };
+    return { deps, s, original, request };
+  }
+
+  test("ajuste vinculado usa a origem confirmada e a mesma identidade PI-13 durante concorrência e retry", async () => {
+    const { deps, s, original, request } = reviewFixture();
+    const [first, second] = await Promise.all([
+      createLearningApplication(request, deps), createLearningApplication(request, deps),
+    ]);
+    expect(first).toMatchObject({ accepted: true, id: "added-1" });
+    expect(second).toMatchObject({ accepted: true, id: "added-1" });
+    expect(s.items).toHaveLength(2);
+    const stored = s.items[1]!.description;
+    expect(learningReviewSource(stored)).toBe(original.id);
+    expect(stored).toContain(request.description);
+    expect(stored).not.toContain(String(DISTINCT_MEAN));
+    expect(await createLearningApplication(request, deps)).toMatchObject({ accepted: true, replayed: true, id: "added-1" });
+    expect(await createLearningApplication({ ...request, description: "Outra decisão." }, deps)).toMatchObject({ accepted: false, reason: "request_conflict" });
+    expect(s.items).toHaveLength(2);
+  });
+
+  test("ajuste recusa empresa, publicação e referência incompatíveis antes de incluir ação", async () => {
+    const { deps, s, original, request } = reviewFixture();
+    for (const change of [
+      { accessToken: "token-beta-admin" }, { cohortId: ID.a2 }, { waveId: ID.waveBeta },
+      { planId: ID.planBeta }, { reviewOfItemId: ID.req1 },
+    ]) {
+      expect(await createLearningApplication({ ...request, ...change }, deps)).toMatchObject({ accepted: false, reason: "review_source_mismatch" });
+    }
+    expect(await createLearningApplication({ ...request, description: "" }, deps)).toMatchObject({ accepted: false, reason: "review_unavailable" });
+    expect(await createLearningApplication({ ...request, description: `[revisao:${original.id}] referência forjada` }, deps)).toMatchObject({ accepted: false, reason: "reserved_review_reference" });
+    original.planStatus = "draft";
+    expect(await createLearningApplication(request, deps)).toMatchObject({ accepted: false, reason: "plan_not_active" });
+    original.planStatus = "active";
+    original.sourceCohortId = ID.a2;
+    expect(await createLearningApplication({ ...request, cohortId: ID.a2 }, deps)).toMatchObject({ accepted: false, reason: "source_not_published" });
+    expect(s.written).toHaveLength(0);
+    expect(learningApplicationSchema.safeParse({ ...request, quizAnswers: { escolha: "privada" } }).success).toBe(false);
+  });
   test("Q2 aprovado SINTÉTICO: leitura e aplicação usam o mesmo par revisado; retry não duplica", async () => {
     const f = approvedQ2Fixture();
     const s = memoryStore();

@@ -1,6 +1,6 @@
 # Pacote único de decisões metodológicas — IVO
 
-> **Gerado** de `src/domain/ivo/methodology-governance.json` (registro v1.1.0) por `bun run ivo:decision-package`.
+> **Gerado** de `src/domain/ivo/methodology-governance.json` (registro v1.2.0) por `bun run ivo:decision-package`.
 > Não edite à mão: `bun run ivo:decision-package --check` (e o teste `scripts/ivo-decision-package.test.ts`) falham se este arquivo divergir do registro.
 
 ## Como ler
@@ -24,7 +24,7 @@
 | D2 | Menor conjunto que completa as quatro dimensões | Proposta | Perfil parcial agora; módulo transversal como caminho de menor dependência externa. | D1, D5 |
 | D3 | Mapeamentos FIB-T → dimensões (granularidade) | Proposta | Aprovar M2 e M1 (rótulo 'bem-estar geral'); M3 só exibição; rejeitar M4 e M6. | D1 |
 | D4 | Perguntas abertas do manifesto FIB-T | Proposta | Preparar perguntas ao autor por meio do responsável; nenhuma mensagem a terceiros é enviada por este sistema. | — |
-| D5 | COPSOQ: licença, versão e política Domínio A/B | Proposta | Lente independente sem contribuição ao IVO até parecer jurídico. | — |
+| D5 | COPSOQ: fonte, correspondência e política Domínio A/B | Proposta | Conferir a correspondência e manter a lente independente do IVO composto. | — |
 | D6 | Escala, normalização, pesos e agregação | Proposta | 0–100 linear, pesos iguais, aritmética ponderada + sensibilidade. | D1, D2, D3 |
 | D7 | Elegibilidade, janela de validade e comparabilidade | Proposta | Janela do ciclo; sem redistribuição. | D6 |
 | D8 | Privacidade das saídas derivadas e controle temporal | Proposta | Somente por recorte publicado + liberação em lote. | D6 |
@@ -162,15 +162,15 @@ Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designad
 
 Depende de: —
 
-### D5 — COPSOQ: licença, versão e política Domínio A/B
+### D5 — COPSOQ: fonte, correspondência e política Domínio A/B
 
-Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designado · revisor: não designado
+Estado: **Proposta** · versão do registro 0.2.0 · responsável: não designado · revisor: não designado
 
-**Proposta.** Parecer jurídico sobre licença e uso; manter COPSOQ como lente independente (Q1) sem contribuir ao IVO até decidir a política de Domínio A/B e a versão (II-Br/III).
+**Proposta.** Vincular a edição brasileira aprovada à fonte exata e conferir o instrumento servido. Manter COPSOQ como lente independente (Q1); uma eventual contribuição ao IVO depende da decisão própria de Domínio A/B.
 
-**Justificativa.** O manifesto do repositório é demonstrativo e sem licença de versão; a política vigente proíbe misturar bem-estar (A) e risco (B); a página da rede COPSOQ descreve condições de licença que exigem interpretação própria.
+**Justificativa.** João Paulo Brandão Barboza confirmou a aprovação da versão brasileira em 18/11/2026. O manifesto atual ainda identifica uma bateria autoral demonstrativa. A aprovação da adoção e a comprovação da correspondência são etapas distintas.
 
-**Recomendação.** Lente independente sem contribuição ao IVO até parecer jurídico.
+**Recomendação.** Conferir a correspondência e manter a lente independente do IVO composto.
 
 **Alternativas consideradas**
 - IVO só com Domínio A
@@ -178,18 +178,19 @@ Estado: **Proposta** · versão do registro 0.1.0 · responsável: não designad
 - COPSOQ só como lente independente
 
 **Evidência e fontes**
+- docs/vitalos/decisions/Q1_COPSOQ_BRAZIL_APPROVAL_2026-11-18.md
 - docs/DECISAO_T5_TRILHO_LICENCIAMENTO_COPSOQ_2026-07-20.md
 - https://www.copsoq-network.org/licence-guidelines-and-questionnaire _(externa — a verificar; não lida por este sistema)_
 
 Atenção: 1 fonte(s) externa(s) ainda não verificada(s) — não tratar como evidência confirmada.
 
 **Limitações**
-- Nenhuma interpretação jurídica foi feita; nenhuma condição de uso está declarada como resolvida.
+- A confirmação do responsável não identifica por si a edição e a forma nem transforma a bateria demonstrativa em instrumento validado.
 
 **Critérios para aprovar**
-- Parecer jurídico registrado
-- Versão do instrumento escolhida
-- Política A/B decidida
+- Edição e forma vinculadas ao registro da fonte
+- Correspondência de itens, escalas, reversões, ausências, cálculo e atribuição demonstrada
+- Política A/B decidida para qualquer contribuição ao IVO
 
 **Efeito enquanto estiver pendente**
 - Lente COPSOQ: Permanece planejada; sem leitura real.
@@ -546,8 +547,8 @@ Este sistema **não envia mensagens a terceiros**. Abaixo estão só as pergunta
 - Nome canonico do dominio: Bem-Estar Emocional ou Bem-Estar Psicologico.
 - Existencia de formula autorizada de subindice por dominio.
 
-**D5 — COPSOQ: o que precisa estar respondido antes de qualquer uso no IVO**
-- Qual licença/condição de uso se aplica à organização e ao uso pretendido (e quem é o titular)?
+**D5 — COPSOQ: vincular a fonte brasileira já aprovada**
+- Qual artefato versionado contém a edição, forma e regras de cálculo aprovadas para Q1?
 - Qual versão do instrumento (II-Br ou III) será adotada e com que adaptação?
 - Política dos Domínios A e B: entram no IVO, só em uma lente independente, ou de que forma?
 - A fonte externa listada em D5 confere com o texto vigente? (marcada _a verificar_ no registro)

@@ -2,13 +2,18 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   checkQ2PilotReviewPackage,
+  checkArchivedQ2PilotReviewPackage,
   renderQ2PilotReviewPackage,
   REVIEW_ATTACHMENTS,
   REVIEW_PACKAGE_PATH,
 } from "./q2-pilot-review-package";
 
-test("pacote versionado coincide com fontes, curadoria canônica e provas selecionadas", () => {
-  expect(checkQ2PilotReviewPackage(readFileSync(REVIEW_PACKAGE_PATH, "utf8"))).toBe(true);
+test("pacote histórico permanece íntegro mesmo após o avanço do checkout", () => {
+  const archived = readFileSync(REVIEW_PACKAGE_PATH, "utf8");
+  expect(checkArchivedQ2PilotReviewPackage(archived)).toBe(true);
+  expect(checkArchivedQ2PilotReviewPackage(archived.replace("517c206", "620a206"))).toBe(false);
+  const candidate = renderQ2PilotReviewPackage();
+  expect(checkQ2PilotReviewPackage(candidate)).toBe(true);
 });
 
 test("aprovação editorial local não é liberação de piloto real ou nova prova executada", () => {

@@ -39,6 +39,7 @@ import { buildActionTimeline, summarizePlan } from "@/lib/ivo/action-follow-up";
 import { parseContentRef } from "@/lib/ivo/content-ref";
 import { createLearningApplicationFn } from "@/lib/api/ivo-learning-application.functions";
 import { LearningApplicationJourney, LearningApplicationTrace } from "@/components/ivo/LearningApplicationJourney";
+import { Q2PracticeReview } from "@/components/ivo/Q2PracticeReview";
 import type {
   FibtActionPlanView,
   IvoQ2Outcome,
@@ -214,6 +215,23 @@ function IvoAcoesPage() {
                 onSubmit={(planId, application, binding) => write(() => createLearningApplicationFn({ data: { accessToken: token, planId, ...application, ...binding } }), "Aplicação planejada registrada. Aprendizagem e eficácia não foram inferidas.", { inline: true, replayedText: "Esta aplicação já estava registrada; nenhum efeito duplicado." })} />} />
           ) : null}
           <LearningApplicationTrace action={action} />
+          {education?.byFactor[action.source.factorId]?.map((content) => (
+            <Q2PracticeReview
+              key={`${action.id}:${content.contentId}@${content.version}:${content.activity?.version}`}
+              plan={plan}
+              action={action}
+              content={content}
+              view={view}
+              busy={busy}
+              onConfirm={(application, binding) => write(
+                () => createLearningApplicationFn({
+                  data: { accessToken: token, planId: plan.id, ...application, ...binding, reviewOfItemId: action.id },
+                }),
+                "Síntese registrada. O ajuste está planejado no mesmo ciclo.",
+                { inline: true, replayedText: "Este ajuste já está no plano; nenhuma ação foi duplicada." },
+              )}
+            />
+          ))}
           <ActionTimelinePanel entries={buildActionTimeline(action, plan, itemOf(action.id), parseContentRef)} contentTitle={contentTitle} />
         </>
       ),

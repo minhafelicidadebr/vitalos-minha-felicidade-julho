@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.1.0",
+  "registry_version": "1.2.0",
   "description": "Registro canônico das decisões metodológicas do IVO (R8). Transcreve o dossiê docs/vitalos/ivo-methodology-dossier.md §5 e §11 sem aprová-lo. D10 está aprovado para ensaio local exclusivamente do par Q2 0.1.0 documentado; as demais entradas continuam em proposta. Somente uma autoridade metodológica configurada no servidor pode preparar uma aprovação; RH_ADMIN de organização não aprova método global. 'aprovado_para_piloto' autoriza uma experiência delimitada e identificada; 'validado_para_uso_definido' exige evidência de validação para o uso declarado — são estados distintos.",
   "authority_policy": "A autoridade metodológica é configurada no servidor (VITALOS_IVO_METHOD_AUTHORITY_USER_IDS). Sem configuração, a aprovação fica indisponível. O papel RH_ADMIN de uma organização não concede essa autoridade.",
   "states": [
@@ -80,18 +80,19 @@
       "depends_on": []
     },
     {
-      "id": "D5", "kind": "decision", "title": "COPSOQ: licença, versão e política Domínio A/B", "version": "0.1.0", "state": "proposta",
-      "proposal": "Parecer jurídico sobre licença e uso; manter COPSOQ como lente independente (Q1) sem contribuir ao IVO até decidir a política de Domínio A/B e a versão (II-Br/III).",
-      "rationale": "O manifesto do repositório é demonstrativo e sem licença de versão; a política vigente proíbe misturar bem-estar (A) e risco (B); a página da rede COPSOQ descreve condições de licença que exigem interpretação própria.",
+      "id": "D5", "kind": "decision", "title": "COPSOQ: fonte, correspondência e política Domínio A/B", "version": "0.2.0", "state": "proposta",
+      "proposal": "Vincular a edição brasileira aprovada à fonte exata e conferir o instrumento servido. Manter COPSOQ como lente independente (Q1); uma eventual contribuição ao IVO depende da decisão própria de Domínio A/B.",
+      "rationale": "João Paulo Brandão Barboza confirmou a aprovação da versão brasileira em 18/11/2026. O manifesto atual ainda identifica uma bateria autoral demonstrativa. A aprovação da adoção e a comprovação da correspondência são etapas distintas.",
       "alternatives": ["IVO só com Domínio A", "Subescalas COPSOQ invertidas dentro do IVO", "COPSOQ só como lente independente"],
-      "recommendation": "Lente independente sem contribuição ao IVO até parecer jurídico.",
+      "recommendation": "Conferir a correspondência e manter a lente independente do IVO composto.",
       "sources": [
+        { "ref": "docs/vitalos/decisions/Q1_COPSOQ_BRAZIL_APPROVAL_2026-11-18.md", "kind": "repo" },
         { "ref": "docs/DECISAO_T5_TRILHO_LICENCIAMENTO_COPSOQ_2026-07-20.md", "kind": "repo" },
         { "ref": "https://www.copsoq-network.org/licence-guidelines-and-questionnaire", "kind": "externa_a_verificar" }
       ],
-      "limitations": ["Nenhuma interpretação jurídica foi feita; nenhuma condição de uso está declarada como resolvida."],
+      "limitations": ["A confirmação do responsável não identifica por si a edição e a forma nem transforma a bateria demonstrativa em instrumento validado."],
       "owner": null, "reviewer": null, "approval": null,
-      "approval_criteria": ["Parecer jurídico registrado", "Versão do instrumento escolhida", "Política A/B decidida"],
+      "approval_criteria": ["Edição e forma vinculadas ao registro da fonte", "Correspondência de itens, escalas, reversões, ausências, cálculo e atribuição demonstrada", "Política A/B decidida para qualquer contribuição ao IVO"],
       "effects": [
         { "feature": "Lente COPSOQ", "effect": "Permanece planejada; sem leitura real." },
         { "feature": "Cobertura (D2)", "effect": "Subescalas COPSOQ não entram no conjunto mínimo." }

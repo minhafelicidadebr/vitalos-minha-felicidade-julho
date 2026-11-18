@@ -6,6 +6,7 @@ export const learningApplicationSchema = ivoActionLoopSchemas.addAction
     contentId: z.string().regex(/^[A-Za-z0-9_.-]{1,80}$/),
     contentVersion: z.string().regex(/^[A-Za-z0-9_.-]{1,40}$/),
     activityVersion: z.string().regex(/^[A-Za-z0-9_.-]{1,40}$/),
+    reviewOfItemId: z.string().uuid().optional(),
   })
   .strict();
 export const createLearningApplicationFn = createServerFn({ method: "POST" })
