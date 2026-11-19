@@ -27,13 +27,13 @@ Sem mapeamento entre lentes e sem índice IVO composto: nada foi criado; as aç�
 
 ## Fatia implementada (menor possível)
 
-Só um teste de contrato, sem mudança de produção: `src/lib/ivo/q1-q2-contract.test.ts` (7 testes). Prova que a sessão IVO compartilhada continua só-administrador por padrão (liderança e colaborador recusados e o vínculo de membro nem é consultado — caminho da preparação Q1), que as aberturas do Q2 são opt-in, que a organização vem da sessão, que Q1/Q2 respondem só ao próprio módulo (PERMA/VIA-T não dependem deles), que o `method_pending` do Q1 não bloqueia o Q2 e que falha de leitura nega os dois.
+Só um teste de contrato, sem mudança de produção: `src/lib/ivo/q1-q2-contract.test.ts` (6 testes). Prova que a sessão IVO compartilhada continua só-administrador por padrão (liderança e colaborador recusados e o vínculo de membro nem é consultado — caminho da preparação Q1), que as aberturas do Q2 são opt-in, que a organização vem da sessão, que Q1/Q2 respondem só ao próprio módulo (PERMA/VIA-T não dependem deles), que o `method_pending` do Q1 não bloqueia o Q2 e que falha de leitura nega os dois.
 
 ## Verificação
 
 - Candidato (`integ/q1-q2-local`, Q2 `e612391` + WIP Q1 copiado): `bun run parity` ok; `bun run gate`: **4.532 aprovados, 1 falha**, TypeScript e demais gates ok até a falha.
 - Falha única: `scripts-guard-coverage` › `q1-browser-proof-setup.ts importa e invoca requireStagingTarget`. O script do Codex usa pilha própria (API 57721) e valida o alvo inline, mas não importa o guard do repositório nem está na lista dos harnesses locais (`src/lib/staging/scripts-guard-coverage.test.ts`). Deve falhar também no checkout do Codex.
-- Q2 isolado: contrato 12/12 (7 novos + 5 de `module-access`), `tsc` limpo.
+- Q2 isolado: contrato 12/12 (6 novos + 6 de `module-access`), `tsc` limpo.
 - Migrations: as 4 do Q1 não tocam `action_items`, `action_plans`, nem as RPCs do ledger; só leem `profiles` e `org_module_entitlements`. Timestamps em ordem (`20261118170000` … `20261119103000` < `20261119120000`). Manifesto regenerado: 72 migrations.
 - Stack institucional local (leitura): Q1=false/Q2=true na Alfa; Q1=false/Q2=false na Beta; Q2=true na Gama e Delta (sem linha Q1). `action_items.title_visible_at` presente. **Nenhuma tabela do Q1 (partner/delegates/review) existe no stack**: as migrations do Codex não foram aplicadas aqui.
 
