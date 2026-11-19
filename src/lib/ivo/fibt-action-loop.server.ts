@@ -513,14 +513,9 @@ export async function setFibtActionAccountability(
     const item = await ledger.findItem(auth.orgId, input.itemId);
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
     if (item.planStatus !== "draft") return rejected("plan_not_editable");
-    // S6 revisto (decisão do operador, 19/11/2026): o RH pode designar uma
-    // LIDER_EQUIPE da PRÓPRIA organização; o papel vem do banco, nunca do payload.
-    let ownerUserId = auth.userId;
-    if (input.ownerUserId && input.ownerUserId !== auth.userId) {
-      const role = await (deps.findOrgMemberRole ?? defaultFindOrgMemberRole)(auth.orgId, input.ownerUserId);
-      if (role !== LEADER_ROLE) return rejected("owner_not_eligible");
-      ownerUserId = input.ownerUserId;
-    }
+    const owner = await resolveDesignatedOwner(auth, input.ownerUserId, deps);
+    if (!owner.ok) return owner.rejection;
+    const ownerUserId = owner.ownerUserId;
     const r = await ledger.setAccountability({
       itemId: item.id,
       owner: { userId: ownerUserId, roleLabel: input.ownerRoleLabel },
@@ -533,6 +528,21 @@ export async function setFibtActionAccountability(
   } catch {
     return rejected("db_error");
   }
+}
+
+/**
+ * Regra ÚNICA de designação (S6 revisto, 19/11/2026), usada no rascunho e na inclusão PI-13:
+ * sem pedido → o próprio RH; pedido → só LIDER_EQUIPE da organização da SESSÃO, papel lido
+ * do banco (nunca do payload). Qualquer outro alvo → `owner_not_eligible`.
+ */
+export async function resolveDesignatedOwner(
+  auth: { userId: string; orgId: string },
+  requestedOwnerUserId: string | undefined,
+  deps: Pick<FibtActionLoopDeps, "findOrgMemberRole">,
+): Promise<{ ok: true; ownerUserId: string } | { ok: false; rejection: LedgerWriteOutcome }> {
+  if (!requestedOwnerUserId || requestedOwnerUserId === auth.userId) return { ok: true, ownerUserId: auth.userId };
+  const role = await (deps.findOrgMemberRole ?? defaultFindOrgMemberRole)(auth.orgId, requestedOwnerUserId);
+  return role === LEADER_ROLE ? { ok: true, ownerUserId: requestedOwnerUserId } : { ok: false, rejection: rejected("owner_not_eligible") };
 }
 
 export async function activateFibtActionPlan(

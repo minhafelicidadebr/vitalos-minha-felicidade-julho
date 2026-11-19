@@ -39,7 +39,7 @@
 import { sameCycle } from "@/domain/ivo/cycle-key";
 import type { PlanActionStatus } from "@/engine/action-plan/action-log-engine";
 import { loadIvoQ2ForOrg } from "./ivo-q2-reading.server";
-import { authorizeLedger, type FibtActionLoopDeps } from "./fibt-action-loop.server";
+import { authorizeLedger, resolveDesignatedOwner, type FibtActionLoopDeps } from "./fibt-action-loop.server";
 import { PLAN_EMPTY_MESSAGE, assessPlanClosure, describePending } from "./plan-closure";
 import type { LedgerWriteOutcome } from "./ivo-views";
 import { encodeContentRef } from "./content-ref";
@@ -66,6 +66,7 @@ export interface AddedActionRow {
   sourceCohortId: string | null;
   sourceFactorId: string | null;
   /** Bloco de accountability (§13) gravado na inclusão; nulo quando a ação entrou em rascunho sem ele. */
+  ownerUserId?: string | null;
   ownerRoleLabel: string | null;
   dueOn: string | null;
   metricLabel: string | null;
@@ -88,6 +89,8 @@ export interface AddActionInput {
   leverId: string;
   source: { waveId: string; cohortId: string; factorId: string };
   accountability: null | {
+    /** Já resolvido por `resolveDesignatedOwner` (próprio RH ou liderança da org). */
+    ownerUserId: string;
     ownerRoleLabel: string;
     dueOn: string;
     metric: { label: string; baseline: number; target: number; unit: string };
@@ -220,7 +223,7 @@ export interface AddActionToPlanRequest {
   description: string;
   effort: "baixo" | "medio" | "alto";
   /** Obrigatório em plano ativo; opcional em rascunho (o §13 segue o fluxo normal antes de ativar). */
-  accountability?: { ownerRoleLabel: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } };
+  accountability?: { ownerRoleLabel: string; ownerUserId?: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } };
 }
 
 export async function addFibtActionToPlan(
@@ -239,12 +242,19 @@ export async function addFibtActionToPlan(
     if (!plan.composition) return rejected("composition_unavailable");
 
     // Repetição do MESMO pedido: devolve a ação já criada (mesmo depois de o plano encerrar).
-    const replay = await resolveReplay(store, auth.orgId, plan.id, input);
+    const replay = await resolveReplay(store, auth.orgId, plan.id, input, auth.userId);
     if (replay) return replay;
 
     if (plan.status === "closed") return rejected("plan_closed");
     if (plan.status === "active" && !input.accountability) return rejected("accountability_required");
     if (input.accountability && !isIsoDate(input.accountability.dueOn)) return rejected("invalid_date");
+    // Mesma regra de designação do rascunho (função única).
+    let ownerUserId = auth.userId;
+    if (input.accountability) {
+      const owner = await resolveDesignatedOwner(auth, input.accountability.ownerUserId, deps);
+      if (!owner.ok) return owner.rejection;
+      ownerUserId = owner.ownerUserId;
+    }
 
     // A origem é revalidada AQUI, com a organização da SESSÃO e o snapshot protegido dela.
     const q2 = await loadIvoQ2ForOrg(auth.orgId, input.waveId, deps);
@@ -270,13 +280,13 @@ export async function addFibtActionToPlan(
       leverId: `fibt:${sector.key}:${factor.id}`,
       source: { waveId: view.wave.id, cohortId: sector.cohortId, factorId: factor.id },
       accountability: input.accountability
-        ? { ownerRoleLabel: input.accountability.ownerRoleLabel, dueOn: input.accountability.dueOn, metric: input.accountability.executionMetric }
+        ? { ownerUserId, ownerRoleLabel: input.accountability.ownerRoleLabel, dueOn: input.accountability.dueOn, metric: input.accountability.executionMetric }
         : null,
     });
     if (written.accepted) return { ok: true, accepted: true, id: written.itemId };
     if (written.reason === "duplicate_request") {
       // Corrida entre dois envios do mesmo pedido: o índice único decidiu; devolve o vencedor.
-      return (await resolveReplay(store, auth.orgId, plan.id, input)) ?? rejected("db_error");
+      return (await resolveReplay(store, auth.orgId, plan.id, input, auth.userId)) ?? rejected("db_error");
     }
     return rejected(written.reason);
   } catch {
@@ -289,6 +299,7 @@ async function resolveReplay(
   orgId: string,
   planId: string,
   input: AddActionToPlanRequest,
+  sessionUserId: string,
 ): Promise<LedgerWriteOutcome | null> {
   const existing = await store.findAddedAction(orgId, planId, input.requestId);
   if (!existing) return null;
@@ -299,6 +310,8 @@ async function resolveReplay(
     effort: input.effort,
     cohortId: input.cohortId,
     factorId: input.factorId,
+    // A pessoa designada faz parte do pedido: mesmo requestId com outra pessoa é conflito.
+    ownerUserId: existing.ownerUserId === undefined ? undefined : accountability ? (accountability.ownerUserId ?? sessionUserId) : null,
     ownerRoleLabel: accountability?.ownerRoleLabel,
     dueOn: accountability?.dueOn, // texto contratual: aparado, SEM truncar (a tolerância é só da linha)
     metricLabel: accountability?.executionMetric.label,
@@ -312,6 +325,8 @@ async function resolveReplay(
     effort: existing.effort,
     cohortId: existing.sourceCohortId,
     factorId: existing.sourceFactorId,
+    // `undefined` = store sem a coluna: os dois lados ficam fora da comparação (stores antigas).
+    ownerUserId: existing.ownerUserId,
     ownerRoleLabel: existing.ownerRoleLabel,
     dueOn: dateKey(existing.dueOn), // a tolerância de serialização vale SÓ aqui, no lado da linha
     metricLabel: existing.metricLabel,
@@ -367,6 +382,7 @@ function additionIdentity(v: {
   effort: unknown;
   cohortId: unknown;
   factorId: unknown;
+  ownerUserId?: unknown;
   ownerRoleLabel: unknown;
   dueOn: unknown;
   metricLabel: unknown;
@@ -380,6 +396,7 @@ function additionIdentity(v: {
     textKey(v.effort),
     textKey(v.cohortId),
     textKey(v.factorId),
+    textKey(v.ownerUserId),
     textKey(v.ownerRoleLabel),
     textKey(v.dueOn),
     textKey(v.metricLabel),
@@ -487,7 +504,7 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
         .from("action_items")
         // As colunas de accountability têm os MESMOS nomes que o INSERT de addAction grava.
         .select(
-          "id, title, description, effort, source_cohort_id, source_factor_id, owner_role_label, due_on, metric_label, metric_baseline, metric_target, metric_unit",
+          "id, title, description, effort, source_cohort_id, source_factor_id, owner_user_id, owner_role_label, due_on, metric_label, metric_baseline, metric_target, metric_unit",
         )
         .eq("org_id", orgId)
         .eq("plan_id", planId)
@@ -502,6 +519,7 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
           effort: data.effort as AddedActionRow["effort"],
           sourceCohortId: (data.source_cohort_id as string | null) ?? null,
           sourceFactorId: (data.source_factor_id as string | null) ?? null,
+          ownerUserId: (data.owner_user_id as string | null) ?? null,
           ownerRoleLabel: (data.owner_role_label as string | null) ?? null,
           dueOn: (data.due_on as string | null) ?? null,
           metricLabel: (data.metric_label as string | null) ?? null,
@@ -544,7 +562,7 @@ function createSupabasePlanCompositionStore(): PlanCompositionStore {
       };
       if (input.accountability) {
         Object.assign(row, {
-          owner_user_id: input.userId,
+          owner_user_id: input.accountability.ownerUserId,
           owner_role_label: input.accountability.ownerRoleLabel,
           due_on: input.accountability.dueOn,
           metric_label: input.accountability.metric.label,

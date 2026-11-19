@@ -139,6 +139,7 @@ interface FakeItem {
   rank: number;
   hasAccountability: boolean;
   /** Bloco §13 como a linha o guarda (ausente ou nulo quando a ação entrou sem accountability). */
+  ownerUserId?: string | null;
   ownerRoleLabel?: string | null;
   dueOn?: string | null;
   metricLabel?: string | null;
@@ -199,7 +200,7 @@ function memoryStore(options: FakeOptions = {}) {
       return found
         ? {
           id: found.id, title: found.title, description: found.description, effort: found.effort, sourceCohortId: found.sourceCohortId, sourceFactorId: found.sourceFactorId,
-          ownerRoleLabel: found.ownerRoleLabel ?? null, dueOn: found.dueOn ?? null, metricLabel: found.metricLabel ?? null,
+          ownerUserId: found.ownerUserId ?? null, ownerRoleLabel: found.ownerRoleLabel ?? null, dueOn: found.dueOn ?? null, metricLabel: found.metricLabel ?? null,
           metricBaseline: found.metricBaseline ?? null, metricTarget: found.metricTarget ?? null, metricUnit: found.metricUnit ?? null,
         }
         : null;
@@ -217,6 +218,7 @@ function memoryStore(options: FakeOptions = {}) {
         id: `added-${++seq}`, planId: plan.id, orgId: plan.orgId, title: input.title, description: input.description, effort: input.effort,
         status: "planejada", sourceCohortId: input.source.cohortId, sourceFactorId: input.source.factorId, requestId: input.requestId,
         addedByRole: input.role, rank: Math.max(0, ...items.map((i) => i.rank)) + 1, hasAccountability: input.accountability !== null,
+        ownerUserId: input.accountability?.ownerUserId ?? null,
         ownerRoleLabel: input.accountability?.ownerRoleLabel ?? null, dueOn: input.accountability?.dueOn ?? null, metricLabel: input.accountability?.metric.label ?? null,
         metricBaseline: input.accountability?.metric.baseline ?? null, metricTarget: input.accountability?.metric.target ?? null, metricUnit: input.accountability?.metric.unit ?? null,
       };
@@ -980,5 +982,39 @@ describe("PI-13 · visão, regra pura e contratos", () => {
     expect(ivoActionLoopSchemas.closePlan.safeParse({ accessToken: "token-alfa-admin", planId: ID.planAlfa, confirm: false }).success).toBe(false);
     expect(ivoActionLoopSchemas.closePlan.safeParse({ accessToken: "token-alfa-admin", planId: ID.planAlfa, confirm: true }).success).toBe(true);
     expect(ivoActionLoopSchemas.closePlan.safeParse({ accessToken: "token-alfa-admin", planId: ID.planAlfa, confirm: true, orgId: "org-beta" }).success).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PI-13 · designação de liderança na inclusão (mesma regra do rascunho)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("PI-13 · RH designa liderança ao incluir ação", () => {
+  const ROLES: Record<string, string> = { "org-alfa:u-lider": "LIDER_EQUIPE", "org-alfa:u-colab": "COLABORADOR" };
+  const withRoles = (s: ReturnType<typeof memoryStore>) =>
+    depsOf(s, { findOrgMemberRole: async (orgId, userId) => ROLES[`${orgId}:${userId}`] ?? null });
+  const designated = (ownerUserId: string) => ({ ...ADD, accountability: { ...ADD.accountability!, ownerUserId } });
+
+  test("liderança da própria org vira responsável; sem designação, o próprio RH", async () => {
+    const s = memoryStore();
+    expect(await addFibtActionToPlan(designated("u-lider"), withRoles(s))).toMatchObject({ ok: true, accepted: true });
+    expect(await addFibtActionToPlan({ ...ADD, requestId: ID.req2 }, withRoles(s))).toMatchObject({ ok: true, accepted: true });
+    expect(s.written.map((w) => w.accountability?.ownerUserId)).toEqual(["u-lider", "user-alfa"]);
+  });
+
+  test("colaborador, membro de outra org e id inexistente são recusados antes da escrita", async () => {
+    for (const ownerUserId of ["u-colab", "u-lider-beta", "u-inexistente"]) {
+      const s = memoryStore();
+      expect(await addFibtActionToPlan(designated(ownerUserId), withRoles(s))).toMatchObject({ accepted: false, reason: "owner_not_eligible" });
+      expect(s.written).toEqual([]);
+    }
+  });
+
+  test("mesmo pedido com outra pessoa designada é conflito, não repetição", async () => {
+    const s = memoryStore();
+    expect(await addFibtActionToPlan(designated("u-lider"), withRoles(s))).toMatchObject({ accepted: true });
+    expect(await addFibtActionToPlan(designated("u-lider"), withRoles(s))).toMatchObject({ accepted: true, replayed: true });
+    expect(await addFibtActionToPlan(ADD, withRoles(s))).toMatchObject({ accepted: false, reason: "request_conflict" });
+    expect(s.written).toHaveLength(1);
   });
 });

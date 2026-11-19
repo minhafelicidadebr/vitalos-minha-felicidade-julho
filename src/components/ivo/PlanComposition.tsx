@@ -56,7 +56,7 @@ export interface AddActionFormInput {
   description: string;
   effort: "baixo" | "medio" | "alto";
   /** Só em plano ativo (obrigatório lá). */
-  accountability?: { ownerRoleLabel: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } };
+  accountability?: { ownerRoleLabel: string; ownerUserId?: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } };
 }
 
 export function AddActionToPlanForm({
@@ -67,6 +67,7 @@ export function AddActionToPlanForm({
   initialSource,
   idSuffix,
   review,
+  leaders = [],
 }: {
   plan: FibtActionPlanView;
   view: IvoQ2View | null;
@@ -76,6 +77,8 @@ export function AddActionToPlanForm({
   idSuffix?: string;
   /** O recorte chega reduzido à origem da revisão; a síntese será anexada à nova ação. */
   review?: boolean;
+  /** Lideranças da organização que o RH pode designar (mesma regra do rascunho). */
+  leaders?: { userId: string; label: string }[];
 }) {
   const cycle = plan.cycleKeyCanonical ?? plan.cycleKey;
   const needsAccountability = plan.status === "active";
@@ -87,6 +90,7 @@ export function AddActionToPlanForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [effort, setEffort] = useState<AddActionFormInput["effort"]>("medio");
+  const [owner, setOwner] = useState("");
   const [role, setRole] = useState("");
   const [dueOn, setDueOn] = useState("");
   const [metricLabel, setMetricLabel] = useState("");
@@ -177,7 +181,7 @@ export function AddActionToPlanForm({
         say("error", "Plano ativo: informe responsável, prazo e indicador de execução (linha de base e meta) da nova ação.");
         return;
       }
-      accountability = { ownerRoleLabel: role.trim(), dueOn, executionMetric: { label: metricLabel.trim(), baseline: b, target: t, unit: unit.trim() } };
+      accountability = { ownerRoleLabel: role.trim(), ...(owner ? { ownerUserId: owner } : {}), dueOn, executionMetric: { label: metricLabel.trim(), baseline: b, target: t, unit: unit.trim() } };
     }
     inFlight.current = true;
     setPending(true);
@@ -197,6 +201,7 @@ export function AddActionToPlanForm({
         // Sucesso: limpa o que foi enviado e abre uma nova tentativa (nova chave).
         setTitle("");
         setDescription("");
+        setOwner("");
         setRole("");
         setDueOn("");
         setMetricLabel("");
@@ -302,6 +307,16 @@ export function AddActionToPlanForm({
         {needsAccountability ? (
           <fieldset className="grid gap-3 md:col-span-2 md:grid-cols-2">
             <legend className="text-sm font-medium text-foreground">Responsável, prazo e indicador de execução (obrigatórios no plano ativo)</legend>
+            {leaders.length > 0 ? (
+              <Field id={`${p}-owner`} label="Pessoa responsável" hint="A liderança designada acompanha e registra a execução desta ação. Plano e aprendizagem seguem com o RH.">
+                <select id={`${p}-owner`} aria-describedby={`${p}-owner-hint`} className={inputClass} value={owner} onChange={(e) => setOwner(e.target.value)}>
+                  <option value="">Eu (RH)</option>
+                  {leaders.map((l) => (
+                    <option key={l.userId} value={l.userId}>{l.label}</option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
             <Field id={`${p}-papel`} label="Responsável (função que executa)">
               <input id={`${p}-papel`} className={inputClass} value={role} required minLength={2} maxLength={80} onChange={(e) => setRole(e.target.value)} />
             </Field>

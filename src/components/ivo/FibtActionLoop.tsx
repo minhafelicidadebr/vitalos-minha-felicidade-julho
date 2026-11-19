@@ -85,9 +85,10 @@ export function PriorityPlanner({
 
   const [cohortId, setCohortId] = useState(initialSector?.cohortId ?? "");
   const [factorId, setFactorId] = useState(initialFactor?.id ?? "");
-  const [title, setTitle] = useState(
-    initialSector && initialFactor ? `Prioridade: ${initialFactor.name} — ${initialSector.label}` : "",
-  );
+  // Sugestão vira dica (placeholder), não valor: o título é lido pelas pessoas da organização (C2)
+  // e um valor pré-preenchido mistura-se ao que o RH digita.
+  const [title, setTitle] = useState("");
+  const titleSuggestion = initialSector && initialFactor ? `Ex.: Prioridade: ${initialFactor.name} — ${initialSector.label}` : undefined;
   const [description, setDescription] = useState("");
   const [effort, setEffort] = useState<PriorityDraft["effort"]>("medio");
   const [drafts, setDrafts] = useState<PriorityDraft[]>([]);
@@ -159,7 +160,7 @@ export function PriorityPlanner({
           </select>
         </Field>
         <Field id="prio-titulo" label="Título da ação" hint={TITLE_VISIBILITY_HINT}>
-          <input id="prio-titulo" aria-describedby="prio-titulo-hint" className={inputClass} value={title} maxLength={200} required minLength={3} onChange={(e) => setTitle(e.target.value)} />
+          <input id="prio-titulo" aria-describedby="prio-titulo-hint" className={inputClass} value={title} placeholder={titleSuggestion} maxLength={200} required minLength={3} onChange={(e) => setTitle(e.target.value)} />
         </Field>
         <Field id="prio-esforco" label="Esforço">
           <select id="prio-esforco" className={inputClass} value={effort} onChange={(e) => setEffort(e.target.value as PriorityDraft["effort"])}>

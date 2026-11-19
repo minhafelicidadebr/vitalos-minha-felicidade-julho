@@ -204,7 +204,7 @@ function IvoAcoesPage() {
     return {
       planClosure: <PlanClosure plan={plan} busy={busy} onClose={closePlan} />,
       planAddAction:
-        plan.status === "closed" ? undefined : <AddActionToPlanForm key={`${plan.id}:${preferredSource?.cohortId ?? ""}:${preferredSource?.factorId ?? ""}`} plan={plan} view={view} busy={busy} onSubmit={addAction} initialSource={preferredSource} />,
+        plan.status === "closed" ? undefined : <AddActionToPlanForm key={`${plan.id}:${preferredSource?.cohortId ?? ""}:${preferredSource?.factorId ?? ""}`} plan={plan} view={view} busy={busy} onSubmit={addAction} initialSource={preferredSource} leaders={loopData?.assignableLeaders ?? []} />,
       summary: (
         <PlanSummaryPanel
           cycle={plan.cycleKeyCanonical ?? plan.cycleKey}

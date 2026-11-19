@@ -69,6 +69,7 @@ export const ivoActionLoopSchemas = {
       accountability: z
         .object({
           ownerRoleLabel: z.string().trim().min(2).max(80),
+          ownerUserId: z.string().uuid().optional(),
           dueOn: z.string().date(),
           executionMetric,
         })

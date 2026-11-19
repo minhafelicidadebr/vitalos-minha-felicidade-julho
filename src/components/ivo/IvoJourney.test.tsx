@@ -138,6 +138,11 @@ describe("PriorityPlanner", () => {
     expect([...select.options].map((o) => o.textContent)).toEqual(["Operações"]);
     expect(screen.queryByRole("button", { name: /Criar plano/ })).toBeNull();
 
+    // A sugestão de título é só dica (B1): o campo começa vazio e o RH escreve o título.
+    const title = screen.getByLabelText("Título da ação") as HTMLInputElement;
+    expect(title.value).toBe("");
+    expect(title.placeholder).toContain("Prioridade:");
+    fireEvent.change(title, { target: { value: "Rodas de conversa da equipe" } });
     fireEvent.click(screen.getByRole("button", { name: "Adicionar prioridade" }));
     fireEvent.click(screen.getByRole("button", { name: "Criar plano do ciclo 2026-T2" }));
     expect(onCreate).toHaveBeenCalledTimes(1);
