@@ -113,3 +113,12 @@ describe("integração · revisão técnica Q1 pelo SST designado", () => {
     expect(await authorizeIvoSession("t-sst", deps(), { allowMember: true })).toMatchObject({ ok: true, orgId: "org-alfa", role: "SST_PROFISSIONAL" });
   });
 });
+
+describe("integração · delegação da preparação Q1", () => {
+  // Mesmo defeito, achado na prova dirigida (19/11/2026): o delegado concedido pela
+  // plataforma recebia "forbidden" na aplicação; quem decide RH/delegado é a RPC.
+  test("a preparação resolve o vínculo de membro e deixa a concessão para a RPC", () => {
+    const src = readFileSync(join(import.meta.dir, "q1-preparation.server.ts"), "utf8");
+    expect(src).toMatch(/authorizeIvoSession\(token,\s*undefined,\s*\{\s*allowMember:\s*true\s*\}\)/);
+  });
+});

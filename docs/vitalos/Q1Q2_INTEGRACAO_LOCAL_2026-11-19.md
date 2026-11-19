@@ -73,3 +73,8 @@ Releitura independente (`READ ONLY`, outro processo): Norte `Q1=true Q2=true`, 1
 **Gate após a correção:** `bun run gate` 4.544 aprovados (4.541 + 3), paridade, TypeScript, secret-scan.
 
 **Não coberto no navegador:** retry/idempotência (coberto por testes de serviço); delegação da preparação Q1; plano encerrado nesta pilha; 320/390 px nesta pilha. Releitura e persistência cobertas por novo login e SQL independente.
+
+## Revisão curta e delegação Q1 · 19/11/2026
+
+- **Correção SST (`cda7c3d`) revisada:** a org vem da sessão (`authorizeIvoSession` resolve `profiles.org_id`) e precisa bater com `expectedScope`; a RPC `q1_technical_review` só aceita devolução do `SST_PROFISSIONAL` designado (`p_actor = assigned`) para a empresa e o ciclo, e a designação exige perfil SST da mesma empresa com módulo Q1 habilitado.
+- **Delegação da preparação: mesmo defeito, confirmado e corrigido.** Prova dirigida na pilha descartável: após a plataforma conceder a delegação ao colaborador da Norte, `readQ1Preparation` devolvia `forbidden` para o delegado e para a liderança sem concessão. `operatePreparation` passa a resolver o vínculo de membro (`allowMember`); a RPC `q1_preparation_journal` decide (RH ou delegado). Depois: delegado `ok=true`, liderança sem concessão `forbidden`. Testes do Q1 4/4; regressão no contrato; `bun run gate` 4.545 aprovados.

@@ -61,7 +61,10 @@ function project(raw: unknown, scope: string, cycle: string) {
 
 export async function operatePreparation(
   input: { accessToken?: string; cycle: string } | PrepSave,
-  deps = { authorize: authorizeIvoSession, journal },
+  // Vínculo real de qualquer membro (org da sessão); quem prepara é decidido pela RPC
+  // q1_preparation_journal (RH ou delegado concedido pela plataforma). O padrão só-admin
+  // recusava o delegado antes do banco.
+  deps = { authorize: (token?: string) => authorizeIvoSession(token, undefined, { allowMember: true }), journal },
 ): Promise<PrepResult> {
   try {
     const actor = await deps.authorize(input.accessToken);
