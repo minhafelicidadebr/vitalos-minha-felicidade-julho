@@ -83,8 +83,8 @@ BEGIN
   -- 4 · title_visible_at e superfície
   INSERT INTO proof SELECT 'nova linha recebe title_visible_at', title_visible_at IS NOT NULL FROM public.action_items WHERE id = i_own;
   INSERT INTO proof VALUES ('helper sem EXECUTE para papéis de API',
-    NOT has_function_privilege('authenticated', 'public.ledger_actor_denial(uuid,uuid,text,text)', 'EXECUTE')
-    AND NOT has_function_privilege('anon', 'public.ledger_actor_denial(uuid,uuid,text,text)', 'EXECUTE'));
+    NOT has_function_privilege('authenticated', 'ivo_ledger.ledger_actor_denial(uuid,uuid,text,text)', 'EXECUTE')
+    AND NOT has_function_privilege('anon', 'ivo_ledger.ledger_actor_denial(uuid,uuid,text,text)', 'EXECUTE'));
   INSERT INTO proof VALUES ('RPCs só service_role',
     has_function_privilege('service_role', 'public.record_evidence(uuid,text,text,text,text,date,uuid,text)', 'EXECUTE')
     AND NOT has_function_privilege('authenticated', 'public.record_evidence(uuid,text,text,text,text,date,uuid,text)', 'EXECUTE'));

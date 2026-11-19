@@ -51,3 +51,7 @@ Não foi alterado código, banco, habilitação, curadoria ou regra de autoriza�
 Conferência desta preparação: branch/HEAD/status, identidades Git do candidato, igualdade das fontes selecionadas com a prova de build, links locais e revisão do diff. Gate/build anteriores não foram repetidos. `.q.out` e `.q.sql` não foram abertos ou alterados.
 
 **Próximo marco único:** incorporar as definições humanas faltantes para fechar PIL-01–PIL-08. Até lá, a entrega confirmada é a seleção técnica do candidato e o registro transparente das pendências.
+
+## Atualização PIL-08 · 19/11/2026
+
+Decisão do operador nesta sessão (resposta exata: "Sim, atualizar"): o candidato técnico do piloto passa de `2e9df54` para o **candidato integrado Q1+Q2 `6eff411`** (branch `integ/q1-q2-merge`, local, sem push). Evidência: `docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md` (gate 4.545; jornada integrada no navegador em pilha descartável loopback; suíte SQL 18/18). Escopo: seleção técnica apenas. **Ambiente-alvo, verificação no ambiente, liberação e PIL-01–PIL-07 continuam pendentes**; nenhuma aprovação atribuída a João Paulo, Olga ou Ana Paula além do registro D10.
