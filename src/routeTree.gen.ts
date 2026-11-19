@@ -96,6 +96,7 @@ import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
 import { Route as IvoIntegralIndexRouteImport } from './routes/ivo-integral.index'
 import { Route as IvoIntegralAcoesRouteImport } from './routes/ivo-integral.acoes'
 import { Route as IvoIntegralGovernancaRouteImport } from './routes/ivo-integral.governanca'
+import { Route as IvoIntegralPrepararQ1RouteImport } from './routes/ivo-integral.preparar-q1'
 import { Route as IvoIntegralQ2RouteImport } from './routes/ivo-integral.q2'
 import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
@@ -535,6 +536,11 @@ const IvoIntegralGovernancaRoute = IvoIntegralGovernancaRouteImport.update({
   path: '/ivo-integral/governanca',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IvoIntegralPrepararQ1Route = IvoIntegralPrepararQ1RouteImport.update({
+  id: '/ivo-integral/preparar-q1',
+  path: '/ivo-integral/preparar-q1',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IvoIntegralQ2Route = IvoIntegralQ2RouteImport.update({
   id: '/ivo-integral/q2',
   path: '/ivo-integral/q2',
@@ -638,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
   '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -730,6 +737,7 @@ export interface FileRoutesByTo {
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
   '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -823,6 +831,7 @@ export interface FileRoutesById {
   '/driver/$driverId': typeof DriverDriverIdRoute
   '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
   '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
@@ -917,6 +926,7 @@ export interface FileRouteTypes {
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
     | '/ivo-integral/governanca'
+    | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
@@ -1009,6 +1019,7 @@ export interface FileRouteTypes {
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
     | '/ivo-integral/governanca'
+    | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
     | '/ivo-integral'
     | '/api/fibt-hml/attestation'
@@ -1101,6 +1112,7 @@ export interface FileRouteTypes {
     | '/driver/$driverId'
     | '/ivo-integral/acoes'
     | '/ivo-integral/governanca'
+    | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
@@ -1194,6 +1206,7 @@ export interface RootRouteChildren {
   DriverDriverIdRoute: typeof DriverDriverIdRoute
   IvoIntegralAcoesRoute: typeof IvoIntegralAcoesRoute
   IvoIntegralGovernancaRoute: typeof IvoIntegralGovernancaRoute
+  IvoIntegralPrepararQ1Route: typeof IvoIntegralPrepararQ1Route
   IvoIntegralQ2Route: typeof IvoIntegralQ2Route
   IvoIntegralIndexRoute: typeof IvoIntegralIndexRoute
   ApiFibtHmlAttestationRoute: typeof ApiFibtHmlAttestationRoute
@@ -1811,6 +1824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IvoIntegralGovernancaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ivo-integral/preparar-q1': {
+      id: '/ivo-integral/preparar-q1'
+      path: '/ivo-integral/preparar-q1'
+      fullPath: '/ivo-integral/preparar-q1'
+      preLoaderRoute: typeof IvoIntegralPrepararQ1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ivo-integral/q2': {
       id: '/ivo-integral/q2'
       path: '/ivo-integral/q2'
@@ -1922,6 +1942,7 @@ const rootRouteChildren: RootRouteChildren = {
   DriverDriverIdRoute: DriverDriverIdRoute,
   IvoIntegralAcoesRoute: IvoIntegralAcoesRoute,
   IvoIntegralGovernancaRoute: IvoIntegralGovernancaRoute,
+  IvoIntegralPrepararQ1Route: IvoIntegralPrepararQ1Route,
   IvoIntegralQ2Route: IvoIntegralQ2Route,
   IvoIntegralIndexRoute: IvoIntegralIndexRoute,
   ApiFibtHmlAttestationRoute: ApiFibtHmlAttestationRoute,

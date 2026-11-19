@@ -234,6 +234,14 @@ export function InstitutionalModules() {
                   ? MODULE_MESSAGES.method_pending
                   : q2}
             </p>
+            {m.enabled && m.module === "Q1" && (
+              <Link
+                className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2 text-primary-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                to="/ivo-integral/preparar-q1"
+              >
+                Preparar avaliação Q1
+              </Link>
+            )}
             {m.enabled && m.module === "Q2" && (
               <Link
                 className="inline-flex rounded-xl bg-primary px-4 py-2 text-primary-foreground"

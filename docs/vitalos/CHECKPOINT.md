@@ -1,5 +1,11 @@
 # Checkpoint de retomada — VitalOS IVO (2026-11-18; registros históricos preservados)
 
+## Q1 · preparação empresarial e prevenção antes da coleta — 2026-11-18
+
+Base `f40d918`. O RH empresarial pode revisar um comunicado, conferir a cobertura de controles, planejar uma medida para uma lacuna observada e registrar o acompanhamento. A rota está acessível pelo painel de RH. O ensaio Alfa/Beta comprovou a jornada em navegador, a proteção de revisões concorrentes, a persistência por empresa e ciclo e a emissão de dois PDFs. A habilitação inicial da Alfa foi restabelecida. [Plano, amostras e prova local](Q1_PREPARACAO_EMPRESARIAL.md).
+
+O próximo marco para a coleta continua sendo vincular a edição e a forma brasileiras aprovadas ao manifesto com equivalência item a item. A memória pré-coleta documenta o trabalho de preparação. A devolutiva de mensuração e a revisão técnica do dossiê dependem de outras evidências. Q2 mantém a sua jornada independente.
+
 ## Q1 · conferência técnica da fonte brasileira — 2026-11-18
 
 Base `9759e8d`. Implementado um verificador local de identidade, hashes, correspondência dos itens e casos de cálculo. A triagem com o manual NCOPSII mostrou que a coincidência de 41 itens deixa a prova incompleta. O Anexo 3 do COPSOQ III padrão divergiu em edição e opções por item. O manifesto atual identifica a bateria demonstrativa. A [conferência e o comando de reprodução](Q1_COPSOQ_SOURCE_PARITY_2026-11-18.md) registram as referências e os resultados.
