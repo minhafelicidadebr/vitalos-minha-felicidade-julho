@@ -8,8 +8,8 @@ describe("Q3ReadinessNotice", () => {
     render(<Q3ReadinessNotice />);
     expect(screen.getByRole("heading", { name: /Q3 · PERMA\+V — em preparação metodológica/ })).toBeTruthy();
     expect(screen.getByText(/Nada é medido, pontuado ou publicado nesta lente/)).toBeTruthy();
-    expect(screen.getByText(`1 de ${Q3_PRECONDITIONS.length} decisões registradas`)).toBeTruthy();
-    expect(screen.getAllByText(/^Pendente:$/).length).toBe(Q3_PRECONDITIONS.length - 1);
+    expect(screen.getByText(`${Q3_PRECONDITIONS.filter((p) => p.status === "decided").length} de ${Q3_PRECONDITIONS.length} decisões registradas`)).toBeTruthy();
+    expect(screen.getAllByText(/^Pendente:$/).length).toBe(Q3_PRECONDITIONS.filter((p) => p.status !== "decided").length);
   });
 
   test("não oferece ação, link, formulário nem valor que pareça mensuração", () => {
