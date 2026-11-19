@@ -144,7 +144,15 @@ export interface FibtActionPlanView {
 export type LedgerFailure = { ok: false; category: IvoFailureCategory; error: string };
 
 /** `own_actions`: liderança — o servidor já filtrou para as ações das quais ela é responsável. */
-export type LoadFibtActionLoopOutcome = { ok: true; plans: FibtActionPlanView[]; viewerScope?: "own_actions" } | LedgerFailure;
+export type LoadFibtActionLoopOutcome =
+  | {
+      ok: true;
+      plans: FibtActionPlanView[];
+      viewerScope?: "own_actions";
+      /** Só para o RH: lideranças da organização que podem ser designadas responsáveis. */
+      assignableLeaders?: { userId: string; label: string }[];
+    }
+  | LedgerFailure;
 
 export type LedgerWriteOutcome =
   /** `replayed`: o mesmo pedido já havia sido aplicado antes; nada foi gravado de novo. */

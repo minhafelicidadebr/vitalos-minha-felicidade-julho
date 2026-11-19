@@ -129,7 +129,10 @@ function IvoAcoesPage() {
     return outcome;
   }
 
+  const loopData = page.state === "done" && page.data.loop.ok ? page.data.loop : null;
   const callbacks: ActionCallbacks = {
+    assignableLeaders: loopData?.assignableLeaders ?? [],
+    learningWritable: loopData?.viewerScope !== "own_actions",
     onAccountability: (itemId, input) =>
       void write(() => setFibtActionAccountabilityFn({ data: { accessToken: token, itemId, ...input } }), "Responsável, prazo e indicador salvos."),
     onStatus: (itemId, toStatus) =>
@@ -196,6 +199,8 @@ function IvoAcoesPage() {
       return null;
     };
     const itemOf = (actionId: string) => efficacy?.items.find((i) => i.itemId === actionId) ?? null;
+    // Liderança: só a própria ação (estado + execução); encerrar, incluir, aprendizagem e eficácia ficam com o RH.
+    if (ownActionsOnly) return {};
     return {
       planClosure: <PlanClosure plan={plan} busy={busy} onClose={closePlan} />,
       planAddAction:

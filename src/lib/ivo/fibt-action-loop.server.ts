@@ -177,6 +177,33 @@ export interface FibtActionLoopDeps extends IvoQ2Deps, EducationRuntimeDeps {
   ledger?: FibtActionLedgerStore;
   /** Mostra/aceita conteúdo de TESTE (padrão: só em runtime local descartável). */
   testContent?: boolean;
+  /** Lideranças da organização que o RH pode designar (papel lido do banco). */
+  listOrgLeaders?: (orgId: string) => Promise<AssignableLeader[]>;
+  /** Papel real de um membro na organização, ou null se não for membro dela. */
+  findOrgMemberRole?: (orgId: string, userId: string) => Promise<string | null>;
+}
+
+export interface AssignableLeader {
+  userId: string;
+  label: string;
+}
+
+async function defaultListOrgLeaders(orgId: string): Promise<AssignableLeader[]> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin as any)
+    .from("profiles").select("id, display_name").eq("org_id", orgId).eq("role", LEADER_ROLE).order("display_name", { ascending: true });
+  if (error) throw new Error("IVO_LEADERS_READ_FAILED");
+  return ((data ?? []) as { id: string; display_name: string | null }[]).map((p, i) => ({
+    userId: String(p.id),
+    label: p.display_name?.trim() || `Liderança ${i + 1} (sem nome cadastrado)`,
+  }));
+}
+
+async function defaultFindOrgMemberRole(orgId: string, userId: string): Promise<string | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin as any).from("profiles").select("role").eq("id", userId).eq("org_id", orgId).maybeSingle();
+  if (error) throw new Error("IVO_MEMBER_READ_FAILED");
+  return (data?.role as string | undefined) ?? null;
 }
 
 const REASON_MESSAGE: Record<string, string> = {
@@ -190,6 +217,8 @@ const REASON_MESSAGE: Record<string, string> = {
   item_not_found: "Ação não encontrada nesta organização.",
   plan_not_found: "Plano não encontrado nesta organização.",
   plan_not_editable: "Responsável e prazo só podem ser definidos enquanto o plano está em rascunho.",
+  owner_not_eligible: "A pessoa escolhida não é uma liderança desta organização.",
+  authority_reserved_to_admin: "Este registro é conduzido pelo RH da organização.",
   plan_not_draft: "Este plano já foi ativado.",
   plan_not_active: "Ative o plano antes de registrar execução ou evidência.",
   incomplete_section_13: "Defina responsável, prazo e indicador de execução de todas as ações antes de ativar.",
@@ -341,7 +370,9 @@ export async function loadFibtActionLoop(
     if (auth.role === LEADER_ROLE) {
       return { ok: true, plans: buildFibtActionPlanViews(scopeSnapshotToLeader(snapshot, auth), auth.orgId, auth.userId), viewerScope: "own_actions" };
     }
-    return { ok: true, plans: buildFibtActionPlanViews(snapshot, auth.orgId, auth.userId) };
+    // Lista para designação: falha aqui não derruba o plano (o RH ainda pode designar a si mesmo).
+    const assignableLeaders = await (deps.listOrgLeaders ?? defaultListOrgLeaders)(auth.orgId).catch(() => []);
+    return { ok: true, plans: buildFibtActionPlanViews(snapshot, auth.orgId, auth.userId), ...(assignableLeaders.length > 0 ? { assignableLeaders } : {}) };
   } catch {
     return { ok: false, category: "backend", error: "As ações não puderam ser carregadas agora." };
   }
@@ -467,6 +498,8 @@ export async function setFibtActionAccountability(
     accessToken?: string;
     itemId: string;
     ownerRoleLabel: string;
+    /** Liderança designada pelo RH; ausente = o próprio RH (escopo S6 original). */
+    ownerUserId?: string;
     dueOn: string;
     executionMetric: { label: string; baseline: number; target: number; unit: string };
   },
@@ -480,11 +513,17 @@ export async function setFibtActionAccountability(
     const item = await ledger.findItem(auth.orgId, input.itemId);
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
     if (item.planStatus !== "draft") return rejected("plan_not_editable");
+    // S6 revisto (decisão do operador, 19/11/2026): o RH pode designar uma
+    // LIDER_EQUIPE da PRÓPRIA organização; o papel vem do banco, nunca do payload.
+    let ownerUserId = auth.userId;
+    if (input.ownerUserId && input.ownerUserId !== auth.userId) {
+      const role = await (deps.findOrgMemberRole ?? defaultFindOrgMemberRole)(auth.orgId, input.ownerUserId);
+      if (role !== LEADER_ROLE) return rejected("owner_not_eligible");
+      ownerUserId = input.ownerUserId;
+    }
     const r = await ledger.setAccountability({
       itemId: item.id,
-      // Escopo declarado do ledger S6: o responsável accountable é quem
-      // administra o plano; o rótulo descreve a função que executa.
-      owner: { userId: auth.userId, roleLabel: input.ownerRoleLabel },
+      owner: { userId: ownerUserId, roleLabel: input.ownerRoleLabel },
       dueOn: input.dueOn,
       metric: input.executionMetric,
       cmo: null,

@@ -49,6 +49,20 @@ Responsáveis: operador (autoridade de produto) e João Paulo Brandão Barboza s
 
 Verificação: `leader-scope.server.test.ts` (4) + política (7); `bun run gate` 4.481 aprovados, paridade, TypeScript, secret-scan. Navegador (stack institucional, app 8092): RH Alfa convidou `lider.alfa@institutional.test` como LIDER_EQUIPE (papel conferido em `member_invites`, `READ ONLY`); a liderança aceitou, viu o estado vazio próprio em `/ivo-integral/acoes` sem nenhuma ação alheia, e `/ivo-integral/q2` segue negada com o caminho do Diário e sem setores.
 
-## Decisão S6 pendente · quem pode ser responsável
+## Decisão S6 · tomada em 19/11/2026
+
+O operador escolheu **"Sim, designar líder"**: o RH pode designar uma pessoa `LIDER_EQUIPE` da própria organização como responsável (`owner_user_id`). Sem designação, segue o próprio RH (comportamento anterior).
+
+Implementação:
+- `setFibtActionAccountability` aceita `ownerUserId` opcional (schema `uuid`); o papel do designado é lido de `profiles` por organização da sessão (`findOrgMemberRole`). Colaborador, RH de outra pessoa, membro de outra empresa ou id inexistente → `owner_not_eligible`. A liderança não designa ninguém (`requireOrgAdmin`).
+- `loadFibtActionLoop` entrega ao RH `assignableLeaders` (id + `display_name`, sem e-mail); a liderança não recebe a lista.
+- `/ivo-integral/acoes`: campo "Pessoa responsável" (padrão "Eu (RH)") no formulário de responsabilidade em rascunho. Para a liderança, a ação aparece sem encerrar, incluir, aprendizagem, eficácia ou jornada educativa.
+- Fora deste incremento: inclusão de ação em plano ativo (PI-13) continua designando o próprio RH.
+
+Verificação: `leader-scope.server.test.ts` (5); `bun run gate` 4.482 aprovados, paridade, TypeScript, secret-scan.
+
+Limite da prova em navegador: a designação só existe em plano em rascunho. A Alfa tem o plano 2026-T4 ativo (um plano por ciclo) e a Beta está com Q2 desligado. Provar no navegador exige encerrar o plano da Alfa (irreversível) ou habilitar Q2 num terceiro tenant fictício — ambos pendentes de autorização.
+
+## Contexto da decisão S6 (anterior)
 
 Hoje `setFibtActionAccountability` grava sempre como responsável o próprio RH que define a responsabilidade (`fibt-action-loop.server.ts`, comentário "Escopo declarado do ledger S6"). Logo nenhuma liderança é responsável por ação e o escopo ligado fica vazio na prática. Para operar: decidir se o RH pode designar uma pessoa LIDER_EQUIPE da própria organização como responsável (o `owner_user_id` deixa de significar "quem administra o plano"), ou criar um campo distinto de executor (migration). A responsabilidade só é editável em plano em rascunho.

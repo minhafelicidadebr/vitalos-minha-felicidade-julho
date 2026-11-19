@@ -47,6 +47,7 @@ export const ivoActionLoopSchemas = {
       accessToken: token,
       itemId: z.string().uuid(),
       ownerRoleLabel: z.string().trim().min(2).max(80),
+      ownerUserId: z.string().uuid().optional(),
       dueOn: z.string().date(),
       executionMetric,
     })

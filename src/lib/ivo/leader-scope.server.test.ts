@@ -8,6 +8,7 @@ import {
   loadFibtActionLoop,
   recordFibtActionEvidence,
   recordFibtActionStatus,
+  setFibtActionAccountability,
   type FibtActionLedgerStore,
   type FibtActionLoopDeps,
   type FibtLedgerItemRow,
@@ -57,7 +58,7 @@ function ledger() {
       return p ? { id: p.id, orgId: p.orgId, status: p.status } : null;
     },
     createPlan: async () => ({ accepted: false, reason: "unused", planId: null }),
-    setAccountability: async () => ({ accepted: false, reason: "unused" }),
+    setAccountability: async (input: { itemId: string; owner: { userId: string } }) => { writes.push(`owner:${input.itemId}:${input.owner.userId}`); return { accepted: true, reason: null }; },
     activatePlan: async () => { writes.push("activate"); return { accepted: true }; },
     recordEvent: async (input: { itemId: string; actorRoleLabel: string }) => { writes.push(`status:${input.itemId}:${input.actorRoleLabel}`); return { accepted: true, reason: null }; },
     recordEvidence: async (input: { itemId: string; actorRoleLabel: string }) => { writes.push(`evidence:${input.itemId}:${input.actorRoleLabel}`); return { accepted: true, reason: null, evidenceId: "ev-new" }; },
@@ -74,6 +75,9 @@ function deps(store: FibtActionLedgerStore): FibtActionLoopDeps {
     resolveMember: async (t) => MEMBER[t] ?? ADMIN[t] ?? { ok: false, reason: "invalid_session" },
     capability: () => ({ enabled: true, source: "local_fixture" }),
     ledger: store,
+    listOrgLeaders: async (orgId) => (orgId === "org-alfa" ? [{ userId: "u-lider", label: "Liderança Alfa" }] : []),
+    findOrgMemberRole: async (orgId, userId) =>
+      ({ "org-alfa:u-lider": "LIDER_EQUIPE", "org-alfa:u-colab": "COLABORADOR", "org-alfa:u-rh": "RH_ADMIN" } as Record<string, string>)[`${orgId}:${userId}`] ?? null,
     now: () => new Date("2026-11-18T12:00:00.000Z"),
   };
 }
@@ -112,6 +116,23 @@ describe("liderança no ciclo de ação Q2", () => {
     expect(await recordFibtActionEvidence({ accessToken: "t-lider", itemId: "propria", scope: "aprendizagem", content: "x", occurredOn: "2026-11-17" }, d)).toMatchObject({ accepted: false, reason: "authority_reserved_to_admin" });
     expect(await activateFibtActionPlan({ accessToken: "t-lider", planId: "plan-rascunho" }, d)).toMatchObject({ ok: false, category: "forbidden" });
     expect(writes).toEqual([]);
+  });
+
+  test("RH designa só liderança da própria empresa; sem designação, segue o próprio RH", async () => {
+    const { store, writes } = ledger();
+    const d = deps(store);
+    const base = { accessToken: "t-rh", itemId: "rascunho", ownerRoleLabel: "Facilitação", dueOn: "2026-12-01", executionMetric: { label: "Encontros", baseline: 0, target: 1, unit: "encontro" } };
+    expect(await setFibtActionAccountability({ ...base, ownerUserId: "u-lider" }, d)).toMatchObject({ ok: true, accepted: true });
+    expect(await setFibtActionAccountability(base, d)).toMatchObject({ ok: true, accepted: true });
+    for (const ownerUserId of ["u-colab", "u-lider-b", "u-inexistente"]) {
+      expect(await setFibtActionAccountability({ ...base, ownerUserId }, d)).toMatchObject({ accepted: false, reason: "owner_not_eligible" });
+    }
+    // A própria liderança não designa ninguém.
+    expect(await setFibtActionAccountability({ ...base, accessToken: "t-lider", ownerUserId: "u-lider" }, d)).toMatchObject({ ok: false, category: "forbidden" });
+    expect(writes).toEqual(["owner:rascunho:u-lider", "owner:rascunho:u-rh"]);
+    // Lista de designação: só para o RH.
+    expect(await loadFibtActionLoop({ accessToken: "t-rh" }, d)).toMatchObject({ assignableLeaders: [{ userId: "u-lider", label: "Liderança Alfa" }] });
+    expect(await loadFibtActionLoop({ accessToken: "t-lider" }, d)).not.toHaveProperty("assignableLeaders");
   });
 
   test("colaborador e liderança de outra empresa não entram; leitura Q2 por setor segue negada à liderança", async () => {

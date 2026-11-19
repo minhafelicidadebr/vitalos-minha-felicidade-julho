@@ -251,14 +251,19 @@ export interface EvidenceSubmitResult {
 }
 
 export interface ActionCallbacks {
-  onAccountability: (itemId: string, input: { ownerRoleLabel: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } }) => void;
+  onAccountability: (itemId: string, input: { ownerRoleLabel: string; ownerUserId?: string; dueOn: string; executionMetric: { label: string; baseline: number; target: number; unit: string } }) => void;
+  /** Lideranças que o RH pode designar como responsáveis (vazio = só o próprio RH). */
+  assignableLeaders?: { userId: string; label: string }[];
+  /** `false` para a liderança: aprendizagem é registrada pelo RH. Padrão: `true`. */
+  learningWritable?: boolean;
   onStatus: (itemId: string, toStatus: PlanActionStatus) => void;
   // Devolve o desfecho para o formulário mostrar sucesso/erro junto dele; `void` conta como sucesso.
   onEvidence: (itemId: string, input: EvidenceInput) => Promise<EvidenceSubmitResult> | void;
 }
 
-function AccountabilityForm({ action, busy, onSubmit }: { action: FibtActionView; busy: boolean; onSubmit: ActionCallbacks["onAccountability"] }) {
+function AccountabilityForm({ action, busy, onSubmit, leaders = [] }: { action: FibtActionView; busy: boolean; onSubmit: ActionCallbacks["onAccountability"]; leaders?: ActionCallbacks["assignableLeaders"] }) {
   const p = `acc-${action.id}`;
+  const [owner, setOwner] = useState("");
   const [role, setRole] = useState(action.owner?.roleLabel ?? "");
   const [dueOn, setDueOn] = useState(action.dueOn ?? "");
   const [label, setLabel] = useState(action.executionMetric?.label ?? "");
@@ -274,9 +279,19 @@ function AccountabilityForm({ action, busy, onSubmit }: { action: FibtActionView
         const b = Number(baseline.replace(",", "."));
         const t = Number(target.replace(",", "."));
         if (!role.trim() || !dueOn || !label.trim() || !Number.isFinite(b) || !Number.isFinite(t)) return;
-        onSubmit(action.id, { ownerRoleLabel: role.trim(), dueOn, executionMetric: { label: label.trim(), baseline: b, target: t, unit: unit.trim() } });
+        onSubmit(action.id, { ownerRoleLabel: role.trim(), ...(owner ? { ownerUserId: owner } : {}), dueOn, executionMetric: { label: label.trim(), baseline: b, target: t, unit: unit.trim() } });
       }}
     >
+      {leaders && leaders.length > 0 ? (
+        <Field id={`${p}-owner`} label="Pessoa responsável" hint="A liderança designada acompanha e registra a execução desta ação. Plano e aprendizagem seguem com o RH.">
+          <select id={`${p}-owner`} aria-describedby={`${p}-owner-hint`} className={inputClass} value={owner} onChange={(e) => setOwner(e.target.value)}>
+            <option value="">Eu (RH)</option>
+            {leaders.map((l) => (
+              <option key={l.userId} value={l.userId}>{l.label}</option>
+            ))}
+          </select>
+        </Field>
+      ) : null}
       <Field id={`${p}-role`} label="Responsável (função que executa)">
         <input id={`${p}-role`} className={inputClass} value={role} required minLength={2} maxLength={80} onChange={(e) => setRole(e.target.value)} />
       </Field>
@@ -613,7 +628,7 @@ export function FibtActionCard({
       {planStatus === "draft" ? (
         <div>
           <h4 className="text-sm font-medium text-foreground">Responsável, prazo e indicador de execução</h4>
-          <AccountabilityForm action={action} busy={busy} onSubmit={callbacks.onAccountability} />
+          <AccountabilityForm action={action} busy={busy} onSubmit={callbacks.onAccountability} leaders={callbacks.assignableLeaders} />
         </div>
       ) : null}
 
@@ -636,7 +651,7 @@ export function FibtActionCard({
 
       <div className="grid gap-4 md:grid-cols-2">
         <EvidenceCard action={action} scope="execucao" records={action.evidence.execution} showForm={planStatus === "active"} busy={busy} today={today} onSubmit={callbacks.onEvidence} />
-        <EvidenceCard action={action} scope="aprendizagem" records={action.evidence.learning} showForm={planStatus === "active"} busy={busy} today={today} education={educationOptions} onSubmit={callbacks.onEvidence} />
+        <EvidenceCard action={action} scope="aprendizagem" records={action.evidence.learning} showForm={planStatus === "active" && callbacks.learningWritable !== false} busy={busy} today={today} education={educationOptions} onSubmit={callbacks.onEvidence} />
       </div>
       {enhancements?.extras?.(action)}
 
