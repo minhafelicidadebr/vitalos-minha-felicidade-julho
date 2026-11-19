@@ -25,7 +25,8 @@ import {
 import { readIdentityBoundaryStatus } from "@/lib/identity/identity-boundary.server";
 import { resolveIvoRuntimeProfile, type IvoRuntimeProfile } from "./ivo-runtime-profile.server";
 import type { IdentityBoundaryStatus } from "@/engine/identity/authorization-engine";
-import { requireOrgAdmin, type MembershipResult } from "@/lib/auth/authorize.server";
+import { requireOrgAdmin, resolveOrgMembership, type MembershipResult } from "@/lib/auth/authorize.server";
+import { LEADER_ROLE } from "./leader-scope-policy";
 import {
   loadFibtManagerControlCenterAsAdmin,
   type FibtManagerSnapshot,
@@ -47,6 +48,13 @@ export interface IvoSessionDeps {
   boundary?: (env: HmlBackendBoundaryEnv) => HmlBackendBoundaryResult;
   identity?: () => IdentityBoundaryStatus;
   requireAdmin?: (accessToken: string) => Promise<MembershipResult>;
+  /** Vínculo de qualquer membro (papel real do servidor). Só consultado quando o chamador admite liderança. */
+  resolveMember?: (accessToken: string) => Promise<MembershipResult>;
+}
+
+/** Quem o endpoint admite além do administrador. Padrão: só administrador. */
+export interface IvoSessionOptions {
+  allowLeader?: boolean;
 }
 
 export interface IvoQ2Deps extends IvoSessionDeps {
@@ -68,6 +76,7 @@ export type IvoSessionAuthorization =
 export async function authorizeIvoSession(
   accessToken: string | undefined,
   deps: IvoSessionDeps = {},
+  options: IvoSessionOptions = {},
 ): Promise<IvoSessionAuthorization> {
   // Perfil IVO primeiro: configuração ausente/inconsistente recusa tudo antes
   // de qualquer I/O (nem a sessão é consultada).
@@ -112,6 +121,12 @@ export async function authorizeIvoSession(
   let auth: MembershipResult;
   try {
     auth = await (deps.requireAdmin ?? requireOrgAdmin)(accessToken);
+    // Liderança (decisão Q2_LEADER_SCOPE_PROPOSAL): só onde o endpoint admite,
+    // com papel lido do servidor. O escopo por ação é aplicado pelo chamador.
+    if (!auth.ok && auth.reason === "not_admin" && options.allowLeader) {
+      const member = await (deps.resolveMember ?? resolveOrgMembership)(accessToken);
+      if (member.ok && member.membership.role === LEADER_ROLE) auth = member;
+    }
   } catch {
     return { ok: false, category: "backend", error: "Não foi possível validar a sessão agora. Nada foi lido." };
   }

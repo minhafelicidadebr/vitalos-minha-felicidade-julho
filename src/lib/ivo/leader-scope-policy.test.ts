@@ -47,7 +47,7 @@ describe("política de escopo da liderança (proposta, não ligada)", () => {
     expect(leaderVisibleActions(lider, "org-beta", "active", itens)).toEqual([]);
   });
 
-  test("permanece desligada: nenhum módulo de produção a importa", () => {
+  test("ligada só ao ciclo de ação e à sessão IVO", () => {
     const root = join(import.meta.dir, "..", "..");
     const hits: string[] = [];
     const walk = (dir: string) => {
@@ -60,6 +60,6 @@ describe("política de escopo da liderança (proposta, não ligada)", () => {
       }
     };
     walk(root);
-    expect(hits).toEqual([]);
+    expect(hits.map((h) => h.replace(/\\/g, "/").split("/").pop()).sort()).toEqual(["fibt-action-loop.server.ts", "ivo-q2-reading.server.ts"]);
   });
 });

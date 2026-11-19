@@ -1,6 +1,6 @@
 # Decisão pendente · escopo da liderança no ciclo Q2 · 18/11/2026
 
-Proposta de Claude Code · Q2 · branch `feat/claude-q2-perfis`. Estado: **aguardando decisão do operador e do responsável metodológico**. Nada foi ligado ao servidor.
+Proposta de Claude Code · Q2 · branch `feat/claude-q2-perfis`. Estado: **B aprovado pelo operador em 18/11/2026 ("Aprovar e ligar") e ligado ao servidor** — ver "Ligação" abaixo. Pendente: decisão S6 sobre quem pode ser responsável por uma ação.
 
 ## Fatos (SHA `78d39b1`)
 
@@ -38,3 +38,17 @@ Ordem de recusa: papel → organização → autoridade reservada → responsabi
 3. Autorizar a ligação: um guard `requireOrgMember` + a política nos endpoints de leitura, estado e evidência do ciclo, uma persona LIDER_EQUIPE fictícia convidada pelo RH Alfa no stack local e a prova em navegador. Estimativa: diff pequeno, sem migration.
 
 Responsáveis: operador (autoridade de produto) e João Paulo Brandão Barboza se a leitura de evidência pela liderança tocar método.
+
+## Ligação (após aprovação)
+
+- `authorizeIvoSession` ganhou `options.allowLeader`: só quando o endpoint admite, uma recusa `not_admin` consulta o vínculo real (`resolveOrgMembership`) e aceita `LIDER_EQUIPE`. Leitura Q2 por setor, criação, responsabilidade, ativação, inclusão e encerramento **não** passam a opção.
+- `loadFibtActionLoop`: liderança recebe só ações próprias de plano ativo/encerrado, com evidências e eventos delas, e `viewerScope: "own_actions"`.
+- `recordFibtActionStatus` / `recordFibtActionEvidence`: política antes da escrita; ação alheia responde `item_not_found`; aprendizagem recusada (`authority_reserved_to_admin`). Papel gravado = papel da sessão.
+- `findItem` passa a devolver `ownerUserId`. As RPCs de escrita são `service_role` sem checagem de papel; a autorização continua inteira no servidor. Sem migration.
+- `/ivo-integral/acoes`: para a liderança, nota "Ações sob sua responsabilidade" e vazio "Nenhuma ação atribuída a você neste ciclo", sem os avisos do RH.
+
+Verificação: `leader-scope.server.test.ts` (4) + política (7); `bun run gate` 4.481 aprovados, paridade, TypeScript, secret-scan. Navegador (stack institucional, app 8092): RH Alfa convidou `lider.alfa@institutional.test` como LIDER_EQUIPE (papel conferido em `member_invites`, `READ ONLY`); a liderança aceitou, viu o estado vazio próprio em `/ivo-integral/acoes` sem nenhuma ação alheia, e `/ivo-integral/q2` segue negada com o caminho do Diário e sem setores.
+
+## Decisão S6 pendente · quem pode ser responsável
+
+Hoje `setFibtActionAccountability` grava sempre como responsável o próprio RH que define a responsabilidade (`fibt-action-loop.server.ts`, comentário "Escopo declarado do ledger S6"). Logo nenhuma liderança é responsável por ação e o escopo ligado fica vazio na prática. Para operar: decidir se o RH pode designar uma pessoa LIDER_EQUIPE da própria organização como responsável (o `owner_user_id` deixa de significar "quem administra o plano"), ou criar um campo distinto de executor (migration). A responsabilidade só é editável em plano em rascunho.

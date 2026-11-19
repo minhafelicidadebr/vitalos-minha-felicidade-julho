@@ -181,6 +181,7 @@ function IvoAcoesPage() {
   const data = page.state === "done" ? page.data : null;
   const view = data?.q2.ok && data.q2.state === "ready" ? data.q2.view : null;
   const plans = data?.loop.ok ? data.loop.plans : [];
+  const ownActionsOnly = data?.loop.ok === true && data.loop.viewerScope === "own_actions";
   const hasPlanForCycle = !!view && plans.some((p) => p.cycleKeyCanonical === view.cycleKey);
   const education = data?.education.ok ? data.education : null;
   const efficacy = data?.efficacy.ok ? data.efficacy : null;
@@ -284,7 +285,15 @@ function IvoAcoesPage() {
         {data && !data.loop.ok ? (
           <IvoAccessNotice category={data.loop.category} message={data.loop.error} redirectTo="/ivo-integral/acoes" onRetry={() => void load()} />
         ) : null}
-        {data && data.loop.ok && !data.q2.ok ? (
+        {ownActionsOnly ? (
+          <div role="note" className="rounded-md border border-border bg-muted/30 p-4 text-sm">
+            <p className="font-medium text-foreground">Ações sob sua responsabilidade</p>
+            <p className="mt-1 text-muted-foreground">
+              Você acompanha e registra a execução das ações atribuídas a você. A leitura por setor, o plano e a aprendizagem ficam com o RH.
+            </p>
+          </div>
+        ) : null}
+        {data && data.loop.ok && !data.q2.ok && !ownActionsOnly ? (
           <IvoAccessNotice category={data.q2.category} message={data.q2.error} redirectTo="/ivo-integral/acoes" onRetry={() => void load()} />
         ) : null}
 
@@ -302,7 +311,7 @@ function IvoAcoesPage() {
           />
         ) : null}
 
-        {data?.loop.ok && (!data.education.ok || !data.efficacy.ok) ? (
+        {data?.loop.ok && !ownActionsOnly && (!data.education.ok || !data.efficacy.ok) ? (
           <p role="note" className="text-sm text-muted-foreground">
             {!data.efficacy.ok ? "Os protocolos de avaliação não puderam ser carregados agora; o estado de eficácia aparece como não avaliado." : null}{" "}
             {!data.education.ok ? "O catálogo de aprendizagem não pôde ser carregado agora." : null}
@@ -310,7 +319,9 @@ function IvoAcoesPage() {
         ) : null}
 
         {data?.loop.ok && plans.length === 0 && !view ? (
-          <p className="text-sm text-muted-foreground">Nenhuma ação de origem FIB-T registrada.</p>
+          <p className="text-sm text-muted-foreground">
+            {ownActionsOnly ? "Nenhuma ação atribuída a você neste ciclo." : "Nenhuma ação de origem FIB-T registrada."}
+          </p>
         ) : null}
 
         {plans.map((plan) => (

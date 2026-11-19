@@ -143,7 +143,8 @@ export interface FibtActionPlanView {
 
 export type LedgerFailure = { ok: false; category: IvoFailureCategory; error: string };
 
-export type LoadFibtActionLoopOutcome = { ok: true; plans: FibtActionPlanView[] } | LedgerFailure;
+/** `own_actions`: liderança — o servidor já filtrou para as ações das quais ela é responsável. */
+export type LoadFibtActionLoopOutcome = { ok: true; plans: FibtActionPlanView[]; viewerScope?: "own_actions" } | LedgerFailure;
 
 export type LedgerWriteOutcome =
   /** `replayed`: o mesmo pedido já havia sido aplicado antes; nada foi gravado de novo. */

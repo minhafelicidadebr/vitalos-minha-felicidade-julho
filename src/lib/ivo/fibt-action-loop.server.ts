@@ -19,7 +19,8 @@
 //   · evidência de EXECUÇÃO e APRENDIZAGEM são separadas; EFICÁCIA não é
 //     registrável e aparece sempre como "não avaliada" (gate metodológico C8).
 
-import { authorizeIvoSession, loadIvoQ2ForOrg, type IvoQ2Deps } from "./ivo-q2-reading.server";
+import { authorizeIvoSession, loadIvoQ2ForOrg, type IvoQ2Deps, type IvoSessionOptions } from "./ivo-q2-reading.server";
+import { LEADER_ROLE, decideLeaderOperation, leaderVisibleActions } from "./leader-scope-policy";
 import {
   activateActionPlanAsAdmin,
   callLedgerRpc,
@@ -148,6 +149,8 @@ export interface FibtActionLedgerStore {
     description?: string;
     status: PlanActionStatus;
     planStatus: string;
+    /** Responsável pela ação; ausente = sem responsável (liderança nega). */
+    ownerUserId?: string | null;
   } | null>;
   findPlan(orgId: string, planId: string): Promise<{ id: string; orgId: string; status: string } | null>;
   createPlan(input: FibtCreatePlanInput): Promise<{ accepted: boolean; reason: string | null; planId: string | null }>;
@@ -216,12 +219,12 @@ function defaultLedgerCapability(deps: FibtActionLoopDeps): ServerCapabilityDeci
   return profile.kind === "staging" ? { enabled: true, source: "ivo_staging_profile" } : local;
 }
 
-export async function authorizeLedger(accessToken: string | undefined, deps: FibtActionLoopDeps) {
+export async function authorizeLedger(accessToken: string | undefined, deps: FibtActionLoopDeps, options: IvoSessionOptions = {}) {
   const capability = (deps.capability ?? (() => defaultLedgerCapability(deps)))();
   if (!capability.enabled) {
     return { ok: false as const, category: "unavailable" as const, error: CAPABILITY_DISABLED_REASON };
   }
-  const auth = await authorizeIvoSession(accessToken, deps);
+  const auth = await authorizeIvoSession(accessToken, deps, options);
   if (!auth.ok) return auth;
   const access = await (deps.moduleAccess ?? (async org => (await import("@/lib/identity/module-access.server")).checkInstrument(org, "FIB_T")))(auth.orgId);
   return access.ok ? auth : { ok: false as const, category: access.reason === "unavailable" ? "backend" as const : "module_disabled" as const, error: access.error };
@@ -331,14 +334,50 @@ export async function loadFibtActionLoop(
   input: { accessToken?: string },
   deps: FibtActionLoopDeps = {},
 ): Promise<LoadFibtActionLoopOutcome> {
-  const auth = await authorizeLedger(input.accessToken, deps);
+  const auth = await authorizeLedger(input.accessToken, deps, { allowLeader: true });
   if (!auth.ok) return auth;
   try {
     const snapshot = await ledgerOf(deps).loadFibtLedger(auth.orgId);
+    if (auth.role === LEADER_ROLE) {
+      return { ok: true, plans: buildFibtActionPlanViews(scopeSnapshotToLeader(snapshot, auth), auth.orgId, auth.userId), viewerScope: "own_actions" };
+    }
     return { ok: true, plans: buildFibtActionPlanViews(snapshot, auth.orgId, auth.userId) };
   } catch {
     return { ok: false, category: "backend", error: "As ações não puderam ser carregadas agora." };
   }
+}
+
+/**
+ * Liderança vê só as próprias ações (e o que pende delas), nunca rascunho nem
+ * ações alheias; plano sem ação própria some — o estado vazio já existente.
+ */
+function scopeSnapshotToLeader(snapshot: FibtLedgerSnapshot, actor: { userId: string; orgId: string; role: string }): FibtLedgerSnapshot {
+  const planById = new Map(snapshot.plans.map((p) => [p.id, p]));
+  const items = snapshot.items.filter((item) => {
+    const plan = planById.get(item.planId);
+    return plan ? leaderVisibleActions(actor, plan.orgId, plan.status, [item]).length === 1 : false;
+  });
+  const itemIds = new Set(items.map((i) => i.id));
+  const planIds = new Set(items.map((i) => i.planId));
+  return {
+    ...snapshot,
+    plans: snapshot.plans.filter((p) => planIds.has(p.id)),
+    items,
+    evidence: snapshot.evidence.filter((e) => itemIds.has(e.itemId)),
+    events: snapshot.events.filter((e) => itemIds.has(e.itemId)),
+  };
+}
+
+function leaderWriteDenied(
+  auth: { userId: string; orgId: string; role: string },
+  operation: "record_status" | "record_execution_evidence",
+  item: { orgId: string; ownerUserId?: string | null; planStatus: string },
+): LedgerWriteOutcome | null {
+  if (auth.role !== LEADER_ROLE) return null;
+  const planStatus = item.planStatus === "active" || item.planStatus === "closed" ? item.planStatus : "draft";
+  const decision = decideLeaderOperation(auth, operation, { orgId: item.orgId, planStatus, action: { ownerUserId: item.ownerUserId ?? null } });
+  // Ação alheia responde como inexistente: não revela que ela existe.
+  return decision.allowed ? null : rejected(decision.reason === "not_action_owner" ? "item_not_found" : decision.reason);
 }
 
 // ─── Prioridades → ações (cria o plano do ciclo) ────────────────────────────
@@ -480,12 +519,14 @@ export async function recordFibtActionStatus(
   input: { accessToken?: string; itemId: string; toStatus: PlanActionStatus; note?: string },
   deps: FibtActionLoopDeps = {},
 ): Promise<LedgerWriteOutcome> {
-  const auth = await authorizeLedger(input.accessToken, deps);
+  const auth = await authorizeLedger(input.accessToken, deps, { allowLeader: true });
   if (!auth.ok) return auth;
   try {
     const ledger = ledgerOf(deps);
     const item = await ledger.findItem(auth.orgId, input.itemId);
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
+    const leaderDenial = leaderWriteDenied(auth, "record_status", item);
+    if (leaderDenial) return leaderDenial;
     if (item.planStatus !== "active") return rejected("plan_not_active");
     // Pré-checagem pura sobre o estado REAL lido do banco (a RPC recusa de novo).
     if (!canTransition(item.status, input.toStatus)) return rejected("invalid_transition");
@@ -518,14 +559,18 @@ export async function recordFibtActionEvidence(
   },
   deps: FibtActionLoopDeps = {},
 ): Promise<LedgerWriteOutcome> {
-  const auth = await authorizeLedger(input.accessToken, deps);
+  const auth = await authorizeLedger(input.accessToken, deps, { allowLeader: true });
   if (!auth.ok) return auth;
+  // Aprendizagem segue com o RH; a liderança registra só execução.
+  if (auth.role === LEADER_ROLE && input.scope !== "execucao") return rejected("authority_reserved_to_admin");
   const today = (deps.now ?? (() => new Date()))().toISOString().slice(0, 10);
   if (!isIsoDate(input.occurredOn) || input.occurredOn > today) return rejected("invalid_date");
   try {
     const ledger = ledgerOf(deps);
     const item = await ledger.findItem(auth.orgId, input.itemId);
     if (!item || item.orgId !== auth.orgId || item.sourceLensId !== "fibt") return rejected("item_not_found");
+    const leaderDenial = leaderWriteDenied(auth, "record_execution_evidence", item);
+    if (leaderDenial) return leaderDenial;
     if (item.planStatus !== "active") return rejected("plan_not_active");
     let contentRef = input.content;
     if (/^\s*\[conteudo:/i.test(input.content) || (input.contentVersion !== undefined && !input.contentId)) return rejected("content_not_available");
@@ -715,7 +760,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
       const db = await admin();
       const { data: item, error } = await db
         .from("action_items")
-        .select("id, org_id, plan_id, source_lens_id, source_factor_id, source_wave_id, source_cohort_id, description, status")
+        .select("id, org_id, plan_id, source_lens_id, source_factor_id, source_wave_id, source_cohort_id, description, status, owner_user_id")
         .eq("id", itemId)
         .eq("org_id", orgId)
         .maybeSingle();
@@ -740,6 +785,7 @@ function createSupabaseLedgerStore(): FibtActionLedgerStore {
         description: String(item.description ?? ""),
         status: item.status as PlanActionStatus,
         planStatus: String(plan.status),
+        ownerUserId: (item.owner_user_id as string | null) ?? null,
       };
     },
 
