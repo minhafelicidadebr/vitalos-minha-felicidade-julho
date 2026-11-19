@@ -250,6 +250,28 @@ const PACOTE_IVO_C8 = ["20261005120000_ivo_efficacy_protocols.sql"] as const;
  * Idempotente.
  */
 const PACOTE_IVO_PI13 = ["20261016120000_ivo_plan_composition_and_closure.sql"] as const;
+/**
+ * PACOTE INSTITUCIONAL Q1/Q2 LOCAL — decisão do operador de 19/11/2026 (LIN): SOMENTE no modo
+ * `clean`. Nunca aplicado remotamente; fora de `preprod` (que só aplica pacotes listados) e
+ * excluído explicitamente de `upgrade`. Três destes arquivos redefinem funções presentes em
+ * produção (`aggregate_cohort_responses` em 20261115135955/20261115142320 e as três RPCs do
+ * ledger em 20261119120000); levá-los a preprod/upgrade exige nova decisão e prova de
+ * atualização com dados. Ver docs/vitalos/decisions/REPLAY_LINEAGE_10_MIGRATIONS_PROPOSAL_2026-11-19.md.
+ */
+const PACOTE_INSTITUCIONAL_Q1_Q2_LOCAL = [
+    "20261113195527_institutional_first_admin.sql",
+    "20261113202253_institutional_first_admin_private_identity.sql",
+    "20261115135955_enterprise_module_entitlements.sql",
+    "20261115142320_enterprise_module_pack_compatibility.sql",
+    "20261118163000_q1_preparation.sql",
+    "20261118170000_partner_interest.sql",
+    "20261118173000_q1_preparation_delegates.sql",
+    "20261119090000_q1_manage_preparation_delegates.sql",
+    "20261119103000_q1_technical_review.sql",
+    "20261119120000_q2_ledger_actor_scope_and_title_visibility.sql",
+    // B2.1: regra do ator movida para ivo_ledger (M6A: nenhuma função nova em public).
+    "20261119130000_q2_ledger_actor_helper_private_schema.sql",
+] as const;
 /** Clone do estado produtivo observado ANTES do PI-13 (ensaio de atualização com dados do ledger). */
 const CLONE_PI13_ANTERIOR = "pi13_estado_anterior";
 
@@ -1455,6 +1477,23 @@ try {
     );
     if (!pi13Valido) throw new Error("custódia do pacote IVO PI-13 inválida");
 
+    const pacoteLocal = [...PACOTE_INSTITUCIONAL_Q1_Q2_LOCAL];
+    const localAusentes = pacoteLocal.filter((nome) => !todas.includes(nome));
+    const localSobrepoe = pacoteLocal.filter(
+        (nome) => [...pacoteG1, ...pacote10, ...pacoteR6, ...pacoteC8, ...pacotePI13].includes(nome) || nome < G1_BOUNDARY,
+    );
+    const localOrdemOk =
+        pacoteLocal.every((n, i) => i === 0 || pacoteLocal[i - 1]! < n) && pacotePI13.every((p) => pacoteLocal.every((n) => p < n));
+    const localValido = localAusentes.length === 0 && localSobrepoe.length === 0 && localOrdemOk && new Set(pacoteLocal).size === pacoteLocal.length;
+    registrar(
+        `custódia do pacote institucional Q1/Q2 local (${pacoteLocal.length} arquivos, depois do PI-13, só clean)`,
+        localValido,
+        localValido
+            ? undefined
+            : `ausentes=${localAusentes.join(",") || "0"} · sobrepõe=${localSobrepoe.join(",") || "0"} · ordem=${localOrdemOk}`,
+    );
+    if (!localValido) throw new Error("custódia do pacote institucional Q1/Q2 local inválida");
+
     // Reconciliação aritmética explícita: nenhum arquivo da linhagem de
     // produção fica sem classificação. Se alguém adicionar uma migration nova
     // sem decidir a que pacote ela pertence, este passo falha — em vez de o
@@ -1469,11 +1508,12 @@ try {
         ...pacoteR6,
         ...pacoteC8,
         ...pacotePI13,
+        ...pacoteLocal,
         ORIGINAL_M6_HISTORICA,
     ]);
     const semClassificacao = todas.filter((nome) => !classificadas.has(nome));
     registrar(
-        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + ${pacoteC8.length} IVO C8 + ${pacotePI13.length} IVO PI-13 + 1 M6 histórico)`,
+        `reconciliação de arquivos (${todas.length} da linhagem = ${antesPrevisto.length} baseline + ${pacoteG1.length} G1-v2 + ${pacote10.length} Task 10.1 + ${pacoteR6.length} IVO R6 + ${pacoteC8.length} IVO C8 + ${pacotePI13.length} IVO PI-13 + ${pacoteLocal.length} institucional Q1/Q2 local + 1 M6 histórico)`,
         semClassificacao.length === 0 && classificadas.size === todas.length,
         semClassificacao.length > 0
             ? `sem classificação: ${semClassificacao.join(", ")}`
@@ -1506,7 +1546,8 @@ try {
             throw new Error("cadeia falhou");
         }
     } else if (modo === "upgrade") {
-        await rodarEnsaioDeAtualizacao(todas.filter((nome) => !pacote10.includes(nome)));
+        // Pacote institucional Q1/Q2 local fica fora do ensaio de atualização (decisão LIN: só clean).
+        await rodarEnsaioDeAtualizacao(todas.filter((nome) => !pacote10.includes(nome) && !pacoteLocal.includes(nome)));
     } else {
         if (!(await aplicarCadeia(antes, "estado pré-produção reproduzido"))) {
             throw new Error("baseline falhou");

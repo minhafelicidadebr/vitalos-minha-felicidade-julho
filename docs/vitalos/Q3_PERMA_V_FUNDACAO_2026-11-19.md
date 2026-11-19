@@ -32,3 +32,7 @@ Q3-01 instrumento e significado do “+V” · Q3-02 fonte/versão BR e permiss�
 `src/components/ivo/Q3ReadinessNotice.tsx`, exibido em `/ivo-integral` logo após o aviso do Q1. **Informativo**: diz que nada é medido, pontuado ou publicado; mostra "0 de 8 decisões registradas" e a lista Q3-01…Q3-08 com responsável por papel, derivada de `q3-readiness.ts` (fonte única). Sem link, botão, formulário ou valor; texto explícito de independência de Q1/Q2. Testes: `Q3ReadinessNotice.test.tsx` (2) + `q3-readiness.test.ts` (5). `bun run gate` na branch: 4.549 aprovados, paridade, TypeScript, secret-scan. Não verificado no navegador.
 
 **Navegador (19/11/2026, app da branch em 8095 contra a pilha descartável, RH Norte):** `/ivo-integral` exibe o aviso com "0 de 8 decisões registradas", 8 itens, "Nada é medido…", 0 elementos interativos. 320 px e 390 px: largura útil = rolagem, aviso dentro da tela (borda 304/374 px). Teclado: o aviso não tem foco próprio (é informativo) e não interrompe a ordem de tabulação. Revisão independente (Codex): aviso confere como informativo.
+
+## F0 · base consolidada · 19/11/2026
+
+Merge revisado de `integ/q1-q2-merge` (`f8cabb9`: correções SST e delegação do Q1, B2.1 e linhagem do replay) na branch Q3. Nenhum arquivo tocado pelos dois lados desde `6d48c48` (17 × 8); sem conflitos. `bun run gate`: 4.553 aprovados, paridade, TypeScript, secret-scan. Aviso Q3 e contrato de prontidão inalterados.

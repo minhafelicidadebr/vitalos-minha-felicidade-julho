@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 72,
-  "rollupSha256": "6e7587d82befd78dfa2d44df07303e805e5d337bf879362c2f92d4c15a94bf69",
+  "migrationCount": 73,
+  "rollupSha256": "f168f384581e347af204e1bc095193a9523b071bdc18f3c3be96a20c13609ce8",
   "migrations": [
     {
       "order": 1,
@@ -434,6 +434,12 @@
       "name": "20261119120000_q2_ledger_actor_scope_and_title_visibility.sql",
       "sha256": "b4153fa94794a1aa3f78b8053d93bac71e38bdc0765c377768a039671d160ba9",
       "bytes": 12766
+    },
+    {
+      "order": 73,
+      "name": "20261119130000_q2_ledger_actor_helper_private_schema.sql",
+      "sha256": "57c85b50c34138c78b45318d9ec5c7221d6b4a671d48115377be364568c95e3a",
+      "bytes": 11853
     }
   ]
 }

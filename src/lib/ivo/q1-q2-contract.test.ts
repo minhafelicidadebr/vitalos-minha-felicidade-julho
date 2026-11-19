@@ -3,6 +3,8 @@
 // isolamento de organização. Nenhum cálculo, mapeamento ou índice composto aqui.
 
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { MembershipResult } from "@/lib/auth/authorize.server";
 import { checkModule, moduleForInstrument } from "@/lib/identity/module-access.server";
 import type { ModuleState } from "@/lib/identity/module-contract";
@@ -90,5 +92,33 @@ describe("B3 · habilitação por módulo: Q1 e Q2 independentes, pendência do 
     };
     expect(await checkModule("alfa", "Q2", broken)).toMatchObject({ ok: false, reason: "unavailable" });
     expect(await checkModule("alfa", "Q1", broken)).toMatchObject({ ok: false, reason: "unavailable" });
+  });
+});
+
+describe("integração · revisão técnica Q1 pelo SST designado", () => {
+  // Defeito achado na prova integrada (19/11/2026): o servidor da revisão técnica chamava
+  // authorizeIvoSession sem opções, que só aceita administrador — o SST designado era
+  // recusado antes da RPC q1_technical_review, que é quem decide o papel (RH/delegado
+  // para ler e encaminhar; só o SST designado para devolver).
+  test("comandos de membro resolvem o vínculo real e deixam o papel para a RPC", () => {
+    const src = readFileSync(join(import.meta.dir, "..", "api", "q1-technical-review.functions.ts"), "utf8");
+    expect(src).toMatch(/authorizeIvoSession\(accessToken,\s*undefined,\s*\{\s*allowMember:\s*true\s*\}\)/);
+    // A organização continua vindo da sessão e precisa bater com o escopo pedido.
+    expect(src).toMatch(/actor\.orgId !== expectedScope/);
+    // Comandos de plataforma seguem exigindo a autoridade da plataforma.
+    expect(src).toMatch(/verifyPlatformAdmin\(accessToken\)/);
+  });
+
+  test("com allowMember, o SST passa a sessão e a empresa vem da sessão (decisão de papel fica no banco)", async () => {
+    expect(await authorizeIvoSession("t-sst", deps(), { allowMember: true })).toMatchObject({ ok: true, orgId: "org-alfa", role: "SST_PROFISSIONAL" });
+  });
+});
+
+describe("integração · delegação da preparação Q1", () => {
+  // Mesmo defeito, achado na prova dirigida (19/11/2026): o delegado concedido pela
+  // plataforma recebia "forbidden" na aplicação; quem decide RH/delegado é a RPC.
+  test("a preparação resolve o vínculo de membro e deixa a concessão para a RPC", () => {
+    const src = readFileSync(join(import.meta.dir, "q1-preparation.server.ts"), "utf8");
+    expect(src).toMatch(/authorizeIvoSession\(token,\s*undefined,\s*\{\s*allowMember:\s*true\s*\}\)/);
   });
 });
