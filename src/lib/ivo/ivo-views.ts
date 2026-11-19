@@ -70,7 +70,13 @@ export type IvoFailureCategory =
   | "validation"
   | "backend";
 
-export type IvoQ2Failure = { ok: false; category: IvoFailureCategory; error: string };
+/**
+ * Caminho já autorizado ao papel recusado (colaborador → Diário de Prática,
+ * só agregados coletivos k≥5). É orientação, nunca dado: não amplia autoridade.
+ */
+export type IvoMemberPath = { href: "/diario"; label: string; description: string };
+
+export type IvoQ2Failure = { ok: false; category: IvoFailureCategory; error: string; memberPath?: IvoMemberPath };
 
 export type IvoQ2Outcome =
   | { ok: true; state: "ready"; view: IvoQ2View }

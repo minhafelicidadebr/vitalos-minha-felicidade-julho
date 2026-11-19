@@ -119,13 +119,20 @@ export async function authorizeIvoSession(
     if (auth.reason === "invalid_session") {
       return { ok: false, category: "unauthenticated", error: "Sessão inválida ou expirada. Entre novamente." };
     }
+    if (auth.reason === "no_profile") {
+      return { ok: false, category: "forbidden", error: "Esta conta não está vinculada a uma organização." };
+    }
+    // Membro da organização sem papel administrativo: a leitura segue negada,
+    // mas a recusa aponta o caminho que o próprio papel já pode percorrer.
     return {
       ok: false,
       category: "forbidden",
-      error:
-        auth.reason === "no_profile"
-          ? "Esta conta não está vinculada a uma organização."
-          : "Seu papel não tem permissão para ver os resultados FIB-T da organização.",
+      error: "A leitura FIB-T por setor é conduzida pelo RH da organização.",
+      memberPath: {
+        href: "/diario",
+        label: "Abrir o Diário de Prática",
+        description: "Ali você registra suas práticas e vê apenas sínteses coletivas de grupos com pelo menos 5 pessoas.",
+      },
     };
   }
   // Perfil staging: a organização DA SESSÃO precisa estar na allowlist do

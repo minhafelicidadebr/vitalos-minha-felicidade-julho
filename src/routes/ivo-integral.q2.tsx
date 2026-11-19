@@ -65,7 +65,13 @@ function IvoQ2Page() {
             />
           ) : null}
           {outcome && !outcome.ok ? (
-            <IvoAccessNotice category={outcome.category} message={outcome.error} redirectTo="/ivo-integral/q2" onRetry={() => void load()} />
+            <IvoAccessNotice
+              category={outcome.category}
+              message={outcome.error}
+              memberPath={outcome.memberPath}
+              redirectTo="/ivo-integral/q2"
+              onRetry={() => void load()}
+            />
           ) : null}
           {outcome?.ok && outcome.state === "no_wave" ? (
             <div role="note" className="rounded-md border border-border bg-muted/30 p-4 text-sm">

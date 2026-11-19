@@ -1,6 +1,6 @@
 import { AlertTriangle, LoaderCircle, LogIn, ShieldAlert } from "lucide-react";
 
-import type { IvoFailureCategory } from "@/lib/ivo/ivo-views";
+import type { IvoFailureCategory, IvoMemberPath } from "@/lib/ivo/ivo-views";
 
 export type { IvoFailureCategory };
 
@@ -24,11 +24,13 @@ export function IvoAccessNotice({
   message,
   redirectTo,
   onRetry,
+  memberPath,
 }: {
   category: IvoFailureCategory;
   message: string;
   redirectTo: string;
   onRetry?: () => void;
+  memberPath?: IvoMemberPath;
 }) {
   if (category === "backend") {
     return (
@@ -82,6 +84,17 @@ export function IvoAccessNotice({
             {category === "module_disabled" ? "Módulo indisponível para esta empresa" : category === "forbidden" ? "Acesso não autorizado" : "Leitura indisponível neste ambiente"}
           </p>
           <p className="mt-1 text-muted-foreground">{message}</p>
+          {category === "forbidden" && memberPath ? (
+            <div className="mt-3">
+              <p className="text-muted-foreground">{memberPath.description}</p>
+              <a
+                href={memberPath.href}
+                className="mt-3 inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {memberPath.label}
+              </a>
+            </div>
+          ) : null}
           <p className="mt-2 text-xs text-muted-foreground">Nenhum dado de demonstração substitui a leitura real.</p>
         </div>
       </div>

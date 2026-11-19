@@ -192,6 +192,14 @@ describe("R5 · leitura Q2 autenticada no servidor", () => {
     }
   });
 
+  test("membro sem papel administrativo recebe só o caminho do próprio papel", async () => {
+    const membro = await loadIvoQ2ReadingForSession({ accessToken: "token-alfa-membro" }, q2Deps());
+    expect(membro).toMatchObject({ ok: false, category: "forbidden", memberPath: { href: "/diario" } });
+    expect(JSON.stringify(membro)).not.toContain("Operações");
+    const semPerfil = await loadIvoQ2ReadingForSession({ accessToken: "token-sem-perfil" }, q2Deps());
+    expect(semPerfil).not.toHaveProperty("memberPath");
+  });
+
   test("fronteira HML declarada e backend não-cloud recusam antes de olhar a sessão", async () => {
     const hml = q2Deps(undefined, {
       boundary: () => ({ hmlDeclared: true, attested: true, batchId: "b", serverProjectRefMasked: "m" }),
