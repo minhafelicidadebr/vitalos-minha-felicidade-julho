@@ -52,7 +52,15 @@ export const permaVSourceReferenceSchema = z
     factors: z.array(z.object({ id }).strict()).min(1),
     items: z.array(itemSchema).min(1),
     missingRule: z.object({ maxMissingPerFactor: z.number().int().nonnegative(), rulesLocator: z.string().trim().min(1) }).strict(),
-    scoring: z.object({ rulesLocator: z.string().trim().min(1), cases: z.array(caseSchema).min(2) }).strict(),
+    scoring: z
+      .object({
+        rulesLocator: z.string().trim().min(1),
+        /** Faixa de resposta e forma de agregar, conforme o manual citado em `rulesLocator`. */
+        scale: z.object({ min: z.number().int(), max: z.number().int() }).strict(),
+        aggregation: z.enum(["mean", "sum"]),
+        cases: z.array(caseSchema).min(2),
+      })
+      .strict(),
   })
   .strict()
   .superRefine((ref, ctx) => {
@@ -63,9 +71,14 @@ export const permaVSourceReferenceSchema = z
     for (const i of ref.items) if (!factorIds.has(i.factorId)) ctx.addIssue({ code: "custom", message: `item ${i.id} em fator inexistente` });
     for (const f of factorIds) if (!ref.items.some((i) => i.factorId === f)) ctx.addIssue({ code: "custom", message: `fator ${f} sem item` });
     if (new Set(ref.scoring.cases.map((c) => c.id)).size !== ref.scoring.cases.length) ctx.addIssue({ code: "custom", message: "caso duplicado" });
+    const { min, max } = ref.scoring.scale;
+    if (min >= max) ctx.addIssue({ code: "custom", message: "escala: min precisa ser menor que max" });
     for (const c of ref.scoring.cases)
-      for (const row of c.responses)
+      for (const row of c.responses) {
         if (row.length !== ref.items.length) ctx.addIssue({ code: "custom", message: `caso ${c.id}: linha com ${row.length} de ${ref.items.length} itens` });
+        if (row.some((v) => v !== null && (!Number.isInteger(v) || v < min || v > max)))
+          ctx.addIssue({ code: "custom", message: `caso ${c.id}: resposta fora da escala` });
+      }
   });
 export type PermaVSourceReference = z.infer<typeof permaVSourceReferenceSchema>;
 
@@ -116,6 +129,16 @@ export function comparePermaVSource(
       if (!ok) findings.push({ check: "caso esperado", id: example.id });
     }
   return findings;
+}
+
+/** Regras de cálculo da ficha no formato do motor (src/lib/ivo/q3-factor-scorer.ts). */
+export function scoringRulesFromReference(ref: PermaVSourceReference) {
+  return {
+    scale: ref.scoring.scale,
+    aggregation: ref.scoring.aggregation,
+    maxMissingPerFactor: ref.missingRule.maxMissingPerFactor,
+    items: ref.items.map(({ factorId, reverse }) => ({ factorId, reverse })),
+  };
 }
 
 /** Carrega a ficha. Fail-closed: ausente, inválida ou de teste → pendência citada. */

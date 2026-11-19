@@ -36,3 +36,10 @@ Q3-01 instrumento e significado do “+V” · Q3-02 fonte/versão BR e permiss�
 ## F0 · base consolidada · 19/11/2026
 
 Merge revisado de `integ/q1-q2-merge` (`f8cabb9`: correções SST e delegação do Q1, B2.1 e linhagem do replay) na branch Q3. Nenhum arquivo tocado pelos dois lados desde `6d48c48` (17 × 8); sem conflitos. `bun run gate`: 4.553 aprovados, paridade, TypeScript, secret-scan. Aviso Q3 e contrato de prontidão inalterados.
+
+## Ondas 1–3 · régua do IVO e cálculo parametrizado · 19/11/2026
+
+- **Onda 1** `docs/vitalos/decisions/PLANO_REGISTRADO_Q3_CONVERGENCIA_IVO_2026-11-19.md` (v0, rascunho): hipóteses H1–H5, unidade = equipe (k≥5 nos dois instrumentos), Spearman proposto; N_eq, limiar C e janela de ciclo **a definir** com o estatístico.
+- **Onda 2** `src/lib/ivo/q3-team-convergence.ts`: veredito sustenta / não sustenta / insuficiente; critérios sem default; saída só r, nº de equipes e veredito. 8 testes, não importado.
+- **Onda 3** `src/lib/ivo/q3-factor-scorer.ts`: escala, inversão, ausências e agregação vêm da ficha (`scoring.scale`, `scoring.aggregation` adicionados ao schema da F1); o verificador da F1 confere o motor contra os casos da própria ficha. 5 testes + F1 atualizada, não importado.
+- `bun run gate`: 4.582 aprovados, paridade, TypeScript, secret-scan. `isQ3Activatable()` continua falso.
