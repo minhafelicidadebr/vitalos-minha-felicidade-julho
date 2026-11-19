@@ -30,7 +30,7 @@ export const Q3_PRECONDITIONS: readonly Q3Precondition[] = [
   { id: "Q3-04", decision: "Limiar de publicação agregada e proteção de recortes (k mínimo, lote protegido)", owner: "operador e responsável metodológico", status: "pending", decisionRecord: null },
   { id: "Q3-05", decision: "Mapeamento para dimensões IVO (ou decisão de não mapear) — sem índice composto", owner: "responsável metodológico", status: "pending", decisionRecord: null },
   { id: "Q3-06", decision: "Habilitação empresarial: módulo Q3 em org_module_entitlements (exige migration autorizada)", owner: "operador", status: "pending", decisionRecord: null },
-  { id: "Q3-07", decision: "Papéis: quem aplica, lê agregado, conduz devolutiva e ações; nenhum acesso a respostas individuais", owner: "operador", status: "pending", decisionRecord: null },
+  { id: "Q3-07", decision: "Papéis: quem aplica, lê agregado, conduz devolutiva e ações; nenhum acesso a respostas individuais", owner: "operador", status: "decided", decisionRecord: "docs/vitalos/decisions/DOSSIE_DECISOES_Q3_LINHAGEM_PILOTO_2026-11-19.md" },
   { id: "Q3-08", decision: "Conteúdo educativo de referência (unidade/atividade versionada) e sua revisão editorial", owner: "operador e responsável metodológico", status: "pending", decisionRecord: null },
 ];
 
