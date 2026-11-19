@@ -59,7 +59,10 @@ export const operateQ1TechnicalReview = createServerFn({ method: "POST" })
         identity = { org: command.org, user: actor.userId };
       } else {
         const { authorizeIvoSession } = await import("@/lib/ivo/ivo-q2-reading.server");
-        const actor = await authorizeIvoSession(accessToken);
+        // Vínculo real de qualquer membro (org da sessão). O papel é decidido pela RPC
+        // q1_technical_review: RH/delegado para ler e encaminhar; só o SST designado para
+        // ler como revisor e devolver. Sem esta opção o SST designado era recusado aqui.
+        const actor = await authorizeIvoSession(accessToken, undefined, { allowMember: true });
         if (!actor.ok || actor.orgId !== expectedScope) return { status: "forbidden" } as const;
         identity = { org: actor.orgId, user: actor.userId };
       }

@@ -1,6 +1,6 @@
 # Q1+Q2 · integração local · 19/11/2026
 
-Branch `integ/q1-q2-merge` (worktree `..\vitalos-integ-merge`). Merge revisado `b55d436` de Q1 `9bbfa92` (`feat/ivo-fibt-platform-foundation`) com Q2 `b4ee953` (`feat/claude-q2-perfis`); teste SST `6d48c48`. Estado: **integrado em código e no gate local; jornada integrada no navegador NÃO demonstrada**.
+Branch `integ/q1-q2-merge` (worktree `..\vitalos-integ-merge`). Merge revisado `b55d436` de Q1 `9bbfa92` (`feat/ivo-fibt-platform-foundation`) com Q2 `b4ee953` (`feat/claude-q2-perfis`); teste SST `6d48c48`. Estado: **integrado em código, no gate local e em jornada real no navegador numa pilha descartável com bindings só em loopback** (seção "Prova integrada", ao final, substitui os bloqueios 1–3 abaixo). CI, staging e piloto: não confirmados.
 
 ## Reconciliação
 
@@ -42,3 +42,34 @@ PIL-01–PIL-08: inalterados, pendentes de definição humana. Divergência: PIL
 
 - `CLAUDE.md` descreve M.E.T.E. como "T1 IVO/PERMA · T2 VIA-T · T3 COPSOQ"; a jornada canônica (`src/domain/journey.ts`, `lens-catalog.ts`) e esta frente usam Q1 COPSOQ · Q2 FIB-T · Q3 PERMA+V · Q4 VIA-T.
 - `docs/instrumentos/PERMA_TRABALHO.md` traz "Mapeamento → pilares IVO" e itens: referência, não metodologia aprovada.
+
+## Prova integrada · pilha descartável `vitalos-q1q2-integ` · 19/11/2026
+
+Candidato de código: `19b1a9f` + correção do defeito abaixo. Stack institucional preservado (não tocado). Fixture do Q1 do Codex não tocada.
+
+**Pilha.** CLI 2.119.0 sem opção de host/binding (`start --help` e `config.toml`). Compose dedicado (`scripts/integ-local/`) com as mesmas imagens da CLI. Antes da primeira escrita: projeto `vitalos-q1q2-integ`, 5 containers do projeto, bindings efetivos `db 127.0.0.1:57922`, `kong 127.0.0.1:57921`, `mailpit 127.0.0.1:57924`, auth/rest sem porta publicada (`guard.sh`). Segredo JWT e chaves geradas localmente, não impressas. Cadeia: **70 migrations aplicadas** com as compensações de `supabase/local/lineage/` (duas exclusões históricas). App do candidato em `127.0.0.1:8094`, preflight `local/local`.
+
+**SQL.** `10_q2_ledger_actor_scope.sql`: **18/18**, incluindo os dois casos do SST (recusado em `record_evidence`; não elegível como responsável). Sem resíduo.
+
+**Navegador (login normal por link mágico do Mailpit da pilha).** Preparação de empresas, primeiro RH, módulos, onda/setor/respostas e convites feita por chamadas HTTP às server functions do candidato (nível API).
+
+| Persona | Resultado observado |
+| --- | --- |
+| `/entrar` | responde com o formulário de link mágico |
+| Plataforma | designou o SST da Norte como revisor técnico Q1 do ciclo 2026-T4 ("Revisor designado.") |
+| RH Norte · Q1 | registrou o comunicado ("Registro salvo no ciclo 2026-T4", revisão 1) e encaminhou a revisão 1 |
+| SST Norte · Q1 | após a correção, leu e registrou a devolução (`review_recorded`); área de preparação continua fechada para ele |
+| SST Norte · Q2 | `/ivo-integral/acoes` → "Acesso não autorizado", sem ações |
+| RH Norte · Q2 | plano 2026-T4: "Pessoa responsável" oferece só RH e a liderança (nem SST nem colaborador); designou a liderança; ativou |
+| Liderança Norte | estado → em execução e evidência de execução; sem aprendizagem; log com `LIDER_EQUIPE` |
+| Colaborador Norte | devolutiva coletiva com título (pós-aviso), setor, fator, estado, prazo, "execução registrada", "Eficácia ainda não avaliada"; sem responsável, indicador ou evidência; revisão técnica Q1 negada |
+| RH Sul (Q1 só) | preparação Q1 da Sul (revisão 0, campos vazios; nenhum dado da Norte); `/ivo-integral/q2` e `/acoes` → "Módulo indisponível para esta empresa" |
+| RH Norte · novo login | Q1 "Revisão 1 · Devolução registrada" com a justificativa; Q2 plano ATIVO, ação em execução com evidência |
+
+Releitura independente (`READ ONLY`, outro processo): Norte `Q1=true Q2=true`, 1 evento de preparação, revisão `assign,submit,respond:review_recorded`, 1 plano ativo, 1 ação, log `evidence_recorded:LIDER_EQUIPE,status_change:LIDER_EQUIPE`; Sul `Q1=true` e nenhum dado Q2.
+
+**Defeito comprovado e corrigido (código do Q1).** `src/lib/api/q1-technical-review.functions.ts` chamava `authorizeIvoSession(accessToken)` (padrão só-administrador) nos comandos de membro: o SST designado recebia `{"status":"forbidden"}` antes da RPC `q1_technical_review`, que já aplica a regra completa (RH/delegado para ler e encaminhar; só o SST designado para devolver). Correção de uma linha: `authorizeIvoSession(accessToken, undefined, { allowMember: true })`; a org continua vindo da sessão e precisa bater com `expectedScope`. Verificado no navegador que o colaborador continua negado. Teste de regressão em `q1-q2-contract.test.ts`. **Requer revisão do Codex** (dono do Q1). Possível mesma classe de defeito para delegados da preparação (não verificado).
+
+**Gate após a correção:** `bun run gate` 4.544 aprovados (4.541 + 3), paridade, TypeScript, secret-scan.
+
+**Não coberto no navegador:** retry/idempotência (coberto por testes de serviço); delegação da preparação Q1; plano encerrado nesta pilha; 320/390 px nesta pilha. Releitura e persistência cobertas por novo login e SQL independente.
