@@ -2,8 +2,8 @@
 
 import { describe, expect, test } from "bun:test";
 import type { MembershipResult } from "@/lib/auth/authorize.server";
-import type { FibtActionLedgerStore, FibtActionLoopDeps, FibtLedgerItemRow, FibtLedgerSnapshot } from "./fibt-action-loop.server";
-import { TITLE_VISIBLE_SINCE, loadMemberPlanFeedback } from "./member-plan-feedback.server";
+import type { FibtActionLedgerStore, FibtLedgerItemRow, FibtLedgerSnapshot } from "./fibt-action-loop.server";
+import { loadMemberPlanFeedback, type MemberPlanFeedbackDeps } from "./member-plan-feedback.server";
 
 const ADMIN: Record<string, MembershipResult> = { "t-rh": { ok: true, membership: { userId: "u-rh", orgId: "org-alfa", role: "RH_ADMIN" } } };
 const MEMBER: Record<string, MembershipResult> = {
@@ -24,7 +24,7 @@ function item(id: string, planId: string, createdAt: string): FibtLedgerItemRow 
   };
 }
 
-function deps(): FibtActionLoopDeps {
+function deps(): MemberPlanFeedbackDeps {
   const snapshot: FibtLedgerSnapshot = {
     plans: [
       { id: "ativo", orgId: "org-alfa", cycleKey: "2026-T4", seasonName: "T4", status: "active", createdAt: BEFORE, activatedAt: BEFORE },
@@ -46,6 +46,8 @@ function deps(): FibtActionLoopDeps {
     resolveMember: async (t) => MEMBER[t] ?? ADMIN[t] ?? { ok: false, reason: "invalid_session" },
     capability: () => ({ enabled: true, source: "local_fixture" }),
     ledger: store,
+    // title_visible_at: só "novo" (e o rascunho) foram escritos sob o aviso.
+    titleVisibleItemIds: async (orgId) => new Set(orgId === "org-alfa" ? ["novo", "rasc"] : []),
   };
 }
 
@@ -64,7 +66,12 @@ describe("C2 · devolutiva coletiva para membros", () => {
     const [novo, antigo] = r.plans[0]!.actions;
     expect(novo).toEqual({ title: "Título novo", sectorLabel: "Operações", factorName: expect.any(String), status: "em_execucao", dueMonth: "2026-12", hasExecutionRecord: true });
     expect(antigo).toMatchObject({ title: null, hasExecutionRecord: false });
-    expect(AFTER >= TITLE_VISIBLE_SINCE && BEFORE < TITLE_VISIBLE_SINCE).toBe(true);
+  });
+
+  test("sem a coluna title_visible_at (conjunto vazio), nenhum título é exibido", async () => {
+    const r = await loadMemberPlanFeedback({ accessToken: "t-colab" }, { ...deps(), titleVisibleItemIds: async () => new Set() });
+    if (!r.ok) throw new Error("esperava ok");
+    expect(r.plans[0]!.actions.every((a) => a.title === null)).toBe(true);
   });
 
   test("payload não carrega responsável, descrição, indicador, evidência nem linha do tempo", async () => {

@@ -259,6 +259,10 @@ describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => 
             // schema ivo_ledger (sem função nova em public): plano encerrado é terminal,
             // plano ativo só recebe ação com §13, repetição do mesmo pedido não duplica.
             "09_ivo_plan_composition_closure.sql",
+            // Q2 B2 — ator verificado no ledger (org, papel real, escopo da liderança) e
+            // title_visible_at (migration local 20261119120000, não aplicada remotamente).
+            // Transação com ROLLBACK; qualquer FAIL aborta a suíte.
+            "10_q2_ledger_actor_scope.sql",
         ]);
     });
 

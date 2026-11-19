@@ -150,4 +150,7 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "action_items", column: "metric_target", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
   { table: "action_items", column: "metric_unit", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
   { table: "action_items", column: "add_request_id", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+
+  // Q2 · B2 — visibilidade de título aos membros (C2/D4).
+  { table: "action_items", column: "title_visible_at", usedBy: "member-plan-feedback.server.ts defaultTitleVisibleItemIds" },
 ];
