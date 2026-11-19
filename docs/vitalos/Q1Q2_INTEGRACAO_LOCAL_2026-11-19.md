@@ -78,3 +78,9 @@ Releitura independente (`READ ONLY`, outro processo): Norte `Q1=true Q2=true`, 1
 
 - **Correção SST (`cda7c3d`) revisada:** a org vem da sessão (`authorizeIvoSession` resolve `profiles.org_id`) e precisa bater com `expectedScope`; a RPC `q1_technical_review` só aceita devolução do `SST_PROFISSIONAL` designado (`p_actor = assigned`) para a empresa e o ciclo, e a designação exige perfil SST da mesma empresa com módulo Q1 habilitado.
 - **Delegação da preparação: mesmo defeito, confirmado e corrigido.** Prova dirigida na pilha descartável: após a plataforma conceder a delegação ao colaborador da Norte, `readQ1Preparation` devolvia `forbidden` para o delegado e para a liderança sem concessão. `operatePreparation` passa a resolver o vínculo de membro (`allowMember`); a RPC `q1_preparation_journal` decide (RH ou delegado). Depois: delegado `ok=true`, liderança sem concessão `forbidden`. Testes do Q1 4/4; regressão no contrato; `bun run gate` 4.545 aprovados.
+
+## Delegado Q1 no navegador e revisão independente · 19/11/2026
+
+- **Revisão independente (Codex):** as duas correções do Q1 (`cda7c3d`, `655ce95`) são coerentes com as RPCs; sem falha encontrada. Ressalva aceita: os testes de regressão de contrato verificam principalmente o padrão no código-fonte; a prova de comportamento é a da pilha descartável.
+- **Pilha recriada** (dados efêmeros) com o mesmo roteiro, guard ok, 70 migrations do candidato `655ce95`. Plataforma concedeu a delegação da preparação ao colaborador da Norte (API). **Navegador:** o delegado, com login normal pelo Mailpit da pilha, abriu `/ivo-integral/preparar-q1` da Norte e registrou o comunicado; releitura `READ ONLY`: 1 evento de preparação com autor de papel `COLABORADOR` (delegado). Conta sem concessão (liderança): `forbidden` pela API nesta rodada.
+- Pilha descartável desligada ao final (`down`); stack institucional preservado (5 containers).
