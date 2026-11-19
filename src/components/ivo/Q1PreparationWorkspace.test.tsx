@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Q1PreparationWorkspace } from "./Q1PreparationWorkspace";
 import {
   applyPreparation,
@@ -28,8 +28,8 @@ const fresh = (): PrepView => ({
   revision: 0,
   state: { controls: [] },
 });
-function fixture() {
-  let view = fresh();
+function fixture(initial = fresh()) {
+  let view = initial;
   let blocked = false;
   let retry = false;
   const requests: string[] = [],
@@ -67,6 +67,59 @@ function fixture() {
     },
   };
 }
+test("busca por recorte sem acentos, filtra pela etapa e revela a próxima pendência", async () => {
+  const id = crypto.randomUUID();
+  const coveredId = crypto.randomUUID();
+  const initial = fresh();
+  initial.state = {
+    notice: {
+      kind: "notice",
+      template: noticeVersion,
+      contact: "RH",
+      returnChannel: "Mural",
+    },
+    controls: [
+      { id, label: "Pausas", scope: "Expedição" },
+      {
+        id: coveredId,
+        label: "Reuniões",
+        scope: "Recepção",
+        verification: {
+          kind: "verify",
+          controlId: coveredId,
+          source: "dialogue",
+          evidence: "Escuta coletiva",
+          finding: { coverage: "covered" },
+        },
+      },
+    ],
+  };
+  const f = fixture(initial);
+  render(<Q1PreparationWorkspace scope={scope} cycle={cycle} client={f.client} />);
+  const search = await screen.findByRole("searchbox", { name: "Buscar controle ou recorte" });
+  fireEvent.change(search, { target: { value: "recepcao" } });
+  expect(screen.getByRole("article").textContent).toContain("Reuniões");
+  const stage = screen.getByRole("combobox", { name: "Etapa do controle" });
+  fireEvent.change(stage, { target: { value: "verify" } });
+  expect(screen.getByText("Nenhum controle corresponde aos filtros.")).toBeTruthy();
+  expect(screen.queryByRole("article")).toBeNull();
+  const next = screen.getByRole("link", { name: "Conferir a cobertura de Pausas" });
+  expect(next.getAttribute("href")).toBe("#control-" + id);
+  fireEvent.click(next);
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect((search as HTMLInputElement).value).toBe("");
+  const details = screen.getByText("Conferir a cobertura").closest("details")!;
+  details.open = true;
+  const evidence = within(details).getByRole("textbox", {
+    name: "Referência da evidência coletiva",
+  }) as HTMLInputElement;
+  fireEvent.change(evidence, { target: { value: "Escala em conferência" } });
+  fireEvent.change(stage, { target: { value: "covered" } });
+  expect(screen.getByRole("article").textContent).toContain("Reuniões");
+  fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+  expect(details.open).toBe(true);
+  expect(evidence.value).toBe("Escala em conferência");
+});
 function update(label: RegExp, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
@@ -90,7 +143,7 @@ test("estado vazio, comunicado revisado, exportação reautorizada e revogação
   await waitFor(() => expect(f.downloads).toEqual(["comunicado"]));
   f.revoke();
   fireEvent.click(download);
-  expect(await screen.findByText(/empresa habilitada para Q1/)).toBeTruthy();
+  expect(await screen.findByText(/habilitação para Q1/)).toBeTruthy();
   expect(screen.queryByText(/Canal de dúvidas ·/)).toBeNull();
   expect(f.downloads).toHaveLength(1);
 });

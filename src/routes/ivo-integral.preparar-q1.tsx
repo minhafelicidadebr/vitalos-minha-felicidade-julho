@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { AppShell } from "@/app/shell/AppShell";
 import { Q1PreparationWorkspace } from "@/components/ivo/Q1PreparationWorkspace";
+import { Q1TechnicalReviewPanel } from "@/components/ivo/Q1TechnicalReviewPanel";
 import { cycleOfInstant, formatCycleKey } from "@/domain/ivo/cycle-key";
 import { cycleSchema, prepMessages } from "@/domain/survey/q1-preparation";
 
@@ -24,17 +25,17 @@ function PreparationPage() {
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:py-10">
         <Link
-          to="/rh"
+          to={session.org?.role === "RH_ADMIN" ? "/rh" : "/painel"}
           className="inline-flex min-h-11 items-center rounded-md text-sm text-primary underline"
         >
-          Voltar ao painel de RH
+          Voltar ao painel
         </Link>
         <header className="space-y-2">
           <h1 className="font-serif text-3xl">Preparar avaliação Q1</h1>
           <p className="text-muted-foreground">
             Organize a comunicação com a equipe e confira os controles existentes antes da coleta
-            COPSOQ. Esta preparação registra decisões operacionais. Os resultados e a avaliação de
-            eficácia pertencem a etapas posteriores.
+            COPSOQ. Nesta etapa, o representante autorizado organiza os registros da empresa. A
+            revisão técnica de SST é uma etapa distinta.
           </p>
         </header>
         {session.loading ? (
@@ -46,10 +47,31 @@ function PreparationPage() {
               Consultar vínculo novamente
             </button>
           </div>
-        ) : session.org?.orgPackId !== "enterprise" || session.org.role !== "RH_ADMIN" ? (
-          <p role="alert">{prepMessages.forbidden}</p>
+        ) : session.org?.orgPackId !== "enterprise" ? (
+          <div role="alert" className="space-y-2 rounded-lg border bg-muted/40 p-4">
+            <p>{prepMessages.forbidden}</p>
+            {session.org?.orgPackId === "enterprise" && session.org.role === "SST_PROFISSIONAL" && (
+              <p>A revisão técnica por SST ainda não está disponível nesta área.</p>
+            )}
+          </div>
         ) : (
           <>
+            {import.meta.env.DEV && (
+              <aside className="rounded-xl border bg-primary/5 p-4">
+                <h2 className="font-semibold">Precisa de apoio técnico para o Q1?</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Conheça como a Rede VitalOS pode ajudar uma empresa a encontrar apoio para avaliar
+                  as condições de trabalho.
+                </p>
+                <Link
+                  to="/"
+                  hash="rede-vitalos"
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline"
+                >
+                  Conhecer a prévia da rede
+                </Link>
+              </aside>
+            )}
             <form
               className="flex flex-wrap items-end gap-3"
               onSubmit={(e) => {
@@ -87,11 +109,13 @@ function PreparationPage() {
               </p>
             )}
             {validCycle && (
-              <Q1PreparationWorkspace
+              <div
                 key={[session.org.userId, session.org.orgId, cycle].join("/")}
-                scope={session.org.orgId}
-                cycle={cycle}
-              />
+                className="space-y-5"
+              >
+                <Q1TechnicalReviewPanel scope={session.org.orgId} cycle={cycle} />
+                <Q1PreparationWorkspace scope={session.org.orgId} cycle={cycle} />
+              </div>
             )}
           </>
         )}

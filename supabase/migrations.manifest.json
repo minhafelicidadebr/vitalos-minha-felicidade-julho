@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 67,
-  "rollupSha256": "5fe810b01f81c44409f7523d3616bd51b6af8ac447a2a402ed51e0eb6e2c72bc",
+  "migrationCount": 71,
+  "rollupSha256": "fc6a632893000bedd085bca118bc2906f676626f33e6b7c8982b945829d2e433",
   "migrations": [
     {
       "order": 1,
@@ -404,6 +404,30 @@
       "name": "20261118163000_q1_preparation.sql",
       "sha256": "81c32fa182386bca9027a8c4075040f51bbec82e23a37462faef6867e7f89729",
       "bytes": 4304
+    },
+    {
+      "order": 68,
+      "name": "20261118170000_partner_interest.sql",
+      "sha256": "b6012c4c03b0bb7e30609638d9d8807809e200ee827615c225751a58d3f3a248",
+      "bytes": 682
+    },
+    {
+      "order": 69,
+      "name": "20261118173000_q1_preparation_delegates.sql",
+      "sha256": "c2de4d7121685bdfec94d425bbf930c5628875fe0c72b15e792cb9aa562d3368",
+      "bytes": 3065
+    },
+    {
+      "order": 70,
+      "name": "20261119090000_q1_manage_preparation_delegates.sql",
+      "sha256": "f8519ca3e7e5f321b1b81926046a8d00ffa6aea640c410d7dc84ce5e1fcfd1e0",
+      "bytes": 3023
+    },
+    {
+      "order": 71,
+      "name": "20261119103000_q1_technical_review.sql",
+      "sha256": "d673bbae8347f750e1097ba3b82300ca521665fb72c894d8a3e49e686e5bb2e0",
+      "bytes": 8449
     }
   ]
 }

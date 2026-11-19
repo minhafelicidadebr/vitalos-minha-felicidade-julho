@@ -73,7 +73,7 @@ export async function operatePreparation(
             ? "unavailable"
             : "forbidden",
       };
-    if (actor.role !== "RH_ADMIN") return { ok: false, reason: "forbidden" };
+    // The journal checks the current membership, Q1 entitlement and delegation atomically.
     if ("command" in input && input.expectedScope !== actor.orgId)
       return { ok: false, reason: "scope" };
     const current = project(await deps.journal(actor, input.cycle), actor.orgId, input.cycle);

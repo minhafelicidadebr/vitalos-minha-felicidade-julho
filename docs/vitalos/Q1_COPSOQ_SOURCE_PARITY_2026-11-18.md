@@ -42,6 +42,19 @@ As fichas de triagem foram usadas localmente, com os documentos acima em leitura
 
 **Verificações** · 41 testes em cinco arquivos, 187 asserções e zero falhas. TypeScript estrito nos arquivos alterados e diff aprovados. O Bun registrou `EPERM` ao enumerar a pasta do usuário no sandbox, com todas as cinco suítes concluídas e saída zero. Lint completo nos dois scripts novos e lint semântico no teste legado, que já tinha três desvios de formatação. A evidência do gate integrado e do build de `9759e8d` foi reutilizada para o aplicativo, pois o diff acrescenta verificação offline, testes e documentação.
 
+## Pontos de adaptação independentes da escolha da fonte
+
+| Etapa | Contrato observado | Conferência quando o formulário for identificado |
+| --- | --- | --- |
+| Definição e entrada | `SurveyDefinition` declara uma escala no questionário. As rotas de resposta usam essa escala para renderizar e validar as opções. | Derivar as opções do item quando a fonte exigir escalas distintas e conferir a renderização e a aceitação no servidor na mesma versão. |
+| Agregação | O agregador de cápsulas extrai um único mínimo e máximo da definição e os utiliza também na reversão. | Conferir limites e direção por item, ausências e denominadores contra casos independentes do manual. Preservar as regras das ondas anteriores ao vincular uma versão nova. |
+
+[Contrato da definição](../../src/engine/survey/survey-engine.ts) · [Entrada por convite](../../src/routes/convite.$token.tsx) · [Agregador de cápsulas](../../src/lib/api/capsule-aggregator.server.ts).
+
+## Manual indicado como base de conhecimento
+
+O operador indicou o anexo `COPSOQ-Manual-Portugal2013 (2).pdf` como base de conhecimento. A capa identifica a **Versão Portuguesa** (Portugal). O arquivo tem 51 páginas e SHA-256 `96db38c6b25a12a8a9e2d372ef72749b99c6e51bffc8163df0830ebbc68eb9ec`. A seção de cotação descreve escala de cinco pontos com alternativas de frequência ou intensidade, reversões dependentes da forma e médias por fator. Os pontos de corte descritos aparecem na p. 12 do PDF. Use o documento como referência metodológica identificada. Seus itens, valores de referência e critérios de interpretação pertencem à versão portuguesa. Para a paridade brasileira, vincule o formulário exato e as regras que o acompanham. [Manual na rede COPSOQ](https://www.copsoq-network.org/assets/Uploads/COPSOQ-Manual-Portugal2013.pdf).
+
 ## Próximo marco
 
 Identificar por arquivo ou DOI a forma exata da aprovação e montar a ficha a partir desse instrumento, do manual correspondente e de casos calculados independentemente. É necessário conferir a versão por onda na adaptação futura: o agregador atual seleciona por código de instrumento e usa a escala única da definição. Com a forma exata, o verificador apontará as mudanças necessárias em coleta e cálculo antes do ensaio da Alfa. A permissão empresarial Q1 continua em preparação. Q2 segue independente. [Contrato da coleta](../../src/engine/survey/survey-engine.ts) · [Agregador](../../src/lib/api/capsule-aggregator.server.ts) · [Habilitação](../../src/lib/identity/module-access.server.ts).

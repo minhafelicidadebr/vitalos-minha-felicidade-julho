@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { Button } from "@/components/ui/button";
 import { usePack } from "@/engine/pack";
+import { Q1PreparationEntry } from "@/components/ivo/Q1PreparationEntry";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -75,6 +76,7 @@ function Painel() {
 
   return (
     <AppShell>
+      <Q1PreparationEntry />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/40">
         <div

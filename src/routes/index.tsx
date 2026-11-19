@@ -19,6 +19,7 @@ import { ProductModulesSection } from "@/features/landing/components/ProductModu
 import { EcosystemApplicationsSection } from "@/features/landing/components/EcosystemApplicationsSection";
 
 import { PersonaPathwaysSection } from "@/features/landing/components/PersonaPathwaysSection";
+import { PartnerNetworkSection } from "@/features/landing/components/PartnerNetworkSection";
 import { TrustSection } from "@/features/landing/components/TrustSection";
 import { Nr1Section } from "@/features/landing/components/Nr1Section";
 import { ProofNumbersSection } from "@/features/landing/components/ProofNumbersSection";
@@ -37,6 +38,7 @@ const LANDING_NAV = [
   ["Solução", "#solucao"],
   ["Metodologia", "#metodologia"],
   ["Aplicações", "#aplicacoes"],
+  ...(import.meta.env.DEV ? ([["Rede VitalOS", "#rede-vitalos"]] as const) : []),
 ] as const;
 
 export const Route = createFileRoute("/")({
@@ -141,6 +143,7 @@ function LandingPage() {
         <TrustSection />
         <ProofNumbersSection />
         <InstituteSection />
+        {import.meta.env.DEV && <PartnerNetworkSection />}
         <LandingCtaSection onAction={onAction} onEnterApp={exploreDemo} />
       </main>
 

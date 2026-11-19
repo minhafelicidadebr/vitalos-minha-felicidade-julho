@@ -32,18 +32,27 @@ function fixture() {
   };
   return { deps, events, calls: () => calls };
 }
-test("recusa perfil inadequado e mudança de empresa antes da consulta", async () => {
+test("respeita a recusa do diário e bloqueia mudança de empresa antes de consultar", async () => {
   const f = fixture();
   expect(
     await operatePreparation(base, {
       ...f.deps,
       authorize: async () => ({ ok: true, role: "LIDER", orgId: org, userId: user }),
+      journal: async () => ({ status: "forbidden" }),
     }),
   ).toEqual({ ok: false, reason: "forbidden" });
   expect(await operatePreparation({ ...base, expectedScope: crypto.randomUUID() }, f.deps)).toEqual(
     { ok: false, reason: "scope" },
   );
   expect(f.calls()).toBe(0);
+});
+test("consulta o diário para um representante que não tenha papel de RH", async () => {
+  const f = fixture();
+  const result = await operatePreparation(base, {
+    ...f.deps,
+    authorize: async () => ({ ok: true, role: "C_LEVEL", orgId: org, userId: user }),
+  });
+  expect(result.ok && result.view.revision).toBe(1);
 });
 test("aplica a revisão, admite replay e devolve somente a projeção da própria organização", async () => {
   const f = fixture();
