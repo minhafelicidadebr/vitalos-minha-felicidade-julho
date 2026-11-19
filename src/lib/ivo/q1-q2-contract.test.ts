@@ -15,6 +15,8 @@ const SESSIONS: Record<string, MembershipResult> = {
 const MEMBERS: Record<string, MembershipResult> = {
   "t-lider": { ok: true, membership: { userId: "u-lider", orgId: "org-alfa", role: "LIDER_EQUIPE" } },
   "t-colab": { ok: true, membership: { userId: "u-colab", orgId: "org-alfa", role: "COLABORADOR" } },
+  // Revisor técnico do Q1 (migration 20261119103000): papel real em profiles.
+  "t-sst": { ok: true, membership: { userId: "u-sst", orgId: "org-alfa", role: "SST_PROFISSIONAL" } },
 };
 
 function deps(spy: { memberReads: number } = { memberReads: 0 }): IvoSessionDeps {
@@ -44,6 +46,14 @@ describe("B3 · sessão IVO compartilhada: o padrão continua só-administrador"
     expect(await authorizeIvoSession("t-lider", deps(), { allowLeader: true })).toMatchObject({ ok: true, role: "LIDER_EQUIPE", orgId: "org-alfa" });
     expect(await authorizeIvoSession("t-colab", deps(), { allowLeader: true })).toMatchObject({ ok: false, category: "forbidden" });
     expect(await authorizeIvoSession("t-colab", deps(), { allowMember: true })).toMatchObject({ ok: true, role: "COLABORADOR" });
+  });
+
+  test("SST (revisor Q1) não entra no ledger Q2: recusado sem opção e com allowLeader; só a devolutiva coletiva de membro", async () => {
+    expect(await authorizeIvoSession("t-sst", deps())).toMatchObject({ ok: false, category: "forbidden" });
+    // allowLeader é a opção dos caminhos de leitura do ciclo, estado e execução.
+    expect(await authorizeIvoSession("t-sst", deps(), { allowLeader: true })).toMatchObject({ ok: false, category: "forbidden" });
+    // allowMember é só a projeção coletiva fechada (C2, D3 "todos os membros").
+    expect(await authorizeIvoSession("t-sst", deps(), { allowMember: true })).toMatchObject({ ok: true, role: "SST_PROFISSIONAL" });
   });
 
   test("a organização vem sempre da sessão; administradores de empresas diferentes não se misturam", async () => {

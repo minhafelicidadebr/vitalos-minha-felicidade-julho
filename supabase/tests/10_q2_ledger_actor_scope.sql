@@ -18,6 +18,7 @@ DO $$
 DECLARE
   o_a UUID := gen_random_uuid(); o_b UUID := gen_random_uuid();
   rh UUID := gen_random_uuid(); lider UUID := gen_random_uuid(); colab UUID := gen_random_uuid(); rh_b UUID := gen_random_uuid();
+  sst UUID := gen_random_uuid();
   p_draft UUID := gen_random_uuid(); p_active UUID := gen_random_uuid();
   i_draft UUID := gen_random_uuid(); i_own UUID := gen_random_uuid(); i_other UUID := gen_random_uuid();
   r RECORD;
@@ -29,8 +30,8 @@ BEGIN
   INSERT INTO public.organizations(id, name, slug, pack_id, plan) VALUES
     (o_a, 'Prova B2 A', 'proof-b2-a-' || o_a, 'enterprise', 'enterprise'),
     (o_b, 'Prova B2 B', 'proof-b2-b-' || o_b, 'enterprise', 'enterprise');
-  INSERT INTO auth.users(id, email) VALUES (rh, rh || '@proof.test'), (lider, lider || '@proof.test'), (colab, colab || '@proof.test'), (rh_b, rh_b || '@proof.test');
-  INSERT INTO public.profiles(id, org_id, role) VALUES (rh, o_a, 'RH_ADMIN'), (lider, o_a, 'LIDER_EQUIPE'), (colab, o_a, 'COLABORADOR'), (rh_b, o_b, 'RH_ADMIN')
+  INSERT INTO auth.users(id, email) VALUES (rh, rh || '@proof.test'), (lider, lider || '@proof.test'), (colab, colab || '@proof.test'), (rh_b, rh_b || '@proof.test'), (sst, sst || '@proof.test');
+  INSERT INTO public.profiles(id, org_id, role) VALUES (rh, o_a, 'RH_ADMIN'), (lider, o_a, 'LIDER_EQUIPE'), (colab, o_a, 'COLABORADOR'), (rh_b, o_b, 'RH_ADMIN'), (sst, o_a, 'SST_PROFISSIONAL')
     ON CONFLICT (id) DO UPDATE SET org_id = EXCLUDED.org_id, role = EXCLUDED.role;
 
   INSERT INTO public.action_plans(id, org_id, cycle_key, season_name, status, created_by) VALUES
@@ -57,6 +58,11 @@ BEGIN
   INSERT INTO proof VALUES ('papel declarado divergente recusado', NOT r.accepted AND r.reason = 'actor_role_mismatch');
   SELECT * INTO r FROM public.record_action_event(i_other, 'note', colab, 'COLABORADOR', NULL, NULL, 'x');
   INSERT INTO proof VALUES ('colaborador não escreve no ledger', NOT r.accepted AND r.reason = 'authority_reserved_to_admin');
+  -- SST é revisor técnico do Q1 (20261119103000): nenhum privilégio no ledger Q2.
+  SELECT * INTO r FROM public.record_evidence(i_other, 'texto', 'x', 'direct', NULL, '2099-01-01', sst, 'SST_PROFISSIONAL');
+  INSERT INTO proof VALUES ('SST recusado no ledger Q2', NOT r.accepted AND r.reason = 'authority_reserved_to_admin');
+  SELECT * INTO r FROM public.set_action_item_accountability(i_draft, sst, 'S', '2099-06-01', 'm', 0, 1, NULL, NULL, NULL, NULL, NULL);
+  INSERT INTO proof VALUES ('SST não pode ser responsável de ação Q2', NOT r.accepted AND r.reason = 'owner_not_eligible');
   SELECT * INTO r FROM public.record_action_event(i_other, 'status_change', rh, 'RH_ADMIN', 'em_execucao', NULL, NULL);
   INSERT INTO proof VALUES ('admin muda estado', r.accepted);
 
@@ -89,7 +95,7 @@ SELECT (CASE WHEN pass THEN 'PASS ' ELSE 'FAIL ' END) || name FROM proof;
 SELECT 'TOTAL ' || count(*) FILTER (WHERE pass) || '/' || count(*) FROM proof;
 -- Qualquer FAIL aborta a suíte (ON_ERROR_STOP): nunca uma falha silenciosa no replay.
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM proof WHERE NOT pass) OR (SELECT count(*) FROM proof) <> 16 THEN
+  IF EXISTS (SELECT 1 FROM proof WHERE NOT pass) OR (SELECT count(*) FROM proof) <> 18 THEN
     RAISE EXCEPTION 'Prova Q2 B2 falhou.';
   END IF;
 END $$;
