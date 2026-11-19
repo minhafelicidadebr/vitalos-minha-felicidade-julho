@@ -69,6 +69,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrivacidadeComercialRouteImport } from './routes/privacidade-comercial'
 import { Route as ProgramaRouteImport } from './routes/programa'
 import { Route as PulseRouteImport } from './routes/pulse'
+import { Route as Q3DemoRouteImport } from './routes/q3-demo'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
 import { Route as ReconhecimentoRouteImport } from './routes/reconhecimento'
 import { Route as RelatorioGlobalRouteImport } from './routes/relatorio-global'
@@ -396,6 +397,11 @@ const PulseRoute = PulseRouteImport.update({
   path: '/pulse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Q3DemoRoute = Q3DemoRouteImport.update({
+  id: '/q3-demo',
+  path: '/q3-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuiosqueRoute = QuiosqueRouteImport.update({
   id: '/quiosque',
   path: '/quiosque',
@@ -588,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
+  '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -676,6 +683,7 @@ export interface FileRoutesByTo {
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
+  '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -765,6 +773,7 @@ export interface FileRoutesById {
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
   '/pulse': typeof PulseRoute
+  '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
   '/reconhecimento': typeof ReconhecimentoRoute
   '/relatorio-global': typeof RelatorioGlobalRoute
@@ -855,6 +864,7 @@ export interface FileRouteTypes {
     | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
+    | '/q3-demo'
     | '/quiosque'
     | '/reconhecimento'
     | '/relatorio-global'
@@ -943,6 +953,7 @@ export interface FileRouteTypes {
     | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
+    | '/q3-demo'
     | '/quiosque'
     | '/reconhecimento'
     | '/relatorio-global'
@@ -1031,6 +1042,7 @@ export interface FileRouteTypes {
     | '/privacidade-comercial'
     | '/programa'
     | '/pulse'
+    | '/q3-demo'
     | '/quiosque'
     | '/reconhecimento'
     | '/relatorio-global'
@@ -1120,6 +1132,7 @@ export interface RootRouteChildren {
   PrivacidadeComercialRoute: typeof PrivacidadeComercialRoute
   ProgramaRoute: typeof ProgramaRoute
   PulseRoute: typeof PulseRoute
+  Q3DemoRoute: typeof Q3DemoRoute
   QuiosqueRoute: typeof QuiosqueRoute
   ReconhecimentoRoute: typeof ReconhecimentoRoute
   RelatorioGlobalRoute: typeof RelatorioGlobalRoute
@@ -1570,6 +1583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PulseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/q3-demo': {
+      id: '/q3-demo'
+      path: '/q3-demo'
+      fullPath: '/q3-demo'
+      preLoaderRoute: typeof Q3DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiosque': {
       id: '/quiosque'
       path: '/quiosque'
@@ -1816,6 +1836,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeComercialRoute: PrivacidadeComercialRoute,
   ProgramaRoute: ProgramaRoute,
   PulseRoute: PulseRoute,
+  Q3DemoRoute: Q3DemoRoute,
   QuiosqueRoute: QuiosqueRoute,
   ReconhecimentoRoute: ReconhecimentoRoute,
   RelatorioGlobalRoute: RelatorioGlobalRoute,

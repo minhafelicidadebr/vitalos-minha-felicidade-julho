@@ -94,6 +94,7 @@ const NAV_ROUTES: Record<string, string> = {
   priorities: "/prioridades",
   forecast: "/trajetoria",
   viat: "/viat",
+  q3_demo: "/q3-demo",
   esg: "/esg",
 };
 
@@ -177,7 +178,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "medir",
     label: "Medir",
     hint: "Onde a vitalidade está hoje",
-    items: ["wave", "waves", "ivo", "pulses", "espelho", "signals", "trend", "season"],
+    items: ["wave", "waves", "ivo", "q3_demo", "pulses", "espelho", "signals", "trend", "season"],
   },
   {
     id: "agir",

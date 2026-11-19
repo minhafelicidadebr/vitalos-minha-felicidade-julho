@@ -273,6 +273,12 @@
       "group": "estrategico"
     },
     {
+      "id": "q3_demo",
+      "label": "Q3 PERMA+V · demonstração",
+      "roles": ["COLABORADOR", "LIDER_EQUIPE", "RH_ADMIN", "SST_PROFISSIONAL"],
+      "group": "medir"
+    },
+    {
       "id": "viat",
       "label": "Mapa de Forças",
       "roles": ["COLABORADOR", "EMBAIXADOR", "LIDER_EQUIPE", "RH_ADMIN", "CHRO", "C_LEVEL"],
