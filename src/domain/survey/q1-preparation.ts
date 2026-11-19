@@ -80,7 +80,7 @@ export const noticePurpose =
 export const noticePrivacy =
   "A devolutiva prevista é coletiva. Use os canais abaixo para dúvidas sobre o processo e sugestões sobre a organização do trabalho. Reserve questões pessoais para um canal de atendimento individual.";
 export const prepMessages = {
-  forbidden: "A preparação exige vínculo de RH administrador com uma empresa habilitada para Q1.",
+  forbidden: "A preparação exige autorização da empresa e habilitação para Q1.",
   unavailable: "Não foi possível consultar a preparação. Tente novamente.",
   conflict: "O registro mudou em outra sessão. Releia a versão atual antes de confirmar.",
   duplicate: "Este controle já consta neste recorte. Abra o registro para conferir sua cobertura.",
@@ -178,22 +178,34 @@ export interface PrepView {
 }
 export type PrepFailure = { ok: false; reason: keyof typeof prepMessages };
 export type PrepResult = { ok: true; view: PrepView } | PrepFailure;
+export const preparationStages = {
+  verify: "Cobertura a conferir",
+  plan: "Medida a planejar",
+  review: "Medida a acompanhar",
+  covered: "Cobertura observada",
+  observed: "Execução observada",
+} as const;
+export type PreparationStage = keyof typeof preparationStages;
+
+export function preparationStage(control: PrepControl): PreparationStage {
+  if (!control.verification) return "verify";
+  if (control.verification.finding.coverage === "covered") return "covered";
+  if (!control.measure) return "plan";
+  return control.reviews?.at(-1)?.result.outcome === "observed" ? "observed" : "review";
+}
+
 export function preparationNextStep(state: PrepState) {
   if (!state.notice)
     return { target: "q1-notice", label: "Revisar o comunicado aos trabalhadores" };
-  const unchecked = state.controls.find((c) => !c.verification);
+  const unchecked = state.controls.find((c) => preparationStage(c) === "verify");
   if (unchecked)
     return {
       target: "control-" + unchecked.id,
       label: "Conferir a cobertura de " + unchecked.label,
     };
-  const gap = state.controls.find(
-    (c) => c.verification?.finding && c.verification.finding.coverage !== "covered" && !c.measure,
-  );
+  const gap = state.controls.find((c) => preparationStage(c) === "plan");
   if (gap) return { target: "control-" + gap.id, label: "Planejar a medida para " + gap.label };
-  const pending = state.controls.find(
-    (c) => c.measure && c.reviews?.at(-1)?.result.outcome !== "observed",
-  );
+  const pending = state.controls.find((c) => preparationStage(c) === "review");
   if (pending)
     return { target: "control-" + pending.id, label: "Acompanhar a medida de " + pending.label };
   if (!state.controls.length)

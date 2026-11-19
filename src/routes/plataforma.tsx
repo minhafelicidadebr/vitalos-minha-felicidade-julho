@@ -15,6 +15,9 @@ import type { LeadRow } from "@/lib/growth/lead-capture.server";
 import type { AccountHealthRow } from "@/lib/growth/customer-health.server";
 import { FirstAdminInvites } from "@/components/identity/FirstAdminInvites";
 import { PlatformModules } from "@/components/identity/EnterpriseModules";
+import { PartnerInterestQueue } from "@/components/identity/PartnerInterestQueue";
+import { Q1DelegationPanel } from "@/components/identity/Q1DelegationPanel";
+import { Q1ReviewerAssignment } from "@/components/identity/Q1ReviewerAssignment";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -160,6 +163,11 @@ function PlataformaPage() {
 
       {accessToken && <FirstAdminInvites accessToken={accessToken} />}
       {accessToken && <PlatformModules accessToken={accessToken} />}
+      {accessToken && <Q1DelegationPanel key={accessToken} accessToken={accessToken} />}
+      {accessToken && <Q1ReviewerAssignment key={"review/" + accessToken} accessToken={accessToken} />}
+      {import.meta.env.DEV && accessToken && (
+        <PartnerInterestQueue key={accessToken} accessToken={accessToken} />
+      )}
       {/* Formulário de criação */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
