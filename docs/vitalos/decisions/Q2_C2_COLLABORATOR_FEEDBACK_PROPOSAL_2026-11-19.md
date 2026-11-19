@@ -85,3 +85,7 @@ Navegador (stack institucional, app 8092 por `scripts/institutional-app-port.ts`
 Nota de dado: o título da ação Delta ficou "Prioridade: Padrao de Vida — Equip…" porque o campo já vinha pré-preenchido e o texto do ensaio foi digitado no meio; a tela mostra fielmente o título gravado.
 
 Escrita no stack desta prova: plano 2026-T4 da Delta com 1 ação, criado pelo RH Delta. Alfa, Beta e Gama não foram alteradas.
+
+## Limite antes de publicar fora do stack local
+
+`TITLE_VISIBLE_SINCE` é um instante fixo no código, calibrado para os dados deste stack. Em outro ambiente, ações criadas depois desse instante, mas antes de o RH ver o aviso, mostrariam o título. Antes de qualquer prévia ou publicação, substituir o corte por uma marca gravada na própria ação (ex.: `title_visible_at` preenchido quando o RH salva com o aviso), o que exige migration e autorização própria.
