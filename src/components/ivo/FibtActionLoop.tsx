@@ -39,6 +39,9 @@ const buttonExecution =
 // (texto ≈11,7:1 claro / ≈12,4:1 escuro; borda ≈12:1 / ≈7,5:1 contra o cartão).
 const buttonLearning =
   "inline-flex min-h-12 w-full items-center justify-center rounded-md border-2 border-primary bg-secondary px-5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/70 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto";
+/** C2 (decisão D2): o título das ações de plano ativo/encerrado é lido pelas pessoas da organização. */
+export const TITLE_VISIBILITY_HINT = "Visível para as pessoas da organização. Não inclua nomes nem dados de pessoas.";
+
 export function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
@@ -155,8 +158,8 @@ export function PriorityPlanner({
             ))}
           </select>
         </Field>
-        <Field id="prio-titulo" label="Título da ação">
-          <input id="prio-titulo" className={inputClass} value={title} maxLength={200} required minLength={3} onChange={(e) => setTitle(e.target.value)} />
+        <Field id="prio-titulo" label="Título da ação" hint={TITLE_VISIBILITY_HINT}>
+          <input id="prio-titulo" aria-describedby="prio-titulo-hint" className={inputClass} value={title} maxLength={200} required minLength={3} onChange={(e) => setTitle(e.target.value)} />
         </Field>
         <Field id="prio-esforco" label="Esforço">
           <select id="prio-esforco" className={inputClass} value={effort} onChange={(e) => setEffort(e.target.value as PriorityDraft["effort"])}>

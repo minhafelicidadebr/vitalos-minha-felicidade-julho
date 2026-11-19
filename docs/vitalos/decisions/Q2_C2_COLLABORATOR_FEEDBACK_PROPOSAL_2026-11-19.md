@@ -1,6 +1,6 @@
 # Decisão pendente · devolutiva da transformação ao colaborador · 19/11/2026
 
-Claude Code · Q2_CONSOLIDACAO · fatia C2 · branch `feat/claude-q2-perfis` · base `1c82d21`. Estado: **aguardando decisão do operador**. Nenhum código escrito.
+Claude Code · Q2_CONSOLIDACAO · fatia C2 · branch `feat/claude-q2-perfis` · base `1c82d21`. Estado: **decidido e implementado — aceito no escopo demonstrado** (ver "Decisões tomadas" e "Prova" ao final).
 
 ## Problema
 
@@ -55,3 +55,33 @@ Microcopy obrigatória: "Estas ações partem de resultados coletivos publicados
 4. **D4 · Ações já criadas:** os títulos existentes passam a ser visíveis sem revisão, ou só ações criadas depois do aviso.
 
 Responsável: operador (produto e privacidade). Se a microcopy tocar método, João Paulo Brandão Barboza.
+
+## Decisões tomadas · operador · 19/11/2026
+
+D1 recusa Q2 + Diário · D2 título visível com aviso ao RH · D3 todos os membros · D4 título só de ações criadas depois do aviso (`TITLE_VISIBLE_SINCE = 2026-11-19T03:50:00Z`, posterior à ação mais recente então existente, 03:17Z).
+
+## Implementação
+
+- `src/lib/ivo/member-plan-feedback.server.ts`: `loadMemberPlanFeedback` via `authorizeLedger(…, { allowMember: true })` (capability, sessão, módulo Q2 da org da sessão); projeção fechada `title|null, sectorLabel, factorName, status, dueMonth, hasExecutionRecord`; só planos ativos/encerrados.
+- `authorizeIvoSession`: nova opção `allowMember` (qualquer papel da própria org), usada só por este endpoint.
+- `loadMemberPlanFeedbackFn` (`ivo-action-loop.functions.ts`, POST, schema `.strict()`).
+- `MemberPlanFeedback.tsx`: seção "O que a organização está fazendo" com microcopy fixa e "Eficácia ainda não avaliada" por ação; 4 estados; no Diário só em sessão real e oculta quando a lente não se aplica.
+- Aviso "Visível para as pessoas da organização. Não inclua nomes nem dados de pessoas." ligado por `aria-describedby` aos dois campos de título do RH.
+
+## Prova · 19/11/2026
+
+Testes: `member-plan-feedback.server.test.ts` (4: todos os membros e RH leem a mesma projeção sem rascunho; corte D4; payload sem responsável, descrição, indicador, evidência, linha do tempo ou rascunho; Beta sem módulo e sessão inválida negadas). `bun run gate`: 4.504 aprovados, paridade, TypeScript, secret-scan.
+
+Navegador (stack institucional, app 8092 por `scripts/institutional-app-port.ts`):
+
+| Persona | Resultado |
+| --- | --- |
+| `colaborador.alfa` em `/ivo-integral/q2` | recusa + caminho do Diário + seção com 5 ações, todas "Ação sobre Bem-Estar" (anteriores ao aviso), setor, estado, prazo; sem leitura por setor; payload só com os 6 campos e `title: null` |
+| `colaborador.alfa` em `/diario` | mesma seção, 5 ações, microcopy presente |
+| RH Delta em `/ivo-integral/acoes` | aviso ligado ao título; criou plano 2026-T4 com 1 ação, definiu responsável e ativou |
+| `lider.delta` em `/ivo-integral/q2` | seção com o título da ação nova, setor, fator, "Planejada · prazo dez/2026", "Eficácia ainda não avaliada"; sem indicador nem responsável |
+| 320 px, teclado | largura útil = rolagem (320); seção dentro da tela; link do Diário focável |
+
+Nota de dado: o título da ação Delta ficou "Prioridade: Padrao de Vida — Equip…" porque o campo já vinha pré-preenchido e o texto do ensaio foi digitado no meio; a tela mostra fielmente o título gravado.
+
+Escrita no stack desta prova: plano 2026-T4 da Delta com 1 ação, criado pelo RH Delta. Alfa, Beta e Gama não foram alteradas.

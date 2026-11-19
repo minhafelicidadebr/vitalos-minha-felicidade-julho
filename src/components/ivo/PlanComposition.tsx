@@ -11,7 +11,7 @@ import {
   assessPlanClosure,
   describePending,
 } from "@/lib/ivo/plan-closure";
-import { Field, buttonPrimary, buttonSecondary, inputClass, type EvidenceSubmitResult } from "./FibtActionLoop";
+import { Field, TITLE_VISIBILITY_HINT, buttonPrimary, buttonSecondary, inputClass, type EvidenceSubmitResult } from "./FibtActionLoop";
 
 // PI-13 — composição e encerramento do plano (apresentação).
 //
@@ -261,9 +261,10 @@ export function AddActionToPlanForm({
             ))}
           </select>
         </Field>
-        <Field id={`${p}-titulo`} label="Título da nova ação">
+        <Field id={`${p}-titulo`} label="Título da nova ação" hint={TITLE_VISIBILITY_HINT}>
           <input
             id={`${p}-titulo`}
+            aria-describedby={`${p}-titulo-hint`}
             className={inputClass}
             value={title}
             maxLength={200}

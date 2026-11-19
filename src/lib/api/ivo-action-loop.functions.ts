@@ -108,6 +108,11 @@ export const loadFibtActionLoopFn = createServerFn({ method: "POST" })
   .inputValidator(ivoActionLoopSchemas.load)
   .handler(async ({ data }) => (await loop()).loadFibtActionLoop(data));
 
+// C2 · devolutiva coletiva para qualquer membro; projeção fechada no servidor.
+export const loadMemberPlanFeedbackFn = createServerFn({ method: "POST" })
+  .inputValidator(ivoActionLoopSchemas.load)
+  .handler(async ({ data }) => (await import("@/lib/ivo/member-plan-feedback.server")).loadMemberPlanFeedback(data));
+
 export const createFibtPriorityActionsFn = createServerFn({ method: "POST" })
   .inputValidator(ivoActionLoopSchemas.createPriorities)
   .handler(async ({ data }) => (await loop()).createFibtPriorityActions(data));

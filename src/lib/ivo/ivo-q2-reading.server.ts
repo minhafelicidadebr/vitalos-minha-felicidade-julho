@@ -55,6 +55,8 @@ export interface IvoSessionDeps {
 /** Quem o endpoint admite além do administrador. Padrão: só administrador. */
 export interface IvoSessionOptions {
   allowLeader?: boolean;
+  /** Qualquer membro da organização (C2: devolutiva coletiva de projeção fechada). */
+  allowMember?: boolean;
 }
 
 export interface IvoQ2Deps extends IvoSessionDeps {
@@ -123,9 +125,9 @@ export async function authorizeIvoSession(
     auth = await (deps.requireAdmin ?? requireOrgAdmin)(accessToken);
     // Liderança (decisão Q2_LEADER_SCOPE_PROPOSAL): só onde o endpoint admite,
     // com papel lido do servidor. O escopo por ação é aplicado pelo chamador.
-    if (!auth.ok && auth.reason === "not_admin" && options.allowLeader) {
+    if (!auth.ok && auth.reason === "not_admin" && (options.allowLeader || options.allowMember)) {
       const member = await (deps.resolveMember ?? resolveOrgMembership)(accessToken);
-      if (member.ok && member.membership.role === LEADER_ROLE) auth = member;
+      if (member.ok && (options.allowMember || member.membership.role === LEADER_ROLE)) auth = member;
     }
   } catch {
     return { ok: false, category: "backend", error: "Não foi possível validar a sessão agora. Nada foi lido." };

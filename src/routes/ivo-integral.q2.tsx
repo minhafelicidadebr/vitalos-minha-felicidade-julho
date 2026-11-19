@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/app/shell/AppShell";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
 import { IvoQ2Detail } from "@/components/ivo/IvoQ2Detail";
+import { MemberPlanFeedback } from "@/components/ivo/MemberPlanFeedback";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import type { IvoQ2Outcome } from "@/lib/ivo/ivo-views";
@@ -72,6 +73,11 @@ function IvoQ2Page() {
               redirectTo="/ivo-integral/q2"
               onRetry={() => void load()}
             />
+          ) : null}
+          {outcome && !outcome.ok && outcome.memberPath ? (
+            <div className="mt-4">
+              <MemberPlanFeedback />
+            </div>
           ) : null}
           {outcome?.ok && outcome.state === "no_wave" ? (
             <div role="note" className="rounded-md border border-border bg-muted/30 p-4 text-sm">
