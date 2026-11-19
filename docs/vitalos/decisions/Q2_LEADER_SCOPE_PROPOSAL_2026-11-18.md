@@ -61,7 +61,22 @@ Implementação:
 
 Verificação: `leader-scope.server.test.ts` (5); `bun run gate` 4.482 aprovados, paridade, TypeScript, secret-scan.
 
-Limite da prova em navegador: a designação só existe em plano em rascunho. A Alfa tem o plano 2026-T4 ativo (um plano por ciclo) e a Beta está com Q2 desligado. Provar no navegador exige encerrar o plano da Alfa (irreversível) ou habilitar Q2 num terceiro tenant fictício — ambos pendentes de autorização.
+### Prova em navegador · Empresa Fictícia Gama · 19/11/2026
+
+Autorizada pelo operador ("Habilitar empresa Gama"). Stack institucional preservado (API 57621, DB 57622, Mailpit 57624), app do worktree em 8092. Provisionamento por script de scratchpad que valida o alvo com `institutionalEnv()` e usa só o fluxo real: empresa `institutional-gama` (plano `enterprise`, como a fixture Alfa/Beta) e identidades sintéticas `gama@` / `lider.gama@institutional.test`; primeiro RH emitido pela plataforma e aceito pela própria identidade; Q2 habilitado pela plataforma só na Gama (CAS por revisão); onda FIB-T, setor "Equipe Gama sintética", link e 5 respostas anônimas sintéticas; liderança convidada pelo RH Gama e aceita pela própria identidade. Alfa e Beta não foram tocadas.
+
+| Passo (navegador, login por link mágico local) | Resultado |
+| --- | --- |
+| RH Gama abre o centro de controle FIB-T | setor publicado em lote protegido (n=5, 3,0/4 por fator) |
+| RH Gama cria o plano 2026-T4 a partir da prioridade | rascunho criado; "Pessoa responsável" oferece só "Eu (RH)" e a liderança da Gama |
+| RH designa a liderança, define prazo e indicador, ativa | "Responsável, prazo e indicador salvos." · "Plano ativado." |
+| Liderança Gama abre `/ivo-integral/acoes` | nota de escopo próprio, a própria ação, formulário de execução; sem encerrar, incluir, aprendizagem, nem ações da Alfa |
+| Liderança muda o estado e registra execução | "Estado atualizado." (em execução) · "Evidência de execução registrada." |
+| Recarga | estado e evidência persistem |
+
+Leitura `READ ONLY` independente: responsável da ação = perfil `LIDER_EQUIPE`; `action_log` da Gama com `status_change` e `evidence_recorded`, ambos `actor_role_label = LIDER_EQUIPE`; 1 evidência `texto`; Alfa com as mesmas 5 ações; Q2 = Alfa ligado, Beta desligado, Gama ligado.
+
+Limite: prova em navegador desktop; a recusa da liderança a ação alheia, a aprendizagem e a designação inválida estão provadas nos testes de serviço, não no navegador.
 
 ## Contexto da decisão S6 (anterior)
 
