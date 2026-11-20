@@ -57,3 +57,11 @@ Prova: pilha descartável `scripts/integ-local/` com Alfa e Beta fictícias; nav
 | Revisor independente | pendente |
 
 Análise só agregada; sem cruzamento individual; sem equivalência entre lentes nem índice composto. Q3-05 continua `pending` em `q3-readiness.ts`; mudar a regra de ativação exige decisão registrada.
+
+## Fechamento · 20/11/2026
+
+- **Demo:** `origin/main` = `f692b03` (commit confirmado no GitHub). Conteúdo servido **não verificado**: `app.vitalos.com.br` sem resposta e `vitalos.com.br/q3-demo` = 404; a URL do projeto Lovable não está no repositório. Prova local de `f692b03`: colaborador vê as 15 perguntas ilustrativas e o aviso. Menor ação: informar a URL publicada do Lovable.
+- **Vitalidade 001:** v0.2.0, `PROPOSTO` / `candidato_a_revisao`; decisão do revisor no documento de revisão.
+- **Q3-02/03:** continuam abertas — faltam a autorização para o uso pretendido e a fonte oficial (itens, cálculo, ausências). Coleta oficial desabilitada.
+- **Jornada:** contrato mantido como critério de aceite; nada exercitado ainda.
+- **Q3-05:** hipótese; regra de ativação inalterada.
