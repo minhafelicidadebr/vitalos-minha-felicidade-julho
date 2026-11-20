@@ -24,6 +24,7 @@ import {
   type PermaFactorId,
 } from "@/domain/demo/q3-demo-synthetic";
 import { buildConvergence, buildOrgSummary, buildTeamRows, ownActions, personaAccess } from "@/lib/ivo/q3-demo-view";
+import { getApprovedVitalityUnit, Q3_VITALITY_UNIT_COPY as U } from "@/domain/ivo/q3-vitality-units";
 
 export const Route = createFileRoute("/q3-demo")({
   head: () => ({ meta: [{ title: "Q3 PERMA+V · demonstração — 4 Lentes VitalOS™" }] }),
@@ -103,6 +104,104 @@ function VitalityCard() {
             </li>
           ))}
         </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function VitalityCheck({ check }: { check: NonNullable<ReturnType<typeof getApprovedVitalityUnit>>["checks"][number] }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const ok = picked === check.correctOptionId;
+  return (
+    <fieldset className="space-y-2 rounded-md border p-3">
+      <legend className="px-1 text-sm font-medium">{check.question}</legend>
+      <div className="grid gap-2">
+        {check.options.map((o) => (
+          <Button
+            key={o.id}
+            type="button"
+            variant={picked === o.id ? "default" : "outline"}
+            className="h-auto min-h-11 justify-start whitespace-normal text-left"
+            aria-pressed={picked === o.id}
+            onClick={() => setPicked(o.id)}
+          >
+            {o.label}
+          </Button>
+        ))}
+      </div>
+      <p role="status" aria-live="polite" className="text-sm">
+        {picked && (ok ? `${U.correct} ${check.explanation}` : U.incorrect)}
+      </p>
+    </fieldset>
+  );
+}
+
+function VitalityUnitCard({ manager }: { manager: boolean }) {
+  const unit = getApprovedVitalityUnit();
+  const [recalled, setRecalled] = useState(false);
+  if (!unit) {
+    return (
+      <Card>
+        <CardHeader><CardTitle className="text-lg">{U.title}</CardTitle></CardHeader>
+        <CardContent><p className="text-sm text-muted-foreground">{U.empty}</p></CardContent>
+      </Card>
+    );
+  }
+  const approval = unit.curation.approval!;
+  const date = approval.approvedOn.split("-").reverse().join("/");
+  return (
+    <Card>
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-lg">{U.title}</CardTitle>
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="whitespace-normal">{U.approved(date, unit.contentVersion)}</Badge>
+          <Badge variant="outline">{U.weeks(unit.activity.durationWeeks)}</Badge>
+        </div>
+        <p className="text-sm">{manager ? unit.audienceSummary.manager : unit.audienceSummary.member}</p>
+        <p className="text-xs text-muted-foreground">{U.noClaim}</p>
+      </CardHeader>
+      <CardContent className="space-y-5 text-sm">
+        <p className="font-medium">{unit.learningObjective}</p>
+        {unit.content.map((p) => <p key={p}>{p}</p>)}
+        <section aria-labelledby="v-steps">
+          <h3 id="v-steps" className="mb-1 font-semibold">{U.stepsTitle}</h3>
+          <ol className="list-decimal space-y-1 pl-5">{unit.activity.steps.map((s) => <li key={s}>{s}</li>)}</ol>
+        </section>
+        <section aria-labelledby="v-records">
+          <h3 id="v-records" className="mb-1 font-semibold">{U.recordsTitle}</h3>
+          <dl className="grid gap-2 sm:grid-cols-3">
+            {(Object.keys(U.records) as (keyof typeof U.records)[]).map((k) => (
+              <div key={k} className="rounded-md border p-3">
+                <dt className="font-medium">{U.records[k]}</dt>
+                <dd className="text-muted-foreground">{unit.activity.records[k]}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section aria-labelledby="v-decision">
+          <h3 id="v-decision" className="mb-1 font-semibold">{U.decisionTitle}</h3>
+          <dl className="grid gap-2 sm:grid-cols-3">
+            {(Object.keys(U.decision) as (keyof typeof U.decision)[]).map((k) => (
+              <div key={k} className="rounded-md border p-3">
+                <dt className="font-medium">{U.decision[k]}</dt>
+                <dd className="text-muted-foreground">{unit.activity.decisionGuide[k]}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section aria-labelledby="v-limits">
+          <h3 id="v-limits" className="mb-1 font-semibold">{U.limitsTitle}</h3>
+          <ul className="list-disc space-y-1 pl-5">{unit.activity.limits.map((l) => <li key={l}>{l}</li>)}</ul>
+        </section>
+        <section aria-labelledby="v-check" className="space-y-3">
+          <h3 id="v-check" className="font-semibold">{U.checkTitle}</h3>
+          <p>{unit.recallPrompt}</p>
+          {!recalled ? (
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setRecalled(true)}>{U.showOptions}</Button>
+          ) : (
+            unit.checks.map((c) => <VitalityCheck key={c.id} check={c} />)
+          )}
+        </section>
       </CardContent>
     </Card>
   );
@@ -316,6 +415,7 @@ function Q3DemoPage() {
               </Card>
             )}
             {!access.rhDashboard && access.collective && <CollectiveCard org={model.org} />}
+            {access.collective && <VitalityUnitCard manager={access.rhDashboard || access.ownActions} />}
             {access.collective && <VitalityCard />}
           </div>
         )}

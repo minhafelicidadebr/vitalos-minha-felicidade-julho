@@ -25,16 +25,16 @@ describe("Q3 · unidade de Vitalidade 001 (candidata à revisão D10)", () => {
     expect(JSON.stringify(unit)).not.toMatch(/comprovad[oa] que|aumenta em \d|\d+ ?%/i);
   });
 
-  test("nenhum código de produção usa a unidade ainda (integração só no relatório do ciclo)", () => {
+  test("só o ponto de acesso q3-vitality-units importa a unidade", () => {
     const hits: string[] = [];
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
         const path = join(dir, name);
         if (statSync(path).isDirectory()) walk(path);
-        else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) && readFileSync(path, "utf8").includes("q3-vitality-unit")) hits.push(path);
+        else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) && readFileSync(path, "utf8").includes("q3-vitality-unit-001")) hits.push(path);
       }
     };
     walk(join(import.meta.dir, "..", ".."));
-    expect(hits).toEqual([]);
+    expect(hits.map((h) => h.split(/[\\/]/).pop())).toEqual(["q3-vitality-units.ts"]);
   });
 });
