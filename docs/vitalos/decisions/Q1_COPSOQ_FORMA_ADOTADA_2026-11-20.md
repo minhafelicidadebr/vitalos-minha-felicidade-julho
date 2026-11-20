@@ -56,3 +56,14 @@ Arquivo `COPSOQ-Manual-Portugal2013 (2).pdf`, SHA-256 `96db38c6…eb9ec` (mesmo 
 Coincidência explicada: as **41** questões do manifesto servido batem com a contagem da curta portuguesa, não com a II-Br.
 
 **Efeito na coleta:** continua bloqueada. O manual fecha a fonte dos pontos de corte, mas abre uma decisão: usar média 1–5 com tercis 2,33/3,66 (manual) ou soma 0–4 (artigo II-Br). Seguem faltando os enunciados/alternativas da II-Br (tese 2019), a regra de ausências e a permissão de uso.
+
+## Direção metodológica do Q1 · decisão do fundador, 20/11/2026
+
+1. **Pontuação por dimensão conforme a COPSOQ II-Br curta (Gonçalves et al., 2021):** soma das respostas codificadas por dimensão (artigo, p. 3).
+2. **Codificação por item:** conforme a forma brasileira — faixas observadas 0–4 na maioria, 0–3 no item 13 e 0–1 nos itens 20–23 (Tabela 3, p. 10); **1B é o único invertido** (p. 3). O mapeamento alternativa → código depende das alternativas oficiais (tese 2019).
+3. **Comportamentos ofensivos (20–23):** tratamento específico, fora da regra de soma (p. 3); a regra exata fica pendente da ficha oficial.
+4. **Primeira devolutiva descritiva, sem semáforo.**
+5. **Cortes portugueses (tercis 2,33/3,66 sobre média 1–5, manual p. 8):** referência documental apenas, pendentes de confirmação para a forma brasileira.
+6. **Coleta bloqueada** até fechar a ficha: enunciados e alternativas oficiais, regra de respostas em branco e permissão de uso.
+
+Casos sintéticos de verificação: `src/domain/survey/copsoq-ii-br-short-2021.cases.json` (codificação, inversão de 1B, somas esperadas por dimensão, ausências e ofensivos como pendentes).
