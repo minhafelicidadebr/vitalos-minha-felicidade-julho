@@ -145,8 +145,8 @@ export function getPresentationDeck(): PresentationDeck {
           ),
           c(
             "Sua jornada",
-            "Preparar a aplicação",
-            "O escopo brasileiro e sua correspondência documental orientam a preparação de Q1.",
+            "Serviço, não questionário",
+            "Avaliação, análise, consultoria e treinamento. O COPSOQ II-Br não tem cobrança separada; a coleta oficial está em preparação.",
             "compass",
           ),
         ],

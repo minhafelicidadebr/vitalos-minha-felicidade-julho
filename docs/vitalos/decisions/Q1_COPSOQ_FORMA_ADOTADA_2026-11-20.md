@@ -67,3 +67,16 @@ Coincidência explicada: as **41** questões do manifesto servido batem com a co
 6. **Coleta bloqueada** até fechar a ficha: enunciados e alternativas oficiais, regra de respostas em branco e permissão de uso.
 
 Casos sintéticos de verificação: `src/domain/survey/copsoq-ii-br-short-2021.cases.json` (codificação, inversão de 1B, somas esperadas por dimensão, ausências e ofensivos como pendentes).
+
+## Decisão comercial do Q1 · fundador, 20/11/2026
+
+**Escopo:** o VitalOS cobra pela prestação de serviços de avaliação, análise, consultoria e treinamento no Q1. O questionário COPSOQ II-Br **não** tem preço próprio, cobrança por resposta nem comercialização avulsa. Preservados: a forma II-Br curta (Gonçalves et al., 2021), a pontuação por dimensão conforme a ficha da fonte e a primeira devolutiva descritiva, sem semáforo.
+
+**Evidência de uso já registrada no repositório — não cobre a aplicação digital:**
+- `docs/DECISAO_T5_TRILHO_LICENCIAMENTO_COPSOQ_2026-07-20.md`: Opção B decidida, requisito 1 = "licença escrita cobrindo uso comercial SaaS"; nenhuma licença anexada.
+- `docs/DILIGENCIA_LICENCIAMENTO_PROTOCOLO_PSICOSSOCIAL_2026-07-22.md`: status ABERTO; itens de titularidade e de uso comercial/SaaS sem marcação.
+- Artigo II-Br: licença CC BY 4.0 do **artigo**; permissão de uso do questionário não declarada.
+
+**Condição exata a confirmar:** autorização escrita de quem detém os direitos da adaptação brasileira (autoras Gonçalves, Moriguchi, Chaves e Sato — contato de correspondência na p. 1 do artigo, UFSCar — e, se exigido, a rede internacional COPSOQ) cobrindo a **aplicação digital da II-Br curta dentro de serviço pago**, sem cobrança pelo questionário. Quem confirma: o fundador, junto às detentoras dos direitos.
+
+**Superfícies atualizadas:** `/programa` (oferta Q1, `src/mocks/programa-mock.ts` → `PROGRAMA_Q1_OFFER`) e apresentação institucional (`src/lib/presentation/content.server.ts`, card "Sua jornada" do Q1). Coleta oficial bloqueada e sinalizada junto ao CTA.

@@ -112,7 +112,7 @@ export const PROGRAMA_TIERS: ProgramaTier[] = [
     tagline: "Comece por uma lente, com efeito medido em 90 dias.",
     forWho: "Para a primeira prova de valor — uma cunha por trimestre.",
     includes: [
-      "1 instrumento (COPSOQ, FIB-T, PERMA+V ou VIA-T)",
+      "1 lente (Q1 COPSOQ, Q2 FIB-T, Q3 PERMA+V ou Q4 VIA-T), conforme a disponibilidade de cada uma",
       "Ciclo de 4 fases: diagnóstico → educar → transformar → relatório",
       "1 experimento no Culture Lab com efeito medido",
       "Relatório trimestral auditável",
@@ -134,6 +134,33 @@ export const PROGRAMA_TIERS: ProgramaTier[] = [
     cta: { label: "Falar com especialista", to: "/selo" },
   },
 ];
+
+// Q1 · oferta de serviços. O VitalOS cobra pelos serviços; o questionário não tem preço próprio.
+export interface ProgramaQ1Deliverable {
+  label: string;
+  status: "available" | "planned";
+}
+
+export const PROGRAMA_Q1_OFFER = {
+  eyebrow: "Q1 · Fatores psicossociais",
+  title: "Da escuta dos trabalhadores ao plano de ação",
+  text:
+    "O Q1 reúne serviços de avaliação de fatores psicossociais, análise de resultados, consultoria e treinamento. " +
+    "A contratação remunera os serviços previstos no plano. O questionário COPSOQ II-Br não tem cobrança separada.",
+  statusLabels: { available: "Disponível", planned: "Previsto" },
+  deliverables: [
+    { label: "Preparação da avaliação: escopo, comunicado aos trabalhadores, papéis e revisão técnica", status: "available" },
+    { label: "Leitura agregada por dimensão, só para grupos com 5 ou mais respostas", status: "planned" },
+    { label: "Devolutiva descritiva aos trabalhadores e à gestão", status: "planned" },
+    { label: "Apoio à elaboração do plano de ação a partir da leitura", status: "planned" },
+    { label: "Treinamento de lideranças e equipes ligado às prioridades", status: "planned" },
+  ] satisfies ProgramaQ1Deliverable[],
+  collectionStatus:
+    "Coleta oficial em preparação: a aplicação do COPSOQ II-Br ainda não está liberada. Hoje é possível preparar a avaliação.",
+  disclaimer:
+    "Apoio educativo e organizacional: não substitui o PGR nem profissional habilitado e não garante conformidade com a NR-1.",
+  cta: { label: "Conversar sobre o Q1", href: "https://www.felicidadeparatodos.com.br/" },
+};
 
 export const PROGRAMA_CLOSING = {
   title: "Instale o sistema operacional da vitalidade",
