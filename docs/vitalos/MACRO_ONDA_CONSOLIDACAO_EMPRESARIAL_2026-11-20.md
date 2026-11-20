@@ -8,7 +8,7 @@ Branch `feat/claude-ciclo-relatorio` (worktree `..\vitalos-claude-ciclo`), a par
 | --- | --- | --- | --- | --- |
 | Q1 COPSOQ | `f8cabb9` (via `9bbfa92` + correções `cda7c3d`, `655ce95`) | preparação, comunicado, delegação, revisão técnica pelo SST designado; coleta bloqueada (`method_pending`) | prova local (pilha descartável, navegador) + gate | decidir a edição que corresponde à fonte aprovada |
 | Q2 FIB-T | `f8cabb9` | leitura agregada → atividade aprovada → plano → execução → aprendizagem → devolutiva | prova local por papel + gate | CI/staging; PIL-01..07; desenho de eficácia |
-| Q3 PERMA+V | `713b6d5` (editorial, local) · `f692b03` (demo, em `origin/main`) | demo sintética `/q3-demo` na prévia; produção 404 até Publish | teste automatizado; prévia verificada | revisão D10 da Vitalidade 001 v0.2.0 (sem aprovação registrada → não integrada) |
+| Q3 PERMA+V | `713b6d5` (editorial, local) · `f692b03` (demo, em `origin/main`) | demo sintética `/q3-demo` na prévia; produção 404 até Publish | teste automatizado; prévia verificada | Vitalidade 001 v0.2.0 aprovada em D10 (20/11, `33d92d5`) e refletida no relatório; falta levar a uma rota do app |
 | Q4 VIA-T | WIP do Codex, não comitado | percurso individual em desenvolvimento | não verificável por commit | Codex comitar; contrato coletivo |
 | Relatório Global | este branch | PDF sintético do ciclo | teste automatizado + PDF inspecionado | contrato de emissão e aprovação de vínculos ESG |
 

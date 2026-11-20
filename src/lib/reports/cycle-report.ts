@@ -65,10 +65,10 @@ export const SYNTHETIC_CYCLE = {
       ref: "docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md",
     },
     {
-      lens: "Q3", name: "PERMA+V · florescimento", state: "candidato editorial + demo sintética",
-      canRun: "Demonstração sintética /q3-demo; unidade Vitalidade 001 v0.2.0 aguardando revisão D10.",
-      blockedBy: "Autorização dos autores, regras de cálculo e ausências; aprovação D10 da unidade.",
-      ref: "branch feat/claude-q3-fundacao @713b6d5 · src/domain/ivo/q3-vitality-unit-001.json",
+      lens: "Q3", name: "PERMA+V · florescimento", state: "unidade Vitalidade 001 aprovada + demo sintética",
+      canRun: "Demonstração sintética /q3-demo; prática Vitalidade 001 v0.2.0 aprovada em D10 (20/11/2026), sem citação científica.",
+      blockedBy: "Mensuração: autorização dos autores, regras de cálculo e ausências. Unidade ainda fora das rotas do app.",
+      ref: "branch feat/claude-q3-fundacao @33d92d5 · docs/vitalos/decisions/Q3_VITALIDADE_UNIDADE_001_REVISAO.md",
     },
     {
       lens: "Q4", name: "VIA-T · forças", state: "percurso individual em desenvolvimento (Codex)",
@@ -141,9 +141,9 @@ export const SYNTHETIC_CYCLE = {
     },
     {
       id: "Q3-01", lens: "Q3", phase: "Educar", step: "Vitalidade 001", origin: "Q3-pratica-vitalidade-pausas-001 v0.2.0",
-      period: PERIOD, action: "Oferecer prática", state: "candidata à revisão D10", claim: "none", data: "absent",
-      finding: "Não ofertada: aprovação editorial pendente.",
-      evidence: "branch feat/claude-q3-fundacao @713b6d5 · q3-vitality-unit-001.json", evidenceLevel: "teste automatizado", publication: "collective",
+      period: PERIOD, action: "Oferecer prática aprovada em D10", state: "aprovada 20/11/2026", claim: "thematic", data: "present",
+      finding: "Prática de pausa entre reuniões disponível; separa participação, execução e percepção. Sem item, escore ou ranking de vitalidade.",
+      evidence: "Q3-pratica-vitalidade-pausas-001 · aprovação D10 @33d92d5", evidenceLevel: "teste automatizado", publication: "collective",
     },
     {
       id: "Q4-01", lens: "Q4", phase: "Mensurar", step: "Visão coletiva de forças", origin: "—",
@@ -256,7 +256,7 @@ ${rows.map((r) => `<tr>${cell(r.id)}${cell(r.origin)}${cell(r.action)}${cell(r.e
 <table><tr><th>Lente</th><th>Próximo marco verificável</th></tr>
 <tr><td>Q1</td><td>Decidir a edição que corresponde à fonte aprovada; só então liberar coleta.</td></tr>
 <tr><td>Q2</td><td>Desenho de avaliação de eficácia; CI e staging do candidato integrado.</td></tr>
-<tr><td>Q3</td><td>Revisão D10 da Vitalidade 001 v0.2.0; autorização dos autores para a mensuração.</td></tr>
+<tr><td>Q3</td><td>Levar a Vitalidade 001 aprovada a uma rota do app; autorização dos autores para a mensuração.</td></tr>
 <tr><td>Q4</td><td>Comitar o percurso individual (Codex); contrato explícito antes de qualquer visão coletiva.</td></tr>
 <tr><td>ESG</td><td>Revisão humana dos vínculos propostos e da materialidade.</td></tr></table>
 </section>
