@@ -35,3 +35,7 @@ Artefato: `src/domain/ivo/q3-vitality-unit-001.json` v0.1.0 · estado `PROPOSTO`
 **Decisão do revisor (uma das duas):**
 - **Aprovar a v0.2.0 sem citação científica** → registrar aprovação nesta tabela; eu crio o validador Q3 equivalente ao D10 e integro só esta unidade.
 - **Exigir citação** → autorizar a reabertura do Evidence Registry para o conceito de vitalidade; a unidade permanece PROPOSTA até o registro.
+
+## Decisão registrada · 20/11/2026
+
+**Aprovada a v0.2.0 sem citação científica** pelo fundador, revisor editorial (Q3-08). Escopo: local descartável. `evidenceCodes` e `safeClaimIds` permanecem vazios; nenhuma afirmação de efeito. Qualquer mudança de conteúdo exige nova versão e nova revisão.
