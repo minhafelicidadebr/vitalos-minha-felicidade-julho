@@ -38,3 +38,21 @@ O ajuste mínimo é substituir a bateria inteira, o que exige insumos que o arti
 3. Permissão de uso do questionário (autores/rede COPSOQ).
 
 Preparação, comunicado, delegação e revisão técnica seguem válidos e intactos.
+
+## Manual português (Silva et al., 2011/2013) · conferido em 20/11/2026
+
+Arquivo `COPSOQ-Manual-Portugal2013 (2).pdf`, SHA-256 `96db38c6…eb9ec` (mesmo já registrado em `Q1_COPSOQ_SOURCE_PARITY_2026-11-18.md`). É a fonte que o artigo II-Br cita (ref. 5) para o semáforo.
+
+| Ponto | O que o manual diz | Localizador | Vale para a II-Br? |
+| --- | --- | --- | --- |
+| Formas portuguesas | curta 41 questões/26 subescalas; média 76/29; longa 119/35 | Tabela 1, pp. 8–9 | **Não**: a curta portuguesa é outra forma (41 ≠ 40, itens diferentes) |
+| Escala | Likert 1–5, frequência ou intensidade; cotação direta 1–5 | p. 7 | Parcial: a II-Br pontua por soma com faixas 0–4/0–3/0–1 |
+| Invertidos | só 42 e 45 da média; nenhum na curta | p. 7 | Não: na II-Br só 1B |
+| Agregação | média dos itens por fator | p. 7 | A II-Br cita a média como alternativa à soma |
+| Semáforo | tercis da amplitude 1–5, cortes **2,33 e 3,66**; leitura por sentido do fator | p. 8 | Aplicável só se o escore for média 1–5; com soma 0–4 exige conversão **não publicada** |
+| Respostas em branco | **não declarado** | — | continua sem fonte |
+| Itens da curta portuguesa | anexo com enunciados | pp. 23–25 | Não são os da II-Br |
+
+Coincidência explicada: as **41** questões do manifesto servido batem com a contagem da curta portuguesa, não com a II-Br.
+
+**Efeito na coleta:** continua bloqueada. O manual fecha a fonte dos pontos de corte, mas abre uma decisão: usar média 1–5 com tercis 2,33/3,66 (manual) ou soma 0–4 (artigo II-Br). Seguem faltando os enunciados/alternativas da II-Br (tese 2019), a regra de ausências e a permissão de uso.
