@@ -3,8 +3,8 @@
   "contentId": "Q3-vitalidade-pausas-entre-reunioes-001",
   "contentVersion": "0.2.0",
   "version": "0.2.0",
-  "status": "PROPOSTO",
-  "editorialState": "candidato_a_revisao",
+  "status": "APROVADO",
+  "editorialState": "aprovado",
   "evidenceCodes": [],
   "safeClaimIds": [],
   "pendingEvidence": "Conceito de vitalidade (Ryan & Frederick, 1997) ainda fora do Evidence Registry; nenhum claim de efeito até registro com safe_claim e revisão D10.",
@@ -16,7 +16,14 @@
       "segment": "enterprise",
       "targetContext": "q3-educacao"
     },
-    "approval": null
+    "approval": {
+      "version": "0.2.0",
+      "reviewer": "Fundador (revisor editorial, decisão Q3-08)",
+      "approvedOn": "2026-11-20",
+      "decisionRef": "docs/vitalos/decisions/Q3_VITALIDADE_UNIDADE_001_REVISAO.md",
+      "basis": "aprovada sem citação científica",
+      "scope": "local_descartavel"
+    }
   },
   "plusV": "Vitalidade aplicada a práticas (decisão Q3-01): sem item, sem escore, sem ranking.",
   "learningObjective": "A equipe consegue combinar, aplicar e revisar uma pausa curta entre reuniões, distinguindo o que foi feito do que foi percebido.",

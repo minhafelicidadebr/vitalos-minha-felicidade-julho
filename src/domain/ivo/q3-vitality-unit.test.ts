@@ -4,10 +4,11 @@ import { join } from "node:path";
 import unit from "./q3-vitality-unit-001.json";
 
 describe("Q3 · unidade de Vitalidade 001 (candidata à revisão D10)", () => {
-  test("estado editorial explícito: proposta, sem aprovação, sem evidência nem claim", () => {
-    expect(unit.status).toBe("PROPOSTO");
-    expect(unit.editorialState).toBe("candidato_a_revisao");
-    expect(unit.curation.approval).toBeNull();
+  test("estado editorial explícito: aprovada na versão revisada, sem evidência nem claim", () => {
+    expect(unit.status).toBe("APROVADO");
+    expect(unit.editorialState).toBe("aprovado");
+    expect(unit.curation.approval?.version).toBe(unit.contentVersion);
+    expect(unit.curation.approval?.approvedOn).toBe("2026-11-20");
     expect(unit.evidenceCodes).toEqual([]);
     expect(unit.safeClaimIds).toEqual([]);
     expect(existsSync(join(import.meta.dir, "..", "..", "..", unit.curation.reviewRef))).toBe(true);
@@ -24,7 +25,7 @@ describe("Q3 · unidade de Vitalidade 001 (candidata à revisão D10)", () => {
     expect(JSON.stringify(unit)).not.toMatch(/comprovad[oa] que|aumenta em \d|\d+ ?%/i);
   });
 
-  test("nenhum código de produção usa a unidade enquanto proposta", () => {
+  test("nenhum código de produção usa a unidade ainda (integração só no relatório do ciclo)", () => {
     const hits: string[] = [];
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
