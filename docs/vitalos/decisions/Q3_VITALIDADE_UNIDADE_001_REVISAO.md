@@ -18,3 +18,20 @@ Artefato: `src/domain/ivo/q3-vitality-unit-001.json` v0.1.0 · estado `PROPOSTO`
 | Data | Revisor | Decisão | Observações |
 | --- | --- | --- | --- |
 | — | — | pendente | — |
+
+## Versão 0.2.0 · pacote para decisão (20/11/2026)
+
+**Resumo da atividade:** a equipe combina uma pausa curta entre reuniões; por duas semanas, quem quiser marca no quadro da equipe se a pausa aconteceu; na revisão, conversa sobre o que facilitou ou dificultou e decide manter, adaptar ou encerrar.
+
+**Ajustes desde 0.1.0:**
+1. A definição de vitalidade passou a ser declarada como definição de trabalho da unidade, sem atribuição à literatura (não há fonte no Evidence Registry).
+2. Registro diário reduzido a uma marcação voluntária no quadro da equipe.
+3. Acrescentado guia de decisão (manter, adaptar, encerrar), com encerrar como resultado válido.
+4. Mudança percebida explicitada como relato, sem atribuir efeito à prática.
+5. Acrescentados resumos para gestor e para colaborador.
+
+**Checagem dos quatro pontos:** aprendizagem — objetivo observável e as 3 checagens tratam de execução, voluntariedade e revisão; execução — 2 semanas, 1 marcação por dia, sem relato pessoal; interpretação — participação, execução e percepção separadas; evidência — nenhuma afirmação factual depende de estudo; nenhuma citação científica; +V sem item, escore ou ranking.
+
+**Decisão do revisor (uma das duas):**
+- **Aprovar a v0.2.0 sem citação científica** → registrar aprovação nesta tabela; eu crio o validador Q3 equivalente ao D10 e integro só esta unidade.
+- **Exigir citação** → autorizar a reabertura do Evidence Registry para o conceito de vitalidade; a unidade permanece PROPOSTA até o registro.
