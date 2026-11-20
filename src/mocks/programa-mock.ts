@@ -109,12 +109,13 @@ export const PROGRAMA_TIERS: ProgramaTier[] = [
   {
     id: "sprint",
     name: "Sprint Trimestral",
-    tagline: "Comece por uma lente, com efeito medido em 90 dias.",
+    tagline:
+      "90 dias para definir uma prioridade, acompanhar a execução de uma ação e revisar as evidências disponíveis.",
     forWho: "Para a primeira prova de valor — uma cunha por trimestre.",
     includes: [
       "1 lente (Q1 COPSOQ, Q2 FIB-T, Q3 PERMA+V ou Q4 VIA-T), conforme a disponibilidade de cada uma",
       "Ciclo de 4 fases: diagnóstico → educar → transformar → relatório",
-      "1 experimento no Culture Lab com efeito medido",
+      "Ação acompanhada, com registro de execução e decisão de continuidade",
       "Relatório trimestral auditável",
     ],
     cta: { label: "Escolher uma lente", to: "/temporada" },
