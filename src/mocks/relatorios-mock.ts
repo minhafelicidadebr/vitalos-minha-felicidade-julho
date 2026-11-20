@@ -128,5 +128,5 @@ export const SEAL_STATUS = {
     },
   ],
   publicNote:
-    "O Selo Empresa Viva é anual, auditável e pode ser exibido nas páginas de carreira. Reconhece sistema instalado e efeito medido — não discurso.",
+    "O Selo Empresa Viva é anual, auditável e pode ser exibido nas páginas de carreira. Reconhece sistema instalado e pelo menos um experimento com efeito medido pelo critério do Culture Lab.",
 } as const;

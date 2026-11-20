@@ -119,7 +119,7 @@ export function certify(
     target: `≥ ${config.minExperiments} confirmado no Culture Lab`,
     note:
       c3 === "cumprido"
-        ? "Pelo menos uma intervenção funcionou nesta cultura, com efeito medido — não discurso."
+        ? "Pelo menos um experimento concluído teve efeito medido pelo critério do Culture Lab (diferença-em-diferenças)."
         : "O selo exige prova: um experimento concluído com efeito confirmado.",
   });
 

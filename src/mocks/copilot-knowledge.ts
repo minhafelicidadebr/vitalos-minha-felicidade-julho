@@ -372,7 +372,7 @@ export function buildCopilotKnowledge(
     id: "agir",
     topics: ["agir", "acao", "melhorar", "proximo", "passo", "plano", "experimento", "mete"],
     title: "Como transformar leitura em ação",
-    body: "Medir é só o começo: o ciclo M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) leva o resultado a um plano de ação e a experimentos no Culture Lab, com efeito medido ciclo a ciclo.",
+    body: "Medir é só o começo: o ciclo M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) leva o resultado a um plano de ação e a experimentos no Culture Lab; efeito só é afirmado quando o critério de avaliação do experimento é atendido.",
     source: "Cronograma M.E.T.E. · Culture Lab",
   });
 
@@ -426,7 +426,7 @@ export function buildCopilotKnowledge(
       "esg",
     ],
     title: "Da leitura à prova",
-    body: "O ciclo se fecha provando efeito: curva de evolução ciclo a ciclo, experimentos com efeito medido e o Selo de Vitalidade — computado do que foi feito, nunca comprado.",
+    body: "O ciclo se fecha com evidência: curva de evolução ciclo a ciclo, experimentos avaliados pelo critério do Culture Lab e o Selo de Vitalidade — computado do que foi feito, nunca comprado.",
     source: "Módulo Provar · Evolução, Experimentos e Selo",
   });
 

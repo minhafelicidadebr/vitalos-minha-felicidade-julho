@@ -76,7 +76,7 @@ export const PROGRAMA_JOURNEY: Array<{ q: string; lens: string; promise: string 
 // O que nenhum concorrente oferece (diferenciação / moat).
 export const PROGRAMA_DIFFERENTIATORS = [
   "Ciclo completo: medir → agir → provar → certificar (não medir e parar).",
-  "Transformação comprovada por experimento controlado — não discurso.",
+  "Efeito afirmado só quando um experimento atende ao critério de avaliação do Culture Lab.",
   "Privacidade radical: k-anonimato e consentimento que governam a própria IA.",
   "Moat de dados: benchmark setorial anônimo entre clientes.",
   "Selo Empresa Viva auditável, exibível na página de carreira.",
@@ -111,12 +111,12 @@ export const PROGRAMA_TIERS: ProgramaTier[] = [
     name: "Sprint Trimestral",
     tagline:
       "90 dias para definir uma prioridade, acompanhar a execução de uma ação e revisar as evidências disponíveis.",
-    forWho: "Para a primeira prova de valor — uma cunha por trimestre.",
+    forWho: "Para a primeira prova de valor — uma lente por trimestre.",
     includes: [
       "1 lente (Q1 COPSOQ, Q2 FIB-T, Q3 PERMA+V ou Q4 VIA-T), conforme a disponibilidade de cada uma",
       "Ciclo de 4 fases: diagnóstico → educar → transformar → relatório",
       "Ação acompanhada, com registro de execução e decisão de continuidade",
-      "Relatório trimestral auditável",
+      "Relatório trimestral com registro das ações e das evidências disponíveis",
     ],
     cta: { label: "Escolher uma lente", to: "/temporada" },
     featured: true,
