@@ -1,0 +1,86 @@
+{
+  "id": "Q3-pratica-vitalidade-pausas-001",
+  "contentId": "Q3-vitalidade-pausas-entre-reunioes-001",
+  "contentVersion": "0.1.0",
+  "version": "0.1.0",
+  "status": "PROPOSTO",
+  "editorialState": "candidato_a_revisao",
+  "evidenceCodes": [],
+  "safeClaimIds": [],
+  "pendingEvidence": "Conceito de vitalidade (Ryan & Frederick, 1997) ainda fora do Evidence Registry; nenhum claim de efeito até registro com safe_claim e revisão D10.",
+  "curation": {
+    "decision": "D10",
+    "reviewRef": "docs/vitalos/decisions/Q3_VITALIDADE_UNIDADE_001_REVISAO.md",
+    "context": { "role": "rh", "segment": "enterprise", "targetContext": "q3-educacao" },
+    "approval": null
+  },
+  "plusV": "Vitalidade aplicada a práticas (decisão Q3-01): sem item, sem escore, sem ranking.",
+  "learningObjective": "A equipe consegue combinar, aplicar e revisar uma pausa curta entre reuniões, distinguindo o que foi feito do que foi percebido.",
+  "content": [
+    "Vitalidade, aqui, é a energia disponível para o trabalho ao longo do dia. A unidade trata de uma prática coletiva, não de saúde individual.",
+    "A prática proposta é simples: entre reuniões seguidas, reservar alguns minutos sem tela.",
+    "Registrar que a pausa aconteceu mostra execução. Dizer que a equipe se sentiu melhor é percepção e pede medição própria. Afirmar que a pausa causou a melhora exige um desenho de avaliação que esta unidade não tem."
+  ],
+  "activity": {
+    "durationWeeks": 2,
+    "steps": [
+      "Na reunião de equipe, combinar voluntariamente a pausa: quando acontece e quanto dura.",
+      "Durante duas semanas, ao fim de cada dia, a equipe marca coletivamente se a pausa aconteceu (sim, em parte, não).",
+      "Na revisão, conversar sobre o que facilitou e o que dificultou a prática, sem citar pessoas.",
+      "Decidir se mantém, ajusta ou encerra a prática."
+    ],
+    "records": {
+      "participation": "Quantas pessoas participaram da combinação (contagem coletiva, sem nomes).",
+      "execution": "Dias em que a pausa aconteceu, em parte ou não aconteceu (registro da equipe).",
+      "perceivedChange": "Opcional e coletivo: a equipe descreve, em uma frase, o que percebeu. Não vira escore."
+    },
+    "limits": [
+      "Ninguém é avaliado por participar ou não.",
+      "Nada é ligado a desempenho, promoção ou remuneração.",
+      "Não substitui a gestão de riscos psicossociais (Domínio B)."
+    ]
+  },
+  "recallPrompt": "Antes das alternativas, lembre sem consultar: o que um registro de execução comprova e o que ele não comprova?",
+  "checks": [
+    {
+      "id": "execucao",
+      "question": "A equipe registrou a pausa em 8 de 10 dias. O que isso comprova?",
+      "options": [
+        { "id": "executou", "label": "Que a prática foi executada na maior parte dos dias." },
+        { "id": "efeito", "label": "Que a vitalidade da equipe aumentou por causa da pausa." },
+        { "id": "individual", "label": "Quem da equipe se dedicou mais à prática." }
+      ],
+      "correctOptionId": "executou",
+      "explanation": "O registro mostra execução. Percepção de melhora pede medição própria; efeito causal pede desenho de avaliação."
+    },
+    {
+      "id": "voluntario",
+      "question": "Uma pessoa prefere não participar da pausa. Como seguir?",
+      "options": [
+        { "id": "respeitar", "label": "Respeitar a escolha; a prática segue com quem quiser, sem registro de nomes." },
+        { "id": "cobrar", "label": "Registrar a ausência para conversar com a liderança." },
+        { "id": "suspender", "label": "Suspender a prática até que todos participem." }
+      ],
+      "correctOptionId": "respeitar",
+      "explanation": "A prática é voluntária e coletiva. Registros não identificam pessoas."
+    },
+    {
+      "id": "revisar",
+      "question": "Na revisão, a pausa quase não aconteceu por causa da agenda. Qual leitura é adequada?",
+      "options": [
+        { "id": "ajustar", "label": "Discutir o que dificultou e ajustar horário ou formato antes de decidir." },
+        { "id": "fracasso", "label": "Concluir que a equipe não valoriza vitalidade." },
+        { "id": "pgr", "label": "Registrar o caso como risco psicossocial resolvido." }
+      ],
+      "correctOptionId": "ajustar",
+      "explanation": "Baixa execução é informação sobre condições da prática, não julgamento da equipe. Riscos seguem o fluxo próprio do Domínio B."
+    }
+  ],
+  "reviewCriteria": [
+    "Linguagem de convite, sem prescrição clínica.",
+    "Nenhuma promessa de efeito; separação clara entre participação, execução e mudança percebida.",
+    "Nenhum dado individual ou nome nos registros.",
+    "Coerência com a decisão Q3-01 (+V sem item/escore).",
+    "Revisor editorial registrado: o fundador (Q3-08)."
+  ]
+}
