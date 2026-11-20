@@ -1,8 +1,7 @@
 // Q3 · PERMA+V — EMPRESA SINTÉTICA DE DEMONSTRAÇÃO (mock-first).
 //
-// Tudo aqui é fictício: empresa, equipes, médias e ações. Os 15 itens são os já registrados
-// em docs/instrumentos/PERMA_TRABALHO.md, usados em CARÁTER FICTÍCIO para visualizar o fluxo;
-// a ficha de fonte aprovada (F3) ainda não existe. Entrega só AGREGADOS por equipe — nenhuma
+// Tudo aqui é fictício: empresa, equipes, médias, ações e as 15 perguntas (autorais, ilustrativas).
+// O instrumento validado só entra pela ficha de fonte aprovada (F3), ainda pendente. Entrega só AGREGADOS por equipe — nenhuma
 // resposta individual. Nenhum número aqui é resultado real nem evidência.
 
 export type PermaFactorId = "P" | "E" | "R" | "M" | "A";
@@ -11,7 +10,7 @@ export const Q3_DEMO_COPY = {
   title: "Q3 · PERMA+V — demonstração",
   badge: "Demonstração com dados sintéticos",
   disclaimer:
-    "Empresa, equipes e números fictícios. Os itens são usados em caráter de demonstração enquanto a fonte e a permissão de uso são formalizadas. Nada aqui é resultado real, diagnóstico ou avaliação de pessoas.",
+    "Empresa, equipes e números fictícios. As perguntas são exemplos ilustrativos escritos para esta demonstração; não são o instrumento validado. Nada aqui é resultado real, diagnóstico ou avaliação de pessoas.",
   experimental: "Leitura experimental e educativa. Não se relaciona a desempenho, promoção ou remuneração.",
   suppressed: "Oculto: menos de 5 respostas. Protegemos o anonimato do grupo.",
   denied: "Este perfil não acessa o Q3 nesta etapa. O acesso segue a política de papéis registrada.",
@@ -34,7 +33,7 @@ export const Q3_DEMO_COPY = {
     org: "Organização (equipes visíveis)",
     priorities: "Fatores para cuidar primeiro",
     devolutiva: "Roteiro da devolutiva",
-    questionnaire: "Questionário PERMA no Trabalho (15 itens · fictício)",
+    questionnaire: "Questionário ilustrativo (15 perguntas de exemplo)",
     submit: "Enviar respostas (demonstração)",
     answered: "respondidas",
     owner: "Responsável",
@@ -60,23 +59,24 @@ export const Q3_FACTORS: readonly { id: PermaFactorId; label: string }[] = [
   { id: "A", label: "Realização" },
 ];
 
-/** 15 itens (escala 0–10), em caráter fictício — fonte: docs/instrumentos/PERMA_TRABALHO.md. */
+/** 15 itens AUTORAIS e ILUSTRATIVOS (escala 0–10). Não são o instrumento validado nem paráfrase dele:
+ * servem só para demonstrar o fluxo. O instrumento oficial entra pela ficha de fonte aprovada (F3). */
 export const Q3_DEMO_ITEMS: readonly { id: string; factorId: PermaFactorId; text: string }[] = [
-  { id: "p1", factorId: "P", text: "No trabalho, com que frequência você se sente bem?" },
-  { id: "p2", factorId: "P", text: "No trabalho, com que frequência você se sente positivo/a?" },
-  { id: "p3", factorId: "P", text: "No trabalho, em que medida você se sente satisfeito/a?" },
-  { id: "e1", factorId: "E", text: "No trabalho, com que frequência você se envolve no que está fazendo?" },
-  { id: "e2", factorId: "E", text: "Até que ponto você se sente animado e interessado no seu trabalho?" },
-  { id: "e3", factorId: "E", text: "No trabalho, com que frequência o tempo passa muito rápido quando você está fazendo algo que gosta?" },
-  { id: "r1", factorId: "R", text: "Até que ponto você recebe ajuda e apoio dos colegas de trabalho quando precisa?" },
-  { id: "r2", factorId: "R", text: "Até que ponto você se sente apreciado pelos seus colegas de trabalho?" },
-  { id: "r3", factorId: "R", text: "Quão satisfeito você está com suas relações profissionais?" },
-  { id: "m1", factorId: "M", text: "Até que ponto o seu trabalho tem propósito e significado?" },
-  { id: "m2", factorId: "M", text: "Em geral, até que ponto você acha que o que faz no trabalho é importante e vale a pena?" },
-  { id: "m3", factorId: "M", text: "De maneira geral, até que ponto você sente que tem um senso de direção em seu trabalho?" },
-  { id: "a1", factorId: "A", text: "Com que frequência você sente que está progredindo para alcançar os seus objetivos no trabalho?" },
-  { id: "a2", factorId: "A", text: "Com que frequência você alcança as metas de trabalho importantes que definiu para si mesmo?" },
-  { id: "a3", factorId: "A", text: "No trabalho, com que frequência você se sente capaz?" },
+  { id: "p1", factorId: "P", text: "Nesta semana, tive momentos de bom humor durante o trabalho." },
+  { id: "p2", factorId: "P", text: "Saio do expediente com uma sensação boa sobre o dia." },
+  { id: "p3", factorId: "P", text: "O clima do meu trabalho costuma ser leve." },
+  { id: "e1", factorId: "E", text: "Consigo me concentrar de verdade nas minhas tarefas." },
+  { id: "e2", factorId: "E", text: "Algumas atividades me prendem a atenção sem esforço." },
+  { id: "e3", factorId: "E", text: "Tenho curiosidade pelo que faço no dia a dia." },
+  { id: "r1", factorId: "R", text: "Sei a quem recorrer na equipe quando algo aperta." },
+  { id: "r2", factorId: "R", text: "Sinto que meus colegas contam comigo." },
+  { id: "r3", factorId: "R", text: "Gosto da convivência com as pessoas do meu time." },
+  { id: "m1", factorId: "M", text: "Vejo para quem o meu trabalho faz diferença." },
+  { id: "m2", factorId: "M", text: "O que faço combina com o que considero importante." },
+  { id: "m3", factorId: "M", text: "Entendo como minhas tarefas se ligam ao propósito da empresa." },
+  { id: "a1", factorId: "A", text: "Termino as entregas que me proponho a fazer." },
+  { id: "a2", factorId: "A", text: "Percebo meu avanço ao longo dos meses." },
+  { id: "a3", factorId: "A", text: "Tenho dado conta dos desafios do meu trabalho." },
 ];
 
 export interface Q3DemoTeam {
