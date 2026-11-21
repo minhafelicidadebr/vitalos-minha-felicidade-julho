@@ -11,8 +11,8 @@
 ## 1. Cobertura
 
 - **Páginas declaradas:** 92 (inventário da v1).
-- **Páginas auditadas nesta onda:** 10 com inspeção dirigida, sendo 3 também no navegador.
-- **Pontos de ajuda decididos:** 14. Destes, 4 foram implementados.
+- **Páginas auditadas:** 10 com inspeção dirigida. Na onda 1, 3 também no navegador; na onda 2, mais 2 (preparar Q1 e ações Q2).
+- **Pontos de ajuda decididos:** 14. Implementados: 4 na onda 1 e 3 na onda 2, total 7.
 - **Demais 82 páginas:** pendentes para as próximas ondas. A ordem está no §4.
 
 **Papéis no código:**
@@ -32,9 +32,9 @@
 | 6 | `/viat` · Visão da Equipe | liderança, RH, CHRO, C-Level | "Posso ver o resultado de alguém?" | `ORG_VIAT_RESULT` · n ≥ 5 | Usar a média para avaliar pessoas | **ⓘ com rótulo visível** ao lado do aviso coletivo. **Implementado** | Produto | Texto do papel cita n ≥ 5 e a proibição de uso decisório | E |
 | 7 | `/expedicao` · "O antagonista da temporada" | todos | "Como a prioridade é definida? O que a tela pode concluir?" | demo do setor **ou** Cofre de Ciclos real | **Defeito:** em modo real, carregando ou falha apareciam como "sem exposição medida" | **Texto na tela** por estado (`expeditionReadState`) + **ⓘ** com o estado atual. **Implementado** | Produto + Manual MTE item 11.4.4 (p. 63–64) e item 12.2 (p. 77) | Os 6 estados têm teste unitário; o estado demo foi visto no navegador | N (demo) · E (real) · B (sessão real) |
 | 8 | `/expedicao` · cabeçalho | todos | "O Manual do MTE fala de antagonista?" | texto fixo | Regra do produto atribuída ao Manual: "só cai com eficácia plena (Guia MTE 2026, 11.4.4)" | **Reescrita**: regra do VitalOS separada do que o Manual considera. **Implementado** | Manual MTE item 11.4.4 | O texto distingue as duas fontes | N |
-| 9 | `/ivo-integral/preparar-q1` | RH, SST, colaborador | "A coleta já pode começar? O que comunico?" | servidor · `method_pending` | Tratar a coleta como liberada | **Texto na tela** já existente + **ⓘ** por papel (próxima onda) | Manual itens 6.2–6.3 e 17.1 + decisão Q1 | A condição real da coleta continua visível | E |
-| 10 | `/ivo-integral/q2` · devolutiva de membros | membro, liderança | "Isso é resposta individual ou leitura do grupo?" | servidor · `MemberPlanFeedback` | Confundir leitura coletiva com resposta individual | **ⓘ** "O que esta devolutiva mostra" (próxima onda) | Produto | O texto distingue resposta, leitura e registro | E · B |
-| 11 | `/ivo-integral/acoes` | liderança, RH | "Registrar execução prova efeito?" | servidor · capacidade + posse | Ler execução como efeito | **ⓘ** único "Como ler as evidências deste plano?", reaproveitando o texto da página (próxima onda) | Produto | Um só ponto de ajuda por plano | E · B |
+| 9 | `/ivo-integral/preparar-q1` · título | RH, SST, liderança, colaborador (papel da sessão real) | "A coleta já pode começar? O que me cabe?" | servidor · coleta e resultados bloqueados (contrato de módulos) | Tratar a preparação como coleta aberta | **ⓘ no título**: "O que acontece nesta preparação?". O resumo diz que preparar não abre a coleta. **Implementado (onda 2)** | Produto (contrato de módulos, fluxo de preparação) + Manual MTE itens 6.2–6.3 | O bloqueio de acesso continua; sem autorização, o formulário não aparece | N (sem sessão) · B (sessão RH/SST) |
+| 10 | `/ivo-integral/q2` · `MemberPlanFeedback` | membro, RH | "Isso é resposta individual ou leitura do grupo?" | servidor · projeção fechada por ciclo, setor e fator | Confundir ação coletiva com resposta individual ou com melhora | **ⓘ junto a "O que a organização está fazendo"**: "O que esta devolutiva mostra?". Também aparece no Diário, que usa o mesmo componente. **Implementado (onda 2)** | Produto. Sem Manual NR-1: Q2 é Domínio A | Teste garante que não há citação de NR-1, PGR ou COPSOQ nem estudo vinculado | E · B (só aparece com sessão de membro) |
+| 11 | `/ivo-integral/acoes` · título | liderança (só as próprias ações), RH | "Registrar execução prova efeito?" | servidor · capacidade + posse do item | Ler execução como efeito | **ⓘ no título**: "Como ler as evidências deste plano?", com fluxo execução → aprendizagem → eficácia com protocolo. **Implementado (onda 2)** | Produto. Sem Manual NR-1 (Domínio A) | Duas colunas a 1280 px, 44 px, sem rolagem horizontal | N (sem sessão) · B (sessão com plano) |
 | 12 | `/relatorio-global` e `/selo` | RH, direção | "Este resultado é da minha empresa?" | `@/mocks/*`, **sem** `DemonstrationContext` | Ler mock como resultado real | **Texto na tela**: estender `DemonstrationContext` com `global-report` e `seal` (próxima onda) | Produto | Origem visível antes do primeiro número | E |
 | 13 | `/relatorios` | RH | "O selo foi concedido?" | mock · já tem `DemonstrationContext kind="reports"` | Já tratado | **Nenhuma ação adicional** | Produto | — | E |
 | 14 | `/diario` e `/q3-demo` | colaborador | "Quem lê o que escrevo?" | navegador (seed + delta de sessão) | Achar que o registro é compartilhado | **Texto na tela** junto ao campo + **ⓘ** (próxima onda) | Produto | O texto diz onde o registro fica | E |
@@ -70,7 +70,6 @@
 | Conflito possível com o checkout do Codex (`viat.tsx` com mudanças não commitadas em `codex/q4-pratica-forcas`) | Integração | O diff aqui é pequeno e fica longe dos blocos que o Codex alterou |
 
 **Próximas ondas:**
-1. Preparar Q1 e Q2 (pontos 9 a 11).
 2. Relatório Global e Selo (ponto 12).
 3. Diário e Q3 demo (ponto 14).
 
@@ -100,3 +99,41 @@
 - texto ampliado;
 - Expedição com sessão real;
 - teste com participantes.
+
+
+## 6. Onda 2 · Q1 e Q2 (21/11/2026)
+
+**Branch:** `feat/ajuda-contextual-q1-q2`, a partir de `4832714`. O PR #53 ficou intacto.
+
+**O que mudou:**
+- **Pontos 9, 10 e 11 implementados.**
+- **Perfil da ajuda:** nas telas institucionais, a ajuda usa o papel da sessão real (`roleId` vindo de `useRealOrgSession`). `DGP_RH`, `DIRETOR` e `SESMT_SAUDE` foram mapeados para leitura, nunca para autorização.
+
+**Gates intocados:**
+- coleta Q1 e piloto Q2;
+- questionários, cálculos e decisões metodológicas;
+- migrations, RLS, flags e habilitações.
+
+**Fontes:**
+- **Q1:** contrato de módulos e Manual MTE, itens 6.2–6.3.
+- **Q2:** só fontes do produto, porque citar NR-1 misturaria os Domínios A e B.
+- **Estudos:** nenhum estudo novo; não há claim para esses contextos.
+
+**Provas:**
+
+| Tipo | O que cobre |
+|---|---|
+| Código | `src/domain/help/contextual-help-q1q2.test.ts` (5 testes): validador, aviso de coleta bloqueada, Q2 sem NR-1 e sem estudo, limites de resposta individual e de efeito, mapeamento dos papéis reais |
+| Navegador, `/ivo-integral/preparar-q1` a 390 px | Sem sessão. O alerta de autorização aparece e o formulário de ciclo **não** aparece. O ⓘ tem 44 px, o diálogo abre com o foco no título e mostra o bloqueio da coleta. Fechar devolve o foco ao ⓘ. Sem rolagem horizontal |
+| Navegador, `/ivo-integral/acoes` a 1280 px | O diálogo abre em duas colunas, com o fluxo de 3 passos e sem citar NR-1 |
+| Painel do navegador oculto | Teclado real, capturas e contraste visual desta onda **não** foram observados. A verificação foi feita por script no DOM. Movimento reduzido: só inspeção estática, porque o componente é o mesmo da onda 1 |
+| Ambiente real | **Não testado.** Faltam a sessão RH/SST na preparação, a devolutiva com sessão de membro e as ações com plano real |
+
+**Achado separado:** limite de "assentos administrativos" que conta todos os perfis. O registro está em `docs/vitalos/decisions/ONBOARDING_ASSENTOS_ADMINISTRATIVOS_2026-11-21.md`, com uma correção mínima proposta. Nada foi alterado no código de cobrança.
+
+**Próxima onda:**
+1. Relatório Global e Selo: estender `DemonstrationContext` (ponto 12).
+2. Diário e Q3 demo (ponto 14).
+3. Prova das ondas 1 e 2 com sessão real na stack local descartável.
+
+Nada disto declara Q1, Q2, Q3 ou Q4 prontos para serviço real.
