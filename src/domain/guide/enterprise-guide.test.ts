@@ -61,6 +61,19 @@ describe("Guia · conteúdo (V2.1)", () => {
     }
   });
 
+  test("D-02/D-03: fase do ciclo por lente, passos com quem atua, olhares do IVO só na cena do Q2", () => {
+    for (const l of G.lenses) {
+      expect(["Mensurar", "Educar", "Transformar", "Evoluir"]).toContain(l.cyclePhase);
+      expect(l.scene.length).toBeGreaterThanOrEqual(2);
+      for (const s of l.scene) for (const k of ["label", "who", "text"] as const) expect(s[k].trim().length).toBeGreaterThan(0);
+      if (l.lens !== "Q2") expect(l.ivoScene).toBeUndefined();
+    }
+    const q2 = G.lenses.find((l) => l.lens === "Q2")!;
+    expect(q2.cyclePhase).toBe("Transformar");
+    expect(q2.scene.map((s) => s.label)).toEqual(["Leitura agregada", "Atividade aprovada", "Plano", "Execução", "Aprendizagem e revisão", "Devolutiva coletiva"]);
+    for (const note of Object.values(q2.ivoScene ?? {})) expect(note.length).toBeGreaterThan(10);
+  });
+
   test("conteúdo só no servidor: nenhum módulo de cliente importa enterprise-guide", () => {
     const hits: string[] = [];
     const walk = (dir: string) => {

@@ -1,5 +1,5 @@
 // Guia da Jornada · abertura para quem avalia contratar (V2.1 §8 A) e "Meu percurso" (§8 B).
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Gift, Search, Users } from "lucide-react";
 import type { GuideContent, GuideLens } from "@/domain/guide/guide-types";
 import { effectiveLevel, operationalCta, statusLabel, type GuideEntry, type GuideServerContext } from "@/lib/guide/guide-entry";
 
@@ -34,16 +34,16 @@ export function GuideOpening({ content, environment, onStart }: { content: Guide
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <article className="rounded-xl border border-border bg-card p-4">
-          <h2 className="font-medium text-foreground">{o.receives.title}</h2>
+        <article className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <h2 className="flex items-center gap-2 font-medium text-foreground"><span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10"><Gift className="h-4 w-4 text-primary" /></span>{o.receives.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{o.receives.text}</p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-4">
-          <h2 className="font-medium text-foreground">{o.mobilizes.title}</h2>
+        <article className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <h2 className="flex items-center gap-2 font-medium text-foreground"><span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10"><Users className="h-4 w-4 text-primary" /></span>{o.mobilizes.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{o.mobilizes.text}</p>
         </article>
-        <article className="rounded-xl border border-border bg-card p-4 md:col-span-2 lg:col-span-1">
-          <h2 className="font-medium text-foreground">{o.consult.title}</h2>
+        <article className="rounded-2xl border border-border bg-card p-4 sm:p-5 md:col-span-2 lg:col-span-1">
+          <h2 className="flex items-center gap-2 font-medium text-foreground"><span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10"><Search className="h-4 w-4 text-primary" /></span>{o.consult.title}</h2>
           <ul className="mt-2 space-y-2 text-sm">
             {o.consult.items.map((i) => {
               const chip = i.fixed ?? statusLabel(i.capability ? effectiveLevel(i.capability, environment) : null);

@@ -20,14 +20,31 @@ export interface GuideMatrixCell {
   capability?: string;
 }
 
+export type CyclePhase = "Mensurar" | "Educar" | "Transformar" | "Evoluir";
+export type IvoPerspective = "eu" | "nos" | "lideranca" | "organizacao";
+
+export interface GuideSceneStep {
+  label: string;
+  /** Quem atua neste passo (selo). */
+  who: string;
+  text: string;
+}
+
 export interface GuideLensContent {
   lens: GuideLens;
   title: string;
   instrument: string;
   question: string;
   phase: string;
-  /** Texto do caso fictício nesta lente. */
-  scene: string[];
+  /** Fase do ciclo em que o caso está nesta lente (mapa 2). */
+  cyclePhase: CyclePhase;
+  /** Passos do caso fictício nesta lente, com quem atua. */
+  scene: GuideSceneStep[];
+  /**
+   * Perspectivas do IVO que aparecem NA CENA (mapa 3). Conteúdo editorial da cena,
+   * nunca um mapeamento papel → perspectiva.
+   */
+  ivoScene?: Partial<Record<IvoPerspective, string>>;
   /** Validação de privacidade, agregação e publicação da lente. */
   guardrails: string[];
   matrix: Record<GuidePerspective, GuideMatrixCell>;
