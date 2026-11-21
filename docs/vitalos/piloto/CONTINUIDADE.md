@@ -2,15 +2,16 @@
 
 Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verificado.
 
-## Último estado verificado · 21/11/2026 (MO4)
+## Último estado verificado · 21/11/2026 (#57 mesclado)
 
 | Campo | Valor |
 |---|---|
-| SHA verificado | `main` `5e26e73`; candidato do piloto `feat/mo3-lentes` `a3df96c` (MO2 + MO3 + MO4) |
-| Ambiente | Pilha descartável derrubada; recriar com `scripts/integ-local/reset.sh`, app com `app.ts`, dados com `mo2-journey.ts`, login com `mail-link.ts` |
-| Evidência reaproveitável | Gate 4680/0 (`c277371`; MO4 só acrescentou docs e um script de apoio); jornada 47/0 no candidato; navegador por papel (MO4) |
-| Riscos abertos | D1 migration de assentos (passo 0: confirmar como o Lovable aplica migrations); pacote do Instituto e responsável operacional; PIL-07; Q1/Q3 sem ficha; Q4 sem commit do Codex; Q5 sem modo real |
-| Próxima ação | Decisões humanas em lote (MO4 §2–§4); depois PR do candidato para a `main` |
+| SHA verificado | `main` `425b4a9` (PR #57 mesclado com autorização do proponente para a migration remota; árvore igual a `8ae18c6`) |
+| Lovable | Sincronizou o #57, mas **todos os builds desde os commits do #56 aparecem como "Build malsucedido"**, inclusive commits só de teste; o #55 havia construído. Prévia desatualizada (versão do #55). Build local de `425b4a9` (`build:dev`) passa. Causa provável: ambiente do Lovable (log não visível; conta com "0 crédito restante") |
+| Migration | Não confirmado se `20261121120000` foi aplicada no banco do projeto. Conferência é do proponente (acesso a produção segue bloqueado para o agente) |
+| Evidência reaproveitável | Gate 4647/0 em `8ae18c6`; candidato `feat/mo3-lentes` 4680/0 |
+| Riscos abertos | Build do Lovable falhando; migration sem confirmação; publicar o código de assentos sem a função no banco deixaria convites indisponíveis (falha fechada) |
+| Próxima ação | Proponente: ver o log de build no Lovable e conferir a função no banco. Depois, PR #58 |
 
 ## Leitura desta sessão
 
