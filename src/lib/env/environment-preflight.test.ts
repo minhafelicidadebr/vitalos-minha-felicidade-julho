@@ -397,16 +397,31 @@ describe("14-15. contexto declarado pelos comandos do package.json", () => {
     expect(scripts()["build"]).toContain("vite build");
   });
 
-  test("dev e build:dev nunca aceitam production", () => {
-    for (const nome of ["dev", "build:dev"]) {
-      const s = scripts()[nome]!;
-      expect({ nome, allow: s.includes("--allow-db=local,staging") }).toEqual({ nome, allow: true });
-      expect({ nome, prod: s.includes("--db=production") }).toEqual({ nome, prod: false });
+  // Exceção explícita do sandbox do Lovable (commit c476aa7, 10/11/2026, coautoria do
+  // founder): o Lovable executa `dev` e `build:dev` contra o próprio Lovable Cloud,
+  // onde o preflight local recusaria o alvo. O desenvolvimento local guardado usa
+  // `dev:checked`. Os valores ficam fixados: qualquer mudança nesses dois scripts
+  // volta a exigir revisão.
+  const LOVABLE_SANDBOX: Record<string, string> = {
+    dev: "vite dev",
+    "build:dev": "vite build --mode development",
+  };
+
+  test("exceção do sandbox do Lovable continua exatamente a registrada", () => {
+    for (const [nome, valor] of Object.entries(LOVABLE_SANDBOX)) {
+      expect({ nome, valor: scripts()[nome] }).toEqual({ nome, valor });
     }
   });
 
-  test("todo comando de execução passa pelo preflight", () => {
-    for (const nome of ["dev", "build", "build:ci", "build:dev", "preview"]) {
+  test("dev:checked nunca aceita production", () => {
+    const s = scripts()["dev:checked"]!;
+    expect(s).toContain("preflight");
+    expect(s).toContain("--allow-db=local,staging");
+    expect(s).not.toContain("--db=production");
+  });
+
+  test("todo comando de execução fora do sandbox do Lovable passa pelo preflight", () => {
+    for (const nome of ["dev:checked", "build", "build:ci", "preview"]) {
       expect({ nome, guardado: scripts()[nome]!.includes("preflight") }).toEqual({
         nome,
         guardado: true,
