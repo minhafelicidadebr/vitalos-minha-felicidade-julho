@@ -169,6 +169,12 @@ function LandingPage() {
             >
               O Programa
             </Link>
+            <Link
+              to="/guia-empresarial"
+              className="inline-flex min-h-11 items-center hover:text-foreground"
+            >
+              Conheça a jornada na VitalOS
+            </Link>
             <InstitutionalAccessLink />
             <button
               onClick={exploreDemo}

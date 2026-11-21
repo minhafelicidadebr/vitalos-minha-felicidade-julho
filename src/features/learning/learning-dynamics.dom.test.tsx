@@ -104,7 +104,7 @@ describe("LearningMethodDialog — item 2 (modal abre, fecha, foco)", () => {
   test("o botão de fechar chama onOpenChange(false)", () => {
     let closedWith: boolean | undefined;
     render(<LearningMethodDialog open onOpenChange={(next) => (closedWith = next)} />);
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fechar" }));
     expect(closedWith).toBe(false);
   });
 });

@@ -467,7 +467,7 @@ Relate contagens e proporções por perfil, com o tamanho da amostra declarado. 
    - Confirmar §2 na base escolhida.
    - Criar o módulo de conteúdo e o registro de disponibilidade.
    - Testes de conteúdo (AC-01, AC-02, AC-09, AC-10).
-2. **Fatia Q2: a primeira entrega.**
+2. **Fatia Q2: a primeira entrega.** *(Ajuste de 20/11, aprovado com a liberação: a fatia começa pelo caminho do cliente. A liderança entra no painel, abre "Guia da minha jornada", encontra a ação atribuída no Q2 e entende o que registrar e quem usa o registro na revisão. A entrada mínima pelo painel autenticado e o resolvedor vêm primeiro; AC-04 é a primeira prova no navegador. Prova registrada em `PROVA_GUIA_FATIA_Q2_2026-11-20.md`.)*
    - Abertura A.
    - O caso Q2 nas perspectivas RH, liderança e colaborador, com a checagem 1.
    - Extrato do Q5 limitado ao que vem do Q2 (execução, decisão, mudança, efeito).

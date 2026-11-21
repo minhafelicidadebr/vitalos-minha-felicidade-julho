@@ -53,13 +53,13 @@ async function verify(password: string, verifier: string) {
   return timingSafeEqual(key, Buffer.from(expected!, "hex"));
 }
 
-function tokenFrom(request: Request): string | null {
+function tokenFrom(request: Request, name = COOKIE): string | null {
   const values = (request.headers.get("cookie") ?? "")
     .split(";")
     .map((part) => part.trim())
-    .filter((part) => part.startsWith(COOKIE + "="));
+    .filter((part) => part.startsWith(name + "="));
   if (values.length !== 1) return null;
-  const token = values[0]!.slice(COOKIE.length + 1);
+  const token = values[0]!.slice(name.length + 1);
   return /^[a-f0-9]{64}$/.test(token) ? token : null;
 }
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -103,14 +103,19 @@ export function createPresentationHandler(
   deps: {
     config?: () => PresentationAccessConfig | null;
     now?: () => number;
-    loadDeck?: () => Promise<PresentationDeck>;
+    loadDeck?: () => Promise<PresentationDeck | unknown>;
     ttlMs?: number;
+    /** Reuso pelo Guia da Jornada: cookie e caminho próprios; a resposta mantém o formato. */
+    cookieName?: string;
+    cookiePath?: string;
   } = {},
 ) {
   const now = deps.now ?? Date.now;
   const sessions = new Map<string, { expires: number; configKey: string }>();
   let attempts: number[] = [];
   const ttl = deps.ttlMs ?? TTL;
+  const cookieName = deps.cookieName ?? COOKIE;
+  const cookiePath = deps.cookiePath ?? "/api/apresentacao";
   const reply = (body: unknown, status = 200, extra: Record<string, string> = {}) => {
     const response = Response.json(body, { status, headers: NO_STORE });
     for (const [name, value] of Object.entries(extra)) response.headers.set(name, value);
@@ -123,12 +128,12 @@ export function createPresentationHandler(
     const time = now();
     for (const [id, session] of sessions) if (session.expires <= time) sessions.delete(id);
     const configKey = digest(config.origin + config.verifier);
-    const token = tokenFrom(request);
+    const token = tokenFrom(request, cookieName);
     const key = token ? digest(token) : "";
     const session = sessions.get(key);
     const authorized = session && session.expires > time && session.configKey === configKey;
     const cookie = (value: string, seconds: number) =>
-      `${COOKIE}=${value}; Path=/api/apresentacao; HttpOnly; SameSite=Strict; Max-Age=${seconds}${config.origin.startsWith("https:") ? "; Secure" : ""}`;
+      `${cookieName}=${value}; Path=${cookiePath}; HttpOnly; SameSite=Strict; Max-Age=${seconds}${config.origin.startsWith("https:") ? "; Secure" : ""}`;
     if (request.method === "GET") {
       if (!authorized) return reply({ state: "locked" }, 401);
       const deck = await (

@@ -84,6 +84,12 @@ function IvoIntegralPage() {
             Vitalidade que conecta pessoas, vínculos, liderança e sistema institucional
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">medir • aprender • transformar • comprovar</p>
+          <a
+            href="/ivo-integral/guia"
+            className="mt-3 inline-flex min-h-11 items-center rounded-md border border-primary/40 px-4 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Guia da minha jornada
+          </a>
         </header>
 
         <section aria-labelledby="ivo-org-title" aria-live="polite" className="space-y-3">

@@ -17,6 +17,8 @@ const PUBLIC_PREFIXES = [
   "/quiosque",
   "/nr1",
   "/privacidade-comercial",
+  // Guia da jornada: a leitura editorial tem a própria senha validada no servidor (/api/guia).
+  "/guia-empresarial",
 ];
 
 // Rotas que executam ações reais (provisionamento, escrita privilegiada) —
