@@ -1,0 +1,51 @@
+PASS P1 · plataforma · identidades sintéticas · 8
+PASS P2 · plataforma · ativação alfa (plano Piloto) e primeiro RH
+PASS P3 · plataforma · alfa Q1 habilitado · {"ok":true}
+PASS P3 · plataforma · alfa Q2 habilitado · {"ok":true}
+PASS P2 · plataforma · ativação beta (plano Piloto) e primeiro RH
+PASS P3 · plataforma · beta Q1 habilitado · {"ok":true}
+PASS P3 · plataforma · beta Q2 habilitado · {"ok":true}
+PASS I1 · RH Alfa → COLABORADOR · convite e aceite no Piloto (não consome assento administrativo) · {"ok":true}
+PASS I3 · colaborador Alfa · aceitar o mesmo convite de novo é recusado · {"ok":false,"error":"Este convite já foi utilizado."}
+PASS I1 · RH Alfa → LIDER_EQUIPE · convite e aceite no Piloto (não consome assento administrativo) · {"ok":true}
+PASS I1 · RH Alfa → SST_PROFISSIONAL · convite e aceite no Piloto (não consome assento administrativo) · {"ok":true}
+PASS I2 · RH Alfa → RH_ADMIN · segundo administrador recusado no Piloto · {"ok":false,"error":"Limite de administradores do plano atingido. Faça upgrade para adicionar mais pessoas."}
+PASS I1 · RH Beta → COLABORADOR · convite e aceite (empresa sem SST) · {"ok":true}
+PASS D7 · RH alfa · onda FIB-T recusada no plano Piloto · {"ok":false,"error":"Este instrumento não está disponível no plano atual. Faça upgrade para desbloqueá-lo."}
+PASS D7 · plataforma · alfa passa a Growth para seguir o ensaio (decisão comercial pendente)
+PASS D7 · RH beta · onda FIB-T recusada no plano Piloto · {"ok":false,"error":"Este instrumento não está disponível no plano atual. Faça upgrade para desbloqueá-lo."}
+PASS D7 · plataforma · beta passa a Growth para seguir o ensaio (decisão comercial pendente)
+PASS P4 · RH alfa · onda FIB-T (Growth, após D7) · {"ok":true}
+PASS P4 · RH alfa · setor criado · {}
+PASS P4 · colaboradores (link anônimo) · 5 respostas · 5/5
+PASS P4 · RH beta · onda FIB-T (Growth, após D7) · {"ok":true}
+PASS P4 · RH beta · setor criado · {}
+PASS P4 · colaboradores (link anônimo) · 4 respostas · 4/4
+PASS J1 · RH Alfa · leitura agregada publicada (n ≥ 5) · 1 setor(es) disponível(is)
+PASS J1 · RH Alfa · fator publicado com prática aprovada (D10) · bem_estar
+PASS J1 · RH Alfa · fonte de ação publicada (setor × fator) · fator bem_estar
+PASS J2 · RH Alfa · plano criado a partir da prática/leitura aprovada · {"ok":true,"accepted":true}
+PASS J3 · RH Alfa · responsáveis elegíveis: liderança sim, SST e colaborador não · 1 elegível(is)
+PASS J3 · RH Alfa · designação da liderança com prazo · {"ok":true,"accepted":true}
+PASS J4 · RH Alfa · plano ativado · {"ok":true,"accepted":true}
+PASS J5 · Liderança Alfa · execução iniciada pela própria tarefa · {"ok":true,"accepted":true}
+PASS J5 · Liderança Alfa · evidência de execução registrada · {"ok":true,"accepted":true}
+PASS J6 · RH Alfa · aplicação da prática aprovada registrada no plano · {"ok":true,"accepted":true}
+PASS X5 · RH Alfa · repetir o mesmo pedido não duplica a aplicação · 1 aplicação(ões)
+PASS J6 · RH Alfa · revisão registra ajuste ligado à aplicação · {"ok":true,"accepted":true}
+PASS J7 · Colaborador Alfa · devolutiva coletiva do plano · {"ok":true}
+PASS J7 · Colaborador Alfa · devolutiva sem responsável nominal nem conteúdo de evidência
+PASS X1 · SST Alfa · sem acesso ao ledger Q2 · {"ok":false,"error":"A leitura FIB-T por setor é conduzida pelo RH da organização."}
+PASS X1 · Colaborador Alfa · não altera estado da ação · {"ok":false,"error":"A leitura FIB-T por setor é conduzida pelo RH da organização."}
+PASS X2 · RH Beta · não vê o plano da Alfa · {"ok":true}
+PASS X2 · RH Beta · não altera ação da Alfa pela API · {"ok":true,"accepted":false,"reason":"item_not_found","message":"Ação não encontrada nesta organização."}
+PASS X3 · RH Beta · setor com 4 respostas não é publicado · estado ready
+PASS X2 · RH Beta · não lê a onda da Alfa · estado ?
+PASS X4 · RH Alfa (novo login) · plano, estado e evidência persistem · plano active · ação em_execucao · evidências 1
+PASS J8 · RH Alfa · evidência candidata ao Q5: execução registrada, eficácia não avaliada · eficácia not_evaluated
+PASS X6 · servidor (Alfa) · Expedição sem ciclo registrado lê 0 ciclos, sem erro · ciclos 0
+
+Leitura independente (service_role, contagens): {"alfa":{"planos":1,"acoes":3,"evidencias":1,"log":2},"beta":{"planos":0,"acoes":0,"evidencias":0,"log":0}}
+PASS X7 · leitura independente · Beta sem nenhum registro de plano da Alfa
+
+MO2: todas as verificações passaram.
