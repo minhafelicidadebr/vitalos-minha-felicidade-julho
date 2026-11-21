@@ -113,8 +113,8 @@ export function assessAntagonist(
         antagonistId: antagonist.id,
         status: "derrotado",
         evidenceNote:
-          `Ciclo fechado com evidência: ${efficacy.ofWhichImproved} driver(s) com medida ` +
-          "implementada, mantida e melhora de risco medida.",
+          `Ciclo fechado com evidência registrada: ${efficacy.ofWhichImproved} fator(es) com medida ` +
+          "implementada, mantida e queda de risco medida.",
         bestReduction: null,
       };
     }
@@ -124,14 +124,14 @@ export function assessAntagonist(
         antagonistId: antagonist.id,
         status: "recuando",
         evidenceNote:
-          "Há melhora medida, mas o ciclo ainda não fechou com eficácia plena — o Cinismo só cai com prova completa.",
+          "Há queda medida em algum fator, mas o ciclo ainda não fechou com todas as evidências registradas.",
         bestReduction: null,
       };
     }
     return {
       antagonistId: antagonist.id,
       status: "dominando",
-      evidenceNote: "Nenhum ciclo fechado com evidência ainda — é exatamente para isso que o programa existe.",
+      evidenceNote: "Ainda não há ciclo fechado com evidência registrada.",
       bestReduction: null,
     };
   }
@@ -141,7 +141,7 @@ export function assessAntagonist(
     return {
       antagonistId: antagonist.id,
       status: "dominando",
-      evidenceNote: "Sem reavaliação medida dos drivers que o combatem — o antagonista só recua com prova.",
+      evidenceNote: "Ainda não há reavaliação medida dos fatores ligados a este desafio.",
       bestReduction: null,
     };
   }
@@ -153,7 +153,7 @@ export function assessAntagonist(
     return {
       antagonistId: antagonist.id,
       status: "dominando",
-      evidenceNote: "A reavaliação ainda não mostra queda de nível de risco nos drivers que o combatem.",
+      evidenceNote: "A reavaliação ainda não mostra queda de risco nos fatores ligados a este desafio.",
       bestReduction,
     };
   }
@@ -171,7 +171,7 @@ export function assessAntagonist(
       status: "derrotado",
       evidenceNote:
         `${defeatedBy.label}: ${reductionLabel(defeatedBy.reduction)} de ${defeatedBy.reduction} pts, ` +
-        "com medida de fonte implementada e mantida — eficácia plena.",
+        "com medida implementada e mantida registrada no plano.",
       bestReduction,
     };
   }
@@ -182,7 +182,7 @@ export function assessAntagonist(
     status: "recuando",
     evidenceNote:
       `${bestImproved.label}: ${reductionLabel(bestImproved.reduction)} de ${bestImproved.reduction} pts — ` +
-      "recua, mas a derrota exige medida de fonte implementada e mantida (eficácia plena).",
+      "em recuo. Para considerar o recuo sustentado, falta registrar medida implementada e mantida.",
     bestReduction,
   };
 }

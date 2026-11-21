@@ -87,6 +87,12 @@ export const HELP_GUARDIOES_VOZ_SEGURA: ContextualHelpEntry = {
     "É uma frente voluntária de colegas que ajuda a equipe a fazer perguntas, pedir ajuda e contar dificuldades do trabalho sem medo de uma resposta punitiva. Na prática, a equipe combina como ouvir uma preocupação e como dar retorno a quem falou.",
   demoNotice:
     "As contagens e a missão aberta deste card são de exemplo. Marcar Participar muda só esta página.",
+  dataScope:
+    "O card mostra só números de exemplo: quantas pessoas participam e quantas missões estão abertas. O conteúdo das conversas nunca aparece aqui.",
+  afterwards:
+    "Ao participar, você entra no grupo da frente e pratica com ele a primeira resposta a um relato. Nesta demonstração, nada é registrado.",
+  whyItMatters:
+    "Segurança psicológica é um dos temas que o VitalOS acompanha nos ciclos. A frente leva esse tema para a rotina da equipe.",
   flow: [
     { verb: "Ouvir", who: "Quem recebe a preocupação", text: "Agradece o aviso e pergunta o que a pessoa viu, antes de qualquer análise." },
     { verb: "Combinar um retorno", who: "Quem ouviu e quem falou", text: "Combinam o próximo passo e quando voltam a conversar." },
@@ -209,7 +215,13 @@ export const HELP_EXPEDICAO_PRIORIDADE: ContextualHelpEntry = {
   anchor: "antagonista-da-temporada",
   question: "Como a prioridade é definida?",
   summary:
-    "Antagonista é o nome que o VitalOS dá a um padrão de trabalho que drena energia, nunca a uma pessoa. A prioridade da temporada vem do driver com maior exposição na medição mais recente, e o produto escolhe o antagonista ligado a esse driver.",
+    "A prioridade do ciclo vem do fator de trabalho com maior exposição na medição mais recente da organização. Cada desafio da lista é um padrão de trabalho, nunca uma pessoa.",
+  dataScope:
+    "Resultados agregados das medições de ciclo. Recortes com menos de 5 respostas não aparecem.",
+  afterwards:
+    "Com a prioridade definida, a organização registra medidas no plano. A cada novo ciclo, a tela compara a exposição e mostra se ela caiu.",
+  whyItMatters:
+    "Liga o Mensurar ao Transformar: a medição aponta onde agir, e o ciclo seguinte mostra o que mudou.",
   states: {
     demo: {
       label: "Leitura de referência do setor",
@@ -267,7 +279,7 @@ export const HELP_EXPEDICAO_PRIORIDADE: ContextualHelpEntry = {
     },
   },
   limits: [
-    "O antagonista é uma metáfora do VitalOS. O Manual do MTE não trata dela.",
+    "O agrupamento e os nomes dos desafios são do VitalOS. O Manual do MTE não trata deles.",
     "Recuo na tela é evolução observada entre ciclos, não prova de eficácia da medida.",
     "Conteúdo educativo: não substitui o PGR nem o profissional habilitado.",
   ],
@@ -482,6 +494,9 @@ export const HELP_UI_COPY = {
   eyebrow: "Ajuda desta tela",
   demoBadge: "Demonstração",
   stateHeading: "O que a tela mostra agora",
+  dataScopeHeading: "O que você vê",
+  afterwardsHeading: "O que acontece depois",
+  whyHeading: "Por que isso importa",
   flowHeading: "Como a prática acontece",
   roleHeading: "Na sua função",
   roleSwitchLabel: "Ver a explicação como",

@@ -5,18 +5,11 @@ import { AppShell } from "@/app/shell/AppShell";
 import { FlaskConical } from "lucide-react";
 import { AMBASSADORSHIPS } from "@/mocks/embaixadorias-mock";
 import { ContextualHelp } from "@/features/help/ContextualHelp";
-import {
-  HELP_EMBAIXADORIAS,
-  HELP_GUARDIOES_VOZ_SEGURA,
-  HELP_UI_COPY,
-  GUARDIOES_CARD_NOTE,
-} from "@/domain/help/contextual-help";
-import type { ContextualHelpEntry } from "@/engine/help/contextual-help-engine";
+import { HELP_EMBAIXADORIAS, HELP_UI_COPY, GUARDIOES_CARD_NOTE } from "@/domain/help/contextual-help";
+import { EMBAIXADORIA_CARD_HELP } from "@/domain/help/embaixadorias-help";
 
-/** Ajuda por card: só onde há dúvida própria (primeira fatia: Guardiões da Voz Segura). */
-const CARD_HELP: Record<string, ContextualHelpEntry> = {
-  "amb-seguranca": HELP_GUARDIOES_VOZ_SEGURA,
-};
+/** Ajuda própria em cada card: propósito, exemplo, próximo passo e limites da frente. */
+const CARD_HELP = EMBAIXADORIA_CARD_HELP;
 
 /** Aviso que precisa estar visível no próprio card, não só dentro da ajuda. */
 const CARD_NOTE: Record<string, string> = {
