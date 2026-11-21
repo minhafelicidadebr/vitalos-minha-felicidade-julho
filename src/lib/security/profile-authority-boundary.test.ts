@@ -155,7 +155,21 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
         }
 
         expect(nomes.size).toBeGreaterThan(0);
-        const ausentes = [...nomes].filter((n) => !sql.includes(`public.${n}(`)).sort();
+        // RPC criada depois da M6A (aplicada, imutável) entra no inventário pela própria
+        // migration, desde que ela feche o privilégio do mesmo jeito: REVOKE de anon e
+        // authenticated, GRANT só a service_role e conferência com has_function_privilege.
+        const posteriores = [...new Glob("*.sql").scanSync({ cwd: DIR_MIGRATIONS })]
+            .filter((f) => f > M6A)
+            .map((f) => readFileSync(join(DIR_MIGRATIONS, f), "utf8"));
+        const inventariadaDepois = (n: string) =>
+            posteriores.some((m) => {
+                const revoke = new RegExp(`REVOKE ALL ON FUNCTION public\\.${n}\\([^;]*FROM PUBLIC, anon, authenticated`, "i");
+                const grant = new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${n}\\([^;]*TO service_role;`, "i");
+                return revoke.test(m) && grant.test(m) && m.includes(`has_function_privilege('anon', 'public.${n}(`);
+            });
+        const ausentes = [...nomes]
+            .filter((n) => !sql.includes(`public.${n}(`) && !inventariadaDepois(n))
+            .sort();
         expect(ausentes).toEqual([]);
     });
 
