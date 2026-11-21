@@ -158,3 +158,30 @@ Sem mudança: VIA-T já distingue resultado individual (Marina, fictícia) e Vis
 Testes: `bun test src scripts` = 4634 aprovados, 4 falhas pré-existentes no `main` (preflight ×2, allowlist do `.env`, tipos Wave 2.1). `tsc` limpo.
 
 Prévia: só local (Vite em `127.0.0.1:8100`, backend apontado para loopback sem serviço). Não existe prévia Lovable deste branch.
+
+## 8. Onda 3 · narrativa clara (branch `feat/ajuda-contextual-onda3`, base `main` 8cff4c5)
+
+### Feito
+
+| Superfície | O que mudou |
+|---|---|
+| `/expedicao` · abertura | Texto antigo removido por completo (antagonista, bestiário, marketing, item 11.4.4 no cabeçalho). Novo título "Acompanhe os desafios do trabalho e as medidas em andamento" e texto que descreve só o que a tela mostra. Imagem editorial já usada em `/nr1` (`nr1-evidence-report.jpg`): faixa de 96 px no celular, lateral a partir de `sm`. |
+| `/expedicao` · seções | "Prioridade deste ciclo", "Todos os desafios acompanhados", rótulos "Sem recuo medido / Em recuo / Recuo sustentado" (antes "Dominando / Recuando / Derrotado"), notas de evidência sem "derrota" nem "eficácia plena", nota interna de versão trocada por um próximo passo. Navegação do pack: "Prioridades e medidas". |
+| `/expedicao` · ajuda | Resumo sem "antagonista"; blocos O que você vê / O que acontece depois / Por que isso importa. Manual do MTE fica só em "Fonte e alcance", para o item 11.4.4 (eficácia das medidas) e 12.2 (acompanhamento). |
+| Padrão de conteúdo | Contrato ganhou três campos opcionais (`dataScope`, `afterwards`, `whyItMatters`), validados contra termos proibidos e mostrados como blocos curtos no diálogo. |
+| `/embaixadorias` · 15 cards | Cada card tem ajuda própria: propósito, exemplo concreto, próximo passo, por que importa e limites da frente. Liderança tem variação só em Rede do Cuidado Ativo. Limites de canal formal, PGR/SST, saúde e conduta só onde a frente toca esses temas. Guardiões da Voz Segura mantém a entrada própria. |
+
+Fontes: só regra de produto nos 14 cards novos e na abertura. Manual do MTE (itens 6.2–6.3, 11.4.4, 12.2) mantido como já estava. Nenhum claim novo; TRU-006 e Seligman 2005 seguem como candidatos sem claim.
+
+### Pendente (inventário, por valor e risco)
+
+| Superfície | Rota | Dúvida que a ajuda resolveria | Situação |
+|---|---|---|---|
+| Devolutiva coletiva (colaborador) | `/devolutiva` | Isto é meu resultado? Quem vê? | Pendente |
+| Diário | `/diario` | É obrigatório? Quem lê? | Pendente |
+| Painel do colaborador | `/colaborador` | O que é agregado e o que é meu | Pendente |
+| Liderança | `/lider` | Ação atribuída, registro de execução, o que vai ao RH, limite n ≥ 5 | Pendente |
+| RH | `/rh`, `/ivo-integral/governanca` | Designação, acompanhamento, evidências | Parcial (Q1 preparação, Q2 devolutiva e ações já têm ajuda) |
+| SST | `/sst` | Revisão técnica, Domínio B educativo | Pendente; exige revisão SST do texto |
+
+Não observado no navegador: estados reais da Expedição (erro, sem ciclo, leitura protegida), porque dependem de sessão real; cobertos por testes. Perfil RH visto só pela troca de perspectiva do diálogo.

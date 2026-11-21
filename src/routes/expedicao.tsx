@@ -34,9 +34,10 @@ import {
 } from "@/lib/api/expedition-real.functions";
 import { ContextualHelp } from "@/features/help/ContextualHelp";
 import { HELP_EXPEDICAO_PRIORIDADE } from "@/domain/help/contextual-help";
+import evidenceReport from "@/assets/nr1-evidence-report.jpg";
 
 export const Route = createFileRoute("/expedicao")({
-  head: () => ({ meta: [{ title: "Expedição contra a Drenagem · Academia — VitalOS™" }] }),
+  head: () => ({ meta: [{ title: "Prioridades e medidas · Academia — VitalOS™" }] }),
   component: ExpedicaoPage,
 });
 
@@ -45,17 +46,17 @@ const STATUS_META: Record<
   { label: string; icon: typeof TrendingUp; tint: string }
 > = {
   dominando: {
-    label: "Dominando",
+    label: "Sem recuo medido",
     icon: TrendingUp,
     tint: "border-red-400/50 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300",
   },
   recuando: {
-    label: "Recuando",
+    label: "Em recuo",
     icon: Minus,
     tint: "border-amber-400/50 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300",
   },
   derrotado: {
-    label: "Derrotado",
+    label: "Recuo sustentado",
     icon: TrendingDown,
     tint: "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300",
   },
@@ -203,12 +204,12 @@ function ExpedicaoPage() {
         <div className="mx-auto flex min-h-[55vh] max-w-xl items-center px-4 py-12 sm:px-6">
           <div className="w-full rounded-3xl border border-destructive/30 bg-card p-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-destructive">
-              Expedição indisponível
+              Área indisponível
             </p>
             <h1 className="mt-3 font-serif text-2xl text-foreground">
               {status.state === "error"
                 ? "A configuração deste pack não pôde ser carregada."
-                : "Este pack ainda não declara o bestiário da Expedição."}
+                : "Esta área ainda não está disponível para este setor."}
             </h1>
             {status.state === "error" && (
               <button
@@ -237,23 +238,27 @@ function ExpedicaoPage() {
           transition={{ duration: 0.4 }}
           className="relative overflow-hidden rounded-[2rem] border border-primary/18 bg-gradient-to-br from-primary/12 via-card to-accent/8 p-6 shadow-sm sm:p-8"
         >
-          <div
-            className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/8 blur-3xl"
-            aria-hidden
-          />
-          <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Academia Viva · Expedição contra a Drenagem
-            </p>
-            <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-4xl">
-              O antagonista nasce da medição, nunca do marketing
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Cada antagonista deste bestiário é um padrão sistêmico — nunca uma pessoa. No
-              VitalOS, ele só recua quando a reavaliação mostra queda de exposição entre ciclos.
-              Para avaliar a eficácia de uma medida, o Manual do MTE (item 11.4.4) considera a
-              hierarquia de prevenção e o funcionamento mantido ao longo do tempo.
-            </p>
+          <div className="relative flex flex-col gap-5 sm:flex-row-reverse sm:items-stretch">
+            {/* Imagem editorial já usada em /nr1: compacta no celular, lateral a partir de sm. */}
+            <img
+              src={evidenceReport}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="h-24 w-full rounded-2xl object-cover sm:h-auto sm:w-44 sm:shrink-0 md:w-52"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                Academia Viva · Prioridades e medidas
+              </p>
+              <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-4xl">
+                Acompanhe os desafios do trabalho e as medidas em andamento
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
+                Veja qual prioridade a medição mais recente indica, como cada desafio evoluiu
+                entre ciclos e que evidência existe para acompanhar as medidas do plano.
+              </p>
+            </div>
           </div>
         </motion.header>
 
@@ -277,7 +282,7 @@ function ExpedicaoPage() {
           className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
         >
           <div className="flex items-center gap-1">
-            <h2 className="font-serif text-xl text-foreground">O antagonista da temporada</h2>
+            <h2 className="font-serif text-xl text-foreground">Prioridade deste ciclo</h2>
             <ContextualHelp entry={HELP_EXPEDICAO_PRIORIDADE} stateKey={readState} />
           </div>
           {readingBlocked ? (
@@ -287,20 +292,20 @@ function ExpedicaoPage() {
               <p className="text-lg font-medium text-foreground">{selection.antagonist.name}</p>
               <p className="text-sm text-muted-foreground">{selection.antagonist.tagline}</p>
               <p className="text-xs leading-relaxed text-foreground/80">
-                Convocado pelo driver mais exposto na medição atual:{" "}
+                Definida pelo fator com maior exposição na medição atual:{" "}
                 <span className="font-medium">{selection.need.label}</span>
                 {selection.need.topDimension && (
                   <>
-                    {" "}— dimensão-fonte <em>{selection.need.topDimension.label}</em> com carga{" "}
-                    {selection.need.topDimension.load}.
+                    {" "}— dimensão de origem <em>{selection.need.topDimension.label}</em>, com
+                    carga {selection.need.topDimension.load}.
                   </>
                 )}
               </p>
             </div>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">
-              A medição não aponta um driver ligado a um antagonista do bestiário. Sem
-              correspondência, não se inventa inimigo.
+              A medição não aponta um fator ligado aos desafios acompanhados aqui. Sem essa
+              correspondência, a tela não escolhe prioridade.
             </p>
           )}
         </motion.section>
@@ -311,7 +316,7 @@ function ExpedicaoPage() {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
         >
-          <h2 className="font-serif text-xl text-foreground">O bestiário completo</h2>
+          <h2 className="font-serif text-xl text-foreground">Todos os desafios acompanhados</h2>
           <ol className="mt-4 space-y-3">
             {bestiary.map((antagonist) => {
               const assessment = assessments.find((a) => a.antagonistId === antagonist.id);
@@ -334,11 +339,13 @@ function ExpedicaoPage() {
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
               <div>
-                <h2 className="font-serif text-xl text-foreground">Por que o Culture Lab existe</h2>
+                <h2 className="font-serif text-xl text-foreground">
+                  Por que existem o Culture Lab e a Vitrine de Evidências
+                </h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {cinismo.name} não tem driver — é exatamente para matá-lo que existem o Culture
-                  Lab e a Vitrine de Evidências. Ele só cai com um ciclo fechado com evidência real
-                  de eficácia, nunca com promessa.
+                  {cinismo.name} não está ligado a um único fator medido. Ele só sai da lista
+                  quando um ciclo fecha com evidência registrada de que as medidas foram
+                  implementadas e mantidas, não com promessa.
                 </p>
               </div>
             </div>
@@ -347,10 +354,8 @@ function ExpedicaoPage() {
 
         <section className="rounded-3xl border border-border/70 bg-muted/20 p-5 sm:p-6">
           <p className="text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">Nota honesta desta v1:</span> o pool
-            coletivo de dano ao antagonista e os badges coletivos da expedição ficam para a v2 —
-            hoje a infraestrutura de jogo coletivo (Bosque do Bem-Comum) é sabor CSR, não sabor
-            "combate ao antagonista", e não há motivo para inventar essa ponte sem base real.
+            <span className="font-medium text-foreground">Próximo passo:</span> para aprofundar o
+            tema da prioridade com a sua equipe, use as trilhas da Academia.
           </p>
           <Link
             to="/academia"

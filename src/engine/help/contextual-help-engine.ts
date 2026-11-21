@@ -76,6 +76,12 @@ export interface ContextualHelpEntry {
   /** Variações por papel (camada 2). `geral` é obrigatória e cobre papéis sem variação. */
   roles: { geral: HelpRoleVariant } & Partial<Record<HelpRole, HelpRoleVariant>>;
   flow?: HelpFlowStep[];
+  /** O que acontece depois: próxima etapa e responsável, quando conhecidos. */
+  afterwards?: string;
+  /** O que você vê: origem e nível de agregação dos dados. */
+  dataScope?: string;
+  /** Por que isso importa no ciclo VitalOS. */
+  whyItMatters?: string;
   /** Estados da tela que mudam a leitura, por chave de estado. */
   states?: Record<string, HelpStateVariant>;
   limits: string[];
@@ -176,6 +182,9 @@ export function validateHelpEntry(entry: ContextualHelpEntry): string[] {
     entry.question,
     entry.summary,
     entry.demoNotice ?? "",
+    entry.afterwards ?? "",
+    entry.dataScope ?? "",
+    entry.whyItMatters ?? "",
     ...Object.values(entry.roles).flatMap((v) => (v ? [v.example, v.nextStep] : [])),
     ...(entry.flow ?? []).map((f) => f.text),
     ...Object.values(entry.states ?? {}).map((s) => s.meaning),

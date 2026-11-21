@@ -45,3 +45,30 @@ describe("contextual help content v0.1", () => {
     expect(official.every((s) => s.href?.startsWith("https://www.gov.br/"))).toBe(true);
   });
 });
+
+describe("onda 3 · cards de Embaixadorias e Expedição", () => {
+  test("os 15 cards têm ajuda própria, válida e com pergunta única", async () => {
+    const { EMBAIXADORIA_CARD_HELP } = await import("./embaixadorias-help");
+    expect(AMBASSADORSHIPS.every((a) => EMBAIXADORIA_CARD_HELP[a.id])).toBe(true);
+    const entries = AMBASSADORSHIPS.map((a) => EMBAIXADORIA_CARD_HELP[a.id]!);
+    expect(entries).toHaveLength(15);
+    for (const e of entries) expect(validate(e)).toEqual([]);
+    expect(new Set(entries.map((e) => e.question)).size).toBe(15);
+    expect(new Set(entries.map((e) => e.summary)).size).toBe(15);
+    expect(new Set(entries.map((e) => e.roles.geral.example)).size).toBe(15);
+    // Só regra de produto: nenhum card cita estudo ou fixa claim.
+    expect(entries.filter((e) => e.id !== HELP_GUARDIOES_VOZ_SEGURA.id).every((e) => !e.evidence)).toBe(true);
+  });
+
+  test("a ajuda da Expedição não usa antagonista nem bestiário como explicação", () => {
+    const text = [
+      HELP_EXPEDICAO_PRIORIDADE.summary,
+      HELP_EXPEDICAO_PRIORIDADE.dataScope,
+      HELP_EXPEDICAO_PRIORIDADE.afterwards,
+      HELP_EXPEDICAO_PRIORIDADE.whyItMatters,
+      ...HELP_EXPEDICAO_PRIORIDADE.limits,
+    ].join(" ").toLowerCase();
+    expect(text).not.toContain("antagonista");
+    expect(text).not.toContain("bestiário");
+  });
+});

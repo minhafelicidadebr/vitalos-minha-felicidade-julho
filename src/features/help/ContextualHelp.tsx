@@ -164,6 +164,27 @@ export function ContextualHelp({
             </section>
           )}
 
+          {(entry.dataScope || entry.afterwards || entry.whyItMatters) && (
+            <dl className="mb-6 grid gap-3 sm:grid-cols-3">
+              {(
+                [
+                  [COPY.dataScopeHeading, entry.dataScope],
+                  [COPY.afterwardsHeading, entry.afterwards],
+                  [COPY.whyHeading, entry.whyItMatters],
+                ] as const
+              )
+                .filter(([, text]) => !!text)
+                .map(([heading, text]) => (
+                  <div key={heading} className="rounded-xl border border-border/70 bg-background/60 p-3">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                      {heading}
+                    </dt>
+                    <dd className="mt-1 text-sm leading-relaxed text-foreground/85">{text}</dd>
+                  </div>
+                ))}
+            </dl>
+          )}
+
           <div className="grid gap-6 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
             <div className="space-y-6">
               {/* Camada 2 · na sua função */}
