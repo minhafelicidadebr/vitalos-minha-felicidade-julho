@@ -19,6 +19,7 @@ import { buildPgrPlan } from "@/engine/nr1/pgr-engine";
 import { buildReavaliacao } from "@/engine/nr1/reavaliacao-engine";
 import {
   assessBestiary,
+  expeditionReadState,
   selectSeasonAntagonist,
   type AntagonistAssessment,
   type AntagonistStatus,
@@ -31,6 +32,8 @@ import {
   getRealExpeditionState,
   type RealExpeditionResult,
 } from "@/lib/api/expedition-real.functions";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_EXPEDICAO_PRIORIDADE } from "@/domain/help/contextual-help";
 
 export const Route = createFileRoute("/expedicao")({
   head: () => ({ meta: [{ title: "Expedição contra a Drenagem · Academia — VitalOS™" }] }),
@@ -140,23 +143,40 @@ function ExpedicaoPage() {
   const { org: realOrg } = useRealOrgSession();
   const isRealMode = !!realOrg;
   const [realResult, setRealResult] = useState<RealExpeditionResult | null>(null);
+  const [realStatus, setRealStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   useEffect(() => {
     if (!isRealMode) return;
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      const accessToken = data.session?.access_token;
-      if (!accessToken) return;
-      getRealExpeditionState({ data: { accessToken } })
-        .then((r) => active && setRealResult(r))
-        .catch(() => active && setRealResult(null));
-    });
+    setRealStatus("loading");
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        const accessToken = data.session?.access_token;
+        if (!accessToken) {
+          if (active) setRealStatus("error");
+          return;
+        }
+        return getRealExpeditionState({ data: { accessToken } }).then((r) => {
+          if (!active) return;
+          setRealResult(r);
+          setRealStatus("done");
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setRealResult(null);
+        setRealStatus("error");
+      });
     return () => {
       active = false;
     };
   }, [isRealMode]);
 
   const realState = realResult?.available ? realResult.state : null;
+  const readState = expeditionReadState({ isRealMode, status: realStatus, result: realResult });
+  const readStateCopy = HELP_EXPEDICAO_PRIORIDADE.states?.[readState] ?? null;
+  const readingBlocked = readState === "loading" || readState === "unavailable";
   const selection = isRealMode ? (realState?.selection ?? null) : demoSelection;
   const assessments = isRealMode ? (realState?.assessments ?? []) : demoAssessments;
 
@@ -224,20 +244,24 @@ function ExpedicaoPage() {
               O antagonista nasce da medição, nunca do marketing
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Cada antagonista deste bestiário é um padrão sistêmico — nunca uma pessoa. Ele só
-              recua quando a reavaliação mostra queda de exposição, e só cai com eficácia plena:
-              medida de fonte implementada e mantida no tempo (Guia MTE 2026, 11.4.4).
+              Cada antagonista deste bestiário é um padrão sistêmico — nunca uma pessoa. No
+              VitalOS, ele só recua quando a reavaliação mostra queda de exposição entre ciclos.
+              Para avaliar a eficácia de uma medida, o Manual do MTE (item 11.4.4) considera a
+              hierarquia de prevenção e o funcionamento mantido ao longo do tempo.
             </p>
           </div>
         </motion.header>
 
-        {isRealMode && realState && realState.cycleCount < 2 && (
-          <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
-            <p className="text-sm leading-relaxed text-foreground/80">
-              {realState.cycleCount === 0
-                ? "Sua organização ainda não tem ciclo registrado no Cofre de Ciclos — sem medição, não se inventa antagonista."
-                : "1 ciclo registrado: o antagonista da temporada já é real, mas a reavaliação (recuo/derrota) exige pelo menos um 2º ciclo para comparar."}
+        {readStateCopy && readState !== "demo" && readState !== "comparable" && (
+          <section
+            role="status"
+            aria-busy={readState === "loading"}
+            className="rounded-3xl border border-primary/20 bg-primary/5 p-5 sm:p-6"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              {readStateCopy.label}
             </p>
+            <p className="mt-1 text-sm leading-relaxed text-foreground/80">{readStateCopy.meaning}</p>
           </section>
         )}
 
@@ -247,8 +271,13 @@ function ExpedicaoPage() {
           transition={{ duration: 0.4, delay: 0.05 }}
           className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
         >
-          <h2 className="font-serif text-xl text-foreground">O antagonista da temporada</h2>
-          {selection ? (
+          <div className="flex items-center gap-1">
+            <h2 className="font-serif text-xl text-foreground">O antagonista da temporada</h2>
+            <ContextualHelp entry={HELP_EXPEDICAO_PRIORIDADE} stateKey={readState} />
+          </div>
+          {readingBlocked ? (
+            <p className="mt-3 text-sm text-muted-foreground">{readStateCopy?.meaning}</p>
+          ) : selection ? (
             <div className="mt-3 space-y-2">
               <p className="text-lg font-medium text-foreground">{selection.antagonist.name}</p>
               <p className="text-sm text-muted-foreground">{selection.antagonist.tagline}</p>

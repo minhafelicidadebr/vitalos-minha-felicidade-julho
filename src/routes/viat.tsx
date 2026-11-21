@@ -33,6 +33,10 @@ import type {
   ViatGroupStrength,
 } from "@/engine/viat/viat-engine";
 
+import { FlaskConical } from "lucide-react";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_UI_COPY, HELP_VIAT_RESULTADO } from "@/domain/help/contextual-help";
+
 export const Route = createFileRoute("/viat")({
   head: () => ({ meta: [{ title: "Mapa de Forças VIA-T — 4 Lentes VitalOS™" }] }),
   component: ViatPage,
@@ -166,9 +170,19 @@ function DevolutivaSection({
 
       {/* Top 5 Forças Assinatura */}
       <section>
-        <h2 className="mb-4 font-serif text-xl text-foreground">
-          Suas Forças Percebidas no Trabalho
-        </h2>
+        <div className="mb-4">
+          <div className="flex items-center gap-1">
+            <h2 className="font-serif text-xl text-foreground">Suas Forças Percebidas no Trabalho</h2>
+            <ContextualHelp entry={HELP_VIAT_RESULTADO} />
+          </div>
+          <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
+            <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              <span className="font-medium text-foreground">{HELP_UI_COPY.demoBadge}.</span>{" "}
+              {HELP_VIAT_RESULTADO.demoNotice}
+            </span>
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {result.strengths
             .sort((a, b) => b.score - a.score)
@@ -599,7 +613,12 @@ function EquipeSection({ groupResult }: { groupResult: ViatGroupResult }) {
   return (
     <div className="space-y-8">
       {/* Disclaimer coletivo */}
-      <DisclaimerBanner text={VIAT_INTRO.groupDisclaimer} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <DisclaimerBanner text={VIAT_INTRO.groupDisclaimer} />
+        </div>
+        <ContextualHelp entry={HELP_VIAT_RESULTADO} visibleLabel={HELP_VIAT_RESULTADO.question} />
+      </div>
 
       {/* Resumo */}
       <div className="grid gap-4 sm:grid-cols-3">
