@@ -14,6 +14,7 @@
 import { resolvePackBundle } from "@/domain/packs/registry";
 import { invitableRoles } from "@/domain/packs/pack-routes";
 import { checkSeatQuota, describeLimitViolation } from "@/engine/billing/plan-engine";
+import { orgAdminRoles } from "@/lib/auth/authorize.server";
 
 export interface MemberInviteSummary {
   token: string;
@@ -74,17 +75,35 @@ export async function createMemberInvite(
   const allowed = invitableRoles(pack).some((r) => r.id === role);
   if (!allowed) return { error: "Este papel não pode ser convidado." };
 
-  // Seat = todo profile da org (leitura padrão de SaaS) — evita convite
-  // ilimitado de Colaborador no plano Pilot. Contagem simples, sem RPC:
-  // não há corrida real a proteger aqui (pior caso de duas criações
-  // concorrentes é passar o limite em 1 seat, não perder dado).
-  const { count: currentSeats } = await admin
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("org_id", orgId);
-  const seatCheck = checkSeatQuota((org.plan as string | undefined) ?? "pilot", currentSeats ?? 0);
-  if (!seatCheck.allowed) {
-    return { error: describeLimitViolation(seatCheck.reason)! };
+  // Assento = papel ADMINISTRATIVO (decisão comercial 21/11/2026: o limite do plano
+  // vale só para administradores, como dizem maxAdminSeats, a oferta pública e a
+  // mensagem de recusa). Convite de outro papel não consome assento. Conta perfis
+  // admin já ativos + convites admin pendentes e não expirados, para dois convites
+  // simultâneos não passarem do teto. Papéis admin = mesma fonte de requireOrgAdmin.
+  const adminRoles = [...orgAdminRoles()];
+  if (adminRoles.includes(role)) {
+    const { count: adminProfiles } = await admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .in("role", adminRoles);
+    const { data: pendingRows } = await admin
+      .from("member_invites")
+      .select("expires_at")
+      .eq("org_id", orgId)
+      .in("role", adminRoles)
+      .is("used_at", null);
+    const now = Date.now();
+    const pendingAdmins = ((pendingRows ?? []) as { expires_at: string | null }[]).filter(
+      (r) => r.expires_at === null || Date.parse(r.expires_at) > now,
+    ).length;
+    const seatCheck = checkSeatQuota(
+      (org.plan as string | undefined) ?? "pilot",
+      (adminProfiles ?? 0) + pendingAdmins,
+    );
+    if (!seatCheck.allowed) {
+      return { error: describeLimitViolation(seatCheck.reason)! };
+    }
   }
 
   const { data, error } = await admin

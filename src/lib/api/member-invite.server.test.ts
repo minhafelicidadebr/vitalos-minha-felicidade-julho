@@ -7,7 +7,9 @@ const ORGS: Record<string, { pack_id: string; plan: string; name: string }> = {
   "org-a": { pack_id: "enterprise", plan: "growth", name: "TechCorp Ltda" },
   "org-pilot-cheia": { pack_id: "enterprise", plan: "pilot", name: "Piloto Lotado" },
 };
-let profileCountByOrg: Record<string, number> = { "org-a": 3, "org-pilot-cheia": 1 };
+// Contagem de perfis ADMIN por org (o limite do plano só vale para administradores).
+let adminCountByOrg: Record<string, number> = { "org-a": 1, "org-pilot-cheia": 1 };
+let pendingAdminInvites: Array<{ org_id: string; expires_at: string | null }> = [];
 const insertedInvites: Array<Record<string, unknown>> = [];
 
 const MEMBER_INVITES: Record<
@@ -55,7 +57,12 @@ const fakeAdmin = {
       // head:true — o formato real do Supabase é { count }, sem `data`.
       return {
         select: (_cols: string, _opts?: unknown) => ({
-          eq: async (_c: string, orgId: string) => ({ count: profileCountByOrg[orgId] ?? 0 }),
+          eq: (_c: string, orgId: string) => ({
+            in: async (_r: string, roles: string[]) => {
+              expect(roles).toContain("RH_ADMIN");
+              return { count: adminCountByOrg[orgId] ?? 0 };
+            },
+          }),
         }),
       };
     }
@@ -80,7 +87,10 @@ const fakeAdmin = {
           };
         },
         select: (cols: string) => ({
-          eq: (_c: string, token: string) => ({
+          eq: (col: string, token: string) => ({
+            in: (_r: string, _roles: string[]) => ({
+              is: async () => ({ data: pendingAdminInvites.filter((i) => i.org_id === token) }),
+            }),
             maybeSingle: async () => {
               const row = MEMBER_INVITES[token];
               if (!row) return { data: null };
@@ -109,7 +119,8 @@ const { createMemberInvite, resolveMemberInvite, acceptMemberInvite } = await im
 beforeEach(() => {
   insertedInvites.length = 0;
   lastRpcArgs = null;
-  profileCountByOrg = { "org-a": 3, "org-pilot-cheia": 1 };
+  adminCountByOrg = { "org-a": 1, "org-pilot-cheia": 1 };
+  pendingAdminInvites = [];
 });
 
 describe("createMemberInvite — valida papel e assento antes de escrever", () => {
@@ -133,11 +144,27 @@ describe("createMemberInvite — valida papel e assento antes de escrever", () =
     expect(result).toEqual({ error: "Este papel não pode ser convidado." });
   });
 
-  test("seat do plano esgotado: recusa com mensagem de upgrade, não escreve", async () => {
+  test("Piloto com 1 admin: convite de COLABORADOR passa (não consome assento administrativo)", async () => {
     const result = await createMemberInvite("org-pilot-cheia", "admin-1", "x@techcorp.com", "COLABORADOR");
+    expect("error" in result).toBe(false);
+    expect(insertedInvites).toHaveLength(1);
+  });
+
+  test("Piloto com 1 admin: convite de RH_ADMIN recusa com mensagem de upgrade, não escreve", async () => {
+    const result = await createMemberInvite("org-pilot-cheia", "admin-1", "x@techcorp.com", "RH_ADMIN");
     expect("error" in result).toBe(true);
     if ("error" in result) expect(result.error).toContain("upgrade");
     expect(insertedInvites).toHaveLength(0);
+  });
+
+  test("convite de admin pendente conta como assento; expirado não conta", async () => {
+    adminCountByOrg["org-a"] = 4; // growth = 5 assentos
+    pendingAdminInvites = [{ org_id: "org-a", expires_at: "2099-01-01T00:00:00Z" }];
+    const cheio = await createMemberInvite("org-a", "admin-1", "y@techcorp.com", "RH_ADMIN");
+    expect("error" in cheio).toBe(true);
+    pendingAdminInvites = [{ org_id: "org-a", expires_at: "2020-01-01T00:00:00Z" }];
+    const livre = await createMemberInvite("org-a", "admin-1", "y@techcorp.com", "RH_ADMIN");
+    expect("error" in livre).toBe(false);
   });
 
   test("organização inexistente: recusa sem lançar", async () => {
