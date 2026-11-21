@@ -108,19 +108,57 @@ const fakeAdmin = {
   },
   rpc: async (name: string, args: Record<string, unknown>) => {
     lastRpcArgs = { name, ...args };
+    if (name === "reserve_member_invite") return fakeReserve(args);
     return rpcResponse;
   },
 };
 
+// Modelo da RPC reserve_member_invite (a prova de atomicidade REAL é no Postgres
+// local; aqui o fake serializa por org como o advisory lock, para testar o contrato
+// do servidor). Botões: reserveFailure força erro/resposta malformada.
+let reserveFailure: "none" | "error" | "null" | "malformed" = "none";
+let reserveChain: Promise<unknown> = Promise.resolve();
+async function fakeReserve(args: Record<string, unknown>) {
+  if (reserveFailure === "error") return { data: null, error: { message: "timeout" } };
+  if (reserveFailure === "null") return { data: null, error: null };
+  if (reserveFailure === "malformed") return { data: { ok: true, invite: { token: "" } }, error: null };
+  const run = async () => {
+    const orgId = args.p_org_id as string;
+    const roles = args.p_admin_roles as string[];
+    const limit = args.p_max_admin_seats as number | null;
+    if (roles.includes(args.p_role as string) && limit !== null) {
+      await new Promise((res) => setTimeout(res, 5)); // janela em que uma corrida apareceria
+      const pending = pendingAdminInvites.filter(
+        (i) => i.org_id === orgId && (i.expires_at === null || Date.parse(i.expires_at) > Date.now()),
+      ).length;
+      const used = (adminCountByOrg[orgId] ?? 0) + pending;
+      if (used >= limit) return { data: { ok: false, reason: "seat_quota_exceeded", used, limit }, error: null };
+      pendingAdminInvites.push({ org_id: orgId, expires_at: "2099-01-01T00:00:00Z" });
+    }
+    insertedInvites.push({ org_id: orgId, email: args.p_email, role: args.p_role });
+    return {
+      data: {
+        ok: true,
+        invite: { token: `tok-${insertedInvites.length}`, email: args.p_email, role: args.p_role, used_at: null, expires_at: "2099-01-01T00:00:00Z", created_at: "2026-11-21T00:00:00Z" },
+      },
+      error: null,
+    };
+  };
+  const next = reserveChain.then(run, run);
+  reserveChain = next.catch(() => undefined);
+  return next;
+}
+
 mock.module("@/integrations/supabase/client.server", () => ({ supabaseAdmin: fakeAdmin }));
 
-const { createMemberInvite, resolveMemberInvite, acceptMemberInvite } = await import("./member-invite.server");
+const { createMemberInvite, resolveMemberInvite, acceptMemberInvite, SEAT_CHECK_UNAVAILABLE } = await import("./member-invite.server");
 
 beforeEach(() => {
   insertedInvites.length = 0;
   lastRpcArgs = null;
   adminCountByOrg = { "org-a": 1, "org-pilot-cheia": 1 };
   pendingAdminInvites = [];
+  reserveFailure = "none";
 });
 
 describe("createMemberInvite — valida papel e assento antes de escrever", () => {
@@ -130,6 +168,8 @@ describe("createMemberInvite — valida papel e assento antes de escrever", () =
     if (!("error" in result)) {
       expect(result.link).toContain("/aceitar-convite/");
       expect(insertedInvites[0]).toMatchObject({ org_id: "org-a", email: "novo@techcorp.com", role: "COLABORADOR" });
+      expect(lastRpcArgs).toMatchObject({ name: "reserve_member_invite", p_max_admin_seats: 5 });
+      expect(lastRpcArgs?.p_admin_roles).toContain("RH_ADMIN");
     }
   });
 
@@ -155,6 +195,25 @@ describe("createMemberInvite — valida papel e assento antes de escrever", () =
     expect("error" in result).toBe(true);
     if ("error" in result) expect(result.error).toContain("upgrade");
     expect(insertedInvites).toHaveLength(0);
+  });
+
+  test("falha de leitura (erro, resposta vazia ou malformada): falha fechada, mensagem recuperável, nada criado", async () => {
+    for (const f of ["error", "null", "malformed"] as const) {
+      reserveFailure = f;
+      const result = await createMemberInvite("org-a", "admin-1", "z@techcorp.com", "RH_ADMIN");
+      expect(result).toEqual({ error: SEAT_CHECK_UNAVAILABLE });
+    }
+    expect(insertedInvites).toHaveLength(0);
+  });
+
+  test("duas emissões simultâneas com 1 assento livre: exatamente uma obtém o convite", async () => {
+    adminCountByOrg["org-a"] = 4; // growth = 5 → resta 1
+    const results = await Promise.all([
+      createMemberInvite("org-a", "admin-1", "a@techcorp.com", "RH_ADMIN"),
+      createMemberInvite("org-a", "admin-1", "b@techcorp.com", "RH_ADMIN"),
+    ]);
+    expect(results.filter((r) => !("error" in r))).toHaveLength(1);
+    expect(results.filter((r) => "error" in r && r.error.includes("upgrade"))).toHaveLength(1);
   });
 
   test("convite de admin pendente conta como assento; expirado não conta", async () => {

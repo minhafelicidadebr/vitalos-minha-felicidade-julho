@@ -13,7 +13,7 @@
 
 import { resolvePackBundle } from "@/domain/packs/registry";
 import { invitableRoles } from "@/domain/packs/pack-routes";
-import { checkSeatQuota, describeLimitViolation } from "@/engine/billing/plan-engine";
+import { describeLimitViolation, getPlanLimits } from "@/engine/billing/plan-engine";
 import { orgAdminRoles } from "@/lib/auth/authorize.server";
 
 export interface MemberInviteSummary {
@@ -40,6 +40,15 @@ interface MemberInviteRow {
   created_at: string;
 }
 
+/** Mensagem recuperável quando não há contagem confiável: nada foi criado. */
+export const SEAT_CHECK_UNAVAILABLE =
+  "Não foi possível conferir os assentos do plano agora. Nenhum convite foi criado. Tente novamente em instantes.";
+
+function isInviteRow(value: unknown): value is MemberInviteRow {
+  const v = value as Partial<MemberInviteRow> | null;
+  return !!v && typeof v.token === "string" && v.token.length > 0 && typeof v.email === "string" && typeof v.role === "string";
+}
+
 function toSummary(row: MemberInviteRow): MemberInviteSummary {
   return {
     token: row.token,
@@ -62,11 +71,12 @@ export async function createMemberInvite(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
 
-  const { data: org } = await admin
+  const { data: org, error: orgError } = await admin
     .from("organizations")
     .select("pack_id, plan")
     .eq("id", orgId)
     .single();
+  if (orgError && orgError.code !== "PGRST116") return { error: SEAT_CHECK_UNAVAILABLE };
   if (!org) return { error: "Organização não encontrada." };
 
   // Papel validado contra o pack da PRÓPRIA org (nunca uma lista solta no
@@ -75,47 +85,31 @@ export async function createMemberInvite(
   const allowed = invitableRoles(pack).some((r) => r.id === role);
   if (!allowed) return { error: "Este papel não pode ser convidado." };
 
-  // Assento = papel ADMINISTRATIVO (decisão comercial 21/11/2026: o limite do plano
-  // vale só para administradores, como dizem maxAdminSeats, a oferta pública e a
-  // mensagem de recusa). Convite de outro papel não consome assento. Conta perfis
-  // admin já ativos + convites admin pendentes e não expirados, para dois convites
-  // simultâneos não passarem do teto. Papéis admin = mesma fonte de requireOrgAdmin.
+  // Assento = papel ADMINISTRATIVO (decisão do founder, 21/11/2026): o teto do plano
+  // vale só para papéis administrativos canônicos (orgAdminRoles(), mesma fonte de
+  // requireOrgAdmin); convite administrativo pendente e válido reserva assento;
+  // outros papéis não consomem. Contagem e INSERT acontecem na MESMA transação,
+  // serializada por organização, dentro da RPC reserve_member_invite
+  // (migration 20261121120000). Qualquer leitura sem resposta confiável falha
+  // fechada: nenhum convite é criado.
   const adminRoles = [...orgAdminRoles()];
-  if (adminRoles.includes(role)) {
-    const { count: adminProfiles } = await admin
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .in("role", adminRoles);
-    const { data: pendingRows } = await admin
-      .from("member_invites")
-      .select("expires_at")
-      .eq("org_id", orgId)
-      .in("role", adminRoles)
-      .is("used_at", null);
-    const now = Date.now();
-    const pendingAdmins = ((pendingRows ?? []) as { expires_at: string | null }[]).filter(
-      (r) => r.expires_at === null || Date.parse(r.expires_at) > now,
-    ).length;
-    const seatCheck = checkSeatQuota(
-      (org.plan as string | undefined) ?? "pilot",
-      (adminProfiles ?? 0) + pendingAdmins,
-    );
-    if (!seatCheck.allowed) {
-      return { error: describeLimitViolation(seatCheck.reason)! };
-    }
+  const limit = getPlanLimits((org.plan as string | undefined) ?? "pilot").maxAdminSeats;
+  const { data: reserved, error: rpcError } = await admin.rpc("reserve_member_invite", {
+    p_org_id: orgId,
+    p_email: email.trim(),
+    p_role: role,
+    p_created_by: createdByUserId,
+    p_admin_roles: adminRoles,
+    p_max_admin_seats: Number.isFinite(limit) ? limit : null,
+  });
+  if (rpcError || !reserved || typeof reserved !== "object") return { error: SEAT_CHECK_UNAVAILABLE };
+  const outcome = reserved as { ok?: unknown; reason?: unknown; invite?: unknown };
+  if (outcome.ok === false && outcome.reason === "seat_quota_exceeded") {
+    return { error: describeLimitViolation("seat_quota_exceeded")! };
   }
-
-  const { data, error } = await admin
-    .from("member_invites")
-    .insert({ org_id: orgId, email: email.trim(), role, created_by: createdByUserId })
-    .select("token, email, role, used_at, expires_at, created_at")
-    .single();
-
-  if (error || !data) {
-    return { error: error?.message ?? "Falha ao gerar convite — resposta vazia do banco." };
-  }
-  return toSummary(data as MemberInviteRow);
+  if (outcome.ok === false && outcome.reason === "org_not_found") return { error: "Organização não encontrada." };
+  if (outcome.ok !== true || !isInviteRow(outcome.invite)) return { error: SEAT_CHECK_UNAVAILABLE };
+  return toSummary(outcome.invite);
 }
 
 export async function listMemberInvites(orgId: string): Promise<MemberInviteSummary[]> {
