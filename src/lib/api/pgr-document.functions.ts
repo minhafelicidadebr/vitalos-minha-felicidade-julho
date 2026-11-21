@@ -36,6 +36,11 @@ export const loadRealPgrDocument = createServerFn({ method: "GET" })
     const auth = await resolveOrgMembership(data.accessToken);
     if (!auth.ok) return { cloudReady: true, error: describeAuthFailure(auth.reason) };
 
-    const document = await buildRealOrgPgrDocument(auth.membership.orgId, data.instrument);
-    return { cloudReady: true, document };
+    try {
+      const document = await buildRealOrgPgrDocument(auth.membership.orgId, data.instrument);
+      return { cloudReady: true, document };
+    } catch {
+      const { CYCLE_HISTORY_UNAVAILABLE } = await import("../evolucao/cycle-history.server");
+      return { cloudReady: true, error: CYCLE_HISTORY_UNAVAILABLE };
+    }
   });
