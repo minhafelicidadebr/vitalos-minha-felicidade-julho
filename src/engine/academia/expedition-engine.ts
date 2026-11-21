@@ -198,7 +198,14 @@ export function assessBestiary(
 
 // ─── Estado de leitura da Expedição (o que a tela pode concluir) ─────────────
 
-export type ExpeditionReadState = "demo" | "loading" | "unavailable" | "zero" | "one" | "comparable";
+export type ExpeditionReadState =
+  | "demo"
+  | "loading"
+  | "unavailable"
+  | "zero"
+  | "suppressed"
+  | "one"
+  | "comparable";
 
 /**
  * Distingue carregando e indisponível de "sem dado": antes desta função, a consulta em
@@ -207,13 +214,18 @@ export type ExpeditionReadState = "demo" | "loading" | "unavailable" | "zero" | 
 export function expeditionReadState(input: {
   isRealMode: boolean;
   status: "idle" | "loading" | "done" | "error";
-  result: { available: false } | { available: true; state: { cycleCount: number } } | null;
+  result:
+    | { available: false }
+    | { available: true; state: { cycleCount: number; suppressed?: boolean } }
+    | null;
 }): ExpeditionReadState {
   if (!input.isRealMode) return "demo";
   if (input.status === "idle" || input.status === "loading") return "loading";
   if (input.status === "error" || !input.result || !input.result.available) return "unavailable";
   const n = input.result.state.cycleCount;
   if (n <= 0) return "zero";
+  // Há ciclo, mas nenhuma dimensão da medição mais recente atinge n ≥ 5: não é "sem exposição".
+  if (input.result.state.suppressed) return "suppressed";
   if (n === 1) return "one";
   return "comparable";
 }

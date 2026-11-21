@@ -137,3 +137,24 @@
 3. Prova das ondas 1 e 2 com sessão real na stack local descartável.
 
 Nada disto declara Q1, Q2, Q3 ou Q4 prontos para serviço real.
+
+## 7. Revisão para aprovação (branch `feat/ajuda-contextual-revisao`, base `82e6bfb`)
+
+Branch de revisão empilhada sobre a Onda 2 (que contém a Onda 1). PR #53 e `feat/ajuda-contextual-q1-q2` não foram alterados.
+
+| Ponto | Ajuste | Prova |
+|---|---|---|
+| Card Guardiões da Voz Segura | Aviso visível no card: "Não é canal de denúncia. Relatos de risco seguem os canais formais da organização." (antes, só dentro da ajuda) | Navegador: texto presente; sem overflow em 320/390/768/1280 |
+| Limites da ajuda Guardiões | Mesmo complemento sobre canais formais, para todos os papéis | `contextual-help.test.ts` |
+| Seletor de perspectiva | Linha visível: "Muda só o texto desta ajuda. Não altera o seu acesso nem os dados." | DOM test existente de troca de perspectiva |
+| Foco | Teste agora prova que Escape devolve o foco ao acionador | `ContextualHelp.dom.test.tsx` |
+| Botão Participar | Anel de foco `ring-2` com deslocamento (antes `ring-1`) | Inspeção visual |
+| Expedição · falha de leitura | O servidor engolia erro do Cofre de Ciclos e a tela mostrava "Nenhum ciclo registrado". Agora `loadOrgCycleHistory(..., { failClosed: true })` lança e a tela mostra "Leitura indisponível" | `cycle-history.server.test.ts`, `expedition-real.server.test.ts` |
+| Expedição · supressão | Novo estado `suppressed` ("Leitura protegida"): há ciclo, mas nenhuma dimensão da medição mais recente tem n ≥ 5. Antes caía em "Sem exposição medida" | `expedition-read-state.test.ts`, `expedition-real.server.test.ts` |
+| Expedição · zero ciclos | O card mostra o significado do estado em vez do texto "Sem exposição medida" | Inspeção do código; estados reais não navegáveis sem sessão real |
+
+Sem mudança: VIA-T já distingue resultado individual (Marina, fictícia) e Visão da Equipe (só papéis de liderança, n ≥ 5 visível), e mostra "Não é diagnóstico psicológico". `loadOrgCycleHistory` sem a opção mantém o comportamento anterior nos outros 4 chamadores (Board Brief, histórico, Reavaliação, dossiê PGR) — registrado como pendência: eles também transformam erro em "nenhum ciclo".
+
+Testes: `bun test src scripts` = 4634 aprovados, 4 falhas pré-existentes no `main` (preflight ×2, allowlist do `.env`, tipos Wave 2.1). `tsc` limpo.
+
+Prévia: só local (Vite em `127.0.0.1:8100`, backend apontado para loopback sem serviço). Não existe prévia Lovable deste branch.

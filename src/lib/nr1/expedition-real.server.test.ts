@@ -9,9 +9,15 @@ const FULL_HISTORY = getCapsuleHistory("enterprise", "COPSOQ");
 let mockHistory: ReturnType<typeof getCapsuleHistory> = [];
 let mockPlan: PgrPlan | null = null;
 let pgrPlanCalls: Array<{ orgId: string; exposures: unknown }> = [];
+let historyOptions: unknown[] = [];
+let historyError: Error | null = null;
 
 mock.module("@/lib/evolucao/cycle-history.server", () => ({
-  loadOrgCycleHistory: async (_orgId: string, _instrument: string) => mockHistory,
+  loadOrgCycleHistory: async (_orgId: string, _instrument: string, options?: unknown) => {
+    historyOptions.push(options);
+    if (historyError) throw historyError;
+    return mockHistory;
+  },
 }));
 
 mock.module("@/lib/evolucao/pgr-from-plan.server", () => ({
@@ -27,6 +33,8 @@ beforeEach(() => {
   mockHistory = [];
   mockPlan = null;
   pgrPlanCalls = [];
+  historyOptions = [];
+  historyError = null;
 });
 
 describe("loadRealExpeditionState — honestidade por estágio de medição", () => {
@@ -38,7 +46,13 @@ describe("loadRealExpeditionState — honestidade por estágio de medição", ()
   test("0 ciclos: sem seleção, sem avaliação, nunca inventa antagonista", async () => {
     mockHistory = [];
     const state = await loadRealExpeditionState("org-1", "enterprise");
-    expect(state).toEqual({ cycleCount: 0, hasActivePlan: false, selection: null, assessments: [] });
+    expect(state).toEqual({
+      cycleCount: 0,
+      hasActivePlan: false,
+      selection: null,
+      assessments: [],
+      suppressed: false,
+    });
     // Nem PGR real é consultado sem nenhuma medição — honestidade cedo.
     expect(pgrPlanCalls).toHaveLength(0);
   });
@@ -106,5 +120,29 @@ describe("loadRealExpeditionState — honestidade por estágio de medição", ()
     const a = await loadRealExpeditionState("org-1", "enterprise");
     const b = await loadRealExpeditionState("org-1", "enterprise");
     expect(a).toEqual(b);
+  });
+});
+
+describe("loadRealExpeditionState — falha e supressão não viram 'sem exposição'", () => {
+  test("pede o histórico em modo failClosed e propaga a falha de leitura", async () => {
+    historyError = new Error("cycle_history_unavailable");
+    await expect(loadRealExpeditionState("org-1", "enterprise")).rejects.toThrow(
+      "cycle_history_unavailable",
+    );
+    expect(historyOptions).toEqual([{ failClosed: true }]);
+  });
+
+  test("ciclo com todas as dimensões abaixo de n ≥ 5: suppressed, sem seleção nem avaliação", async () => {
+    const latest = FULL_HISTORY[0]!;
+    mockHistory = [{ ...latest, dimensions: latest.dimensions.map((d) => ({ ...d, visible: false })) }];
+    const state = await loadRealExpeditionState("org-1", "enterprise");
+    expect(state).toMatchObject({ cycleCount: 1, suppressed: true, selection: null, assessments: [] });
+    expect(pgrPlanCalls).toHaveLength(0);
+  });
+
+  test("0 ciclos e ciclos visíveis seguem suppressed: false", async () => {
+    expect((await loadRealExpeditionState("org-1", "enterprise"))?.suppressed).toBe(false);
+    mockHistory = FULL_HISTORY;
+    expect((await loadRealExpeditionState("org-1", "enterprise"))?.suppressed).toBe(false);
   });
 });

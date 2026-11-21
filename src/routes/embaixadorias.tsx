@@ -9,12 +9,18 @@ import {
   HELP_EMBAIXADORIAS,
   HELP_GUARDIOES_VOZ_SEGURA,
   HELP_UI_COPY,
+  GUARDIOES_CARD_NOTE,
 } from "@/domain/help/contextual-help";
 import type { ContextualHelpEntry } from "@/engine/help/contextual-help-engine";
 
 /** Ajuda por card: só onde há dúvida própria (primeira fatia: Guardiões da Voz Segura). */
 const CARD_HELP: Record<string, ContextualHelpEntry> = {
   "amb-seguranca": HELP_GUARDIOES_VOZ_SEGURA,
+};
+
+/** Aviso que precisa estar visível no próprio card, não só dentro da ajuda. */
+const CARD_NOTE: Record<string, string> = {
+  "amb-seguranca": GUARDIOES_CARD_NOTE,
 };
 
 export const Route = createFileRoute("/embaixadorias")({
@@ -77,6 +83,7 @@ function EmbaixadoriasPage() {
           {AMBASSADORSHIPS.map((amb) => {
             const joined = joinedIds.has(amb.id);
             const help = CARD_HELP[amb.id];
+            const note = CARD_NOTE[amb.id];
             return (
               <div
                 key={amb.id}
@@ -101,6 +108,11 @@ function EmbaixadoriasPage() {
                 <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
                   {amb.description}
                 </p>
+                {note && (
+                  <p className="mt-2 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1.5 text-xs leading-relaxed text-foreground/80">
+                    {note}
+                  </p>
+                )}
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
                     {amb.members + (joined && !amb.joined ? 1 : !joined && amb.joined ? -1 : 0)}{" "}
@@ -110,7 +122,7 @@ function EmbaixadoriasPage() {
                   <button
                     onClick={() => toggleJoin(amb.id)}
                     aria-pressed={joined}
-                    className={`min-h-11 shrink-0 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                    className={`min-h-11 shrink-0 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                       joined
                         ? "border border-primary/40 text-primary hover:bg-primary/10"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"

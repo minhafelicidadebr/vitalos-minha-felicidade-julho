@@ -176,7 +176,12 @@ function ExpedicaoPage() {
   const realState = realResult?.available ? realResult.state : null;
   const readState = expeditionReadState({ isRealMode, status: realStatus, result: realResult });
   const readStateCopy = HELP_EXPEDICAO_PRIORIDADE.states?.[readState] ?? null;
-  const readingBlocked = readState === "loading" || readState === "unavailable";
+  // Nestes estados a tela não conclui nada sobre exposição: mostra só o significado do estado.
+  const readingBlocked =
+    readState === "loading" ||
+    readState === "unavailable" ||
+    readState === "zero" ||
+    readState === "suppressed";
   const selection = isRealMode ? (realState?.selection ?? null) : demoSelection;
   const assessments = isRealMode ? (realState?.assessments ?? []) : demoAssessments;
 
@@ -294,8 +299,8 @@ function ExpedicaoPage() {
             </div>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">
-              Sem exposição medida que combine com um antagonista do bestiário — sem dado, não se
-              inventa inimigo.
+              A medição não aponta um driver ligado a um antagonista do bestiário. Sem
+              correspondência, não se inventa inimigo.
             </p>
           )}
         </motion.section>

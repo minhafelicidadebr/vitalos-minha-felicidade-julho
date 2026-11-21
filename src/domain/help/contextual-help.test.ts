@@ -36,9 +36,9 @@ describe("contextual help content v0.1", () => {
     expect(HELP_EVIDENCE_CANDIDATES.map((c) => c.helpId)).toContain(HELP_GUARDIOES_VOZ_SEGURA.id);
   });
 
-  test("Expedição declara os seis estados e cita o item 11.4.4 do Manual", () => {
+  test("Expedição declara os sete estados e cita o item 11.4.4 do Manual", () => {
     expect(Object.keys(HELP_EXPEDICAO_PRIORIDADE.states ?? {}).sort()).toEqual(
-      ["comparable", "demo", "loading", "one", "unavailable", "zero"],
+      ["comparable", "demo", "loading", "one", "suppressed", "unavailable", "zero"],
     );
     const official = HELP_EXPEDICAO_PRIORIDADE.sources.filter((s) => s.nature === "orientacao_oficial");
     expect(official.some((s) => s.locator?.startsWith("Item 11.4.4"))).toBe(true);

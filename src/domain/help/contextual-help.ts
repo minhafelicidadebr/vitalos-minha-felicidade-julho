@@ -73,6 +73,10 @@ const GUARDIOES_COLABORADOR = {
   link: { to: "/voz-segura", label: "Abrir a trilha Voz Segura" },
 };
 
+/** Fica visível no próprio card (não só na ajuda): orienta a ação antes do clique. */
+export const GUARDIOES_CARD_NOTE =
+  "Não é canal de denúncia. Relatos de risco seguem os canais formais da organização.";
+
 export const HELP_GUARDIOES_VOZ_SEGURA: ContextualHelpEntry = {
   id: "help.embaixadorias.guardioes-voz-segura",
   version: HELP_CONTENT_VERSION,
@@ -117,7 +121,7 @@ export const HELP_GUARDIOES_VOZ_SEGURA: ContextualHelpEntry = {
     },
   },
   limits: [
-    "Não é canal de denúncia nem investigação.",
+    "Não é canal de denúncia nem investigação. Relatos de risco seguem os canais formais da organização.",
     "Não avalia pessoas. Participar ou sair não gera consequência.",
     "O conteúdo de uma conversa não é registrado nesta tela.",
   ],
@@ -224,6 +228,11 @@ export const HELP_EXPEDICAO_PRIORIDADE: ContextualHelpEntry = {
     zero: {
       label: "Nenhum ciclo registrado",
       meaning: "Sem medição registrada, a tela não escolhe prioridade.",
+    },
+    suppressed: {
+      label: "Leitura protegida",
+      meaning:
+        "Há ciclo registrado, mas nenhum recorte da medição mais recente reúne 5 respostas ou mais. Para proteger as pessoas, a tela não mostra nem escolhe prioridade. Isso não significa ausência de exposição.",
     },
     one: {
       label: "Um ciclo registrado",
@@ -476,6 +485,7 @@ export const HELP_UI_COPY = {
   flowHeading: "Como a prática acontece",
   roleHeading: "Na sua função",
   roleSwitchLabel: "Ver a explicação como",
+  roleSwitchHint: "Muda só o texto desta ajuda. Não altera o seu acesso nem os dados.",
   yourRole: "seu perfil",
   generalRole: "Visão geral",
   nextStep: "Próximo passo",

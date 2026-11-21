@@ -174,6 +174,7 @@ export function ContextualHelp({
                 {roleTabs.length > 1 && (
                   <div className="mt-2" role="group" aria-label={COPY.roleSwitchLabel}>
                     <p className="text-xs text-muted-foreground">{COPY.roleSwitchLabel}</p>
+                    <p className="text-xs text-muted-foreground">{COPY.roleSwitchHint}</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {roleTabs.map((r) => (
                         <button

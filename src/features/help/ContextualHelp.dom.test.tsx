@@ -2,7 +2,7 @@
 // Escape fecha e devolve o foco, e abrir/fechar a ajuda não altera a ação ao lado.
 import { describe, expect, test } from "bun:test";
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ContextualHelp } from "./ContextualHelp";
 import { HELP_EMBAIXADORIAS } from "@/domain/help/contextual-help";
 
@@ -26,6 +26,7 @@ describe("ContextualHelp", () => {
     expect(join.getAttribute("aria-pressed")).toBe("true");
 
     const trigger = screen.getByRole("button", { name: HELP_EMBAIXADORIAS.question });
+    trigger.focus();
     fireEvent.click(trigger);
     const dialog = await screen.findByRole("dialog");
     expect(dialog.textContent).toContain(HELP_EMBAIXADORIAS.summary);
@@ -38,6 +39,8 @@ describe("ContextualHelp", () => {
 
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
+    // Foco volta ao acionador (Radix devolve o foco no fechamento).
+    await waitFor(() => expect(document.activeElement === trigger).toBe(true));
     expect(screen.getByRole("button", { name: "Participar" }).getAttribute("aria-pressed")).toBe("true");
   });
 

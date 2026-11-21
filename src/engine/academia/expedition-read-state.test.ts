@@ -18,3 +18,14 @@ describe("expeditionReadState", () => {
     expect(expeditionReadState({ isRealMode: true, status: "done", result: ok(3) })).toBe("comparable");
   });
 });
+
+describe("expeditionReadState · supressão k-anon", () => {
+  test("há ciclo, mas nada visível: suppressed, nunca zero nem um", () => {
+    const r = { available: true as const, state: { cycleCount: 2, suppressed: true } };
+    expect(expeditionReadState({ isRealMode: true, status: "done", result: r })).toBe("suppressed");
+  });
+  test("zero ciclos continua zero mesmo com a flag", () => {
+    const r = { available: true as const, state: { cycleCount: 0, suppressed: true } };
+    expect(expeditionReadState({ isRealMode: true, status: "done", result: r })).toBe("zero");
+  });
+});

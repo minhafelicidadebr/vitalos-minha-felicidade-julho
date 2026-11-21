@@ -61,6 +61,7 @@ function normalizeCapsuleJoin(row: RegistryRow): WaveCapsuleRow | null {
 export async function loadOrgCycleHistory(
   orgId: string,
   instrument: string,
+  options: { failClosed?: boolean } = {},
 ): Promise<MeasurementContextCapsule[]> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
@@ -68,13 +69,15 @@ export async function loadOrgCycleHistory(
   const { data: org } = await admin.from("organizations").select("pack_id").eq("id", orgId).maybeSingle();
   const packId = (org?.pack_id as string | undefined) ?? "enterprise";
 
-  const { data } = await admin
+  const { data, error } = await admin
     .from("org_cycle_registry")
     .select(
       "cycle_key, capsule_id, wave_capsules(id, wave_id, instrument, participant_count, closed_on, dimensions, outcomes)",
     )
     .eq("org_id", orgId)
     .eq("instrument", instrument);
+  // failClosed: falha de leitura vira erro, nunca "nenhum ciclo registrado".
+  if (error && options.failClosed) throw new Error("cycle_history_unavailable");
 
   const rows: RegisteredCycleRow[] = ((data ?? []) as RegistryRow[])
     .map((r) => {
