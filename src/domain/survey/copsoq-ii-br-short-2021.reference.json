@@ -1,0 +1,161 @@
+{
+  "id": "copsoq-ii-br-short-2021",
+  "status": "referencia_estrutural",
+  "note": "Estrutura transcrita do artigo, sem enunciados. Não é bateria servível: os enunciados em português estão na tese (Gonçalves 2019) e as alternativas por item não constam do artigo.",
+  "decision": "docs/vitalos/decisions/Q1_COPSOQ_FORMA_ADOTADA_2026-11-20.md",
+  "source": {
+    "citation": "Gonçalves JS, Moriguchi CS, Chaves TC, Sato TO. Cross-cultural adaptation and psychometric properties of the short version of COPSOQ II-Brazil. Rev Saude Publica. 2021;55:69.",
+    "doi": "10.11606/s1518-8787.2021055003123",
+    "articleLicence": "CC BY 4.0 (artigo); permissão de uso do questionário não declarada",
+    "artifactSha256": "d50e5c06f109d0e715135b2dc0fc664f15630ff9e5bdb633d522616e65413078",
+    "itemTextsLocator": "Tese Gonçalves JS 2019, UFSCar, https://repositorio.ufscar.br/handle/ufscar/11763 (nota a, p. 7 do artigo)"
+  },
+  "questionCount": 40,
+  "originalDimensionCount": 23,
+  "domains": [
+    {
+      "id": "demands_at_work",
+      "dimensions": [
+        {
+          "id": "demands_at_work",
+          "items": [
+            "1A",
+            "1B",
+            "2A",
+            "2B",
+            "3A",
+            "3B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "work_organization_content",
+      "dimensions": [
+        {
+          "id": "influence_development",
+          "items": [
+            "4A",
+            "4B",
+            "5A",
+            "5B"
+          ]
+        },
+        {
+          "id": "meaning_commitment",
+          "items": [
+            "6A",
+            "6B",
+            "7A",
+            "7B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interpersonal_relationships_leadership",
+      "dimensions": [
+        {
+          "id": "interpersonal_relationships",
+          "items": [
+            "8A",
+            "8B",
+            "9A",
+            "9B",
+            "10A",
+            "10B"
+          ]
+        },
+        {
+          "id": "leadership",
+          "items": [
+            "11A",
+            "11B",
+            "12A",
+            "12B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "work_individual_interface",
+      "dimensions": [
+        {
+          "id": "job_satisfaction",
+          "items": [
+            "13"
+          ]
+        },
+        {
+          "id": "work_family_conflicts",
+          "items": [
+            "14A",
+            "14B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "values_at_workplace",
+      "dimensions": [
+        {
+          "id": "values_at_workplace",
+          "items": [
+            "15A",
+            "15B",
+            "16A",
+            "16B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "health_wellness",
+      "dimensions": [
+        {
+          "id": "general_health",
+          "items": [
+            "17"
+          ]
+        },
+        {
+          "id": "burnout_stress",
+          "items": [
+            "18A",
+            "18B",
+            "19A",
+            "19B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "offensive_behaviours",
+      "dimensions": [
+        {
+          "id": "offensive_behaviours",
+          "items": [
+            "20",
+            "21",
+            "22",
+            "23"
+          ]
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "scale": "Likert de 5 níveis (p. 3); faixas observadas indicam 0–4 por item na maioria, 0–3 em satisfação (13) e 0–1 em comportamentos ofensivos (Tabela 3, p. 10)",
+    "reversedItems": [
+      "1B"
+    ],
+    "aggregation": "soma das respostas por dimensão, exceto comportamentos ofensivos (p. 3); média por dimensão citada como alternativa",
+    "interpretation": "semáforo por tercis 2,33/3,66 sobre média 1–5 (manual Silva et al. 2011, p. 8, SHA-256 96db38c6…eb9ec); compatibilidade com a soma 0–4 da II-Br não publicada",
+    "missing": "não declarado no artigo",
+    "locators": {
+      "structure": "Tabela 2, pp. 8–9",
+      "itemsPerDimension": "Tabela 3, p. 10",
+      "rules": "p. 3, seção COPSOQ II"
+    }
+  }
+}

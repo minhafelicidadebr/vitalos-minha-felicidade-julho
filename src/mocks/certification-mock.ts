@@ -50,8 +50,8 @@ export const SEAL_INTRO = {
   title: "O selo que não se compra",
   lead:
     "A elegibilidade é computada ao vivo a partir do que a organização efetivamente fez — " +
-    "mede com continuidade, atinge maturidade, e prova ao menos uma transformação com efeito " +
-    "medido. Reconhece sistema instalado e resultado, não discurso.",
+    "mede com continuidade, atinge maturidade, e tem ao menos um experimento com efeito " +
+    "medido pelo critério do Culture Lab. Reconhece sistema instalado e evidência registrada.",
   publicNote:
     "O Selo Empresa Viva é anual e auditável; pode ser exibido nas páginas de carreira. " +
     "Cada critério é rastreável até a sua evidência — um auditor consegue refazer a conta.",

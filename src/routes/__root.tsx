@@ -5,6 +5,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -16,6 +17,7 @@ import { PackProvider } from "../app/composition/PackProvider";
 import { AuthGate } from "../app/auth/AuthGate";
 import { SplashScreen } from "../components/SplashScreen";
 import { ConciergeWidget } from "../components/concierge/ConciergeWidget";
+import { usesPresentationShell } from "../features/presentation/path";
 
 function NotFoundComponent() {
   return (
@@ -150,6 +152,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useLocation({ select: (location) => location.pathname });
+
+  // The presentation has its own server gate and never starts company/demo providers.
+  if (usesPresentationShell(pathname)) {
+    return <A11yProvider><Outlet /></A11yProvider>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

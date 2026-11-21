@@ -1,7 +1,7 @@
 {
   "generatedFor": "supabase/migrations",
-  "migrationCount": 59,
-  "rollupSha256": "9d52b09b921fdbcff6439d2ab27291c792452eaf583e9af1c540096315b4a92d",
+  "migrationCount": 73,
+  "rollupSha256": "f168f384581e347af204e1bc095193a9523b071bdc18f3c3be96a20c13609ce8",
   "migrations": [
     {
       "order": 1,
@@ -356,6 +356,90 @@
       "name": "20260909222000_cohort_batched_release_temporal_privacy.sql",
       "sha256": "a8bc43af1aaa87f995f15f76b13ee64a5b54598fa2afce44043bb03f75c81928",
       "bytes": 26018
+    },
+    {
+      "order": 60,
+      "name": "20261002120000_fibt_action_provenance.sql",
+      "sha256": "e201dc313da535bb42d1664cf8ee94cceadbcbc44d9c054d0d4032d95f7617b7",
+      "bytes": 14494
+    },
+    {
+      "order": 61,
+      "name": "20261005120000_ivo_efficacy_protocols.sql",
+      "sha256": "58b83c02c7eb1204d15b65d65ecfd9e30a9861f0d4d57cef224400cd90d8d56d",
+      "bytes": 23125
+    },
+    {
+      "order": 62,
+      "name": "20261016120000_ivo_plan_composition_and_closure.sql",
+      "sha256": "718de8d78f30bc5916aa9b3273bd5e5367680a10f6c12a18e7b747c0c8e71de4",
+      "bytes": 16331
+    },
+    {
+      "order": 63,
+      "name": "20261113195527_institutional_first_admin.sql",
+      "sha256": "c9ea4f7024ab716baa55cf9713daf62ed004598b779af7800bce657c68bfc41f",
+      "bytes": 5435
+    },
+    {
+      "order": 64,
+      "name": "20261113202253_institutional_first_admin_private_identity.sql",
+      "sha256": "f1b416fa61b8c07dd35c226c9642640762368ea1416e7434bf7f82dd05a4a021",
+      "bytes": 3483
+    },
+    {
+      "order": 65,
+      "name": "20261115135955_enterprise_module_entitlements.sql",
+      "sha256": "ac0598f33b6e98f6ac3d55aeb86d2949532c884032d5842d8f6364dcf60ec5a8",
+      "bytes": 10394
+    },
+    {
+      "order": 66,
+      "name": "20261115142320_enterprise_module_pack_compatibility.sql",
+      "sha256": "752c712bcb26df0d97c465210ac0b2b9b00b7ece383dc5f43420243f29d2f4f2",
+      "bytes": 6061
+    },
+    {
+      "order": 67,
+      "name": "20261118163000_q1_preparation.sql",
+      "sha256": "81c32fa182386bca9027a8c4075040f51bbec82e23a37462faef6867e7f89729",
+      "bytes": 4304
+    },
+    {
+      "order": 68,
+      "name": "20261118170000_partner_interest.sql",
+      "sha256": "b6012c4c03b0bb7e30609638d9d8807809e200ee827615c225751a58d3f3a248",
+      "bytes": 682
+    },
+    {
+      "order": 69,
+      "name": "20261118173000_q1_preparation_delegates.sql",
+      "sha256": "c2de4d7121685bdfec94d425bbf930c5628875fe0c72b15e792cb9aa562d3368",
+      "bytes": 3065
+    },
+    {
+      "order": 70,
+      "name": "20261119090000_q1_manage_preparation_delegates.sql",
+      "sha256": "f8519ca3e7e5f321b1b81926046a8d00ffa6aea640c410d7dc84ce5e1fcfd1e0",
+      "bytes": 3023
+    },
+    {
+      "order": 71,
+      "name": "20261119103000_q1_technical_review.sql",
+      "sha256": "d673bbae8347f750e1097ba3b82300ca521665fb72c894d8a3e49e686e5bb2e0",
+      "bytes": 8449
+    },
+    {
+      "order": 72,
+      "name": "20261119120000_q2_ledger_actor_scope_and_title_visibility.sql",
+      "sha256": "b4153fa94794a1aa3f78b8053d93bac71e38bdc0765c377768a039671d160ba9",
+      "bytes": 12766
+    },
+    {
+      "order": 73,
+      "name": "20261119130000_q2_ledger_actor_helper_private_schema.sql",
+      "sha256": "57c85b50c34138c78b45318d9ec5c7221d6b4a671d48115377be364568c95e3a",
+      "bytes": 11853
     }
   ]
 }

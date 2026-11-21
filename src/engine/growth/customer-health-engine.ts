@@ -11,9 +11,8 @@
 // - Cada dimensão declara o que foi contado e qual é a próxima melhor ação —
 //   número sem caminho de ação é vaidade.
 //
-// North Star (CLAUDE.md): "Equipes Florescendo = IVO medido em ≥2 temporadas
-// + ≥1 transformação com efeito medido" — a banda "florescendo" daqui exige
-// exatamente esses dois sinais (≥2 ciclos registrados + ≥1 evidência).
+// O sinal legado northStarMet verifica somente ≥2 ciclos registrados e ≥1
+// evidência. Essas contagens não verificam efeito medido, aprendizagem ou eficácia.
 
 export interface AccountSignals {
   /** Ondas de medição criadas (tabela waves). */
@@ -75,7 +74,7 @@ export function computeCustomerHealth(signals: AccountSignals): CustomerHealth {
       stepScore(signals.wavesCreated, 1, 2) * 0.4 +
         stepScore(signals.capsulesPublished, 1, 2) * 0.6,
     ),
-    evidence: `${signals.wavesCreated} onda(s) criada(s) · ${signals.capsulesPublished} leitura(s) protegida(s) publicada(s)`,
+    evidence: `${signals.wavesCreated} onda(s) criada(s) · ${signals.capsulesPublished} leitura(s) em cápsulas legadas`,
     nextAction:
       signals.wavesCreated === 0
         ? "Criar a primeira onda de medição em /admin"

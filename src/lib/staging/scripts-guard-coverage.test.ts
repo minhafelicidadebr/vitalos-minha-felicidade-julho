@@ -47,9 +47,25 @@ describe("cobertura do guard nos scripts", () => {
   for (const { nome, src } of scripts()) {
     if (!criaCliente(src)) continue;
 
-    test(`${nome} importa e invoca requireStagingTarget`, () => {
+    test(`${nome} usa o guard obrigatório do alvo`, () => {
       if (nome in ALLOWLIST) return;
       const c = codigo(src);
+      // Harnesses exclusivamente locais usam uma fronteira mais restritiva:
+      // API, DB e container exatos; guard testado contra alvos remotos e o demo preservado.
+      if (nome === "q1-browser-proof-setup.ts") {
+        expect(
+          /import\s*\{[^}]*requireQ1BrowserProofLocalTarget[^}]*\}\s*from\s*["'][^"']*q1-browser-proof-local-target["']/.test(
+            c,
+          ),
+        ).toBe(true);
+        expect(/requireQ1BrowserProofLocalTarget\s*\(/.test(c)).toBe(true);
+        return;
+      }
+      if (["institutional-local.ts", "institutional-first-admin-proof.ts", "institutional-readback-proof.ts", "institutional-module-proof.ts", "institutional-learning-proof.ts", "institutional-approved-learning-readback.ts", "institutional-tenant.ts"].includes(nome)) {
+        expect(/import\s*\{[^}]*requireInstitutionalLocalTarget[^}]*\}\s*from\s*["'][^"']*institutional-local-target["']/.test(c)).toBe(true);
+        expect(/requireInstitutionalLocalTarget\s*\(/.test(c)).toBe(true);
+        return;
+      }
       expect({
         script: nome,
         importa: /import\s*\{[^}]*requireStagingTarget[^}]*\}\s*from\s*["'][^"']*staging-guard["']/.test(c),

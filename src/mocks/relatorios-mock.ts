@@ -110,9 +110,9 @@ export const SEAL_STATUS = {
     { id: "r2", label: "Participação ≥ 70%", done: true, detail: "78% ✓" },
     {
       id: "r3",
-      label: "≥ 1 experimento concluído no Culture Lab",
+      label: "≥ 1 experimento com efeito confirmado pelo critério do Culture Lab",
       done: true,
-      detail: "Ritual de Reconhecimento ✓",
+      detail: "Ritual de Reconhecimento ✓ (dado demonstrativo)",
     },
     {
       id: "r4",
@@ -128,5 +128,5 @@ export const SEAL_STATUS = {
     },
   ],
   publicNote:
-    "O Selo Empresa Viva é anual, auditável e pode ser exibido nas páginas de carreira. Reconhece sistema instalado e efeito medido — não discurso.",
+    "O Selo Empresa Viva é anual, auditável e pode ser exibido nas páginas de carreira. Reconhece sistema instalado e pelo menos um experimento com efeito medido pelo critério do Culture Lab.",
 } as const;

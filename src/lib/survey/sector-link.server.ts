@@ -112,6 +112,7 @@ function cloudLinkAllowedForRuntime(row: CloudLinkRow): boolean {
 export async function resolveToken(
   token: string,
   nowIso = new Date().toISOString(),
+  moduleAccess = async (org: string, instrument: string) => (await (await import("@/lib/identity/module-access.server")).checkInstrument(org, instrument)).ok,
 ): Promise<SectorTokenResolution> {
   const boundary = readIdentityBoundaryStatus();
 
@@ -120,6 +121,7 @@ export async function resolveToken(
     if (!row || !row.waves || !cloudLinkAllowedForRuntime(row)) {
       return { valid: false, reason: "not_found" };
     }
+    if (!(await moduleAccess(row.waves.org_id, row.waves.instrument))) return { valid: false, reason: "not_found" };
     if (row.status === "revoked") return { valid: false, reason: "revoked" };
     if (row.status !== "active") return { valid: false, reason: "not_found" };
     if (row.expires_at <= nowIso) return { valid: false, reason: "expired" };
@@ -189,6 +191,7 @@ export interface SectorLinkSubmitInput {
 export async function captureSectorLinkResponse(
   input: SectorLinkSubmitInput,
   nowIso = new Date().toISOString(),
+  moduleAccess = async (org: string, instrument: string) => (await (await import("@/lib/identity/module-access.server")).checkInstrument(org, instrument)).ok,
 ): Promise<CaptureResult> {
   const consentVersion = normalizeSectorResponseConsentVersion(input.consentVersion);
   if (!consentVersion) {
@@ -215,6 +218,7 @@ export async function captureSectorLinkResponse(
     }
 
     // Instrumento REAL da onda + pack REAL da org — nunca presumidos (S3/S4).
+    if (!(await moduleAccess(row.waves.org_id, row.waves.instrument))) return { accepted: false, reason: "unknown_wave" };
     const instrumentShort = dbInstrumentToSurveyKey(row.waves.instrument);
     const packId = row.waves.organizations?.pack_id ?? "enterprise";
     const survey = getWaveSurvey(packId, instrumentShort);

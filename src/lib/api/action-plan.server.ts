@@ -27,7 +27,7 @@ type RpcRow<Extra extends Record<string, unknown> = Record<string, never>> = {
   reason: string | null;
 } & Partial<Extra>;
 
-async function callLedgerRpc<Extra extends Record<string, unknown> = Record<string, never>>(
+export async function callLedgerRpc<Extra extends Record<string, unknown> = Record<string, never>>(
   fn: string,
   params: Record<string, unknown>,
 ): Promise<RpcRow<Extra>> {
@@ -185,7 +185,8 @@ export async function recordActionEventAsAdmin(
 
 export interface RecordEvidenceInput {
   itemId: string;
-  evidenceKind: "texto" | "foto" | "checklist" | "metrica";
+  /** `aprendizagem` exige a migration 20261002120000 (escopo de evidência IVO R6). */
+  evidenceKind: "texto" | "foto" | "checklist" | "metrica" | "aprendizagem";
   contentRef: string;
   sourceKind: "direct" | "practice_record_ref";
   consentRef: string | null;

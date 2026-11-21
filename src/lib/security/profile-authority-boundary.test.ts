@@ -231,7 +231,7 @@ describe("a superfície SECURITY DEFINER tem inventário phase-aware declarado",
 describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => {
     const suites = [...new Glob("*.sql").scanSync({ cwd: DIR_PROVAS })].sort();
 
-    test("as seis suítes existem", () => {
+    test("as nove suítes existem", () => {
         expect(suites).toEqual([
             "01_profile_authority_boundary.sql",
             "02_definer_surface_and_grants.sql",
@@ -245,6 +245,24 @@ describe("as suítes de prova em SQL estão presentes e cobrem o achado", () => 
             // snapshot não basta: o vazamento está na DIFERENÇA entre duas
             // chamadas sucessivas à mesma coorte.
             "06_cohort_temporal_release.sql",
+            // IVO R6 — proveniência FIB-T em action_items (migration local
+            // 20261002120000, não aplicada remotamente). Prova cross-tenant,
+            // escrita direta e RLS/RPC como authenticated de duas orgs + anon.
+            "07_fibt_action_provenance.sql",
+            // IVO C8 — protocolos, observações e pareceres de eficácia (migration local
+            // 20261005120000, não aplicada remotamente). Ciclo rascunho→registrado, parecer
+            // conclusivo só com governança registrada no próprio parecer, revisor independente,
+            // sem DELETE, duas organizações + anon.
+            "08_ivo_efficacy_protocols.sql",
+            // IVO PI-13 — inclusão de ação em plano existente e encerramento operacional
+            // (migration local 20261016120000, aditiva, não aplicada remotamente). Gatilhos no
+            // schema ivo_ledger (sem função nova em public): plano encerrado é terminal,
+            // plano ativo só recebe ação com §13, repetição do mesmo pedido não duplica.
+            "09_ivo_plan_composition_closure.sql",
+            // Q2 B2 — ator verificado no ledger (org, papel real, escopo da liderança) e
+            // title_visible_at (migration local 20261119120000, não aplicada remotamente).
+            // Transação com ROLLBACK; qualquer FAIL aborta a suíte.
+            "10_q2_ledger_actor_scope.sql",
         ]);
     });
 

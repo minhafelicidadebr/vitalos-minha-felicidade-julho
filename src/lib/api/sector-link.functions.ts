@@ -50,6 +50,8 @@ export const adminCreateSectorLink = createServerFn({ method: "POST" })
     const { requireOrgAdmin, describeAuthFailure } = await import("@/lib/auth/authorize.server");
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { created: false as const, error: describeAuthFailure(auth.reason) };
+    const access = await (await import("@/lib/identity/module-access.server")).checkWave(auth.membership.orgId, data.waveId);
+    if (!access.ok) return { created: false as const, error: access.error };
 
     const { createSectorLinkAsAdmin } = await import("@/lib/survey/sector-link-admin.server");
     return createSectorLinkAsAdmin(

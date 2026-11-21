@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-16",
+  "base": "ff8c933",
+  "origin": "http://localhost:8091",
+  "syntheticOnly": true,
+  "normalMagicLinkLogin": true,
+  "mailpitLocal": true,
+  "externalEmail": false,
+  "invalidLinkRecovery": true,
+  "returnToPreserved": "/rh",
+  "authenticatedInstitution": "Empresa Fictícia Alfa",
+  "persistentApprovedApplication": true,
+  "newBusinessWrites": 0,
+  "newEmailRequests": 2,
+  "authLayouts": [
+    {
+      "client": 320,
+      "controls": [
+        {
+          "height": 48,
+          "tag": "INPUT",
+          "width": 246.22222900390625
+        },
+        {
+          "height": 48,
+          "tag": "BUTTON",
+          "width": 246.22222900390625
+        }
+      ],
+      "focus": "BODY",
+      "scroll": 320,
+      "width": 320
+    },
+    {
+      "client": 360,
+      "controls": [
+        {
+          "height": 48,
+          "tag": "INPUT",
+          "width": 286.22222900390625
+        },
+        {
+          "height": 48,
+          "tag": "BUTTON",
+          "width": 286.22222900390625
+        }
+      ],
+      "scroll": 360,
+      "width": 360
+    },
+    {
+      "client": 768,
+      "controls": [
+        {
+          "height": 48,
+          "tag": "INPUT",
+          "width": 446.22222900390625
+        },
+        {
+          "height": 48,
+          "tag": "BUTTON",
+          "width": 446.22222900390625
+        }
+      ],
+      "scroll": 768,
+      "width": 768
+    },
+    {
+      "client": 1280,
+      "controls": [
+        {
+          "height": 48,
+          "tag": "INPUT",
+          "width": 446.22222900390625
+        },
+        {
+          "height": 48,
+          "tag": "BUTTON",
+          "width": 446.22222900390625
+        }
+      ],
+      "scroll": 1280,
+      "width": 1280
+    }
+  ],
+  "q2Layouts": [
+    {
+      "approvedApplication": true,
+      "client": 300,
+      "metrics": [
+        {
+          "label": "Ações",
+          "scroll": 200,
+          "width": 200
+        },
+        {
+          "label": "Execuções registradas",
+          "scroll": 200,
+          "width": 200
+        },
+        {
+          "label": "Aprendizagens registradas",
+          "scroll": 200,
+          "width": 200
+        },
+        {
+          "label": "Avaliações pendentes",
+          "scroll": 200,
+          "width": 200
+        }
+      ],
+      "scroll": 300,
+      "width": 320
+    },
+    {
+      "client": 340,
+      "metrics": [
+        {
+          "label": "Ações",
+          "scroll": 240,
+          "width": 240
+        },
+        {
+          "label": "Execuções registradas",
+          "scroll": 240,
+          "width": 240
+        },
+        {
+          "label": "Aprendizagens registradas",
+          "scroll": 240,
+          "width": 240
+        },
+        {
+          "label": "Avaliações pendentes",
+          "scroll": 240,
+          "width": 240
+        }
+      ],
+      "scroll": 340,
+      "width": 360
+    }
+  ],
+  "q2NewPixelEvidence": "summary_only",
+  "q2ApprovedCardScreenshot": "blank_not_used",
+  "originalViewportRestored": true,
+  "fullWcagAudit": false,
+  "sourcePreservationProof": "MACRO_Q2_ORIGEM_PROVA_2026-11-16.json"
+}

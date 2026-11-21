@@ -13,6 +13,11 @@ import type { OrgInviteSummary } from "@/lib/api/org-invite.server";
 import { adminListLeads, adminListAccountHealth } from "@/lib/api/lead-capture.functions";
 import type { LeadRow } from "@/lib/growth/lead-capture.server";
 import type { AccountHealthRow } from "@/lib/growth/customer-health.server";
+import { FirstAdminInvites } from "@/components/identity/FirstAdminInvites";
+import { PlatformModules } from "@/components/identity/EnterpriseModules";
+import { PartnerInterestQueue } from "@/components/identity/PartnerInterestQueue";
+import { Q1DelegationPanel } from "@/components/identity/Q1DelegationPanel";
+import { Q1ReviewerAssignment } from "@/components/identity/Q1ReviewerAssignment";
 
 export const Route = createFileRoute("/plataforma")({
   head: () => ({ meta: [{ title: "Plataforma · Convites — VitalOS™" }] }),
@@ -35,6 +40,7 @@ function PlataformaPage() {
   const [invites, setInvites] = useState<OrgInviteSummary[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [accounts, setAccounts] = useState<AccountHealthRow[]>([]);
+  const [accountsStatus, setAccountsStatus] = useState<"loading" | "ready" | "error">("loading");
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<PlanId>("pilot");
   const [creating, setCreating] = useState(false);
@@ -65,9 +71,17 @@ function PlataformaPage() {
       setInvites(result.invites);
       setStatus("ready");
       adminListLeads({ data: { accessToken: token } }).then((r) => setLeads(r.leads));
-      adminListAccountHealth({ data: { accessToken: token } }).then((r) =>
-        setAccounts(r.accounts),
-      );
+      adminListAccountHealth({ data: { accessToken: token } })
+        .then((r) => {
+          if (!active) return;
+          setAccounts(r.accounts);
+          setAccountsStatus("ready");
+        })
+        .catch(() => {
+          if (!active) return;
+          setAccounts([]);
+          setAccountsStatus("error");
+        });
     });
     return () => {
       active = false;
@@ -106,8 +120,8 @@ function PlataformaPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
+          <p role="status" className="text-sm text-muted-foreground">
             Verificando permissão…
           </p>
         </div>
@@ -119,8 +133,8 @@ function PlataformaPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-3xl border border-dashed border-border/70 bg-card p-8 text-center">
-          <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-4 font-serif text-xl text-foreground">Acesso restrito</p>
+          <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
+          <h1 className="mt-4 font-serif text-xl text-foreground">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Esta área é exclusiva do administrador da plataforma. Se você acredita
             que deveria ter acesso, confirme se seu e-mail está na lista
@@ -142,11 +156,18 @@ function PlataformaPage() {
         </div>
         <h1 className="mt-1 font-serif text-3xl text-foreground">Convites de organização</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Gere um link de acesso único para cada cliente que contratou o serviço.
-          Ao clicar, a pessoa faz login com o próprio e-mail e cadastra a empresa dela.
+          Gere um link de acesso único para cada cliente que contratou o serviço. Ao clicar, a
+          pessoa faz login com o próprio e-mail e cadastra a empresa dela.
         </p>
       </motion.div>
 
+      {accessToken && <FirstAdminInvites accessToken={accessToken} />}
+      {accessToken && <PlatformModules accessToken={accessToken} />}
+      {accessToken && <Q1DelegationPanel key={accessToken} accessToken={accessToken} />}
+      {accessToken && <Q1ReviewerAssignment key={"review/" + accessToken} accessToken={accessToken} />}
+      {import.meta.env.DEV && accessToken && (
+        <PartnerInterestQueue key={accessToken} accessToken={accessToken} />
+      )}
       {/* Formulário de criação */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -154,10 +175,14 @@ function PlataformaPage() {
         transition={{ delay: 0.05 }}
         className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm"
       >
-        <label className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <label
+          htmlFor="invite-email"
+          className="mb-2 block text-sm font-medium text-muted-foreground"
+        >
           E-mail do cliente (opcional — trava o convite a este e-mail)
         </label>
         <input
+          id="invite-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -165,46 +190,68 @@ function PlataformaPage() {
           className="w-full rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
 
-        <label className="mb-2 mt-4 block text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-          Plano contratado
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {PLAN_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setPlan(opt.id)}
-              className={`rounded-xl border px-4 py-2 text-left text-sm font-medium transition-all ${
-                plan === opt.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/60 bg-background text-foreground hover:border-primary/40"
-              }`}
-            >
-              {opt.label}
-              <span
-                className={`ml-1.5 text-[10px] font-normal ${
-                  plan === opt.id ? "text-primary-foreground/80" : "text-muted-foreground"
-                }`}
-              >
-                {opt.hint}
-              </span>
-            </button>
-          ))}
-        </div>
+        <fieldset className="mt-4">
+          <legend className="mb-2 block text-sm font-medium text-muted-foreground">
+            Plano contratado
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {PLAN_OPTIONS.map((opt) => {
+              const selected = plan === opt.id;
+              return (
+                <label
+                  key={opt.id}
+                  htmlFor={`plan-${opt.id}`}
+                  className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-4 py-2 text-left text-sm font-medium transition-all focus-within:ring-2 focus-within:ring-ring ${
+                    selected
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-background text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <input
+                    id={`plan-${opt.id}`}
+                    type="radio"
+                    name="plan"
+                    value={opt.id}
+                    checked={selected}
+                    onChange={() => setPlan(opt.id)}
+                    className="size-4 shrink-0 accent-primary"
+                  />
+                  <span>
+                    {opt.label}
+                    <span
+                      className={`ml-1.5 text-xs font-normal ${
+                        selected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      }`}
+                    >
+                      {opt.hint}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+          className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           {creating ? "Gerando…" : "Gerar link de convite"}
         </button>
-        {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+        {error && (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          >
+            {error}
+          </p>
+        )}
         <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-          Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com
-          e-mail, só quem logar com aquele endereço específico consegue completar o cadastro.
-          O setor (empresa/escola/governo/condomínio/saúde) é escolhido pelo próprio
-          cliente ao ativar o link.
+          Sem e-mail, qualquer pessoa com o link consegue usá-lo (uso único). Com e-mail, só quem
+          logar com aquele endereço específico consegue completar o cadastro. O setor
+          (empresa/escola/governo/condomínio/saúde) é escolhido pelo próprio cliente ao ativar o
+          link.
         </p>
       </motion.div>
 
@@ -287,16 +334,27 @@ function PlataformaPage() {
       >
         <div className="mb-1 flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <p className="font-medium text-card-foreground">Saúde das contas</p>
+          <h2 className="font-medium text-card-foreground">Acompanhamento operacional legado</h2>
         </div>
-        <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
-          Leitura de cada conta contra o próprio arco medir→aprender→transformar→evoluir —
-          nunca comparação entre contas. Só contagens de operação; nenhum conteúdo.
+        <p role="note" className="mb-4 text-sm leading-relaxed text-muted-foreground">
+          Contagens das tabelas do fluxo legado; publicações protegidas de Q2 e aprendizagem
+          vinculada às ações não estão integralmente contempladas. Zero neste quadro não significa
+          ausência dessas atividades. A pontuação resume uso operacional, sem medir vitalidade,
+          aprendizagem ou eficácia. Consulte a jornada específica antes de encaminhar uma ação.
         </p>
 
-        {accounts.length === 0 ? (
+        {accountsStatus === "loading" ? (
+          <p role="status" className="py-4 text-sm text-muted-foreground">
+            Consultando registros operacionais…
+          </p>
+        ) : accountsStatus === "error" ? (
+          <p role="alert" className="py-4 text-sm text-destructive">
+            Não foi possível consultar o acompanhamento. Nenhuma pontuação foi calculada. Recarregue
+            a página para tentar novamente.
+          </p>
+        ) : accounts.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            Nenhuma organização ativa ainda.
+            Nenhuma organização disponível neste inventário.
           </p>
         ) : (
           <div className="space-y-3">
@@ -305,40 +363,64 @@ function PlataformaPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">{acc.orgName}</p>
                   <div className="flex items-center gap-2">
-                    {acc.health.northStarMet && (
+                    {acc.health?.northStarMet && (
                       <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                        ★ Equipes Florescendo
+                        Marcos operacionais do modelo atingidos
                       </span>
                     )}
                     <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                       {acc.packId} · {acc.plan}
                     </span>
-                    <span className="text-sm font-semibold tabular-nums text-foreground">
-                      {acc.health.score}
-                      <span className="text-[10px] font-normal text-muted-foreground">/100</span>
-                    </span>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {acc.health.band}
-                    </span>
+                    {acc.health ? (
+                      <>
+                        <span
+                          aria-label="Pontuação operacional legada"
+                          className="text-sm font-semibold tabular-nums text-foreground"
+                        >
+                          {acc.health.score}
+                          <span className="text-[10px] font-normal text-muted-foreground">
+                            /100
+                          </span>
+                        </span>
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {acc.health.band}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Consulta indisponível</span>
+                    )}
                   </div>
                 </div>
-                <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-                  {acc.health.dimensions.map((dim) => (
-                    <div key={dim.id} className="rounded-lg border border-border/50 px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-foreground">{dim.label}</p>
-                        <span className="text-xs tabular-nums text-muted-foreground">
-                          {dim.score}/25
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">{dim.evidence}</p>
+                {acc.health ? (
+                  <>
+                    <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                      {acc.health.dimensions.map((dim) => (
+                        <div key={dim.id} className="rounded-lg border border-border/50 px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-medium text-foreground">{dim.label}</p>
+                            <span className="text-xs tabular-nums text-muted-foreground">
+                              {dim.score}/25
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                            {dim.evidence}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <p className="mt-2.5 text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground">Próxima melhor ação:</span>{" "}
-                  {acc.health.nextBestAction}
-                </p>
+                    <p className="mt-2.5 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Sugestão do modelo legado:
+                      </span>{" "}
+                      {acc.health.nextBestAction}
+                    </p>
+                  </>
+                ) : (
+                  <p role="status" className="mt-3 text-sm text-muted-foreground">
+                    Não foi possível conferir todas as contagens desta conta. Nenhuma pontuação
+                    parcial foi calculada. Recarregue a página para tentar novamente.
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -364,10 +446,7 @@ function PlataformaPage() {
         ) : (
           <div className="space-y-2">
             {leads.map((lead) => (
-              <div
-                key={lead.id}
-                className="rounded-xl border border-border/60 bg-background p-3.5"
-              >
+              <div key={lead.id} className="rounded-xl border border-border/60 bg-background p-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">
                     {lead.name} · {lead.company}

@@ -1,0 +1,23 @@
+{
+  "baseCommit": "576c464fc434b512c2ccaf272aa548e3a8a0ed80",
+  "selectedSources": [
+    {
+      "path": "src/components/ivo/FibtActionLoop.tsx",
+      "sha256": "866a4ff0e6c32ca988e6eaf3a90055ca0123f0293c40809f672de3b1a34367c0"
+    },
+    {
+      "path": "src/components/ivo/IvoJourney.test.tsx",
+      "sha256": "5e2995bf93852366626926d0509690b98d89c36e22adf47eb46831ecbeddd086"
+    },
+    {
+      "path": "src/components/ivo/PlanComposition.test.tsx",
+      "sha256": "6d68d92423ec722cf47b18ae6dd105362c0fe16479609501e3097fae30e2bf10"
+    }
+  ],
+  "build": {
+    "inert": true,
+    "preservedRootOutput": true,
+    "localDirectory": "module-build-1794821847066"
+  },
+  "limitation": "Hashes selecionados, não assinatura nem autorização de piloto"
+}

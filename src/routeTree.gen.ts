@@ -41,6 +41,7 @@ import { Route as FibtRouteImport } from './routes/fibt'
 import { Route as FibtPilotoRouteImport } from './routes/fibt-piloto'
 import { Route as FloresceriaRouteImport } from './routes/floresceria'
 import { Route as GovernoRouteImport } from './routes/governo'
+import { Route as GuiaEmpresarialRouteImport } from './routes/guia-empresarial'
 import { Route as HoldingRouteImport } from './routes/holding'
 import { Route as ImpactoRouteImport } from './routes/impacto'
 import { Route as IvoRouteImport } from './routes/ivo'
@@ -89,11 +90,18 @@ import { Route as VitrineRouteImport } from './routes/vitrine'
 import { Route as VozSeguraRouteImport } from './routes/voz-segura'
 import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
 import { Route as ApiApresentacaoRouteImport } from './routes/api.apresentacao'
+import { Route as ApiGuiaRouteImport } from './routes/api.guia'
 import { Route as ApresentacaoEmpresasRouteImport } from './routes/apresentacao.empresas'
 import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as DriverDriverIdRouteImport } from './routes/driver.$driverId'
+import { Route as IvoIntegralIndexRouteImport } from './routes/ivo-integral.index'
+import { Route as IvoIntegralAcoesRouteImport } from './routes/ivo-integral.acoes'
+import { Route as IvoIntegralGovernancaRouteImport } from './routes/ivo-integral.governanca'
+import { Route as IvoIntegralGuiaRouteImport } from './routes/ivo-integral.guia'
+import { Route as IvoIntegralPrepararQ1RouteImport } from './routes/ivo-integral.preparar-q1'
+import { Route as IvoIntegralQ2RouteImport } from './routes/ivo-integral.q2'
 import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
@@ -255,6 +263,11 @@ const FloresceriaRoute = FloresceriaRouteImport.update({
 const GovernoRoute = GovernoRouteImport.update({
   id: '/governo',
   path: '/governo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuiaEmpresarialRoute = GuiaEmpresarialRouteImport.update({
+  id: '/guia-empresarial',
+  path: '/guia-empresarial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HoldingRoute = HoldingRouteImport.update({
@@ -497,6 +510,11 @@ const ApiApresentacaoRoute = ApiApresentacaoRouteImport.update({
   path: '/api/apresentacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGuiaRoute = ApiGuiaRouteImport.update({
+  id: '/api/guia',
+  path: '/api/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApresentacaoEmpresasRoute = ApresentacaoEmpresasRouteImport.update({
   id: '/apresentacao/empresas',
   path: '/apresentacao/empresas',
@@ -520,6 +538,36 @@ const ConviteTokenRoute = ConviteTokenRouteImport.update({
 const DriverDriverIdRoute = DriverDriverIdRouteImport.update({
   id: '/driver/$driverId',
   path: '/driver/$driverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralIndexRoute = IvoIntegralIndexRouteImport.update({
+  id: '/ivo-integral/',
+  path: '/ivo-integral/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralAcoesRoute = IvoIntegralAcoesRouteImport.update({
+  id: '/ivo-integral/acoes',
+  path: '/ivo-integral/acoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralGovernancaRoute = IvoIntegralGovernancaRouteImport.update({
+  id: '/ivo-integral/governanca',
+  path: '/ivo-integral/governanca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralGuiaRoute = IvoIntegralGuiaRouteImport.update({
+  id: '/ivo-integral/guia',
+  path: '/ivo-integral/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralPrepararQ1Route = IvoIntegralPrepararQ1RouteImport.update({
+  id: '/ivo-integral/preparar-q1',
+  path: '/ivo-integral/preparar-q1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IvoIntegralQ2Route = IvoIntegralQ2RouteImport.update({
+  id: '/ivo-integral/q2',
+  path: '/ivo-integral/q2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFibtHmlAttestationRoute = ApiFibtHmlAttestationRouteImport.update({
@@ -566,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
+  '/guia-empresarial': typeof GuiaEmpresarialRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -614,11 +663,18 @@ export interface FileRoutesByFullPath {
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/api/guia': typeof ApiGuiaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -655,6 +711,7 @@ export interface FileRoutesByTo {
   '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
+  '/guia-empresarial': typeof GuiaEmpresarialRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -703,11 +760,18 @@ export interface FileRoutesByTo {
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/api/guia': typeof ApiGuiaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -745,6 +809,7 @@ export interface FileRoutesById {
   '/fibt-piloto': typeof FibtPilotoRoute
   '/floresceria': typeof FloresceriaRoute
   '/governo': typeof GovernoRoute
+  '/guia-empresarial': typeof GuiaEmpresarialRoute
   '/holding': typeof HoldingRoute
   '/impacto': typeof ImpactoRoute
   '/ivo': typeof IvoRoute
@@ -793,11 +858,18 @@ export interface FileRoutesById {
   '/voz-segura': typeof VozSeguraRoute
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
+  '/api/guia': typeof ApiGuiaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/driver/$driverId': typeof DriverDriverIdRoute
+  '/ivo-integral/acoes': typeof IvoIntegralAcoesRoute
+  '/ivo-integral/governanca': typeof IvoIntegralGovernancaRoute
+  '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
+  '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
+  '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
@@ -836,6 +908,7 @@ export interface FileRouteTypes {
     | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
+    | '/guia-empresarial'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -884,11 +957,18 @@ export interface FileRouteTypes {
     | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
+    | '/api/guia'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
+    | '/ivo-integral/guia'
+    | '/ivo-integral/preparar-q1'
+    | '/ivo-integral/q2'
+    | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -925,6 +1005,7 @@ export interface FileRouteTypes {
     | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
+    | '/guia-empresarial'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -973,11 +1054,18 @@ export interface FileRouteTypes {
     | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
+    | '/api/guia'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
+    | '/ivo-integral/guia'
+    | '/ivo-integral/preparar-q1'
+    | '/ivo-integral/q2'
+    | '/ivo-integral'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   id:
@@ -1014,6 +1102,7 @@ export interface FileRouteTypes {
     | '/fibt-piloto'
     | '/floresceria'
     | '/governo'
+    | '/guia-empresarial'
     | '/holding'
     | '/impacto'
     | '/ivo'
@@ -1062,11 +1151,18 @@ export interface FileRouteTypes {
     | '/voz-segura'
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
+    | '/api/guia'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
     | '/convite/$token'
     | '/driver/$driverId'
+    | '/ivo-integral/acoes'
+    | '/ivo-integral/governanca'
+    | '/ivo-integral/guia'
+    | '/ivo-integral/preparar-q1'
+    | '/ivo-integral/q2'
+    | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
     | '/respond/s/$token'
   fileRoutesById: FileRoutesById
@@ -1104,6 +1200,7 @@ export interface RootRouteChildren {
   FibtPilotoRoute: typeof FibtPilotoRoute
   FloresceriaRoute: typeof FloresceriaRoute
   GovernoRoute: typeof GovernoRoute
+  GuiaEmpresarialRoute: typeof GuiaEmpresarialRoute
   HoldingRoute: typeof HoldingRoute
   ImpactoRoute: typeof ImpactoRoute
   IvoRoute: typeof IvoRoute
@@ -1152,11 +1249,18 @@ export interface RootRouteChildren {
   VozSeguraRoute: typeof VozSeguraRoute
   AceitarConviteTokenRoute: typeof AceitarConviteTokenRoute
   ApiApresentacaoRoute: typeof ApiApresentacaoRoute
+  ApiGuiaRoute: typeof ApiGuiaRoute
   ApresentacaoEmpresasRoute: typeof ApresentacaoEmpresasRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   DriverDriverIdRoute: typeof DriverDriverIdRoute
+  IvoIntegralAcoesRoute: typeof IvoIntegralAcoesRoute
+  IvoIntegralGovernancaRoute: typeof IvoIntegralGovernancaRoute
+  IvoIntegralGuiaRoute: typeof IvoIntegralGuiaRoute
+  IvoIntegralPrepararQ1Route: typeof IvoIntegralPrepararQ1Route
+  IvoIntegralQ2Route: typeof IvoIntegralQ2Route
+  IvoIntegralIndexRoute: typeof IvoIntegralIndexRoute
   ApiFibtHmlAttestationRoute: typeof ApiFibtHmlAttestationRoute
   RespondSTokenRoute: typeof RespondSTokenRoute
 }
@@ -1385,6 +1489,13 @@ declare module '@tanstack/react-router' {
       path: '/governo'
       fullPath: '/governo'
       preLoaderRoute: typeof GovernoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guia-empresarial': {
+      id: '/guia-empresarial'
+      path: '/guia-empresarial'
+      fullPath: '/guia-empresarial'
+      preLoaderRoute: typeof GuiaEmpresarialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/holding': {
@@ -1723,6 +1834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiApresentacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/guia': {
+      id: '/api/guia'
+      path: '/api/guia'
+      fullPath: '/api/guia'
+      preLoaderRoute: typeof ApiGuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/apresentacao/empresas': {
       id: '/apresentacao/empresas'
       path: '/apresentacao/empresas'
@@ -1756,6 +1874,48 @@ declare module '@tanstack/react-router' {
       path: '/driver/$driverId'
       fullPath: '/driver/$driverId'
       preLoaderRoute: typeof DriverDriverIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/': {
+      id: '/ivo-integral/'
+      path: '/ivo-integral'
+      fullPath: '/ivo-integral/'
+      preLoaderRoute: typeof IvoIntegralIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/acoes': {
+      id: '/ivo-integral/acoes'
+      path: '/ivo-integral/acoes'
+      fullPath: '/ivo-integral/acoes'
+      preLoaderRoute: typeof IvoIntegralAcoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/governanca': {
+      id: '/ivo-integral/governanca'
+      path: '/ivo-integral/governanca'
+      fullPath: '/ivo-integral/governanca'
+      preLoaderRoute: typeof IvoIntegralGovernancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/guia': {
+      id: '/ivo-integral/guia'
+      path: '/ivo-integral/guia'
+      fullPath: '/ivo-integral/guia'
+      preLoaderRoute: typeof IvoIntegralGuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/preparar-q1': {
+      id: '/ivo-integral/preparar-q1'
+      path: '/ivo-integral/preparar-q1'
+      fullPath: '/ivo-integral/preparar-q1'
+      preLoaderRoute: typeof IvoIntegralPrepararQ1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ivo-integral/q2': {
+      id: '/ivo-integral/q2'
+      path: '/ivo-integral/q2'
+      fullPath: '/ivo-integral/q2'
+      preLoaderRoute: typeof IvoIntegralQ2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fibt-hml/attestation': {
@@ -1808,6 +1968,7 @@ const rootRouteChildren: RootRouteChildren = {
   FibtPilotoRoute: FibtPilotoRoute,
   FloresceriaRoute: FloresceriaRoute,
   GovernoRoute: GovernoRoute,
+  GuiaEmpresarialRoute: GuiaEmpresarialRoute,
   HoldingRoute: HoldingRoute,
   ImpactoRoute: ImpactoRoute,
   IvoRoute: IvoRoute,
@@ -1856,11 +2017,18 @@ const rootRouteChildren: RootRouteChildren = {
   VozSeguraRoute: VozSeguraRoute,
   AceitarConviteTokenRoute: AceitarConviteTokenRoute,
   ApiApresentacaoRoute: ApiApresentacaoRoute,
+  ApiGuiaRoute: ApiGuiaRoute,
   ApresentacaoEmpresasRoute: ApresentacaoEmpresasRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   DriverDriverIdRoute: DriverDriverIdRoute,
+  IvoIntegralAcoesRoute: IvoIntegralAcoesRoute,
+  IvoIntegralGovernancaRoute: IvoIntegralGovernancaRoute,
+  IvoIntegralGuiaRoute: IvoIntegralGuiaRoute,
+  IvoIntegralPrepararQ1Route: IvoIntegralPrepararQ1Route,
+  IvoIntegralQ2Route: IvoIntegralQ2Route,
+  IvoIntegralIndexRoute: IvoIntegralIndexRoute,
   ApiFibtHmlAttestationRoute: ApiFibtHmlAttestationRoute,
   RespondSTokenRoute: RespondSTokenRoute,
 }

@@ -22,6 +22,7 @@ import {
  * listOrgWaves/listOrgCapsules; mensagem honesta caso apareça mesmo assim. */
 function describeOrgReadFailure(reason: OrgScopedReadFailure): string {
   if (reason === "org_mismatch") return "A sessão não corresponde a esta organização.";
+  if (reason === "read_unavailable") return "Não foi possível consultar os registros da organização. Tente atualizar.";
   return describeAuthFailure(reason);
 }
 
@@ -119,7 +120,10 @@ export const adminListWaves = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { waves: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const { createOrgReadClient } = await import("@/lib/auth/org-read-client.server");
+    const client = await createOrgReadClient(data.accessToken);
     const result = await listOrgWaves(data.accessToken, auth.membership.orgId, {
+      client,
       resolveMembership: resolveOrgMembership,
     });
     if (!result.ok) return { waves: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };
@@ -127,8 +131,12 @@ export const adminListWaves = createServerFn({ method: "GET" })
     // Busca contagem de respostas para cada onda via RPC SECURITY DEFINER
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
+    const { checkInstrument } = await import("@/lib/identity/module-access.server");
+    const permitted = await Promise.all(result.items.map(async w => ({ w, access: await checkInstrument(auth.membership.orgId, w.instrument) })));
+    const denied = permitted.find(r => !r.access.ok);
+    if (denied && !denied.access.ok) return { waves: [], cloudReady: true, error: denied.access.error };
     const withCounts = await Promise.all(
-      result.items.map(async (w) => {
+      permitted.map(async ({ w }) => {
         const { data: cnt } = await admin.rpc("count_wave_responses", { p_wave_id: w.id });
         return { ...w, responseCount: (cnt as number | null) ?? 0 };
       }),
@@ -146,10 +154,17 @@ export const adminListCapsules = createServerFn({ method: "GET" })
     const auth = await requireOrgAdmin(data.accessToken);
     if (!auth.ok) return { capsules: [], cloudReady: true, error: describeAuthFailure(auth.reason) };
 
+    const { createOrgReadClient } = await import("@/lib/auth/org-read-client.server");
+    const client = await createOrgReadClient(data.accessToken);
     const result = await listOrgCapsules(data.accessToken, auth.membership.orgId, {
+      client,
       resolveMembership: resolveOrgMembership,
     });
     if (!result.ok) return { capsules: [], cloudReady: true, error: describeOrgReadFailure(result.reason) };
+    const { checkWave } = await import("@/lib/identity/module-access.server");
+    const permitted = await Promise.all(result.items.map(c => checkWave(auth.membership.orgId, c.waveId)));
+    const denied = permitted.find(r => !r.ok);
+    if (denied && !denied.ok) return { capsules: [], cloudReady: true, error: denied.error };
 
     return {
       cloudReady: true,

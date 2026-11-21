@@ -13,7 +13,7 @@ export const getBoardBrief = createServerFn({ method: "GET" })
   .handler(({ data }) => buildBoardBrief(data.packId));
 
 export type RealBoardBriefResult =
-  | { available: false; reason: "cloud_not_ready" | "no_session" | "insufficient_cycles" }
+  | { available: false; reason: "cloud_not_ready" | "no_session" | "insufficient_cycles" | "module_unavailable" }
   | { available: true; brief: import("../proof/board-brief.server").BoardBrief };
 
 /**
@@ -32,6 +32,7 @@ export const getRealBoardBrief = createServerFn({ method: "GET" })
     const { resolveOrgMembership } = await import("@/lib/auth/authorize.server");
     const auth = await resolveOrgMembership(data.accessToken);
     if (!auth.ok) return { available: false, reason: "no_session" };
+    if (!(await (await import("@/lib/identity/module-access.server")).checkInstrument(auth.membership.orgId, "COPSOQ")).ok) return { available: false, reason: "module_unavailable" };
 
     const { loadOrgCycleHistory } = await import("@/lib/evolucao/cycle-history.server");
     const history = await loadOrgCycleHistory(auth.membership.orgId, "COPSOQ");

@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-11-17T01:58:56.939Z",
+  "inert": true,
+  "preservedRootOutput": true,
+  "sources": [
+    {
+      "file": "src/lib/presentation/content.server.ts",
+      "sha256": "c415fb44609c0bbbf953bb4179b15f59013ec00913ec43252d3b8355c1a3bd1e",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/lib/presentation/narrative-v2.server.ts",
+      "sha256": "658684d5d8474b69bf56c0a0a52f2b926a4498e2fdb72474dcdc8f5cf86af24a",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/EnterprisePresentation.tsx",
+      "sha256": "1092cbf52cee834e06c38b12ac748028b02ee4f64e66758c784682956f517239",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/types.ts",
+      "sha256": "7b6fd161eb05c31c79dabc81363a35527cf0b5f8ce29bca6a511631f0b71fa74",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    },
+    {
+      "file": "src/features/presentation/presentation.css",
+      "sha256": "74ddb52aec5de9d036f08e07e1b6f8b9cf3969c0040024f3cf680ddf60488b2e",
+      "compiledCopyMatches": true,
+      "servedCopyMatches": true
+    }
+  ],
+  "publicAssetsChecked": 316,
+  "protectedMarkersFound": false
+}

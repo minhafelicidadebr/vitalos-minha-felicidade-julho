@@ -13,11 +13,17 @@ import { AlertCircle, Check, Loader2, ShieldAlert, UserPlus } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { checkMemberInviteToken, submitMemberInviteAcceptance } from "@/lib/api/member-invite.functions";
 import { ROLE_HOME } from "@/app/shell/AppShell";
+import { FirstAdminAcceptance } from "@/components/identity/FirstAdminAcceptance";
 
 export const Route = createFileRoute("/aceitar-convite/$token")({
   head: () => ({ meta: [{ title: "Aceitar convite — 4 Lentes VitalOS™" }] }),
-  component: AcceptMemberInvitePage,
+  component: AcceptInvitePage,
 });
+
+function AcceptInvitePage() {
+  const { token } = Route.useParams();
+  return /^[a-f0-9]{64}$/.test(token) ? <FirstAdminAcceptance token={token} /> : <AcceptMemberInvitePage />;
+}
 
 type Resolution =
   | { valid: true; orgName: string; roleLabel: string; email: string }

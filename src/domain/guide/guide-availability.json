@@ -1,0 +1,110 @@
+{
+  "version": "2026-11-20",
+  "note": "Registro de disponibilidade do Guia da Jornada Empresarial. Descreve capacidades e onde foram verificadas; a autorização vem sempre do servidor. 'local' = pilha descartável vitalos-q1q2-integ.",
+  "entries": [
+    {
+      "id": "q1.preparacao",
+      "lens": "Q1",
+      "role": "rh",
+      "capability": "Preparação do ciclo, comunicado e encaminhamento da revisão técnica",
+      "level": "local",
+      "verifiedIn": ["local"],
+      "route": "/ivo-integral/preparar-q1",
+      "serverCheck": "q1_preparation_journal (RH ou delegado, Q1 habilitado)",
+      "ctaLabel": "Abrir a preparação do Q1",
+      "decisionRef": "docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md",
+      "verifiedAt": "2026-11-19"
+    },
+    {
+      "id": "q1.coleta",
+      "lens": "Q1",
+      "role": "qualquer",
+      "capability": "Coleta oficial do COPSOQ II-Br",
+      "level": "descrito",
+      "verifiedIn": [],
+      "route": null,
+      "serverCheck": "module-access method_pending",
+      "ctaLabel": null,
+      "decisionRef": "docs/vitalos/decisions/Q1_COPSOQ_FORMA_ADOTADA_2026-11-20.md",
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "id": "q2.leitura_plano",
+      "lens": "Q2",
+      "role": "rh",
+      "capability": "Leitura agregada, plano, designação e revisão",
+      "level": "local",
+      "verifiedIn": ["local"],
+      "route": "/ivo-integral/acoes",
+      "serverCheck": "authorizeLedger (administração da organização, Q2 habilitado)",
+      "ctaLabel": "Abrir o plano de ação",
+      "decisionRef": "docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md",
+      "verifiedAt": "2026-11-19"
+    },
+    {
+      "id": "q2.execucao_lideranca",
+      "lens": "Q2",
+      "role": "lideranca",
+      "capability": "Registro de estado e evidência de execução da própria ação",
+      "level": "local",
+      "verifiedIn": ["local"],
+      "route": "/ivo-integral/acoes",
+      "serverCheck": "authorizeLedger allowLeader + escopo da própria ação no plano ativo",
+      "ctaLabel": "Registrar o que aconteceu",
+      "decisionRef": "docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md",
+      "verifiedAt": "2026-11-19"
+    },
+    {
+      "id": "q2.devolutiva_coletiva",
+      "lens": "Q2",
+      "role": "colaborador",
+      "capability": "Devolutiva coletiva da transformação (projeção fechada)",
+      "level": "local",
+      "verifiedIn": ["local"],
+      "route": "/ivo-integral/q2",
+      "serverCheck": "loadMemberPlanFeedback (qualquer membro, Q2 habilitado)",
+      "ctaLabel": "Ver a devolutiva da equipe",
+      "decisionRef": "src/lib/ivo/member-plan-feedback.server.ts",
+      "verifiedAt": "2026-11-19"
+    },
+    {
+      "id": "q3.vitalidade_001",
+      "lens": "Q3",
+      "role": "qualquer",
+      "capability": "Prática Vitalidade 001 v0.2.0",
+      "level": "demonstrativo",
+      "verifiedIn": [],
+      "route": null,
+      "serverCheck": null,
+      "ctaLabel": null,
+      "decisionRef": "docs/vitalos/decisions/Q3_VITALIDADE_UNIDADE_001_REVISAO.md",
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "id": "q4.percurso_individual",
+      "lens": "Q4",
+      "role": "qualquer",
+      "capability": "Percurso individual de forças",
+      "level": "demonstrativo",
+      "verifiedIn": [],
+      "route": null,
+      "serverCheck": null,
+      "ctaLabel": null,
+      "decisionRef": "branch codex/q4-pratica-forcas (não comitado)",
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "id": "q5.relatorio",
+      "lens": "Q5",
+      "role": "qualquer",
+      "capability": "Relatório Global com origem de cada informação",
+      "level": "demonstrativo",
+      "verifiedIn": [],
+      "route": null,
+      "serverCheck": null,
+      "ctaLabel": null,
+      "decisionRef": "src/lib/reports/cycle-report.ts",
+      "verifiedAt": "2026-11-20"
+    }
+  ]
+}

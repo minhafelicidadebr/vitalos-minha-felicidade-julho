@@ -1,0 +1,177 @@
+{
+  "date": "2026-11-16",
+  "baseCommit": "c30260a",
+  "origin": "http://localhost:8091",
+  "institutional": {
+    "href": "/entrar",
+    "placements": [
+      "header",
+      "main",
+      "footer"
+    ],
+    "anonymousFormVerified": true,
+    "authenticatedDestination": "/rh",
+    "syntheticInstitutionalAccount": "Empresa Fictícia Alfa",
+    "demoDialogOpened": false,
+    "emailSent": false
+  },
+  "demo": {
+    "lockedGateShown": true,
+    "invalidPasswordRejected": true,
+    "focusReturnedAfterEscape": true,
+    "focusReturnedAfterCloseButton": true,
+    "unlockedBranchLiveTested": false
+  },
+  "responsive": [
+    {
+      "width": 320,
+      "clientWidth": 300,
+      "scrollWidth": 300,
+      "minHeaderTargetWidth": 44,
+      "minHeaderTargetHeight": 44,
+      "cutText": []
+    },
+    {
+      "clientWidth": 340,
+      "cutControls": [],
+      "headerTargets": [
+        {
+          "height": 44,
+          "left": 16,
+          "name": "Programa VitalOS — página inicial",
+          "right": 60,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 108.36111450195312,
+          "name": "Alternar para tema claro",
+          "right": 152.36111450195312,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 158.36111450195312,
+          "name": "Entrar na plataforma institucional",
+          "right": 246.94445037841797,
+          "width": 88.58333587646484
+        },
+        {
+          "height": 44,
+          "left": 252.94444274902344,
+          "name": "AgendarAgendar demonstração",
+          "right": 323.55555725097656,
+          "width": 70.61111450195312
+        }
+      ],
+      "scrollWidth": 340,
+      "width": 360
+    },
+    {
+      "clientWidth": 748,
+      "cutControls": [],
+      "headerTargets": [
+        {
+          "height": 48,
+          "left": 24,
+          "name": "Programa VitalOS — página inicial",
+          "right": 216.63888549804688,
+          "width": 192.63888549804688
+        },
+        {
+          "height": 44,
+          "left": 341.75,
+          "name": "Alternar para tema claro",
+          "right": 385.75,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 393.75,
+          "name": "Entrar na plataforma institucional",
+          "right": 555.9583282470703,
+          "width": 162.2083282470703
+        },
+        {
+          "height": 44,
+          "left": 563.9583129882812,
+          "name": "AgendarAgendar demonstração",
+          "right": 723.5555419921875,
+          "width": 159.59722900390625
+        }
+      ],
+      "scrollWidth": 748,
+      "width": 768
+    },
+    {
+      "clientWidth": 1260,
+      "cutControls": [],
+      "headerTargets": [
+        {
+          "height": 48,
+          "left": 77.77777862548828,
+          "name": "Programa VitalOS — página inicial",
+          "right": 270.41666412353516,
+          "width": 192.63888549804688
+        },
+        {
+          "height": 44,
+          "left": 409.7083435058594,
+          "name": "Solução",
+          "right": 476.6250076293946,
+          "width": 66.91666412353516
+        },
+        {
+          "height": 44,
+          "left": 480.625,
+          "name": "Metodologia",
+          "right": 574.8611145019531,
+          "width": 94.23611450195312
+        },
+        {
+          "height": 44,
+          "left": 578.8611450195312,
+          "name": "Aplicações",
+          "right": 660.6944808959961,
+          "width": 81.83333587646484
+        },
+        {
+          "height": 44,
+          "left": 799.9722290039062,
+          "name": "Alternar para tema claro",
+          "right": 843.9722290039062,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 851.9722290039062,
+          "name": "Entrar na plataforma institucional",
+          "right": 1014.1805572509766,
+          "width": 162.2083282470703
+        },
+        {
+          "height": 44,
+          "left": 1022.1805419921876,
+          "name": "AgendarAgendar demonstração",
+          "right": 1181.7777709960938,
+          "width": 159.59722900390625
+        }
+      ],
+      "scrollWidth": 1260,
+      "width": 1280
+    }
+  ],
+  "dialogAt320": {
+    "width": 288,
+    "left": 16,
+    "right": 304,
+    "closeTargetWidth": 44,
+    "closeTargetHeight": 44
+  },
+  "originalViewportRestored": true,
+  "fullWcagAudit": false,
+  "notes": [
+    "Senha válida de demo não foi reenviada; condicional e destino legado /painel preservados.",
+    "Uma captura do diálogo mobile teve timeout; capturas da página em desktop e 320 px foram obtidas."
+  ]
+}

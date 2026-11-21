@@ -1,0 +1,70 @@
+# Pilha descartável vitalos-q1q2-integ — SÓ loopback. Imagens já presentes localmente
+# (as mesmas da Supabase CLI 2.119.0). Sem volume nomeado: dados morrem com `down`.
+name: vitalos-q1q2-integ
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.11.0.002
+    container_name: vitalos-q1q2-integ-db
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: "3600"
+    ports: ["127.0.0.1:57922:5432"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 2s
+      retries: 60
+  mailpit:
+    image: public.ecr.aws/supabase/mailpit:v1.31.3
+    container_name: vitalos-q1q2-integ-mail
+    ports: ["127.0.0.1:57924:8025"]
+  auth:
+    image: public.ecr.aws/supabase/gotrue:v2.197.0
+    container_name: vitalos-q1q2-integ-auth
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      API_EXTERNAL_URL: http://127.0.0.1:57921
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:8094
+      GOTRUE_URI_ALLOW_LIST: "http://localhost:*/**,http://127.0.0.1:*/**"
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_HOST: mailpit
+      GOTRUE_SMTP_PORT: "1025"
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@integ.test
+      GOTRUE_SMTP_SENDER_NAME: integ-local
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: "100"
+  rest:
+    image: public.ecr.aws/supabase/postgrest:v16.4
+    container_name: vitalos-q1q2-integ-rest
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,graphql_public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+  kong:
+    image: public.ecr.aws/supabase/kong:2.8.1
+    container_name: vitalos-q1q2-integ-kong
+    depends_on: [auth, rest]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_PLUGINS: request-transformer,cors
+    volumes: ["./kong.yml:/home/kong/kong.yml:ro"]
+    ports: ["127.0.0.1:57921:8000"]

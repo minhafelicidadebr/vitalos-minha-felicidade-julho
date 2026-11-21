@@ -15,8 +15,8 @@ function OnboardingGatePage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-3xl border border-dashed border-border/70 bg-card p-8 text-center">
-        <MailQuestion className="mx-auto h-8 w-8 text-muted-foreground" />
-        <p className="mt-4 font-serif text-xl text-foreground">Você precisa de um convite</p>
+        <MailQuestion className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
+        <h1 className="mt-4 font-serif text-xl text-foreground">Você precisa de um convite</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           A criação de uma nova organização no VitalOS™ só acontece por convite do
           administrador. Se você contratou o serviço, peça o link de acesso a
@@ -24,7 +24,7 @@ function OnboardingGatePage() {
         </p>
         <Link
           to="/entrar"
-          className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Já tenho uma conta
         </Link>

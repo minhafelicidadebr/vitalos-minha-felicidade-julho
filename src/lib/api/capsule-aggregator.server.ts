@@ -40,6 +40,7 @@ export async function triggerCapsuleAggregation(
   waveId: string,
   instrument: string,
   authorizedOrgId?: string,
+  moduleAccess: (orgId: string, waveId: string) => Promise<boolean> = async (org, wave) => (await (await import("@/lib/identity/module-access.server")).checkWave(org, wave)).ok,
 ): Promise<AggregationTriggerResult> {
   // FIBT-HML-2E (P0): esta função toca banco (lê wave_responses, grava
   // wave_capsules) e é uma das server functions permitidas pelo request
@@ -76,6 +77,7 @@ export async function triggerCapsuleAggregation(
   if (authorizedOrgId && waveOwner.org_id !== authorizedOrgId) {
     return { triggered: false, count: 0, reason: "cross_tenant_denied" };
   }
+  if (!(await moduleAccess(waveOwner.org_id, waveId))) return { triggered: false, count: 0, reason: "module_unavailable" };
 
   const packId: string =
     (waveOwner.organizations as { pack_id?: string | null } | null)?.pack_id ?? "enterprise";
@@ -303,6 +305,7 @@ export async function triggerCapsuleAggregation(
 
 export async function triggerCapsuleAggregationByToken(
   token: string,
+  moduleAccess?: (orgId: string, waveId: string) => Promise<boolean>,
 ): Promise<AggregationTriggerResult> {
   // FIBT-HML-2E (P0): mesma checagem de triggerCapsuleAggregation, mas
   // ANTES da própria query de wave_invites desta função — o backend
@@ -349,5 +352,5 @@ export async function triggerCapsuleAggregationByToken(
   }
 
   const instrument: string = (invite.waves as { instrument?: string } | null)?.instrument ?? "COPSOQ";
-  return triggerCapsuleAggregation(invite.wave_id as string, instrument);
+  return triggerCapsuleAggregation(invite.wave_id as string, instrument, undefined, moduleAccess);
 }

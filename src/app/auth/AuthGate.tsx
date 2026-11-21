@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useDemoGate } from "@/app/shell/demo-gate";
+import { withAuthDeadline } from "@/lib/auth/auth-recovery";
+import { authGateState } from "./auth-gate-state";
 
 const PUBLIC_PREFIXES = [
   "/",
@@ -16,6 +18,8 @@ const PUBLIC_PREFIXES = [
   "/nr1",
   "/privacidade-comercial",
   "/apresentacao",
+  // Guia da jornada: a leitura editorial tem a própria senha validada no servidor (/api/guia).
+  "/guia-empresarial",
 ];
 
 // Rotas que executam ações reais (provisionamento, escrita privilegiada) —
@@ -30,6 +34,7 @@ function matchesPrefix(pathname: string, prefixes: string[]): boolean {
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [expired, setExpired] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
@@ -42,46 +47,82 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   // escrevem dados reais (essas sempre exigem sessão Supabase de verdade).
   const demoUnlocked = useDemoGate((s) => s.unlocked);
   const demoHydrated = useDemoGate((s) => s.hasHydrated);
-  const allowedByDemoGate = !requiresRealAuth && demoUnlocked;
+  const gate = authGateState({
+    isPublic,
+    ready,
+    hasSession: !!session,
+    requiresRealAuth,
+    demoHydrated,
+    demoUnlocked,
+    expired,
+  });
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setReady(true);
-    });
+    const timer = setTimeout(() => {
+      if (mounted) setExpired(true);
+    }, 8000);
+    withAuthDeadline(supabase.auth.getSession(), 6000)
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          setExpired(true);
+          return;
+        }
+        setSession(data.session);
+        setReady(true);
+      })
+      .catch(() => {
+        if (mounted) setExpired(true);
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (!mounted) return;
       setSession(s);
+      setReady(true);
     });
     return () => {
       mounted = false;
+      clearTimeout(timer);
       sub.subscription.unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    if (!ready || !demoHydrated) return;
-    if (isPublic) return;
-    if (session) return;
-    if (allowedByDemoGate) return;
+    if (gate !== "login") return;
     navigate({
       to: "/entrar",
       search: { redirect: pathname === "/" ? undefined : pathname },
     });
-  }, [ready, demoHydrated, session, isPublic, allowedByDemoGate, pathname, navigate]);
+  }, [gate, pathname, navigate]);
 
-  if ((!ready || !demoHydrated) && !isPublic) {
+  if (gate === "recover")
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-background px-4 text-foreground">
+        <div className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-6">
+          <h1 className="font-serif text-2xl">Não conseguimos verificar o acesso</h1>
+          <p role="alert" className="text-sm leading-relaxed text-muted-foreground">
+            Confira sua conexão e retome o acesso. Nenhum vínculo ou permissão foi alterado.
+          </p>
+          <a
+            href={`/entrar?redirect=${encodeURIComponent(pathname)}`}
+            className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Retomar acesso institucional
+          </a>
+        </div>
+      </main>
+    );
+  if (gate === "loading") {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        <p role="status" className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Verificando acesso…
         </p>
       </div>
     );
   }
 
-  if (!isPublic && !session && !allowedByDemoGate) {
+  if (gate === "login") {
     return null;
   }
 

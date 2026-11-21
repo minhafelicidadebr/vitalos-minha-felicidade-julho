@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GlobalReportContext } from "@/components/GlobalReportContext";
+import { InstitutionalEditorialPreview } from "@/components/InstitutionalEditorialPreview";
+import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
@@ -359,7 +362,7 @@ function RelatorioGlobalPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-7 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0 print:space-y-5">
+      <div className="mx-auto min-w-0 space-y-7 break-words px-4 py-8 sm:px-6 max-w-4xl print:max-w-none print:px-0 print:py-0 print:space-y-5">
         {/* Capa do documento — só na impressão (1ª folha A4) */}
         <section
           className="print-only print-cover"
@@ -368,9 +371,7 @@ function RelatorioGlobalPage() {
         >
           <div className="flex h-full min-h-[230mm] flex-col justify-between py-10">
             <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded bg-primary font-serif text-2xl text-primary-foreground">
-                4
-              </span>
+              <VitalOSBrand surface="light" size="lg" decorative={false} />
               <span className="text-sm font-medium tracking-wide text-foreground">
                 4 Lentes VitalOS™ · VitalOS
               </span>
@@ -385,6 +386,8 @@ function RelatorioGlobalPage() {
               </h1>
               <p className="mt-6 text-base text-foreground">{report.orgName}</p>
               <p className="mt-1 text-sm text-muted-foreground">Ano {report.year}</p>
+              <img src="/brand/instituto/instituto-full-original.png" width={1198} height={481} alt="Instituto Felicidade para Todos — organização idealizadora" className="mx-auto mt-6 h-auto w-52 object-contain" />
+              <p className="mt-4 text-sm font-semibold">Corpo demonstrativo — dados de exemplo. Anexo institucional separado, quando disponível. Este documento não comprova certificação ou asseguração.</p>
               <div className="mx-auto mt-10 h-px w-24 bg-border" />
               <p className="mt-6 text-[11px] uppercase tracking-[0.22em] text-primary">
                 Confidencial — uso interno do conselho
@@ -417,6 +420,11 @@ function RelatorioGlobalPage() {
         </div>
 
         {/* Capa */}
+        <GlobalReportContext institutionalEnabled={isRealMode} />
+        <details className="min-w-0 space-y-4 rounded-xl border border-border p-4 print:hidden">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">Explorar o protótipo editorial METE · dados sintéticos</summary>
+          <InstitutionalEditorialPreview />
+        </details>
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -436,9 +444,9 @@ function RelatorioGlobalPage() {
             <button
               onClick={() => window.print()}
               title={REPORT_INTRO.printHint}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground print:hidden"
+              className="inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring print:hidden"
             >
-              <span aria-hidden>⤓</span> Exportar PDF do conselho
+              <span aria-hidden>⤓</span> Imprimir / salvar PDF da página
             </button>
           </div>
 
@@ -448,7 +456,7 @@ function RelatorioGlobalPage() {
 
           <div className="mt-5 flex flex-wrap items-end gap-6 border-t border-border/50 pt-5">
             <div>
-              <p className="text-xs text-muted-foreground">Prontidão ESG social</p>
+              <p className="text-xs text-muted-foreground">Prontidão ESG social · demonstração</p>
               <div className="flex items-baseline gap-2">
                 <span className="font-serif text-5xl font-semibold text-foreground">
                   {report.overallReadiness ?? "—"}
@@ -533,7 +541,7 @@ function RelatorioGlobalPage() {
         <section className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-border/60 bg-card p-5">
             <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Transformação comprovada
+              Experimentos · resultados de exemplo
             </p>
             <p className="mt-1 font-serif text-3xl text-foreground">
               {report.proof.experimentsConfirmed}
@@ -541,7 +549,7 @@ function RelatorioGlobalPage() {
                 /{report.proof.experimentsConcluded}
               </span>
             </p>
-            <p className="text-xs text-muted-foreground">experimentos com efeito medido</p>
+            <p className="text-xs text-muted-foreground">experimentos com resultados nos dados demonstrativos</p>
             <Link
               to="/experimentos"
               className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
@@ -551,11 +559,11 @@ function RelatorioGlobalPage() {
           </div>
           <div className="rounded-2xl border border-border/60 bg-card p-5">
             <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Certificação
+              Certificação · exemplo
             </p>
             <p className="mt-1 font-serif text-2xl text-foreground">{report.proof.sealLabel}</p>
             <p className="text-xs text-muted-foreground">
-              {report.proof.sealGranted ? "Selo Empresa Viva concedido" : "Selo em jornada"}
+              {report.proof.sealGranted ? "Selo Empresa Viva concedido no exemplo" : "Selo em jornada no exemplo"}
             </p>
             <Link
               to="/selo"
@@ -680,9 +688,7 @@ function AssuranceAnnexSection({
     >
       <h2 className="font-serif text-xl text-foreground">Anexo de Asseguração</h2>
       <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-        Dados reais desta organização — linhagem completa (onda → cápsula → fórmula),
-        materialidade declarada e as 5 regras anti-greenwashing checadas ao vivo. Os demais
-        KPIs do relatório acima seguem como leitura de referência do setor.
+        Esta seção consulta dados institucionais e apresenta a linhagem disponível (onda → cápsula → fórmula), materialidade declarada e verificações implementadas. Confira os estados abaixo: habilitação da consulta não garante disponibilidade. Os demais KPIs do corpo usam dados demonstrativos; as verificações não equivalem a asseguração independente.
       </p>
 
       {loading && !realKpi && (
@@ -710,14 +716,14 @@ function AssuranceAnnexSection({
           <div className="mt-4 rounded-xl border border-border/50 bg-card p-4">
             <p className="text-sm font-medium text-card-foreground">{realKpi.label}</p>
             <p className="mt-0.5 font-serif text-2xl text-foreground">{realKpi.display}</p>
-            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-4">
+            <dl className="mt-3 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:p-3">
               <div>
                 <dt className="uppercase tracking-[0.1em]">Onda</dt>
-                <dd className="truncate font-mono">{realKpi.lineage?.waveId}</dd>
+                <dd className="break-all font-mono">{realKpi.lineage?.waveId}</dd>
               </div>
               <div>
                 <dt className="uppercase tracking-[0.1em]">Cápsula</dt>
-                <dd className="truncate font-mono">{realKpi.lineage?.capsuleId}</dd>
+                <dd className="break-all font-mono">{realKpi.lineage?.capsuleId}</dd>
               </div>
               <div>
                 <dt className="uppercase tracking-[0.1em]">n</dt>
@@ -743,7 +749,7 @@ function AssuranceAnnexSection({
               {MATERIALITY_THEMES.map((theme) => {
                 const v = materiality[theme] ?? { impact: 3, financial: 3, role: "" };
                 return (
-                  <div key={theme} className="grid gap-2 sm:grid-cols-[1fr_auto_auto_1fr] sm:items-center">
+                  <div key={theme} className="grid gap-2 xl:grid-cols-[1fr_auto_auto_1fr] xl:items-center">
                     <span className="text-xs text-card-foreground">{theme}</span>
                     <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       Impacto
@@ -755,7 +761,7 @@ function AssuranceAnnexSection({
                             [theme]: { ...v, impact: Number(e.target.value) },
                           }))
                         }
-                        className="rounded-lg border border-border/60 bg-background px-1.5 py-1 text-xs"
+                        className="min-h-11 rounded-lg border border-border/60 bg-background px-2 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
                       >
                         {[1, 2, 3, 4, 5].map((n) => (
                           <option key={n} value={n}>{n}</option>
@@ -772,7 +778,7 @@ function AssuranceAnnexSection({
                             [theme]: { ...v, financial: Number(e.target.value) },
                           }))
                         }
-                        className="rounded-lg border border-border/60 bg-background px-1.5 py-1 text-xs"
+                        className="min-h-11 rounded-lg border border-border/60 bg-background px-2 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
                       >
                         {[1, 2, 3, 4, 5].map((n) => (
                           <option key={n} value={n}>{n}</option>
@@ -785,7 +791,7 @@ function AssuranceAnnexSection({
                         onMaterialityChange((prev) => ({ ...prev, [theme]: { ...v, role: e.target.value } }))
                       }
                       placeholder="Papel de quem declara"
-                      className="rounded-lg border border-border/60 bg-background px-2 py-1 text-[11px] text-foreground focus:border-primary/50 focus:outline-none"
+                      aria-label={`Papel de quem declara — ${theme}`} className="min-h-11 min-w-0 rounded-lg border border-border/60 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
                     />
                   </div>
                 );
@@ -840,7 +846,7 @@ function AssuranceAnnexSection({
             type="button"
             disabled={savingSnapshot}
             onClick={onGenerateSnapshot}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 print:hidden"
+            className="mt-4 inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 print:hidden"
           >
             {savingSnapshot ? "Selando…" : "Gerar snapshot imutável"}
           </button>
@@ -854,7 +860,7 @@ function AssuranceAnnexSection({
                 {snapshots.slice(0, 5).map((s) => (
                   <li key={s.id} className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                     <span>{new Date(s.generatedAt).toLocaleString("pt-BR")}</span>
-                    <span className="truncate font-mono">hash {s.contentHash.slice(0, 16)}…</span>
+                    <span className="break-all font-mono">hash {s.contentHash.slice(0, 16)}…</span>
                   </li>
                 ))}
               </ul>

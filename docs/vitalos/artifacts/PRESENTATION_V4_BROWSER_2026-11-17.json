@@ -1,0 +1,81 @@
+{
+  "recordedAt": "2026-11-17T11:13:16.662Z",
+  "baseCommit": "840e1c3f00809ae6f1baccc09f7c6188a0869b46",
+  "target": "http://localhost:8093/apresentacao/empresas",
+  "scope": "isolated-local-no-database",
+  "observed": [
+    "normal password login",
+    "20-scene index",
+    "IVO panel closes with Escape and returns focus",
+    "coordination role panel and focus return",
+    "dashboard plan, record and report steps including Enter",
+    "executive route contains 9 scenes",
+    "20-scene continuous mode",
+    "reload retains authorized access"
+  ],
+  "reflow": [
+    {
+      "articles": 20,
+      "documentWidth": 304,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 320
+    },
+    {
+      "articles": 20,
+      "documentWidth": 343,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 360
+    },
+    {
+      "articles": 20,
+      "documentWidth": 371,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 391
+    },
+    {
+      "articles": 20,
+      "documentWidth": 748,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 768
+    },
+    {
+      "articles": 20,
+      "documentWidth": 1004,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 1024
+    },
+    {
+      "articles": 20,
+      "documentWidth": 1420,
+      "height": 800,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 1440
+    },
+    {
+      "articles": 20,
+      "documentWidth": 748,
+      "height": 320,
+      "overflow": [],
+      "smallTargets": [],
+      "width": 768
+    }
+  ],
+  "limitations": {
+    "nativeFullscreen": "requestFullscreen refused through the available DOM control; app displayed its recovery message; native mode not proven",
+    "mobileCapture": "Page.captureScreenshot timed out after 5000ms with viewport override; one capture inconsistent with measured DOM position was rejected",
+    "assistiveTechnology": "No screen-reader or physical-device audit performed"
+  },
+  "viewportOverrideReset": true,
+  "secretsRecorded": false
+}

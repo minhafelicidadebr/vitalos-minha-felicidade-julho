@@ -136,4 +136,21 @@ export const COLUMN_DEPENDENCIES: ColumnDependency[] = [
   { table: "action_items", column: "due_on", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "organizations", column: "pack_id", usedBy: "customer-health.server.ts listAccountHealth" },
   { table: "organizations", column: "plan", usedBy: "customer-health.server.ts listAccountHealth" },
+
+  // IVO PI-13 — replay da inclusão de ação em plano existente. As entradas abaixo cobrem só o bloco §13
+  // e a chave de idempotência lidos por findAddedAction (owner_role_label, metric_label, metric_baseline,
+  // metric_target, metric_unit e add_request_id; due_on já consta acima, em Customer Health). NÃO cobrem
+  // id, title, description e effort (lacuna pré-existente do manifesto manual) nem source_cohort_id e
+  // source_factor_id (nascem em ALTER TABLE com várias ADD COLUMN e o parser só reconhece a primeira).
+  // Cobertura: só os NOMES, conferidos contra as migrations versionadas (a store real não é
+  // exercitada contra banco no gate).
+  { table: "action_items", column: "owner_role_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_label", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_baseline", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_target", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "metric_unit", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+  { table: "action_items", column: "add_request_id", usedBy: "fibt-plan-composition.server.ts findAddedAction" },
+
+  // Q2 · B2 — visibilidade de título aos membros (C2/D4).
+  { table: "action_items", column: "title_visible_at", usedBy: "member-plan-feedback.server.ts defaultTitleVisibleItemIds" },
 ];

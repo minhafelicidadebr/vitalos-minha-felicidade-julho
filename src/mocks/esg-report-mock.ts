@@ -65,7 +65,7 @@ export const REPORT_INTRO = {
   lead:
     "A jornada de 12 meses pelas quatro lentes — COPSOQ, FIB-T, PERMA+V e VIA-T — consolidada " +
     "nas três dimensões ESG. Cada indicador é rastreável ao seu instrumento e a um Objetivo de " +
-    "Desenvolvimento Sustentável. Não é discurso: é o sistema instalado e o efeito medido.",
+    "Desenvolvimento Sustentável. Execução, mudança observada e efeito avaliado aparecem separados, cada um com sua evidência.",
   methodologyLead:
     "Quatro instrumentos científicos, uma jornada longitudinal. Cada trimestre gera o dado do " +
     "próximo, transformando diagnóstico em predição e cultura em evidência.",

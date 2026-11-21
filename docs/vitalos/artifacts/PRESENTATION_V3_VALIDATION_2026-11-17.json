@@ -1,0 +1,58 @@
+{
+  "recordedAt": "2026-11-17T03:15:05.405Z",
+  "base": "b1227f8",
+  "candidate": "V3",
+  "scope": "owned-local-no-database",
+  "target": "http://localhost:8093/apresentacao/empresas",
+  "browser": {
+    "status": "partial-blocked",
+    "normalPasswordLoginObserved": true,
+    "newOpeningObserved": true,
+    "nativeFullscreenDemonstrated": false,
+    "mobileDemonstrated": false,
+    "reason": "Tool could not determine the current browser URL on Windows with enough confidence to enforce policy",
+    "protectionBypassed": false
+  },
+  "checks": {
+    "targeted": {
+      "pass": 96,
+      "fail": 0,
+      "assertions": 297,
+      "files": 12
+    },
+    "gate": {
+      "pass": 4415,
+      "fail": 0,
+      "assertions": 13863,
+      "files": 352
+    },
+    "typecheck": true,
+    "parity": true,
+    "secretScan": true,
+    "inertBuild": true,
+    "httpChecks": 11,
+    "interactionFinal": {
+      "pass": 12,
+      "fail": 0,
+      "assertions": 36,
+      "files": 2
+    }
+  },
+  "sizes": {
+    "basis": "Raw bytes in same local isolated build environment; no real-user performance measurement",
+    "V2": {
+      "scenes": 18,
+      "payload": 35360,
+      "routeJS": 19471,
+      "css": 23294
+    },
+    "V3": {
+      "scenes": 15,
+      "payload": 34727,
+      "routeJS": 27970,
+      "css": 28299,
+      "newPhoto": 177437
+    }
+  },
+  "remotePublished": false
+}

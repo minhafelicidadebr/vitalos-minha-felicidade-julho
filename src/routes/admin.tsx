@@ -103,6 +103,7 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [waves, setWaves] = useState<WaveItem[]>([]);
+  const [wavesError, setWavesError] = useState<string | null>(null);
   const [loadingWaves, setLoadingWaves] = useState(false);
 
   // Convidar pessoa (papel real, distinto de convidar organização) — os
@@ -121,17 +122,26 @@ function AdminPage() {
   const fetchWaves = useCallback(async () => {
     if (!cloudActive || !orgId) return;
     setLoadingWaves(true);
+    setWavesError(null);
+    setWaves([]);
     try {
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) {
+        setWavesError("Sessão expirada. Faça login novamente para consultar as ondas.");
+        return;
+      }
       const result = await adminListWaves({ data: { accessToken } });
       if (result.error) {
-        setError(result.error);
+        setWavesError(result.error);
+        return;
+      }
+      if (!result.cloudReady) {
+        setWavesError("A consulta de ondas está indisponível neste ambiente. Tente atualizar.");
         return;
       }
       setWaves(result.waves as WaveItem[]);
     } catch {
-      // silently fail — cloud may not be wired yet
+      setWavesError("Não foi possível consultar as ondas. Tente atualizar; nenhum registro foi criado ou removido.");
     } finally {
       setLoadingWaves(false);
     }
@@ -575,14 +585,20 @@ function AdminPage() {
               </button>
             </div>
 
-            {waves.length === 0 && !loadingWaves && (
+            {wavesError && (
+              <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {wavesError}
+              </p>
+            )}
+
+            {waves.length === 0 && !loadingWaves && !wavesError && (
               <p className="py-4 text-center text-sm text-muted-foreground">
                 Nenhuma onda criada ainda. Use o formulário acima para iniciar a primeira.
               </p>
             )}
 
             {loadingWaves && waves.length === 0 && (
-              <p className="py-4 text-center text-sm text-muted-foreground animate-pulse">
+              <p role="status" className="py-4 text-center text-sm text-muted-foreground animate-pulse">
                 Carregando ondas…
               </p>
             )}

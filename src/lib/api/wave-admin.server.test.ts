@@ -62,7 +62,7 @@ beforeEach(() => {
 });
 
 describe("closeWaveAsAdmin — fechamento é a ÚNICA ação que sela uma onda (P0-08)", () => {
-  const deps = { triggerCapsuleAggregation: fakeTriggerCapsuleAggregation };
+  const deps = { triggerCapsuleAggregation: fakeTriggerCapsuleAggregation, moduleAccess: async () => ({ ok: true as const }) };
 
   test("onda de outra organização: recusa sem tocar nada", async () => {
     const result = await closeWaveAsAdmin("org-atacante", "wave-org-a", deps);

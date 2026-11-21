@@ -38,7 +38,7 @@ export function LandingHero({ onAction }: { onAction: (action: CtaAction) => voi
         className="pointer-events-none absolute left-0 top-0 -z-10 h-full w-[58%] bg-[radial-gradient(circle_at_25%_20%,rgba(201,162,39,0.16)_0%,transparent_34%),radial-gradient(circle_at_70%_86%,rgba(0,180,150,0.14)_0%,transparent_42%)]"
       />
 
-      <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-6xl items-center gap-10 px-4 py-14 sm:min-h-[680px] sm:px-6 sm:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:py-24">
+      <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-6xl grid-cols-1 items-center gap-10 px-4 py-14 sm:min-h-[680px] sm:px-6 sm:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:py-24">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +70,7 @@ export function LandingHero({ onAction }: { onAction: (action: CtaAction) => voi
                 key={cta.label}
                 size="lg"
                 variant={VARIANT[cta.variant ?? "primary"]}
-                className={`w-full sm:w-auto ${CTA_CLASS[cta.variant ?? "primary"]}`}
+                className={`h-auto max-w-full whitespace-normal px-4 py-3 sm:w-auto sm:px-8 ${CTA_CLASS[cta.variant ?? "primary"]}`}
                 onClick={() => onAction(cta.action)}
               >
                 {cta.label}

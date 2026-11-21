@@ -1,6 +1,6 @@
 // Rota pública de resposta por setor — sem autenticação, sem AppShell, sem nav.
 // Qualquer pessoa com o link pode acessar; o setor é derivado do token no servidor.
-// Domínio B exclusivo (COPSOQ/risco psicossocial). Modo A: anonimato por construção.
+// O instrumento e seus textos vêm da campanha autorizada. Modo A: anonimato por construção.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
@@ -179,7 +179,7 @@ function SurveyFlow({
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <ThanksScreen grant={grant} receipt={receipt} />
+            <ThanksScreen grant={grant} survey={survey} receipt={receipt} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -189,7 +189,7 @@ function SurveyFlow({
 
 // ─── Tela de consentimento ────────────────────────────────────────────────────
 
-function ConsentScreen({
+export function ConsentScreen({
   grant,
   survey,
   onAccept,
@@ -205,7 +205,7 @@ function ConsentScreen({
       {/* Cabeçalho da campanha */}
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Domínio B · Risco Psicossocial · {grant.meteAnchor ?? "Pesquisa Ativa"}
+          {survey.intro.eyebrow}
         </p>
         <h1 className="mt-2 font-serif text-3xl text-foreground">{grant.campaignTitle}</h1>
         <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5">
@@ -230,7 +230,7 @@ function ConsentScreen({
         </p>
       </div>
 
-      {/* Disclaimer Domínio B */}
+      {/* Aviso próprio do instrumento servido */}
       <div
         className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/40 px-5 py-4 dark:bg-amber-950/15"
         role="note"
@@ -400,11 +400,13 @@ function SurveyScreen({
 
 // ─── Tela de agradecimento ────────────────────────────────────────────────────
 
-function ThanksScreen({
+export function ThanksScreen({
   grant,
+  survey,
   receipt,
 }: {
   grant: Extract<SectorTokenResolution, { valid: true }>;
+  survey: SurveyDefinition;
   receipt: CaptureReceipt | null;
 }) {
   return (
@@ -418,11 +420,9 @@ function ThanksScreen({
       <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {grant.instrumentShort} · {grant.sectorLabel} · {grant.meteAnchor}
       </p>
-      <h1 className="mt-2 font-serif text-3xl text-foreground">{survey_intro_thanks}</h1>
+      <h1 className="mt-2 font-serif text-3xl text-foreground">{survey.intro.thanksTitle}</h1>
       <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
-        Sua resposta entrou somente no agregado anônimo do setor. No fechamento da campanha, a
-        devolutiva mostra o que a comunidade aprendeu e qual é o próximo movimento — sem identificar
-        nenhum respondente.
+        {survey.intro.thanksBody}
       </p>
 
       {receipt && (
@@ -451,16 +451,20 @@ function ThanksScreen({
         </p>
         <ul className="mt-2 space-y-1 text-xs leading-relaxed text-muted-foreground">
           <li>• Sua resposta vai para o agregado protegido do setor {grant.sectorLabel}</li>
-          <li>• Ao atingir 5 respondentes, as tendências ficam disponíveis para o time de RH/SST</li>
-          <li>• Os resultados orientam o plano de ação do Culture Lab e o GRO da NR-1</li>
+          <li>
+            • A publicação depende do mínimo de participantes e das regras de proteção do instrumento;
+            a quantidade, sozinha, não garante disponibilidade
+          </li>
+          <li>
+            • Uma leitura publicada pode orientar prioridades e ações; o envio não comprova
+            aprendizagem ou eficácia
+          </li>
           <li>• Nenhum gestor vê quem respondeu ou o que cada pessoa respondeu</li>
         </ul>
       </div>
     </div>
   );
 }
-
-const survey_intro_thanks = "Obrigado — sua participação foi registrada";
 
 // ─── Token inválido ───────────────────────────────────────────────────────────
 

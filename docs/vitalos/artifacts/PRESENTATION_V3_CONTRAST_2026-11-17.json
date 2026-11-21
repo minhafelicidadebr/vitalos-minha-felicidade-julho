@@ -1,0 +1,41 @@
+{
+  "scope": "Static declared color pairs, not full accessibility audit",
+  "checks": [
+    {
+      "role": "Main text",
+      "foreground": "#173e34",
+      "background": "#ffffff",
+      "ratio": 11.83
+    },
+    {
+      "role": "Secondary text",
+      "foreground": "#52685f",
+      "background": "#ffffff",
+      "ratio": 5.99
+    },
+    {
+      "role": "Secondary text on background",
+      "foreground": "#52685f",
+      "background": "#eef2ee",
+      "ratio": 5.3
+    },
+    {
+      "role": "Dark hero copy",
+      "foreground": "#dce9df",
+      "background": "#103b30",
+      "ratio": 9.92
+    },
+    {
+      "role": "Gold CTA",
+      "foreground": "#173e34",
+      "background": "#edc96a",
+      "ratio": 7.42
+    },
+    {
+      "role": "Learning context",
+      "foreground": "#435878",
+      "background": "#e9edf7",
+      "ratio": 6.17
+    }
+  ]
+}

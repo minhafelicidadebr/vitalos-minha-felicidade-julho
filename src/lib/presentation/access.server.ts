@@ -65,25 +65,25 @@ async function verify(password: string, verifier: string) {
   return timingSafeEqual(key, Buffer.from(expected!, "hex"));
 }
 
-const sign = (verifier: string, payload: string) =>
-  createHmac("sha256", createHash("sha256").update("presentation-session:" + verifier).digest())
+const sign = (verifier: string, payload: string, scope = "presentation-session") =>
+  createHmac("sha256", createHash("sha256").update(scope + ":" + verifier).digest())
     .update(payload)
     .digest("hex");
 
-function issue(verifier: string, expires: number) {
+function issue(verifier: string, expires: number, scope?: string) {
   const payload = `${expires}.${randomBytes(16).toString("hex")}`;
-  return `${payload}.${sign(verifier, payload)}`;
+  return `${payload}.${sign(verifier, payload, scope)}`;
 }
 
-function sessionExpiry(request: Request, verifier: string, time: number): number | null {
+function sessionExpiry(request: Request, verifier: string, time: number, name = COOKIE, scope?: string): number | null {
   const values = (request.headers.get("cookie") ?? "")
     .split(";")
     .map((part) => part.trim())
-    .filter((part) => part.startsWith(COOKIE + "="));
+    .filter((part) => part.startsWith(name + "="));
   if (values.length !== 1) return null;
-  const m = /^(\d{13})\.([a-f0-9]{32})\.([a-f0-9]{64})$/.exec(values[0]!.slice(COOKIE.length + 1));
+  const m = /^(\d{13})\.([a-f0-9]{32})\.([a-f0-9]{64})$/.exec(values[0]!.slice(name.length + 1));
   if (!m) return null;
-  const expected = Buffer.from(sign(verifier, `${m[1]}.${m[2]}`), "hex");
+  const expected = Buffer.from(sign(verifier, `${m[1]}.${m[2]}`, scope), "hex");
   if (!timingSafeEqual(expected, Buffer.from(m[3]!, "hex"))) return null;
   const expires = Number(m[1]);
   return expires > time ? expires : null;
@@ -128,13 +128,20 @@ export function createPresentationHandler(
   deps: {
     config?: () => PresentationAccessConfig | null;
     now?: () => number;
-    loadDeck?: () => Promise<PresentationDeck>;
+    loadDeck?: () => Promise<PresentationDeck | unknown>;
+    /** Reuso pelo Guia da Jornada: cookie, caminho e escopo de assinatura próprios. */
+    cookieName?: string;
+    cookiePath?: string;
+    signingScope?: string;
     ttlMs?: number;
   } = {},
 ) {
   const now = deps.now ?? Date.now;
   let attempts: number[] = [];
   const ttl = deps.ttlMs ?? TTL;
+  const cookieName = deps.cookieName ?? COOKIE;
+  const cookiePath = deps.cookiePath ?? "/api/apresentacao";
+  const scope = deps.signingScope;
   const reply = (body: unknown, status = 200, extra: Record<string, string> = {}) => {
     const response = Response.json(body, { status, headers: NO_STORE });
     for (const [name, value] of Object.entries(extra)) response.headers.set(name, value);
@@ -146,9 +153,9 @@ export function createPresentationHandler(
     const origin = new URL(request.url).origin;
     if (!config.origins.includes(origin)) return reply({ state: "invalid" }, 403);
     const time = now();
-    const expires = sessionExpiry(request, config.verifier, time);
+    const expires = sessionExpiry(request, config.verifier, time, cookieName, scope);
     const cookie = (value: string, seconds: number) =>
-      `${COOKIE}=${value}; Path=/api/apresentacao; HttpOnly; SameSite=Strict; Max-Age=${seconds}${origin.startsWith("https:") ? "; Secure" : ""}`;
+      `${cookieName}=${value}; Path=${cookiePath}; HttpOnly; SameSite=Strict; Max-Age=${seconds}${origin.startsWith("https:") ? "; Secure" : ""}`;
     if (request.method === "GET") {
       if (!expires) return reply({ state: "locked" }, 401);
       const deck = await (
@@ -173,7 +180,7 @@ export function createPresentationHandler(
     if (!password || !(await verify(password, config.verifier)))
       return reply({ state: "locked" }, 401);
     return reply({ state: "authenticated" }, 200, {
-      "Set-Cookie": cookie(issue(config.verifier, now() + ttl), Math.ceil(ttl / 1000)),
+      "Set-Cookie": cookie(issue(config.verifier, now() + ttl, scope), Math.ceil(ttl / 1000)),
     });
   };
 }

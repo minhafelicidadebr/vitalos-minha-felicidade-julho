@@ -194,3 +194,32 @@ describe("listOrgCapsules — autorização autoritativa antes da leitura", () =
     }
   });
 });
+
+describe("leituras institucionais — falha explícita sem singleton anônimo", () => {
+  test("cliente do chamador ausente não produz uma lista vazia bem-sucedida", async () => {
+    for (const read of [listOrgWaves, listOrgCapsules]) {
+      expect(await read(TOKEN_MEMBER_A, TENANT_A, { resolveMembership: fakeResolveMembership }))
+        .toEqual({ ok: false, reason: "read_unavailable" });
+    }
+  });
+
+  test("erro ou resposta ausente do banco não viram ausência de registros", async () => {
+    for (const result of [{ data: null, error: { message: "unavailable" } }, { data: null, error: null }]) {
+      const client = {
+        from: () => ({ select: () => ({ eq: () => ({ order: async () => result }) }) }),
+      } as never;
+      for (const read of [listOrgWaves, listOrgCapsules]) {
+        expect(await read(TOKEN_MEMBER_A, TENANT_A, { client, resolveMembership: fakeResolveMembership }))
+          .toEqual({ ok: false, reason: "read_unavailable" });
+      }
+    }
+  });
+
+  test("vazio confirmado continua sendo um resultado legítimo", async () => {
+    for (const read of [listOrgWaves, listOrgCapsules]) {
+      const client = fakeClient([], []) as never;
+      expect(await read(TOKEN_MEMBER_A, TENANT_A, { client, resolveMembership: fakeResolveMembership }))
+        .toEqual({ ok: true, items: [] });
+    }
+  });
+});

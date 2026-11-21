@@ -1,0 +1,148 @@
+# Prova visual dirigida Q2 — continuidade de 2026-11-15
+
+Após `7bae2bc`, comprovadas as superfícies de aplicação/habilitação Q2 pelo navegador local, com novo login, estados reais do stack sintético e recarga. Identificados e corrigidos overflow do cabeçalho a 360 px, nome/semântica/foco do menu da conta, falso vazio administrativo, aviso legado de RH e identificação incorreta do instrumento no formulário público. Reflow conferido em 320/360/768/1280, formulário educativo aberto em 320, temas claro/escuro e Enter/Escape com retorno de foco. Não é auditoria visual das 88 rotas, teste formal de leitor de tela/contraste/zoom/impressão ou validação pedagógica. Registro, capturas sanitizadas e limites em [Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md](Q2_ENTERPRISE_WAVE1_LOCAL_2026-11-15.md). Os bloqueios de navegador nas seções anteriores da história não descrevem esta prova posterior.
+
+# Cobertura transversal de páginas — fechamento local, 2026-11-15
+
+## Onda de contexto de sessão e continuidade visual
+
+O inventário estático encontrou 88 componentes de rota TSX: 76 usam `AppShell` e 12 são páginas independentes de acesso, convite/token, marketing, FIB-T piloto ou administração. O `AppShell` agora mostra um aviso de “Modo demonstração” no começo de todas as páginas servidas por esse shell quando a sessão é exploratória. O aviso orienta conferir origem/limites em cada página; não declara que todo dado dentro da sessão seja sintético nem substitui os avisos específicos dos módulos. Sessões com organização institucional não recebem o aviso.
+
+Correções pontuais nas páginas fora do shell:
+- `/plataforma`: estado de verificação anunciado, campo de e-mail associado ao rótulo, seleção de plano em grupo nativo de rádios, controles com área mínima de toque e erros anunciados.
+- `/entrar`: sucesso e erro anunciados, ação de retomar com foco/área de toque claros.
+- `/onboarding`: título principal semântico, ícone decorativo e CTA acessível.
+- `/auth/callback`: estado de navegação anunciado ao leitor de tela.
+- `/plano-acao`: lifts legados rotulados como previstos, com limite explícito junto às métricas agregadas e individuais.
+- `/selo`: prévia demonstrativa reorganizada em resumo, critérios essenciais/complementares e etapas ilustrativas; certificado/validade fictícios retirados.
+
+As ondas documentadas anteriormente já melhoraram preparação Q1, leitura Q2, governança, eficácia, aprendizagem, painel RH, Academia, prioridades, experimentos, trajetória, P&L, ESG, relatórios e relatório global. A trilha `/voz-segura` já organiza a jornada em etapas pedagógicas e conserva fontes, estados e limites; não foi duplicada por uma segunda navegação. Páginas independentes de ativação, convite e questionário já têm seus próprios estados transacionais e não receberam moldura genérica.
+
+Isso é cobertura estrutural de UX e conteúdo para superfícies identificadas, não redesign gráfico pixel a pixel de cada uma das 88 rotas. A inspeção em navegador/mobile continua necessária para overflow, contraste renderizado, zoom, foco e impressão; uma tentativa de prévia local foi bloqueada pela permissão do ambiente ao socket localhost, portanto não há evidência visual nova nem homologação integral ou melhoria percentual. Mudanças de cópia não aprovam instrumentos, critérios de eficácia, mappings ou certificações.
+
+Verificação desta onda: 22 testes direcionados passaram (59 assertions); TypeScript por Node passou; lint direcionado terminou sem erros e com um aviso Fast Refresh já existente em `AppShell.tsx`. A nova tentativa de build inerte falhou ao iniciar subprocesso no diretório isolado (`CouldntReadCurrentDirectory`), por isso o build anterior ao último ajuste não comprova este candidato. A prévia do navegador também não pôde abrir o socket localhost nas permissões do ambiente. Sem operações remotas. `.q.out` e `.q.sql` preservados sem abertura.
+
+# Auditoria dirigida de design instrucional e organização visual
+
+## Sexta onda — fronteiras do relatório global
+
+`GlobalReportContext.tsx` explicita quatro operações em `/relatorio-global`: corpo demonstrativo, consulta institucional condicional, impressão do navegador e solicitação de snapshot ao servidor. `isRealMode` continua derivado da capability, configuração e vínculo existentes; “habilitada” não significa consulta bem-sucedida. Não se alterou o controle de acesso, payload ou handler de snapshot. Nenhuma operação foi executada contra ambiente remoto.
+
+O botão de exportação passa a descrever a implementação existente (`window.print`): “Imprimir / salvar PDF da página”. A capa de impressão recebe aviso de dados de exemplo e anexo separado. Os cards de prontidão, experimentos e selo identificam seu caráter demonstrativo junto dos valores. A introdução do anexo não declara que todo dado já está disponível ou que verificações implementadas equivalem a asseguração independente. A fórmula histórica derivada de COPSOQ e os critérios do anexo foram preservados, sem aprovação metodológica nova; uma origem institucional não homologa interpretação, equivalência ou conformidade.
+
+Mobile, revisão estática: linhagem em uma coluna antes de `sm`, identificadores quebram em vez de truncar, campos com área de toque de 44px, entrada de papel com nome acessível contextual e grade de materialidade empilhada até `xl`. Não foi feita prova visual de impressão, mobile, foco ou leitor de tela; a validação no navegador permanece adiada pelo operador.
+
+Verificação: 38 testes direcionados aprovados (novo contexto, relatório anual e anexo), TypeScript e revisão de diff. O teste novo garante que habilitação institucional não elimina o aviso demonstrativo nem confirma persistência/impressão. Testes de engines não validam critérios científicos. Build inerte isolado integra a nova importação; resultado no fechamento desta etapa. Logs locais ignorados: `instructional-global-report-tests.log` e `instructional-global-report-build.log`. Não houve geração de PDF, snapshot, migration, seed ou alteração de dados reais.
+
+Próxima revisão independente: página do selo e demais destinos ainda não inspecionados de certificação. As seis ondas cobrem uma seleção de superfícies; não constituem auditoria ou homologação integral do aplicativo.
+
+Build final aprovado em `module-build-1794767770965`, com `.output` original preservada e varredura de 671 fontes/302 artefatos sem credencial ou identificador de projeto real. Metadados genéricos locais do helper atualizados, diretórios anteriores preservados. Sem deploy.
+
+## Quinta onda — P&L, ESG e galeria de relatórios
+
+As rotas `/pnl`, `/esg` e `/relatorios` reutilizam o aviso de origem/limites antes dos indicadores. P&L identifica parâmetros editáveis, base demonstrativa e natureza estimada dos custos; não se altera a fórmula nem se valida a relação entre variação IVO e economia. ESG identifica prontidão/cobertura demonstrativas, sem alegação de conformidade, certificação ou impacto observado. Galeria identifica evidências/selo/relatórios de exemplo. A ação que apenas atualiza estado React passa de “Gerar PDF” para “Simular geração de PDF”, com retorno anunciado por `role=status` e mensagem de que nenhum arquivo foi gerado; removida promessa de prazo/fase futura não comprovada.
+
+Mobile, revisão estática: KPIs P&L empilham abaixo de `sm`; linhas de fórmula permitem quebra e controles recebem altura mínima de 44px. Botões de relatório empilham com o texto em telas estreitas. Prova visual e testes assistivos continuam adiados, sem alegação de ausência de overflow ou conformidade de acessibilidade.
+
+Verificação: 23 testes direcionados aprovados (aviso compartilhado, engine P&L e engine ESG), TypeScript e revisão de diff. Testes de engines comprovam regressão, não validação econômica/científica. O teste de aviso cobre os limites específicos dessas três novas variantes; não renderiza as rotas inteiras. Build inerte isolado integra as importações, com resultado no fechamento da etapa e log local `instructional-esg-reports-build.log`.
+
+Fronteira: `/relatorio-global` não foi alterado. A inspeção dirigida encontrou prévia baseada em hooks/mocks e operações de servidor na mesma rota; exige revisão específica para distinguir simulação, persistência e geração real. Não aplicar aviso genérico de que toda operação ali é simulada. Nenhum modelo/critério ESG, selo, metodologia, dado ou permissão foi aprovado por esta onda. Próxima revisão independente: essa fronteira no relatório global, antes de propagar o padrão a exportações e snapshots reais.
+
+Build final aprovado em `module-build-1794767562371`: varredura de 670 fontes e 301 artefatos sem credencial ou identificador de projeto real; `.output` original preservada pelo helper. Metadados genéricos locais do helper atualizados. Sem publicação.
+
+## Quarta onda — prioridades, experimentos e projeções
+
+As rotas `/prioridades`, `/experimentos` e `/trajetoria` recebem `DemonstrationContext`, componente informativo com origem e limites específicos por superfície, antes dos indicadores. Rótulos de alavancagem/pontos e cards de IVO/custo/ESG identificam simulação, exemplo ou hipótese. “Comprovados” foi substituído por “Casos concluídos · demonstração”; a contagem de hipóteses confirmadas é qualificada como exemplo. Faixas de três KPIs empilham abaixo de `sm`. Nenhum cálculo, parâmetro, mock, permissão, contrato de registro ou export foi alterado. Aviso não equivale à homologação dos modelos históricos, das faixas ou das bandas de projeção.
+
+Validação direcionada: 55 testes aprovados em `DemonstrationContext.test.tsx`, forecast, priority e evidence engines; TypeScript e revisão de diff. O teste novo verifica os limites distintos de diagnóstico, eficácia e projeção. Os testes dos engines são regressões dos cálculos preservados, não validação científica dos modelos. Build inerte isolado executado pelo helper existente, sem publicação e preservando a `.output` original; resultado e log registrados no fechamento desta etapa. Navegador/mobile real continuam adiados por orientação do operador.
+
+Log local ignorado: `.institutional-admin.local/instructional-projections-tests.log` e `instructional-projections-build.log`. A próxima revisão independente deve verificar consistência dessa transparência nas páginas de destino dos links (P&L, ESG e relatórios), sem supor que esta onda já cobriu esses módulos.
+
+Resultado do build: aprovado em `module-build-1794767397303`; varredura de 670 fontes e 301 artefatos sem credencial ou identificador de projeto real. Nenhum deploy executado. O helper atualizou seus metadados genéricos locais de build; diretórios/logs anteriores foram preservados.
+
+## Terceira onda — orientação RH e transparência educacional
+
+`RHDashboard.tsx`: ramo institucional recebe roteiro mensurar → compreender → aplicar/revisar, aviso de diferença entre habilitação, coleta e publicação, quebra do nome da organização e foco visível no CTA. Corrigida a promessa de resultados automáticos após cinco respostas: quantidade sozinha não garante geração/publicação. Não houve mudança da seleção de ramo real/demo, permissões ou serviços. Esta onda não auditou nem alterou os cálculos da cápsula legada.
+
+`academia.tsx`: aviso anterior à curadoria identifica catálogo e sinais demonstrativos, distingue participação de domínio/transferência e explica que sincronização depende de sessão/serviço. Corrigida a afirmação absoluta de que conclusões ficam apenas na sessão: o código existente usa `useParticipationSync` e pode sincronizar eventos autenticados. Nenhuma integração ou persistência nova foi criada.
+
+`LearningDynamicCard.tsx`: persistência declarada pelo registro canônico é exibida sem representar confirmação de envio; todos os seis estados tipados têm rótulo. Cards permitem quebra de título e badge em linhas distintas. CTA e divulgação “Em evolução” no rail passam a 44px de altura mínima. Conteúdo, papel, exposure e regras de CTA permanecem derivados dos contratos anteriores.
+
+Verificação: 39 testes direcionados aprovados em learning-dynamics DOM, registro canônico e engine da Academia; regressão distingue sessão de organização e mantém aviso de ausência de confirmação de envio. TypeScript detectou inicialmente o estado NOT_APPLICABLE ausente no mapa; corrigido antes do candidato final. Testes DOM não exercitam o painel RH ou a rota completa da Academia. Prova visual mobile/desktop e execução integrada dessas rotas permanecem adiadas; nenhuma alegação de contraste/overflow validado. Não houve escrita remota, seed, migration, build novo ou gate amplo.
+
+Próxima frente independente: transparência em Prioridades, Experimentos e Trajetória, revisando exemplos, hipóteses e projeções junto dos números, sem transformar mocks em resultados reais.
+
+## Segunda onda — governança detalhada e protocolo de eficácia
+
+Por orientação do operador, a comprovação de navegador fica adiada; não constitui gate para estas alterações independentes de apresentação. `IvoGovernanceView.tsx` organiza fundamentação, fontes, responsabilidades, efeitos da pendência e preparação da decisão em blocos com títulos e ícones decorativos. O texto distingue preparação de aprovação/registro. `EfficacyPanel.tsx` acrescenta roteiro estático de preenchimento, estado do documento, pendências em grade e explicação das ações salvar/registrar. O roteiro não simula progresso persistido. No mobile, metadados e botões empilham; textos podem quebrar. Campos, validações, permissões e chamadas existentes foram preservados.
+
+Verificação: 39 testes aprovados em `IvoC8Panels.test.tsx` e `IvoJourney.test.tsx`; TypeScript e revisão de diff. Não houve prova de navegador, build novo, gate amplo ou acesso a banco. A revisão renderizada mobile/desktop continua pendente. Próxima frente independente: orientação institucional RH e aprendizagem, distinguindo dados reais, demonstração, sessão e persistência.
+
+## Execução posterior — primeira onda de apresentação
+
+Implementados: identidade/preparação Q1 com blocos de metadados e aviso de efeito operacional; leitura Q2 com identidade agrupada, explicação das escalas, estados textuais e tabela em região rolável identificada/focável; cobertura com limites destacados; glossário de governança em grade responsiva e listas mais espaçadas; prática educativa com privacidade, preparação e revisão em blocos separados. Alterações anteriores de resumo e metadados das ações foram preservadas.
+
+Mobile, revisão estática: metadados empilham antes de `sm`, textos longos podem quebrar, cards usam `min-w-0`, tabela preserva largura mínima em rolagem própria e setores Q2 só passam a duas colunas em `xl`. Links de ação existentes mantêm altura mínima de 44px. Ícones são decorativos e acompanham texto. Não houve mudança de cálculo, acesso, schema ou persistência. Não foi criada biblioteca visual nova.
+
+Verificação do candidato: 89 testes de componentes IVO aprovados (7 arquivos), TypeScript e `git diff --check`. Não houve novo gate de banco. A qualidade renderizada em 360/390px, zoom 200%, leitor de tela e temas ainda precisa de prova visual; a ferramenta teve interrupções de validação de URL registradas nas etapas anteriores, sem recuperação comprovada. CSS responsivo e teste DOM não demonstram ausência de overflow, contraste ou oclusão no dispositivo real. Sem alegação de percentual de melhoria.
+
+Escopo restante da auditoria: formulário de eficácia, cards detalhados de decisão e superfícies RH/Academia/Voz Segura/legadas/projetivas não receberam redesign integral nesta primeira onda. Próxima verificação: prova visual da primeira onda em mobile e desktop antes de propagar seus padrões para essas superfícies. Este adendo é o estado atual; as seções abaixo preservam o diagnóstico e a proposta anteriores.
+
+Base: HEAD `1975659`, branch `feat/ivo-fibt-platform-foundation`, com alterações locais anteriores preservadas em ActionFollowUp.tsx e FibtActionLoop.tsx. Inspeção estática seletiva de código. Não é auditoria visual integral nem teste de usabilidade. Não houve acesso a ambientes remotos, dados reais, .env, .q.out ou .q.sql. Nenhuma funcionalidade foi alterada nesta auditoria.
+
+## Diagnóstico
+
+A melhoria prioritária não é acrescentar ícones indiscriminadamente: é tornar reconhecíveis a origem da informação, seu estado, o significado permitido, a próxima ação e o limite de interpretação. Conteúdo demonstrativo não pode ganhar aparência de resultado validado. A presença de código ou import não comprova disponibilidade para todos os perfis; o alcance depende de sessão, capability e controles existentes.
+
+Oportunidades abaixo são hipóteses de UX fundamentadas na estrutura do código. Não foram medidas frequência de erros, satisfação, contraste renderizado ou tempo de tarefa. “120%” representa ambição, não resultado quantitativo.
+
+## Inventário e prioridade
+
+| Superfície | Evidência no código | Oportunidade e impacto esperado | Prioridade / aceite |
+| --- | --- | --- | --- |
+| Leitura Q2 `/ivo-integral/q2` | `src/components/ivo/IvoQ2Detail.tsx:107` identidade; `:63` tabela; `:94` escore bruto | Separar identidade, publicação/proteção e interpretação; explicitar escalas distintas. Preservar tabela semântica e não inventar faixas de risco | P1: usuário distingue fator 0–4 de escore 0–12; protegido nunca vira zero ou barra vazia |
+| Governança `/ivo-integral/governanca` | `src/components/ivo/IvoGovernanceView.tsx:13` contrato de decisões; `:325` efeito D9; `:338` estados | Cartão por decisão: estado → efeito no produto → fonte → responsável/próxima etapa. Detalhes extensos em divulgação progressiva | P1: proposta não aparenta aprovação; preparar decisão não aparenta gravação |
+| Preparação Q1 | `src/components/ivo/CopsoqPreparationNotice.tsx:8` | Quadro “confirmado / correspondência pendente / efeito operacional”; versão e instrumento em metadados distintos | P1: bloqueio e motivo reconhecíveis sem sugerir reaprovação da fonte brasileira ou destravar coleta |
+| Eficácia nas ações | `src/components/ivo/EfficacyPanel.tsx:194`, `:208`, `:229`, `:239`, `:270` | Preservar fieldsets existentes; acrescentar mapa das etapas, resumo das pendências e diferença entre salvar rascunho e registrar protocolo | P1: distinguir rascunho, protocolo, observação e avaliação; nenhum progresso gráfico significa eficácia |
+| Prática/aplicação nas ações | `src/components/ivo/LearningApplicationJourney.tsx:55`, `:98`, `:167` | Sequência visual compreender → recuperar → preparar → revisar; separar privacidade, TESTE e rastro compartilhado | P1: pessoa identifica o que fica privado e o que será registrado; sem certificado/nota implícitos |
+| Visão IVO `/ivo-integral` | `src/components/ivo/IvoCoveragePanel.tsx:27`; `IvoLensMatrix.tsx:67`, `:118` | Legenda de estados com ícone + texto e limites próximos dos dados; preservar grade e alertas existentes | P2: ausente, protegido e mapeamento pendente são distinguíveis; não criar índice composto |
+| Painel RH `/rh` | `src/app/dashboards/rh/RHDashboard.tsx:24`, `:32`, `:52`, `:73`, `:92` | Orientar entrada institucional por tarefas: organização → módulos → mensuração → ações. Separar claramente a ramificação demonstrativa | P2: conta institucional não confunde exemplo com dado próprio; manter fronteira de sessão existente |
+| Academia `/academia` | `src/routes/academia.tsx:34`, `:35`, `:165`, `:224` | Explicitar por que a trilha aparece, fonte dos agregados e natureza demonstrativa do progresso; mapa de objetivo/prática/revisão | P2: distinguir afinidade demonstrativa de personalização real e progresso de sessão de persistência |
+| Voz Segura `/voz-segura` | `src/routes/voz-segura.tsx:8`, `:37`, `:38`, `:39`, `:69` | Preservar dinâmicas já existentes; orientar escolha e retomada com mapa de etapas e síntese de limites | P2: execução de sessão não aparenta histórico empresarial persistido; não duplicar rail existente |
+| Plano legado `/plano-acao` | `src/routes/plano-acao.tsx:650`, `:692`, `:874`, `:1043` | Já possui agrupamento de responsável/prazo/métrica: reutilizar essa qualidade. Revisar densidade de textos 10–11px e identificação do modo demo/cloud | P2: estado e origem permanecem legíveis; não fundir ledger legado e PI-13 por aparência |
+| Prioridades `/prioridades` | `src/routes/prioridades.tsx:9`, `:10`, `:223` | Dar destaque à natureza demonstrativa dos pontos de alavancagem, premissas e limites antes de ampliar destaque numérico | P1 para transparência; expansão visual depois. Aceite: projeção não é lida como efeito garantido |
+| Experimentos `/experimentos` | `src/routes/experimentos.tsx:28`, `:30`, `:130`, `:327`, `:420` | Diferenciar caso demonstrativo, hipótese, execução e resultado; revisar contexto do título “Comprovados” | P1 para transparência: título não transfere validação dos casos-exemplo para a empresa |
+| Trajetória `/trajetoria` | `src/routes/trajetoria.tsx:428`, `:458`, `:478` | Projeção IVO, custo evitável e prontidão ESG precisam de origem/premissas/limites visíveis junto ao número | P1 para revisão de transparência. Não tratar indicadores projetados como relatório ESG ou impacto observado |
+
+P1 significa primeira revisão recomendada, não defeito de segurança confirmado. P2 é consolidação posterior. Plataforma/convites foi localizada, mas não recebeu inspeção suficiente do componente delegado para um achado específico: permanece fora da conclusão detalhada desta rodada.
+
+## ToT — alternativas e decisão
+
+Notas de julgamento de engenharia, sem medição com usuários. Todas as colunas usam 10 = favorável; custo, risco, complexidade e tempo avaliam economia, baixo risco, simplicidade e rapidez.
+
+| Caminho | Valor | Segurança | Custo | Risco | Tese | Reuso | Simplicidade | Escala | Rapidez |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A. Ajustes locais por página | 8 | 9 | 9 | 9 | 9 | 6 | 9 | 6 | 9 |
+| B. Redesign integral imediato | 8 | 6 | 3 | 4 | 7 | 8 | 3 | 8 | 3 |
+| C. Protótipo isolado antes de integrar | 6 | 9 | 7 | 9 | 7 | 5 | 7 | 5 | 6 |
+| D. Adiar toda melhoria | 2 | 9 | 10 | 8 | 3 | 2 | 10 | 2 | 1 |
+| E. Integrar biblioteca externa | 5 | 6 | 4 | 5 | 5 | 7 | 4 | 7 | 4 |
+| F. Criar pequeno núcleo visual após duas aplicações | 9 | 8 | 7 | 8 | 9 | 9 | 7 | 9 | 7 |
+
+Escolha: A primeiro, F após comprovar repetição. B/E têm custo e risco desproporcionais; C serve para uma interação nova, não precisa preceder agrupamentos simples; D mantém a carga de interpretação. Não somar notas como avaliação objetiva de produto.
+
+## Sequência de aprimoramento
+
+1. Leitura Q2 + preparação Q1: estados, escalas e procedência, com mudanças somente de apresentação. Primeiro incremento recomendado.
+2. Governança + eficácia: linguagem operacional, pendências e ações distintas, mantendo avisos essenciais sempre visíveis.
+3. Aprendizagem: sequência, compartilhamento e retomada; sem novo armazenamento de respostas.
+4. Extrair apenas padrões que se repetiram: cartão de metadados, aviso de interpretação e legenda de estados. Usar tokens e Lucide existentes, sem dependência nova.
+5. Revisar as superfícies demonstrativas/projetivas em onda separada: transparência vem antes do destaque de resultados. Não promover mocks a dados reais.
+
+## Verificação e futura avaliação
+
+Por incremento: testes relevantes de apresentação/estados e TypeScript; build quando bundling/rota/config forem afetados. Sem repetir gates de banco por alteração visual. Conferir navegador em 360px, tablet e desktop, zoom 200%, temas claro/escuro, teclado e leitor de tela. Rótulos textuais acompanham ícones, cor não é a única informação; preservar ordem semântica, alertas, foco e área de toque. Gráficos só quando explicarem dado real e autorizado; sem percentual de progresso metodológico inventado.
+
+Validar futuramente com tarefas: “qual a origem?”, “o que este número significa?”, “o que ainda não se pode concluir?”, “qual a próxima ação?” e “o que será compartilhado?”. Comparar compreensão, erros e necessidade de ajuda antes/depois; pactuar metas antes do teste. Sem prometer melhoria percentual ou homologação de acessibilidade nesta inspeção.
+
+Verificação desta entrega: revisão do diff documental. Nenhum código alterado, teste/build/gate reexecutado ou prova visual nova realizada. Os dois arquivos de UI modificados anteriormente continuam preservados, sem stage/commit nesta rodada.

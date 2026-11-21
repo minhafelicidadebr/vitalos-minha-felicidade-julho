@@ -237,6 +237,14 @@
     scroll-padding-top: 6rem;
   }
 
+  /* A barra inferior movel do AppShell (fixed, bottom-3, some em xl) cobria o campo que recebia o foco por Tab
+     (WCAG 2.2 - 2.4.11). A rolagem do foco passa a parar 6rem acima da borda, a mesma folga do pb-24 do <main>. */
+  @media (width < 80rem) {
+    html {
+      scroll-padding-bottom: 6rem;
+    }
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);

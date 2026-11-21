@@ -167,6 +167,14 @@ function AcademiaPage() {
           </p>
         </motion.header>
 
+        <section aria-label="Origem e limites da curadoria demonstrativa" className="min-w-0 space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold"><HelpCircle aria-hidden="true" className="size-5 shrink-0 text-primary" />Como interpretar esta curadoria</h2>
+          <dl className="grid gap-3 text-sm leading-relaxed sm:grid-cols-2 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:p-3">
+            <div><dt className="font-semibold">Origem das sugestões</dt><dd className="mt-1 text-muted-foreground">Esta página usa catálogo e sinais demonstrativos do setor e do papel selecionados. As sugestões não são uma análise dos dados reais da sua empresa.</dd></div>
+            <div><dt className="font-semibold">Participação e aprendizagem</dt><dd className="mt-1 text-muted-foreground">Marcar uma atividade registra participação; não certifica domínio, retenção ou aplicação no trabalho. A sincronização de participação depende da sessão e do serviço disponível.</dd></div>
+          </dl>
+        </section>
+
         <RecommendationBasis
           indexLabel={indexLabel}
           priorityPillars={recommendation.priorityPillars}
@@ -221,8 +229,7 @@ function AcademiaPage() {
           <p className="text-xs leading-relaxed text-muted-foreground">
             Pontos de aprendizagem celebram participação e aplicação prática. Nunca alimentam
             avaliação, nota, promoção, remuneração ou ranking de pessoas. As prioridades do{" "}
-            {indexLabel} vêm apenas de agregados protegidos. Nesta demonstração, conclusões feitas
-            aqui permanecem somente na sessão atual.
+            {indexLabel} usam os sinais agregados demonstrativos desta página. Com uma sessão autenticada, os registros de participação podem ser sincronizados pelo serviço existente; uma marcação na interface não confirma, sozinha, que a gravação remota ocorreu.
           </p>
         </div>
 

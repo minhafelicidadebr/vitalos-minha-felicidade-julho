@@ -44,6 +44,7 @@ dist-ssr
 
 # Playwright
 test-results/
+/.q1-browser-proof.local/
 
 # Editor directories and files
 .vscode/*
@@ -55,3 +56,9 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+# Cache de versão do Supabase CLI (bunx supabase …); nunca contém dado de projeto.
+supabase/.temp/
+
+# Pilha descartável Q1+Q2 (segredos gerados localmente)
+scripts/integ-local/.env.integ

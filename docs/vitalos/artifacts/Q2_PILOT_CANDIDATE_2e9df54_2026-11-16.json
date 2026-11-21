@@ -1,0 +1,40 @@
+{
+  "recordVersion": "1.0.0",
+  "selectionDate": "2026-11-16",
+  "selectionKind": "technical_candidate_for_scope_review",
+  "selectionAuthor": "Codex, em resposta à solicitação do usuário neste chat",
+  "productCommit": "2e9df5437abbd5d4da1b0af09e686e7096a12f1d",
+  "branch": "feat/ivo-fibt-platform-foundation",
+  "sourceTreeGitOid": "39f5156c4afc605a302ab8e9964ac50823bc5465",
+  "packageJsonGitBlobOid": "68fd71ed0633d25959df39e487e1a2b46468be1c",
+  "bunLockGitBlobOid": "ef29f37da8b8ba92e013c5c03bb569a01342b3a9",
+  "sourceMatchesCheckout": true,
+  "humanOperationalApproval": null,
+  "remoteReleaseAuthorization": null,
+  "realPilotScope": "nao_delimitado",
+  "currentExecution": {
+    "gate": false,
+    "build": false,
+    "browser": false,
+    "db": false
+  },
+  "referencedEvidence": {
+    "gate": {
+      "report": "docs/vitalos/Q2_ACTION_NAVIGATION_2026-11-16.md",
+      "tests": 4381,
+      "files": 346,
+      "assertions": 13686,
+      "status": "reported_local_pass"
+    },
+    "buildAndSourceHashes": "docs/vitalos/artifacts/Q2_ACTION_NAVIGATION_SOURCES_2026-11-16.json",
+    "browser": "docs/vitalos/artifacts/Q2_ACTION_NAVIGATION_BROWSER_2026-11-16.json"
+  },
+  "retainedLimits": [
+    "Captura mobile detalhada não confirmada por pixels",
+    "CI e staging não confirmados",
+    "D10 do par 0.1.0 restrito ao ensaio local",
+    "Não há autorização de clientes, publicação ou extensão do escopo metodológico"
+  ],
+  "decisionRecord": "docs/vitalos/decisions/Q2_PILOT_SCOPE_2026-11-16.md",
+  "integrityMeaning": "Objetos Git e hashes vinculam o candidato; não representam assinatura, nova execução ou liberação"
+}

@@ -63,9 +63,11 @@ describe("survey-draft-engine — validateDraft (nunca reaplica rascunho fora de
   });
 
   test("exatamente no limite do TTL ainda é válido (limite inclusivo)", () => {
-    const savedAt = Date.now() - DEFAULT_DRAFT_TTL_MS;
+    const now = 1_800_000_000_000;
+    const savedAt = now - DEFAULT_DRAFT_TTL_MS;
     const payload = buildDraftPayload({ a: 3 }, sig, savedAt);
-    expect(validateDraft(payload, sig, Date.now())).toBe("valid");
+    expect(validateDraft(payload, sig, now)).toBe("valid");
+    expect(validateDraft(payload, sig, now + 1)).toBe("expired");
   });
 
   test("TTL customizado é respeitado", () => {

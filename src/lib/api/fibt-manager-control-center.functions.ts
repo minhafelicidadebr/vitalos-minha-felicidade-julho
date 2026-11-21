@@ -20,6 +20,8 @@ export const loadFibtManagerControlCenter = createServerFn({ method: "GET" })
       process.env as HmlBackendBoundaryEnv,
     );
     if (!access.ok) return access;
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(access.orgId, access.waveId);
+    if (!moduleAccess.ok) return { ok: false as const, category: "feature_gate" as const, error: moduleAccess.error };
 
     const { loadFibtManagerControlCenterAsAdmin } =
       await import("@/lib/fibt/fibt-manager-control-center.server");
@@ -66,6 +68,8 @@ export const issueFibtManagerSectorLink = createServerFn({ method: "POST" })
       process.env as HmlBackendBoundaryEnv,
     );
     if (!access.ok) return { created: false as const, error: access.error };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(access.orgId, access.waveId);
+    if (!moduleAccess.ok) return { created: false as const, error: moduleAccess.error };
 
     if (access.mode === "hml_access" && !expectedHmlCohorts.includes(data.cohortKey)) {
       return { created: false as const, error: "Setor fora do lote sintético autorizado." };
@@ -88,6 +92,8 @@ export const revokeFibtManagerSectorLink = createServerFn({ method: "POST" })
       process.env as HmlBackendBoundaryEnv,
     );
     if (!access.ok) return { revoked: false as const, error: access.error };
+    const moduleAccess = await (await import("@/lib/identity/module-access.server")).checkWave(access.orgId, access.waveId);
+    if (!moduleAccess.ok) return { revoked: false as const, error: moduleAccess.error };
 
     if (access.mode === "hml_access") {
       const { managerLinkBelongsToExpectedCohort } =

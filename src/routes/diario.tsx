@@ -53,6 +53,7 @@ import { usePracticeJournalSync } from "@/app/identity/usePracticeJournalSync";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { loadRealPracticeAggregates } from "@/lib/api/practice-aggregates.functions";
+import { MemberPlanFeedback } from "@/components/ivo/MemberPlanFeedback";
 import type { PracticeAggregate } from "@/engine/learning/practice-journal-engine";
 import { MOCK_USER } from "@/mocks/colaborador-mock";
 import { GAMIFICATION_TODAY } from "@/mocks/gamification-mock";
@@ -238,6 +239,8 @@ function DiarioPage() {
             </p>
           </div>
         </motion.header>
+        {/* C2 · devolutiva coletiva FIB-T; some onde o módulo não se aplica à conta. */}
+        {isRealSession ? <MemberPlanFeedback hideWhenUnavailable /> : null}
 
         <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">

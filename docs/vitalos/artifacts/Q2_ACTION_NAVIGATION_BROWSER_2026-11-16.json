@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-16",
+  "baseCommit": "576c464fc434b512c2ccaf272aa548e3a8a0ed80",
+  "origin": "http://localhost:8091",
+  "environment": "local_descartavel",
+  "syntheticInstitution": "Alfa",
+  "login": "normal_magic_link_mailpit",
+  "emailRequests": 1,
+  "businessSubmissions": 0,
+  "keyboardProofs": [
+    {
+      "width": 320,
+      "route": "/ivo-integral/acoes",
+      "fragment": "#acao-3a798020-37f7-488c-9a5a-d56113e214bd",
+      "focus": "acao-3a798020-37f7-488c-9a5a-d56113e214bd"
+    },
+    {
+      "route": "/ivo-integral/acoes",
+      "fragment": "#acao-3a798020-37f7-488c-9a5a-d56113e214bd",
+      "client": 340,
+      "focus": "acao-3a798020-37f7-488c-9a5a-d56113e214bd",
+      "scroll": 340,
+      "width": 360
+    }
+  ],
+  "summaryText": "Acompanhamento do plano 2026-T4\nAções\n4\nExecuções registradas\n3\nAprendizagens registradas\n3\nAvaliações pendentes\n4\nSituação e próximos registros\nEstados: 1 planejada(s) · 1 em execução · 2 concluída(s) · 0 em vigilância · 0 interrompida(s).\nProtocolos de avaliação: 0 registrado(s) · 0 em rascunho · 4 sem protocolo.\nAvaliações: 4 sem protocolo de avaliação.\n1 ação(ões) sem execução registrada.\n1 ação(ões) sem aprendizagem registrada.\nComo interpretar este acompanhamento\n\nHá ações ainda em andamento. Encerramento operacional não é avaliação de eficácia: uma ação pode estar concluída enquanto a eficácia segue não avaliada, e nada aqui altera o IVO.\n\nOrigem e transparência metodológica\n\nOrigem: leitura publicada FIB-T. Cobertura dimensional: mapeamento pendente — nenhuma dimensão recebe valor. Ver cobertura · Ver governança metodológica",
+  "desktopCapture": "Q2_ACTION_NAVIGATION_DESKTOP_2026-11-16.jpg",
+  "detailedMobileCapture": {
+    "status": "not_confirmed",
+    "viewportResult": "blank_frame",
+    "regionError": "Timed out after 5000ms waiting for CDP command Page.captureScreenshot"
+  },
+  "viewportRestored": true,
+  "fullWcagAudit": false
+}

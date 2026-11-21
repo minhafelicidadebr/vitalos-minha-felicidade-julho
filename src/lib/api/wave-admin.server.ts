@@ -20,6 +20,7 @@ type TriggerCapsuleAggregationFn = (
 ) => Promise<AggregationTriggerResult>;
 
 export interface CloseWaveAsAdminDeps {
+  moduleAccess?: (orgId: string, instrument: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   /**
    * Injeção de teste — nunca fornecida em produção. Quando ausente,
    * closeWaveAsAdmin importa e usa a implementação real de
@@ -38,6 +39,8 @@ export type AdminCreateWaveResult = CreateWaveResult & { emailsSent: number; ema
 export async function createWaveAsAdmin(
   input: CreateWaveInput,
 ): Promise<AdminCreateWaveResult | { error: string }> {
+  const access = await (await import("@/lib/identity/module-access.server")).checkInstrument(input.orgId, input.instrument);
+  if (!access.ok) return { error: access.error };
   // Import dinâmico garante que o service role nunca vaza para o bundle do cliente.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
@@ -168,6 +171,8 @@ export async function closeWaveAsAdmin(
   if (wave.status === "sealed") {
     return { closed: false, error: "Esta onda já está selada." };
   }
+  const access = await (deps.moduleAccess ?? (async (orgId, instrument) => (await import("@/lib/identity/module-access.server")).checkInstrument(orgId, instrument)))(orgId, wave.instrument);
+  if (!access.ok) return { closed: false, error: access.error };
 
   const triggerCapsuleAggregation =
     deps.triggerCapsuleAggregation ??

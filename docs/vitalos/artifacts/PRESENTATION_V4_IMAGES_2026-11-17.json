@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-17",
+  "tool": "image_gen.imagegen",
+  "commonPrompt": "Create a single landscape 16:9 photorealistic editorial corporate photograph for the VitalOS institutional presentation. Contemporary believable Brazilian executive workplace, natural materials, understated deep green accents, warm neutral colors. Diverse adult colleagues with meaningful participation: a Black woman executive around 40 leading or collaborating, another woman around 35, a mature colleague around 60 with silver hair, and a male colleague around 45 of a different skin tone. Realistic skin and hands, professional contemporary clothing, engaged natural expressions. Cinematographic studio quality with large soft window-like key light, subtle fill and separation, natural skin tones and moderate depth of field. Not science fiction, no holograms, no floating UI, no readable screens, no logos, no watermark, no text. Fictional people in an illustrative business situation, not existing clients or real executives. Group faces comfortably within the central 65% so a vertical crop remains useful.",
+  "conversion": "System.Drawing JPEG encoder, quality 84; no crop, resize or content editing",
+  "images": [
+    {
+      "name": "hero",
+      "originalPath": "C:/Users/FIB2030/.codex/generated_images/01a1d5c1-f18e-7a52-bea8-1b79493fe642/exec-c7003c77-a237-4068-a133-ae41de1fd402.png",
+      "asset": "src/assets/presentation/v4-hero.jpg",
+      "width": 1672,
+      "height": 941,
+      "bytes": 221134,
+      "prompt": "Create a single landscape 16:9 photorealistic editorial corporate photograph for the VitalOS institutional presentation. Contemporary believable Brazilian executive workplace, natural materials, understated deep green accents, warm neutral colors. Diverse adult colleagues with meaningful participation: a Black woman executive around 40 leading or collaborating, another woman around 35, a mature colleague around 60 with silver hair, and a male colleague around 45 of a different skin tone. Realistic skin and hands, professional contemporary clothing, engaged natural expressions. Cinematographic studio quality with large soft window-like key light, subtle fill and separation, natural skin tones and moderate depth of field. Not science fiction, no holograms, no floating UI, no readable screens, no logos, no watermark, no text. Fictional people in an illustrative business situation, not existing clients or real executives. Group faces comfortably within the central 65% so a vertical crop remains useful. An inviting wide shot of the team seated around a meeting table, the Black woman presenting an idea, others listening and contributing. Reserve some calm space at left; people and interaction occupy center-right. Premium and warm, not overly posed."
+    },
+    {
+      "name": "compreender",
+      "originalPath": "C:/Users/FIB2030/.codex/generated_images/01a1d5c1-f18e-7a52-bea8-1b79493fe642/exec-ecb8be8d-5166-41f4-91c3-65fe4b7ce8db.png",
+      "asset": "src/assets/presentation/v4-compreender.jpg",
+      "width": 1672,
+      "height": 941,
+      "bytes": 228725,
+      "prompt": "Create a single landscape 16:9 photorealistic editorial corporate photograph for the VitalOS institutional presentation. Contemporary believable Brazilian executive workplace, natural materials, understated deep green accents, warm neutral colors. Diverse adult colleagues with meaningful participation: a Black woman executive around 40 leading or collaborating, another woman around 35, a mature colleague around 60 with silver hair, and a male colleague around 45 of a different skin tone. Realistic skin and hands, professional contemporary clothing, engaged natural expressions. Cinematographic studio quality with large soft window-like key light, subtle fill and separation, natural skin tones and moderate depth of field. Not science fiction, no holograms, no floating UI, no readable screens, no logos, no watermark, no text. Fictional people in an illustrative business situation, not existing clients or real executives. Group faces comfortably within the central 65% so a vertical crop remains useful. The team is reviewing a work situation together, with closed notebooks and one simple unbranded document. Black woman executive and silver-haired mature colleague in focus, thoughtful listening. Wide editorial composition, no unnecessary props."
+    },
+    {
+      "name": "agir",
+      "originalPath": "C:/Users/FIB2030/.codex/generated_images/01a1d5c1-f18e-7a52-bea8-1b79493fe642/exec-6be36056-aa90-4a61-84d3-1adca06bb015.png",
+      "asset": "src/assets/presentation/v4-agir.jpg",
+      "width": 1672,
+      "height": 941,
+      "bytes": 255595,
+      "prompt": "Create a single landscape 16:9 photorealistic editorial corporate photograph for the VitalOS institutional presentation. Contemporary believable Brazilian executive workplace, natural materials, understated deep green accents, warm neutral colors. Diverse adult colleagues with meaningful participation: a Black woman executive around 40 leading or collaborating, another woman around 35, a mature colleague around 60 with silver hair, and a male colleague around 45 of a different skin tone. Realistic skin and hands, professional contemporary clothing, engaged natural expressions. Cinematographic studio quality with large soft window-like key light, subtle fill and separation, natural skin tones and moderate depth of field. Not science fiction, no holograms, no floating UI, no readable screens, no logos, no watermark, no text. Fictional people in an illustrative business situation, not existing clients or real executives. Group faces comfortably within the central 65% so a vertical crop remains useful. The diverse colleagues actively preparing a team practice around a table, discussing a simple arrangement of blank cards, hands anatomically natural and not overlapping. Black woman and younger woman collaborate as equals, mature colleague participates. Energy through interaction rather than exaggerated smiles."
+    },
+    {
+      "name": "evoluir",
+      "originalPath": "C:/Users/FIB2030/.codex/generated_images/01a1d5c1-f18e-7a52-bea8-1b79493fe642/exec-756ddb13-7dd1-4f37-8f40-2a5ce55ea49b.png",
+      "asset": "src/assets/presentation/v4-evoluir.jpg",
+      "width": 1672,
+      "height": 941,
+      "bytes": 250780,
+      "prompt": "Create a single landscape 16:9 photorealistic editorial corporate photograph for the VitalOS institutional presentation. Contemporary believable Brazilian executive workplace, natural materials, understated deep green accents, warm neutral colors. Diverse adult colleagues with meaningful participation: a Black woman executive around 40 leading or collaborating, another woman around 35, a mature colleague around 60 with silver hair, and a male colleague around 45 of a different skin tone. Realistic skin and hands, professional contemporary clothing, engaged natural expressions. Cinematographic studio quality with large soft window-like key light, subtle fill and separation, natural skin tones and moderate depth of field. Not science fiction, no holograms, no floating UI, no readable screens, no logos, no watermark, no text. Fictional people in an illustrative business situation, not existing clients or real executives. Group faces comfortably within the central 65% so a vertical crop remains useful. An executive woman and a silver-haired older colleague reviewing an unbranded one-page work summary at a table, two other colleagues softly present in background. Calm sense of reflection and next decisions. Faces and gestures natural, paper has no readable text, no graphs of financial returns."
+    }
+  ],
+  "note": "Illustrative generated people; no real client, testimonial or institutional endorsement."
+}

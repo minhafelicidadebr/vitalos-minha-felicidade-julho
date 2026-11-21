@@ -1,3 +1,4 @@
+import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -19,7 +20,7 @@ const TYPE_ICON: Record<Evidence["type"], string> = {
 function RelatoriosPage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
+      <div className="mx-auto min-w-0 max-w-5xl space-y-8 px-4 py-8 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -28,8 +29,10 @@ function RelatoriosPage() {
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Evidências · Relatórios · Certificação
           </p>
-          <h1 className="mt-1 font-serif text-3xl text-foreground">Prova, não promessa</h1>
+          <h1 className="mt-1 font-serif text-3xl text-foreground">Evidências e relatórios · demonstração</h1>
         </motion.div>
+
+        <DemonstrationContext kind="reports" />
 
         <SealCard />
 
@@ -58,8 +61,8 @@ function SealCard() {
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-medium text-card-foreground">Selo Empresa Viva™</p>
-          <p className="mt-1 text-xs text-muted-foreground">Certificação anual auditável</p>
+          <p className="font-medium text-card-foreground">Selo Empresa Viva™ · exemplo</p>
+          <p className="mt-1 text-xs text-muted-foreground">Modelo demonstrativo de certificação</p>
         </div>
         {/* Anel de progresso + nível atual — board-grade */}
         <div className="flex items-center gap-3">
@@ -137,9 +140,9 @@ function EvidencesCard() {
       className="rounded-2xl border border-border/70 bg-card shadow-sm"
     >
       <div className="px-5 pt-5 pb-2">
-        <p className="font-medium text-card-foreground">Evidências</p>
+        <p className="font-medium text-card-foreground">Evidências de exemplo</p>
         <p className="text-xs text-muted-foreground">
-          Cada ação deixa rastro auditável — a base do GRO e do Selo
+          Exemplos de registros associados a ações. Os estados abaixo não representam aprovação de evidências da sua organização.
         </p>
       </div>
       <div className="space-y-1 px-3 pb-4">
@@ -186,7 +189,7 @@ function ReportsCard() {
       className="rounded-2xl border border-border/70 bg-card shadow-sm"
     >
       <div className="px-5 pt-5 pb-2">
-        <p className="font-medium text-card-foreground">Relatórios</p>
+        <p className="font-medium text-card-foreground">Relatórios demonstrativos</p>
         <p className="text-xs text-muted-foreground">
           Sempre com dados agregados e fórmulas declaradas
         </p>
@@ -194,7 +197,7 @@ function ReportsCard() {
       <div className="space-y-1 px-3 pb-4">
         {REPORTS.map((rep) => (
           <div key={rep.id} className="rounded-xl px-3 py-3 hover:bg-muted/20 transition-colors">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-card-foreground">{rep.title}</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
@@ -206,14 +209,14 @@ function ReportsCard() {
               </div>
               <button
                 onClick={() => setGeneratedId(rep.id)}
-                className="shrink-0 rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="min-h-11 shrink-0 rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                Gerar PDF
+                Simular geração de PDF
               </button>
             </div>
             {generatedId === rep.id && (
-              <p className="mt-2 text-xs text-green-600 dark:text-green-400">
-                ✓ Geração simulada (demo) — exportação real de PDF chega com o backend na Fase 2.
+              <p role="status" className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Simulação concluída. Nenhum arquivo PDF foi gerado por esta ação.
               </p>
             )}
           </div>

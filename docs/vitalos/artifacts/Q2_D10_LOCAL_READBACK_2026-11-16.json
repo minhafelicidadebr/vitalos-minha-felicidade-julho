@@ -1,0 +1,137 @@
+{
+  "baseCommit": "84fa2d2",
+  "date": "2026-11-16",
+  "environment": {
+    "project": "vitalos-institutional-first-admin",
+    "app": "http://localhost:8091",
+    "api": "http://127.0.0.1:57621",
+    "dbPort": 57622,
+    "mail": "http://127.0.0.1:57624"
+  },
+  "before": {
+    "actions": 3,
+    "evidence": 4,
+    "modules": [
+      {
+        "slug": "institutional-alfa",
+        "module": "Q1",
+        "enabled": false,
+        "revision": 44
+      },
+      {
+        "slug": "institutional-alfa",
+        "module": "Q2",
+        "enabled": true,
+        "revision": 87
+      },
+      {
+        "slug": "institutional-beta",
+        "module": "Q1",
+        "enabled": false,
+        "revision": 9
+      },
+      {
+        "slug": "institutional-beta",
+        "module": "Q2",
+        "enabled": false,
+        "revision": 13
+      }
+    ]
+  },
+  "after": {
+    "actions": 4,
+    "evidence": 6
+  },
+  "browser": {
+    "approvedContentVersion": "0.1.0",
+    "approvedActivityVersion": "0.1.0",
+    "privateFeedback": true,
+    "recallBeforeChoices": true,
+    "explicitShare": true,
+    "resetClearsAnswers": true,
+    "oneApplication": true,
+    "operationalStatus": "concluida",
+    "executionRecords": 1,
+    "learningRecords": 1,
+    "efficacy": "not_evaluated",
+    "normalEmailLogin": true,
+    "callbackOriginsValidated": true,
+    "persistedAfterReloadAndNewLogin": true,
+    "checkedAnswersAfterNewLogin": 0
+  },
+  "responsive": [
+    {
+      "innerWidth": 360,
+      "clientWidth": 340,
+      "scrollWidth": 340,
+      "overflow": false,
+      "method": "live DOM and keyboard"
+    },
+    {
+      "innerWidth": 320,
+      "clientWidth": 300,
+      "scrollWidth": 300,
+      "overflow": false,
+      "method": "live DOM after reload"
+    }
+  ],
+  "visual": {
+    "desktopScreenshot": "Q2_D10_LOCAL_PLANO_2026-11-16.jpg",
+    "mobileScreenshot": "incomplete: blank frames / Page.captureScreenshot timeout; not full visual approval"
+  },
+  "readback": {
+    "capturedAt": "2026-11-16T02:57:01.669Z",
+    "independentProcess": true,
+    "itemId": "3a798020-37f7-488c-9a5a-d56113e214bd",
+    "results": [
+      {
+        "name": "habilitação e revisões Alfa/Beta preservadas",
+        "pass": true
+      },
+      {
+        "name": "ações e evidências anteriores preservadas",
+        "pass": true
+      },
+      {
+        "name": "Beta não recebeu novas ações",
+        "pass": true
+      },
+      {
+        "name": "uma aplicação aprovada persistida e visível à Alfa",
+        "pass": true
+      },
+      {
+        "name": "conteúdo e atividade 0.1.0 identificados sem TESTE",
+        "pass": true
+      },
+      {
+        "name": "origem nativa publicada preservada",
+        "pass": true
+      },
+      {
+        "name": "execução e aprendizagem persistidas em escopos distintos",
+        "pass": true
+      },
+      {
+        "name": "ledger sem respostas, gabaritos ou nota pedagógica",
+        "pass": true
+      },
+      {
+        "name": "ação concluída operacionalmente",
+        "pass": true
+      },
+      {
+        "name": "Beta não lê a ação nem suas evidências por RLS",
+        "pass": true
+      },
+      {
+        "name": "somente uma nova ação no estado local",
+        "pass": true
+      },
+      {
+        "name": "somente duas novas evidências no estado local",
+        "pass": true
+      }
+    ]
+  }
+}

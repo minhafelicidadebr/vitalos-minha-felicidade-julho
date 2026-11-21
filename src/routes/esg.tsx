@@ -1,3 +1,4 @@
+import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
@@ -55,7 +56,7 @@ function EsgPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
+      <div className="mx-auto min-w-0 max-w-5xl space-y-8 px-4 py-8 sm:px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -70,6 +71,8 @@ function EsgPage() {
             {ESG_INTRO.lead}
           </p>
         </motion.div>
+
+        <DemonstrationContext kind="esg" />
 
         <OverviewCard readiness={readiness} />
 
@@ -98,7 +101,7 @@ function EsgPage() {
           <Link to="/ivo" className="underline underline-offset-2 hover:text-foreground">
             IVO
           </Link>{" "}
-          do ciclo corrente. Mude o IVO e o ESG se move junto.
+          demonstrativo do ciclo. A mudança calculada nesta tela não comprova impacto ESG real.
         </p>
       </div>
     </AppShell>
@@ -123,7 +126,7 @@ function OverviewCard({ readiness }: { readiness: EsgReadiness }) {
     >
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="text-xs text-muted-foreground">Prontidão social agregada</p>
+          <p className="text-xs text-muted-foreground">Prontidão social · demonstração</p>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="font-serif text-5xl font-semibold leading-none text-foreground">
               {overall ?? "—"}
@@ -140,7 +143,7 @@ function OverviewCard({ readiness }: { readiness: EsgReadiness }) {
           )}
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Datapoints mensuráveis</p>
+          <p className="text-xs text-muted-foreground">Datapoints no modelo demonstrativo</p>
           <p className="font-serif text-3xl font-semibold text-foreground">
             {readiness.measurableDatapoints}
             <span className="text-base text-muted-foreground">/{readiness.totalDatapoints}</span>

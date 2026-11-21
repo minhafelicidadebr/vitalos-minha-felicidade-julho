@@ -9,6 +9,7 @@ import {
   PROGRAMA_DIFFERENTIATORS,
   PROGRAMA_TIERS,
   PROGRAMA_CLOSING,
+  PROGRAMA_Q1_OFFER as Q1,
   type ProgramaTier,
 } from "@/mocks/programa-mock";
 
@@ -149,6 +150,43 @@ function ProgramaPage() {
               <TierCard key={t.id} tier={t} />
             ))}
           </div>
+        </section>
+
+        {/* Q1 · oferta de serviços */}
+        <section aria-labelledby="q1-offer" className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{Q1.eyebrow}</p>
+          <h2 id="q1-offer" className="mt-1 font-serif text-2xl text-foreground sm:text-3xl">
+            {Q1.title}
+          </h2>
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">{Q1.text}</p>
+          <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+            {Q1.deliverables.map((d) => (
+              <li key={d.label} className="flex flex-wrap items-start gap-2 rounded-lg border border-border p-3 text-sm">
+                <span
+                  className={
+                    d.status === "available"
+                      ? "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                      : "rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                  }
+                >
+                  {Q1.statusLabels[d.status]}
+                </span>
+                <span className="min-w-0 flex-1 text-foreground">{d.label}</span>
+              </li>
+            ))}
+          </ul>
+          <p role="note" className="mt-4 rounded-lg bg-muted/60 p-3 text-sm text-foreground">
+            {Q1.collectionStatus}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{Q1.disclaimer}</p>
+          <a
+            href={Q1.cta.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex min-h-11 items-center rounded-xl border border-primary/40 px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-primary/5"
+          >
+            {Q1.cta.label}
+          </a>
         </section>
 
         {/* Fechamento */}

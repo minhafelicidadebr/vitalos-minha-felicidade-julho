@@ -171,14 +171,14 @@ export function WhyItMattersSection({ onAction }: { onAction: (action: CtaAction
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
-          className="mt-8 grid items-center gap-6 rounded-3xl border border-border/70 bg-gradient-to-br from-card to-muted/40 p-6 shadow-sm sm:p-8"
+          className="mt-8 grid min-w-0 grid-cols-1 items-center gap-6 rounded-3xl border border-border/70 bg-gradient-to-br from-card to-muted/40 p-6 shadow-sm sm:p-8"
         >
           <div>
             <h3 className="font-serif text-2xl text-foreground">{w.bridge.title}</h3>
             <p className="mt-2 text-base leading-relaxed text-muted-foreground">{w.bridge.text}</p>
             <Button
               size="lg"
-              className="mt-4"
+              className="mt-4 h-auto min-h-11 w-full max-w-full whitespace-normal px-4 py-3 sm:w-auto sm:px-8"
               variant={VARIANT[w.bridge.cta.variant ?? "primary"]}
               onClick={() => onAction(w.bridge.cta.action)}
             >
