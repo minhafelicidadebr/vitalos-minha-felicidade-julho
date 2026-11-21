@@ -101,6 +101,8 @@ export async function createMemberInvite(
     p_created_by: createdByUserId,
     p_admin_roles: adminRoles,
     p_max_admin_seats: Number.isFinite(limit) ? limit : null,
+    // Plano sobre o qual o teto foi calculado: a RPC relê e recusa se mudou.
+    p_expected_plan: (org.plan as string | null | undefined) ?? null,
   });
   if (rpcError || !reserved || typeof reserved !== "object") return { error: SEAT_CHECK_UNAVAILABLE };
   const outcome = reserved as { ok?: unknown; reason?: unknown; invite?: unknown };

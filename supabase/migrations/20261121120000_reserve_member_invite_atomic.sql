@@ -19,6 +19,13 @@
 -- e teto do plano (plan-engine) vêm do servidor, nunca do cliente.
 -- p_max_admin_seats NULL = plano sem teto.
 --
+-- PLANO ALTERADO NO MEIO: o teto é calculado no servidor a partir de
+-- organizations.plan lido ANTES da RPC. p_expected_plan é esse valor lido. Dentro
+-- da transação a RPC relê o plano com FOR SHARE (bloqueia um UPDATE concorrente até
+-- o fim desta transação; se o UPDATE já foi confirmado, vê o valor novo). Se o plano
+-- mudou, recusa com 'plan_changed' e o servidor falha fechado: nenhum teto
+-- desatualizado é aplicado.
+--
 -- APLICAÇÃO REMOTA: pendente, exige autorização explícita do founder.
 -- Provada só no banco local descartável (vitalos-q1q2-integ).
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -29,7 +36,8 @@ CREATE OR REPLACE FUNCTION public.reserve_member_invite(
   p_role            TEXT,
   p_created_by      UUID,
   p_admin_roles     TEXT[],
-  p_max_admin_seats INTEGER
+  p_max_admin_seats INTEGER,
+  p_expected_plan   TEXT
 ) RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -37,6 +45,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_used   INTEGER;
+  v_plan   TEXT;
   v_token  TEXT;
   v_row    public.member_invites%ROWTYPE;
 BEGIN
@@ -54,8 +63,13 @@ BEGIN
   -- Serializa todas as emissões da mesma organização até o fim da transação.
   PERFORM pg_advisory_xact_lock(hashtextextended('reserve_member_invite:' || p_org_id::text, 0));
 
-  IF NOT EXISTS (SELECT 1 FROM public.organizations WHERE id = p_org_id) THEN
+  SELECT plan INTO v_plan FROM public.organizations WHERE id = p_org_id FOR SHARE;
+  IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', false, 'reason', 'org_not_found');
+  END IF;
+  IF v_plan IS DISTINCT FROM p_expected_plan THEN
+    -- O teto recebido foi calculado sobre outro plano: falha fechada.
+    RETURN jsonb_build_object('ok', false, 'reason', 'plan_changed');
   END IF;
 
   IF p_role = ANY (p_admin_roles) AND p_max_admin_seats IS NOT NULL THEN
@@ -93,19 +107,19 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.reserve_member_invite(UUID, TEXT, TEXT, UUID, TEXT[], INTEGER)
+REVOKE ALL ON FUNCTION public.reserve_member_invite(UUID, TEXT, TEXT, UUID, TEXT[], INTEGER, TEXT)
   FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.reserve_member_invite(UUID, TEXT, TEXT, UUID, TEXT[], INTEGER)
+GRANT EXECUTE ON FUNCTION public.reserve_member_invite(UUID, TEXT, TEXT, UUID, TEXT[], INTEGER, TEXT)
   TO service_role;
 
 -- Conferência pós-migration (o REVOKE não basta nesta conta: é preciso CONFERIR).
 DO $$
 BEGIN
-  IF has_function_privilege('anon', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer)', 'EXECUTE')
-     OR has_function_privilege('authenticated', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer)', 'EXECUTE') THEN
+  IF has_function_privilege('anon', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text)', 'EXECUTE') THEN
     RAISE EXCEPTION 'reserve_member_invite: EXECUTE ainda concedido a anon/authenticated';
   END IF;
-  IF NOT has_function_privilege('service_role', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer)', 'EXECUTE') THEN
+  IF NOT has_function_privilege('service_role', 'public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text)', 'EXECUTE') THEN
     RAISE EXCEPTION 'reserve_member_invite: service_role sem EXECUTE';
   END IF;
 END

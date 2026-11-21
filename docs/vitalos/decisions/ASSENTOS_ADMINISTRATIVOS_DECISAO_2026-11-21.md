@@ -67,5 +67,46 @@ O fake desses testes serializa como o lock. Ele prova o contrato do servidor, **
 
 ### Não provado
 
-- **Caminho completo servidor → PostgREST → RPC:** não testado, porque o auth/rest da stack não foi subido. O que foi provado é a RPC direto no Postgres e o servidor com o fake.
+- ~~Caminho completo servidor → PostgREST → RPC~~: provado na Revisão 3 (abaixo).
 - **Banco remoto:** a migration **não** foi aplicada. Aplicar exige autorização explícita do founder. Sem ela, `createMemberInvite` falha fechado em produção (a RPC não existe), e convidar fica indisponível até a aplicação.
+
+## Revisão 3 · plano alterado no meio e prova ponta a ponta (21/11/2026)
+
+### Plano alterado entre a leitura e a reserva
+
+Hipótese: o servidor calcula o teto a partir de `organizations.plan` lido **antes** da RPC; um downgrade confirmado nesse intervalo faria a RPC aplicar um teto desatualizado.
+
+Correção mínima (mesma migration `20261121120000`, ainda não aplicada em lugar nenhum fora do local):
+
+- novo parâmetro `p_expected_plan TEXT`: o plano sobre o qual o servidor calculou o teto;
+- dentro da transação, depois da trava, a RPC relê `plan` com `FOR SHARE`. Isso bloqueia um `UPDATE` concorrente até o fim da reserva; se o `UPDATE` já foi confirmado, a RPC vê o valor novo;
+- plano diferente → `plan_changed` → o servidor responde com a mensagem recuperável e **não cria convite**. A tentativa seguinte já lê o plano novo.
+
+Hoje nenhum código do app altera `organizations.plan` (só o provisionamento insere). A mudança vem de operação manual, por isso a hipótese é rara, mas fica fechada.
+
+Como a assinatura mudou para 7 argumentos, `REVOKE`/`GRANT` e a conferência de privilégios usam a assinatura nova. A migration nunca foi aplicada remotamente, então não fica sobrecarga antiga.
+
+### Semântica de "perfil ativo"
+
+`profiles` não tem coluna de status, desativação ou remoção lógica. Uma pessoa sai da organização quando a linha é apagada (ou quando o usuário de `auth.users` é apagado, por `ON DELETE CASCADE`), e o assento é liberado. Não existe estado "inativo" que deveria liberar assento, então nada foi modelado. Se um dia houver suspensão de conta sem apagar o perfil, a contagem da RPC precisa passar a filtrar esse estado.
+
+### Prova ponta a ponta (pilha descartável `vitalos-q1q2-integ`, loopback)
+
+Cadeia completa aplicada (72 migrations, a conferência de privilégios passou). O script chama a função **real** `createMemberInvite` do servidor, que usa supabase-js → Kong (127.0.0.1:57921) → PostgREST → RPC. Dados sintéticos (`@e2e.test`). A pilha foi derrubada depois; nenhum container restou.
+
+| Prova | Resultado |
+|---|---|
+| Piloto com 1 `RH_ADMIN` ativo · convite `COLABORADOR` | Criado |
+| Piloto com 1 `RH_ADMIN` ativo · convite `RH_ADMIN` | Recusado com mensagem de upgrade |
+| Growth (5) com 4 admins · 10 emissões `RH_ADMIN` simultâneas | 1 criado, 9 recusados; 1 convite admin pendente no banco |
+| Downgrade growth → pilot em transação aberta durante a emissão | A emissão esperou ~2,5 s, recebeu `plan_changed` e respondeu "indisponível"; 0 convites criados |
+| Nova tentativa depois do downgrade confirmado | Criado, com o teto do plano novo |
+| API fora do ar (porta sem serviço) | "Indisponível", nada criado |
+| RPC chamada pela API com a chave anônima | HTTP 401, código `42501` |
+
+Testes de código: `member-invite.server.test.ts` com o novo caso de plano alterado (21 testes) e `scripts` (manifesto regenerado), 441 aprovados, 0 falhas; `tsc` limpo.
+
+### Ainda não provado
+
+- Banco remoto: a migration **não** foi aplicada; exige autorização explícita do founder. Sem ela, criar convite fica indisponível em produção (falha fechada).
+- Downgrade que exceda o novo teto: a prova mostra a recusa por plano alterado; não há um caso separado com admins acima do novo teto, porque a recusa acontece antes da contagem.

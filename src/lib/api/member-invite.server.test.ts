@@ -117,6 +117,8 @@ const fakeAdmin = {
 // local; aqui o fake serializa por org como o advisory lock, para testar o contrato
 // do servidor). Botões: reserveFailure força erro/resposta malformada.
 let reserveFailure: "none" | "error" | "null" | "malformed" = "none";
+// Plano gravado no banco no MOMENTO da RPC (pode divergir do lido pelo servidor).
+let planAtRpc: Record<string, string> = {};
 let reserveChain: Promise<unknown> = Promise.resolve();
 async function fakeReserve(args: Record<string, unknown>) {
   if (reserveFailure === "error") return { data: null, error: { message: "timeout" } };
@@ -126,6 +128,9 @@ async function fakeReserve(args: Record<string, unknown>) {
     const orgId = args.p_org_id as string;
     const roles = args.p_admin_roles as string[];
     const limit = args.p_max_admin_seats as number | null;
+    if ((planAtRpc[orgId] ?? ORGS[orgId]?.plan ?? null) !== args.p_expected_plan) {
+      return { data: { ok: false, reason: "plan_changed" }, error: null };
+    }
     if (roles.includes(args.p_role as string) && limit !== null) {
       await new Promise((res) => setTimeout(res, 5)); // janela em que uma corrida apareceria
       const pending = pendingAdminInvites.filter(
@@ -159,6 +164,7 @@ beforeEach(() => {
   adminCountByOrg = { "org-a": 1, "org-pilot-cheia": 1 };
   pendingAdminInvites = [];
   reserveFailure = "none";
+  planAtRpc = {};
 });
 
 describe("createMemberInvite — valida papel e assento antes de escrever", () => {
@@ -214,6 +220,14 @@ describe("createMemberInvite — valida papel e assento antes de escrever", () =
     ]);
     expect(results.filter((r) => !("error" in r))).toHaveLength(1);
     expect(results.filter((r) => "error" in r && r.error.includes("upgrade"))).toHaveLength(1);
+  });
+
+  test("plano alterado entre a leitura e a reserva: falha fechada, nada criado", async () => {
+    planAtRpc["org-a"] = "pilot"; // downgrade growth → pilot depois da leitura do servidor
+    const result = await createMemberInvite("org-a", "admin-1", "d@techcorp.com", "RH_ADMIN");
+    expect(result).toEqual({ error: SEAT_CHECK_UNAVAILABLE });
+    expect(lastRpcArgs).toMatchObject({ p_expected_plan: "growth", p_max_admin_seats: 5 });
+    expect(insertedInvites).toHaveLength(0);
   });
 
   test("convite de admin pendente conta como assento; expirado não conta", async () => {
