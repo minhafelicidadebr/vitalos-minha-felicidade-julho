@@ -5,6 +5,8 @@ import { STATUS_LABEL } from "@/components/ivo/FibtActionLoop";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadMemberPlanFeedbackFn } from "@/lib/api/ivo-action-loop.functions";
 import type { MemberPlanFeedbackOutcome } from "@/lib/ivo/member-plan-feedback.server";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_Q2_DEVOLUTIVA } from "@/domain/help/contextual-help";
 
 // C2 · "O que a organização está fazendo" — devolutiva coletiva para membros.
 // Só a projeção fechada do servidor; nenhum dado de pessoa, nenhuma promessa de melhora.
@@ -18,7 +20,14 @@ function formatMonth(ym: string): string {
 }
 
 /** `hideWhenUnavailable`: no Diário (todos os packs), some quando a conta/empresa não tem a lente. */
-export function MemberPlanFeedback({ hideWhenUnavailable = false }: { hideWhenUnavailable?: boolean }) {
+export function MemberPlanFeedback({
+  hideWhenUnavailable = false,
+  roleId,
+}: {
+  hideWhenUnavailable?: boolean;
+  /** Papel da sessão real, só para a leitura da ajuda. */
+  roleId?: string | null;
+}) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const load = useCallback(async () => {
     setState({ kind: "loading" });
@@ -37,7 +46,10 @@ export function MemberPlanFeedback({ hideWhenUnavailable = false }: { hideWhenUn
 
   return (
     <section aria-labelledby="member-feedback-title" className="rounded-md border border-border bg-card p-4 text-sm">
-      <h2 id="member-feedback-title" className="font-serif text-lg text-foreground">O que a organização está fazendo</h2>
+      <div className="flex items-center gap-1">
+        <h2 id="member-feedback-title" className="font-serif text-lg text-foreground">O que a organização está fazendo</h2>
+        <ContextualHelp entry={HELP_Q2_DEVOLUTIVA} roleId={roleId ?? null} size="sm" />
+      </div>
       <p className="mt-1 text-muted-foreground">
         Estas ações partem de resultados coletivos publicados. Mostram o que está sendo feito, não uma melhora já medida.
       </p>

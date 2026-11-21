@@ -71,6 +71,7 @@ export function ContextualHelp({
   stateKey,
   visibleLabel,
   size = "md",
+  roleId,
 }: {
   entry: ContextualHelpEntry;
   /** Estado atual da tela, quando a entrada declara estados. */
@@ -78,9 +79,11 @@ export function ContextualHelp({
   /** Rótulo de texto ao lado do ícone, quando o ícone sozinho não dá contexto. */
   visibleLabel?: string;
   size?: "md" | "sm";
+  /** Papel da sessão institucional real; sem ele, usa a persona demonstrativa. */
+  roleId?: string | null;
 }) {
-  const { roleId } = usePersona();
-  const personaRole = helpRoleFromPersona(roleId);
+  const { roleId: demoRoleId } = usePersona();
+  const personaRole = helpRoleFromPersona(roleId ?? demoRoleId);
   const [viewRole, setViewRole] = useState<HelpRole | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const titleRef = useRef<HTMLHeadingElement>(null);

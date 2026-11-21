@@ -289,7 +289,157 @@ export const HELP_EXPEDICAO_PRIORIDADE: ContextualHelpEntry = {
   review: REVIEW,
 };
 
+export const HELP_Q1_PREPARACAO: ContextualHelpEntry = {
+  id: "help.q1.preparacao",
+  version: HELP_CONTENT_VERSION,
+  route: "/ivo-integral/preparar-q1",
+  anchor: "titulo-pagina",
+  question: "O que acontece nesta preparação?",
+  summary:
+    "Aqui a empresa organiza a comunicação com a equipe e registra os controles que já existem, antes da coleta COPSOQ. Preparar não abre a coleta: hoje, a coleta e os resultados do Q1 seguem bloqueados até que se confirme a correspondência entre a versão brasileira aprovada e o instrumento servido.",
+  roles: {
+    geral: {
+      example:
+        "Antes de qualquer coleta, a equipe recebe um comunicado sobre a escuta. A devolutiva prevista é coletiva.",
+      nextStep:
+        "Nesta etapa não há questionário para responder. Dúvidas sobre o processo vão pelos canais indicados no comunicado.",
+    },
+    rh: {
+      example:
+        "Você escolhe o ciclo, prepara o comunicado pré-coleta e registra os controles existentes, sempre com referências coletivas: sem nomes, informações de saúde ou relatos individuais.",
+      nextStep:
+        "Abra o ciclo e salve a preparação. A revisão técnica é uma etapa separada, conduzida por SST.",
+    },
+    sst: {
+      example:
+        "A revisão técnica de SST é uma etapa distinta da preparação feita pelo representante da empresa.",
+      nextStep:
+        "Acompanhe o painel de revisão técnica deste ciclo quando ele estiver disponível para o seu papel.",
+    },
+    lideranca: {
+      example:
+        "Você ajuda a equipe a entender para que serve a escuta, sem pedir respostas, nomes ou relatos.",
+      nextStep: "Encaminhe as dúvidas da equipe aos canais indicados no comunicado.",
+    },
+  },
+  limits: [
+    "Preparar não abre a coleta e não gera resultado.",
+    "Nenhum dado individual é registrado nesta etapa.",
+    "Conteúdo educativo: não substitui o PGR nem profissional habilitado.",
+  ],
+  sources: [
+    {
+      nature: "produto",
+      title: "Contrato de módulos do Q1",
+      supports:
+        "Coleta e resultados bloqueados até que se confirme a correspondência com o instrumento servido.",
+      locator: "Contrato de módulos do VitalOS",
+    },
+    {
+      nature: "produto",
+      title: "Preparação Q1",
+      supports: "Ciclo, comunicado pré-coleta, controles existentes e revisão técnica como etapa separada.",
+      locator: "Fluxo de preparação do VitalOS",
+    },
+    {
+      nature: "orientacao_oficial",
+      title: MANUAL_MTE.title,
+      supports: "Meios de consulta e de comunicação aos trabalhadores em SST.",
+      locator: "Itens 6.2 e 6.3, p. 23–24",
+      href: MANUAL_MTE.href,
+    },
+  ],
+  review: REVIEW,
+};
+
+export const HELP_Q2_DEVOLUTIVA: ContextualHelpEntry = {
+  id: "help.q2.devolutiva-coletiva",
+  version: HELP_CONTENT_VERSION,
+  route: "/ivo-integral/q2",
+  anchor: "member-feedback-title",
+  question: "O que esta devolutiva mostra?",
+  summary:
+    "Mostra as ações que a organização decidiu a partir do resultado FIB-T publicado, por ciclo, setor e fator. É uma leitura do grupo: não mostra a resposta de ninguém e não indica que o indicador melhorou.",
+  roles: {
+    geral: {
+      example:
+        "Se aparece uma ação sobre um fator no seu setor, ela responde ao resultado coletivo, não a uma resposta sua.",
+      nextStep:
+        "Acompanhe se o plano está ativo ou encerrado. Dúvidas sobre uma ação vão aos canais da sua organização.",
+    },
+    rh: {
+      example: "Este é o retorno que os membros veem. A gestão do plano fica em Ações do ciclo.",
+      nextStep: "Para incluir ações ou acompanhar registros, abra Ações do ciclo.",
+      link: { to: "/ivo-integral/acoes", label: "Abrir Ações do ciclo" },
+    },
+  },
+  limits: [
+    "Não mostra respostas individuais.",
+    "Uma ação listada não é prova de melhora do indicador.",
+    "Lista vazia não é zero: pode ainda não haver resultado publicado ou ação em andamento.",
+  ],
+  sources: [
+    {
+      nature: "produto",
+      title: "Devolutiva coletiva do Q2",
+      supports: "Projeção do servidor com ciclo, estado do plano, setor e fator, sem dado de pessoa.",
+      locator: "Fluxo Q2 do VitalOS",
+    },
+  ],
+  review: REVIEW,
+};
+
+export const HELP_Q2_ACOES: ContextualHelpEntry = {
+  id: "help.q2.acoes-evidencias",
+  version: HELP_CONTENT_VERSION,
+  route: "/ivo-integral/acoes",
+  anchor: "titulo-pagina",
+  question: "Como ler as evidências deste plano?",
+  summary:
+    "O plano segue a ordem resultado → prioridade → ação → evidência → aprendizagem. A evidência de execução mostra que a ação aconteceu, mas não mostra que o indicador melhorou nem que a ação causou alguma mudança. Avaliar eficácia é uma etapa própria, com protocolo registrado.",
+  flow: [
+    { verb: "Registrar execução", who: "Responsável pela ação", text: "Informa que a ação aconteceu, como um encontro realizado." },
+    { verb: "Registrar aprendizagem", who: "Quem conduziu a ação", text: "Anota o que a equipe aprendeu, sem nomes nem relatos individuais." },
+    { verb: "Avaliar eficácia", who: "Papel habilitado no servidor", text: "Segue um protocolo próprio. Um registro de execução não substitui essa etapa." },
+  ],
+  roles: {
+    geral: {
+      example:
+        "Esta área é de gestão do plano. O retorno para os membros fica na devolutiva coletiva do Q2.",
+      nextStep: "Veja na devolutiva o que a organização está fazendo.",
+      link: { to: "/ivo-integral/q2", label: "Ver a devolutiva coletiva" },
+    },
+    lideranca: {
+      example:
+        "Você vê só as ações das quais é responsável. Depois de um encontro com a equipe, registre a execução; o que a equipe aprendeu entra em aprendizagem.",
+      nextStep: "Atualize o estado da ação e registre a evidência no card correspondente.",
+    },
+    rh: {
+      example:
+        "Você monta o plano a partir das prioridades, define responsável, prazo e indicador, e acompanha os registros na linha do tempo.",
+      nextStep: "Abra a avaliação de eficácia só com protocolo registrado. Até lá, leia os registros como execução.",
+    },
+  },
+  limits: [
+    "Execução registrada não é prova de efeito.",
+    "Registros usam referências coletivas: sem nomes, informações de saúde ou relatos individuais.",
+    "O plano não serve para avaliar desempenho de pessoas.",
+  ],
+  sources: [
+    {
+      nature: "produto",
+      title: "Ciclo de ações da FIB-T",
+      supports: "Diferença entre execução, aprendizagem e avaliação de eficácia; liderança vê só as próprias ações.",
+      locator: "Fluxo de ações do VitalOS",
+    },
+  ],
+  review: REVIEW,
+};
+
 export const CONTEXTUAL_HELP: readonly ContextualHelpEntry[] = [
+  HELP_Q1_PREPARACAO,
+  HELP_Q2_DEVOLUTIVA,
+  HELP_Q2_ACOES,
   HELP_EMBAIXADORIAS,
   HELP_GUARDIOES_VOZ_SEGURA,
   HELP_VIAT_RESULTADO,

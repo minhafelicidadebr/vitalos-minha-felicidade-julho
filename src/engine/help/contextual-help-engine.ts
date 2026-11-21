@@ -118,6 +118,10 @@ const PERSONA_TO_HELP_ROLE: Record<string, HelpRole> = {
   CIPA_MEMBRO: "sst",
   C_LEVEL: "direcao",
   HOLDING_ADMIN: "direcao",
+  // Papéis institucionais (profiles.role) — mesma leitura, nunca autorização.
+  DGP_RH: "rh",
+  DIRETOR: "direcao",
+  SESMT_SAUDE: "sst",
 };
 
 /** Papel de leitura da ajuda a partir do papel demonstrativo. Desconhecido → colaborador. */

@@ -50,6 +50,9 @@ import type {
 } from "@/lib/ivo/ivo-views";
 import { todayInSaoPaulo } from "@/lib/ivo/local-date";
 import { publishedActionSource } from "@/lib/ivo/published-action-source";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_Q2_ACOES } from "@/domain/help/contextual-help";
 
 // Prioridades e ações do ciclo a partir do resultado FIB-T publicado (R6).
 // Toda escrita passa pelo servidor, que confere sessão, papel, organização,
@@ -73,6 +76,7 @@ type Feedback = { tone: "ok" | "error"; text: string } | null;
 
 function IvoAcoesPage() {
   const search = Route.useSearch();
+  const session = useRealOrgSession();
   const [page, setPage] = useState<PageState>({ state: "loading" });
   const [token, setToken] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
@@ -265,7 +269,10 @@ function IvoAcoesPage() {
         </nav>
         <header>
           <p className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">Resultado → prioridade → ação → evidência → aprendizagem</p>
-          <h1 className="mt-2 font-serif text-3xl text-foreground">Ações do ciclo a partir da FIB-T</h1>
+          <div className="mt-2 flex items-start gap-1">
+            <h1 className="font-serif text-3xl text-foreground">Ações do ciclo a partir da FIB-T</h1>
+            <ContextualHelp entry={HELP_Q2_ACOES} roleId={session.org?.role ?? null} />
+          </div>
           <p className="mt-2 text-sm text-muted-foreground">
             Evidência de execução mostra que a ação aconteceu. Ela não comprova melhora do indicador nem causalidade.
           </p>
