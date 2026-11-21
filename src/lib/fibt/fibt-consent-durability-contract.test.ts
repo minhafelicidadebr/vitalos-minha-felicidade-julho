@@ -112,9 +112,15 @@ describe("Wave 2.1 — fronteira de privacidade", () => {
     expect(responses).toContain("consent_version: string | null");
     expect(responses).toContain("consent_accepted_at: string | null");
     expect(responses).not.toContain("invite_token");
-    expect(types).toContain(
-      "Args: { p_answers: Json; p_consent_version: string; p_token_hash: string }",
-    );
+    // O gerador do Lovable escreve as sobrecargas como união e quebra os Args em
+    // várias linhas. Exigimos a assinatura nova (com versão de consentimento) e
+    // aceitamos a legada (TEXT, JSONB) só porque ela é fail-closed e restrita a
+    // service_role (migrations 20260807120000 e 20260825022411).
+    const start = types.indexOf("submit_sector_response:");
+    const block = types.slice(start, types.indexOf("\n      }\n", start) + 1 || undefined);
+    const compact = block.replace(/\s+/g, " ");
+    expect(start).toBeGreaterThan(-1);
+    expect(compact).toContain("Args: { p_answers: Json p_consent_version: string p_token_hash: string }");
   });
 
   test("caminho demo continua efêmero; somente cloud invoca a RPC", () => {

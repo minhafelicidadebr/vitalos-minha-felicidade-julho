@@ -60,6 +60,10 @@ const ALLOWLIST_ENV: Record<string, Natureza> = {
   // aos guards. O par staging (VITALOS_STAGING_PROJECT_REF) NUNCA entra aqui
   // — ver os testes de "7. não contém variável de staging" abaixo.
   VITALOS_PRODUCTION_PROJECT_REF: "project-ref-publico",
+  // Gerados pelo Lovable Cloud no .env: o mesmo identificador público do projeto
+  // (subdomínio da URL da API). O teste 4b confere o formato do valor.
+  SUPABASE_PROJECT_ID: "project-ref-publico",
+  VITE_SUPABASE_PROJECT_ID: "project-ref-publico",
 };
 
 /** Claim `role` de um JWT, sem verificar assinatura (só classificação). */
