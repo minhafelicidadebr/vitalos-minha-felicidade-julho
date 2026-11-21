@@ -20,15 +20,16 @@
 
 Compatibilidade: a migration `20261121120000` cria uma função nova e não altera tabela; o código da `main` atual não a chama. A função pode existir no banco antes do código, sem efeito.
 
+**Confirmado pelo proponente em 21/11/2026:** o Lovable aplica as migrations de `supabase/migrations/` ao sincronizar a `main`. Logo, **o merge de um PR com migration é uma migration remota** e precisa de autorização explícita para isso. Reverter o arquivo depois não remove a função: a remoção exige uma migration nova.
+
+Atenção: o histórico remoto de migrations foi registrado como não canônico em 28/07/2026. Uma sincronização pode tentar outras migrations que o banco considere pendentes. Por isso a migration vai num PR próprio e pequeno.
+
 | Passo | Quem | Ação | Verificação | Recuperação |
 |---|---|---|---|---|
-| 0 | Proponente | Confirmar no Lovable Cloud se migrations entram por aplicação manual ou ao sincronizar a `main` | Resposta registrada | — |
-| 1 | Proponente | Aplicar `20261121120000` no banco do projeto (autorização específica) | O bloco `DO` da própria migration falha se `anon`/`authenticated` tiverem EXECUTE ou se `service_role` não tiver; conferir `has_function_privilege` no banco vivo | A migration roda numa transação: falha não deixa resíduo. Remover: `DROP FUNCTION public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text);` |
-| 2 | Proponente | Merge por PR do candidato (código de assentos + D2) | CI verde; prévia do Lovable atualizada | `git revert -m 1 <merge>` por PR; a função fica inofensiva sem o código |
+| 1 | Proponente | Autorizar a migration remota e mesclar o **PR A** (`fix/assentos-main`: migration `20261121120000` + código de assentos + teste de inventário) | CI verde; no Lovable, conferir que só esta migration foi aplicada; a própria migration falha se `anon`/`authenticated` tiverem EXECUTE; conferir `has_function_privilege` no banco vivo | Falha na aplicação: a transação não deixa resíduo. Desfazer depois de aplicada: PR com migration nova `DROP FUNCTION public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text);` e revert do código |
+| 2 | Proponente | Mesclar o **PR B** (`feat/mo3-lentes`: D2, fundação Q3, roteiros e documentos; sem migration própria) | CI verde; prévia do Lovable atualizada | `git revert -m 1 <merge>` por PR |
 | 3 | Proponente | Teste de convite na prévia **somente com organização de teste autorizada** (a prévia usa o banco do projeto) | Convite de colaborador aceito; 6º administrador recusado no Growth | Excluir a organização de teste pelo procedimento autorizado |
 | 4 | Proponente | Publicar | Convite real só depois do pacote do Instituto aprovado | Republicar a versão anterior |
-
-Se o passo 0 indicar aplicação automática ao sincronizar, os passos 1 e 2 viram um só: o merge aplica a migration e precisa da mesma autorização.
 
 ## 3. Pacote de liberação do Instituto (proposta para aprovação)
 
@@ -65,7 +66,7 @@ Se o passo 0 indicar aplicação automática ao sincronizar, os passos 1 e 2 vir
 | Identidade e papéis conferidos | Convites por papel; elegibilidade; recusas | Atendido no ensaio |
 | Privacidade preservada | Limiar 5; isolamento entre empresas; devolutiva sem nomes | Atendido no ensaio |
 | Dados de origem identificados | Onda FIB-T, setor, fator, versão do instrumento | Atendido |
-| Dependências | Migration de assentos; merge; publicação | **Pendente (autorização)** |
+| Dependências | PR A com migration remota autorizada; PR B; publicação | **Pendente (autorização)** |
 | Suporte e recuperação | Seção 2 e pacote | **Pendente (aprovação do pacote e responsável)** |
 
 **Decisão de liberação:** o pacote "Q2 completo + Q1 preparação + Q3 prática" fica **pronto para aprovação**, não para operação. Entra em piloto quando D1 estiver aplicado, a D10 estendida, o pacote aprovado e o responsável operacional nomeado. O marco "piloto completo Q1–Q5" não é alcançável neste candidato.
