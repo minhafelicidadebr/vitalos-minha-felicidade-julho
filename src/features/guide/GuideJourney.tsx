@@ -235,21 +235,29 @@ function OrientationMaps({ content, lens, perspectiveLabel }: { content: GuideCo
   );
 }
 
-function SceneTimeline({ lens }: { lens: GuideLensContent }) {
+function SceneTimeline({ lens, perspective }: { lens: GuideLensContent; perspective?: GuidePerspective }) {
+  const owner = perspective === "rh" ? "RH" : perspective === "lideranca" ? "Liderança" : undefined;
+  const followsReturn = perspective === "colaborador" || perspective === "sst";
   return (
     <ol className="relative space-y-3 border-l-2 border-border pl-5">
-      {lens.scene.map((s, i) => (
-        <li key={s.label} className="relative">
+      {lens.scene.map((s, i) => {
+        const roleLabel = lens.lens === "Q2"
+          ? owner === s.who ? "Sua atuação" : followsReturn && s.label === "Devolutiva coletiva" ? "Você acompanha" : null
+          : null;
+        return (
+        <li key={s.label} className={`relative rounded-xl p-2 transition-colors motion-reduce:transition-none ${roleLabel ? "bg-primary/10 ring-1 ring-primary/40" : ""}`}>
           <span aria-hidden className="absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-background text-[11px] font-bold text-primary">
             {i + 1}
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <h4 className="text-sm font-semibold text-foreground">{s.label}</h4>
+            {roleLabel ? <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">{roleLabel}</span> : null}
             <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">{s.who}</span>
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">{s.text}</p>
         </li>
-      ))}
+        );
+      })}
     </ol>
   );
 }
@@ -380,8 +388,8 @@ export function GuideJourney({ content, context, environment, stage, perspective
 
         {/* Caso e passagens */}
         <section id="guide-scene" aria-labelledby="guide-scene-title" className="order-2 space-y-4 lg:order-1">
-          <h3 id="guide-scene-title" className="font-semibold text-foreground">O caso nesta etapa</h3>
-          <SceneTimeline lens={lens} />
+            <h3 id="guide-scene-title" className="font-semibold text-foreground">Fluxo compartilhado</h3>
+            <SceneTimeline lens={lens} perspective={perspective} />
           <Dialog>
             <DialogTrigger asChild>
               <button type="button" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">

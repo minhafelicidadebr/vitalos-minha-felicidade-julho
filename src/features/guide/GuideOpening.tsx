@@ -1,5 +1,7 @@
 // Guia da Jornada · abertura para quem avalia contratar (V2.1 §8 A) e "Meu percurso" (§8 B).
 import { ArrowRight, Gift, Search, Users } from "lucide-react";
+import shiftHandoff from "@/assets/guide/shift-handoff.webp";
+import shiftHandoffSmall from "@/assets/guide/shift-handoff-small.webp";
 import type { GuideContent, GuideLens } from "@/domain/guide/guide-types";
 import { effectiveLevel, operationalCta, statusLabel, type GuideEntry, type GuideServerContext } from "@/lib/guide/guide-entry";
 
@@ -16,22 +18,38 @@ export function GuideOpening({ content, environment, onStart }: { content: Guide
   const o = content.opening;
   return (
     <section aria-labelledby="guide-opening" className="space-y-6">
-      <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Guia da jornada empresarial</p>
-        <h1 id="guide-opening" className="max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-4xl">{o.title}</h1>
-        <p className="max-w-2xl text-base text-muted-foreground">{o.text}</p>
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <button
-            type="button"
-            onClick={onStart}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {o.primaryCta} <ArrowRight aria-hidden className="h-4 w-4" />
-          </button>
-          <a href={o.secondaryCta.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-2 hover:underline">
-            {o.secondaryCta.label}
-          </a>
+      <div className="grid overflow-hidden rounded-3xl border border-primary/15 bg-primary/5 lg:grid-cols-2">
+        <div className="min-w-0 space-y-4 self-center p-5 sm:p-8">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Guia da jornada empresarial</p>
+          <h1 id="guide-opening" className="max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-4xl">{o.title}</h1>
+          <p className="max-w-2xl text-base text-muted-foreground">{o.text}</p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onStart}
+              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {o.primaryCta} <ArrowRight aria-hidden className="h-4 w-4" />
+            </button>
+            <a href={o.secondaryCta.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-2 hover:underline">
+              {o.secondaryCta.label}
+            </a>
+          </div>
         </div>
+        <figure className="relative min-w-0 overflow-hidden bg-muted">
+          <img
+            src={shiftHandoff}
+            srcSet={`${shiftHandoffSmall} 720w, ${shiftHandoff} 1200w`}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            width={1200}
+            height={800}
+            alt="Duas profissionais conversam durante a troca de turno em um centro de distribuição."
+            className="aspect-[4/3] w-full object-cover object-top sm:aspect-[3/2] lg:absolute lg:inset-0 lg:h-full lg:object-center"
+          />
+          <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/75 px-3 py-1 text-xs text-white">
+            Cena ilustrativa
+          </figcaption>
+        </figure>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <article className="rounded-2xl border border-border bg-card p-4 sm:p-5">
