@@ -38,6 +38,8 @@ export interface RealExpeditionState {
   hasActivePlan: boolean;
   selection: SeasonAntagonistSelection | null;
   assessments: AntagonistAssessment[];
+  /** Há ciclo, mas nenhuma dimensão da medição mais recente atinge n ≥ 5. */
+  suppressed: boolean;
 }
 
 /**
@@ -55,12 +57,19 @@ export async function loadRealExpeditionState(
   const bestiary = getCollectiveNarrative(bundle.gamification);
   if (!bestiary) return null;
 
-  const history = await loadOrgCycleHistory(orgId, instrument);
+  // failClosed: erro de leitura sobe e a tela mostra "indisponível", não "nenhum ciclo".
+  const history = await loadOrgCycleHistory(orgId, instrument, { failClosed: true });
   if (history.length === 0) {
-    return { cycleCount: 0, hasActivePlan: false, selection: null, assessments: [] };
+    return { cycleCount: 0, hasActivePlan: false, selection: null, assessments: [], suppressed: false };
   }
 
-  const latestExposures = exposuresFromLoadScores(history[history.length - 1]!.dimensions);
+  const latest = history[history.length - 1]!;
+  if (!latest.dimensions.some((d) => d.visible)) {
+    // Supressão k-anon: há medição, mas nada pode ser mostrado. Sem seleção e sem avaliação.
+    return { cycleCount: history.length, hasActivePlan: false, selection: null, assessments: [], suppressed: true };
+  }
+
+  const latestExposures = exposuresFromLoadScores(latest.dimensions);
   const needs = rankDriversByExposure(NR1_CROSSWALK, latestExposures);
   const selection = selectSeasonAntagonist(bestiary, needs);
 
@@ -69,7 +78,7 @@ export async function loadRealExpeditionState(
     // honestamente, mas a seleção da temporada já é real (1 ciclo já
     // ranqueia o driver pior-medido).
     const assessments = assessBestiary(bestiary, [], null);
-    return { cycleCount: 1, hasActivePlan: false, selection, assessments };
+    return { cycleCount: 1, hasActivePlan: false, selection, assessments, suppressed: false };
   }
 
   const cycles: CycleExposure[] = history.map((capsule) => ({
@@ -86,5 +95,5 @@ export async function loadRealExpeditionState(
   });
 
   const assessments = assessBestiary(bestiary, reavaliacao.drivers, reavaliacao.efficacy);
-  return { cycleCount: history.length, hasActivePlan: !!plan, selection, assessments };
+  return { cycleCount: history.length, hasActivePlan: !!plan, selection, assessments, suppressed: false };
 }

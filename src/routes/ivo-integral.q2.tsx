@@ -7,6 +7,7 @@ import { MemberPlanFeedback } from "@/components/ivo/MemberPlanFeedback";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import type { IvoQ2Outcome } from "@/lib/ivo/ivo-views";
+import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 
 // Detalhe da lente Q2 (FIB-T) dentro da experiência IVO. Leitura autorizada
 // no servidor (R5); somente o estado já publicado.
@@ -20,6 +21,7 @@ type PageState = { state: "loading" } | { state: "network_error" } | { state: "d
 
 function IvoQ2Page() {
   const [page, setPage] = useState<PageState>({ state: "loading" });
+  const session = useRealOrgSession();
 
   const load = useCallback(async () => {
     setPage({ state: "loading" });
@@ -76,7 +78,7 @@ function IvoQ2Page() {
           ) : null}
           {outcome && !outcome.ok && outcome.memberPath ? (
             <div className="mt-4">
-              <MemberPlanFeedback />
+              <MemberPlanFeedback roleId={session.org?.role ?? null} />
             </div>
           ) : null}
           {outcome?.ok && outcome.state === "no_wave" ? (

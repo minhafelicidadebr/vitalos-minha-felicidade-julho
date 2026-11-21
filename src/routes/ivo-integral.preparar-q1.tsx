@@ -7,6 +7,8 @@ import { Q1PreparationWorkspace } from "@/components/ivo/Q1PreparationWorkspace"
 import { Q1TechnicalReviewPanel } from "@/components/ivo/Q1TechnicalReviewPanel";
 import { cycleOfInstant, formatCycleKey } from "@/domain/ivo/cycle-key";
 import { cycleSchema, prepMessages } from "@/domain/survey/q1-preparation";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_Q1_PREPARACAO } from "@/domain/help/contextual-help";
 
 export const Route = createFileRoute("/ivo-integral/preparar-q1")({
   validateSearch: z.object({ cycle: z.string().optional() }),
@@ -31,7 +33,10 @@ function PreparationPage() {
           Voltar ao painel
         </Link>
         <header className="space-y-2">
-          <h1 className="font-serif text-3xl">Preparar avaliação Q1</h1>
+          <div className="flex items-start gap-1">
+            <h1 className="font-serif text-3xl">Preparar avaliação Q1</h1>
+            <ContextualHelp entry={HELP_Q1_PREPARACAO} roleId={session.org?.role ?? null} />
+          </div>
           <p className="text-muted-foreground">
             Organize a comunicação com a equipe e confira os controles existentes antes da coleta
             COPSOQ. Nesta etapa, o representante autorizado organiza os registros da empresa. A
