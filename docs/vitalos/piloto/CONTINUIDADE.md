@@ -7,7 +7,7 @@ Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verif
 | Campo | Valor |
 |---|---|
 | SHA verificado | `main` `425b4a9` (PR #57 mesclado com autorização do proponente para a migration remota; árvore igual a `8ae18c6`) |
-| Lovable | Sincronizou o #57, mas **todos os builds desde os commits do #56 aparecem como "Build malsucedido"**, inclusive commits só de teste; o #55 havia construído. Prévia desatualizada (versão do #55). Build local de `425b4a9` (`build:dev`) passa. Causa provável: ambiente do Lovable (log não visível; conta com "0 crédito restante") |
+| Lovable | Sincronizou o #57. **Todo build depois do #55 aparece como "Build malsucedido"**, a começar por `e371edd`, que só altera um arquivo de teste. Investigação (21/11): no mesmo commit `425b4a9`, passam localmente o preflight de produção, `bun run build` (contrato do Lovable) e `build:dev`; o preflight também passa em `268dfbc` e `e371edd`. O painel "Detalhes" não mostra log. Conclusão: causa no ambiente do Lovable, não no código. Suspeita não confirmada: conta com "0 crédito restante". A prévia segue servindo o build do #55 (servidor sem o código de assentos) |
 | Migration | Não confirmado se `20261121120000` foi aplicada no banco do projeto. Conferência é do proponente (acesso a produção segue bloqueado para o agente) |
 | Evidência reaproveitável | Gate 4647/0 em `8ae18c6`; candidato `feat/mo3-lentes` 4680/0 |
 | Riscos abertos | Build do Lovable falhando; migration sem confirmação; publicar o código de assentos sem a função no banco deixaria convites indisponíveis (falha fechada) |
