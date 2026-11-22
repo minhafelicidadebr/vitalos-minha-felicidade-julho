@@ -8,6 +8,7 @@
 // vetor-store; o LLM o recebe como contexto — RAG-then-generate.)
 
 import type { CopilotKnowledgeBase, KnowledgeChunk } from "@/engine/ai/copilot-engine";
+import { IVO_METHOD_ANCHOR, IVO_METHOD_NOTES, IVO_METHOD_VERSION } from "@/domain/ivo/method-presentation";
 
 // Tipos frouxos: o pack/index vêm de JSON (cast contido), espelhando os outros mocks.
 interface LensLike {
@@ -332,11 +333,22 @@ export function buildCopilotKnowledge(
     id: "indice",
     topics: ["indice", "score", "significa", "resultado", "vitalidade", indexLabel.toLowerCase()],
     title: `O que é o ${indexLabel}`,
-    body: `O ${indexFull} (${indexLabel}) é um índice agregado de 0 a 1000 que lê a vitalidade em quatro lentes. ${
+    body: pack.packId === "enterprise" ? IVO_METHOD_NOTES.coverage : `O ${indexFull} (${indexLabel}) é um índice agregado de 0 a 1000 que lê a vitalidade em quatro lentes. ${
       index?.mandatoryDisclaimer ?? "É experimental e orienta ação; não é instrumento clínico."
     }`,
     source: `Framework ${indexLabel}`,
   });
+
+  if (pack.packId === "enterprise") {
+    chunks.push(
+      { id: "ivo_method_trajectory", topics: ["trajetoria", "projecao", "previsao", "cenario", "hipotese"],
+        title: "Como ler a Trajetória", body: IVO_METHOD_NOTES.trajectory,
+        source: `VitalOS · Ficha técnica v${IVO_METHOD_VERSION} · /trajetoria#${IVO_METHOD_ANCHOR}` },
+      { id: "ivo_method_pnl", topics: ["pnl", "economia", "equilibrio", "custo", "roi"],
+        title: "Como ler o P&L", body: IVO_METHOD_NOTES.pnl,
+        source: `VitalOS · Ficha técnica v${IVO_METHOD_VERSION} · /pnl#${IVO_METHOD_ANCHOR}` },
+    );
+  }
 
   // 2) Uma citação por lente (pergunta-guia + base científica reais).
   for (const lens of index?.lenses ?? []) {

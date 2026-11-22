@@ -417,7 +417,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           Pular para o conteúdo
         </a>
         <header className="sticky top-0 z-40 border-b border-border/60 bg-card/78 shadow-[0_1px_0_color-mix(in_oklab,var(--color-border)_58%,transparent)] backdrop-blur-xl supports-[backdrop-filter]:bg-card/62 print:hidden">
-          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 max-[359px]:gap-1 max-[359px]:px-2 sm:px-6">
             {/* Mobile drawer trigger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <button
@@ -630,7 +630,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </nav>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2 max-[359px]:gap-1">
               {realOrg ? (
                 <RealOrgBadge org={realOrg} />
               ) : (
@@ -641,6 +641,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       onClick={() => setPersonaOpen((o) => !o)}
                       aria-expanded={personaOpen}
                       aria-haspopup="listbox"
+                      aria-label={`Papel de demonstração: ${roleLabel}`}
                       className="flex h-10 items-center gap-2 rounded-md border border-border/60 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
