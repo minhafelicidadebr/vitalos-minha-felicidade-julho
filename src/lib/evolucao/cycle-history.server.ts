@@ -57,6 +57,10 @@ function normalizeCapsuleJoin(row: RegistryRow): WaveCapsuleRow | null {
   return Array.isArray(raw) ? (raw[0] ?? null) : raw;
 }
 
+/** Mensagem recuperável quando a leitura do Cofre de Ciclos falha (nunca "nenhum ciclo"). */
+export const CYCLE_HISTORY_UNAVAILABLE =
+  "Não foi possível ler o histórico de ciclos agora. Isso não significa ausência de ciclos. Tente novamente em instantes.";
+
 /** Histórico REAL registrado de uma org+instrumento — [] se nada foi registrado ainda. */
 export async function loadOrgCycleHistory(
   orgId: string,
