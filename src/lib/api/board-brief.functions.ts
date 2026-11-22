@@ -13,7 +13,7 @@ export const getBoardBrief = createServerFn({ method: "GET" })
   .handler(({ data }) => buildBoardBrief(data.packId));
 
 export type RealBoardBriefResult =
-  | { available: false; reason: "cloud_not_ready" | "no_session" | "insufficient_cycles" | "module_unavailable" }
+  | { available: false; reason: "cloud_not_ready" | "no_session" | "insufficient_cycles" | "module_unavailable" | "read_failed" }
   | { available: true; brief: import("../proof/board-brief.server").BoardBrief };
 
 /**
@@ -35,7 +35,13 @@ export const getRealBoardBrief = createServerFn({ method: "GET" })
     if (!(await (await import("@/lib/identity/module-access.server")).checkInstrument(auth.membership.orgId, "COPSOQ")).ok) return { available: false, reason: "module_unavailable" };
 
     const { loadOrgCycleHistory } = await import("@/lib/evolucao/cycle-history.server");
-    const history = await loadOrgCycleHistory(auth.membership.orgId, "COPSOQ");
+    // Falha de leitura nunca vira "ciclos insuficientes".
+    let history: Awaited<ReturnType<typeof loadOrgCycleHistory>>;
+    try {
+      history = await loadOrgCycleHistory(auth.membership.orgId, "COPSOQ", { failClosed: true });
+    } catch {
+      return { available: false, reason: "read_failed" };
+    }
     if (history.length < 2) return { available: false, reason: "insufficient_cycles" };
 
     const { buildBoardBriefFromHistory } = await import("../proof/board-brief.server");

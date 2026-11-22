@@ -62,7 +62,8 @@ export async function buildRealOrgPgrDocument(
   const { data: org } = await admin.from("organizations").select("name, pack_id").eq("id", orgId).maybeSingle();
   if (!org) return null;
 
-  const history = await loadOrgCycleHistory(orgId, instrument);
+  // failClosed: sem leitura confiável, o dossiê não é montado como se não houvesse ciclo.
+  const history = await loadOrgCycleHistory(orgId, instrument, { failClosed: true });
   const latestExposures =
     history.length > 0 ? exposuresFromLoadScores(history[history.length - 1]!.dimensions) : [];
 

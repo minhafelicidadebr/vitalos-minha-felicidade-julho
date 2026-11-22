@@ -46,7 +46,8 @@ export async function buildRealReavaliacaoBundle(
   const { data: org } = await admin.from("organizations").select("name").eq("id", orgId).maybeSingle();
   const orgName = (org?.name as string | undefined) ?? "Organização";
 
-  const history = await loadOrgCycleHistory(orgId, instrument);
+  // failClosed: o chamador transforma a falha em erro recuperável, nunca em "sem ciclos".
+  const history = await loadOrgCycleHistory(orgId, instrument, { failClosed: true });
 
   const cycles: CycleExposure[] = history.map((capsule) => ({
     cycleId: capsule.cohortId,

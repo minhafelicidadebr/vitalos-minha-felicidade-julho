@@ -10,6 +10,7 @@ import { z } from "zod";
 import {
   listRegisterableCapsulesForOrg,
   loadOrgCycleHistory,
+  CYCLE_HISTORY_UNAVAILABLE,
   registerOrgCycleAsAdmin,
   type RegisterableCapsule,
 } from "../evolucao/cycle-history.server";
@@ -44,7 +45,13 @@ export const loadCycleHistory = createServerFn({ method: "GET" })
 
     const access = await (await import("@/lib/identity/module-access.server")).checkInstrument(auth.membership.orgId, data.instrument);
     if (!access.ok) return { cloudReady: true, error: access.error };
-    const history = await loadOrgCycleHistory(auth.membership.orgId, data.instrument);
+    // Falha de leitura nunca vira lista vazia de ciclos.
+    let history: Awaited<ReturnType<typeof loadOrgCycleHistory>>;
+    try {
+      history = await loadOrgCycleHistory(auth.membership.orgId, data.instrument, { failClosed: true });
+    } catch {
+      return { cloudReady: true, error: CYCLE_HISTORY_UNAVAILABLE };
+    }
     const registeredCycles = history.map((c) => ({
       cycleKey: c.cohortId,
       closedOn: c.closedOn,

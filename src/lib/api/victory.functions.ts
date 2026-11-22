@@ -32,8 +32,13 @@ export const loadRealReavaliacao = createServerFn({ method: "GET" })
     const auth = await resolveOrgMembership(data.accessToken);
     if (!auth.ok) return { cloudReady: true, error: describeAuthFailure(auth.reason) };
 
-    const bundle = await buildRealReavaliacaoBundle(auth.membership.orgId, data.instrument);
-    return { cloudReady: true, bundle };
+    try {
+      const bundle = await buildRealReavaliacaoBundle(auth.membership.orgId, data.instrument);
+      return { cloudReady: true, bundle };
+    } catch {
+      const { CYCLE_HISTORY_UNAVAILABLE } = await import("../evolucao/cycle-history.server");
+      return { cloudReady: true, error: CYCLE_HISTORY_UNAVAILABLE };
+    }
   });
 
 // ─── Listar Atas já seladas (leitura — qualquer membro) ─────────────────────
