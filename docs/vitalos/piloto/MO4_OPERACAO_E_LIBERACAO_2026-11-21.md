@@ -14,7 +14,7 @@
 | Colaborador Alfa | `/diario` | 390 | Devolutiva "O que a organização está fazendo": ação, setor, fator, estado, prazo, "execução registrada", "Eficácia ainda não avaliada"; sem nome do responsável nem conteúdo de evidência; ajuda "O que esta devolutiva mostra?" | OK, sem overflow |
 | Colaborador Alfa | `/ivo-integral/acoes` | 390 | Nenhum controle de registro | OK (servidor também recusa: MO2 X1) |
 
-**Limites desta prova:** o painel do navegador estava oculto (animações e capturas não confiáveis); a verificação foi por DOM. O concierge pode ficar sobre texto (não interativo) no celular, pendência global já registrada. Movimento reduzido: o diálogo de ajuda respeita; animações de entrada em framer-motion não seguem a preferência do app (registrado na MO de ajuda).
+**Limites desta prova:** o painel do navegador estava oculto (animações e capturas não confiáveis); a verificação foi por DOM. O concierge pode ficar sobre texto (não interativo) no celular, pendência global já registrada. Movimento reduzido: o `AppShell` já envolve o app em `MotionConfig reducedMotion={reduceMotion ? "always" : "user"}`; com a preferência ativa, o framer-motion desliga deslocamentos e mantém só transições de opacidade. A impressão anterior de "não respeita" vinha do painel oculto, que congela as animações (correção de 21/11). Sobreposição do concierge sobre a barra inferior no celular: corrigida em `feat/a11y-piloto`.
 
 ## 2. Convites, assentos e ordem de liberação
 
