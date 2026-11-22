@@ -2,15 +2,17 @@
 
 Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verificado.
 
-## Último estado verificado · 22/11/2026 (consolidação do piloto)
+## Último estado verificado · 22/11/2026 (reconciliação do #58)
 
 | Campo | Valor |
 |---|---|
-| SHA verificado | `main` `09784aa` (#61); candidato `integ/piloto-candidato` `503ea67` = main + #58 (`69d208f`) + #59 (`de1a3c9`) + #60 (`d62f73b`) |
-| Provas | Gate 4698/0 em `e70298b` (o último merge só acrescentou documentos); jornada Q2 54/0 em pilha recriada; navegador por papel (convite → primeiro acesso → Diário); relatório `docs/vitalos/piloto/RELATORIO_LIBERACAO_2026-11-22.md` |
-| Lovable | Prévia serve o #61 (`/ivo-integral` com os dois botões de método); cartões marcam "Build malsucedido" (build de produção) desde o #56; ticket de suporte aberto |
-| Riscos abertos | Build de produção; migration de assentos sem confirmação no banco do projeto; pacote do Instituto e responsável; cerimônia da devolutiva desligada (decisão de produto) |
-| Próximo comando útil | `sh scripts/integ-local/reset.sh` → `bun --no-env-file scripts/integ-local/app.ts` → `bun --no-env-file scripts/integ-local/mo2-journey.ts` (no candidato) |
+| `main` | `09784aa` (contém #57 e a migration `20261121120000`, uma vez) |
+| PRs | #58 `feat/mo3-lentes` `473fed0` (main mesclada; sem `supabase/` no diff) · #59 `de1a3c9` · #60 `d62f73b` (ambos sem `supabase/`) |
+| Candidato | `integ/piloto-candidato` `88349e4` (conteúdo igual a `e70298b` fora de `docs/`) |
+| Provas válidas | Gate 4698/0 em `e70298b`; gate 4686/0 em `923d2b5` (#58 + main, repetido); jornada 54/0 em `28b6b11` (mudanças posteriores fora do caminho da API) |
+| Migration | Presente na `main`; aplicação no banco do projeto não confirmada |
+| Pendente | Aplicar no GitHub a descrição `docs/vitalos/piloto/PR58_DESCRICAO_2026-11-22.md` (sessão do GitHub ausente no navegador) |
+| Próximo comando útil | `sh scripts/integ-local/reset.sh` → `bun --no-env-file scripts/integ-local/app.ts` → `bun --no-env-file scripts/integ-local/mo2-journey.ts` |
 
 ## Leitura desta sessão
 
