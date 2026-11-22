@@ -109,7 +109,9 @@ export function ConciergeWidget() {
 
   return (
     <>
-      <div className={`fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-5 z-[60] flex-col items-end gap-3 print:hidden ${open ? "hidden sm:flex" : "flex"}`}>
+      {/* Abaixo de xl existe a barra inferior fixa (AppShell, bottom-3, ~4rem): o lançador
+          fica acima dela para não cobrir o último item (WCAG 2.4.11). */}
+      <div className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-5 z-[60] flex-col items-end gap-3 print:hidden xl:bottom-[max(1.25rem,env(safe-area-inset-bottom))] ${open ? "hidden xl:flex" : "flex"}`}>
         <a
           href={whatsappLink("Olá! Quero falar com um consultor VitalOS.")}
           target="_blank" rel="noopener noreferrer"
@@ -136,9 +138,9 @@ export function ConciergeWidget() {
       {open && (
         <section
           role="dialog" aria-label="Assistente Flora do VitalOS"
-          className="fixed inset-0 z-[59] flex flex-col bg-card text-card-foreground shadow-2xl sm:inset-auto sm:bottom-28 sm:right-5 sm:h-[min(760px,calc(100vh-8rem))] sm:w-[min(720px,calc(100vw-2.5rem))] sm:rounded-2xl sm:border sm:border-border motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4"
+          className="fixed inset-0 z-[59] flex flex-col bg-card text-card-foreground shadow-2xl xl:inset-auto xl:bottom-28 xl:right-5 xl:h-[min(760px,calc(100vh-8rem))] xl:w-[min(720px,calc(100vw-2.5rem))] xl:rounded-2xl xl:border xl:border-border motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4"
         >
-          <header className="flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground sm:rounded-t-2xl">
+          <header className="flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground xl:rounded-t-2xl">
             <img src={avatar} alt="Flora, guia do VitalOS" width={48} height={48} className="h-12 w-12 rounded-full object-cover ring-2 ring-accent" />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">Flora · Guia VitalOS</p>
