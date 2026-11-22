@@ -2,17 +2,15 @@
 
 Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verificado.
 
-## Último estado verificado · 22/11/2026 (reconciliação do #58)
+## Último estado verificado · 22/11/2026 (#58, #59 e #60 mesclados)
 
 | Campo | Valor |
 |---|---|
-| `main` | `09784aa` (contém #57 e a migration `20261121120000`, uma vez) |
-| PRs | #58 `feat/mo3-lentes` `473fed0` (main mesclada; sem `supabase/` no diff) · #59 `de1a3c9` · #60 `d62f73b` (ambos sem `supabase/`) |
-| Candidato | `integ/piloto-candidato` `88349e4` (conteúdo igual a `e70298b` fora de `docs/`) |
-| Provas válidas | Gate 4698/0 em `e70298b`; gate 4686/0 em `923d2b5` (#58 + main, repetido); jornada 54/0 em `28b6b11` (mudanças posteriores fora do caminho da API) |
-| Migration | Presente na `main`; aplicação no banco do projeto não confirmada |
-| Pendente | Aplicar no GitHub a descrição `docs/vitalos/piloto/PR58_DESCRICAO_2026-11-22.md` (sessão do GitHub ausente no navegador) |
-| Próximo comando útil | `sh scripts/integ-local/reset.sh` → `bun --no-env-file scripts/integ-local/app.ts` → `bun --no-env-file scripts/integ-local/mo2-journey.ts` |
+| `main` | `0cf588b` (merge commits: #58 `02bfb9d`, #59 `9734209`, #60 `0cf588b`), com autorização do proponente nesta conversa |
+| Equivalência | Código da `main` idêntico ao candidato provado (`e70298b`: gate 4698/0; jornada Q2 54/0); diferença só em uma linha de `docs/`; nenhum arquivo em `supabase/` nos três merges |
+| Lovable | Sessão do painel do navegador expirou; sincronização e prévia da nova `main` ainda não conferidas |
+| Migration de assentos | Presente na `main`; aplicação no banco do projeto ainda não conferida (leitura autorizada, aguardando login no Lovable) |
+| Próximo | Conferir sincronização e prévia; leitura de `reserve_member_invite` no Lovable Cloud; publicação segue reservada |
 
 ## Leitura desta sessão
 
