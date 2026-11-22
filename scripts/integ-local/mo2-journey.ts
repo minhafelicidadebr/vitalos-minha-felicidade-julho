@@ -133,6 +133,22 @@ for (const t of ["alfa", "beta"] as const) {
   step("D7", "plataforma", `${t} passa a Growth para seguir o ensaio (decisão comercial pendente)`, true);
 }
 
+// I4 · duas emissões simultâneas com um assento livre (Growth = 5): exatamente uma passa.
+{
+  for (const n of [1, 2, 3]) {
+    const pre = await call("member-invite", "createMemberInviteLink", { accessToken: rhA.accessToken, email: `adm${n}.alfa@integ.test`, role: "RH_ADMIN" });
+    if (!okv(pre)) step("I4", "RH Alfa", `pré-condição: convite administrativo ${n}`, false, brief(pre.value));
+  }
+  const both = await Promise.all(
+    ["adm4", "adm5"].map((e) => call("member-invite", "createMemberInviteLink", { accessToken: rhA.accessToken, email: `${e}.alfa@integ.test`, role: "RH_ADMIN" })),
+  );
+  const accepted = both.filter(okv).length;
+  const refused = both.filter((x) => /Limite de administradores/.test(JSON.stringify(x.value ?? ""))).length;
+  step("I4", "RH Alfa (2 pedidos simultâneos)", "com 1 assento livre, exatamente um convite administrativo é criado", accepted === 1 && refused === 1, `aceitos ${accepted}, recusados ${refused}`);
+  const colabStill = await call("member-invite", "createMemberInviteLink", { accessToken: rhA.accessToken, email: "colab2.alfa@integ.test", role: "COLABORADOR" });
+  step("I4", "RH Alfa", "assentos administrativos cheios não bloqueiam convite de colaborador", okv(colabStill), brief(colabStill.value));
+}
+
 // Onda FIB-T + setor + respostas anônimas por link. Alfa: 5 (publica). Beta: 4 (abaixo do limiar).
 const { loadFibtManagerControlCenterAsAdmin } = await import(join(repo, "src/lib/fibt/fibt-manager-control-center.server.ts"));
 const { advanceCohortPublication } = await import(join(repo, "src/lib/fibt/fibt-cohort-publication.server.ts"));
@@ -237,6 +253,23 @@ const fbText = JSON.stringify(fb.value ?? {});
 step("J7", "Colaborador Alfa", "devolutiva coletiva do plano", okv(fb) && fbText.includes("Ritual semanal"), brief(fb.value));
 step("J7", "Colaborador Alfa", "devolutiva sem responsável nominal nem conteúdo de evidência", !fbText.includes(lider.userId) && !fbText.includes("Primeiro ritual realizado"));
 
+// X8 · liderança não registra em ação atribuída a outra pessoa da mesma organização.
+{
+  const addRes = await call("ivo-action-loop", "addFibtActionToPlanFn", {
+    accessToken: rhA.accessToken, planId: plan.id, requestId: randomUUID(), waveId: waves.alfa,
+    cohortId: action.source.cohortId, factorId: action.source.factorId, title: "Ação conduzida pelo RH", description: "Sintético.", effort: "baixo",
+    accountability: { ownerRoleLabel: "RH", ownerUserId: rhA.userId, dueOn: new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10), executionMetric: { label: "Encontros", baseline: 0, target: 2, unit: "encontros" } },
+  });
+  step("X8", "RH Alfa", "ação do RH adicionada ao plano ativo", okv(addRes), brief(addRes.value));
+  const loopNow = await call("ivo-action-loop", "loadFibtActionLoopFn", { accessToken: rhA.accessToken });
+  const rhItem = loopNow.value?.plans?.find((p: any) => p.id === plan.id)?.actions?.find((a: any) => a.title === "Ação conduzida pelo RH");
+  const leaderTry = await call("ivo-action-loop", "recordFibtActionStatusFn", { accessToken: lider.accessToken, itemId: rhItem?.id, toStatus: "em_execucao" });
+  step("X8", "Liderança Alfa", "não altera ação atribuída a outra pessoa", !!rhItem && !okv(leaderTry), brief(leaderTry.value));
+  const leaderView = await call("ivo-action-loop", "loadFibtActionLoopFn", { accessToken: lider.accessToken });
+  const seesRh = JSON.stringify(leaderView.value ?? {}).includes("Ação conduzida pelo RH");
+  step("X8", "Liderança Alfa", "não vê a ação atribuída a outra pessoa", !seesRh);
+}
+
 // ── X · Separação, acesso indevido, limiar e persistência ────────────────────
 const sstLoop = await call("ivo-action-loop", "loadFibtActionLoopFn", { accessToken: sst.accessToken });
 step("X1", "SST Alfa", "sem acesso ao ledger Q2", !okv(sstLoop) || (sstLoop.value?.plans ?? []).length === 0, brief(sstLoop.value));
@@ -262,6 +295,20 @@ step("J8", "RH Alfa", "evidência candidata ao Q5: execução registrada, eficá
 const { loadRealExpeditionState } = await import(join(repo, "src/lib/nr1/expedition-real.server.ts"));
 const exp = await loadRealExpeditionState(orgs.alfa, "enterprise");
 step("X6", "servidor (Alfa)", "Expedição sem ciclo registrado lê 0 ciclos, sem erro", exp?.cycleCount === 0 && exp?.suppressed === false, `ciclos ${exp?.cycleCount}`);
+
+{
+  const psql = (sql: string) =>
+    Bun.spawnSync(["docker", "exec", "-i", "vitalos-q1q2-integ-db", "psql", "-U", "postgres", "-d", "postgres", "-X", "-q", "-v", "ON_ERROR_STOP=1"], { stdin: new TextEncoder().encode(sql) }).exitCode === 0;
+  const renamed = psql("ALTER TABLE public.org_cycle_registry RENAME TO org_cycle_registry_x9;");
+  let threw = false;
+  try { await loadRealExpeditionState(orgs.alfa, "enterprise"); } catch { threw = true; }
+  const { loadOrgCycleHistory } = await import(join(repo, "src/lib/evolucao/cycle-history.server.ts"));
+  let legacy: unknown = "erro";
+  try { legacy = await loadOrgCycleHistory(orgs.alfa, "COPSOQ"); } catch { /* mantém "erro" */ }
+  const restored = psql("ALTER TABLE public.org_cycle_registry_x9 RENAME TO org_cycle_registry;");
+  step("X9", "servidor (falha induzida)", "erro de leitura vira falha (indisponível), não 'nenhum ciclo'", renamed && restored && threw, `lançou ${threw}`);
+  step("X9", "servidor (falha induzida)", "sem failClosed o chamador antigo ainda veria lista vazia (por isso os 5 chamadores usam failClosed)", Array.isArray(legacy) && (legacy as unknown[]).length === 0);
+}
 
 const count = async (table: string, org: string) => (await admin.from(table).select("id", { count: "exact", head: true }).eq("org_id", org)).count ?? 0;
 const ledger = {
