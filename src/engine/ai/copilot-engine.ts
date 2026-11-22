@@ -52,6 +52,7 @@ export interface CopilotKnowledgeBase {
 
 /** Métricas já computadas pelos motores (o "mostre a conta"). */
 export interface GroundingFacts {
+  origin?: "demonstration";
   indexLabel: string;
   score: number;
   maturityName: string;
@@ -281,6 +282,9 @@ const POV_VOICE: Record<CopilotPov, PovVoice> = {
 };
 
 function groundedLineFor(pov: CopilotPov, facts: GroundingFacts): string {
+  if (facts.origin === "demonstration") {
+    return `Exemplo sintético de demonstração: ${facts.indexLabel} de ${facts.score} pontos, participação de ${facts.participationRate}%.`;
+  }
   const base = `${facts.indexLabel} em ${facts.score} (${facts.maturityName}), momentum ${facts.momentumLabel.toLowerCase()} (${facts.slopePerCycle >= 0 ? "+" : ""}${facts.slopePerCycle} pts/ciclo), participação ${facts.participationRate}%`;
   const focus = facts.focusLensName ? `; lente mais aberta hoje: ${facts.focusLensName}` : "";
   if (pov === "empatico") {
@@ -298,8 +302,8 @@ function nextStepFor(
 ): string | null {
   if (pov === "inovador") {
     return facts.focusLensName
-      ? `Próximo passo: desenhe um pequeno experimento de 1 ciclo focado em "${facts.focusLensName}" e meça o efeito no ${facts.indexLabel} (Culture Lab).`
-      : `Próximo passo: escolha uma alavanca, teste por 1 ciclo e compare o ${facts.indexLabel} antes/depois.`;
+      ? `Próximo passo: defina um experimento para "${facts.focusLensName}" e combine o que registrar na execução e na reavaliação (Culture Lab).`
+      : "Próximo passo: defina um experimento e combine o que registrar na execução e na reavaliação.";
   }
   if (pov === "empatico") {
     return "Próximo passo: leve isso à equipe como escuta — pergunte o que ajudaria, sem cobrar quem respondeu.";
