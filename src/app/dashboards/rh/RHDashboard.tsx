@@ -22,6 +22,8 @@ import {
 } from "@/engine/signals/signals-engine";
 import { SIGNALS, PERCEPTION_BEHAVIOR_INPUT, SIGNALS_CONSENT_NOTE } from "@/mocks/signals-mock";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_RH_JORNADA } from "@/domain/help/pilot-help";
 import { InstitutionalModules } from "@/components/identity/EnterpriseModules";
 
 export function RHDashboard() {
@@ -58,7 +60,10 @@ function RealRHDashboard({ org }: { org: { orgId: string; orgName: string; role:
       {/* Estado institucional e publicação Q2 vêm do contrato autorizado por módulo. */}
       <InstitutionalModules key={org.orgId} />
       <section aria-label="Como seguir na jornada institucional" className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
-        <h2 className="font-serif text-xl text-foreground">Da leitura à aplicação</h2>
+        <div className="flex items-start gap-1">
+          <h2 className="min-w-0 font-serif text-xl text-foreground">Da leitura à aplicação</h2>
+          <ContextualHelp entry={HELP_RH_JORNADA} />
+        </div>
         <ol className="grid gap-3 text-sm leading-relaxed sm:grid-cols-3 [&>li]:min-w-0 [&>li]:rounded-lg [&>li]:border [&>li]:border-border [&>li]:p-3">
           <li><Waves aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>1. Mensurar</strong><p className="mt-1 text-muted-foreground">Confira o estado dos módulos acima. Coleta não significa resultado publicado.</p></li>
           <li><BookOpen aria-hidden="true" className="mb-2 size-5 text-primary" /><strong>2. Compreender</strong><p className="mt-1 text-muted-foreground">Consulte a origem, a escala e os limites da leitura disponível.</p></li>

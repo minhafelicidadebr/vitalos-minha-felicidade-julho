@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { calculateIVO, K_ANONYMITY_MIN } from "@/engine/index/ivo-engine";
 import type { PillarResult } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_LIDER_ACAO } from "@/domain/help/pilot-help";
 import { buildTrend } from "@/engine/trend/trend-engine";
 import { rankPriorities } from "@/engine/priority/priority-engine";
 import {
@@ -472,9 +474,14 @@ function ActionPlanCard({ items }: { items: ActionItem[] }) {
       transition={{ duration: 0.45, delay: 0.25 }}
       className="rounded-2xl border border-border/70 bg-card shadow-sm"
     >
-      <div className="px-5 pt-5 pb-2">
-        <p className="font-medium text-card-foreground">Plano de ação local</p>
-        <p className="text-xs text-muted-foreground">Ações da equipe ligadas aos pilares</p>
+      <div className="flex items-start gap-1 px-5 pt-5 pb-2">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-card-foreground">Plano de ação local</p>
+          <p className="text-xs text-muted-foreground">Ações da equipe ligadas aos pilares</p>
+        </div>
+        <div className="-mr-2 -mt-2">
+          <ContextualHelp entry={HELP_LIDER_ACAO} size="sm" />
+        </div>
       </div>
       <div className="space-y-1 px-3 pb-4">
         {items.map((item) => {

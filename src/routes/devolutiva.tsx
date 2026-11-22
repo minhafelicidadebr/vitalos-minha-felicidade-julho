@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Users } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_DEVOLUTIVA_COLETIVA } from "@/domain/help/pilot-help";
 import { usePack } from "@/engine/pack";
 import { usePersona } from "@/app/identity/persona-store";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
@@ -343,9 +345,12 @@ function DevolutivaPage() {
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Educar · Devolutiva da Onda
           </p>
-          <h1 className="mt-1 font-serif text-3xl text-foreground sm:text-4xl">
-            {devolutiva.headline}
-          </h1>
+          <div className="mt-1 flex items-start gap-1">
+            <h1 className="min-w-0 font-serif text-3xl text-foreground sm:text-4xl">
+              {devolutiva.headline}
+            </h1>
+            <ContextualHelp entry={HELP_DEVOLUTIVA_COLETIVA} />
+          </div>
         </motion.header>
 
         <BlockList blocks={devolutiva.blocks} />
