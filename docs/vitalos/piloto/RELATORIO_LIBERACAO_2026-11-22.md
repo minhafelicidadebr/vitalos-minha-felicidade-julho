@@ -19,7 +19,7 @@ Integrar e provar, com a pilha descartável simulando o banco. A ordem mudaria s
 
 | PR | Branch · commit | Conteúdo | Migration |
 |---|---|---|---|
-| #58 | `feat/mo3-lentes` `ca80f13` | D2 (falha fechada nas leituras de ciclo), fundação Q3, roteiros da pilha (`reset.sh`, `app.ts`, `mo2-journey.ts`, `mail-link.ts`), registros MO2–MO4 e este relatório | Não (a de assentos já está na `main` pelo #57) |
+| #58 | `feat/mo3-lentes` `923d2b5` | D2 (falha fechada nas leituras de ciclo), fundação Q3, roteiros da pilha (`reset.sh`, `app.ts`, `mo2-journey.ts`, `mail-link.ts`), registros MO2–MO4 e este relatório | Não (a de assentos já está na `main` pelo #57) |
 | #59 | `feat/a11y-piloto` `de1a3c9` | Concierge acima da barra inferior abaixo de `xl` | Não |
 | #60 | `feat/ajuda-onda4-piloto` `d62f73b` | Ajuda em `/devolutiva`, `/lider`, `/rh` e `/colaborador`; fundo da ajuda acima do concierge (z-69); sem cerimônia como passo | Não |
 
@@ -73,3 +73,11 @@ Cartões de todos os commits desde o #56 marcam "Build malsucedido", inclusive o
 | Publicação | Proponente | Publicar depois dos itens acima |
 
 Fila humana: revisão editorial dos textos de ajuda (v0.2.0) e revisão SST; decisão sobre ligar a cerimônia da devolutiva.
+
+## Reconciliação · 22/11/2026
+
+- **Divergência:** a descrição do #58 dizia que ele continha e dependia do #57. O #57 foi mesclado (`425b4a9`); o arquivo da migration estava no #58 apenas por ancestralidade, idêntico ao da `main`. Com duas bases de merge, o GitHub comparava com `5e26e73` e mostrava a migration no diff.
+- **Correção:** `main` mesclada em `feat/mo3-lentes` (`923d2b5`), sem reescrever histórico. Diff do #58 contra a `main`: nenhum arquivo em `supabase/`. Nova descrição em `PR58_DESCRICAO_2026-11-22.md` (aplicar no GitHub).
+- **Migration:** presente uma vez na `main` (`supabase/migrations/20261121120000_reserve_member_invite_atomic.sql`, manifesto igual). Aplicação no banco do projeto: **não confirmada** (conferência do proponente).
+- **Provas:** gate 4686/0 em `923d2b5` (repetido porque a árvore do #58 mudou). Candidato `d4bcebc` tem a mesma árvore que `503ea67` e, fora de `docs/`, que `e70298b` (gate 4698/0 continua válido). Jornada 54/0 em `28b6b11`: desde então mudaram só textos de ajuda e o botão de ajuda em `/colaborador`, fora do caminho da API (continua válida).
+- **PRs:** #58 sem migration e pronto para revisão humana; #59 e #60 sem arquivos em `supabase/`, bases já contêm o #57, independentes.
