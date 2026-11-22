@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/app/shell/AppShell";
 import { IvoCoveragePanel } from "@/components/ivo/IvoCoveragePanel";
+import { IvoMethodHeader, IvoMethodSheet } from "@/components/ivo/IvoMethodHeader";
 import { IvoLensMatrix } from "@/components/ivo/IvoLensMatrix";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
@@ -76,21 +77,16 @@ function IvoIntegralPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-        <header>
-          <p className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">
-            IVO · Índice de Vitalidade Organizacional
-          </p>
-          <h1 className="mt-2 font-serif text-3xl text-foreground">
-            Vitalidade que conecta pessoas, vínculos, liderança e sistema institucional
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">medir • aprender • transformar • comprovar</p>
+        <IvoMethodHeader view="coverage" title="O que os dados do ciclo mostram"
+          description="Acompanhe Eu, Nós, Liderança e Organização. Veja como a leitura orienta a aprendizagem, a transformação e a reavaliação."
+          status={view ? `Leitura da organização · ciclo ${view.cycleKey}` : "Cobertura por dimensão · leitura conforme a sessão"}>
           <a
             href="/ivo-integral/guia"
-            className="mt-3 inline-flex min-h-11 items-center rounded-md border border-primary/40 px-4 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-11 items-center rounded-lg bg-[#f2d08a] px-3 text-sm font-semibold text-[#152c23] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Guia da minha jornada
           </a>
-        </header>
+        </IvoMethodHeader>
 
         <section aria-labelledby="ivo-org-title" aria-live="polite" className="space-y-3">
           <h2 id="ivo-org-title" className="sr-only">Leitura da organização</h2>
@@ -148,6 +144,12 @@ function IvoIntegralPage() {
         <CopsoqPreparationNotice />
         <IvoLensMatrix matrix={matrix} />
         <IvoCoveragePanel coverage={coverage} />
+        <IvoMethodSheet view="coverage">
+          <p className="text-sm text-muted-foreground">
+            Relacione a leitura à ação escolhida e à reavaliação. Execução, mudança observada e efeito avaliado têm evidências próprias.
+          </p>
+          {view ? <p className="text-sm text-muted-foreground">Leitura exibida: ciclo {view.cycleKey}, FIB-T {view.methodology.waveInstrumentVersion}, situação: {SUMMARY_LABEL[view.overall]}.</p> : null}
+        </IvoMethodSheet>
         <p className="text-sm">
           <a
             href="/ivo-integral/governanca"

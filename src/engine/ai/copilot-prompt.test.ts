@@ -60,4 +60,11 @@ describe("copilot prompt — envelope RAG-then-generate", () => {
     expect(env.user).toContain("como melhorar?");
     expect(env.user.toLowerCase()).toContain("experimento");
   });
+
+  test("distingue métricas sintéticas de uma leitura institucional", () => {
+    const q = { question: "quanto deu o índice?", pov: "tecnico" as const };
+    const env = buildPromptEnvelope(kb, { ...facts, origin: "demonstration" }, q, []);
+    expect(env.context).toContain("MÉTRICAS (exemplo sintético de demonstração): IVS=531");
+    expect(env.system).toContain("execução, mudança observada e avaliação de efeito");
+  });
 });

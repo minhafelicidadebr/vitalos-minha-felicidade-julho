@@ -1,609 +1,125 @@
-import { DemonstrationContext } from "@/components/DemonstrationContext";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { TrendingUp, DollarSign, Leaf } from "lucide-react";
-import { motion } from "framer-motion";
-import {
-  ComposedChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-} from "recharts";
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/app/shell/AppShell";
+import { IvoMethodHeader, IvoMethodSheet } from "@/components/ivo/IvoMethodHeader";
 import { usePack } from "@/engine/pack";
 import { calculateIVO } from "@/engine/index/ivo-engine";
-import { projectForecast, type ForecastScenario } from "@/engine/forecast/forecast-engine";
-import {
-  calculatePnL,
-  DEFAULT_INPUTS,
-  type Scenario as PnlScenario,
-} from "@/engine/pnl/pnl-engine";
-import { deriveEsgReadiness, type PillarScore } from "@/engine/esg/esg-engine";
+import { projectForecast, SCENARIO_FACTOR, type ForecastScenario } from "@/engine/forecast/forecast-engine";
+import { compareForecastScenarios } from "@/engine/forecast/scenario-comparison";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
-import { ESG_MAPPING } from "@/mocks/esg-mock";
-import {
-  FORECAST_LEVERS,
-  MATURITY_BANDS,
-  pillarsFromIvo,
-  EFFORT_LABEL,
-  EVIDENCE_LABEL,
-  SCENARIO_LABEL,
-  FORECAST_INTRO,
-} from "@/mocks/forecast-mock";
+import { FORECAST_LEVERS, pillarsFromIvo } from "@/mocks/forecast-mock";
 
 export const Route = createFileRoute("/trajetoria")({
-  head: () => ({ meta: [{ title: "Simulador de Trajetória — 4 Lentes VitalOS™" }] }),
+  head: () => ({ meta: [{ title: "Cenários de evolução · VitalOS" }] }),
   component: TrajetoriaPage,
 });
 
-const HORIZONS = [
-  { seasons: 2, label: "6 meses" },
-  { seasons: 4, label: "1 ano" },
-  { seasons: 8, label: "2 anos" },
+const SCENARIOS: { id: ForecastScenario; label: string }[] = [
+  { id: "conservador", label: "Conservador" }, { id: "medio", label: "Médio" }, { id: "otimista", label: "Otimista" },
 ];
-
-const SCENARIO_TO_PNL: Record<ForecastScenario, PnlScenario> = {
-  conservador: "conservador",
-  medio: "médio",
-  otimista: "otimista",
-};
-
-const brl = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  maximumFractionDigits: 0,
-});
+const signed = (value: number) => value > 0 ? `+${value}` : String(value);
+const weightFormat = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 10 });
+const selectClass = "mt-1 block min-h-11 w-full rounded-lg border border-input bg-background px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 function TrajetoriaPage() {
-  const { index } = usePack();
-
-  const currentPillars = useMemo(() => {
-    if (!index) return null;
-    return pillarsFromIvo(calculateIVO(ivoCurrentCycle, index));
-  }, [index]);
-
-  const [activeLeverIds, setActiveLeverIds] = useState<string[]>([
-    "energia_carga",
-    "reconhecimento",
-  ]);
+  const { index, status } = usePack();
+  const [active, setActive] = useState<string[]>(["energia_carga", "reconhecimento"]);
   const [scenario, setScenario] = useState<ForecastScenario>("medio");
   const [seasons, setSeasons] = useState(4);
-
+  const pillars = useMemo(() => index ? pillarsFromIvo(calculateIVO(ivoCurrentCycle, index)) : null, [index]);
   const forecast = useMemo(() => {
-    if (!currentPillars) return null;
+    if (!pillars) return null;
     return projectForecast({
-      pillars: currentPillars,
-      levers: FORECAST_LEVERS,
-      activeLeverIds,
-      seasons,
-      scenario,
-      maturityLevels: MATURITY_BANDS,
+      pillars,
+      levers: FORECAST_LEVERS, activeLeverIds: active, seasons, scenario,
     });
-  }, [currentPillars, activeLeverIds, scenario, seasons]);
-
-  // Composição com P&L e ESG
-  const composed = useMemo(() => {
-    if (!forecast || !currentPillars) return null;
-    const ivoDelta = Math.max(0, forecast.ivoDelta);
-    const pnl = calculatePnL(DEFAULT_INPUTS, ivoDelta, SCENARIO_TO_PNL[scenario]);
-
-    const toPillarScore = (p: (typeof currentPillars)[number]): PillarScore => ({
-      pillarId: p.pillarId,
-      name: p.name,
-      score: p.score,
-      visible: p.visible,
-    });
-    const esgNow = deriveEsgReadiness(currentPillars.map(toPillarScore), ESG_MAPPING);
-    const esgNext = deriveEsgReadiness(forecast.projectedPillars.map(toPillarScore), ESG_MAPPING);
-    return { pnl, esgNow, esgNext };
-  }, [forecast, currentPillars, scenario]);
-
-  if (!forecast || !composed) {
-    return (
-      <AppShell>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <p className="animate-pulse text-muted-foreground">Projetando trajetórias…</p>
-        </div>
-      </AppShell>
-    );
-  }
-
-  const toggleLever = (id: string) =>
-    setActiveLeverIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }, [pillars, active, seasons, scenario]);
+  const rows = forecast ? compareForecastScenarios(forecast) : [];
+  const final = rows.at(-1);
 
   return (
     <AppShell>
-      <div className="mx-auto min-w-0 max-w-5xl space-y-7 px-4 py-8 sm:px-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-        >
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {FORECAST_INTRO.eyebrow}
-          </p>
-          <h1 className="mt-1 font-serif text-3xl text-foreground">{FORECAST_INTRO.title}</h1>
-          <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            {FORECAST_INTRO.lead}
-          </p>
-        </motion.div>
-
-        <DemonstrationContext kind="trajectory" />
-
-        {/* Controles: cenário + horizonte */}
-        <div className="flex flex-wrap items-center gap-4">
-          <SegmentedControl
-            label="Cenário"
-            options={(["conservador", "medio", "otimista"] as const).map((s) => ({
-              value: s,
-              label: SCENARIO_LABEL[s]!.label,
-            }))}
-            value={scenario}
-            onChange={(v) => setScenario(v as ForecastScenario)}
-          />
-          <SegmentedControl
-            label="Horizonte"
-            options={HORIZONS.map((h) => ({ value: String(h.seasons), label: h.label }))}
-            value={String(seasons)}
-            onChange={(v) => setSeasons(Number(v))}
-          />
-        </div>
-
-        {/* KPI strip — leitura instantânea do cenário ativo */}
-        <motion.div
-          key={`${scenario}-${seasons}-${activeLeverIds.join()}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="grid grid-cols-1 gap-px sm:grid-cols-3 overflow-hidden rounded-2xl border border-border/60 bg-border/40"
-        >
-          {[
-            {
-              icon: TrendingUp,
-              label: `IVO projetado (+${seasons} temporadas)`,
-              value: forecast.ivoDelta > 0 ? `+${Math.round(forecast.ivoDelta)}` : `${Math.round(forecast.ivoDelta)}`,
-              sub: `de ${Math.round(forecast.baselineIvo)} → ${Math.round(forecast.baselineIvo + forecast.ivoDelta)}`,
-              tint: forecast.ivoDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500",
-            },
-            {
-              icon: DollarSign,
-              label: "Custo evitável estimado",
-              value: composed.pnl.avoidedCost >= 1000
-                ? `R$ ${Math.round(composed.pnl.avoidedCost / 1000)} mil`
-                : `R$ ${Math.round(composed.pnl.avoidedCost)}`,
-              sub: "rotatividade + afastamento",
-              tint: "text-primary",
-            },
-            {
-              icon: Leaf,
-              label: "Prontidão ESG (salto)",
-              value: composed.esgNext.overallScore !== null
-                ? `${Math.round(composed.esgNext.overallScore)}%`
-                : "—",
-              sub: composed.esgNow.overallScore !== null
-                ? `de ${Math.round(composed.esgNow.overallScore)}% hoje`
-                : "dados insuficientes",
-              tint: "text-accent",
-            },
-          ].map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <div key={kpi.label} className="flex flex-col gap-0.5 bg-card px-4 py-3.5">
-                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  <Icon className={`h-3.5 w-3.5 ${kpi.tint}`} aria-hidden /> {kpi.label}
-                </span>
-                <span className={`font-serif text-2xl leading-none tabular-nums ${kpi.tint}`}>{kpi.value}</span>
-                <span className="text-[11px] text-muted-foreground">{kpi.sub}</span>
+      <div className="mx-auto min-w-0 max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+        <IvoMethodHeader view="trajectory" title="Explore cenários de evolução"
+          description="Compare uma referência de estabilidade com hipóteses de ação. Veja quais premissas mudam a trajetória."
+          status="Simulação ilustrativa · dados sintéticos · escala demonstrativa de 0 a 1.000" />
+        {status.state === "loading" || status.state === "idle" ? <p role="status">Carregando métricas de demonstração…</p> :
+          status.state === "error" ? <p role="alert">A configuração do índice ficou indisponível. Recarregue a página para tentar novamente.</p> :
+          !forecast || !final ? <p role="status">Este segmento ainda não tem um índice para simular.</p> : <>
+          <section aria-labelledby="traj-controls" className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+            <h2 id="traj-controls" className="font-serif text-xl">Monte o cenário alternativo</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-medium">Intensidade suposta
+                <select className={selectClass} value={scenario} onChange={(event) => setScenario(event.target.value as ForecastScenario)}>
+                  {SCENARIOS.map(({ id, label }) => <option key={id} value={id}>{label} · ×{SCENARIO_FACTOR[id].toLocaleString("pt-BR")}</option>)}
+                </select>
+              </label>
+              <label className="text-sm font-medium">Horizonte
+                <select className={selectClass} value={seasons} onChange={(event) => setSeasons(Number(event.target.value))}>
+                  {[2, 4, 8].map((n) => <option key={n} value={n}>{n} temporadas</option>)}
+                </select>
+              </label>
+            </div>
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">Ações incluídas</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {FORECAST_LEVERS.map((lever) => <label key={lever.id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-border p-3 text-sm has-[:checked]:border-primary/65 has-[:checked]:bg-primary/5">
+                  <input className="mt-1 size-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2" type="checkbox" checked={active.includes(lever.id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setActive((previous) => checked ? [...previous, lever.id] : previous.filter((id) => id !== lever.id));
+                    }} />
+                  <span><strong className="block">{lever.label}</strong><span className="text-muted-foreground">{lever.description}</span></span>
+                </label>)}
               </div>
-            );
-          })}
-        </motion.div>
-
-        {/* Gráfico de trajetória */}
-        <TrajectoryChart forecast={forecast} />
-
-        {/* Cartões de impacto */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <IvoImpactCard forecast={forecast} />
-          <PnlImpactCard avoidedCost={composed.pnl.avoidedCost} ivoDelta={forecast.ivoDelta} />
-          <EsgImpactCard now={composed.esgNow.overallScore} next={composed.esgNext.overallScore} />
-        </div>
-
-        {/* Alavancas */}
-        <section>
-          <h2 className="mb-1 font-serif text-xl text-foreground">Alavancas de intervenção</h2>
-          <p className="mb-4 text-sm text-muted-foreground">
-            As alavancas demonstrativas alteram os parâmetros do simulador. Ligue e veja o
-            efeito na trajetória.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {FORECAST_LEVERS.map((lever) => (
-              <LeverCard
-                key={lever.id}
-                lever={lever}
-                active={activeLeverIds.includes(lever.id)}
-                onToggle={() => toggleLever(lever.id)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Movimento por pilar */}
-        <PillarShiftsPanel forecast={forecast} />
-
-        {/* Premissas + disclaimer */}
-        <section className="rounded-2xl border border-border/60 bg-muted/30 p-5">
-          <h3 className="mb-2 font-serif text-base text-foreground">
-            Como esta projeção é calculada
-          </h3>
-          <ul className="space-y-1.5">
-            {forecast.assumptions.map((a, i) => (
-              <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                <span className="text-foreground/40">•</span>
-                {a}
-              </li>
-            ))}
+              <button type="button" onClick={() => setActive([])} className="mt-2 min-h-11 text-sm text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2">Usar hipótese de ausência de efeito</button>
+            </fieldset>
+          </section>
+          <section aria-labelledby="traj-results" className="min-w-0 space-y-3 rounded-2xl border border-border bg-card p-4 sm:p-6">
+            <h2 id="traj-results" className="font-serif text-xl">Compare as duas trajetórias</h2>
+            <p aria-live="polite" className="text-sm text-muted-foreground">Temporada {seasons}: {final.reference} pontos na referência, {final.alternative} na alternativa ({signed(final.alternative - final.reference)} pontos). Ambos são cenários de demonstração.</p>
+            <div aria-hidden="true" className="h-48 min-w-0 sm:h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={rows} margin={{ left: 0, right: 12, top: 8, bottom: 3 }}>
+                  <XAxis dataKey="season" tickLine={false} />
+                  <YAxis domain={[0, 1000]} width={42} tickLine={false} />
+                  <Line dataKey="reference" stroke="var(--muted-foreground)" strokeDasharray="6 5" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line dataKey="alternative" stroke="var(--primary)" strokeWidth={3} dot={{ r: 3 }} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-sm text-muted-foreground">Linha tracejada: referência. Linha contínua com pontos: alternativa.</p>
+            <details className="rounded-lg border border-border p-3">
+              <summary className="flex min-h-11 cursor-pointer items-center font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Ver tabela de pontos por temporada</summary>
+              <table className="w-full table-fixed text-left text-sm">
+                <caption className="sr-only">Cenários sintéticos na escala de 0 a 1.000</caption>
+                <thead><tr><th scope="col">Temporada</th><th scope="col">Referência</th><th scope="col">Alternativa</th></tr></thead>
+                <tbody>{rows.map((row) => <tr className="border-t border-border" key={row.season}><th scope="row" className="py-1.5 font-normal">{row.season === 0 ? "Base" : row.season}</th><td>{row.reference}</td><td>{row.alternative}</td></tr>)}</tbody>
+              </table>
+            </details>
+          </section>
+        </>}
+        <IvoMethodSheet view="trajectory">
+          <p className="text-sm text-muted-foreground">As diferenças dependem de alavancas, pesos e hipóteses internas. Esta tela não calcula intervalos probabilísticos. Para acompanhar uma organização, abra a leitura por lente.</p>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {FORECAST_LEVERS.map((lever) => <li key={lever.id}>{lever.label}: {lever.pointsPerSeason} pontos base por temporada nos pilares {lever.targetPillarIds.map((id) => id.replaceAll("_", " ")).join(", ")}.</li>)}
           </ul>
-        </section>
-
-        <div
-          className="rounded-r-xl border-l-4 border-amber-400 bg-amber-50/60 px-5 py-4 dark:bg-amber-950/20"
-          role="note"
-        >
-          <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-300">
-            {FORECAST_INTRO.disclaimer}
-          </p>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground">
-          A trajetória parte do{" "}
-          <Link to="/ivo" className="underline underline-offset-2 hover:text-foreground">
-            IVO
-          </Link>{" "}
-          atual e conversa com o{" "}
-          <Link to="/pnl" className="underline underline-offset-2 hover:text-foreground">
-            P&amp;L da Vitalidade
-          </Link>{" "}
-          e o{" "}
-          <Link to="/esg" className="underline underline-offset-2 hover:text-foreground">
-            ESG
-          </Link>
-          .
-        </p>
+          {pillars && <details className="rounded-lg border border-border p-3">
+            <summary className="flex min-h-11 cursor-pointer items-center font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Ver valores e pesos da base sintética</summary>
+            <p className="mb-2 text-sm text-muted-foreground">A cada temporada, multiplique os pontos de cada pilar pelo peso e arredonde a soma. Pilares protegidos conservam o valor neutro fixo de 500 nesta demonstração.</p>
+            <table className="w-full table-fixed text-left text-sm">
+              <caption className="sr-only">Valores iniciais e pesos sintéticos</caption>
+              <thead><tr><th scope="col" className="w-1/2">Pilar</th><th scope="col">Pontos</th><th scope="col">Peso</th></tr></thead>
+              <tbody>{pillars.map((pillar) => <tr className="border-t border-border" key={pillar.pillarId}><th scope="row" className="py-1.5 pr-2 font-normal">{pillar.name}</th><td>{pillar.visible ? pillar.score : "Protegido"}</td><td>{weightFormat.format(pillar.weight)}</td></tr>)}</tbody>
+            </table>
+          </details>}
+          <div className="flex flex-wrap gap-4">
+            <Link to="/ivo-integral" className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4">Abrir Visão IVO</Link>
+            <Link to="/pnl" className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4">Simular um desfecho econômico</Link>
+          </div>
+        </IvoMethodSheet>
       </div>
     </AppShell>
-  );
-}
-
-// ─── Controle segmentado ──────────────────────────────────────────────────────
-
-function SegmentedControl({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: Array<{ value: string; label: string }>;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
-      <div className="flex gap-1 rounded-xl border border-border/60 bg-muted/40 p-1">
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => onChange(opt.value)}
-            aria-pressed={value === opt.value}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-              value === opt.value
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Gráfico de trajetória ────────────────────────────────────────────────────
-
-function TrajectoryChart({ forecast }: { forecast: ReturnType<typeof projectForecast> }) {
-  const data = useMemo(() => {
-    const head = {
-      label: "Hoje",
-      ivo: forecast.baselineIvo,
-      low: forecast.baselineIvo,
-      bandRange: 0,
-    };
-    const rest = forecast.steps.map((s) => ({
-      label: `T+${s.season}`,
-      ivo: s.ivo,
-      low: s.ivoLow,
-      bandRange: s.ivoHigh - s.ivoLow,
-    }));
-    return [head, ...rest];
-  }, [forecast]);
-
-  const up = forecast.ivoDelta >= 0;
-  const lineColor = up ? "#16A34A" : "#DC2626";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: 0.05 }}
-      className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
-    >
-      <div className="mb-2 flex items-baseline justify-between">
-        <h2 className="font-serif text-lg text-foreground">Trajetória projetada do IVO</h2>
-        <span className="text-xs text-muted-foreground">escala 0–1000 · banda de confiança</span>
-      </div>
-      <div
-        role="img"
-        aria-label={`Gráfico de linha: IVO projetado parte de ${forecast.baselineIvo} hoje e chega a ${forecast.finalIvo} ao final do horizonte (${forecast.ivoDelta >= 0 ? "+" : ""}${forecast.ivoDelta} pontos), com banda de confiança que alarga ao longo do tempo.`}
-      >
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
-            <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11, fill: "currentColor" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              domain={[0, 1000]}
-              tick={{ fontSize: 11, fill: "currentColor" }}
-              axisLine={false}
-              tickLine={false}
-              width={40}
-            />
-            {/* Banda de confiança (low transparente + range colorido empilhado) */}
-            <Area
-              dataKey="low"
-              stackId="band"
-              stroke="none"
-              fill="transparent"
-              isAnimationActive={false}
-            />
-            <Area
-              dataKey="bandRange"
-              stackId="band"
-              stroke="none"
-              fill={lineColor}
-              fillOpacity={0.1}
-              isAnimationActive={false}
-            />
-            {/* Linha do IVO projetado */}
-            <Line
-              dataKey="ivo"
-              stroke={lineColor}
-              strokeWidth={2.5}
-              dot={{ r: 3, fill: lineColor }}
-              isAnimationActive={false}
-            />
-            <ReferenceLine
-              y={forecast.baselineIvo}
-              stroke="currentColor"
-              strokeOpacity={0.3}
-              strokeDasharray="4 4"
-            />
-            <RechartsTooltip
-              content={({ payload, label }) => {
-                if (!payload?.length) return null;
-                const row = payload[0]?.payload as { ivo: number; low: number; bandRange: number };
-                return (
-                  <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                    <p className="text-xs font-medium text-foreground">{label}</p>
-                    <p className="text-sm tabular-nums text-muted-foreground">IVO {row.ivo}</p>
-                    <p className="text-xs tabular-nums text-muted-foreground">
-                      faixa {row.low}–{row.low + row.bandRange}
-                    </p>
-                  </div>
-                );
-              }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── Cartões de impacto ───────────────────────────────────────────────────────
-
-function IvoImpactCard({ forecast }: { forecast: ReturnType<typeof projectForecast> }) {
-  const up = forecast.ivoDelta >= 0;
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5">
-      <p className="text-xs text-muted-foreground">IVO projetado · simulação</p>
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="font-serif text-4xl text-foreground">{forecast.finalIvo}</span>
-        <span
-          className={`text-sm font-medium ${up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
-        >
-          {up ? "+" : ""}
-          {forecast.ivoDelta}
-        </span>
-      </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        de <span className="tabular-nums">{forecast.baselineIvo}</span> hoje
-      </p>
-      {forecast.finalMaturity && (
-        <span className="mt-2 inline-block rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-          {forecast.finalMaturity}
-        </span>
-      )}
-      {forecast.finalMaturity !== forecast.baselineMaturity && forecast.baselineMaturity && (
-        <p className="mt-1.5 text-xs text-muted-foreground">
-          Sobe de “{forecast.baselineMaturity}”
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PnlImpactCard({ avoidedCost, ivoDelta }: { avoidedCost: number; ivoDelta: number }) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5">
-      <p className="text-xs text-muted-foreground">Custo evitável / ano · simulação</p>
-      <p className="mt-1 font-serif text-3xl text-foreground">{brl.format(avoidedCost)}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        derivado de Δ IVO {ivoDelta >= 0 ? "+" : ""}
-        {ivoDelta} pts
-      </p>
-      <Link
-        to="/pnl"
-        className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
-      >
-        ver memória de cálculo →
-      </Link>
-    </div>
-  );
-}
-
-function EsgImpactCard({ now, next }: { now: number | null; next: number | null }) {
-  const delta = now !== null && next !== null ? next - now : null;
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5">
-      <p className="text-xs text-muted-foreground">Prontidão ESG (social) · simulação</p>
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="font-serif text-3xl text-foreground">{next ?? "—"}</span>
-        {delta !== null && (
-          <span
-            className={`text-sm font-medium ${delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
-          >
-            {delta >= 0 ? "+" : ""}
-            {delta}
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        de <span className="tabular-nums">{now ?? "—"}</span> hoje · ESRS/ODS/GRI/FIB
-      </p>
-      <Link
-        to="/esg"
-        className="mt-2 inline-block text-xs text-primary underline underline-offset-2"
-      >
-        ver tradução ESG →
-      </Link>
-    </div>
-  );
-}
-
-// ─── Alavanca ─────────────────────────────────────────────────────────────────
-
-function LeverCard({
-  lever,
-  active,
-  onToggle,
-}: {
-  lever: (typeof FORECAST_LEVERS)[number];
-  active: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      onClick={onToggle}
-      aria-pressed={active}
-      className={`rounded-2xl border p-4 text-left transition-all ${
-        active
-          ? "border-primary/50 bg-primary/5 shadow-sm"
-          : "border-border/60 bg-card hover:border-border"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <h3 className="font-medium text-card-foreground">{lever.label}</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{lever.description}</p>
-        </div>
-        {/* Switch visual */}
-        <span
-          className={`mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-            active ? "bg-primary" : "bg-muted"
-          }`}
-          aria-hidden
-        >
-          <span
-            className={`h-4 w-4 rounded-full bg-background shadow-sm transition-transform ${
-              active ? "translate-x-4" : "translate-x-0"
-            }`}
-          />
-        </span>
-      </div>
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-        <span className="rounded-full border border-border/60 px-2 py-0.5 text-[9px] text-muted-foreground">
-          {EFFORT_LABEL[lever.effort]}
-        </span>
-        <span className="rounded-full border border-border/60 px-2 py-0.5 text-[9px] text-muted-foreground">
-          {EVIDENCE_LABEL[lever.evidenceLevel]}
-        </span>
-        <span className="rounded-full border border-border/60 px-2 py-0.5 text-[9px] text-muted-foreground">
-          +{lever.pointsPerSeason} pts/temp · {lever.targetPillarIds.length} pilares
-        </span>
-      </div>
-    </button>
-  );
-}
-
-// ─── Movimento por pilar ──────────────────────────────────────────────────────
-
-function PillarShiftsPanel({ forecast }: { forecast: ReturnType<typeof projectForecast> }) {
-  const movers = forecast.pillarShifts.filter((p) => p.delta !== 0);
-  if (movers.length === 0) {
-    return (
-      <section className="rounded-2xl border border-border/60 bg-card p-5">
-        <h2 className="font-serif text-lg text-foreground">Movimento por pilar</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Sem alavancas ativas, os pilares apenas recuam levemente. Ligue alguma alavanca acima.
-        </p>
-      </section>
-    );
-  }
-
-  const maxAbs = Math.max(...movers.map((m) => Math.abs(m.delta)), 1);
-
-  return (
-    <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-      <h2 className="mb-4 font-serif text-lg text-foreground">Movimento por pilar</h2>
-      <div className="space-y-2.5">
-        {movers.map((p) => {
-          const up = p.delta >= 0;
-          const widthPct = (Math.abs(p.delta) / maxAbs) * 100;
-          return (
-            <div key={p.pillarId} className="flex items-center gap-3">
-              <span className="w-44 shrink-0 truncate text-sm text-card-foreground">{p.name}</span>
-              <div className="relative flex-1">
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={`h-full rounded-full ${up ? "bg-emerald-500" : "bg-red-500"}`}
-                    style={{ width: `${widthPct}%` }}
-                  />
-                </div>
-              </div>
-              <span
-                className={`w-16 shrink-0 text-right text-xs font-medium tabular-nums ${up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
-              >
-                {up ? "+" : ""}
-                {p.delta}
-                <span className="ml-1 text-xs text-muted-foreground">→{p.to}</span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </section>
   );
 }
