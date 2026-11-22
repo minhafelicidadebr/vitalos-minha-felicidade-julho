@@ -9,7 +9,7 @@
 - **Registros** em `docs/vitalos/piloto/`: MO2–MO4 e relatório de liberação de 22/11.
 
 ## Provas
-- Esta branch (`923d2b5` = `main` + #58): gate 4686 pass / 0 fail, paridade, `tsc`, secret-scan.
+- HEAD deste PR (`923d2b5` + só documentos de registro): gate 4686 pass / 0 fail em `923d2b5` (`main` + #58), paridade, `tsc`, secret-scan. Os commits posteriores alteram apenas `docs/`.
 - Candidato integrado (`main` + #58 + #59 + #60): gate 4698/0 em `e70298b`; jornada Q2 54/0 em pilha descartável recriada.
 
 ## Para mesclar
