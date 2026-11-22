@@ -2,15 +2,16 @@
 
 Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verificado.
 
-## Último estado verificado · 22/11/2026 (#58, #59 e #60 mesclados)
+## Último estado verificado · 22/11/2026 (migration de assentos aplicada)
 
 | Campo | Valor |
 |---|---|
-| `main` | `0cf588b` (merge commits: #58 `02bfb9d`, #59 `9734209`, #60 `0cf588b`), com autorização do proponente nesta conversa |
-| Equivalência | Código da `main` idêntico ao candidato provado (`e70298b`: gate 4698/0; jornada Q2 54/0); diferença só em uma linha de `docs/`; nenhum arquivo em `supabase/` nos três merges |
-| Lovable | Sessão do painel do navegador expirou; sincronização e prévia da nova `main` ainda não conferidas |
-| Migration de assentos | Presente na `main`; aplicação no banco do projeto ainda não conferida (leitura autorizada, aguardando login no Lovable) |
-| Próximo | Conferir sincronização e prévia; leitura de `reserve_member_invite` no Lovable Cloud; publicação segue reservada |
+| `main` | `0cf588b` (#58, #59, #60 mesclados). O Lovable está no mesmo commit (conector MCP: `latest_commit_sha` `0cf588b`, projeto `ready`, sem erro, publicado) |
+| Migration | Em 22/11, leitura no banco do projeto mostrou `reserve_member_invite` **ausente**. Com autorização explícita do proponente ("somente a migration 20261121120000"), o texto exato de `origin/main:supabase/migrations/20261121120000_reserve_member_invite_atomic.sql` foi aplicado pelo conector do Lovable (consulta ao banco). O bloco de conferência da migration passou |
+| Conferência independente | 1 função, 7 argumentos, `SECURITY DEFINER`, `search_path=public`; EXECUTE: `anon` não, `authenticated` não, `service_role` sim |
+| Não feito | Nenhuma outra migration, nenhum dado lido ou escrito, sem publicação |
+| Não verificado | Convite real ponta a ponta no app publicado; se o cache de esquema da API já enxerga a função; build de publicação do Lovable (log indisponível) |
+| Próximo | Teste de convite só com organização de teste autorizada; publicação segue reservada ao proponente |
 
 ## Leitura desta sessão
 
