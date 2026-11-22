@@ -3,7 +3,9 @@
 // Claim Registry, então nenhuma ajuda cita estudo. Cada afirmação descreve uma regra já
 // implementada e verificada (leitura publicada com 5 ou mais respostas; plano ativado só
 // com responsável, prazo e indicador; liderança vê só as próprias ações; SST não registra
-// no plano; cerimônia sem identidade e com quórum de 5).
+// no plano; a organização vê só quantas pessoas praticaram, nunca quem, e só com 5 ou mais).
+// A cerimônia da devolutiva ao vivo está desligada no produto (capacidade DEVOLUTIVA): a ajuda
+// não a apresenta como próximo passo.
 
 import type { ContextualHelpEntry } from "@/engine/help/contextual-help-engine";
 
@@ -23,7 +25,7 @@ export const HELP_DEVOLUTIVA_COLETIVA: ContextualHelpEntry = {
   dataScope:
     "Médias do grupo, mostradas só com 5 ou mais respostas. Nenhuma resposta individual aparece para ninguém, nem para o RH.",
   afterwards:
-    "Na cerimônia da devolutiva, o RH registra a presença e os votos de mão levantada sobre os fatores. A pauta só é publicada com 5 ou mais presentes e orienta o plano do próximo ciclo.",
+    "A organização usa esta leitura para escolher o que vai transformar no ciclo. As ações escolhidas aparecem depois no Diário de cada pessoa, sem nomes.",
   whyItMatters:
     "Fecha o Educar: o grupo entende a leitura antes de decidir o que vai transformar.",
   roles: {
@@ -31,7 +33,7 @@ export const HELP_DEVOLUTIVA_COLETIVA: ContextualHelpEntry = {
       example:
         "Você lê como o grupo está e qual lente pede mais atenção. A sua resposta não aparece aqui, e ninguém consegue ver o que você respondeu.",
       nextStep:
-        "Participe da cerimônia, se ela acontecer na sua equipe. Depois, acompanhe no Diário o que a organização está fazendo.",
+        "Acompanhe no Diário o que a organização está fazendo a partir desta leitura.",
       link: { to: "/diario", label: "Abrir o Diário" },
     },
     lideranca: {
@@ -41,21 +43,20 @@ export const HELP_DEVOLUTIVA_COLETIVA: ContextualHelpEntry = {
     },
     rh: {
       example:
-        "Você conduz a cerimônia: abre a sessão, registra a presença e os votos e encerra. Só a administração da organização faz esses registros.",
-      nextStep:
-        "Abra a cerimônia quando o grupo estiver reunido. Com menos de 5 presentes, a pauta não é publicada.",
+        "Você usa esta leitura para conversar com o grupo e escolher as prioridades do plano do ciclo.",
+      nextStep: "Registre as ações escolhidas em Ações do ciclo.",
+      link: { to: "/ivo-integral/acoes", label: "Abrir Ações do ciclo" },
     },
   },
   limits: [
     "Não é resultado individual nem avaliação de desempenho.",
-    "Os votos da cerimônia não carregam identidade.",
   ],
   sources: [
     {
       nature: "produto",
-      title: "Devolutiva da onda e cerimônia",
-      supports: "Leitura coletiva, limite de 5 respostas, quórum de 5 presentes e votos sem identidade.",
-      locator: "Motor da devolutiva e da cerimônia do VitalOS",
+      title: "Devolutiva da onda",
+      supports: "Leitura coletiva e limite de 5 respostas.",
+      locator: "Motor da devolutiva do VitalOS",
     },
   ],
   review: REVIEW,
@@ -123,7 +124,7 @@ export const HELP_RH_JORNADA: ContextualHelpEntry = {
     {
       verb: "Devolver",
       who: "RH",
-      text: "O colaborador vê no Diário o que está sendo feito, sem nomes. A cerimônia da devolutiva reúne o grupo.",
+      text: "O colaborador vê no Diário o que está sendo feito, sem nomes nem conteúdo das evidências.",
     },
   ],
   dataScope:
@@ -155,7 +156,46 @@ export const HELP_RH_JORNADA: ContextualHelpEntry = {
   review: REVIEW,
 };
 
+export const HELP_COLABORADOR_ACADEMIA: ContextualHelpEntry = {
+  id: "help.colaborador.academia-privacidade",
+  version: VERSION,
+  route: "/colaborador",
+  anchor: "sua-academia",
+  question: "Quem vê minhas práticas e conquistas?",
+  summary:
+    "O detalhe é só seu. A organização vê apenas quantas pessoas participaram, nunca quem, e só quando há 5 pessoas ou mais.",
+  dataScope:
+    "Seus registros de participação ficam na sua conta e só você os lê. O RH e a liderança não veem o que você praticou nem quais conquistas você tem.",
+  afterwards:
+    "Cada prática registrada conta para o seu percurso na Academia. No Diário, um registro só entra na contagem coletiva se você consentir, e o texto nunca sai de lá.",
+  whyItMatters:
+    "É o Educar e o Transformar do seu lado: a prática conta para você, sem virar vigilância.",
+  roles: {
+    geral: {
+      example:
+        "Você registra que testou uma pausa sem reunião com a equipe. Isso soma uma prática no seu percurso; a organização só vê que mais uma pessoa praticou, se houver 5 ou mais.",
+      nextStep: "Continue na Academia ou registre uma prática no Diário.",
+      link: { to: "/diario", label: "Abrir o Diário" },
+    },
+  },
+  limits: [
+    "Práticas e conquistas não entram em avaliação de desempenho, promoção ou remuneração.",
+    "Não há ranking entre pessoas.",
+  ],
+  sources: [
+    {
+      nature: "produto",
+      title: "Academia e Diário de Prática",
+      supports:
+        "Leitura dos próprios registros, contagem coletiva sem identificar pessoas e limite de 5 pessoas.",
+      locator: "Ledger de participação e motor do Diário do VitalOS",
+    },
+  ],
+  review: REVIEW,
+};
+
 export const PILOT_HELP: readonly ContextualHelpEntry[] = [
+  HELP_COLABORADOR_ACADEMIA,
   HELP_DEVOLUTIVA_COLETIVA,
   HELP_LIDER_ACAO,
   HELP_RH_JORNADA,
