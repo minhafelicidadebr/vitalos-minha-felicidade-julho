@@ -20,6 +20,8 @@ import { calculateIVO } from "@/engine/index/ivo-engine";
 import { getNudgeLibrary, selectNudges } from "@/engine/nudges/nudge-engine";
 import { usePack } from "@/engine/pack";
 import { resolvePackBundle } from "@/domain/packs/registry";
+import { ContextualHelp } from "@/features/help/ContextualHelp";
+import { HELP_COLABORADOR_ACADEMIA } from "@/domain/help/pilot-help";
 import { ivoCurrentCycle } from "@/mocks/ivo-mock";
 import {
   MOCK_USER,
@@ -80,9 +82,12 @@ function RealColaboradorDashboard({ org }: { org: RealOrgSession }) {
           transition={{ duration: 0.45, delay: 0.08 }}
           className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="h-4 w-4 text-primary" />
-            <p className="font-medium text-card-foreground">Sua Academia</p>
+          <div className="mb-4 flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-primary" aria-hidden />
+            <p className="min-w-0 flex-1 font-medium text-card-foreground">Sua Academia</p>
+            <div className="-my-2 -mr-2">
+              <ContextualHelp entry={HELP_COLABORADOR_ACADEMIA} size="sm" />
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <StatChip label="Práticas registradas" value={`${summary.eventCount}`} />
