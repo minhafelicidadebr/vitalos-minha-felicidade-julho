@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { motion, animate } from "framer-motion";
+import { motion, animate, useReducedMotion, MotionConfig } from "framer-motion";
+import { IvoMethodHeader, IvoMethodSheet } from "@/components/ivo/IvoMethodHeader";
 import {
   RadarChart,
   Radar,
@@ -97,7 +98,9 @@ function IVOPage() {
 
   return (
     <AppShell>
-      <IVOContent index={index} packId={packId} />
+      <MotionConfig reducedMotion="user">
+        <IVOContent index={index} packId={packId} />
+      </MotionConfig>
     </AppShell>
   );
 }
@@ -125,18 +128,23 @@ function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string
 
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => defaultOpenGroups);
   const [displayScore, setDisplayScore] = useState(0);
+  const reduceMotion = useReducedMotion();
   const lensRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const sectionCRef = useRef<HTMLDivElement>(null);
 
   // Score counter animation
   useEffect(() => {
+    if (reduceMotion) {
+      setDisplayScore(currentResult.ivoScore);
+      return;
+    }
     const controls = animate(0, currentResult.ivoScore, {
       duration: 1.2,
       ease: "easeOut",
       onUpdate: (v) => setDisplayScore(Math.round(v)),
     });
     return () => controls.stop();
-  }, [currentResult.ivoScore]);
+  }, [currentResult.ivoScore, reduceMotion]);
 
   const delta = currentResult.ivoScore - previousResult.ivoScore;
 
@@ -152,7 +160,7 @@ function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string
   function scrollToLens(lensId: string) {
     setOpenGroups((prev) => new Set([...prev, lensId]));
     setTimeout(() => {
-      lensRefs.current[lensId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      lensRefs.current[lensId]?.scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth", block: "start" });
     }, 60);
   }
 
@@ -173,6 +181,9 @@ function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string
 
   return (
     <div className="mx-auto max-w-5xl space-y-16 px-4 py-10 sm:px-6 sm:py-14">
+      <IvoMethodHeader view="demo" title="Veja uma leitura de demonstração"
+        description="Explore como a pontuação do exemplo se distribui entre as lentes. Abra a Visão IVO para consultar a cobertura e a leitura disponível para sua sessão."
+        status={`Demonstração · dados sintéticos · temporada ${data.currentCycle.cycleId}`} />
       {/* ── SEÇÃO A — Cabeçalho executivo ── */}
       <SectionA
         currentResult={currentResult}
@@ -210,6 +221,9 @@ function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string
 
       {/* ── SEÇÃO D — Disclaimer + CTAs ── */}
       <SectionD disclaimer={currentResult.disclaimer} onExploreCritical={scrollToLowest} />
+      <IvoMethodSheet view="demo">
+        <Link to="/ivo-integral" className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4">Abrir Visão IVO</Link>
+      </IvoMethodSheet>
     </div>
   );
 }

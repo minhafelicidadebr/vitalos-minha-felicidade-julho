@@ -125,7 +125,7 @@ export function handleCopilotTurn(req: CopilotRequest): CopilotResponse {
   const bundle = resolvePackBundle(req.packId);
   const index = bundle.index ?? null;
   const kb = buildCopilotKnowledge(bundle.pack as never, index as never);
-  const facts = { ...computeFacts(req.packId, index as never), indexLabel: kb.indexLabel };
+  const facts = { ...computeFacts(req.packId, index as never), indexLabel: kb.indexLabel, origin: "demonstration" as const };
   const canSee = canSeeCollective(req.packId, req.roleId);
 
   const query = { question: req.question, pov: req.pov, canSeeCollective: canSee };

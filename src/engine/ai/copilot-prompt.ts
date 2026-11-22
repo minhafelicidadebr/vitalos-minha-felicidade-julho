@@ -46,6 +46,7 @@ export function buildPromptEnvelope(
     "2. Cite a fonte de cada afirmação.",
     "3. Nunca revele dados individuais, nunca faça ranking de pessoas, nunca alimente avaliação de desempenho, promoção, punição ou credenciamento.",
     "4. Não faça diagnóstico clínico nem substitua profissional habilitado.",
+    "Identifique dados sintéticos como demonstração. Para explicar efeito de uma ação, distinga execução, mudança observada e avaliação de efeito.",
     canSeeCollective
       ? "5. Você pode citar os números agregados do índice."
       : "5. NÃO revele os números do índice (interlocutor sem leitura coletiva); fale de forma geral.",
@@ -53,7 +54,7 @@ export function buildPromptEnvelope(
 
   const sourceLines = retrieved.map((h) => `- [${h.chunk.source}] ${h.chunk.body}`);
   const metricLine = canSeeCollective
-    ? `MÉTRICAS (agregadas): ${facts.indexLabel}=${facts.score} (${facts.maturityName}); momentum=${facts.momentumLabel} (${facts.slopePerCycle >= 0 ? "+" : ""}${facts.slopePerCycle}/ciclo); participação=${facts.participationRate}%${
+    ? `MÉTRICAS (${facts.origin === "demonstration" ? "exemplo sintético de demonstração" : "agregadas"}): ${facts.indexLabel}=${facts.score} (${facts.maturityName}); momentum=${facts.momentumLabel} (${facts.slopePerCycle >= 0 ? "+" : ""}${facts.slopePerCycle}/ciclo); participação=${facts.participationRate}%${
         facts.focusLensName ? `; foco=${facts.focusLensName}` : ""
       }.`
     : "MÉTRICAS: ocultas para este interlocutor (sem leitura coletiva).";
