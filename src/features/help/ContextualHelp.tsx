@@ -124,6 +124,9 @@ export function ContextualHelp({
           e.preventDefault();
           titleRef.current?.focus();
         }}
+        // Fundo acima do concierge (z-60) e conteúdo acima do fundo: o lançador fica
+        // escurecido atrás da ajuda, como no diálogo de método do IVO (z-79/z-80).
+        overlayClassName="z-[69] motion-reduce:animate-none"
         className="z-[70] flex max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
       >
         {/* Uma só área rolável (cabeçalho incluído): no celular, o cabeçalho não come a tela. */}
