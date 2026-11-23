@@ -45,7 +45,7 @@ O gate falhava em todo PR por 4 testes com 3 causas, todas divergência entre co
 | Adiar só a operação bloqueada | 6 | 9 | 7 | 8 | 8 | 8 | 6 | 7 | 6 | 7,2 |
 | Reutilizar integração existente | 6 | 7 | 6 | 9 | 8 | 7 | 6 | 6 | 8 | 7,0 |
 
-**Escolha:** ensaio sintético integrado, sobre a integração Q1+Q2 já na `main` (reuso), primeira jornada completa pelo **Q2** (lente com melhor evidência: D10, ledger e revisão já provados), e as demais lentes adiando só a operação bloqueada. **Dependência concreta que muda a ordem:** D1 precede qualquer convite real; a MO2 prova o convite com o código de `fix/assentos-administrativos` numa pilha descartável.
+**Escolha:** ensaio sintético integrado, sobre a integração Q1+Q2 já na `main` (reuso), primeira jornada completa pelo **Q2** (lente com melhor evidência: D10, ledger e revisão já provados), e as demais lentes adiando só a operação bloqueada. **Dependência concreta que muda a ordem** **[plano de 21/11, histórico, anterior ao merge do #57 em 22/11/2026]:** D1 precede qualquer convite real; a MO2 prova o convite com o código de `fix/assentos-administrativos` numa pilha descartável. **Estado atual (23/11):** a correção de assentos está na `main` (#57); a função `reserve_member_invite` está presente no banco do projeto e suas permissões foram conferidas (`anon`/`authenticated` sem EXECUTE, `service_role` com); a migration não consta no histórico de migrations; e o convite de ponta a ponta no app publicado **ainda não foi testado**. A presença da função não prova que o fluxo real funciona; a prova em pilha descartável (MO2) vale para o código, não para o ambiente publicado.
 
 ## 5. Matriz do piloto (lente × fase × papel)
 
