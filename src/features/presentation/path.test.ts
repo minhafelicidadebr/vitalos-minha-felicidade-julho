@@ -1,9 +1,11 @@
 import { expect, test } from "bun:test";
 import { usesPresentationShell } from "./path";
 
-test("only the presentation page bypasses company/demo providers; its API has a separate server boundary", () => {
+test("only the presentation and proposal pages bypass company/demo providers; their APIs have a separate server boundary", () => {
   expect(usesPresentationShell("/apresentacao/empresas")).toBe(true);
   expect(usesPresentationShell("/apresentacao/empresas/")).toBe(true);
+  expect(usesPresentationShell("/proposta")).toBe(true);
+  expect(usesPresentationShell("/proposta/")).toBe(true);
   for (const path of [
     "/",
     "/entrar",
@@ -13,6 +15,8 @@ test("only the presentation page bypasses company/demo providers; its API has a 
     "/api/apresentacao",
     "/apresentacao/empresas/admin",
     "/apresentacao/outra",
+    "/api/proposta",
+    "/proposta/outra",
   ])
     expect(usesPresentationShell(path)).toBe(false);
 });

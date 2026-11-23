@@ -69,6 +69,7 @@ import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PrivacidadeComercialRouteImport } from './routes/privacidade-comercial'
 import { Route as ProgramaRouteImport } from './routes/programa'
+import { Route as PropostaRouteImport } from './routes/proposta'
 import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as Q3DemoRouteImport } from './routes/q3-demo'
 import { Route as QuiosqueRouteImport } from './routes/quiosque'
@@ -91,6 +92,7 @@ import { Route as VozSeguraRouteImport } from './routes/voz-segura'
 import { Route as AceitarConviteTokenRouteImport } from './routes/aceitar-convite.$token'
 import { Route as ApiApresentacaoRouteImport } from './routes/api.apresentacao'
 import { Route as ApiGuiaRouteImport } from './routes/api.guia'
+import { Route as ApiPropostaRouteImport } from './routes/api.proposta'
 import { Route as ApresentacaoEmpresasRouteImport } from './routes/apresentacao.empresas'
 import { Route as AtivarTokenRouteImport } from './routes/ativar.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
@@ -405,6 +407,11 @@ const ProgramaRoute = ProgramaRouteImport.update({
   path: '/programa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropostaRoute = PropostaRouteImport.update({
+  id: '/proposta',
+  path: '/proposta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PulseRoute = PulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
@@ -513,6 +520,11 @@ const ApiApresentacaoRoute = ApiApresentacaoRouteImport.update({
 const ApiGuiaRoute = ApiGuiaRouteImport.update({
   id: '/api/guia',
   path: '/api/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPropostaRoute = ApiPropostaRouteImport.update({
+  id: '/api/proposta',
+  path: '/api/proposta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApresentacaoEmpresasRoute = ApresentacaoEmpresasRouteImport.update({
@@ -642,6 +654,7 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
+  '/proposta': typeof PropostaRoute
   '/pulse': typeof PulseRoute
   '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
@@ -664,6 +677,7 @@ export interface FileRoutesByFullPath {
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
   '/api/guia': typeof ApiGuiaRoute
+  '/api/proposta': typeof ApiPropostaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -739,6 +753,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
+  '/proposta': typeof PropostaRoute
   '/pulse': typeof PulseRoute
   '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
@@ -761,6 +776,7 @@ export interface FileRoutesByTo {
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
   '/api/guia': typeof ApiGuiaRoute
+  '/api/proposta': typeof ApiPropostaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -837,6 +853,7 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/privacidade-comercial': typeof PrivacidadeComercialRoute
   '/programa': typeof ProgramaRoute
+  '/proposta': typeof PropostaRoute
   '/pulse': typeof PulseRoute
   '/q3-demo': typeof Q3DemoRoute
   '/quiosque': typeof QuiosqueRoute
@@ -859,6 +876,7 @@ export interface FileRoutesById {
   '/aceitar-convite/$token': typeof AceitarConviteTokenRoute
   '/api/apresentacao': typeof ApiApresentacaoRoute
   '/api/guia': typeof ApiGuiaRoute
+  '/api/proposta': typeof ApiPropostaRoute
   '/apresentacao/empresas': typeof ApresentacaoEmpresasRoute
   '/ativar/$token': typeof AtivarTokenRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -936,6 +954,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/privacidade-comercial'
     | '/programa'
+    | '/proposta'
     | '/pulse'
     | '/q3-demo'
     | '/quiosque'
@@ -958,6 +977,7 @@ export interface FileRouteTypes {
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
     | '/api/guia'
+    | '/api/proposta'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
@@ -1033,6 +1053,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/privacidade-comercial'
     | '/programa'
+    | '/proposta'
     | '/pulse'
     | '/q3-demo'
     | '/quiosque'
@@ -1055,6 +1076,7 @@ export interface FileRouteTypes {
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
     | '/api/guia'
+    | '/api/proposta'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
@@ -1130,6 +1152,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/privacidade-comercial'
     | '/programa'
+    | '/proposta'
     | '/pulse'
     | '/q3-demo'
     | '/quiosque'
@@ -1152,6 +1175,7 @@ export interface FileRouteTypes {
     | '/aceitar-convite/$token'
     | '/api/apresentacao'
     | '/api/guia'
+    | '/api/proposta'
     | '/apresentacao/empresas'
     | '/ativar/$token'
     | '/auth/callback'
@@ -1228,6 +1252,7 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   PrivacidadeComercialRoute: typeof PrivacidadeComercialRoute
   ProgramaRoute: typeof ProgramaRoute
+  PropostaRoute: typeof PropostaRoute
   PulseRoute: typeof PulseRoute
   Q3DemoRoute: typeof Q3DemoRoute
   QuiosqueRoute: typeof QuiosqueRoute
@@ -1250,6 +1275,7 @@ export interface RootRouteChildren {
   AceitarConviteTokenRoute: typeof AceitarConviteTokenRoute
   ApiApresentacaoRoute: typeof ApiApresentacaoRoute
   ApiGuiaRoute: typeof ApiGuiaRoute
+  ApiPropostaRoute: typeof ApiPropostaRoute
   ApresentacaoEmpresasRoute: typeof ApresentacaoEmpresasRoute
   AtivarTokenRoute: typeof AtivarTokenRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -1687,6 +1713,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposta': {
+      id: '/proposta'
+      path: '/proposta'
+      fullPath: '/proposta'
+      preLoaderRoute: typeof PropostaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pulse': {
       id: '/pulse'
       path: '/pulse'
@@ -1839,6 +1872,13 @@ declare module '@tanstack/react-router' {
       path: '/api/guia'
       fullPath: '/api/guia'
       preLoaderRoute: typeof ApiGuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/proposta': {
+      id: '/api/proposta'
+      path: '/api/proposta'
+      fullPath: '/api/proposta'
+      preLoaderRoute: typeof ApiPropostaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apresentacao/empresas': {
@@ -1996,6 +2036,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   PrivacidadeComercialRoute: PrivacidadeComercialRoute,
   ProgramaRoute: ProgramaRoute,
+  PropostaRoute: PropostaRoute,
   PulseRoute: PulseRoute,
   Q3DemoRoute: Q3DemoRoute,
   QuiosqueRoute: QuiosqueRoute,
@@ -2018,6 +2059,7 @@ const rootRouteChildren: RootRouteChildren = {
   AceitarConviteTokenRoute: AceitarConviteTokenRoute,
   ApiApresentacaoRoute: ApiApresentacaoRoute,
   ApiGuiaRoute: ApiGuiaRoute,
+  ApiPropostaRoute: ApiPropostaRoute,
   ApresentacaoEmpresasRoute: ApresentacaoEmpresasRoute,
   AtivarTokenRoute: AtivarTokenRoute,
   AuthCallbackRoute: AuthCallbackRoute,
