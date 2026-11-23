@@ -24,8 +24,8 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 
 | Item | Registro | Estado |
 |---|---|---|
-| Organização | Instituto Felicidade para Todos | ✅ escolhido pelo proponente (PIL-01) |
-| Plano | Growth (até 5 administradores; FIB-T permitido) | ✅ decidido em 21/11 |
+| Organização e plano | Instituto Felicidade para Todos, no plano Growth (até 5 administradores; FIB-T permitido) | ✅ escolhidos pelo proponente em 21/11 (`PLANO_INSTITUTO_GROWTH_2026-11-21.md`). Vale só para a organização e o plano |
+| Delimitação do piloto (PIL-01) | Finalidade, coorte e período | 🟡 **pendente**, conforme `Q2_PILOT_SCOPE_2026-11-16.md` (PIL-01 "Pendente de delimitação"). Os valores das seções 3 e 4 (8–15 pessoas, 6 semanas) são propostas, não decisões |
 | Escopo por lente | Q2 completo; Q1 só preparação; Q3 só prática educativa; Q4 e Q5 fora | 🟡 proposta |
 | Papéis | RH_ADMIN, liderança responsável pelas ações, colaboradores; SST só com responsável competente (Q1 preparação) | 🟡 proposta |
 | **Responsável operacional** | **[sem nome — decisão do proponente e do Instituto]** | 🟡 pendente |
