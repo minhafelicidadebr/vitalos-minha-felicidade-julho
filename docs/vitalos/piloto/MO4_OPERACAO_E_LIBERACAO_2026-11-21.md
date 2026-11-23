@@ -66,7 +66,7 @@ Atenção: o histórico remoto de migrations foi registrado como não canônico 
 | Identidade e papéis conferidos | Convites por papel; elegibilidade; recusas | Atendido no ensaio |
 | Privacidade preservada | Limiar 5; isolamento entre empresas; devolutiva sem nomes | Atendido no ensaio |
 | Dados de origem identificados | Onda FIB-T, setor, fator, versão do instrumento | Atendido |
-| Dependências | PR A com migration remota autorizada; PR B; publicação | **Pendente (autorização)** |
+| Dependências | Migration remota aplicada (22/11); #57–#60 mesclados; publicação | **Migration e merges concluídos; publicação pendente (créditos do Lovable e autorização)** |
 | Suporte e recuperação | Seção 2 e pacote | **Pendente (aprovação do pacote e responsável)** |
 
 **Decisão de liberação:** o pacote "Q2 completo + Q1 preparação + Q3 prática" fica **pronto para aprovação**, não para operação. Entra em piloto quando D1 estiver aplicado, a D10 estendida, o pacote aprovado e o responsável operacional nomeado. O marco "piloto completo Q1–Q5" não é alcançável neste candidato.
