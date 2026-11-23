@@ -4,7 +4,7 @@
 
 **Contexto:** a MO2 provou que o plano Piloto só permite COPSOQ e recusa a onda FIB-T, que o Q2 exige (D7, `docs/vitalos/piloto/MO2_JORNADA_Q2_2026-11-21.md`).
 
-**Decisão:** o Instituto opera o piloto no plano **Growth** (`plan-engine.ts`: até 5 administradores, 4 ondas por mês, 500 convites por onda, instrumentos COPSOQ, PERMA, VIA-T e FIB-T, retenção de 12 meses). O catálogo de planos **não** muda: o Piloto continua só com COPSOQ.
+**Decisão:** o Instituto opera o piloto no plano **Growth** (`plan-engine.ts`: até 5 administradores, 4 ondas por mês, 500 convites por onda, instrumentos COPSOQ, PERMA, VIA-T e FIB-T, retenção de 12 meses **declarada no catálogo; nenhum código a aplica (conferido em 23/11), então não é política de retenção**; ver `piloto/CHECKLIST_LIBERACAO_PILOTO_Q2_2026-11-23.md` §3). O catálogo de planos **não** muda: o Piloto continua só com COPSOQ.
 
 **Efeitos:**
 - D7 resolvido para o Instituto.

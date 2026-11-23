@@ -2,20 +2,20 @@
 
 Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verificado.
 
-## Último estado verificado · 23/11/2026 (`main` `d816a9d`; migration aplicada; convite ponta a ponta não testado)
+## Último estado verificado · 23/11/2026 (`main` `37a89ca`; migration aplicada; convite ponta a ponta não testado)
 
 | Campo | Valor |
 |---|---|
-| `main` | `d816a9d` (merge do #63, que incorporou o HEAD `1416cd4`; só documentação em `docs/`). Antes dele, `0cf588b` (#58, #59, #60 mesclados) era o estado de código e banco: **nada fora de `docs/` mudou entre `0cf588b` e `d816a9d`** |
-| Lovable | Em 22/11 o conector MCP mostrou `latest_commit_sha` `0cf588b`, projeto `ready`, sem erro. **Não reverificado depois do #63** (o merge do #63 não altera código, e novos builds dependem de créditos). Evidência histórica, datada de 22/11 |
+| `main` | `37a89ca` (merge do #64, que incorporou o HEAD `a850ff0`; só documentação em `docs/vitalos/piloto/`). Antes dele, `d816a9d` (merge do #63, só documentação) e `0cf588b` (#58, #59, #60 mesclados), último estado de código e banco: **nada fora de `docs/` mudou entre `0cf588b` e `37a89ca`** (conferido em 23/11) |
+| Lovable | Em 22/11 o conector MCP mostrou `latest_commit_sha` `0cf588b`, projeto `ready`, sem erro. **Não reverificado depois do #63 e do #64** (os dois merges só mudam documentação, e novos builds dependem de créditos). Evidência histórica, datada de 22/11 |
 | Migration | Em 22/11, leitura no banco do projeto mostrou `reserve_member_invite` **ausente**. Com autorização explícita do proponente ("somente a migration 20261121120000"), o texto exato de `origin/main:supabase/migrations/20261121120000_reserve_member_invite_atomic.sql` foi aplicado pelo conector do Lovable (consulta ao banco). O bloco de conferência da migration passou |
 | Conferência independente | 1 função, 7 argumentos, `SECURITY DEFINER`, `search_path=public`; EXECUTE: `anon` não, `authenticated` não, `service_role` sim |
 | Os quatro fatos da migration de assentos | **1.** função presente (1 assinatura, 7 argumentos). **2.** permissões conferidas (`anon`/`authenticated` sem EXECUTE, `service_role` com). **3.** ausente do histórico `supabase_migrations.schema_migrations`. **4.** convite de ponta a ponta no app publicado **não testado**. Os quatro são independentes: nenhum implica outro |
 | Não feito | Nenhuma outra migration; nenhum dado de pessoas lido ou escrito (só catálogo de funções e o histórico de migrations); sem publicação |
 | Não verificado | Convite real ponta a ponta no app publicado; se o cache de esquema da API já enxerga a função; build de publicação do Lovable (log indisponível) |
-| Suporte do Lovable (23/11) | Causa do "Build malsucedido": workspace com **0 créditos**; sem créditos não há build novo nem log. Créditos renovam em ~26/11 ou top-up. Depois, o suporte manda usar "Fix build" no chat (gasta créditos; não usado). A hipótese de erro de TypeScript no arquivo de teste de `e371edd` é improvável: `tsc` passou no gate dessa árvore e o `build` local passa |
+| Suporte do Lovable (23/11) | O suporte **atribuiu** o "Build malsucedido" ao workspace com **0 créditos**; isso é a explicação do suporte, **não prova da causa técnica específica**, que segue não verificada (sem créditos não há build novo nem log). Créditos renovam em ~26/11 ou top-up. Depois, o suporte manda usar "Fix build" no chat (gasta créditos; não usado). A hipótese de erro de TypeScript no arquivo de teste de `e371edd` é improvável: `tsc` passou no gate dessa árvore e o `build` local passa |
 | Histórico de migrations | `supabase_migrations.schema_migrations` do projeto tem só 2 registros (`20260713234253`, `20260825022411`), nenhum de `20261121120000`: a função foi aplicada por consulta direta e não está no histórico. O histórico já era não canônico; a função existe e foi conferida no catálogo. A migration usa `CREATE OR REPLACE`, então uma reaplicação futura é inofensiva |
-| Próximo | Créditos (top-up ou 26/11) → novo build → publicar com autorização do proponente; teste de convite só com organização de teste autorizada |
+| Próximo | Créditos (top-up ou 26/11) → novo build → publicar com autorização do proponente; teste de convite só com organização de teste autorizada; PIL-01 (finalidade, coorte, período) segue **pendente**. Checklist e sequência de retomada do Lovable: `CHECKLIST_LIBERACAO_PILOTO_Q2_2026-11-23.md` (§8). Piloto **não** pronto para operação |
 
 ## Histórico de estados
 
@@ -24,6 +24,7 @@ Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verif
 | 21/11 | `268dfbc` | Candidato da MO1 (ver `MO1_CANDIDATO_E_MATRIZ_2026-11-21.md`, histórico) |
 | 22/11 | `0cf588b` | #58, #59, #60 mesclados; função de assentos aplicada ao banco do projeto naquele dia; Lovable no mesmo commit (evidência de 22/11) |
 | 23/11 | `d816a9d` | #63 mesclado (documentação) |
+| 23/11 | `37a89ca` | #64 mesclado (documentação): checklist de liberação do piloto Q2 e auditoria local do convite |
 
 ## Leitura desta sessão
 

@@ -1,14 +1,16 @@
 # Checklist de liberação · piloto operacional do Q2 no Instituto Felicidade para Todos
 
-**Estado:** rascunho de 23/11/2026, sobre a `main` `d816a9d`. **O piloto não está pronto para operação.** Este checklist consolida o que já existe em `MO4_OPERACAO_E_LIBERACAO_2026-11-21.md`, `Q2_PILOT_SCOPE_2026-11-16.md` e `CONTINUIDADE.md`; não cria decisão nova.
+**Estado:** rascunho de 23/11/2026, sobre a `main` `37a89ca` (merge do #64). **O piloto não está pronto para operação.** Este checklist consolida o que já existe em `MO4_OPERACAO_E_LIBERACAO_2026-11-21.md`, `Q2_PILOT_SCOPE_2026-11-16.md` e `CONTINUIDADE.md`; não cria decisão nova.
 
 **Legenda:** ✅ provado (com evidência) · ⏳ pendente (dependência técnica) · 🟡 **PROPOSTA PENDENTE** (exige aprovação do proponente ou do Instituto; nenhuma aprovação foi dada além das já registradas em `APROVACAO_FORMULARIOS_PILOTO_INSTITUTO_2026-11-21.md` e `PLANO_INSTITUTO_GROWTH_2026-11-21.md`) · ⛔ bloqueio metodológico mantido.
+
+**Quem decide (conforme `MO4_OPERACAO_E_LIBERACAO_2026-11-21.md` §3, ainda como proposta):** finalidade e medidas do piloto, proponente; comunicação, proponente e Instituto; coorte, período, papéis, responsável operacional, dados, retenção e descarte, Instituto (controlador); suporte e critérios de pausa, responsável operacional (**ainda sem nome**); recuperação, proponente. Plano Growth: já decidido em 21/11.
 
 ## 1. Pré-condições técnicas e ambientais
 
 | # | Pré-condição | Estado | Evidência ou o que falta |
 |---|---|---|---|
-| T1 | Código do Q2 na `main` e gate verde | ✅ | `main` `d816a9d`; gate 4698/0 no candidato `e70298b` (código idêntico) |
+| T1 | Código do Q2 na `main` e gate verde | ✅ | `main` `37a89ca`; gate 4698/0 no candidato `e70298b`. Código idêntico: nenhum arquivo fora de `docs/` difere entre `e70298b` e a `main` (conferido em 23/11) |
 | T2 | Jornada Q2 provada em banco descartável | ✅ | `scripts/integ-local/mo2-journey.ts`: 54 verificações, 0 falhas; `provas/JORNADA_Q2_INTEGRADA_2026-11-22.txt` |
 | T3 | Função de assentos presente no banco do projeto | ✅ | Catálogo de funções em 22/11: 1 assinatura, 7 argumentos |
 | T4 | Permissões da função conferidas | ✅ | `anon` e `authenticated` sem EXECUTE; `service_role` com |
@@ -27,7 +29,7 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 | Organização e plano | Instituto Felicidade para Todos, no plano Growth (até 5 administradores; FIB-T permitido) | ✅ escolhidos pelo proponente em 21/11 (`PLANO_INSTITUTO_GROWTH_2026-11-21.md`). Vale só para a organização e o plano |
 | Delimitação do piloto (PIL-01) | Finalidade, coorte e período | 🟡 **pendente**, conforme `Q2_PILOT_SCOPE_2026-11-16.md` (PIL-01 "Pendente de delimitação"). Os valores das seções 3 e 4 (8–15 pessoas, 6 semanas) são propostas, não decisões |
 | Escopo por lente | Q2 completo; Q1 só preparação; Q3 só prática educativa; Q4 e Q5 fora | 🟡 proposta |
-| Papéis | RH_ADMIN, liderança responsável pelas ações, colaboradores; SST só com responsável competente (Q1 preparação) | 🟡 proposta |
+| Papéis | 1 RH_ADMIN, liderança responsável pelas ações, colaboradores; SST só com responsável competente (Q1 preparação) | 🟡 proposta |
 | **Responsável operacional** | **[sem nome — decisão do proponente e do Instituto]** | 🟡 pendente |
 | Suporte | Canal de dúvidas, resposta em até 2 dias úteis, registro de cada dúvida e erro | 🟡 proposta |
 
@@ -40,8 +42,8 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 | Limiar de publicação | Nenhum recorte com menos de 5 respostas (regra do produto) | ✅ provado: setor com 4 respostas não publica, inclusive pela API (MO2 X3) |
 | Quórum da cerimônia | 5 presentes é regra separada; a cerimônia está **desligada** (capacidade `DEVOLUTIVA`) e não faz parte do piloto | ✅ regra no código; ⏳ ligar é decisão de produto |
 | Acesso | Colaborador vê só devolutiva coletiva e as próprias práticas; liderança só as próprias ações; SST sem acesso ao ledger Q2; outra organização sem acesso | ✅ provado em banco descartável e no navegador (MO2 X1, X2, X8; MO4) |
-| Retenção | O plano Growth guarda cápsulas por 12 meses (configuração do produto). Prazo adotado pelo Instituto: **a definir** | 🟡 pendente (PIL-04, controlador: o Instituto) |
-| Descarte | Existe no código a RPC `erase_my_assessments`; seu alcance para este piloto **não foi verificado** | 🟡 pendente (PIL-04) |
+| Retenção | Prazo adotado pelo Instituto: **a definir**. O catálogo de planos declara `capsuleRetentionMonths` = 12 para o Growth, mas **nenhum código ou migration lê esse valor** (busca em `src/` e `supabase/migrations/`, 23/11): é número declarado, **não é expurgo aplicado** e não deve ser apresentado como política | 🟡 pendente (PIL-04, controlador: o Instituto) |
+| Descarte | A RPC `erase_my_assessments` (verificada em `20260706110000_personal_assessments.sql`) apaga **só** as autoavaliações pessoais do próprio usuário (`personal_assessments`, Cofre Pessoal). **Não cobre** respostas FIB-T, ledger, planos ou evidências do piloto. Para esses dados, o procedimento de descarte **não existe** hoje no repositório | 🟡 pendente (PIL-04): exige decisão do Instituto e, depois, desenho próprio |
 | Comunicação | Participação voluntária, saída livre, canal de dúvidas; versão do comunicado e responsável a fixar | 🟡 pendente (PIL-03) |
 
 ## 4. Critérios operacionais
@@ -52,6 +54,7 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 | **Pausar** | Qualquer dado de grupo com menos de 5 exibido; acesso indevido entre perfis ou organizações; perda de registro; falha recorrente de convite ou login | 🟡 proposta |
 | **Corrigir** | Reproduzir no menor caminho em banco descartável, corrigir em branch própria com teste de regressão, repetir só a verificação afetada e retomar do ponto | 🟡 proposta |
 | **Encerrar** | Fim das 6 semanas propostas, ou pausa não resolvida; registrar medidas e pendências; sem alegar efeito | 🟡 proposta |
+| **Recuperação** | Reversão do código por PR; função de assentos removível (migration nova); republicação da versão anterior (MO4 §3) | 🟡 proposta (decide o proponente) |
 
 ## 5. Evidências a coletar e como cada uma será provada
 
@@ -84,16 +87,20 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 5. Retenção e descarte pelo Instituto (PIL-04); comunicado (PIL-03).
 6. Estender a D10 (Q2) e a Vitalidade 001 (Q3) ao piloto (PIL-07).
 
-## 8. Lista mínima de verificação quando os créditos voltarem
+## 8. Retomada do Lovable (quando os créditos voltarem)
 
-Ordem pensada para parar cedo e não gastar crédito à toa. Nada aqui é executado sem a decisão correspondente da seção 7.
+**Registro do suporte (23/11):** o suporte do Lovable atribuiu o "Build malsucedido" ao saldo zerado de créditos. É a explicação dada pelo suporte; **não é prova da causa técnica específica** da falha. Sem créditos não há build novo nem log, então a causa **segue não verificada**. O que existe é evidência local, que não substitui o log do Lovable: `tsc --noEmit`, `bun run build` e o preflight de produção passam na árvore da `main`.
 
-1. Ler (sem alterar) o saldo e o estado do projeto no Lovable; se a ação seguinte exigir crédito e não houver, parar e pedir decisão.
-2. Confirmar que o commit mais recente da `main` é o que o Lovable enxerga (hoje, última leitura: `0cf588b` em 22/11; não reverificado depois do #63).
-3. Build com sucesso do commit atual. Se falhar, **obter o log** antes de qualquer hipótese ("Fix build" só por decisão do proponente).
-4. Reconferir a função `reserve_member_invite` (1 assinatura, 7 argumentos; só `service_role` executa). É leitura de catálogo, sem dados de pessoas.
-5. Publicação **somente** com instrução direta do proponente.
-6. Roteiro nível 2 (`ROTEIRO_TESTE_CONVITE_ORG_FICTICIA_2026-11-23.md`), só com a autorização específica da organização de teste e da limpeza.
+Sequência mínima de diagnóstico. Parar no primeiro passo que exigir decisão; nada abaixo roda sem a decisão correspondente da seção 7; nunca "Fix build", publicação ou top-up por iniciativa própria.
+
+1. Ler (sem alterar) o saldo e o estado do projeto no Lovable. Se a ação seguinte exigir crédito e não houver, parar e pedir decisão.
+2. Confirmar qual commit o Lovable enxerga e compará-lo com a `main` atual (última leitura: `0cf588b` em 22/11; não reverificado depois do #63 e do #64).
+3. Só com decisão do proponente de gastar créditos: **um** build do commit atual. Registrar o resultado e **obter o log completo**.
+4. Build com sucesso: a explicação do suporte (créditos) fica como a mais provável, sem afirmar mais que isso. Seguir ao passo 6.
+5. Build com falha: com o log em mãos, reproduzir localmente (`bun run build`, `tsc --noEmit`, preflight) **antes** de qualquer hipótese; corrigir o menor trecho em branch própria, com teste; "Fix build" só por decisão do proponente.
+6. Reconferir a função `reserve_member_invite` (1 assinatura, 7 argumentos; só `service_role` executa). É leitura de catálogo, sem dados de pessoas.
+7. Publicação **somente** com instrução direta do proponente.
+8. Roteiro nível 2 (`ROTEIRO_TESTE_CONVITE_ORG_FICTICIA_2026-11-23.md`), só com a autorização específica da organização de teste e da limpeza.
 
 ## 9. Auditoria local do convite (23/11/2026, sem Lovable e sem banco remoto)
 
