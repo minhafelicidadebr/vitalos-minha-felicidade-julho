@@ -18,15 +18,19 @@
 
 ## 2. Convites, assentos e ordem de liberação
 
-Compatibilidade: a migration `20261121120000` cria uma função nova e não altera tabela; o código da `main` atual não a chama. A função pode existir no banco antes do código, sem efeito.
+> **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]** A tabela de passos abaixo é o plano de 21/11, escrito antes do #57 ser mesclado. Estado atual dos passos: ver a atualização de 22–23/11 logo abaixo e `piloto/CONTINUIDADE.md`.
+
+Compatibilidade: a migration `20261121120000` cria uma função nova e não altera tabela; o código da `main` de 21/11 (anterior ao #57) não a chamava. A função podia existir no banco antes do código, sem efeito.
 
 **Confirmado pelo proponente em 21/11/2026:** o Lovable aplica as migrations de `supabase/migrations/` ao sincronizar a `main`. Logo, **o merge de um PR com migration é uma migration remota** e precisa de autorização explícita para isso. Reverter o arquivo depois não remove a função: a remoção exige uma migration nova.
+
+**Atualização 22–23/11/2026:** depois da sincronização do #57 a função estava **ausente** no banco do projeto (os builds do Lovable estavam bloqueados por falta de créditos). Ela foi aplicada por consulta direta, com autorização do proponente: **presente** (1 assinatura, 7 argumentos), **permissões conferidas** (`anon`/`authenticated` sem EXECUTE, `service_role` com), **ausente do histórico** `supabase_migrations.schema_migrations`, e **convite de ponta a ponta no app publicado não testado**.
 
 Atenção: o histórico remoto de migrations foi registrado como não canônico em 28/07/2026. Uma sincronização pode tentar outras migrations que o banco considere pendentes. Por isso a migration vai num PR próprio e pequeno.
 
 | Passo | Quem | Ação | Verificação | Recuperação |
 |---|---|---|---|---|
-| 1 | Proponente | Autorizar a migration remota e mesclar o **PR A** (`fix/assentos-main`: migration `20261121120000` + código de assentos + teste de inventário) | CI verde; no Lovable, conferir que só esta migration foi aplicada; a própria migration falha se `anon`/`authenticated` tiverem EXECUTE; conferir `has_function_privilege` no banco vivo | Falha na aplicação: a transação não deixa resíduo. Desfazer depois de aplicada: PR com migration nova `DROP FUNCTION public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text);` e revert do código |
+| 1 | Proponente | **[Concluído em 22/11: #57 mesclado; função aplicada por consulta direta e permissões conferidas; fora do histórico de migrations; convite ponta a ponta não testado]** Autorizar a migration remota e mesclar o **PR A** (`fix/assentos-main`: migration `20261121120000` + código de assentos + teste de inventário) | CI verde; no Lovable, conferir que só esta migration foi aplicada; a própria migration falha se `anon`/`authenticated` tiverem EXECUTE; conferir `has_function_privilege` no banco vivo | Falha na aplicação: a transação não deixa resíduo. Desfazer depois de aplicada: PR com migration nova `DROP FUNCTION public.reserve_member_invite(uuid, text, text, uuid, text[], integer, text);` e revert do código |
 | 2 | Proponente | Mesclar o **PR B** (`feat/mo3-lentes`: D2, fundação Q3, roteiros e documentos; sem migration própria) | CI verde; prévia do Lovable atualizada | `git revert -m 1 <merge>` por PR |
 | 3 | Proponente | Teste de convite na prévia **somente com organização de teste autorizada** (a prévia usa o banco do projeto) | Convite de colaborador aceito; 6º administrador recusado no Growth | Excluir a organização de teste pelo procedimento autorizado |
 | 4 | Proponente | Publicar | Convite real só depois do pacote do Instituto aprovado | Republicar a versão anterior |
@@ -66,7 +70,7 @@ Atenção: o histórico remoto de migrations foi registrado como não canônico 
 | Identidade e papéis conferidos | Convites por papel; elegibilidade; recusas | Atendido no ensaio |
 | Privacidade preservada | Limiar 5; isolamento entre empresas; devolutiva sem nomes | Atendido no ensaio |
 | Dados de origem identificados | Onda FIB-T, setor, fator, versão do instrumento | Atendido |
-| Dependências | PR A com migration remota autorizada; PR B; publicação | **Pendente (autorização)** |
+| Dependências | Migration remota aplicada (22/11); #57–#60 mesclados; publicação | **Migration e merges concluídos; publicação pendente (créditos do Lovable e autorização)** |
 | Suporte e recuperação | Seção 2 e pacote | **Pendente (aprovação do pacote e responsável)** |
 
-**Decisão de liberação:** o pacote "Q2 completo + Q1 preparação + Q3 prática" fica **pronto para aprovação**, não para operação. Entra em piloto quando D1 estiver aplicado, a D10 estendida, o pacote aprovado e o responsável operacional nomeado. O marco "piloto completo Q1–Q5" não é alcançável neste candidato.
+**Decisão de liberação:** o pacote "Q2 completo + Q1 preparação + Q3 prática" fica **pronto para aprovação**, não para operação. Entra em piloto quando o convite de ponta a ponta tiver sido testado no app publicado (a migration D1 está aplicada desde 22/11, mas esse teste não foi feito), a D10 estendida, o pacote aprovado e o responsável operacional nomeado. O marco "piloto completo Q1–Q5" não é alcançável neste candidato.

@@ -55,3 +55,22 @@ Conferência desta preparação: branch/HEAD/status, identidades Git do candidat
 ## Atualização PIL-08 · 19/11/2026
 
 Decisão do operador nesta sessão (resposta exata: "Sim, atualizar"): o candidato técnico do piloto passa de `2e9df54` para o **candidato integrado Q1+Q2 `6eff411`** (branch `integ/q1-q2-merge`, local, sem push). Evidência: `docs/vitalos/Q1Q2_INTEGRACAO_LOCAL_2026-11-19.md` (gate 4.545; jornada integrada no navegador em pilha descartável loopback; suíte SQL 18/18). Escopo: seleção técnica apenas. **Ambiente-alvo, verificação no ambiente, liberação e PIL-01–PIL-07 continuam pendentes**; nenhuma aprovação atribuída a João Paulo, Olga ou Ana Paula além do registro D10.
+
+## Atualização · Instituto Felicidade para Todos escolhido · 21/11/2026
+
+Origem: instrução do proponente nesta conversa ("O Instituto está escolhido para o piloto real. Use Alfa, Beta e outras empresas fictícias para os ensaios."). Formulários: [aprovação interna de 21/11](APROVACAO_FORMULARIOS_PILOTO_INSTITUTO_2026-11-21.md). Candidato técnico passa a ser a `main` (`268dfbc`, contém `6eff411`), com a correção de CI do PR #56.
+
+| ID | O que a escolha resolve | **Proposta** para o pacote de liberação (decisão pendente) |
+|---|---|---|
+| PIL-01 | Organização real: Instituto Felicidade para Todos | Finalidade: validar a operação da jornada Q2 ponta a ponta (tarefas, dúvidas, erros, continuidade), sem avaliar eficácia. Coorte: equipe interna com pelo menos 5 participantes por recorte publicado (sugestão 8–15). Período: 6 semanas |
+| PIL-02 | Contexto institucional conhecido | Papéis: 1 RH_ADMIN (plano Piloto), liderança e colaboradores; SST só se houver responsável competente. Processo assistido nas 2 primeiras semanas |
+| PIL-03 | Público e canal conhecidos | Comunicado do protocolo existente, com participação voluntária, saída livre e canal de dúvidas; versão e responsável a definir |
+| PIL-04 | Controlador dos dados identificável (o Instituto) | Finalidade por dado, acesso, retenção e descarte a definir com o Instituto; nenhuma resposta individual publicada |
+| PIL-05 | — | Medir só operação: conclusão de tarefas, erros, dúvidas e continuidade. Critérios de continuar/corrigir/pausar antes da coleta |
+| PIL-06 | — | Responsável operacional: pessoa do Instituto a nomear (o papel metodológico do proponente não o designa) |
+| PIL-07 | — | Estender D10 (Q2 0.1.0) ao piloto do Instituto, com referência desta decisão |
+| PIL-08 | Candidato técnico (21/11, **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]**): `main` + PR #56 | Ambiente-alvo, migration de assentos (aplicada em 22/11, função e permissões conferidas, fora do histórico de migrations; convite ponta a ponta não testado) e autorização de operação/publicação |
+
+Nada aqui é decisão do Instituto ou do proponente além do que está citado; as propostas vão num único pacote de liberação.
+
+**Atualização 21/11/2026 (MO2):** plano do Instituto decidido pelo proponente: **Growth** ([registro](PLANO_INSTITUTO_GROWTH_2026-11-21.md)). Resolve a parte de plano de PIL-02/PIL-08; a migration de assentos foi aplicada em 22/11 (função presente e permissões conferidas), segue ausente do histórico de migrations, e o convite de ponta a ponta no app publicado ainda não foi testado (ver `piloto/CONTINUIDADE.md`).
