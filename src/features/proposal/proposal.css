@@ -1,0 +1,124 @@
+/* Proposta por seções · só o que o Tailwind não expressa bem: acentos da jornada,
+   âncoras sob o cabeçalho fixo, movimento reduzido e impressão. Cores sempre por token. */
+
+.proposal-accent-1 {
+  --stage: var(--chart-1);
+}
+.proposal-accent-2 {
+  --stage: var(--chart-2);
+}
+.proposal-accent-3 {
+  --stage: var(--chart-3);
+}
+.proposal-accent-4 {
+  --stage: var(--chart-4);
+}
+.proposal-accent-5 {
+  --stage: var(--chart-5);
+}
+
+.proposal-journey-step,
+.proposal-stage {
+  border-top: 4px solid var(--stage);
+}
+
+/* Celular: jornada vertical com linha de ligação. Telas largas: faixa (grid de 5). */
+@media (max-width: 1023.98px) {
+  .proposal-journey {
+    position: relative;
+    padding-left: 1rem;
+  }
+  .proposal-journey::before {
+    content: "";
+    position: absolute;
+    left: 0.25rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: var(--border);
+  }
+  .proposal-journey-step {
+    border-top-width: 1px;
+    border-left: 4px solid var(--stage);
+  }
+}
+
+/* Soma com o scroll-padding-top global (6rem, styles.css): cabe o cabeçalho fixo (~110 px). */
+.proposal-anchor {
+  scroll-margin-top: 1.5rem;
+}
+.proposal-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* O html global rola suave (styles.css) e a regra .a11y-reduce-motion * não alcança o próprio
+   html. Aqui a âncora salta direto quando o sistema ou o A11yProvider pedem menos movimento.
+   Transições dos elementos já são zeradas por .a11y-reduce-motion em styles.css. */
+html.a11y-reduce-motion:has(.proposal) {
+  scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.proposal) {
+    scroll-behavior: auto;
+  }
+  .proposal * {
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.proposal-print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+  .proposal {
+    font-size: 10.5pt;
+  }
+  .proposal-no-print,
+  .proposal-hero-figure,
+  .proposal-step-arrow,
+  .proposal-chevron {
+    display: none !important;
+  }
+  .proposal-print-only {
+    display: block;
+  }
+  .proposal-topbar {
+    position: static !important;
+    backdrop-filter: none !important;
+  }
+  .proposal main {
+    padding-top: 0.5rem;
+  }
+  .proposal main > * + * {
+    margin-top: 1.75rem !important;
+  }
+  .proposal-card,
+  .proposal-details,
+  table,
+  tr,
+  figure {
+    break-inside: avoid;
+  }
+  .proposal-section h2 {
+    break-after: avoid;
+  }
+  .proposal-details > summary {
+    color: var(--foreground);
+  }
+  .proposal a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+  }
+}
+
+/* Navegação de âncoras: rola na horizontal no celular, sem barra visível e sem rolar a página. */
+.proposal-nav {
+  scrollbar-width: none;
+}
+.proposal-nav::-webkit-scrollbar {
+  display: none;
+}
