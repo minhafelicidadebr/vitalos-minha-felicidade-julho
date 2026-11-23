@@ -83,3 +83,28 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 4. Aprovar o pacote (seções 2–4) e **nomear o responsável operacional**.
 5. Retenção e descarte pelo Instituto (PIL-04); comunicado (PIL-03).
 6. Estender a D10 (Q2) e a Vitalidade 001 (Q3) ao piloto (PIL-07).
+
+## 8. Lista mínima de verificação quando os créditos voltarem
+
+Ordem pensada para parar cedo e não gastar crédito à toa. Nada aqui é executado sem a decisão correspondente da seção 7.
+
+1. Ler (sem alterar) o saldo e o estado do projeto no Lovable; se a ação seguinte exigir crédito e não houver, parar e pedir decisão.
+2. Confirmar que o commit mais recente da `main` é o que o Lovable enxerga (hoje, última leitura: `0cf588b` em 22/11; não reverificado depois do #63).
+3. Build com sucesso do commit atual. Se falhar, **obter o log** antes de qualquer hipótese ("Fix build" só por decisão do proponente).
+4. Reconferir a função `reserve_member_invite` (1 assinatura, 7 argumentos; só `service_role` executa). É leitura de catálogo, sem dados de pessoas.
+5. Publicação **somente** com instrução direta do proponente.
+6. Roteiro nível 2 (`ROTEIRO_TESTE_CONVITE_ORG_FICTICIA_2026-11-23.md`), só com a autorização específica da organização de teste e da limpeza.
+
+## 9. Auditoria local do convite (23/11/2026, sem Lovable e sem banco remoto)
+
+| Verificação | Resultado |
+|---|---|
+| Scripts `scripts/integ-local/` apontam só para loopback (`127.0.0.1`: API 57921, banco 57922, correio 57924, app 8094); nenhuma URL remota; `guard.sh` aborta se projeto, containers ou bindings divergirem; `reset.sh` recria a pilha sem volume nomeado | Confirmado por leitura; **não reexecutado** nesta etapa (sem mudança de código) |
+| `member-invite.server.test.ts` cobre: papel não convidável e inventado, Piloto com 1 admin (colaborador passa, RH recusa), falha de leitura fail-closed, 2 emissões simultâneas com 1 assento, plano alterado entre leitura e reserva, convite pendente conta e expirado não conta, organização inexistente, token válido/usado/expirado/inexistente, mapeamento da RPC de aceite | Confirmado por leitura; 21/21 já rodados em 23/11 em `0cf588b` |
+| Isolamento entre organizações no convite | Provado na jornada local (MO2); **não** há teste unitário próprio de duas organizações em `member-invite.server.test.ts` |
+| Nomes e papéis | `orgAdminRoles()` deriva do registry de packs (`orgAdminRole`, padrão `RH_ADMIN`) e é passado como `p_admin_roles`; a migration recusa lista vazia (`admin_roles_missing`) | Sem divergência |
+| Limite do Growth | `plan-engine.ts`: Growth `maxAdminSeats` 5; Piloto 1; o servidor passa `p_max_admin_seats` (nulo = sem teto) | Sem divergência com os documentos |
+| Mensagem de erro | `seat_quota_exceeded` → "Limite de administradores do plano atingido. Faça upgrade…" (`plan-engine.ts`), igual à usada pelo servidor; demais falhas → `SEAT_CHECK_UNAVAILABLE` | Sem divergência |
+| Razões da RPC (`invalid_input`, `admin_roles_missing`, `org_not_found`, `plan_changed`, `seat_quota_exceeded`) | Todas caem em falha fechada ou na mensagem de upgrade no servidor | Sem divergência |
+
+Nada disto prova o convite no app publicado (fato 4 da migration continua **não testado**).
