@@ -103,6 +103,8 @@ export interface ProposalContent {
     goal: string;
     agenda: string[];
     howTo: string;
+    /** Deixa claro que combinar a reunião não é contratação nem início do projeto. */
+    note: string;
     /** Destino do agendamento. `null` até o Instituto confirmar — nenhum link inventado. */
     contact: ProposalLink | null;
   };

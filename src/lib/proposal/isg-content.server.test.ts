@@ -91,10 +91,17 @@ describe("proposta ISG · linguagem e circulação", () => {
     expect(p.sources.some((s) => s.kind === "exemplo")).toBe(true);
   });
 
-  test("CTA sem destino inventado: nulo até o Instituto confirmar, ou https", () => {
-    const c = p.nextSession.contact;
-    if (c) expect(c.href.startsWith("https://")).toBe(true);
-    else expect(p.nextSession.howTo.length).toBeGreaterThan(10);
+  test("CTA decidido: combinar pela mensagem original, sem link, formulário ou agenda", () => {
+    expect(p.hero.primaryCta).toBe("Combinar a reunião de implantação");
+    expect(p.nextSession.contact).toBeNull();
+    expect(p.nextSession.howTo).toMatch(/responda à mensagem em que recebeu esta proposta/);
+    expect(p.nextSession.howTo).toMatch(/duas opções de data e horário/);
+    expect(`${p.nextSession.howTo} ${p.nextSession.note}`).not.toMatch(
+      /https?:|@|formulário|calendly|agenda online/i,
+    );
+    // Combinar a reunião não é contratação nem início do projeto.
+    expect(p.nextSession.note).toMatch(/não confirma a contratação nem inicia o projeto/);
+    expect(p.nextSession.note).toMatch(/proposta e estimativa até a aprovação/);
   });
 
   test("metadados públicos da rota não carregam destinatário nem termos comerciais", () => {

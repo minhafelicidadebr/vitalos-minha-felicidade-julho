@@ -183,7 +183,7 @@ export const ISG_PROPOSAL: ProposalContent = {
     title: "Da escuta das equipes às decisões que a empresa consegue acompanhar",
     subtitle:
       "O Instituto Felicidade para Todos propõe à ISG uma implantação acompanhada da jornada VitalOS, com cinco etapas, entregas verificáveis e uma contribuição técnica desenhada em conjunto.",
-    primaryCta: "Agendar sessão de desenho da implantação",
+    primaryCta: "Combinar a reunião de implantação",
     secondaryCta: "Ver o que está incluído",
     imageAlt:
       "Ilustração: quatro colegas em volta de uma mesa organizam cartões em branco durante uma conversa.",
@@ -429,8 +429,8 @@ export const ISG_PROPOSAL: ProposalContent = {
     "A proposta não promete efeito sobre bem-estar, produtividade ou retorno financeiro.",
   ],
   nextSession: {
-    title: "Sessão de desenho da implantação",
-    goal: "Em cerca de uma hora, sair com a implantação desenhada e pronta para a decisão da ISG.",
+    title: "Reunião de implantação",
+    goal: "Uma sessão de desenho de cerca de uma hora, para sair com a implantação desenhada e pronta para a decisão da ISG.",
     agenda: [
       "Escolher a unidade inicial",
       "Nomear o patrocinador e o responsável técnico",
@@ -438,7 +438,9 @@ export const ISG_PROPOSAL: ProposalContent = {
       "Encaixar os cinco marcos no calendário",
       "Combinar a contribuição técnica da ISG",
     ],
-    howTo: "Para agendar, responda à mensagem em que recebeu esta proposta.",
+    howTo:
+      "Para combinar, responda à mensagem em que recebeu esta proposta indicando duas opções de data e horário.",
+    note: "Combinar a reunião não confirma a contratação nem inicia o projeto. Valor, quantidades e condições continuam como proposta e estimativa até a aprovação das duas partes.",
     contact: null,
   },
   sources: [

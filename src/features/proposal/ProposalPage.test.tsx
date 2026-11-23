@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ProposalPage, ProposalView } from "./ProposalPage";
 import { ISG_PROPOSAL } from "@/lib/proposal/isg-content.server";
 
@@ -24,13 +24,21 @@ describe("proposta · leitura executiva", () => {
     expect(summaryCard.closest("details")).toBeNull();
   });
 
-  test("âncoras da navegação existem e o CTA sem destino confirmado leva à próxima conversa", () => {
+  test("âncoras da navegação existem e o CTA leva à próxima conversa, com foco no título de destino", () => {
     const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
     for (const id of ["jornada", "entregas", "investimento", "proxima-conversa"])
       expect(container.querySelector(`#${id}`)).not.toBeNull();
-    const cta = screen.getByRole("link", { name: /Agendar sessão de desenho da implantação/ });
+    const cta = screen.getByRole("link", { name: "Combinar a reunião de implantação" });
     expect(cta.getAttribute("href")).toBe("#proxima-conversa");
-    expect(screen.getByText(/responda à mensagem em que recebeu esta proposta/)).toBeTruthy();
+    expect(cta.getAttribute("target")).toBeNull();
+    const heading = screen.getByRole("heading", { level: 2, name: "Reunião de implantação" });
+    expect(heading.getAttribute("tabindex")).toBe("-1");
+    Element.prototype.scrollIntoView ??= () => {};
+    fireEvent.click(cta);
+    expect(document.activeElement).toBe(heading);
+    expect(window.location.hash).toBe("#proxima-conversa");
+    expect(screen.getByText(/duas opções de data e horário/)).toBeTruthy();
+    expect(screen.getByText(/não confirma a contratação nem inicia o projeto/)).toBeTruthy();
   });
 
   test("cada etapa tem 'Como funciona' expansível e as condicionadas são identificáveis", () => {

@@ -155,9 +155,24 @@ function CtaPrimary({ p }: { p: ProposalContent }) {
       {p.hero.primaryCta}
     </a>
   ) : (
-    <a href="#proxima-conversa" className={cls}>
-      <CalendarCheck aria-hidden className="h-4 w-4" />
+    // Âncora na própria página. O foco vai para o título de destino, para quem usa teclado
+    // ou leitor de tela continuar dali. A rolagem respeita scroll-padding/scroll-margin
+    // (cabeçalho fixo) e o movimento reduzido (scroll-behavior via CSS).
+    <a
+      href="#proxima-conversa"
+      className={cls}
+      onClick={(event) => {
+        const section = document.getElementById("proxima-conversa");
+        const heading = document.getElementById("titulo-proxima");
+        if (!section || !heading) return;
+        event.preventDefault();
+        window.history.replaceState(null, "", "#proxima-conversa");
+        section.scrollIntoView({ block: "start" });
+        heading.focus({ preventScroll: true });
+      }}
+    >
       {p.hero.primaryCta}
+      <ArrowDown aria-hidden className="h-4 w-4" />
     </a>
   );
 }
@@ -815,7 +830,11 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
               <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-80">
                 Próxima conversa
               </p>
-              <h2 id="titulo-proxima" className="font-serif text-2xl leading-tight sm:text-4xl">
+              <h2
+                id="titulo-proxima"
+                tabIndex={-1}
+                className="rounded-md font-serif text-2xl leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-4 focus-visible:ring-offset-primary sm:text-4xl"
+              >
                 {p.nextSession.title}
               </h2>
               <p className="text-base opacity-90">{p.nextSession.goal}</p>
@@ -831,6 +850,9 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                 </a>
               ) : null}
               <p className="text-base font-semibold">{p.nextSession.howTo}</p>
+              <p className="border-l-2 border-primary-foreground/50 pl-3 text-sm opacity-90">
+                {p.nextSession.note}
+              </p>
             </div>
             <div className="rounded-2xl bg-primary-foreground/10 p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold">

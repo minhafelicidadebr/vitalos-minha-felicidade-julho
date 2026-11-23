@@ -72,7 +72,7 @@
 
 ## 7. Termos pendentes · precisam de resposta do Instituto
 
-1. **Destino do CTA.** Nenhum link inventado: hoje o botão leva à seção "Próxima conversa", que diz "responda à mensagem em que recebeu esta proposta". Candidato encontrado no repo: `https://www.felicidadeparatodos.com.br/#contato` (usado na apresentação empresarial V4). Confirmar esse, outro link de agenda, ou manter a instrução.
+1. ~~**Destino do CTA.**~~ **Decidido pelo usuário em 23/11/2026:** botão "Combinar a reunião de implantação" → âncora `#proxima-conversa` na própria página, com foco no título de destino. A seção pede resposta à mensagem original com duas opções de data e horário e diz que combinar a reunião não confirma contratação nem inicia o projeto. Sem link, formulário, contato ou agenda.
 2. **Forma de circulação.** Confirmar senha própria (recomendado) e quem a envia; ou outra forma.
 3. **Faturamento por aceite do marco** e prazo de aceite: redação proposta, não decidida.
 4. **Quantidades e esforço interno** (2 oficinas de ~2 h, 4 mentorias de 1 h, horas por área): estimativas para a sessão de desenho.
@@ -102,7 +102,7 @@
 | Localizar investimento | R$ 60.000 visível sem abrir painel: no resumo, no bloco de investimento e na tabela de marcos (5 × R$ 12.000) |
 | Obrigações distinguíveis | Tabela "O que cada parte faz" (ISG por área × Instituto) e blocos lado a lado investimento × contribuição |
 | Etapas condicionadas | Chip tracejado "Condicionado à liberação" em 7 capacidades; decisão comercial em "Como funciona" |
-| CTA | Alcançável pelo topo e pela navegação "Próxima conversa"; sem destino externo até confirmação |
+| CTA | "Combinar a reunião de implantação" leva à seção "Próxima conversa" (âncora interna, foco no título de destino); oculto na impressão, onde a instrução de resposta continua impressa. Ver seção 11 |
 | Âncoras | Jornada, Entregas, Investimento e Próxima conversa param 120 px do topo, abaixo do cabeçalho fixo de 109 px (celular). Corrigido nesta sessão: o `scroll-padding-top` global somava com a margem local |
 | Teclado e foco | Primeiro Tab mostra "Ir para o conteúdo"; Enter leva ao conteúdo e o Tab seguinte cai no CTA; anel de foco visível nos links da navegação; `<details>` nativo abre com Enter/Espaço |
 | Contraste (WCAG AA) | 390 elementos de texto auditados em tema claro e escuro: 0 abaixo de 4,5:1 (3:1 para texto grande) |
@@ -119,3 +119,30 @@
 - Depois da formatação com Prettier dos arquivos novos: testes da proposta e da apresentação 39/0, `tsc` limpo, ESLint 0 erros nos arquivos tocados.
 - `bun run build:ci` não roda nesta máquina: o preflight recusa porque o `.env` aponta para URL remota (comportamento esperado do guarda de ambiente, não do código). A prévia usa o mesmo Vite no sandbox inerte `scripts/proposal-local.ts`.
 - `src/routeTree.gen.ts` regenerado pelo plugin do router (só as entradas `/proposta` e `/api/proposta`).
+
+## 11. Ajuste do CTA · 23/11/2026
+
+**Decisão do usuário:** botão "Combinar a reunião de implantação", destino na própria página (seção "Próxima conversa"), sem link, formulário, contato ou agenda.
+
+**Mudança:**
+- Texto do botão.
+- Ícone de seta para baixo, que indica salto dentro da página.
+- O clique (mouse ou Enter) rola até a seção e põe o foco no título "Reunião de implantação" (`tabIndex=-1`, anel de foco visível).
+- O endereço passa a `#proxima-conversa`.
+- A seção explica que basta responder à mensagem original com duas opções de data e horário.
+- Em destaque, a seção diz que combinar a reunião não confirma a contratação nem inicia o projeto: valor, quantidades e condições continuam como proposta e estimativa até a aprovação das duas partes.
+
+**Verificado no Chrome real sem interface, com teclas de verdade (Tab, Enter):**
+
+| Cenário | Resultado |
+|---|---|
+| 320 px | Tab → "Ir para o conteúdo" → Enter → Tab: foco no CTA (`:focus-visible`, anel visível, 44 px de altura). Enter: foco no título de destino, com anel visível. A seção para a 120 px do topo, abaixo do cabeçalho de 109 px. Sem rolagem horizontal |
+| 320 px com movimento reduzido | Mesmo fluxo; o salto é imediato (~0,3 s, contra ~1,7 s com rolagem suave) |
+| 1440 px | Mesmo fluxo. A seção para a 216 px: é o fim da página, então não há como subir mais; o título fica inteiro abaixo do cabeçalho |
+| Depois do destino | O próximo Tab segue para "Fontes e classificação", logo depois da seção |
+| Impressão | CTA oculto. Título, objetivo, instrução de resposta e ressalva de não contratação aparecem na mídia de impressão; PDF regenerado |
+| Ação sem depender de cor | Botão com texto, seta e forma de botão; destino com título, texto em negrito e ressalva com filete lateral |
+
+Capturas: `capturas/cta-foco-celular-320.jpg`, `capturas/cta-destino-celular-320.jpg`, `capturas/cta-destino-desktop-1440.jpg`.
+
+**Observação:** no painel de navegador do app a rolagem suave fica atrasada (quadros esparsos), o que afetou só as medições ali; a verificação de posição foi feita no Chrome sem interface.
