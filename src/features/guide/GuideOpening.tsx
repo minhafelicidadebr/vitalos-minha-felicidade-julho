@@ -44,7 +44,7 @@ export function GuideOpening({ content, environment, onStart }: { content: Guide
             width={1200}
             height={800}
             alt="Duas profissionais conversam durante a troca de turno em um centro de distribuição."
-            className="aspect-[4/3] w-full object-cover object-top sm:aspect-[3/2] lg:absolute lg:inset-0 lg:h-full lg:object-center"
+            className="aspect-[2/1] w-full object-cover object-[50%_35%] sm:aspect-[3/1] lg:absolute lg:inset-0 lg:h-full lg:object-center"
           />
           <figcaption className="absolute bottom-3 left-3 rounded-full bg-black/75 px-3 py-1 text-xs text-white">
             Cena ilustrativa
@@ -100,11 +100,11 @@ export function MyJourneyCard({ entry, context, onOpen }: { entry: GuideEntry; c
     return (
       <section aria-labelledby="my-journey" className="space-y-3 rounded-xl border-2 border-primary/40 bg-card p-5">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Meu percurso</p>
-        <h1 id="my-journey" className="font-serif text-2xl text-foreground">Seu trabalho agora</h1>
+        <h1 id="my-journey" className="font-serif text-2xl text-foreground">Minha próxima ação</h1>
         <p className="text-sm text-foreground">
           Você está no <strong>{t.lens} · {LENS_PHASE[t.lens]}</strong> como <strong>{context.roleLabel}</strong>.
         </p>
-        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+        <dl className="grid gap-3 text-sm md:grid-cols-3">
           <div><dt className="font-medium text-foreground">Próxima entrega</dt><dd className="text-muted-foreground">{t.title}{due ? ` · até ${due}` : ""}</dd></div>
           <div><dt className="font-medium text-foreground">O que registrar</dt><dd className="text-muted-foreground">O que de fato aconteceu, inclusive os dias em que a prática não coube na rotina.</dd></div>
           <div><dt className="font-medium text-foreground">Quem usa o registro</dt><dd className="text-muted-foreground">O {t.recipient}, na revisão, para decidir manter, adaptar ou encerrar.</dd></div>
@@ -134,15 +134,27 @@ export function MyJourneyCard({ entry, context, onOpen }: { entry: GuideEntry; c
       </section>
     );
   }
+  const taskOptions = entry.options.filter((option) => option.kind === "task");
+  const q2Actions = taskOptions.some((option) => option.lens === "Q2")
+    ? operationalCta("q2.execucao_lideranca", context)
+    : null;
   return (
     <section aria-labelledby="my-journey" className="space-y-3 rounded-xl border border-border bg-card p-5">
       <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Meu percurso</p>
       <h1 id="my-journey" className="font-serif text-2xl text-foreground">Escolha por onde seguir</h1>
       <p className="text-sm text-muted-foreground">
-        {entry.reason === "several_tasks" ? "Há mais de uma ação atribuída a você, sem prioridade definida." : "Ainda não sabemos o seu momento no ciclo."} Escolha abaixo ou veja um exemplo de Q2.
+          {entry.reason === "several_tasks" ? "Há mais de uma ação atribuída a você, sem prioridade definida." : context.unavailable ? "Não foi possível carregar toda a situação do ciclo." : "Ainda não sabemos o seu momento no ciclo."}
       </p>
+      {taskOptions.length ? (
+        <div className="space-y-2">
+          <ul aria-label="Ações atribuídas" className="list-disc space-y-1 pl-5 text-sm text-foreground">
+            {taskOptions.map((option) => <li key={option.taskId}>{option.label}</li>)}
+          </ul>
+          {q2Actions ? <a href={q2Actions.href} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Abrir minhas ações<ArrowRight aria-hidden className="h-4 w-4" /></a> : null}
+        </div>
+      ) : null}
       <ul className="flex flex-wrap gap-2">
-        {entry.options.map((op) => (
+        {entry.options.filter((option) => option.kind === "stage").map((op) => (
           <li key={`${op.kind}-${op.taskId ?? op.lens}`}>
             <button type="button" onClick={() => onOpen(op.lens)} className="inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               {op.label}

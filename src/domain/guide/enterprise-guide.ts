@@ -120,15 +120,15 @@ export const ENTERPRISE_GUIDE: GuideContent = {
         "Execução, mudança observada e eficácia são coisas diferentes.",
       ],
       voices: {
-        rh: "Escolha uma prioridade, designe quem acompanha e combine quando voltar ao assunto. A equipe verá o que foi decidido.",
-        lideranca: "Seu papel é combinar a prática com a equipe e registrar o que de fato aconteceu. Se o encontro não coube na rotina, registre também: isso orienta a revisão do RH.",
-        colaborador: "Quem trabalha no turno conhece os detalhes. Sua resposta entra numa leitura do grupo, nunca individual. Veja qual mudança a equipe decidiu experimentar e onde acompanhar o retorno.",
-        sst: "No Q2 você não registra nem decide ações. Acompanha a devolutiva coletiva como membro da organização.",
+        rh: "Escolha a prioridade da equipe e acompanhe a ação.",
+        lideranca: "Combine a prática com a equipe e registre o que aconteceu.",
+        colaborador: "Veja o que a equipe decidiu fazer e acompanhe o retorno.",
+        sst: "Acompanhe a devolutiva coletiva como membro da organização.",
         direcao: "O RH conduz o plano. A direção acompanha o que foi executado e decidido pelo relatório.",
         plataforma: "A habilitação do Q2 e o primeiro acesso de RH são feitos aqui.",
       },
       matrix: {
-        rh: { mode: "atua", who: "Ler a leitura publicada, escolher a atividade aprovada, criar e ativar o plano, designar o responsável, revisar e encerrar", receives: "A liderança (ação), todos os membros (devolutiva) e a direção (Q5)", condition: "Administração da organização com o Q2 habilitado", capability: "q2.leitura_plano" },
+        rh: { mode: "atua", who: "Consulte a leitura do grupo, escolha uma prática aprovada, ative o plano, designe a liderança e revise o andamento", receives: "A liderança recebe a ação. A equipe acompanha a devolutiva coletiva.", condition: "Administração da organização com o Q2 habilitado", capability: "q2.leitura_plano" },
         lideranca: { mode: "atua", who: "Mudar o estado e registrar a evidência de execução da própria ação, no plano ativo", receives: "O RH, que usa o registro na revisão", condition: "Ser a pessoa responsável pela ação; plano ativo", capability: "q2.execucao_lideranca" },
         colaborador: { mode: "acompanha", who: "RH e liderança atuam", receives: "A devolutiva coletiva: título (depois do aviso), setor, fator, estado, mês do prazo e “execução registrada”", condition: "Membro da organização com o Q2 habilitado", capability: "q2.devolutiva_coletiva" },
         sst: { mode: "acompanha", who: "RH e liderança atuam", receives: "A devolutiva coletiva, como membro", condition: "Sem autoridade sobre ações; a página de ações é negada", capability: "q2.devolutiva_coletiva" },
@@ -243,7 +243,7 @@ export const ENTERPRISE_GUIDE: GuideContent = {
     { id: "leitura", verb: "Ler o grupo", owner: "Equipe e RH", perspective: "rh", evidence: "Leitura agregada publicada (grupos com 5 ou mais respostas)." },
     { id: "decisao", verb: "Decidir e designar", owner: "RH", perspective: "rh", evidence: "Plano ativo com a ação e a pessoa responsável." },
     { id: "acao", verb: "Combinar e registrar", owner: "Liderança", perspective: "lideranca", evidence: "Registro de execução: dias realizados e dias em que não coube." },
-    { id: "retorno", verb: "Acompanhar o retorno", owner: "Colaborador", perspective: "colaborador", evidence: "Devolutiva coletiva com o estado da ação e “execução registrada”." },
+    { id: "retorno", verb: "Acompanhar o retorno", owner: "Equipe e SST", perspective: "colaborador", evidence: "Devolutiva coletiva com o estado da ação e “execução registrada”." },
   ],
   q5Extract: {
     rows: [
@@ -255,7 +255,7 @@ export const ENTERPRISE_GUIDE: GuideContent = {
     note: "Dado sintético. Ausência de dado, dado suprimido e ausência de mudança são estados diferentes. Vínculos ESG aparecem como propostos enquanto não forem aprovados.",
   },
   resolvedExample:
-    "A leitura da Expedição mostra Satisfação com a Empresa abaixo dos demais fatores. O RH não conclui que a liderança causou isso. Escolhe um tema coletivo (a passagem de turno), designa quem acompanha e marca a revisão. A leitura agregada indica onde conversar, não quem é responsável pelo número.",
+    "A leitura da Expedição ajuda o RH a escolher um tema coletivo: a passagem de turno. O RH define a ação, a liderança registra o alinhamento em 7 de 10 dias e a equipe acompanha a devolutiva. Na revisão, o RH decide adaptar o horário.",
   checks: [
     {
       id: "quem-recebe",
@@ -279,7 +279,7 @@ export const ENTERPRISE_GUIDE: GuideContent = {
     },
   ],
   whatNext:
-    "Depois da revisão, a decisão volta à equipe na devolutiva coletiva e entra no relatório do ano com a origem de cada informação.",
+    "Depois da revisão, a decisão volta à equipe na devolutiva coletiva. O exemplo de relatório anual (Q5) mostra a origem de cada informação.",
   readingNotice:
     "Ler este guia não registra execução, consentimento, conclusão de treinamento nem certificação.",
 };

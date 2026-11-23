@@ -4,7 +4,6 @@
 // Design informacional: docs/vitalos/guia/SUPERPROMPT_DESIGN_INFORMACIONAL_GUIA.md.
 import { useEffect, useId, useRef, useState } from "react";
 import {
-  ArrowDown,
   ArrowRight,
   BookOpen,
   Building2,
@@ -28,7 +27,8 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { CyclePhase, GuideCheck, GuideContent, GuideLens, GuideLensContent, GuidePerspective, IvoPerspective } from "@/domain/guide/guide-types";
-import { effectiveLevel, operationalCta, statusLabel, type GuideServerContext } from "@/lib/guide/guide-entry";
+import enterprisePack from "@/domain/packs/enterprise/enterprise.pack.json";
+import { allAvailabilityEntries, effectiveLevel, operationalCta, statusLabel, type GuideServerContext } from "@/lib/guide/guide-entry";
 
 const MODE_LABEL = { atua: "Você atua", acompanha: "Você acompanha", dependencia: "Depende de decisão" } as const;
 const HANDOFF_ICON = { leitura: Eye, decisao: ClipboardCheck, acao: Users, retorno: BookOpen } as const;
@@ -262,16 +262,43 @@ function SceneTimeline({ lens, perspective }: { lens: GuideLensContent; perspect
   );
 }
 
+function FullCaseDialog({ content }: { content: GuideContent }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button type="button" className="inline-flex min-h-11 items-center gap-1.5 text-left text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <BookOpen aria-hidden className="h-4 w-4 shrink-0" /> Ler o caso inteiro, do Q1 ao Q5
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>O caso inteiro</DialogTitle>
+          <DialogDescription>{content.caseLabel}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 text-sm">
+          {content.lenses.map((lens) => (
+            <section key={lens.lens} className="space-y-2">
+              <h4 className="font-medium text-foreground">{lens.title} <span className="text-xs font-normal text-muted-foreground">· {lens.cyclePhase}</span></h4>
+              <SceneTimeline lens={lens} />
+            </section>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export interface GuideJourneyProps {
   content: GuideContent;
   context: GuideServerContext | null;
   environment: string;
   stage: GuideLens;
   perspective: GuidePerspective;
+  hasTaskPanel?: boolean;
   onChange: (next: { stage?: GuideLens; perspective?: GuidePerspective }) => void;
 }
 
-export function GuideJourney({ content, context, environment, stage, perspective, onChange }: GuideJourneyProps) {
+export function GuideJourney({ content, context, environment, stage, perspective, hasTaskPanel = false, onChange }: GuideJourneyProps) {
   const lens = content.lenses.find((l) => l.lens === stage) ?? content.lenses[1]!;
   const cell = lens.matrix[perspective];
   const perspLabel = content.perspectives.find((p) => p.id === perspective)?.label ?? perspective;
@@ -295,8 +322,7 @@ export function GuideJourney({ content, context, environment, stage, perspective
     <div className="space-y-5">
       <p className="sr-only" aria-live="polite">{announce}</p>
 
-      {/* Barra de navegação: etapa + perspectiva (fixa no celular) */}
-      <nav aria-label="Mapa da jornada" className="sticky top-0 z-30 -mx-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:static sm:mx-0 sm:rounded-2xl sm:border sm:px-3">
+      <nav aria-label="Mapa da jornada" className={`-mx-4 border-b border-border bg-background/95 px-4 py-2 sm:mx-0 sm:rounded-2xl sm:border sm:px-3 ${context ? "" : "sticky top-0 z-30 backdrop-blur sm:static"}`}>
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
           <ol className="flex flex-1 justify-between gap-1 sm:justify-start" aria-label="Etapas do ano">
             {content.lenses.map((l) => (
@@ -313,12 +339,12 @@ export function GuideJourney({ content, context, environment, stage, perspective
               </li>
             ))}
           </ol>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground sm:shrink-0">
-            <span>Perspectiva</span>
+          <label className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground sm:shrink-0">
+            <span>{context ? "Perspectiva de leitura" : "Consultar jornada como"}</span>
             <select
               value={perspective}
               onChange={(e) => onChange({ perspective: e.target.value as GuidePerspective })}
-              className="min-h-11 flex-1 rounded-lg border border-border bg-card px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none"
+              className="min-h-11 min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none"
             >
               {content.perspectives.map((p) => (
                 <option key={p.id} value={p.id}>{p.label}</option>
@@ -332,9 +358,12 @@ export function GuideJourney({ content, context, environment, stage, perspective
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{lens.instrument}</p>
         <h2 className="font-serif text-2xl text-foreground sm:text-3xl">{lens.title}</h2>
         <p className="text-sm text-muted-foreground">{lens.question}</p>
-        <p className="pt-1"><StatusChip text={content.caseLabel} solid={false} /></p>
+        {lens.lens !== "Q2" ? <p className="pt-1"><StatusChip text={content.caseLabel} solid={false} /></p> : null}
       </header>
 
+      {lens.lens === "Q2" ? (
+        <Q2ProfileJourney content={content} lens={lens} perspective={perspective} perspectiveLabel={perspLabel} context={context} hasTaskPanel={hasTaskPanel} headingRef={voiceRef} />
+      ) : <>
       <OrientationMaps content={content} lens={lens} perspectiveLabel={perspLabel} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
@@ -390,43 +419,12 @@ export function GuideJourney({ content, context, environment, stage, perspective
         <section id="guide-scene" aria-labelledby="guide-scene-title" className="order-2 space-y-4 lg:order-1">
             <h3 id="guide-scene-title" className="font-semibold text-foreground">Fluxo compartilhado</h3>
             <SceneTimeline lens={lens} perspective={perspective} />
-          <Dialog>
-            <DialogTrigger asChild>
-              <button type="button" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <BookOpen aria-hidden className="h-4 w-4" /> Ler o caso inteiro, do Q1 ao Q5
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[85dvh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>O caso inteiro</DialogTitle>
-                <DialogDescription>{content.caseLabel}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-5 text-sm">
-                {content.lenses.map((l) => (
-                  <section key={l.lens} className="space-y-2">
-                    <h4 className="font-medium text-foreground">{l.title} <span className="text-xs font-normal text-muted-foreground">· {l.cyclePhase}</span></h4>
-                    <SceneTimeline lens={l} />
-                  </section>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <FullCaseDialog content={content} />
         </section>
       </div>
 
-      {lens.lens === "Q2" ? <Handoffs content={content} perspective={perspective} /> : null}
-
-      {lens.lens === "Q2" ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-2xl border border-border border-l-4 border-l-accent bg-muted/20 p-4 text-sm">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground"><Scale aria-hidden className="h-3.5 w-3.5" /> Exemplo resolvido</p>
-            <p className="mt-2 text-foreground">{content.resolvedExample}</p>
-          </section>
-          <GuideCheckCard check={content.checks[0]!} title="Checagem" />
-        </div>
-      ) : null}
-
       {lens.lens === "Q5" ? <Q5Extract content={content} /> : null}
+      </>}
 
       <footer className="space-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
         <p>{content.whatNext}</p>
@@ -436,31 +434,132 @@ export function GuideJourney({ content, context, environment, stage, perspective
   );
 }
 
+const Q2_TOOL_NAMES: Record<string, string> = {
+  "q2.leitura_plano": "Prioridades e ações do ciclo",
+  "q2.execucao_lideranca": "Minhas ações do ciclo",
+  "q2.devolutiva_coletiva": "Devolutiva da equipe",
+};
+const IVO_MENU_LABEL = enterprisePack.navigation.find((item) => item.id === "ivo")?.label ?? "IVO";
+const PRIMARY_LINK = "inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+function Q2ProfileJourney({ content, lens, perspective, perspectiveLabel, context, hasTaskPanel, headingRef }: {
+  content: GuideContent;
+  lens: GuideLensContent;
+  perspective: GuidePerspective;
+  perspectiveLabel: string;
+  context: GuideServerContext | null;
+  hasTaskPanel: boolean;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+}) {
+  const cell = lens.matrix[perspective];
+  const session = context?.perspective === perspective ? context : null;
+  const viewingOtherRole = Boolean(context && !session);
+  const cta = operationalCta(cell.capability, session);
+  const acts = cell.mode === "atua";
+  const showPrimary = cta && !hasTaskPanel;
+  const leaderWithoutTask = Boolean(session && perspective === "lideranca" && !session.unavailable &&
+    session.grantedCapabilities.includes("q2.execucao_lideranca") &&
+    !session.tasks.some((task) => task.lens === "Q2" && (task.status === "planejada" || task.status === "em_execucao")));
+  const tools = allAvailabilityEntries().filter((entry) => entry.lens === "Q2" && (
+    entry.id === cell.capability || (session && session.grantedCapabilities.includes(entry.id))
+  ));
+
+  return (
+    <div className="space-y-5">
+      <section aria-labelledby="guide-voice" className="space-y-4 rounded-2xl border border-primary/25 bg-card p-4 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusChip text={MODE_LABEL[cell.mode]} solid={acts} />
+          <span className="text-sm text-muted-foreground">{viewingOtherRole ? "Consultando a perspectiva de" : "Papel consultado:"} <strong className="text-foreground">{perspectiveLabel}</strong></span>
+        </div>
+        <h3 id="guide-voice" ref={headingRef} tabIndex={-1} className="scroll-mt-32 font-serif text-xl leading-snug text-foreground focus-visible:outline-none sm:text-2xl">
+          {lens.voices[perspective] ?? cell.who}
+        </h3>
+        {viewingOtherRole ? <p className="text-sm text-muted-foreground">Sua sessão continua como {context?.roleLabel}. Aqui você consulta como esse outro perfil participa.</p> : null}
+        {session?.unavailable ? (
+          <p role="status" className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground">
+            {session.unavailable === "modules" ? "Não foi possível conferir os módulos da organização agora." : "Parte das informações do Q2 não pôde ser consultada agora."} Recarregue a página para tentar novamente.
+          </p>
+        ) : session && !session.availableLenses.includes("Q2") ? (
+          <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground">O Q2 não está habilitado nesta organização. Você pode consultar o exemplo abaixo.</p>
+        ) : leaderWithoutTask ? (
+          <p className="text-sm text-muted-foreground">Você não tem uma ação do Q2 para executar neste momento.</p>
+        ) : null}
+        <dl className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0 rounded-xl bg-muted/30 p-3 sm:p-4">
+            <dt className="flex items-center gap-2 text-sm font-semibold text-foreground"><ClipboardCheck aria-hidden className="h-4 w-4 shrink-0 text-primary" />{acts ? "Sua parte" : "Quem atua"}</dt>
+            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{cell.who}</dd>
+          </div>
+          <div className="min-w-0 rounded-xl bg-muted/30 p-3 sm:p-4">
+            <dt className="flex items-center gap-2 text-sm font-semibold text-foreground"><Inbox aria-hidden className="h-4 w-4 shrink-0 text-primary" />{acts ? "Quem recebe depois" : "O que você acompanha"}</dt>
+            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{cell.receives}</dd>
+          </div>
+        </dl>
+        {showPrimary ? <a href={cta.href} className={PRIMARY_LINK}>{leaderWithoutTask ? "Consultar minhas ações" : cta.label}<ArrowRight aria-hidden className="h-4 w-4 shrink-0" /></a> : null}
+      </section>
+
+      <div className="rounded-2xl border border-border bg-card px-4 py-2 sm:px-5">
+        <InlineDetail label={viewingOtherRole ? `Ferramentas da perspectiva: ${perspectiveLabel}` : context ? "Ferramentas do meu perfil" : "Ferramentas deste perfil"} icon={Compass}>
+          {tools.length ? <>
+            <p className="font-medium">{enterprisePack.navGroups.medir} <span aria-hidden>›</span> {IVO_MENU_LABEL} <span aria-hidden>›</span> Visão IVO</p>
+            <p className="mt-1 text-xs text-muted-foreground">As ferramentas do Q2 ficam na Visão IVO.</p>
+            <ul className="mt-2 divide-y divide-border">
+              {tools.map((tool) => {
+                const link = operationalCta(tool.id, session);
+                const isPrimary = tool.id === cell.capability && (hasTaskPanel || showPrimary);
+                return <li key={tool.id} className="py-3">
+                  <p className="font-semibold text-foreground">{Q2_TOOL_NAMES[tool.id] ?? tool.capability}</p>
+                  <p className="mt-0.5 text-muted-foreground">{tool.capability}.</p>
+                  {link && !isPrimary ? <a href={link.href} className="inline-flex min-h-11 items-center gap-2 font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{link.label}<ArrowRight aria-hidden className="h-4 w-4 shrink-0" /></a> : null}
+                  {isPrimary && link ? <p className="mt-1 text-xs text-muted-foreground">Atalho na ação em destaque acima.</p> : null}
+                  {!link && session ? <p className="mt-1 text-xs text-muted-foreground">Sem atalho disponível para esta sessão.</p> : null}
+                </li>;
+              })}
+            </ul>
+          </> : <p>O guia ainda não apresenta uma ferramenta do Q2 para este papel.</p>}
+          <p className="border-t border-border pt-2 text-xs text-muted-foreground">{cell.condition}</p>
+        </InlineDetail>
+      </div>
+
+      <Handoffs content={content} perspective={perspective} />
+
+      <div id="guide-scene" className="scroll-mt-28 space-y-1 rounded-2xl border border-border bg-card px-4 py-2 sm:px-5">
+        <InlineDetail label="Ver um exemplo" icon={BookOpen}>
+          <p className="text-xs font-medium text-muted-foreground">{content.caseLabel}</p>
+          <p className="my-3 leading-relaxed">{content.resolvedExample}</p>
+          <p className="mb-3 rounded-lg bg-muted/60 p-3 font-medium">A execução foi registrada. A melhora ainda não foi avaliada.</p>
+          {content.checks[0] ? <GuideCheckCard check={content.checks[0]} title="Confira seu entendimento" /> : null}
+          <InlineDetail label="Ver as etapas deste caso" icon={ListChecks}>
+            <SceneTimeline lens={lens} perspective={perspective} />
+          </InlineDetail>
+          <FullCaseDialog content={content} />
+        </InlineDetail>
+        <InlineDetail label="O que fica protegido?" icon={ShieldCheck}>
+          <ul className="list-disc space-y-1 pl-5">{lens.guardrails.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+        </InlineDetail>
+        <InlineDetail label="Onde o Q2 se encaixa" icon={MapIcon}>
+          <OrientationMaps content={content} lens={lens} perspectiveLabel={perspectiveLabel} />
+        </InlineDetail>
+      </div>
+    </div>
+  );
+}
+
 function Handoffs({ content, perspective }: { content: GuideContent; perspective: GuidePerspective }) {
   return (
     <section aria-labelledby="handoffs-title" className="rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <h4 id="handoffs-title" className="text-sm font-semibold text-foreground">Passagens de responsabilidade</h4>
-      <ol className="mt-3 flex flex-col gap-1 md:flex-row md:items-stretch">
+      <h3 id="handoffs-title" className="font-semibold text-foreground">Como a equipe colabora</h3>
+      <ol className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {content.handoffs.map((h, i) => {
           const Icon = HANDOFF_ICON[h.id as keyof typeof HANDOFF_ICON] ?? Eye;
-          const mine = h.perspective === perspective;
-          const last = i === content.handoffs.length - 1;
+          const mine = h.perspective === perspective || (h.id === "retorno" && perspective === "sst");
           return (
-            <li key={h.id} className="flex flex-col items-stretch gap-1 md:flex-1 md:flex-row md:items-center">
-              <div className={`flex-1 rounded-xl p-2.5 text-sm ${mine ? "border-2 border-primary bg-primary/5" : "border border-border"}`}>
+            <li key={h.id} className={`min-w-0 rounded-xl border p-3 text-sm ${mine ? "border-primary bg-primary/5" : "border-border"}`}>
                 <p className="flex items-center gap-1.5 font-medium text-foreground">
-                  <span aria-hidden className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10"><Icon className="h-3.5 w-3.5 text-primary" /></span>
+                  <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10"><Icon className="h-3.5 w-3.5 text-primary" /></span>
                   <span>{i + 1}. {h.verb}</span>
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{h.owner}{mine ? " · você" : ""}</p>
-                <InlineDetail label="Que evidência fica?">{h.evidence}</InlineDetail>
-              </div>
-              {!last ? (
-                <>
-                  <ArrowRight aria-hidden className="hidden h-4 w-4 shrink-0 text-muted-foreground md:block" />
-                  <ArrowDown aria-hidden className="mx-auto h-4 w-4 shrink-0 text-muted-foreground md:hidden" />
-                </>
-              ) : null}
+                <p className="mt-1 text-xs font-medium text-primary">{h.owner}{mine ? (h.id === "retorno" ? " · Você acompanha" : " · Sua atuação") : ""}</p>
+                <p className="mt-1 leading-relaxed text-muted-foreground">{h.evidence}</p>
             </li>
           );
         })}
