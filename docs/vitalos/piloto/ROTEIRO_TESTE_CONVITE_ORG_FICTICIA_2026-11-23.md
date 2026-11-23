@@ -3,6 +3,8 @@
 **Objetivo:** provar o convite de ponta a ponta (RH cria → pessoa aceita → perfil criado), com o limite de assentos do plano, sem pessoas nem dados reais.
 **Estado em 23/11/2026:** nível 1 provado; nível 2 não executado (depende de créditos, build, publicação e autorização).
 
+**Migration de assentos, quatro fatos separados:** (1) função `reserve_member_invite` presente no banco do projeto; (2) permissões conferidas (`anon`/`authenticated` sem EXECUTE, `service_role` com); (3) ausente do histórico `supabase_migrations.schema_migrations`; (4) convite de ponta a ponta no app publicado **não testado**. Este roteiro trata só do item 4.
+
 ## Nível 1 · pilha descartável local (sem custo, já provado)
 
 | Item | Resultado |

@@ -69,8 +69,8 @@ Origem: instrução do proponente nesta conversa ("O Instituto está escolhido p
 | PIL-05 | — | Medir só operação: conclusão de tarefas, erros, dúvidas e continuidade. Critérios de continuar/corrigir/pausar antes da coleta |
 | PIL-06 | — | Responsável operacional: pessoa do Instituto a nomear (o papel metodológico do proponente não o designa) |
 | PIL-07 | — | Estender D10 (Q2 0.1.0) ao piloto do Instituto, com referência desta decisão |
-| PIL-08 | Candidato técnico: `main` + PR #56 | Ambiente-alvo, migration de assentos e autorização de operação/publicação |
+| PIL-08 | Candidato técnico: `main` + PR #56 | Ambiente-alvo, migration de assentos (aplicada em 22/11, função e permissões conferidas, fora do histórico de migrations; convite ponta a ponta não testado) e autorização de operação/publicação |
 
 Nada aqui é decisão do Instituto ou do proponente além do que está citado; as propostas vão num único pacote de liberação.
 
-**Atualização 21/11/2026 (MO2):** plano do Instituto decidido pelo proponente: **Growth** ([registro](PLANO_INSTITUTO_GROWTH_2026-11-21.md)). Resolve a parte de plano de PIL-02/PIL-08; a migration de assentos continua pendente.
+**Atualização 21/11/2026 (MO2):** plano do Instituto decidido pelo proponente: **Growth** ([registro](PLANO_INSTITUTO_GROWTH_2026-11-21.md)). Resolve a parte de plano de PIL-02/PIL-08; a migration de assentos foi aplicada em 22/11 (função presente e permissões conferidas), segue ausente do histórico de migrations, e o convite de ponta a ponta no app publicado ainda não foi testado (ver `piloto/CONTINUIDADE.md`).

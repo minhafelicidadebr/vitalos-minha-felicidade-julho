@@ -25,7 +25,7 @@ O gate falhava em todo PR por 4 testes com 3 causas, todas divergência entre co
 
 | # | Divergência | Efeito no piloto | Onde se resolve |
 |---|---|---|---|
-| D1 | Na `main`, o plano Piloto conta **todo** perfil como assento (limite 1) | O RH do Instituto não consegue convidar ninguém no plano Piloto | PR de `fix/assentos-administrativos` + migration `20261121120000` (autorização para aplicar remotamente) |
+| D1 | Na `main`, o plano Piloto conta **todo** perfil como assento (limite 1) | O RH do Instituto não consegue convidar ninguém no plano Piloto | PR de `fix/assentos-administrativos` + migration `20261121120000` (autorização para aplicar remotamente). **Atualização 23/11:** #57 mesclado; função aplicada por consulta direta em 22/11, permissões conferidas, ausente do histórico de migrations; convite ponta a ponta no app publicado não testado |
 | D2 | Board Brief, histórico, Reavaliação NR-1 e dossiê PGR transformam erro de leitura em "nenhum ciclo" | Leitura falha parece ausência de dado | Mesmo padrão `failClosed` já aplicado na Expedição (MO2) |
 | D3 | Q1: ficha da II-Br incompleta | Coleta Q1 bloqueada; preparação segue | Decisão/fonte do proponente (ver aprovação de 21/11) |
 | D4 | Q3: mensuração sem autorização e com item repetido na fonte | Só prática educativa | Ficha Q3 |
@@ -70,4 +70,4 @@ O prompt anterior não tem versão comparável contada; abaixo, o estado de cada
 | Q2 pronto enquanto outra lente está bloqueada | **Resolvido:** Q2 avança sozinho; a lente bloqueada adia só a operação dependente |
 | Leitura falha ou grupo < limiar | **Resolvido na Expedição**; pendente nas 4 telas de D2 (MO2) |
 | Prévia atualizada, candidato não publicado | **Resolvido:** a prévia não é publicação; publicar exige comando |
-| Convite depende de migration ausente | **Resolvido como regra** (migration antes do código, falha fechada); **pede decisão:** autorização da migration remota |
+| Convite depende de migration ausente | **Resolvido como regra** (migration antes do código, falha fechada); **decisão tomada:** autorização concedida e migration aplicada em 22/11 (função presente, permissões conferidas, fora do histórico de migrations); convite ponta a ponta ainda não testado |

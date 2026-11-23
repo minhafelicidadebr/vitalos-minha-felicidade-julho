@@ -8,7 +8,7 @@
 
 **Efeitos:**
 - D7 resolvido para o Instituto.
-- D1 continua necessário: com o código da `main`, o Growth conta todo perfil como assento (limite 5), e uma coorte de 8 a 15 pessoas ficaria bloqueada no 5º convite. A correção de assentos e a migration `20261121120000` seguem pré-requisitos.
+- D1 continua necessário: com o código da `main`, o Growth conta todo perfil como assento (limite 5), e uma coorte de 8 a 15 pessoas ficaria bloqueada no 5º convite. A correção de assentos foi mesclada (#57) e a função `reserve_member_invite` está presente no banco do projeto desde 22/11 com permissões conferidas (`anon`/`authenticated` sem EXECUTE, `service_role` com). Ela está **ausente do histórico de migrations** (aplicada por consulta direta) e o **convite de ponta a ponta no app publicado ainda não foi testado**, então o limite de 5 administradores do Growth continua sem prova no ambiente publicado.
 - O plano é atribuído pela plataforma ao ativar a organização; nenhuma alteração foi feita em ambiente real.
 
 **Não decide:** preço, contrato, duração comercial ou condições de cobrança.
