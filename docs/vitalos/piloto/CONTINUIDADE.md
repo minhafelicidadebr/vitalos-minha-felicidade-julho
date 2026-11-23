@@ -11,7 +11,9 @@ Um registro só. Ao retomar: ler este arquivo e o diff desde o último SHA verif
 | Conferência independente | 1 função, 7 argumentos, `SECURITY DEFINER`, `search_path=public`; EXECUTE: `anon` não, `authenticated` não, `service_role` sim |
 | Não feito | Nenhuma outra migration, nenhum dado lido ou escrito, sem publicação |
 | Não verificado | Convite real ponta a ponta no app publicado; se o cache de esquema da API já enxerga a função; build de publicação do Lovable (log indisponível) |
-| Próximo | Teste de convite só com organização de teste autorizada; publicação segue reservada ao proponente |
+| Suporte do Lovable (23/11) | Causa do "Build malsucedido": workspace com **0 créditos**; sem créditos não há build novo nem log. Créditos renovam em ~26/11 ou top-up. Depois, o suporte manda usar "Fix build" no chat (gasta créditos; não usado). A hipótese de erro de TypeScript no arquivo de teste de `e371edd` é improvável: `tsc` passou no gate dessa árvore e o `build` local passa |
+| Histórico de migrations | `supabase_migrations.schema_migrations` do projeto tem só 2 registros (`20260713234253`, `20260825022411`), nenhum de `20261121120000`: a função foi aplicada por consulta direta e não está no histórico. O histórico já era não canônico; a função existe e foi conferida no catálogo. A migration usa `CREATE OR REPLACE`, então uma reaplicação futura é inofensiva |
+| Próximo | Créditos (top-up ou 26/11) → novo build → publicar com autorização do proponente; teste de convite só com organização de teste autorizada |
 
 ## Leitura desta sessão
 
