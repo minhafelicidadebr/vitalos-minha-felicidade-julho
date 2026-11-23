@@ -1,0 +1,130 @@
+# PROD-0.6C — prova não produtiva da Migration B, em PostgreSQL 17 efêmero.
+#
+# DISPARO EXCLUSIVAMENTE MANUAL. Sem push, sem pull_request, sem schedule,
+# sem workflow_run. Este workflow NUNCA roda sozinho.
+#
+# Não recebe secret algum. Não usa GitHub Environment. Não solicita OIDC.
+# O alvo é sempre 127.0.0.1 dentro do runner; a proteção vem da AUSÊNCIA de
+# credencial e da fixação do alvo local — não de suposta ausência de rota.
+#
+# Não toca Supabase, Lovable, staging ou produção.
+
+name: FIB-T · prova não produtiva (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      proof_target:
+        description: "Único valor permitido: LOCAL_PG17_ONLY"
+        required: true
+        type: string
+      acknowledgement:
+        description: "Valor exato: I_CONFIRM_NONPROD_EPHEMERAL_PG17"
+        required: true
+        type: string
+      source_commit:
+        description: "SHA integral (40 hex) do commit aprovado"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fibt-nonprod-proof
+  cancel-in-progress: false
+
+jobs:
+  proof:
+    name: Tier 1 Launch Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      pg17:
+        # Major fixada em 17. O digest resolvido é registrado na evidência;
+        # a fixação por digest entra depois do primeiro run, com o valor
+        # observado — inventar um digest agora seria falso rigor.
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: proof_only_ephemeral
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PGHOST: 127.0.0.1
+      INPUT_PROOF_TARGET: ${{ inputs.proof_target }}
+      INPUT_ACKNOWLEDGEMENT: ${{ inputs.acknowledgement }}
+      INPUT_SOURCE_COMMIT: ${{ inputs.source_commit }}
+
+    steps:
+      - name: Checkout do commit aprovado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Guardrails anti-produção
+        run: bun run scripts/fibt-proof/guardrails.ts
+
+      - name: Identificar o service container
+        run: |
+          set -euo pipefail
+          echo "PG_CONTAINER_ID=${{ job.services.pg17.id }}" >> "$GITHUB_ENV"
+
+      - name: Registrar versões (servidor e clientes, mesma major)
+        run: |
+          set -euo pipefail
+          docker exec -i "$PG_CONTAINER_ID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 --no-psqlrc -At -c "SELECT version();"
+          docker exec -i "$PG_CONTAINER_ID" psql --version
+          docker exec -i "$PG_CONTAINER_ID" pg_dump --version
+          docker inspect --format '{{index .RepoDigests 0}}' postgres:17 || echo "digest indisponível"
+
+      - name: Extrair a transação produtiva do draft (B001–B011)
+        run: |
+          set -euo pipefail
+          bun run scripts/fibt-proof/extract-block.ts TRANSACTION "$RUNNER_TEMP/migration-b-transaction.sql" \
+            | tee "$RUNNER_TEMP/extraction-transaction.json"
+
+      - name: Extrair a evidência/ACL do draft (B012–B013)
+        run: |
+          set -euo pipefail
+          bun run scripts/fibt-proof/extract-block.ts ACL_EVIDENCE "$RUNNER_TEMP/migration-b-acl-evidence.sql" \
+            | tee "$RUNNER_TEMP/extraction-acl-evidence.json"
+
+      - name: Tier 1 Launch Gate (T01–T17)
+        run: |
+          set -euo pipefail
+          bun run scripts/fibt-proof/run-tier1.ts \
+            "$RUNNER_TEMP/migration-b-transaction.sql" \
+            "$RUNNER_TEMP/tier1-evidence.json"
+
+      - name: Publicar evidência
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fibt-tier1-evidence
+          path: |
+            ${{ runner.temp }}/tier1-evidence.json
+            ${{ runner.temp }}/extraction-transaction.json
+            ${{ runner.temp }}/extraction-acl-evidence.json
+          retention-days: 30
+
+      # RUNNER_TEMP é descartado com o runner efêmero, mas a remoção é
+      # explícita: o SQL descomentado não sobrevive ao job nem em falha.
+      - name: Remover temporários
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/migration-b-transaction.sql" "$RUNNER_TEMP/migration-b-acl-evidence.sql" || true
+          ls -la "$RUNNER_TEMP" || true
