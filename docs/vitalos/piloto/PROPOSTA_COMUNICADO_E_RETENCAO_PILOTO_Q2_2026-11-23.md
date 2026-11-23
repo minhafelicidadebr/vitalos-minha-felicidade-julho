@@ -66,6 +66,7 @@ Feito **por leitura das migrations**, sem consultar o banco e sem ler dados de p
 | Plano, itens, registro e evidências | `action_plans`, `action_items`, `action_log`, `evidence_records` | **Sim** (autoria registrada) | Membros da organização conforme papel; conteúdo de evidência não aparece na devolutiva |
 | Práticas pessoais | `practice_entries` (texto reflexivo, consentimento de compartilhamento) | **Sim** (usuário) | Só o dono |
 | Contas e perfis | autenticação e `profiles` | **Sim** | Conforme papel |
+| Eventos operacionais | `ops_events` (tem `org_id`, **sem chave estrangeira**; não sai em nenhuma remoção de organização testada) | A confirmar (conteúdo não lido) | A confirmar; decisão própria de retenção |
 
 ## 4. O que existe e o que não existe para reter e descartar
 
@@ -100,11 +101,11 @@ Feito **por leitura das migrations**, sem consultar o banco e sem ler dados de p
 
 | Mecanismo | O que exige | Observação |
 |---|---|---|
-| **M1 · Procedimento manual autorizado** | Instrução do proponente; roteiro e comandos revisados antes; contagem antes e depois; registro de quem executou; ensaio prévio em banco descartável | Sem código novo. Escala mal, mas serve a um piloto de 8–15 pessoas |
-| **M2 · Rotina de descarte no produto** | Código, migration, testes e autorização para aplicar no banco do projeto | Resolve para os próximos clientes; é PR separado e **não** deve bloquear o piloto |
-| **M3 · Remover a organização inteira** | Ordem de remoção validada (seção 4), pelo procedimento autorizado | Mais drástico; só no fim, se o Instituto optar por não guardar nada |
+| **M1 · Procedimento manual autorizado** | Instrução do proponente; roteiro e comandos revisados antes; contagem antes e depois; registro de quem executou; ensaio prévio em banco descartável | **Correção de 23/11 (ensaio local):** sem código novo **não é viável** para ledger, ondas e convites de administrador. Os gatilhos de integridade (por exemplo `first_admin_invites`, imutável) barram o `DELETE`; só se completa desabilitando gatilhos (DDL), o que exige decisão própria. Ver `PLANO_DESCARTE_M1_E_LIMPEZA_ORG_TESTE_2026-11-23.md` e `provas/ENSAIO_DESCARTE_ORG_LOCAL_2026-11-23.txt` |
+| **M2 · Rotina de descarte no produto** | Código, migration, testes e autorização para aplicar no banco do projeto | Pelo ensaio, é o caminho que **respeita** os controles de integridade. Pode ser PR separado, mas o comunicado só deve prometer descarte depois de decidido |
+| **M3 · Remover a organização inteira** | Ordem de remoção validada (seção 4) e decisão sobre gatilhos | **Bloqueada** com os controles ligados (ensaio local de 23/11); só com procedimento autorizado. Mais drástico; só no fim |
 
-**Recomendação do proponente técnico (minha, sujeita à decisão do Instituto):** para o piloto, **A ou B com M1**, definindo o prazo antes do envio do comunicado; tratar M2 como trabalho posterior. Se o Instituto quiser a opção B, o primeiro passo é um desenho da operação "ledger sem autoria", sem aplicá-la. A opção C só deve ser escolhida sabendo que, hoje, ela significa guardar sem prazo.
+**Recomendação do proponente técnico (minha, sujeita à decisão do Instituto):** **revisada em 23/11 após o ensaio local de remoção** (que mostrou que o descarte no ledger, nas ondas e nos convites de administrador é barrado por gatilhos de integridade): a escolha entre A e B é do Instituto, mas **o descarte real depende de decidir antes entre M1 com gatilhos desabilitados (DDL, procedimento próprio) e M2 (rotina oficial)**; definir o prazo e **não prometer descarte no comunicado** enquanto isso estiver aberto. Se o Instituto quiser a opção B, o primeiro passo é um desenho da operação "ledger sem autoria", sem aplicá-la. A opção C só deve ser escolhida sabendo que, hoje, ela significa guardar sem prazo.
 
 ## 7. Sequência segura
 
