@@ -1,5 +1,7 @@
 # Macro-onda 1 · Candidato, sinal do CI e matriz do piloto do Instituto
 
+> **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]** Este documento descreve a `main` `268dfbc` de 21/11. Onde diz que a `main` conta todo perfil como assento ou que o #56 está em rascunho, é o estado daquela data. Estado atual: `piloto/CONTINUIDADE.md`.
+
 ## 1. Candidato
 
 | Item | Valor |
@@ -25,7 +27,7 @@ O gate falhava em todo PR por 4 testes com 3 causas, todas divergência entre co
 
 | # | Divergência | Efeito no piloto | Onde se resolve |
 |---|---|---|---|
-| D1 | Na `main`, o plano Piloto conta **todo** perfil como assento (limite 1) | O RH do Instituto não consegue convidar ninguém no plano Piloto | PR de `fix/assentos-administrativos` + migration `20261121120000` (autorização para aplicar remotamente). **Atualização 23/11:** #57 mesclado; função aplicada por consulta direta em 22/11, permissões conferidas, ausente do histórico de migrations; convite ponta a ponta no app publicado não testado |
+| D1 | **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]** Na `main` de 21/11, o plano Piloto contava **todo** perfil como assento (limite 1) | O RH do Instituto não consegue convidar ninguém no plano Piloto | PR de `fix/assentos-administrativos` + migration `20261121120000` (autorização para aplicar remotamente). **Atualização 23/11:** #57 mesclado; função aplicada por consulta direta em 22/11, permissões conferidas, ausente do histórico de migrations; convite ponta a ponta no app publicado não testado |
 | D2 | Board Brief, histórico, Reavaliação NR-1 e dossiê PGR transformam erro de leitura em "nenhum ciclo" | Leitura falha parece ausência de dado | Mesmo padrão `failClosed` já aplicado na Expedição (MO2) |
 | D3 | Q1: ficha da II-Br incompleta | Coleta Q1 bloqueada; preparação segue | Decisão/fonte do proponente (ver aprovação de 21/11) |
 | D4 | Q3: mensuração sem autorização e com item repetido na fonte | Só prática educativa | Ficha Q3 |

@@ -69,7 +69,7 @@ Origem: instrução do proponente nesta conversa ("O Instituto está escolhido p
 | PIL-05 | — | Medir só operação: conclusão de tarefas, erros, dúvidas e continuidade. Critérios de continuar/corrigir/pausar antes da coleta |
 | PIL-06 | — | Responsável operacional: pessoa do Instituto a nomear (o papel metodológico do proponente não o designa) |
 | PIL-07 | — | Estender D10 (Q2 0.1.0) ao piloto do Instituto, com referência desta decisão |
-| PIL-08 | Candidato técnico: `main` + PR #56 | Ambiente-alvo, migration de assentos (aplicada em 22/11, função e permissões conferidas, fora do histórico de migrations; convite ponta a ponta não testado) e autorização de operação/publicação |
+| PIL-08 | Candidato técnico (21/11, **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]**): `main` + PR #56 | Ambiente-alvo, migration de assentos (aplicada em 22/11, função e permissões conferidas, fora do histórico de migrations; convite ponta a ponta não testado) e autorização de operação/publicação |
 
 Nada aqui é decisão do Instituto ou do proponente além do que está citado; as propostas vão num único pacote de liberação.
 

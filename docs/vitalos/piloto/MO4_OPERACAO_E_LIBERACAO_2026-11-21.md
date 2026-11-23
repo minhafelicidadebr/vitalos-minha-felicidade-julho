@@ -18,7 +18,9 @@
 
 ## 2. Convites, assentos e ordem de liberação
 
-Compatibilidade: a migration `20261121120000` cria uma função nova e não altera tabela; o código da `main` atual não a chama. A função pode existir no banco antes do código, sem efeito.
+> **[Histórico, anterior ao #57 (mesclado em 22/11/2026, `425b4a9`)]** A tabela de passos abaixo é o plano de 21/11, escrito antes do #57 ser mesclado. Estado atual dos passos: ver a atualização de 22–23/11 logo abaixo e `piloto/CONTINUIDADE.md`.
+
+Compatibilidade: a migration `20261121120000` cria uma função nova e não altera tabela; o código da `main` de 21/11 (anterior ao #57) não a chamava. A função podia existir no banco antes do código, sem efeito.
 
 **Confirmado pelo proponente em 21/11/2026:** o Lovable aplica as migrations de `supabase/migrations/` ao sincronizar a `main`. Logo, **o merge de um PR com migration é uma migration remota** e precisa de autorização explícita para isso. Reverter o arquivo depois não remove a função: a remoção exige uma migration nova.
 
