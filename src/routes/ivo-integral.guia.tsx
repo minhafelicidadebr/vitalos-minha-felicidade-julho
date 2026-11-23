@@ -43,6 +43,11 @@ function MyJourneyPage() {
   const ready = outcome?.ok ? outcome : null;
   const entry = useMemo(() => resolveGuideEntry(ready?.context ?? null), [ready]);
   const defaultStage: GuideLens = entry.kind === "task" ? entry.task.lens : entry.kind === "stage" ? entry.lens : "Q2";
+  const stage = search.etapa ?? defaultStage;
+  const q2TaskPanel = stage === "Q2" && (
+    (entry.kind === "task" && entry.task.lens === "Q2") ||
+    (entry.kind === "map" && entry.reason === "several_tasks")
+  );
 
   const change = (next: { stage?: GuideLens; perspective?: GuidePerspective }) =>
     navigate({ search: (prev) => ({ ...prev, ...(next.stage ? { etapa: next.stage } : {}), ...(next.perspective ? { perfil: next.perspective } : {}) }), replace: true });
@@ -67,13 +72,14 @@ function MyJourneyPage() {
         </div>
         {ready ? (
           <>
-            <MyJourneyCard entry={entry} context={ready.context} onOpen={open} />
+            {stage !== "Q2" || q2TaskPanel ? <MyJourneyCard entry={entry} context={ready.context} onOpen={open} /> : <h1 className="sr-only">Guia da minha jornada</h1>}
             <div ref={journeyRef} className="scroll-mt-4">
               <GuideJourney
                 content={ready.content}
                 context={ready.context}
                 environment={ready.context.environment}
-                stage={search.etapa ?? defaultStage}
+                stage={stage}
+                hasTaskPanel={q2TaskPanel}
                 perspective={search.perfil ?? ready.context.perspective}
                 onChange={change}
               />

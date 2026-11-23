@@ -51,7 +51,23 @@ describe("Guia · contexto de 'Meu percurso' no servidor", () => {
     const r = await loadGuideJourney({ accessToken: "t" }, base("LIDER_EQUIPE", { readModules: async () => [{ module: "Q2", enabled: false }] }));
     if (!r.ok) throw new Error("esperado ok");
     expect(r.context.availableLenses).toEqual([]);
+    expect(r.context.unavailable).toBeUndefined();
     expect(resolveGuideEntry(r.context).kind).toBe("map");
+  });
+
+  test("falha na leitura dos módulos é diferente de Q2 desabilitado", async () => {
+    const r = await loadGuideJourney({ accessToken: "t" }, base("LIDER_EQUIPE", { readModules: async () => null }));
+    if (!r.ok) throw new Error("esperado ok");
+    expect(r.context.unavailable).toBe("modules");
+    expect(r.context.grantedCapabilities).toEqual([]);
+  });
+
+  test("falha na leitura de ações preserva só a devolutiva confirmada", async () => {
+    const r = await loadGuideJourney({ accessToken: "t" }, base("LIDER_EQUIPE", { loadLoop: async () => { throw new Error("offline"); } }));
+    if (!r.ok) throw new Error("esperado ok");
+    expect(r.context.unavailable).toBe("q2");
+    expect(r.context.tasks).toEqual([]);
+    expect(r.context.grantedCapabilities).toEqual(["q2.devolutiva_coletiva"]);
   });
 
   test("sessão recusada: nada é montado", async () => {

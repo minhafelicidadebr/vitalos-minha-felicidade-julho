@@ -25,6 +25,8 @@ export interface GuideServerContext {
   /** Capacidades que o servidor confirmou para ESTA sessão (ex.: membro do Q2). */
   grantedCapabilities: string[];
   environment: string;
+  /** Uma leitura indisponível não confirma ausência de módulo ou tarefa. */
+  unavailable?: "modules" | "q2";
 }
 
 export type GuideEntry =
