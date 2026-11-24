@@ -1,7 +1,7 @@
 {
   "$schema": "./commercial-claims-registry.schema.json",
   "schema_version": "1.0.0",
-  "registry_version": "1.1.0",
+  "registry_version": "1.2.0",
   "frozen": true,
   "claims": [
     {
@@ -14,14 +14,16 @@
       },
       "source_refs": [
         "COPSOQ-INSTRUMENT-MANIFEST",
-        "FOUNDER-APPROVAL-H2.1A-2026-07-23"
+        "FOUNDER-APPROVAL-H2.1A-2026-07-23",
+        "PROPOSTA-V2-FOUNDER-APPROVAL-2026-11-23"
       ],
       "limitations": [
         "Não é uma versão licenciada ou validada do COPSOQ II."
       ],
       "allowed_surface_ids": [
         "marketing.nr1.journey.t1-instrument-label",
-        "marketing.nr1.methodology.instrument-description"
+        "marketing.nr1.methodology.instrument-description",
+        "marketing.proposal.science-anchors"
       ],
       "owner_role": "scientific-governance",
       "reviewed_at": "2026-07-23",
@@ -101,7 +103,8 @@
       },
       "source_refs": [
         "VIA-T-INSTRUMENT-DOC",
-        "FOUNDER-APPROVAL-H2.1A-2026-07-23"
+        "FOUNDER-APPROVAL-H2.1A-2026-07-23",
+        "PROPOSTA-V2-FOUNDER-APPROVAL-2026-11-23"
       ],
       "limitations": [
         "Não é diagnóstico.",
@@ -110,7 +113,8 @@
         "Não prevê desempenho."
       ],
       "allowed_surface_ids": [
-        "marketing.modal.lenses-deep.q4-viat-why"
+        "marketing.modal.lenses-deep.q4-viat-why",
+        "marketing.proposal.science-anchors"
       ],
       "owner_role": "scientific-governance",
       "reviewed_at": "2026-07-23",
@@ -222,7 +226,8 @@
       "source_refs": [
         "https://www.gallup.com/workplace/268211/strategies-hospital-leaders-rounding-right.aspx",
         "https://news.gallup.com/businessjournal/204488/disrupting-hiring-process-part-two.aspx",
-        "PRESENTATION-V3-USER-NUMBERS-2026-11-17"
+        "PRESENTATION-V3-USER-NUMBERS-2026-11-17",
+        "PROPOSTA-V2-FOUNDER-APPROVAL-2026-11-23"
       ],
       "limitations": [
         "Resultados de estudos distintos de bem-estar e engajamento; não retorno de contratar VitalOS.",
@@ -230,11 +235,67 @@
         "O dado de burnout exige o contexto dos elementos de bem-estar da Gallup."
       ],
       "allowed_surface_ids": [
-        "marketing.presentation.enterprises.business-evidence"
+        "marketing.presentation.enterprises.business-evidence",
+        "marketing.proposal.literature-evidence"
       ],
       "owner_role": "scientific-governance",
       "reviewed_at": "2026-11-16",
       "review_due_at": "2027-01-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-PROPOSAL-PLAYBOOK-001",
+      "category": "scientific",
+      "status": "approved",
+      "variants": {
+        "default": "Intervenções e conteúdos ancorados em evidências sistematizadas no Work Wellbeing Playbook.",
+        "studies": "3000",
+        "edition": "Guia Prático de Bem-Estar no Trabalho",
+        "detail": "O Guia Prático de Bem-Estar no Trabalho resume uma revisão sistemática de mais de 3.000 estudos sobre intervenções de bem-estar no trabalho, organizada em 12 fatores-chave, e recomenda combinar ações organizacionais, de grupo e individuais.",
+        "attribution": "World Wellbeing Movement, com apoio do Indeed e em colaboração com o Wellbeing Research Centre da Universidade de Oxford. Autoria atribuída à obra; sem parceria ou endosso."
+      },
+      "source_refs": [
+        "https://wellbeing.hmc.ox.ac.uk/publications/work-wellbeing-playbook/",
+        "PROPOSTA-V2-FOUNDER-APPROVAL-2026-11-23"
+      ],
+      "limitations": [
+        "Atribuição à obra; não há parceria, chancela ou endosso de Oxford, Indeed ou World Wellbeing Movement.",
+        "A contagem refere-se ao Guia Prático; o Playbook 2.0 relata outra contagem.",
+        "Ancoragem em evidências não prova efeito na organização que contrata."
+      ],
+      "allowed_surface_ids": [
+        "marketing.proposal.science-anchors"
+      ],
+      "owner_role": "scientific-governance",
+      "reviewed_at": "2026-11-23",
+      "review_due_at": "2027-05-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-PROPOSAL-INSTITUTE-TRACK-001",
+      "category": "quantitative",
+      "status": "approved",
+      "variants": {
+        "default": "Dados do Instituto Felicidade para Todos, confirmados pelo fundador em 23/11/2026.",
+        "responses": "110000",
+        "municipalities": "219",
+        "schools": "700",
+        "projects": "1300",
+        "record": "Recorde mundial de aplicação da pesquisa FIB, declarado pelo Instituto: mais de 110 mil respostas, sobretudo em contextos educacionais.",
+        "scope": "É a experiência do Instituto em pesquisa e mobilização em larga escala, principalmente em educação e territórios. Esta proposta a aplica ao ambiente de trabalho."
+      },
+      "source_refs": [
+        "https://www.felicidadeparatodos.com.br/",
+        "PROPOSTA-V2-FOUNDER-APPROVAL-2026-11-23"
+      ],
+      "limitations": [
+        "Dados declarados pelo Instituto e confirmados pelo fundador; nenhuma certificação externa do recorde foi apresentada.",
+        "Escopo educacional e territorial: não são resultados em empresas nem preveem resultado na organização que contrata."
+      ],
+      "allowed_surface_ids": [
+        "marketing.proposal.institute-track-record"
+      ],
+      "owner_role": "institutional-governance",
+      "reviewed_at": "2026-11-23",
+      "review_due_at": "2027-05-23"
     }
   ]
 }

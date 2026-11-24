@@ -3,8 +3,13 @@ import { readFileSync } from "node:fs";
 import {
   ISG_PROPOSAL,
   PROPOSAL_INSTALLMENTS,
+  PROPOSAL_MONTHLY_EQUIVALENT,
+  PROPOSAL_MONTHS_PER_STAGE,
   PROPOSAL_TOTAL,
   formatBRL,
+  resolveLiterature,
+  resolvePlaybook,
+  resolveTrack,
 } from "./isg-content.server";
 
 const p = ISG_PROPOSAL;
@@ -20,12 +25,15 @@ describe("proposta ISG · preço com fonte única", () => {
     expect(p.journey.stages.reduce((a, s) => a + s.installment, 0)).toBe(PROPOSAL_TOTAL);
     expect(formatBRL(PROPOSAL_TOTAL)).toBe("R$ 60.000");
     const investment = p.summary.find((s) => s.label === "Quanto investe")!;
-    expect(investment.title).toBe("R$ 60.000");
-    expect(investment.body).toContain("R$ 12.000");
+    expect(investment.title).toBe("R$ 12.000 por etapa");
+    expect(investment.body).toContain("R$ 4.000");
+    expect(investment.body).toContain("R$ 60.000");
     // Nenhum outro valor monetário escondido no texto.
-    expect(text.match(/R\$ ?[\d.]+/g)?.every((m) => ["R$ 60.000", "R$ 12.000"].includes(m))).toBe(
-      true,
-    );
+    expect(
+      text
+        .match(/R\$ ?\d{1,3}(?:\.\d{3})*/g)
+        ?.every((m) => ["R$ 60.000", "R$ 12.000", "R$ 4.000"].includes(m)),
+    ).toBe(true);
   });
 });
 
@@ -79,8 +87,12 @@ describe("proposta ISG · linguagem e circulação", () => {
       /blindag/i,
       /conformidade com a NR/i,
     ]) {
-      expect(banned.test(text)).toBe(false);
+      // "Parceria/endosso" só podem aparecer negados, na ressalva de atribuição ("sem parceria ou endosso").
+      const affirmative = text.replace(/\bsem parceria(?:, chancela)? ou endosso\b/gi, "");
+      expect(banned.test(affirmative)).toBe(false);
     }
+    expect(text).toMatch(/sem parceria ou endosso/);
+    expect(text).not.toMatch(/chancelad|validado por Oxford|parceria com Oxford/i);
     expect(p.conditions.join(" ")).toMatch(/não promete efeito/);
     expect(p.indicators.effect).toMatch(/Não está incluído/);
   });
@@ -107,5 +119,53 @@ describe("proposta ISG · linguagem e circulação", () => {
   test("metadados públicos da rota não carregam destinatário nem termos comerciais", () => {
     const route = readFileSync(new URL("../../routes/proposta.tsx", import.meta.url), "utf8");
     expect(route).not.toMatch(/ISG|60\.000|12\.000|R\$/);
+  });
+});
+
+describe("proposta ISG · V2 (cronograma, preço por etapa, ciência, equipe)", () => {
+  test("cinco etapas de três meses: 15 meses relativos, um marco por etapa, sem datas de calendário", () => {
+    const months = p.schedule.stages.flatMap((s) => s.months);
+    expect(p.schedule.monthsPerStage).toBe(3);
+    expect(months.map((m) => m.label)).toEqual(
+      Array.from({ length: 15 }, (_, i) => `Mês ${i + 1}`),
+    );
+    for (const s of p.schedule.stages) expect(s.months.filter((m) => m.milestone)).toHaveLength(1);
+    expect(JSON.stringify(p.schedule)).not.toMatch(/\b20\d\d\b|janeiro|fevereiro|março|dezembro/i);
+    // Etapas condicionadas aparecem no calendário (coleta do Q1 e convite do Q2).
+    expect(months.filter((m) => m.conditioned).length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("equivalente mensal é derivado (parcela ÷ meses) e o total continua declarado", () => {
+    expect(PROPOSAL_MONTHLY_EQUIVALENT).toBe(12_000 / 3);
+    expect(p.investment.monthsPerStage).toBe(PROPOSAL_MONTHS_PER_STAGE);
+    expect(p.investment.terms.join(" ")).toMatch(/não mensal/);
+  });
+
+  test("números e ciência vêm do Commercial Claims Registry, com escopo e atribuição", () => {
+    expect(p.track?.items.map((m) => m.value)).toEqual([110_000, 219, 700, 1_300]);
+    expect(p.track?.items.map((m) => m.label)).toContain("instituições de ensino");
+    expect(p.track?.record).toMatch(/declarado pelo Instituto/);
+    expect(p.track?.scope).toMatch(/Não são resultados em empresas/);
+    expect(p.science.playbook?.studies).toBe(3_000);
+    expect(p.science.playbook?.edition).toBe("Guia Prático de Bem-Estar no Trabalho");
+    expect(p.literature?.items).toHaveLength(2);
+    expect(p.science.anchors.find((a) => a.id === "q1")?.status).toBe("condicionado");
+  });
+
+  test("fail-closed: sem claim aprovado, o bloco some em vez de mostrar número solto", () => {
+    const failing = (() => {
+      throw new Error("claim indisponível");
+    }) as never;
+    expect(resolveTrack(failing)).toBeNull();
+    expect(resolveLiterature(failing)).toBeNull();
+    expect(resolvePlaybook(failing)).toBeNull();
+  });
+
+  test("bios curtas, sem cargo público nem instituições-halo", () => {
+    expect(p.team.members).toHaveLength(3);
+    for (const m of p.team.members) {
+      expect(m.bio.split(/\s+/).length).toBeLessThanOrEqual(45);
+      expect(m.bio).not.toMatch(/Ouvidor|Ministério|Conselho|Comissão|Yale|MIT|Harvard|UnB/);
+    }
   });
 });
