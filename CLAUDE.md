@@ -372,6 +372,8 @@ bun run test testes de unidade dos engines (bun test)
 
 **Orquestração temporal: Cronograma M.E.T.E. (`/temporada`)** ✅ construído
 
+> **Rótulo público (decisão do fundador, 23/11/2026): "Matriz IFT"** (Instituto Felicidade para Todos) — Mensurar · Educar · Transformar · Evoluir. "M.E.T.E."/`mete` é **nome técnico legado** (comentários, identificadores, chaves); nunca em texto visível. Guarda: `src/features/proposal/matriz-ift-label.test.ts`.
+
 - `src/engine/season/season-engine.ts` (puro: plano anual → estado operacional)
 - `src/mocks/season-mock.ts` (4 temporadas × 13 semanas, cada lente = 1 temporada)
 - `src/routes/temporada.tsx` (timeline anual + ciclo M.E.T.E. + atividades por papel)

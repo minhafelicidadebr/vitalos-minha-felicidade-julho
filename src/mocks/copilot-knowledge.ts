@@ -384,8 +384,8 @@ export function buildCopilotKnowledge(
     id: "agir",
     topics: ["agir", "acao", "melhorar", "proximo", "passo", "plano", "experimento", "mete"],
     title: "Como transformar leitura em ação",
-    body: "Medir é só o começo: o ciclo M.E.T.E. (Mensurar → Educar → Transformar → Evoluir) leva o resultado a um plano de ação e a experimentos no Culture Lab; efeito só é afirmado quando o critério de avaliação do experimento é atendido.",
-    source: "Cronograma M.E.T.E. · Culture Lab",
+    body: "Medir é só o começo: o ciclo da Matriz IFT (Mensurar → Educar → Transformar → Evoluir) leva o resultado a um plano de ação e a experimentos no Culture Lab; efeito só é afirmado quando o critério de avaliação do experimento é atendido.",
+    source: "Cronograma da Matriz IFT · Culture Lab",
   });
 
   // 5) Método e honestidade (anti-overclaim).
@@ -453,7 +453,7 @@ export function buildCopilotKnowledge(
       `o que é o ${indexLabel}`,
       "as quatro lentes",
       "privacidade e anonimato",
-      "como agir (M.E.T.E.) e pulses",
+      "como agir (Matriz IFT) e pulses",
       "riscos psicossociais (Domínio B)",
       "evidência, evolução e selo",
       "método, honestidade e limites da IA",

@@ -43,7 +43,7 @@ test("comparações incompatíveis e valores não finitos não produzem estimati
 
 test("cinco casos exibem limites locais sem nota ESG ou comando de emissão", () => {
   const {container,unmount} = render(<MeteEsgMatrixPreview />);
-  const region = within(container).getByRole("region", { name: "Matriz sintética METE e contribuição ESG" });
+  const region = within(container).getByRole("region", { name: "Matriz IFT sintética e contribuição ESG" });
   expect(within(region).getAllByRole("row").length).toBe(6);
   expect(region.textContent).toContain("E — sem sustentação");
   expect(region.textContent).toContain("Protegido");

@@ -169,7 +169,7 @@ export function proposeActions(obs: AgentObservations): AgentProposal[] {
       trigger: `Estamos na fase Transformar${obs.seasonName ? ` da ${obs.seasonName}` : ""}.`,
       recommendation: "Concentrar os experimentos agora, enquanto a janela está aberta.",
       rationale:
-        "O ritmo M.E.T.E. reserva esta fase para intervir — aproveitá-la maximiza o ciclo.",
+        "O ritmo da Matriz IFT reserva esta fase para intervir — aproveitá-la maximiza o ciclo.",
       targetRoute: "/temporada",
       requiresApproval: true,
       guardrailsOk: true,

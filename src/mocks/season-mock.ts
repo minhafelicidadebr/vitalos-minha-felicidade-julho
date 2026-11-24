@@ -437,7 +437,7 @@ export const METE_GLOSSARY: Array<{ id: string; label: string; gist: string }> =
 ];
 
 export const SEASON_INTRO = {
-  eyebrow: "Cronograma Operacional · Ciclo M.E.T.E.",
+  eyebrow: "Cronograma Operacional · Ciclo da Matriz IFT",
   title: "A Jornada de Vitalidade em 1 Ano",
   lead:
     "Quatro instrumentos, quatro temporadas de 13 semanas, na ordem que importa: " +

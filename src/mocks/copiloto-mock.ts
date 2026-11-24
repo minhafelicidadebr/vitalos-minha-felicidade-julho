@@ -83,7 +83,7 @@ export const SOURCE_COPY: Record<AlertSource, { icon: string; label: string }> =
 // ─── Laço M.E.T.E. · Propor → Entregar → Medir (orchestration-engine) ─────────
 
 export const LACO_INTRO = {
-  eyebrow: "Laço M.E.T.E. · da proposta à prova",
+  eyebrow: "Laço da Matriz IFT · da proposta à prova",
   title: "Aprovar não é o fim — é o começo do ciclo",
   lead:
     "A maior alavancagem de hoje vira um plano de entrega concreto (nudges, com opt-in " +

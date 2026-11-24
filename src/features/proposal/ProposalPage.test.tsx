@@ -80,7 +80,7 @@ describe("proposta · estados de acesso", () => {
     render(<ProposalPage />);
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
-        "Ciência da felicidade aplicada ao trabalho",
+        "Sistema Operacional da Vitalidade Organizacional",
       ),
     );
   });
@@ -123,15 +123,117 @@ describe("proposta V2 · seções novas e modo apresentação", () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
     fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
     const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
-    expect(within(region).getByText("1 / 11")).toBeTruthy();
+    expect(within(region).getByText("Abertura · 1 / 25")).toBeTruthy();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     await waitFor(() => expect(window.location.hash).toBe("#slide-2"));
     fireEvent.keyDown(window, { key: "End" });
-    await waitFor(() => expect(within(region).getByText("11 / 11")).toBeTruthy());
+    await waitFor(() => expect(within(region).getByText("Próximos passos · 25 / 25")).toBeTruthy());
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() =>
       expect(screen.queryByRole("region", { name: "Proposta em modo apresentação" })).toBeNull(),
     );
     await waitFor(() => expect(document.activeElement?.textContent).toContain("Apresentar"));
+  });
+});
+
+describe("proposta V3 · Matriz IFT, janelas Entenda, preço e slides completos", () => {
+  const landscape = () => {
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes("min-width") || q.includes("landscape"),
+      media: q,
+      addEventListener() {},
+      removeEventListener() {},
+    })) as unknown as typeof window.matchMedia;
+  };
+
+  test("capa com a marca VitalOS e a categoria como h1; Matriz IFT com as 5 lentes", () => {
+    const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Sistema Operacional da Vitalidade Organizacional",
+    );
+    expect(screen.getAllByRole("img", { name: "VitalOS" }).length).toBeGreaterThanOrEqual(1);
+    const ift = container.querySelector("#matriz-ift") as HTMLElement;
+    for (const lens of ["Risco", "Bem-comum", "Florescimento", "Forças", "Síntese"])
+      expect(within(ift).getByText(new RegExp(`· ${lens}$`))).toBeTruthy();
+    expect(within(ift).getAllByText("Condicionado à liberação").length).toBeGreaterThanOrEqual(3);
+  });
+
+  test("janela Entenda: abre com título, Esc fecha e o foco volta ao botão", async () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const trigger = screen.getAllByRole("button", { name: "Entenda o Q1" })[0]!;
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/Q1 · Preparar · Risco/)).toBeTruthy();
+    expect(within(dialog).getByText("Quem faz o quê")).toBeTruthy();
+    expect(within(dialog).getByText(/Copenhagen Psychosocial Questionnaire/)).toBeTruthy();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
+  test("cronograma e cards da jornada sem preço; ponte de valor e conta na seção própria", () => {
+    const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
+    expect(container.querySelector("#cronograma")!.textContent).not.toMatch(/R\$/);
+    expect(container.querySelector("#jornada")!.textContent).not.toMatch(/R\$/);
+    const conta = container.querySelector("#conta")!.textContent!;
+    for (const v of ["R$ 24.000", "R$ 12.000", "colaboração técnica"]) expect(conta).toContain(v);
+    // Camada 2 no papel: o anexo de impressão traz todas as janelas.
+    expect(screen.getByRole("region", { name: "Aprofundamentos" }).textContent).toContain(
+      "Como chegamos ao valor de referência",
+    );
+  });
+
+  test("slides com paridade: 25 slides, um por Q, capítulos navegáveis e Esc fecha só a janela", async () => {
+    landscape();
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
+    const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
+    expect(within(region).getByText("Abertura · 1 / 25")).toBeTruthy();
+    // G abre os capítulos; escolher "Jornada" leva ao capítulo.
+    fireEvent.keyDown(window, { key: "g" });
+    const menu = await screen.findByRole("dialog", { name: "Capítulos" });
+    fireEvent.click(within(menu).getByRole("button", { name: /Jornada/ }));
+    await waitFor(() => expect(within(region).getByText(/^Jornada · \d+ \/ 25$/)).toBeTruthy());
+    // Avança até o slide do Q1 e abre a janela dele; Esc fecha a janela, não a apresentação.
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    const entenda = await within(region).findByRole("button", { name: "Entenda o Q1" });
+    fireEvent.click(entenda);
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByRole("region", { name: "Proposta em modo apresentação" })).toBeTruthy();
+  });
+});
+
+describe("proposta V3 · paridade página ↔ slides", () => {
+  test("cada capítulo essencial da página tem slide", async () => {
+    const { slideIds } = await import("./ProposalSlides");
+    const ids = slideIds(ISG_PROPOSAL);
+    for (const id of [
+      "capa",
+      "pergunta",
+      "por-que",
+      "numeros",
+      "ciencia",
+      "contexto",
+      "matriz-ift",
+      "exemplo",
+      "jornada",
+      "etapa-q1",
+      "etapa-q2",
+      "etapa-q3",
+      "etapa-q4",
+      "etapa-q5",
+      "cronograma",
+      "funcionou",
+      "conta",
+      "investimento",
+      "responsabilidades",
+      "equipe",
+      "proxima",
+      "fontes",
+    ])
+      expect(ids).toContain(id);
   });
 });

@@ -247,7 +247,7 @@ function DriverWorldPage() {
         <section className="rounded-3xl border border-primary/20 bg-primary/[0.03] p-5 sm:p-6">
           <h2 className="font-serif text-xl text-foreground">Aja sobre este driver</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            O ciclo M.E.T.E. continua nas superfícies que já existem.
+            O ciclo da Matriz IFT continua nas superfícies que já existem.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <ActionLink to="/matriz" icon={Grid3x3} title="Ver na matriz" desc="Todas as intersecções deste e dos demais drivers." />

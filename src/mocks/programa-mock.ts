@@ -36,7 +36,7 @@ export const PROGRAMA_HIERARCHY: Array<{ layer: string; value: string; note: str
   },
   {
     layer: "Metodologia",
-    value: "Jornada anual M.E.T.E.",
+    value: "Jornada anual da Matriz IFT",
     note: "4 instrumentos em 4 trimestres: COPSOQ · FIB-T · PERMA+V · VIA-T.",
   },
   {
@@ -102,7 +102,7 @@ export const PROGRAMA_TIERS: ProgramaTier[] = [
     includes: [
       "Acesso navegável a todo o ecossistema (mock)",
       "Panorama executivo e Relatório Global ESG de exemplo",
-      "Demonstração do ciclo M.E.T.E. e do Selo",
+      "Demonstração do ciclo da Matriz IFT e do Selo",
     ],
     cta: { label: "Explorar agora", to: "/panorama" },
   },

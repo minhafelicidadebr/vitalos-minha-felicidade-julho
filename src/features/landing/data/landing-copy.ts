@@ -738,7 +738,7 @@ export const METHODOLOGY = {
     },
   ],
   cta: {
-    label: "Entender o método M.E.T.E. em profundidade",
+    label: "Entender o método da Matriz IFT em profundidade",
     action: { kind: "modal", modal: "method-deep" },
     variant: "primary",
   } as Cta,
@@ -746,10 +746,10 @@ export const METHODOLOGY = {
 
 // ─── Deep dive · Método M.E.T.E. (ciência do aprendizado aplicada) ────────────
 export const METHOD_DEEP = {
-  title: "M.E.T.E. — o ciclo anual que transforma dado em evidência",
+  title: "Matriz IFT — o ciclo anual que transforma dado em evidência",
   subtitle:
     "Mensurar · Educar · Transformar · Evoluir. Um ano dividido em quatro temporadas, cada uma fundamentada na ciência do aprendizado adulto, da mudança comportamental e da gestão baseada em evidência.",
-  hook: "A maior parte das pesquisas de clima morre num PDF. O M.E.T.E. transforma o ciclo inteiro em aprendizado vivo da organização.",
+  hook: "A maior parte das pesquisas de clima morre num PDF. A Matriz IFT transforma o ciclo inteiro em aprendizado vivo da organização.",
   stages: [
     {
       n: "01",
@@ -795,7 +795,7 @@ export const METHOD_DEEP = {
     "Cada ciclo deixa rastro auditável: nada se perde, tudo se compõe na evidência do ano.",
   ],
   closing:
-    "M.E.T.E. não é uma metodologia decorativa. É como uma organização adulta aprende a si mesma — com método, ética e evidência.",
+    "A Matriz IFT não é uma metodologia decorativa. É como uma organização adulta aprende a si mesma — com método, ética e evidência.",
   cta: {
     label: "Ver a jornada de 12 meses em detalhe",
     action: { kind: "modal", modal: "journey" },

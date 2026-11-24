@@ -2,7 +2,12 @@
 // Servido SOMENTE pela API autenticada (/api/proposta). Nada aqui entra em metadados públicos.
 // Maturidade das etapas conferida em docs/vitalos/piloto/ (MO3, MO4, CHECKLIST 23/11, CONTINUIDADE).
 // Ficha de fontes e classificações: docs/vitalos/proposta-isg/FICHA_REVISAO_2026-11-23.md
-import type { JourneyStage, ProposalContent, ProposalMetric } from "@/features/proposal/types";
+import type {
+  JourneyStage,
+  ProposalContent,
+  ProposalMetric,
+  StageFramework,
+} from "@/features/proposal/types";
 import { resolveCommercialClaim } from "@/domain/commercial-claims/commercial-claims-resolver";
 import { COMMERCIAL_SURFACE_IDS as S } from "@/domain/commercial-claims/commercial-surface-ids";
 
@@ -130,7 +135,7 @@ const governed = (claimId: string, variant: string, fallback: string) =>
 export const formatBRL = (value: number) =>
   "R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const stages: JourneyStage[] = [
+const baseStages: Omit<JourneyStage, "framework">[] = [
   {
     id: "q1",
     code: "Q1",
@@ -292,6 +297,191 @@ const stages: JourneyStage[] = [
   },
 ];
 
+// ── Matriz IFT por etapa · lentes de src/domain/journey.ts (fonte única da jornada canônica) ──
+// A copy de journey.ts NÃO é reaproveitada: só o nome da lente e a pergunta-guia (Q5 reescrita).
+// Cada célula traz o status real da maturidade (docs/vitalos/piloto/). Papéis: exemplo, definido na reunião.
+const copsoqOrigin = () =>
+  governed(
+    "CLAIM-COM-PROPOSAL-COPSOQ-ORIGIN-001",
+    "default",
+    "Mapeamento psicossocial estruturado, com referência internacional.",
+  );
+
+const FRAMEWORKS: Record<JourneyStage["id"], StageFramework> = {
+  q1: {
+    lens: "Risco",
+    question: "O que pode adoecer aqui?",
+    domain: "B",
+    ift: {
+      mensurar: {
+        text: `${copsoqOrigin()} Coleta condicionada à liberação da versão brasileira e à permissão de uso.`,
+        availability: "condicionada",
+      },
+      educar: {
+        text: "Conteúdo educativo sobre fatores psicossociais e bem-estar no trabalho para RH, SST e liderança.",
+        availability: "instituto",
+      },
+      transformar: {
+        text: "Plano de escuta, comunicado às equipes e revisão técnica com SST.",
+        availability: "plataforma",
+      },
+      evoluir: {
+        text: "Revisão da preparação e critérios do próximo passo. Apoio educativo à SST: não substitui o PGR nem o profissional habilitado.",
+        availability: "instituto",
+      },
+    },
+    roles: {
+      institutoConduz: "Plano de escuta e conteúdo educativo",
+      isgDecide: "Unidade inicial, patrocinador e comunicado",
+      isgExecuta: "RH e SST revisam a preparação",
+      juntosRevisam: "Pendências antes de qualquer coleta",
+    },
+    hours: { coord: 32, educ: 22, impl: 36 },
+  },
+  q2: {
+    lens: "Bem-comum",
+    question: "Como estamos como coletivo?",
+    domain: "A",
+    ift: {
+      mensurar: {
+        text: "FIB-T (Furtado, 2020): escuta coletiva e leitura publicada só para grupos com pelo menos 5 respostas.",
+        availability: "plataforma",
+      },
+      educar: {
+        text: "Apoio à liderança: mentorias e unidade educativa da etapa.",
+        availability: "instituto",
+      },
+      transformar: {
+        text: "Priorização e plano com responsável, prazo e revisão.",
+        availability: "plataforma",
+      },
+      evoluir: {
+        text: "Devolutiva coletiva e execução registrada. O efeito não é avaliado nesta proposta.",
+        availability: "plataforma",
+      },
+    },
+    roles: {
+      institutoConduz: "Leitura coletiva e facilitação da priorização",
+      isgDecide: "As prioridades (direção e liderança)",
+      isgExecuta: "A liderança da unidade conduz as ações",
+      juntosRevisam: "A cada quinze dias, com o RH",
+    },
+    hours: { coord: 30, educ: 26, impl: 34 },
+  },
+  q3: {
+    lens: "Florescimento",
+    question: "O que nos faz prosperar?",
+    domain: "A",
+    ift: {
+      mensurar: {
+        text: "PERMA+V: a mensuração fica fora desta proposta até haver fonte metodológica aprovada.",
+        availability: "condicionada",
+      },
+      educar: {
+        text: "Oficina de abertura e prática de vitalidade.",
+        availability: "instituto",
+      },
+      transformar: {
+        text: "Prática voluntária acompanhada pelo Instituto.",
+        availability: "instituto",
+      },
+      evoluir: {
+        text: "Decisão de manter, adaptar ou encerrar a prática.",
+        availability: "instituto",
+      },
+    },
+    roles: {
+      institutoConduz: "Oficina e acompanhamento da prática",
+      isgDecide: "Um horário protegido para a prática",
+      isgExecuta: "As pessoas aderem voluntariamente",
+      juntosRevisam: "Manter, adaptar ou encerrar",
+    },
+    hours: { coord: 22, educ: 40, impl: 28 },
+  },
+  q4: {
+    lens: "Forças",
+    question: "Que forças nos sustentam?",
+    domain: "A",
+    ift: {
+      mensurar: {
+        text: "VIA-T v1: leitura exploratória e individual das forças. Sem visão de equipe.",
+        availability: "instituto",
+      },
+      educar: { text: "Oficina sobre forças pessoais no trabalho.", availability: "instituto" },
+      transformar: {
+        text: "Roteiro individual para aplicar uma força no trabalho.",
+        availability: "instituto",
+      },
+      evoluir: {
+        text: "Conversa de encerramento com o que cada pessoa escolher compartilhar.",
+        availability: "instituto",
+      },
+    },
+    roles: {
+      institutoConduz: "Oficina e roteiro individual",
+      isgDecide: "Espaço na agenda da equipe",
+      isgExecuta: "Cada pessoa aplica o próprio roteiro, com privacidade",
+      juntosRevisam: "O encerramento, com o que for compartilhado",
+    },
+    hours: { coord: 22, educ: 40, impl: 28 },
+  },
+  q5: {
+    lens: "Síntese",
+    question: "O que aprendemos no ciclo?",
+    domain: "A",
+    ift: {
+      mensurar: {
+        text: "Consolidação dos registros disponíveis. O relatório da plataforma, hoje, é só demonstrativo.",
+        availability: "condicionada",
+      },
+      educar: { text: "Devolutiva executiva à direção e às áreas.", availability: "instituto" },
+      transformar: { text: "Decisão sobre o próximo ciclo.", availability: "instituto" },
+      evoluir: {
+        text: "Síntese que descreve execução e mudança observada, sem afirmar efeito. Pode apoiar o relato de sustentabilidade.",
+        availability: "instituto",
+      },
+    },
+    roles: {
+      institutoConduz: "A síntese executiva",
+      isgDecide: "O escopo do próximo ciclo",
+      isgExecuta: "As áreas revisam a síntese",
+      juntosRevisam: "Na reunião executiva",
+    },
+    hours: { coord: 44, educ: 18, impl: 28 },
+  },
+};
+
+const stages: JourneyStage[] = baseStages.map((s) => ({ ...s, framework: FRAMEWORKS[s.id] }));
+
+// ── Valoração (modelo adotado pelo fundador: PROPOSTA_V3_VALOR_REFERENCIA_2026-11-23) ──
+// Todos os valores de preço derivam destes parâmetros; um teste confere as somas.
+export const PRICE_MODEL = {
+  rates: { coord: 220, educ: 180, impl: 140 },
+  licenseMonthly: 2_000,
+  referencePerStage: 24_000,
+  isgTechnicalRate: 200,
+  isgTechnicalHours: 40,
+} as const;
+const consultingProgram = Object.values(FRAMEWORKS).reduce(
+  (sum, f) =>
+    sum +
+    f.hours.coord * PRICE_MODEL.rates.coord +
+    f.hours.educ * PRICE_MODEL.rates.educ +
+    f.hours.impl * PRICE_MODEL.rates.impl,
+  0,
+);
+const stageCount = PROPOSAL_INSTALLMENTS;
+const referenceTotal = PRICE_MODEL.referencePerStage * stageCount;
+const licenseProgram = PRICE_MODEL.licenseMonthly * PROPOSAL_MONTHS_PER_STAGE * stageCount;
+const indirectProgram = referenceTotal - consultingProgram - licenseProgram;
+const isgContributionProgram = PRICE_MODEL.isgTechnicalRate * PRICE_MODEL.isgTechnicalHours;
+const instituteInvestmentProgram = referenceTotal - PROPOSAL_TOTAL - isgContributionProgram;
+const perStage = (v: number) => Math.round(v / stageCount);
+const teamHoursProgram = Object.values(FRAMEWORKS).reduce(
+  (s, f) => s + f.hours.coord + f.hours.educ + f.hours.impl,
+  0,
+);
+
 export const ISG_PROPOSAL: ProposalContent = {
   version: "Versão para revisão · 23/11/2026",
   date: "23/11/2026",
@@ -308,6 +498,153 @@ export const ISG_PROPOSAL: ProposalContent = {
       "Ilustração: quatro colegas conversam em volta de uma mesa de madeira, em ambiente de trabalho com plantas e luz natural.",
     imageCaption: "Ilustração gerada · pessoas fictícias",
   },
+  cover: {
+    brandLine: "Sistema Operacional da Vitalidade Organizacional",
+    valueLine:
+      "Da gestão de riscos psicossociais ao florescimento das equipes: ciência da felicidade aplicada ao trabalho, com decisões que a empresa acompanha.",
+    chips: [
+      {
+        label: "NR-1",
+        detail:
+          "Apoio educativo à gestão de riscos psicossociais. Não substitui o PGR nem o profissional habilitado.",
+      },
+      {
+        label: "Ciência da felicidade",
+        detail: "Psicologia positiva e ciência do bem-estar no trabalho.",
+      },
+      { label: "Matriz IFT", detail: "Mensurar, Educar, Transformar e Evoluir em cada etapa." },
+    ],
+  },
+  ift: {
+    title: "Matriz IFT: o método do Instituto em cada etapa",
+    intro:
+      "Cada uma das cinco etapas olha para uma lente e percorre os mesmos quatro movimentos. Os quatro ícones se repetem em toda a proposta.",
+    movements: [
+      {
+        id: "mensurar",
+        name: "Mensurar",
+        description: "Ouvir com instrumento e método, com leitura só para grupos.",
+      },
+      {
+        id: "educar",
+        name: "Educar",
+        description: "Dar às pessoas e à liderança o conhecimento para agir.",
+      },
+      {
+        id: "transformar",
+        name: "Transformar",
+        description: "Decidir e agir: plano, prática ou roteiro com responsável.",
+      },
+      {
+        id: "evoluir",
+        name: "Evoluir",
+        description: "Revisar o que aconteceu e decidir o próximo passo.",
+      },
+    ],
+    domainNote:
+      "Q1 trata de risco psicossocial, com finalidade educativa e de apoio à SST. Q2 a Q5 tratam de florescimento. Os dois nunca são somados num índice.",
+    rolesNote: "Exemplo de divisão de papéis. A divisão real é definida na reunião de implantação.",
+    roleLabels: {
+      institutoConduz: "Instituto conduz",
+      isgDecide: "ISG decide",
+      isgExecuta: "ISG executa",
+      juntosRevisam: "Juntos revisam",
+    },
+  },
+  pricing: {
+    title: "Como chegamos a este valor",
+    intro: `Valor de referência do Instituto para uma unidade de cerca de 100 pessoas: ${formatBRL(PRICE_MODEL.referencePerStage)} por etapa de ${PROPOSAL_MONTHS_PER_STAGE} meses. Nesta primeira implantação, a condição é de ${formatBRL(installment)} por etapa.`,
+    referencePerStage: PRICE_MODEL.referencePerStage,
+    referenceTotal,
+    components: [
+      {
+        label: "Consultoria, mentoria e facilitação",
+        perStage: perStage(consultingProgram),
+        program: consultingProgram,
+        detail: `${teamHoursProgram} horas da equipe no programa (cerca de ${teamHoursProgram / stageCount} por etapa), em três papéis.`,
+      },
+      {
+        label: "Licença de uso da plataforma VitalOS",
+        perStage: perStage(licenseProgram),
+        program: licenseProgram,
+        detail: `Plano Crescimento, configurado para a organização: ${formatBRL(PRICE_MODEL.licenseMonthly)} por mês.`,
+      },
+      {
+        label: "Coordenação, materiais e custos indiretos",
+        perStage: perStage(indirectProgram),
+        program: indirectProgram,
+        detail: "Gestão do projeto, materiais das oficinas e custos de operação.",
+      },
+    ],
+    bridge: [
+      {
+        label: "Valor de referência",
+        perStage: PRICE_MODEL.referencePerStage,
+        kind: "reference",
+        detail: "Composição: consultoria, licença e custos indiretos.",
+      },
+      {
+        label: "Colaboração técnica da ISG",
+        perStage: -perStage(isgContributionProgram),
+        kind: "reduction",
+        detail: `${PRICE_MODEL.isgTechnicalHours} horas de revisão da experiência e das integrações, estimadas a ${formatBRL(PRICE_MODEL.isgTechnicalRate)} por hora.`,
+      },
+      {
+        label: "Investimento do Instituto",
+        perStage: -perStage(instituteInvestmentProgram),
+        kind: "reduction",
+        detail: "Investimento numa implantação de referência numa empresa de tecnologia.",
+      },
+      {
+        label: "Condição de implantação inicial",
+        perStage: installment,
+        kind: "condition",
+        detail: "Valor por etapa, pago após o aceite do marco.",
+      },
+    ],
+    collaboration:
+      "Nesta primeira implantação, a condição é de R$ 12.000 por etapa em colaboração técnica com a ISG: 40 horas de revisão da experiência e das integrações, uma unidade inicial e o registro anonimizado de aprendizados. A diferença é um investimento do Instituto nesta implantação de referência.",
+    parameters: [
+      {
+        label: "Coordenação científica e análise",
+        value: `${formatBRL(PRICE_MODEL.rates.coord)} por hora`,
+      },
+      { label: "Educação e facilitação", value: `${formatBRL(PRICE_MODEL.rates.educ)} por hora` },
+      {
+        label: "Implantação e engajamento",
+        value: `${formatBRL(PRICE_MODEL.rates.impl)} por hora`,
+      },
+      {
+        label: "Licença (plano Crescimento, ~100 pessoas)",
+        value: `${formatBRL(PRICE_MODEL.licenseMonthly)} por mês`,
+      },
+      {
+        label: "Colaboração técnica da ISG (estimativa)",
+        value: `${PRICE_MODEL.isgTechnicalHours} h × ${formatBRL(PRICE_MODEL.isgTechnicalRate)}`,
+      },
+    ],
+    license: {
+      wording:
+        "Licença de uso da plataforma VitalOS, configurada para a organização, durante o programa.",
+      includes: [
+        "Acesso para as pessoas da unidade, a liderança e o RH, com até 5 administradores",
+        "Configuração da organização: unidades, setores, papéis e comunicação",
+        "Fluxos disponíveis em cada etapa, com leitura só para grupos de pelo menos 5 respostas",
+        "Registro de prioridades, ações, responsáveis, estados e devolutivas",
+        "Suporte de uso pelo Instituto",
+      ],
+      excludes: [
+        "Integração com sistemas da ISG, como login corporativo ou RH: avaliada nas 40 horas e orçada à parte",
+        "Marca da ISG no lugar da VitalOS e desenvolvimento sob medida",
+        "Capacidades condicionadas enquanto não forem liberadas",
+      ],
+    },
+    notes: [
+      "Valor de referência adotado pelo Instituto para implantações comparáveis em 23/11/2026.",
+      "A condição fica ligada à colaboração técnica: se ela não acontecer, a condição é revista.",
+      "Sem prazo de validade artificial. Horas e encontros são propostas até a confirmação.",
+    ],
+  },
   summary: [
     {
       label: "O que a ISG recebe",
@@ -317,7 +654,7 @@ export const ISG_PROPOSAL: ProposalContent = {
     {
       label: "Quanto investe",
       title: `${formatBRL(installment)} por etapa`,
-      body: `Cada etapa dura ${PROPOSAL_MONTHS_PER_STAGE} meses e é paga após o aceite do seu marco: o equivalente a cerca de ${formatBRL(PROPOSAL_MONTHLY_EQUIVALENT)} por mês. Total do programa, em ${PROPOSAL_INSTALLMENTS} etapas: ${formatBRL(PROPOSAL_TOTAL)}.`,
+      body: `Condição de implantação inicial, em colaboração técnica com a ISG (valor de referência: ${formatBRL(PRICE_MODEL.referencePerStage)} por etapa). Cada etapa dura ${PROPOSAL_MONTHS_PER_STAGE} meses e é paga após o aceite do seu marco: cerca de ${formatBRL(PROPOSAL_MONTHLY_EQUIVALENT)} por mês. Total do programa: ${formatBRL(PROPOSAL_TOTAL)}.`,
     },
     {
       label: "O que o Instituto entrega",
@@ -378,25 +715,50 @@ export const ISG_PROPOSAL: ProposalContent = {
   scenario: {
     title: "Exemplo fictício · passagem de informações entre turnos",
     context:
-      "Uma equipe de serviços tecnológicos atende clientes em turnos. Na troca de turno, informações sobre chamados em andamento se perdem e o trabalho é refeito.",
+      "Uma equipe de suporte de tecnologia atende clientes o dia todo, em turnos. Quando um turno termina, quem sai passa os chamados abertos para quem entra.",
+    problem:
+      "Na troca de turno, parte do contexto dos chamados abertos se perde: quem entra não sabe o que já foi tentado, refaz o trabalho e o cliente repete a história.",
+    handover: {
+      from: "Turno da tarde",
+      to: "Turno da noite",
+      tickets: [
+        { label: "Chamado A · contexto completo", lost: false },
+        { label: "Chamado B · sem o que já foi tentado", lost: true },
+        { label: "Chamado C · sem o combinado com o cliente", lost: true },
+      ],
+    },
     steps: [
       {
-        label: "Escuta coletiva",
+        label: "Escutar",
         body: "A equipe responde à escuta. A leitura é coletiva e só aparece para grupos com pelo menos 5 respostas.",
+        who: "Equipe responde; Instituto prepara a leitura",
+        record: "Leitura coletiva publicada",
+        teamSees: "O resultado do grupo, nunca respostas individuais",
       },
       {
-        label: "Prioridade",
+        label: "Priorizar",
         body: "Liderança e RH escolhem um tema: a passagem de informações entre turnos.",
+        who: "Liderança e RH decidem; Instituto facilita",
+        record: "Prioridade com justificativa",
+        teamSees: "Qual tema foi escolhido e por quê",
       },
       {
-        label: "Ação com responsável",
-        body: "Uma lista de passagem de turno é testada por quatro semanas, com responsável, prazo e revisão quinzenal.",
+        label: "Agir",
+        body: "Uma lista de passagem de turno com cinco itens é testada por quatro semanas, com responsável, prazo e revisão quinzenal.",
+        who: "Coordenação do turno conduz",
+        record: "Ação, responsável, prazo e estado",
+        teamSees: "O que está sendo testado e até quando",
       },
       {
-        label: "Devolutiva",
+        label: "Devolver",
         body: "A equipe ouve o que foi escutado, o que foi decidido, o que foi feito e o que ainda não se sabe.",
+        who: "Liderança apresenta; Instituto apoia",
+        record: "Devolutiva realizada; efeito não avaliado",
+        teamSees: "O ciclo fechado, com o que ainda falta saber",
       },
     ],
+    before: "O tema aparecia em conversas soltas, sem dono nem prazo.",
+    after: "Existe uma decisão com responsável, prazo e uma devolutiva registrada.",
     record: [
       { field: "Ação", value: "Testar lista de passagem de turno" },
       { field: "Responsável", value: "Coordenação do turno da noite (cargo fictício)" },
@@ -413,7 +775,7 @@ export const ISG_PROPOSAL: ProposalContent = {
   },
   journey: {
     intro:
-      "Cada etapa tem um verbo, uma entrega que a ISG pode aceitar e uma condição dita com clareza. Cada marco aceito libera uma parcela.",
+      "Cada etapa tem uma lente, uma pergunta-guia, os quatro movimentos da Matriz IFT e uma entrega que a ISG aceita ou devolve.",
     sharedCondition:
       "Condição comum a tudo que roda na plataforma: verificar o convite de ponta a ponta no ambiente publicado antes de convidar as equipes.",
     stages,
@@ -454,6 +816,7 @@ export const ISG_PROPOSAL: ProposalContent = {
       "Mentoria da liderança",
     ],
     quantities: [
+      `Proposta: cerca de ${teamHoursProgram / stageCount} horas da equipe do Instituto por etapa (${teamHoursProgram} no programa), distribuídas entre os três papéis conforme a lente`,
       "Proposta: uma oficina de cerca de 2 horas no Q3 e outra no Q4",
       "Proposta: quatro encontros de mentoria de 1 hora com a liderança no Q2",
       "Proposta: unidade com pelo menos 5 pessoas por grupo de leitura, para que a leitura coletiva possa aparecer",
@@ -720,7 +1083,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             focus: "Revisar",
             activities: ["Registro da revisão, com pendências nomeadas"],
             conditioned: "Coleta da escuta, só se o instrumento for liberado (aditivo)",
-            milestone: "Aceite do marco Q1",
+            milestone: "Marco de aceite do Q1",
           },
         ],
       },
@@ -749,7 +1112,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             label: "Mês 6",
             focus: "Devolver",
             activities: ["Revisão das ações", "Devolutiva coletiva à equipe"],
-            milestone: "Aceite do marco Q2",
+            milestone: "Marco de aceite do Q2",
           },
         ],
       },
@@ -776,7 +1139,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             label: "Mês 9",
             focus: "Decidir",
             activities: ["Manter, adaptar ou encerrar a prática"],
-            milestone: "Aceite do marco Q3",
+            milestone: "Marco de aceite do Q3",
           },
         ],
       },
@@ -803,7 +1166,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             label: "Mês 12",
             focus: "Fechar",
             activities: ["Conversa de encerramento com o que cada pessoa escolher compartilhar"],
-            milestone: "Aceite do marco Q4",
+            milestone: "Marco de aceite do Q4",
           },
         ],
       },
@@ -824,7 +1187,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             label: "Mês 15",
             focus: "Decidir",
             activities: ["Reunião executiva sobre o próximo ciclo"],
-            milestone: "Aceite do marco Q5",
+            milestone: "Marco de aceite do Q5",
           },
         ],
       },
@@ -860,6 +1223,22 @@ export const ISG_PROPOSAL: ProposalContent = {
     note: "Papéis propostos, a confirmar na reunião de implantação.",
   },
   sources: [
+    {
+      claim: "Valor de referência, composição e condição de implantação inicial",
+      kind: "condicao",
+      source:
+        "Modelo de valoração adotado pelo fundador em 23/11/2026 (horas por papel, valor-hora, licença e indiretos)",
+    },
+    {
+      claim: "Origem do instrumento de referência do Q1 (COPSOQ, Dinamarca)",
+      kind: "fato",
+      source: "Kristensen et al., Scand J Work Environ Health 2005;31(6):438-449",
+    },
+    {
+      claim: "Lentes e perguntas-guia da Matriz IFT",
+      kind: "fato",
+      source: "Jornada canônica do VitalOS (src/domain/journey.ts), com a pergunta do Q5 reescrita",
+    },
     {
       claim:
         "Áreas que a ISG comunica (gestão de projetos, BRM, integração, BI, gestão de pessoas, cultura organizacional)",

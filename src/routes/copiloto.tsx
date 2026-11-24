@@ -397,7 +397,7 @@ function LacoSection({ loop }: { loop: LoopState }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"
-      aria-label="Laço M.E.T.E. da proposta à prova"
+      aria-label="Laço da Matriz IFT da proposta à prova"
     >
       <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
         {LACO_INTRO.eyebrow}

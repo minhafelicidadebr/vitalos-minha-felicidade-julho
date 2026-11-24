@@ -2,9 +2,11 @@
 // O conteúdo (inclusive preço) só chega depois da senha validada no servidor (/api/proposta).
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowRight,
   CalendarCheck,
+  Flag,
   CheckCircle2,
   CircleDashed,
   Info,
@@ -25,6 +27,20 @@ import {
   TrackSection,
 } from "./ProposalSections";
 import { ProposalSlides } from "./ProposalSlides";
+import {
+  BeforeAfter,
+  CoverHero,
+  HandoverDiagram,
+  IftBadge,
+  IftSection,
+  InstitutoMark,
+  PricingSection,
+  PrintAppendix,
+  ScenarioDetail,
+  StageDetail,
+  Understand,
+} from "./ProposalV3";
+import { IFT_ORDER } from "./proposal-shared";
 import type { Availability, ClaimKind, JourneyStage, ProposalContent } from "./types";
 import "./proposal.css";
 
@@ -136,6 +152,7 @@ function Details({
 
 const NAV = [
   { href: "#ciencia", label: "Ciência" },
+  { href: "#matriz-ift", label: "Matriz IFT" },
   { href: "#jornada", label: "Jornada" },
   { href: "#cronograma", label: "Cronograma" },
   { href: "#investimento", label: "Investimento" },
@@ -143,18 +160,9 @@ const NAV = [
   { href: "#proxima-conversa", label: "Próxima conversa" },
 ];
 
+/** Marca do Instituto sem cápsula: versão de texto escuro no claro e de texto claro no escuro. */
 function InstitutoLogo() {
-  return (
-    <span className="inline-flex items-center rounded-md bg-white px-2 py-1">
-      <img
-        src="/brand/instituto/instituto-full-original.png"
-        width={1198}
-        height={481}
-        alt="Instituto Felicidade para Todos"
-        className="h-8 w-auto sm:h-12"
-      />
-    </span>
-  );
+  return <InstitutoMark className="h-9 w-auto sm:h-12" />;
 }
 
 function CtaPrimary({ p }: { p: ProposalContent }) {
@@ -301,31 +309,21 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           {p.version} · Circulação restrita · Proposta para conversa, não é contrato.
         </p>
 
-        {/* 1 · Abertura */}
-        <section aria-labelledby="titulo-abertura" className="proposal-section">
-          <div className="grid overflow-hidden rounded-3xl border border-primary/15 bg-primary/5 lg:grid-cols-[1.1fr_1fr]">
-            <div className="min-w-0 space-y-5 self-center p-5 sm:p-10">
-              <p className="proposal-kicker text-xs font-semibold uppercase tracking-[0.16em]">
-                {p.hero.eyebrow}
-              </p>
-              <h1
-                id="titulo-abertura"
-                className="font-serif text-3xl leading-tight text-foreground sm:text-5xl"
+        {/* 1 · Capa: marca VitalOS, categoria, frase de valor (D9) */}
+        <CoverHero
+          p={p}
+          cta={
+            <div className="proposal-no-print flex flex-wrap items-center gap-3 pt-1">
+              <CtaPrimary p={p} />
+              <a
+                href="#entregas"
+                className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {p.hero.title}
-              </h1>
-              <p className="max-w-2xl text-lg text-muted-foreground">{p.hero.subtitle}</p>
-              <div className="proposal-no-print flex flex-wrap items-center gap-3 pt-1">
-                <CtaPrimary p={p} />
-                <a
-                  href="#entregas"
-                  className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {p.hero.secondaryCta} <ArrowRight aria-hidden className="h-4 w-4" />
-                </a>
-              </div>
-              <p className="text-xs text-muted-foreground">{p.version}</p>
+                {p.hero.secondaryCta} <ArrowRight aria-hidden className="h-4 w-4" />
+              </a>
             </div>
+          }
+          image={
             <figure className="proposal-hero-figure relative min-w-0 overflow-hidden bg-muted">
               <img
                 src={HERO_IMAGE}
@@ -339,8 +337,8 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                 {p.hero.imageCaption}
               </figcaption>
             </figure>
-          </div>
-        </section>
+          }
+        />
 
         {/* Leitura de 2 minutos */}
         <section aria-labelledby="titulo-resumo" className="proposal-section space-y-6">
@@ -470,17 +468,36 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             intro={p.scenario.context}
           />
           <Tag kind="exemplo" />
+          <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+            <div className="space-y-3">
+              <p className="flex gap-2 text-base text-foreground">
+                <AlertTriangle aria-hidden className="mt-1 h-4 w-4 shrink-0 proposal-accent-icon" />
+                {p.scenario.problem}
+              </p>
+              <BeforeAfter p={p} />
+            </div>
+            <HandoverDiagram p={p} />
+          </div>
           <ol aria-label="Do ouvir ao devolver, no exemplo" className="grid gap-3 md:grid-cols-4">
             {p.scenario.steps.map((s, i) => (
               <li
                 key={s.label}
                 className="proposal-card relative rounded-2xl border border-border bg-card p-5"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                  {i + 1}
+                <span className="flex items-center justify-between">
+                  <span className="proposal-step-num flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+                    {i + 1}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {i + 1} de {p.scenario.steps.length}
+                  </span>
                 </span>
                 <h3 className="mt-3 font-semibold text-foreground">{s.label}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
+                <p className="mt-2 text-xs text-foreground">
+                  <span className="font-semibold">Fica registrado: </span>
+                  {s.record}
+                </p>
                 {i < p.scenario.steps.length - 1 ? (
                   <ArrowRight
                     aria-hidden
@@ -525,7 +542,18 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
               </ul>
             </div>
           </div>
+          <Understand
+            label="Entenda o exemplo passo a passo"
+            title="Exemplo trabalhado · troca de turno"
+            description="Quem faz o quê, o que fica registrado e o que a equipe vê em cada passo."
+            variant="button"
+          >
+            <ScenarioDetail p={p} />
+          </Understand>
         </section>
+
+        {/* Matriz IFT: os quatro movimentos em cada etapa (D1, D2) */}
+        <IftSection p={p} />
 
         {band("faixa-agir")}
 
@@ -549,12 +577,18 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
               >
                 <p className="flex items-baseline justify-between gap-2">
                   <span className="font-serif text-2xl text-foreground">{s.code}</span>
-                  <span className="text-xs font-medium tabular-nums text-muted-foreground">
-                    {brl(s.installment)}
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {s.framework.lens}
                   </span>
                 </p>
                 <p className="mt-1 font-semibold text-foreground">{s.verb}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{s.deliverable}</p>
+                <p className="mt-1 text-xs italic text-muted-foreground">
+                  “{s.framework.question}”
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{s.deliverable}</p>
+                <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-foreground">
+                  <Flag aria-hidden className="h-3.5 w-3.5 proposal-accent-icon" /> Marco de aceite
+                </p>
               </li>
             ))}
           </ol>
@@ -592,10 +626,15 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                   <h3 id={`entrega-${s.id}`} className="font-serif text-xl text-foreground">
                     {s.code} · {s.verb}
                   </h3>
-                  <span className="text-sm font-medium tabular-nums text-muted-foreground">
-                    Marco: {brl(s.installment)}
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    Lente: {s.framework.lens}
                   </span>
                 </header>
+                <p className="mt-2 flex flex-wrap gap-1.5" aria-label="Matriz IFT da etapa">
+                  {IFT_ORDER.map((m) => (
+                    <IftBadge key={m} m={m} />
+                  ))}
+                </p>
                 <p className="mt-2 text-sm text-foreground">
                   <span className="font-semibold">Entrega: </span>
                   {s.deliverable}
@@ -615,7 +654,14 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                     </li>
                   ))}
                 </ul>
-                <div className="mt-4">
+                <div className="mt-4 space-y-2">
+                  <Understand
+                    label={`Entenda o ${s.code}`}
+                    title={`${s.code} · ${s.verb} · ${s.framework.lens}`}
+                    description={s.deliverable}
+                  >
+                    <StageDetail p={p} stage={s} />
+                  </Understand>
                   <Details summary={`Como funciona o ${s.code}`}>
                     <div>
                       <h4 className="font-semibold">Participantes</h4>
@@ -831,6 +877,9 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </div>
         </section>
 
+        {/* Como chegamos a este valor: ponte de valor e colaboração técnica (D16–D18) */}
+        <PricingSection p={p} />
+
         {/* Responsabilidades */}
         <section aria-labelledby="titulo-responsabilidades" className="proposal-section space-y-6">
           <SectionHead
@@ -960,6 +1009,9 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             </ul>
           </Details>
         </section>
+
+        {/* Camada 2 no papel: todas as janelas "Entenda" saem como anexo na impressão. */}
+        <PrintAppendix p={p} />
       </main>
 
       <footer className="border-t border-border">

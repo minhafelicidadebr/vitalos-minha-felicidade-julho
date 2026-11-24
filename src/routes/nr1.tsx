@@ -40,7 +40,7 @@ const METHOD_PROOFS = [
   { k: "COPSOQ II", label: "Bateria estruturada nas dimensões do instrumento internacional" },
   { k: "n ≥ 5", label: "K-anonimato imposto no banco — não apenas na tela" },
   { k: "4 lentes", label: "Jornada anual: risco, bem-comum, florescimento e forças" },
-  { k: "13 semanas", label: "Ciclo M.E.T.E. — medir, educar, transformar, evoluir" },
+  { k: "13 semanas", label: "Ciclo da Matriz IFT — medir, educar, transformar, evoluir" },
 ];
 
 function Nr1Page() {

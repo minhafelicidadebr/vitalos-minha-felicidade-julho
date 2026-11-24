@@ -18,7 +18,7 @@ export const SECTIONS = {
     lead: "A ordem não é arbitrária: primeiro o que pode adoecer, depois o que faz florescer. Cada lente é um instrumento validado e uma pergunta-guia.",
   },
   mete: {
-    title: "O ciclo M.E.T.E.",
+    title: "O ciclo da Matriz IFT",
     lead: "Cada lente roda o mesmo ciclo de 13 semanas. Aferir é só o começo — o trimestre inteiro existe para virar dado em mudança e prova.",
   },
   ciencia: {

@@ -537,3 +537,418 @@ html.a11y-reduce-motion:has(.proposal) {
 .proposal-playbook .slide-small {
   color: oklch(1 0 0 / 0.85);
 }
+
+/* ── V3 · capa, Matriz IFT, janelas "Entenda", exemplo trabalhado e ponte de valor ─────────── */
+
+/* Cores dos movimentos da Matriz IFT (acento; o texto fica sempre em cor de tinta). */
+.proposal-ift-mensurar {
+  --move: var(--fpt-teal);
+}
+.proposal-ift-educar {
+  --move: var(--fpt-yellow);
+}
+.proposal-ift-transformar {
+  --move: var(--fpt-magenta);
+}
+.proposal-ift-evoluir {
+  --move: var(--fpt-green);
+}
+.dark .proposal-ift-mensurar {
+  --move: var(--fpt-cyan);
+}
+
+/* Filete com o degradê dos raios do logo do Instituto (magenta → amarelo → verde → ciano). */
+.proposal-brand-top {
+  position: relative;
+  overflow: hidden;
+}
+.proposal-brand-top::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--fpt-magenta),
+    var(--fpt-yellow),
+    var(--fpt-green),
+    var(--fpt-cyan)
+  );
+}
+
+/* Capa */
+.proposal-cover {
+  border: 1px solid color-mix(in oklch, var(--fpt-cyan) 25%, var(--border));
+  background:
+    radial-gradient(
+      120% 90% at 0% 0%,
+      color-mix(in oklch, var(--fpt-cyan) 12%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 80% at 60% 110%,
+      color-mix(in oklch, var(--fpt-yellow) 14%, transparent),
+      transparent 60%
+    ),
+    var(--card);
+}
+.proposal-cover-logo {
+  height: 4.25rem !important;
+  width: auto !important;
+  max-width: none !important;
+}
+@media (min-width: 640px) {
+  .proposal-cover-logo {
+    height: 5.5rem !important;
+  }
+}
+.proposal-cover-chip {
+  border: 1px solid color-mix(in oklch, var(--fpt-teal) 35%, var(--border));
+  background: color-mix(in oklch, var(--fpt-cyan) 8%, var(--card));
+  color: var(--foreground);
+}
+
+/* Movimentos e células */
+.proposal-ift-badge {
+  border: 1px solid color-mix(in oklch, var(--move) 55%, var(--border));
+  background: color-mix(in oklch, var(--move) 18%, var(--card));
+  color: var(--foreground);
+}
+.proposal-ift-icon {
+  background: color-mix(in oklch, var(--move) 22%, var(--card));
+  color: var(--foreground);
+}
+.proposal-ift-move {
+  border-top: 4px solid var(--move);
+}
+.proposal-ift-cell {
+  border: 1px solid color-mix(in oklch, var(--move) 40%, var(--border));
+  background: color-mix(in oklch, var(--move) 7%, var(--card));
+}
+.proposal-status-mark {
+  color: var(--muted-foreground);
+}
+.proposal-status-mark.is-plataforma {
+  color: var(--fpt-accent-text);
+}
+
+/* Matriz Q × movimento: faixa larga na tela grande, cartões empilhados no celular. */
+.proposal-ift-head {
+  grid-template-columns: 15rem repeat(4, minmax(0, 1fr));
+  background: var(--muted);
+}
+.proposal-ift-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--border);
+  border-left: 5px solid var(--stage);
+}
+.proposal-ift-row.is-risk {
+  border-left-style: dashed;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--muted) 70%, transparent) 0 8px,
+    transparent 8px 16px
+  );
+}
+.proposal-ift-matrix-cell {
+  border-top: 1px dashed var(--border);
+}
+@media (min-width: 640px) {
+  .proposal-ift-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .proposal-ift-rowhead {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 1024px) {
+  .proposal-ift-row {
+    grid-template-columns: 15rem repeat(4, minmax(0, 1fr));
+  }
+  .proposal-ift-rowhead {
+    grid-column: auto;
+  }
+  .proposal-ift-matrix-cell {
+    border-top: 0;
+    border-left: 1px dashed var(--border);
+  }
+}
+.proposal-lens-chip {
+  border: 1px solid color-mix(in oklch, var(--stage) 60%, var(--border));
+  background: color-mix(in oklch, var(--stage) 16%, var(--card));
+  color: var(--foreground);
+}
+
+/* Corresponsabilidade */
+.proposal-role {
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+.proposal-role-institutoConduz {
+  border-left: 4px solid var(--fpt-teal);
+}
+.proposal-role-isgDecide {
+  border-left: 4px solid var(--fpt-magenta);
+}
+.proposal-role-isgExecuta {
+  border-left: 4px solid var(--fpt-yellow);
+}
+.proposal-role-juntosRevisam {
+  border-left: 4px solid var(--fpt-green);
+}
+
+/* Horas por papel */
+.proposal-hours-coord {
+  background: var(--fpt-teal);
+}
+.proposal-hours-educ {
+  background: var(--fpt-yellow);
+}
+.proposal-hours-impl {
+  background: var(--fpt-magenta);
+}
+
+/* Exemplo trabalhado */
+.proposal-shift {
+  border: 1px solid color-mix(in oklch, var(--fpt-cyan) 45%, var(--border));
+  background: color-mix(in oklch, var(--fpt-cyan) 10%, var(--card));
+  color: var(--foreground);
+}
+.proposal-ticket-lost {
+  border-color: color-mix(in oklch, var(--fpt-magenta) 60%, var(--border));
+  background: color-mix(in oklch, var(--fpt-magenta) 6%, var(--card));
+}
+.proposal-step-num {
+  background: color-mix(in oklch, var(--fpt-teal) 18%, var(--card));
+  color: var(--foreground);
+  border: 1px solid var(--fpt-teal);
+}
+.proposal-after {
+  border: 1px solid color-mix(in oklch, var(--fpt-green) 55%, var(--border));
+  background: color-mix(in oklch, var(--fpt-green) 9%, var(--card));
+}
+
+/* Ponte de valor */
+.proposal-bridge-track {
+  background: var(--muted);
+}
+.proposal-bridge-bar.is-reference {
+  background: color-mix(in oklch, var(--fpt-teal) 75%, var(--card));
+}
+.proposal-bridge-bar.is-reduction {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--fpt-yellow) 80%, var(--card)) 0 6px,
+    color-mix(in oklch, var(--fpt-yellow) 35%, var(--card)) 6px 12px
+  );
+}
+.proposal-bridge-bar.is-condition {
+  background: var(--fpt-green);
+}
+
+/* Janelas "Entenda" (Radix Dialog: foco preso, Esc fecha, foco devolvido). */
+.proposal-understand-link {
+  color: var(--fpt-accent-text);
+}
+.proposal-understand-btn {
+  border-color: color-mix(in oklch, var(--fpt-teal) 50%, var(--border));
+  color: var(--fpt-accent-text);
+  background: color-mix(in oklch, var(--fpt-cyan) 6%, var(--card));
+}
+.proposal-understand-dark {
+  background: oklch(1 0 0 / 0.14);
+  color: white;
+  border: 1px solid oklch(1 0 0 / 0.35);
+}
+.proposal-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: oklch(0 0 0 / 0.55);
+}
+.proposal-dialog {
+  position: fixed;
+  z-index: 81;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(46rem, calc(100vw - 1.5rem));
+  max-height: min(88dvh, 52rem);
+  overflow-y: auto;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 24px 60px oklch(0 0 0 / 0.3);
+  font-size: 15px;
+}
+@media (min-width: 640px) {
+  .proposal-dialog {
+    padding: 1.75rem 2rem 2rem;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .proposal-dialog[data-state="open"] {
+    animation: proposal-dialog-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .proposal-dialog-overlay[data-state="open"] {
+    animation: proposal-fade-in 0.2s ease-out;
+  }
+}
+@keyframes proposal-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+@keyframes proposal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Impressão: anexo com o conteúdo das janelas, em página nova. */
+@media print {
+  .proposal-appendix {
+    break-before: page;
+  }
+  .proposal-appendix article {
+    break-inside: avoid-page;
+  }
+  .proposal-dialog,
+  .proposal-dialog-overlay {
+    display: none !important;
+  }
+  .proposal-cover {
+    background: none !important;
+  }
+}
+
+/* ── V3 · slides ─────────────────────────────────────────────────────────────────────────── */
+.slide-cover-logo {
+  height: 4.6em !important;
+  width: auto !important;
+  max-width: none !important;
+  align-self: flex-start;
+  object-position: left center;
+}
+.slide-cover-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.9em;
+  line-height: 1.05;
+  max-width: 18ch;
+}
+.slide-chip {
+  border: 1px solid oklch(1 0 0 / 0.35);
+  background: oklch(0 0 0 / 0.35);
+  border-radius: 999px;
+  padding: 0.25em 0.8em;
+  font-size: 0.72em;
+  color: white;
+}
+.slide-institute-logo {
+  height: 2.6em;
+  width: auto;
+}
+.slide-footer-logo {
+  height: 1.9em !important;
+  width: auto;
+}
+.slide-brand-top {
+  position: relative;
+  overflow: hidden;
+}
+.slide-brand-top::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 0.22em;
+  background: linear-gradient(
+    90deg,
+    var(--fpt-magenta),
+    var(--fpt-yellow),
+    var(--fpt-green),
+    var(--fpt-cyan)
+  );
+}
+.slide-icon {
+  display: inline-flex;
+  width: 2.2em;
+  height: 2.2em;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+.slide-icon svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+.slide-inline-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+.slide-ink {
+  color: var(--foreground) !important;
+}
+.slide-portrait {
+  width: 6.5em;
+  height: 6.5em;
+}
+.slide-bridge {
+  padding: 1em 1.2em;
+}
+.proposal-slide .proposal-ift-badge {
+  font-size: 0.7em;
+}
+.proposal-slide .proposal-status-mark {
+  font-size: 0.62em;
+}
+.proposal-slide .proposal-handover,
+.proposal-slide .proposal-bridge {
+  font-size: 0.85em;
+}
+.proposal-slide.is-divider .proposal-slide-scrim {
+  background: linear-gradient(
+    to top,
+    oklch(0 0 0 / 0.9),
+    oklch(0 0 0 / 0.45) 55%,
+    oklch(0 0 0 / 0.1)
+  );
+}
+@media (prefers-reduced-motion: no-preference) {
+  .proposal-slide.is-divider.is-entering .proposal-slide-image {
+    animation: proposal-divider-zoom 0.6s ease-out;
+  }
+}
+@keyframes proposal-divider-zoom {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: none;
+  }
+}
+.proposal-slides-stack .slide-cover-title {
+  font-size: 1.9rem;
+}
+.proposal-slides-stack .slide-cover-logo {
+  height: 3rem !important;
+}
+.slide-card.proposal-schedule-stage,
+.slide-card.proposal-ift-move {
+  border-top: 0.25em solid var(--stage, var(--move));
+}
+.slide-card.proposal-ift-move {
+  border-top-color: var(--move);
+}

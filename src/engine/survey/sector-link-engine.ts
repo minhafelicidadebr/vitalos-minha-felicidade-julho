@@ -29,7 +29,7 @@ export interface SectorLink {
   expiresAt: string;            // ISO — comparado como string; deve ser UTC
   revokedAt?: string;           // ISO
   rotatedFromId?: string;       // Auditoria de rotação
-  meteAnchor?: string;          // "T3-2026" — temporada M.E.T.E.
+  meteAnchor?: string;          // "T3-2026" — temporada da Matriz IFT
   targetPopulation?: number;    // Estimativa do setor (opcional)
 }
 

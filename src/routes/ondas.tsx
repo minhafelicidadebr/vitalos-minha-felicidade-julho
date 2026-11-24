@@ -252,7 +252,7 @@ function OndasPage() {
             <Radio className="mx-auto h-8 w-8 opacity-40" aria-hidden />
             <p className="mt-3 font-medium text-foreground">Nenhuma onda configurada</p>
             <p className="mt-1 text-sm">
-              As ondas da jornada M.E.T.E. aparecem aqui assim que forem criadas.
+              As ondas da jornada da Matriz IFT aparecem aqui assim que forem criadas.
             </p>
             <Link
               to="/temporada"
