@@ -2,19 +2,19 @@
    âncoras sob o cabeçalho fixo, movimento reduzido e impressão. Cores sempre por token. */
 
 .proposal-accent-1 {
-  --stage: var(--chart-1);
+  --stage: var(--fpt-stage-1);
 }
 .proposal-accent-2 {
-  --stage: var(--chart-2);
+  --stage: var(--fpt-stage-2);
 }
 .proposal-accent-3 {
-  --stage: var(--chart-3);
+  --stage: var(--fpt-stage-3);
 }
 .proposal-accent-4 {
-  --stage: var(--chart-4);
+  --stage: var(--fpt-stage-4);
 }
 .proposal-accent-5 {
-  --stage: var(--chart-5);
+  --stage: var(--fpt-stage-5);
 }
 
 .proposal-journey-step,
@@ -121,4 +121,419 @@ html.a11y-reduce-motion:has(.proposal) {
 }
 .proposal-nav::-webkit-scrollbar {
   display: none;
+}
+
+/* ── V2 · paleta do Instituto (tokens em src/styles.css, escopo .proposal) ───────────────── */
+.proposal-stage-q1 {
+  --stage: var(--fpt-stage-1);
+}
+.proposal-stage-q2 {
+  --stage: var(--fpt-stage-2);
+}
+.proposal-stage-q3 {
+  --stage: var(--fpt-stage-3);
+}
+.proposal-stage-q4 {
+  --stage: var(--fpt-stage-4);
+}
+.proposal-stage-q5 {
+  --stage: var(--fpt-stage-5);
+}
+.proposal-schedule-stage {
+  border-top: 4px solid var(--stage);
+}
+.proposal-month + .proposal-month {
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.proposal-kicker,
+.proposal-accent-text {
+  color: var(--fpt-accent-text);
+}
+.proposal-accent-icon {
+  color: var(--fpt-highlight-text);
+}
+.proposal-principle {
+  border-color: var(--fpt-magenta);
+}
+.proposal-photo-ring {
+  --tw-ring-color: var(--fpt-yellow);
+}
+.proposal-icon-badge {
+  background: color-mix(in oklch, var(--fpt-cyan) 18%, transparent);
+  color: var(--fpt-accent-text);
+}
+.proposal-status {
+  border-color: color-mix(in oklch, var(--fpt-accent-text) 55%, transparent);
+  color: var(--fpt-accent-text);
+}
+.proposal-anchor-ancora {
+  border-color: var(--fpt-teal);
+  border-width: 2px;
+}
+.proposal-anchor-referencia,
+.proposal-anchor-condicionado {
+  border-color: var(--border);
+}
+
+.proposal-track {
+  background: color-mix(in oklch, var(--fpt-cyan) 9%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--fpt-cyan) 30%, var(--border));
+}
+.proposal-track-item:nth-child(1) {
+  border-color: var(--fpt-teal);
+}
+.proposal-track-item:nth-child(2) {
+  border-color: var(--fpt-green);
+}
+.proposal-track-item:nth-child(3) {
+  border-color: var(--fpt-yellow);
+}
+.proposal-track-item:nth-child(4) {
+  border-color: var(--fpt-magenta);
+}
+
+.proposal-playbook {
+  background: var(--fpt-ink);
+  color: oklch(0.97 0.005 95);
+}
+.proposal-on-dark-accent {
+  color: var(--fpt-yellow);
+}
+
+.proposal-total {
+  background: color-mix(in oklch, var(--fpt-yellow) 22%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--fpt-yellow) 60%, var(--border));
+}
+
+/* Cronograma: faixa de 15 meses (decorativa; a lista carrega a informação). */
+.proposal-timeline-cell {
+  background: color-mix(in oklch, var(--stage) 22%, var(--card));
+  border-top: 4px solid var(--stage);
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.25rem;
+  text-align: center;
+  color: var(--foreground);
+}
+.proposal-timeline-cell.is-conditioned {
+  border-top-style: dashed;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--stage) 22%, var(--card)) 0 6px,
+    var(--card) 6px 12px
+  );
+}
+
+/* Faixas com ilustração: o texto fica sobre uma película escura (contraste ≥ 4,5:1 garantido). */
+.proposal-band-scrim {
+  background: linear-gradient(
+    to top,
+    oklch(0 0 0 / 0.86),
+    oklch(0 0 0 / 0.62) 55%,
+    oklch(0 0 0 / 0.2)
+  );
+}
+@media (min-width: 1024px) {
+  .proposal-band-scrim {
+    max-width: none;
+    background: linear-gradient(
+      to right,
+      oklch(0 0 0 / 0.84),
+      oklch(0 0 0 / 0.6) 55%,
+      oklch(0 0 0 / 0) 80%
+    );
+  }
+}
+.proposal-band {
+  isolation: isolate;
+}
+.proposal-band-image {
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.proposal-band[data-reveal="hidden"] .proposal-band-image {
+  transform: scale(1.06);
+}
+
+/* Revelação discreta de blocos (só quando há movimento permitido; ver motion.ts). */
+.proposal-section,
+.proposal-reveal {
+  transition:
+    opacity 0.45s ease-out,
+    transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+}
+.a11y-reduce-motion [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .proposal-band {
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+  .proposal-band-image,
+  .proposal-band > span {
+    display: none !important;
+  }
+  .proposal-band-scrim {
+    background: none !important;
+    min-height: 0 !important;
+    padding: 1rem !important;
+  }
+  .proposal-band-scrim * {
+    color: var(--foreground) !important;
+  }
+  .proposal-playbook,
+  .proposal-print-invert {
+    background: none !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--border);
+  }
+  .proposal-print-invert * {
+    color: var(--foreground) !important;
+  }
+  .proposal-on-dark-accent {
+    color: var(--fpt-teal) !important;
+  }
+  .proposal-timeline {
+    display: none !important;
+  }
+}
+
+/* ── Modo apresentação (ProposalSlides) ─────────────────────────────────────────────────── */
+.proposal-slides {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+.proposal-slides-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.proposal-slides-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.5rem, 1.6vw, 1.25rem);
+}
+.proposal-slides-stage .proposal-slide {
+  width: min(100%, calc((100dvh - 7rem) * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+.proposal-slides:fullscreen .proposal-slides-stage .proposal-slide {
+  width: min(100%, calc((100dvh - 4.5rem) * 16 / 9));
+}
+.proposal-slide {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--card);
+  font-size: clamp(11px, min(1.18vw, 2.05vh), 24px);
+}
+.proposal-slide.is-dark {
+  border-color: transparent;
+  background: var(--fpt-ink);
+  color: oklch(0.98 0.004 95);
+}
+.proposal-slide-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.proposal-slide-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    oklch(0 0 0 / 0.9),
+    oklch(0 0 0 / 0.6) 50%,
+    oklch(0 0 0 / 0.25)
+  );
+}
+.proposal-slide-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 2.6em 3.2em 0.8em;
+}
+.proposal-slide-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.5em 3.2em 1.1em;
+  font-size: 0.7em;
+  color: var(--muted-foreground);
+}
+.proposal-slide.is-dark .proposal-slide-footer {
+  color: oklch(1 0 0 / 0.85);
+}
+.proposal-slide-footer img {
+  height: 1.8em;
+  width: auto;
+}
+
+.slide-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.35em;
+  line-height: 1.12;
+}
+.slide-lead {
+  font-size: 1.05em;
+  line-height: 1.45;
+}
+.slide-small {
+  font-size: 0.78em;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+.slide-h3 {
+  font-size: 0.95em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.slide-metric {
+  display: block;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.5em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.slide-num {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.25em;
+  color: var(--fpt-accent-text);
+}
+.slide-kicker {
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fpt-accent-text);
+}
+.slide-card {
+  border: 1px solid var(--border);
+  border-radius: 0.9em;
+  background: var(--background);
+  padding: 0.85em 1em;
+}
+.slide-caption {
+  width: fit-content;
+  border-radius: 999px;
+  background: oklch(0 0 0 / 0.72);
+  padding: 0.2em 0.75em;
+  font-size: 0.6em;
+  color: white;
+}
+.is-dark .slide-kicker {
+  color: var(--fpt-yellow);
+}
+.is-dark .slide-small {
+  color: oklch(1 0 0 / 0.9);
+}
+.is-dark .slide-num,
+.is-dark .proposal-accent-text {
+  color: var(--fpt-cyan);
+}
+.is-dark .slide-card,
+.slide-card-glass {
+  border-color: oklch(1 0 0 / 0.25);
+  background: oklch(0 0 0 / 0.5);
+  color: white;
+  backdrop-filter: blur(6px);
+}
+.proposal-slides-progress {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--border);
+}
+.proposal-slides-progress span {
+  display: block;
+  height: 100%;
+  background: var(--fpt-teal);
+  transition: width 0.3s ease-out;
+}
+.proposal-slides-hint {
+  padding: 0 0 0.4rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.proposal-slide.is-entering {
+  animation: proposal-slide-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes proposal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proposal-slide.is-entering {
+    animation: none;
+  }
+}
+
+/* Empilhado (celular ou tela em pé): rolagem vertical, cada slide é um cartão. */
+.proposal-slides-stack {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+.proposal-slides-stack .proposal-slide {
+  font-size: 15px;
+}
+.proposal-slides-stack .proposal-slide-body {
+  padding: 1.4rem 1.1rem 0.5rem;
+}
+.proposal-slides-stack .proposal-slide-footer {
+  padding: 0.5rem 1.1rem 1rem;
+}
+.proposal-slides-stack .slide-title {
+  font-size: 1.6rem;
+}
+.proposal-slides-stack .slide-metric {
+  font-size: 2.1rem;
+}
+.proposal-slides-stack .proposal-slide.is-dark .proposal-slide-body {
+  padding-top: 10rem;
+}
+
+.proposal-playbook .slide-small {
+  color: oklch(1 0 0 / 0.85);
 }

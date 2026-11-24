@@ -10,11 +10,21 @@ import {
   Info,
   LockKeyhole,
   LogOut,
+  MonitorPlay,
   Printer,
   Users,
 } from "lucide-react";
-import heroImage from "@/assets/presentation/v4-agir.jpg";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
+import { HERO_IMAGE, ILLUSTRATION } from "./media";
+import { useReveal } from "./motion";
+import {
+  ImageBand,
+  ScheduleSection,
+  ScienceSection,
+  TeamSection,
+  TrackSection,
+} from "./ProposalSections";
+import { ProposalSlides } from "./ProposalSlides";
 import type { Availability, ClaimKind, JourneyStage, ProposalContent } from "./types";
 import "./proposal.css";
 
@@ -125,9 +135,11 @@ function Details({
 }
 
 const NAV = [
+  { href: "#ciencia", label: "Ciência" },
   { href: "#jornada", label: "Jornada" },
-  { href: "#entregas", label: "Entregas" },
+  { href: "#cronograma", label: "Cronograma" },
   { href: "#investimento", label: "Investimento" },
+  { href: "#equipe", label: "Equipe" },
   { href: "#proxima-conversa", label: "Próxima conversa" },
 ];
 
@@ -200,9 +212,30 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
   }, []);
   const inv = p.investment;
   const parcel = inv.total / inv.installments;
+  const monthly = parcel / inv.monthsPerStage;
+  const root = useRef<HTMLDivElement>(null);
+  const presentButton = useRef<HTMLButtonElement>(null);
+  const [presenting, setPresenting] = useState(false);
+  useReveal(root);
+  const bandCaption = p.hero.imageCaption;
+  const band = (id: string) => {
+    const b = p.bands.find((x) => x.id === id);
+    return b ? <ImageBand band={b} caption={bandCaption} /> : null;
+  };
+
+  if (presenting)
+    return (
+      <ProposalSlides
+        p={p}
+        onExit={() => {
+          setPresenting(false);
+          requestAnimationFrame(() => presentButton.current?.focus());
+        }}
+      />
+    );
 
   return (
-    <div className="proposal min-h-dvh bg-background text-foreground">
+    <div ref={root} className="proposal min-h-dvh bg-background text-foreground">
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-4 focus:py-2"
@@ -214,12 +247,21 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           <InstitutoLogo />
           <div className="proposal-no-print flex items-center gap-1">
             <button
+              ref={presentButton}
+              type="button"
+              onClick={() => setPresenting(true)}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-sm font-semibold text-primary hover:bg-primary/5 sm:px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <MonitorPlay aria-hidden className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only">Apresentar</span>
+            </button>
+            <button
               type="button"
               onClick={() => window.print()}
               className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium text-primary hover:bg-primary/5 sm:px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Printer aria-hidden className="h-4 w-4" />
-              <span className="hidden sm:inline">Imprimir ou salvar PDF</span>
+              <span className="hidden sm:inline">Imprimir ou PDF</span>
               <span className="sr-only sm:hidden">Imprimir</span>
             </button>
             {onLogout ? (
@@ -263,7 +305,7 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
         <section aria-labelledby="titulo-abertura" className="proposal-section">
           <div className="grid overflow-hidden rounded-3xl border border-primary/15 bg-primary/5 lg:grid-cols-[1.1fr_1fr]">
             <div className="min-w-0 space-y-5 self-center p-5 sm:p-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              <p className="proposal-kicker text-xs font-semibold uppercase tracking-[0.16em]">
                 {p.hero.eyebrow}
               </p>
               <h1
@@ -286,9 +328,10 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             </div>
             <figure className="proposal-hero-figure relative min-w-0 overflow-hidden bg-muted">
               <img
-                src={heroImage}
-                width={1672}
-                height={941}
+                src={HERO_IMAGE}
+                width={ILLUSTRATION.width}
+                height={ILLUSTRATION.height}
+                fetchPriority="high"
                 alt={p.hero.imageAlt}
                 className="aspect-[16/9] w-full object-cover lg:absolute lg:inset-0 lg:aspect-auto lg:h-full"
               />
@@ -316,7 +359,7 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                   {s.label}
                 </p>
                 <h3
-                  className={`mt-2 font-serif leading-snug text-foreground ${i === 1 ? "text-3xl tabular-nums" : "text-xl"}`}
+                  className={`mt-2 font-serif leading-snug text-foreground ${i === 1 ? "text-2xl tabular-nums" : "text-xl"}`}
                 >
                   {s.title}
                 </h3>
@@ -410,6 +453,14 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </div>
         </section>
 
+        {/* Prova: o que o Instituto já fez e o que a literatura mostra */}
+        <TrackSection p={p} />
+
+        {/* Base científica e caso externo */}
+        <ScienceSection p={p} />
+
+        {band("faixa-escutar")}
+
         {/* 4 · Como funciona · caso fictício */}
         <section aria-labelledby="titulo-caso" className="proposal-section space-y-6">
           <SectionHead
@@ -475,6 +526,8 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             </div>
           </div>
         </section>
+
+        {band("faixa-agir")}
 
         {/* 5 · Jornada */}
         <section
@@ -606,6 +659,9 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </div>
         </section>
 
+        {/* Cronograma de 15 meses */}
+        <ScheduleSection p={p} />
+
         {/* 6 · Como decidir se funcionou */}
         <section aria-labelledby="titulo-indicadores" className="proposal-section space-y-6">
           <SectionHead
@@ -632,6 +688,8 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </div>
         </section>
 
+        {band("faixa-consolidar")}
+
         {/* 7 · Investimento e contrapartida */}
         <section
           id="investimento"
@@ -655,9 +713,15 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                 id="bloco-investimento"
                 className="mt-2 font-serif text-4xl tabular-nums text-foreground"
               >
-                {brl(inv.total)}
+                {brl(parcel)} <span className="text-2xl">por etapa</span>
               </h3>
               <p className="mt-1 text-sm text-foreground">
+                Cada etapa dura {inv.monthsPerStage} meses: equivalente a cerca de{" "}
+                <strong className="proposal-accent-text">{brl(monthly)} por mês</strong>. Paga após
+                o aceite do marco, sem cobrança mensal.
+              </p>
+              <p className="proposal-total mt-3 rounded-xl px-4 py-3 text-base text-foreground">
+                Total do programa: <strong className="tabular-nums">{brl(inv.total)}</strong> em{" "}
                 {inv.installments} parcelas de {brl(parcel)}, uma por marco aceito.
               </p>
               <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -819,13 +883,16 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </Details>
         </section>
 
+        {/* Equipe executora */}
+        <TeamSection p={p} />
+
         {/* 8 · Próxima conversa */}
         <section
           id="proxima-conversa"
           aria-labelledby="titulo-proxima"
           className="proposal-section proposal-anchor"
         >
-          <div className="grid gap-6 rounded-3xl bg-primary p-6 text-primary-foreground sm:p-10 lg:grid-cols-[1.2fr_1fr]">
+          <div className="proposal-print-invert grid gap-6 rounded-3xl bg-primary p-6 text-primary-foreground sm:p-10 lg:grid-cols-[1.2fr_1fr]">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-80">
                 Próxima conversa

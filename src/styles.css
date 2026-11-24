@@ -564,3 +564,36 @@ html:not(.dark) .text-accent:not([data-on-dark] *) {
 /* Dataviz: série atual legível nos dois temas (WCAG ≥3:1 para gráficos) */
 :root { --chart-current: #0B3D2E; }
 .dark { --chart-current: #34D399; }
+
+/* Proposta comercial (/proposta) · paleta do Instituto Felicidade para Todos, extraída do CSS público
+   de felicidadeparatodos.com.br em 23/11/2026 (HSL → oklch). Contraste medido sobre branco: teal 4,8:1 e
+   magenta 5,1:1 servem para texto; ciano, verde e amarelo só como preenchimento, borda ou sobre escuro. */
+.proposal {
+  --fpt-cyan: oklch(0.742 0.126 199.4);
+  --fpt-teal: oklch(0.542 0.092 198.7);
+  --fpt-green: oklch(0.659 0.185 138.9);
+  --fpt-magenta: oklch(0.565 0.218 6.1);
+  --fpt-yellow: oklch(0.869 0.172 91);
+  --fpt-ink: oklch(0.219 0.014 272.7);
+  --fpt-accent-text: oklch(0.47 0.082 198.7); /* teal da marca, um tom abaixo: ≥ 4,5:1 em fundos claros */
+  --fpt-highlight-text: var(--fpt-magenta);
+  --fpt-stage-1: var(--fpt-teal);
+  --fpt-stage-2: var(--fpt-green);
+  --fpt-stage-3: var(--fpt-yellow);
+  --fpt-stage-4: var(--fpt-magenta);
+  --fpt-stage-5: var(--fpt-ink);
+}
+.dark .proposal {
+  --fpt-accent-text: var(--fpt-cyan);
+  --fpt-highlight-text: oklch(0.78 0.13 6.1);
+  --fpt-stage-1: var(--fpt-cyan);
+  --fpt-stage-5: oklch(0.86 0.01 272.7);
+}
+@media print {
+  .dark .proposal {
+    --fpt-accent-text: var(--fpt-teal);
+    --fpt-highlight-text: var(--fpt-magenta);
+    --fpt-stage-1: var(--fpt-teal);
+    --fpt-stage-5: var(--fpt-ink);
+  }
+}

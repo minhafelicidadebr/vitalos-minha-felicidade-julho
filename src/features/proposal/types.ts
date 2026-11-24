@@ -44,6 +44,56 @@ export interface Responsibility {
   effort: string;
 }
 
+/** Número exibido com contagem animada. Vem sempre do Commercial Claims Registry. */
+export interface ProposalMetric {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+  detail: string;
+}
+
+export type ScienceIcon = "book" | "heart" | "compass" | "sun" | "shield";
+
+export interface ScienceAnchor {
+  id: string;
+  icon: ScienceIcon;
+  name: string;
+  what: string;
+  inProposal: string;
+  status: "ancora" | "referencia" | "condicionado";
+  statusLabel: string;
+}
+
+export type BandImage = "compreender" | "agir" | "evoluir";
+
+export interface ProposalBand {
+  id: string;
+  image: BandImage;
+  kicker: string;
+  title: string;
+  summary: string;
+  imageAlt: string;
+}
+
+export interface ScheduleMonth {
+  label: string;
+  focus: string;
+  activities: string[];
+  conditioned?: string;
+  milestone?: string;
+}
+
+export type TeamPhoto = "joao-paulo" | "ana-paula" | "olga";
+
+export interface TeamMember {
+  name: string;
+  label: string;
+  bio: string;
+  role: string;
+  photo: TeamPhoto;
+}
+
 export interface ProposalContent {
   version: string;
   date: string;
@@ -76,6 +126,47 @@ export interface ProposalContent {
     missing: string[];
   };
   journey: { intro: string; sharedCondition: string; stages: JourneyStage[] };
+  /** "O que o Instituto já fez": vazio quando o claim não resolve (fail-closed). */
+  track: {
+    title: string;
+    intro: string;
+    items: ProposalMetric[];
+    record: string;
+    scope: string;
+    source: string;
+  } | null;
+  /** "O que a literatura mostra" (correlacional). */
+  literature: { title: string; intro: string; items: ProposalMetric[]; note: string } | null;
+  science: {
+    title: string;
+    intro: string;
+    playbook: {
+      statement: string;
+      detail: string;
+      attribution: string;
+      studies: number;
+      edition: string;
+      source: ProposalLink;
+    } | null;
+    anchors: ScienceAnchor[];
+    principle: string;
+  };
+  externalCase: {
+    title: string;
+    summary: string;
+    practices: { label: string; body: string }[];
+    note: string;
+    sources: ProposalLink[];
+  };
+  bands: ProposalBand[];
+  schedule: {
+    title: string;
+    intro: string;
+    note: string;
+    monthsPerStage: number;
+    stages: { id: JourneyStage["id"]; months: ScheduleMonth[] }[];
+  };
+  team: { title: string; intro: string; members: TeamMember[]; note: string };
   indicators: {
     operational: { title: string; body: string }[];
     effect: string;
@@ -83,6 +174,8 @@ export interface ProposalContent {
   investment: {
     total: number;
     installments: number;
+    /** Duração de cada etapa (meses). O equivalente mensal é derivado: parcela ÷ meses. */
+    monthsPerStage: number;
     scope: string;
     composition: string[];
     quantities: string[];

@@ -11,13 +11,18 @@ export const COMMERCIAL_SURFACE_IDS = {
   PRESENTATION_BUSINESS_EVIDENCE: "marketing.presentation.enterprises.business-evidence",
   NR1_JOURNEY_T1_INSTRUMENT_LABEL: "marketing.nr1.journey.t1-instrument-label",
   NR1_METHODOLOGY_INSTRUMENT_DESCRIPTION: "marketing.nr1.methodology.instrument-description",
-  MODAL_METHOD_DEEP_MENSURAR_PRIVACY_SUMMARY: "marketing.modal.method-deep.mensurar-privacy-summary",
+  MODAL_METHOD_DEEP_MENSURAR_PRIVACY_SUMMARY:
+    "marketing.modal.method-deep.mensurar-privacy-summary",
   NR1_HERO_GRO_PGR_ROLE: "marketing.nr1.hero.gro-pgr-role",
   NR1_REGULATORY_SCOPE: "marketing.nr1.regulatory-scope",
   MODAL_LENSES_DEEP_Q4_VIAT_WHY: "marketing.modal.lenses-deep.q4-viat-why",
   NR1_JOURNEY_T4_SUSTAINABILITY: "marketing.nr1.journey.t4-sustainability",
   HOME_ECONOMIC_BASELINE: "marketing.home.economic-baseline",
   NR1_MUDOU_SANCTIONS_BODY: "marketing.nr1.mudou.sanctions-body",
+  // Proposta comercial (/proposta): conteúdo só no servidor, depois da senha. PROPOSTA_V2_FOUNDER_APPROVAL_2026-11-23.
+  PROPOSAL_SCIENCE_ANCHORS: "marketing.proposal.science-anchors",
+  PROPOSAL_INSTITUTE_TRACK_RECORD: "marketing.proposal.institute-track-record",
+  PROPOSAL_LITERATURE_EVIDENCE: "marketing.proposal.literature-evidence",
 } as const;
 
 export type CommercialSurfaceId =

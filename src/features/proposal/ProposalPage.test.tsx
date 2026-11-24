@@ -15,7 +15,7 @@ const fakeFetch = (status: number, body: unknown) => {
 describe("proposta · leitura executiva", () => {
   test("valor visível sem abrir painel, igual no resumo, no bloco de investimento e na tabela de marcos", () => {
     const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
-    expect(screen.getAllByText("R$ 60.000").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText("R$ 60.000").length).toBeGreaterThanOrEqual(2);
     expect(container.textContent).toContain("5 parcelas de R$ 12.000");
     const table = screen.getByRole("table", { name: "Parcelas por marco" });
     expect(within(table).getAllByText("R$ 12.000")).toHaveLength(5);
@@ -80,8 +80,58 @@ describe("proposta · estados de acesso", () => {
     render(<ProposalPage />);
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
-        "Da escuta das equipes",
+        "Ciência da felicidade aplicada ao trabalho",
       ),
     );
+  });
+});
+
+describe("proposta V2 · seções novas e modo apresentação", () => {
+  test("seções de prova, ciência, cronograma e equipe com âncoras e preço por etapa", () => {
+    const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
+    for (const id of ["numeros", "ciencia", "cronograma", "equipe"])
+      expect(container.querySelector(`#${id}`)).not.toBeNull();
+    // Contadores: o valor final completo sempre está no texto acessível.
+    expect(screen.getByText("+110.000")).toBeTruthy();
+    expect(screen.getByText("+3.000")).toBeTruthy();
+    // Cronograma: 15 meses em lista semântica, com etapas condicionadas marcadas para leitor de tela.
+    const cronograma = container.querySelector("#cronograma")!;
+    expect(within(cronograma as HTMLElement).getAllByText(/^Mês \d+ ·/)).toHaveLength(15);
+    expect(
+      within(cronograma as HTMLElement).getAllByText("Condicionado:").length,
+    ).toBeGreaterThanOrEqual(2);
+    // Preço: parcela em destaque, equivalente mensal e total visíveis fora de <details>.
+    const inv = container.querySelector("#investimento")!;
+    expect(inv.textContent).toContain("R$ 12.000");
+    expect(inv.textContent).toContain("R$ 4.000 por mês");
+    expect(inv.textContent).toContain("Total do programa: R$ 60.000");
+    // Equipe: três retratos com nome no texto alternativo.
+    expect(screen.getAllByRole("img", { name: /^Retrato de / })).toHaveLength(3);
+    // Ilustrações das faixas rotuladas como geradas.
+    expect(
+      screen.getAllByText("Ilustração gerada · pessoas fictícias").length,
+    ).toBeGreaterThanOrEqual(4);
+  });
+
+  test("Apresentar abre os slides; setas avançam, Home/End e Esc devolve o foco ao botão", async () => {
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes("min-width") || q.includes("landscape"),
+      media: q,
+      addEventListener() {},
+      removeEventListener() {},
+    })) as unknown as typeof window.matchMedia;
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
+    const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
+    expect(within(region).getByText("1 / 11")).toBeTruthy();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    await waitFor(() => expect(window.location.hash).toBe("#slide-2"));
+    fireEvent.keyDown(window, { key: "End" });
+    await waitFor(() => expect(within(region).getByText("11 / 11")).toBeTruthy());
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() =>
+      expect(screen.queryByRole("region", { name: "Proposta em modo apresentação" })).toBeNull(),
+    );
+    await waitFor(() => expect(document.activeElement?.textContent).toContain("Apresentar"));
   });
 });

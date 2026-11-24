@@ -2,12 +2,130 @@
 // Servido SOMENTE pela API autenticada (/api/proposta). Nada aqui entra em metadados públicos.
 // Maturidade das etapas conferida em docs/vitalos/piloto/ (MO3, MO4, CHECKLIST 23/11, CONTINUIDADE).
 // Ficha de fontes e classificações: docs/vitalos/proposta-isg/FICHA_REVISAO_2026-11-23.md
-import type { JourneyStage, ProposalContent } from "@/features/proposal/types";
+import type { JourneyStage, ProposalContent, ProposalMetric } from "@/features/proposal/types";
+import { resolveCommercialClaim } from "@/domain/commercial-claims/commercial-claims-resolver";
+import { COMMERCIAL_SURFACE_IDS as S } from "@/domain/commercial-claims/commercial-surface-ids";
 
 /** Única fonte do valor. Resumo, detalhamento, marcos e impressão derivam daqui. */
 export const PROPOSAL_TOTAL = 60_000;
 export const PROPOSAL_INSTALLMENTS = 5;
+/** Cada etapa dura três meses (informação do fundador). O "por mês" é equivalente derivado, não cobrança. */
+export const PROPOSAL_MONTHS_PER_STAGE = 3;
 const installment = PROPOSAL_TOTAL / PROPOSAL_INSTALLMENTS;
+export const PROPOSAL_MONTHLY_EQUIVALENT = installment / PROPOSAL_MONTHS_PER_STAGE;
+
+// Afirmações quantitativas e científicas vêm do Commercial Claims Registry (fail-closed: sem claim,
+// o bloco some e a página mostra o estado vazio). Autorização: PROPOSTA_V2_FOUNDER_APPROVAL_2026-11-23.
+type Resolve = typeof resolveCommercialClaim;
+const claimText = (resolve: Resolve, claimId: string, surfaceId: string, variant: string) =>
+  resolve({ claimId, surfaceId, variant }).text;
+const claimNumber = (resolve: Resolve, claimId: string, surfaceId: string, variant: string) => {
+  const n = Number(claimText(resolve, claimId, surfaceId, variant));
+  if (!Number.isFinite(n) || n <= 0) throw new Error(`Número inválido em ${claimId}/${variant}`);
+  return n;
+};
+const attempt = <T>(build: () => T): T | null => {
+  try {
+    return build();
+  } catch {
+    return null;
+  }
+};
+
+export function resolveTrack(resolve: Resolve = resolveCommercialClaim): ProposalContent["track"] {
+  const id = "CLAIM-COM-PROPOSAL-INSTITUTE-TRACK-001";
+  const surface = S.PROPOSAL_INSTITUTE_TRACK_RECORD;
+  return attempt(() => {
+    const n = (v: string) => claimNumber(resolve, id, surface, v);
+    const items: ProposalMetric[] = [
+      {
+        value: n("responses"),
+        prefix: "+",
+        label: "respostas em pesquisas FIB",
+        detail: "Sobretudo em contextos educacionais",
+      },
+      {
+        value: n("municipalities"),
+        prefix: "+",
+        label: "municípios alcançados",
+        detail: "Em todo o Brasil",
+      },
+      {
+        value: n("schools"),
+        prefix: "+",
+        label: "instituições de ensino",
+        detail: "Mobilizadas pelo Instituto",
+      },
+      {
+        value: n("projects"),
+        prefix: "+",
+        label: "projetos escolares",
+        detail: "Classificados segundo os ODS",
+      },
+    ];
+    return {
+      title: "O que o Instituto já fez",
+      intro: claimText(resolve, id, surface, "scope"),
+      items,
+      record: claimText(resolve, id, surface, "record"),
+      scope: "Não são resultados em empresas e não preveem resultado na ISG.",
+      source: claimText(resolve, id, surface, "default"),
+    };
+  });
+}
+
+export function resolveLiterature(
+  resolve: Resolve = resolveCommercialClaim,
+): ProposalContent["literature"] {
+  const id = "CLAIM-COM-PRESENTATION-BENEFITS-001";
+  const surface = S.PROPOSAL_LITERATURE_EVIDENCE;
+  return attempt(() => {
+    claimText(resolve, id, surface, "default");
+    return {
+      title: "O que a literatura mostra",
+      intro:
+        "Duas associações publicadas pelo Gallup, para dimensionar o tema. São correlações em outros contextos, não promessas para a ISG.",
+      items: [
+        {
+          value: claimNumber(resolve, id, surface, "burnout"),
+          suffix: "× menor",
+          label: "probabilidade de sentir burnout",
+          detail: "Pessoas prosperando em quatro ou mais elementos de bem-estar · Gallup, 2019",
+        },
+        {
+          value: claimNumber(resolve, id, surface, "turnover"),
+          prefix: "−",
+          suffix: "%",
+          label: "rotatividade em unidades engajadas",
+          detail: "Organizações de baixa rotatividade · Gallup, 2017",
+        },
+      ],
+      note: "Correlação não é causa. Os números descrevem as populações estudadas.",
+    };
+  });
+}
+
+export function resolvePlaybook(
+  resolve: Resolve = resolveCommercialClaim,
+): ProposalContent["science"]["playbook"] {
+  const id = "CLAIM-COM-PROPOSAL-PLAYBOOK-001";
+  const surface = S.PROPOSAL_SCIENCE_ANCHORS;
+  return attempt(() => ({
+    statement: claimText(resolve, id, surface, "default"),
+    detail: claimText(resolve, id, surface, "detail"),
+    attribution: claimText(resolve, id, surface, "attribution"),
+    studies: claimNumber(resolve, id, surface, "studies"),
+    edition: claimText(resolve, id, surface, "edition"),
+    source: {
+      label: "Work Wellbeing Playbook · Wellbeing Research Centre",
+      href: "https://wellbeing.hmc.ox.ac.uk/publications/work-wellbeing-playbook/",
+    },
+  }));
+}
+
+const governed = (claimId: string, variant: string, fallback: string) =>
+  attempt(() => claimText(resolveCommercialClaim, claimId, S.PROPOSAL_SCIENCE_ANCHORS, variant)) ??
+  fallback;
 
 export const formatBRL = (value: number) =>
   "R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -179,14 +297,15 @@ export const ISG_PROPOSAL: ProposalContent = {
   date: "23/11/2026",
   recipient: "ISG Participações",
   hero: {
-    eyebrow: "Proposta à ISG Participações",
-    title: "Da escuta das equipes às decisões que a empresa consegue acompanhar",
+    eyebrow:
+      "Proposta à ISG Participações · VitalOS, sistema operacional da vitalidade organizacional",
+    title: "Ciência da felicidade aplicada ao trabalho, com decisões que a empresa acompanha",
     subtitle:
-      "O Instituto Felicidade para Todos propõe à ISG uma implantação acompanhada da jornada VitalOS, com cinco etapas, entregas verificáveis e uma contribuição técnica desenhada em conjunto.",
+      "O Instituto Felicidade para Todos propõe à ISG uma implantação acompanhada em cinco etapas de três meses: escuta com método, ações com responsável, devolutiva às equipes e registros que podem apoiar o relato de sustentabilidade da empresa.",
     primaryCta: "Combinar a reunião de implantação",
     secondaryCta: "Ver o que está incluído",
     imageAlt:
-      "Ilustração: quatro colegas em volta de uma mesa organizam cartões em branco durante uma conversa.",
+      "Ilustração: quatro colegas conversam em volta de uma mesa de madeira, em ambiente de trabalho com plantas e luz natural.",
     imageCaption: "Ilustração gerada · pessoas fictícias",
   },
   summary: [
@@ -197,8 +316,8 @@ export const ISG_PROPOSAL: ProposalContent = {
     },
     {
       label: "Quanto investe",
-      title: formatBRL(PROPOSAL_TOTAL),
-      body: `Em ${PROPOSAL_INSTALLMENTS} parcelas de ${formatBRL(installment)}, cada uma vinculada a um marco aceito. Condição proposta para uma operação ou unidade a definir.`,
+      title: `${formatBRL(installment)} por etapa`,
+      body: `Cada etapa dura ${PROPOSAL_MONTHS_PER_STAGE} meses e é paga após o aceite do seu marco: o equivalente a cerca de ${formatBRL(PROPOSAL_MONTHLY_EQUIVALENT)} por mês. Total do programa, em ${PROPOSAL_INSTALLMENTS} etapas: ${formatBRL(PROPOSAL_TOTAL)}.`,
     },
     {
       label: "O que o Instituto entrega",
@@ -324,6 +443,7 @@ export const ISG_PROPOSAL: ProposalContent = {
   investment: {
     total: PROPOSAL_TOTAL,
     installments: PROPOSAL_INSTALLMENTS,
+    monthsPerStage: PROPOSAL_MONTHS_PER_STAGE,
     scope: "Para uma operação ou unidade a definir na sessão de desenho.",
     composition: [
       "Implantação acompanhada das cinco etapas",
@@ -340,6 +460,8 @@ export const ISG_PROPOSAL: ProposalContent = {
     ],
     terms: [
       "Cada parcela é faturada depois do aceite do marco correspondente",
+      "O valor por mês é só um equivalente para comparação: o faturamento é por etapa, não mensal",
+      "Calendário proposto: cinco etapas sequenciais de três meses, a confirmar na reunião de implantação",
       "Quantidades de encontros, horas e participantes são propostas até a confirmação",
       "Regra de guarda e descarte dos dados acordada antes do início da coleta",
     ],
@@ -443,6 +565,300 @@ export const ISG_PROPOSAL: ProposalContent = {
     note: "Combinar a reunião não confirma a contratação nem inicia o projeto. Valor, quantidades e condições continuam como proposta e estimativa até a aprovação das duas partes.",
     contact: null,
   },
+  track: resolveTrack(),
+  literature: resolveLiterature(),
+  science: {
+    title: "Ancorado na ciência do bem-estar",
+    intro:
+      "As intervenções, os conteúdos e as atividades de educação desta proposta se apoiam em referências da psicologia positiva e da ciência do bem-estar no trabalho. Cada referência aparece com o papel que cumpre aqui e o seu limite.",
+    playbook: resolvePlaybook(),
+    anchors: [
+      {
+        id: "playbook",
+        icon: "book",
+        name: "Work Wellbeing Playbook",
+        what: "Evidências sobre intervenções de bem-estar no trabalho, organizadas em fatores-chave.",
+        inProposal: "Ancora as intervenções do Q2 e a prática do Q3.",
+        status: "ancora",
+        statusLabel: "Âncora das intervenções",
+      },
+      {
+        id: "perma",
+        icon: "heart",
+        name: "PERMA · Martin Seligman",
+        what: "Modelo de bem-estar com emoções positivas, engajamento, relações, sentido e realização.",
+        inProposal:
+          "Orienta os conteúdos da prática de vitalidade (Q3). A mensuração fica fora desta proposta.",
+        status: "referencia",
+        statusLabel: "Referência teórica",
+      },
+      {
+        id: "via",
+        icon: "compass",
+        name: "Forças de caráter · VIA (Peterson e Seligman)",
+        what: governed(
+          "CLAIM-COM-VIAT-EXPLORATORY-001",
+          "default",
+          "Leitura exploratória das forças percebidas no trabalho.",
+        ),
+        inProposal: "Base da oficina e do roteiro individual do Q4, com privacidade.",
+        status: "referencia",
+        statusLabel: "Uso exploratório",
+      },
+      {
+        id: "fib",
+        icon: "sun",
+        name: "Felicidade Interna Bruta (FIB)",
+        what: "Abordagem de felicidade coletiva, inspirada no índice do Butão, que o Instituto aplica em pesquisas com escolas e territórios.",
+        inProposal:
+          "Dá a linguagem de bem-estar coletivo e de sustentabilidade usada na escuta e na devolutiva.",
+        status: "referencia",
+        statusLabel: "Experiência do Instituto",
+      },
+      {
+        id: "q1",
+        icon: "shield",
+        name: governed(
+          "CLAIM-COM-INSTRUMENT-LABEL-001",
+          "short",
+          "Mapeamento psicossocial estruturado",
+        ),
+        what: "Escuta de fatores psicossociais do trabalho, de apoio ao trabalho de SST, com resultados só para grupos de pelo menos 5 respostas.",
+        inProposal: "O Q1 prepara a escuta. A coleta depende da liberação do instrumento.",
+        status: "condicionado",
+        statusLabel: "Coleta condicionada",
+      },
+    ],
+    principle:
+      "Como recomenda o Guia Prático, não há fórmula mágica: combinar ações da organização, dos grupos e das pessoas funciona melhor que uma ação isolada. É assim que as cinco etapas se encadeiam.",
+  },
+  externalCase: {
+    title: "Um caso brasileiro: a felicidade entrou na conversa de gestão",
+    summary:
+      "A Heineken Brasil descreve uma Jornada da Felicidade que combina escuta recorrente, o modelo PERMA-V e ações sobre a experiência de trabalhar. É um exemplo externo para conhecer e aprender, não um resultado desta proposta.",
+    practices: [
+      {
+        label: "Escuta",
+        body: "Pesquisas recorrentes sobre emoções, relações, engajamento, significado e vitalidade.",
+      },
+      { label: "Prática", body: "Os resultados orientam mentorias e conversas com as equipes." },
+      { label: "Reconhecimento", body: "Programa reconhecido pela Você RH em 2026." },
+    ],
+    note: "Caso empresarial externo, descrito pela própria empresa e pela publicação responsável pela premiação. Sem relação com o Instituto ou com a VitalOS.",
+    sources: [
+      {
+        label: "Heineken Brasil · felicidade e positividade",
+        href: "https://www.heinekenbrasil.com.br/noticias/felicidade-x-positividade",
+      },
+      {
+        label: "Você RH · Jornada da Felicidade · 2026",
+        href: "https://vocerh.abril.com.br/melhores-empresas/conheca-os-cases-vencedores-de-futuro-do-bem-estar-no-premio-da-voce-rh/",
+      },
+    ],
+  },
+  bands: [
+    {
+      id: "faixa-escutar",
+      image: "compreender",
+      kicker: "Escutar com método",
+      title: "Ouvir as equipes de um jeito que elas reconheçam",
+      summary:
+        "Escuta coletiva, com finalidade clara, participação voluntária e leitura só para grupos com pelo menos 5 respostas.",
+      imageAlt:
+        "Ilustração: quatro colegas atentos a uma colega que fala, em volta de uma mesa com um documento.",
+    },
+    {
+      id: "faixa-agir",
+      image: "agir",
+      kicker: "Agir e devolver",
+      title: "Do que foi ouvido ao que foi decidido, com nome e prazo",
+      summary:
+        "Prioridades escolhidas em conjunto, ações com responsável e revisão, e uma devolutiva que fecha o ciclo com a equipe.",
+      imageAlt:
+        "Ilustração: colegas organizam cartões em branco sobre a mesa para decidir uma ordem.",
+    },
+    {
+      id: "faixa-consolidar",
+      image: "evoluir",
+      kicker: "Consolidar",
+      title: "Uma síntese que a direção consegue interpretar",
+      summary:
+        "O que foi feito, o que foi devolvido e o que ficou pendente, para decidir o próximo ciclo com informação.",
+      imageAlt:
+        "Ilustração: duas profissionais leem um documento juntas enquanto dois colegas acompanham.",
+    },
+  ],
+  schedule: {
+    title: "Quinze meses, cinco etapas de três meses",
+    intro:
+      "Cada etapa tem um ritmo de três meses: abrir, praticar e fechar com um marco que a ISG aceita. O calendário é relativo; as datas saem da reunião de implantação.",
+    note: "Calendário proposto. Atividades, encontros e horas são estimativas até a confirmação. Trechos tracejados dependem de liberação.",
+    monthsPerStage: PROPOSAL_MONTHS_PER_STAGE,
+    stages: [
+      {
+        id: "q1",
+        months: [
+          {
+            label: "Mês 1",
+            focus: "Alinhar",
+            activities: [
+              "Reunião de abertura com o patrocinador",
+              "Unidade inicial e responsáveis definidos",
+              "Plano de escuta: finalidade, público e calendário",
+            ],
+          },
+          {
+            label: "Mês 2",
+            focus: "Comunicar",
+            activities: [
+              "Comunicado às equipes: participação voluntária e privacidade",
+              "Revisão da preparação com RH e SST",
+            ],
+          },
+          {
+            label: "Mês 3",
+            focus: "Revisar",
+            activities: ["Registro da revisão, com pendências nomeadas"],
+            conditioned: "Coleta da escuta, só se o instrumento for liberado (aditivo)",
+            milestone: "Aceite do marco Q1",
+          },
+        ],
+      },
+      {
+        id: "q2",
+        months: [
+          {
+            label: "Mês 4",
+            focus: "Ouvir e ler",
+            activities: [
+              "Escuta da equipe e leitura coletiva",
+              "Conversa de priorização preparada pelo Instituto",
+            ],
+            conditioned: "Convite verificado no ambiente publicado antes de começar",
+          },
+          {
+            label: "Mês 5",
+            focus: "Decidir e agir",
+            activities: [
+              "Priorização com liderança e RH",
+              "Plano com responsável, prazo e revisão",
+              "Mentoria da liderança",
+            ],
+          },
+          {
+            label: "Mês 6",
+            focus: "Devolver",
+            activities: ["Revisão das ações", "Devolutiva coletiva à equipe"],
+            milestone: "Aceite do marco Q2",
+          },
+        ],
+      },
+      {
+        id: "q3",
+        months: [
+          {
+            label: "Mês 7",
+            focus: "Abrir",
+            activities: [
+              "Oficina de abertura da prática (cerca de 2 horas)",
+              "Convite à prática voluntária",
+            ],
+          },
+          {
+            label: "Mês 8",
+            focus: "Praticar",
+            activities: [
+              "Prática voluntária acompanhada",
+              "Percepções de uso recolhidas pelo Instituto",
+            ],
+          },
+          {
+            label: "Mês 9",
+            focus: "Decidir",
+            activities: ["Manter, adaptar ou encerrar a prática"],
+            milestone: "Aceite do marco Q3",
+          },
+        ],
+      },
+      {
+        id: "q4",
+        months: [
+          {
+            label: "Mês 10",
+            focus: "Refletir",
+            activities: [
+              "Oficina sobre forças pessoais (cerca de 2 horas)",
+              "Regra de privacidade por escrito",
+            ],
+          },
+          {
+            label: "Mês 11",
+            focus: "Aplicar",
+            activities: [
+              "Roteiro individual para aplicar uma força no trabalho",
+              "Apoio do Instituto, sem respostas individuais para a ISG",
+            ],
+          },
+          {
+            label: "Mês 12",
+            focus: "Fechar",
+            activities: ["Conversa de encerramento com o que cada pessoa escolher compartilhar"],
+            milestone: "Aceite do marco Q4",
+          },
+        ],
+      },
+      {
+        id: "q5",
+        months: [
+          {
+            label: "Mês 13",
+            focus: "Reunir",
+            activities: ["Registros consolidados: feito, devolvido e pendente"],
+          },
+          {
+            label: "Mês 14",
+            focus: "Sintetizar",
+            activities: ["Síntese executiva", "Revisão com RH, SST, liderança e tecnologia"],
+          },
+          {
+            label: "Mês 15",
+            focus: "Decidir",
+            activities: ["Reunião executiva sobre o próximo ciclo"],
+            milestone: "Aceite do marco Q5",
+          },
+        ],
+      },
+    ],
+  },
+  team: {
+    title: "Quem conduz",
+    intro:
+      "Três cofundadores do Instituto, com atuação em pesquisa de felicidade, educação e projetos de impacto.",
+    members: [
+      {
+        name: "João Paulo Brandão Barboza",
+        label: "Cofundador · Cientista da Felicidade",
+        bio: "Atua há mais de 12 anos entre Felicidade Interna Bruta (FIB), ODS e práticas ESG. Gestor de inovação no Instituto, lidera a estruturação das soluções ESG. Membro da Rede de Pesquisas Científica da Felicidade.",
+        role: "Coordenação científica e análise",
+        photo: "joao-paulo",
+      },
+      {
+        name: "Ana Paula Daltoé Inglêz Barbalho",
+        label: "Cofundadora",
+        bio: "Bióloga, advogada e graduanda em Ciência da Felicidade. Coordenou o projeto FIB 2030, de felicidade e ODS no Brasil, e coliderou em 2023 a pesquisa de felicidade escolar do projeto Estudantes de Atitude.",
+        role: "Implantação e engajamento",
+        photo: "ana-paula",
+      },
+      {
+        name: "Olga Mariano",
+        label: "Cofundadora · Facilitadora em FIB",
+        bio: "Mais de 13 anos em inovação social, impacto comunitário e gestão de projetos. Facilitadora certificada em Teoria U e no Sistema FIB-Feliciência. Cocriou a Pesquisa FIB Educacional e coordenou a 1ª Pesquisa de Felicidade de Brasília.",
+        role: "Educação e facilitação",
+        photo: "olga",
+      },
+    ],
+    note: "Papéis propostos, a confirmar na reunião de implantação.",
+  },
   sources: [
     {
       claim:
@@ -472,9 +888,42 @@ export const ISG_PROPOSAL: ProposalContent = {
       source: "Exemplo fictício",
     },
     {
-      claim: "Ilustração de abertura",
+      claim: "Ilustrações de abertura e das faixas de seção",
       kind: "exemplo",
-      source: "Imagem gerada, pessoas fictícias",
+      source: "Imagens geradas, pessoas fictícias (procedência: PRESENTATION_V4_IMAGES_2026-11-17)",
+    },
+    {
+      claim: "Números do Instituto e recorde de aplicação da pesquisa FIB",
+      kind: "fato",
+      source:
+        "Dados do Instituto, confirmados pelo fundador em 23/11/2026; sem certificação externa apresentada",
+    },
+    {
+      claim: "Ancoragem no Work Wellbeing Playbook (Guia Prático, mais de 3.000 estudos)",
+      kind: "fato",
+      source:
+        "Wellbeing Research Centre, Universidade de Oxford; atribuição à obra, sem parceria ou endosso",
+    },
+    {
+      claim: "Associações do Gallup (burnout e rotatividade)",
+      kind: "fato",
+      source: "Gallup 2019 e 2017; correlações, não promessa",
+    },
+    {
+      claim: "Caso Heineken Brasil",
+      kind: "fato",
+      source: "Relato da empresa e Você RH 2026; caso externo, sem relação com o Instituto",
+    },
+    {
+      claim: "Calendário de 15 meses e equivalente mensal",
+      kind: "condicao",
+      source: "Etapas de três meses informadas pelo fundador; datas a confirmar",
+    },
+    {
+      claim: "Bios e fotos dos cofundadores",
+      kind: "fato",
+      source:
+        "Textos de apresentação das próprias pessoas e fotos enviadas pelo fundador; uso autorizado em 23/11/2026",
     },
   ],
 };
