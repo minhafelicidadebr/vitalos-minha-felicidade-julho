@@ -87,7 +87,7 @@ export const REPORTS: ReportDef[] = [
   {
     id: "rep-temporada",
     title: "Retrospectiva da Temporada",
-    description: "Arco M.E.T.E., experimentos do Culture Lab, missões e celebração.",
+    description: "Arco da Matriz IFT, experimentos do Culture Lab, missões e celebração.",
     audience: "Toda a organização",
     pages: 6,
   },

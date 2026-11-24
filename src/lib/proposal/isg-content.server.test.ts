@@ -6,6 +6,7 @@ import {
   PROPOSAL_MONTHLY_EQUIVALENT,
   PROPOSAL_MONTHS_PER_STAGE,
   PROPOSAL_TOTAL,
+  PRICE_MODEL,
   formatBRL,
   resolveLiterature,
   resolvePlaybook,
@@ -14,6 +15,21 @@ import {
 
 const p = ISG_PROPOSAL;
 const text = JSON.stringify(p);
+// Todo valor monetário do conteúdo tem de vir do modelo de preço (fonte única).
+const allowedMoney = new Set(
+  [
+    PROPOSAL_TOTAL,
+    PROPOSAL_TOTAL / PROPOSAL_INSTALLMENTS,
+    PROPOSAL_MONTHLY_EQUIVALENT,
+    p.pricing.referencePerStage,
+    p.pricing.referenceTotal,
+    PRICE_MODEL.licenseMonthly,
+    PRICE_MODEL.isgTechnicalRate,
+    ...Object.values(PRICE_MODEL.rates),
+    ...p.pricing.components.flatMap((c) => [c.perStage, c.program]),
+    ...p.pricing.bridge.map((b) => Math.abs(b.perStage)),
+  ].map(formatBRL),
+);
 
 describe("proposta ISG · preço com fonte única", () => {
   test("R$ 60.000 em 5 parcelas de R$ 12.000, iguais no resumo, nos marcos e no detalhamento", () => {
@@ -29,11 +45,7 @@ describe("proposta ISG · preço com fonte única", () => {
     expect(investment.body).toContain("R$ 4.000");
     expect(investment.body).toContain("R$ 60.000");
     // Nenhum outro valor monetário escondido no texto.
-    expect(
-      text
-        .match(/R\$ ?\d{1,3}(?:\.\d{3})*/g)
-        ?.every((m) => ["R$ 60.000", "R$ 12.000", "R$ 4.000"].includes(m)),
-    ).toBe(true);
+    expect(text.match(/R\$ ?\d{1,3}(?:\.\d{3})*/g)?.every((m) => allowedMoney.has(m))).toBe(true);
   });
 });
 
@@ -167,5 +179,90 @@ describe("proposta ISG · V2 (cronograma, preço por etapa, ciência, equipe)", 
       expect(m.bio.split(/\s+/).length).toBeLessThanOrEqual(45);
       expect(m.bio).not.toMatch(/Ouvidor|Ministério|Conselho|Comissão|Yale|MIT|Harvard|UnB/);
     }
+  });
+});
+
+describe("proposta ISG · V3 (Matriz IFT, valoração, colaboração técnica)", () => {
+  test("a conta fecha: composição = referência; ponte chega à condição; programa = 5 etapas", () => {
+    const pr = p.pricing;
+    expect(pr.referencePerStage).toBe(24_000);
+    expect(pr.referenceTotal).toBe(120_000);
+    expect(pr.components.reduce((s, c) => s + c.perStage, 0)).toBe(pr.referencePerStage);
+    expect(pr.components.reduce((s, c) => s + c.program, 0)).toBe(pr.referenceTotal);
+    const [ref, ...rest] = pr.bridge;
+    expect(ref!.kind).toBe("reference");
+    expect(pr.bridge.at(-1)!.kind).toBe("condition");
+    expect(pr.bridge.at(-1)!.perStage).toBe(PROPOSAL_TOTAL / PROPOSAL_INSTALLMENTS);
+    expect(ref!.perStage + rest.slice(0, -1).reduce((s, b) => s + b.perStage, 0)).toBe(
+      pr.bridge.at(-1)!.perStage,
+    );
+    // Contrapartida da ISG estimada com o modelo (40 h × valor-hora técnico).
+    expect(-pr.bridge[1]!.perStage * PROPOSAL_INSTALLMENTS).toBe(
+      PRICE_MODEL.isgTechnicalHours * PRICE_MODEL.isgTechnicalRate,
+    );
+    // Horas: 90 por etapa, 450 no programa.
+    for (const s of p.journey.stages) {
+      const h = s.framework.hours;
+      expect(h.coord + h.educ + h.impl).toBe(90);
+    }
+  });
+
+  test("termo oficial: colaboração técnica; sem 'permuta' e sem 'parceria' afirmativa", () => {
+    expect(p.pricing.collaboration).toMatch(/colaboração técnica/);
+    expect(text).not.toMatch(/permuta/i);
+    expect(text.replace(/sem parceria(?:, chancela)? ou endosso/gi, "")).not.toMatch(/parceri/i);
+    expect(text).not.toMatch(/imperdível|só agora|economia de|oferta por tempo/i);
+  });
+
+  test("Matriz IFT: 4 movimentos com status em cada etapa; Q1 é risco (domínio B) e educativo", () => {
+    expect(p.ift.movements.map((m) => m.name)).toEqual([
+      "Mensurar",
+      "Educar",
+      "Transformar",
+      "Evoluir",
+    ]);
+    for (const s of p.journey.stages) {
+      for (const m of ["mensurar", "educar", "transformar", "evoluir"] as const) {
+        expect(s.framework.ift[m].text.length).toBeGreaterThan(10);
+        expect(["plataforma", "instituto", "condicionada"]).toContain(
+          s.framework.ift[m].availability,
+        );
+      }
+      expect(s.framework.question.endsWith("?")).toBe(true);
+    }
+    const q1 = p.journey.stages[0]!.framework;
+    expect(q1.domain).toBe("B");
+    expect(q1.ift.mensurar.availability).toBe("condicionada");
+    expect(q1.ift.mensurar.text).toMatch(/Copenhagen Psychosocial Questionnaire/);
+    expect(q1.ift.mensurar.text).toMatch(/condicionada/);
+    expect(q1.ift.evoluir.text).toMatch(/não substitui o PGR/);
+    expect(p.journey.stages.slice(1).every((s) => s.framework.domain === "A")).toBe(true);
+    // A pergunta do Q5 reescrita (sem "comprovamos").
+    expect(text).not.toMatch(/comprovamos/i);
+  });
+
+  test("capa: categoria em destaque e NR-1 sempre com a ressalva educativa", () => {
+    expect(p.cover.brandLine).toBe("Sistema Operacional da Vitalidade Organizacional");
+    const nr1 = p.cover.chips.find((c) => c.label === "NR-1")!;
+    expect(nr1.detail).toMatch(/Apoio educativo/);
+    expect(nr1.detail).toMatch(/não substitui o PGR/i);
+    expect(text).not.toMatch(/conformidade com a NR|garante a NR|evita multa|blindagem/i);
+  });
+
+  test("cronograma sem preço: o valor do marco só aparece na seção de investimento", () => {
+    expect(JSON.stringify(p.schedule)).not.toMatch(/R\$/);
+    for (const st of p.schedule.stages)
+      expect(st.months.filter((m) => m.milestone)).toHaveLength(1);
+  });
+
+  test("exemplo trabalhado: problema, troca de turno e quatro passos com quem/registro/o que a equipe vê", () => {
+    const s = p.scenario;
+    expect(s.problem.length).toBeGreaterThan(30);
+    expect(s.handover.tickets.some((t) => t.lost)).toBe(true);
+    expect(s.steps).toHaveLength(4);
+    for (const st of s.steps)
+      for (const k of ["who", "record", "teamSees"] as const)
+        expect(st[k].length).toBeGreaterThan(5);
+    expect(s.after).toMatch(/responsável/);
   });
 });

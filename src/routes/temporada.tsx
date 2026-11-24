@@ -566,7 +566,7 @@ function MeteGlossary() {
       transition={{ duration: 0.45, delay: 0.15 }}
       className="rounded-2xl border border-border/60 bg-muted/30 p-5"
     >
-      <h3 className="mb-3 font-serif text-lg text-foreground">O ciclo M.E.T.E.</h3>
+      <h3 className="mb-3 font-serif text-lg text-foreground">O ciclo da Matriz IFT</h3>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {METE_GLOSSARY.map((m, i) => (
           <div key={m.id} className="rounded-xl border border-border/50 bg-card p-3">

@@ -225,7 +225,7 @@ function buildConclusionSection(plan: PgrPlan): PgrDocumentSection {
     title: "6. Conclusão e próximos passos",
     body: [
       verdict,
-      `O programa será reavaliado ao fim do próximo ciclo de medição (M.E.T.E.), comparando a ` +
+      `O programa será reavaliado ao fim do próximo ciclo de medição (Matriz IFT), comparando a ` +
         `exposição agregada para aferir a eficácia das medidas implementadas.`,
       plan.disclaimer,
     ],

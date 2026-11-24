@@ -51,7 +51,7 @@ export interface MeasurementWaveInput {
   id: string;
   instrumentLabel: string;
   instrumentShort: string;
-  season: string; // estação M.E.T.E. que esta onda mensura
+  season: string; // estação da Matriz IFT que esta onda mensura
   opensOn: string; // ISO "YYYY-MM-DD"
   closesOn: string; // ISO
   today: string; // ISO — injetado para manter pureza/determinismo

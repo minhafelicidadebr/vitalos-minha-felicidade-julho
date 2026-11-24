@@ -203,7 +203,7 @@ export function renderPgrDocumentPdf(doc: PgrDocument, plan: PgrPlan, reavaliaca
       : `${plan.summary.requiresActionCount} risco(s) ainda exige(m) ação prioritária — ver prazos no inventário.`;
   kit.addParagraph(verdict, { gapAfter: 2 });
   kit.addParagraph(
-    "O programa será reavaliado ao fim do próximo ciclo de medição (M.E.T.E.), comparando a exposição " +
+    "O programa será reavaliado ao fim do próximo ciclo de medição (Matriz IFT), comparando a exposição " +
       "agregada para aferir a eficácia das medidas implementadas.",
     { gapAfter: 2 },
   );

@@ -147,7 +147,7 @@ export function DemoGateScreen() {
           </div>
 
           <ul className="relative mt-10 grid gap-2 text-xs text-primary-foreground/75">
-            {["Dados agregados", "k-anonimato ≥ 5", "Jornada M.E.T.E. completa"].map((item) => (
+            {["Dados agregados", "k-anonimato ≥ 5", "Jornada da Matriz IFT completa"].map((item) => (
               <li
                 key={item}
                 className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5"

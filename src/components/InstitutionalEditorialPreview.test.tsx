@@ -16,7 +16,7 @@ test("estados retidos não projetam contagem, fonte ou texto extra mesmo em obje
 
 test("preview mantém marcação sintética, METE e limitação junto de evidência, sem emissão", () => {
   const { container, unmount } = render(<InstitutionalEditorialPreview />);
-  const article = within(container).getByRole("article", { name: "Protótipo editorial institucional METE" });
+  const article = within(container).getByRole("article", { name: "Protótipo editorial institucional da Matriz IFT" });
   for (const axis of ["Mensurar", "Educar", "Transformar", "Evoluir"]) {
     const section = within(article).getByRole("region", { name: `${axis} — análise sintética` });
     expect(section.textContent).toContain("Exemplo sintético");

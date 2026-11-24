@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { BAND_IMAGES, ILLUSTRATION, TEAM_PHOTOS } from "./media";
 import { useCountUp } from "./motion";
+import { StageDetail, Understand } from "./ProposalV3";
 import type {
   ProposalBand,
   ProposalContent,
@@ -404,15 +405,22 @@ export function ScheduleSection({ p }: { p: ProposalContent }) {
                     {m.milestone ? (
                       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
                         <Flag aria-hidden className="h-4 w-4 proposal-accent-icon" />
-                        <span>
-                          {m.milestone} ·{" "}
-                          <span className="whitespace-nowrap">{fmtBRL(stage.installment)}</span>
-                        </span>
+                        {/* O valor do marco fica só na seção de investimento: aqui, "como e quando". */}
+                        <span>{m.milestone}</span>
                       </p>
                     ) : null}
                   </li>
                 ))}
               </ol>
+              <div className="mt-3">
+                <Understand
+                  label={`Entenda o ${stage.code}`}
+                  title={`${stage.code} · ${stage.verb} · ${stage.framework.lens}`}
+                  description={stage.deliverable}
+                >
+                  <StageDetail p={p} stage={stage} />
+                </Understand>
+              </div>
             </li>
           );
         })}
@@ -421,8 +429,6 @@ export function ScheduleSection({ p }: { p: ProposalContent }) {
     </section>
   );
 }
-
-const fmtBRL = (v: number) => "R$ " + fmt(v);
 
 export function TeamSection({ p }: { p: ProposalContent }) {
   const t = p.team;

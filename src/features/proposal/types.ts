@@ -23,6 +23,33 @@ export interface Capability {
   decision?: string;
 }
 
+/** Os quatro movimentos da Matriz IFT (Instituto Felicidade para Todos). */
+export type IftMovement = "mensurar" | "educar" | "transformar" | "evoluir";
+
+export interface IftCell {
+  text: string;
+  availability: Availability;
+}
+
+/** Faixa de corresponsabilidade ISG × Instituto (exemplo, definido na reunião). */
+export interface CoResponsibility {
+  institutoConduz: string;
+  isgDecide: string;
+  isgExecuta: string;
+  juntosRevisam: string;
+}
+
+/** Lente da jornada canônica (src/domain/journey.ts) aplicada a cada etapa. */
+export interface StageFramework {
+  lens: string; // "Risco"
+  question: string; // pergunta-guia
+  domain: "A" | "B"; // B = risco psicossocial (educativo); A = florescimento
+  ift: Record<IftMovement, IftCell>;
+  roles: CoResponsibility;
+  /** Horas da equipe do Instituto por papel nesta etapa (modelo adotado pelo fundador). */
+  hours: { coord: number; educ: number; impl: number };
+}
+
 export interface JourneyStage {
   id: "q1" | "q2" | "q3" | "q4" | "q5";
   code: string; // "Q1"
@@ -35,6 +62,22 @@ export interface JourneyStage {
   instituteActivities: string[];
   acceptance: string[];
   capabilities: Capability[];
+  framework: StageFramework;
+}
+
+export interface PriceComponent {
+  label: string;
+  perStage: number;
+  program: number;
+  detail: string;
+}
+
+/** Ponte de valor: referência → reduções explicadas → condição. */
+export interface PriceBridgeStep {
+  label: string;
+  perStage: number;
+  kind: "reference" | "reduction" | "condition";
+  detail: string;
 }
 
 export interface Responsibility {
@@ -107,6 +150,34 @@ export interface ProposalContent {
     imageAlt: string;
     imageCaption: string;
   };
+  /** Capa: marca VitalOS em destaque, linha-categoria e frase de valor. */
+  cover: {
+    brandLine: string;
+    valueLine: string;
+    chips: { label: string; detail: string }[];
+  };
+  /** Matriz IFT: pré-treino dos quatro movimentos antes das etapas. */
+  ift: {
+    title: string;
+    intro: string;
+    movements: { id: IftMovement; name: string; description: string }[];
+    domainNote: string;
+    rolesNote: string;
+    roleLabels: Record<keyof CoResponsibility, string>;
+  };
+  /** Valor de referência, ponte de valor e colaboração técnica (decisões de 23/11/2026). */
+  pricing: {
+    title: string;
+    intro: string;
+    referencePerStage: number;
+    referenceTotal: number;
+    components: PriceComponent[];
+    bridge: PriceBridgeStep[];
+    collaboration: string;
+    parameters: { label: string; value: string }[];
+    license: { includes: string[]; excludes: string[]; wording: string };
+    notes: string[];
+  };
   summary: { label: string; title: string; body: string }[];
   opening: {
     question: string;
@@ -121,7 +192,12 @@ export interface ProposalContent {
   scenario: {
     title: string;
     context: string;
-    steps: { label: string; body: string }[];
+    /** Exemplo trabalhado: o problema concreto antes dos passos. */
+    problem: string;
+    handover: { from: string; to: string; tickets: { label: string; lost: boolean }[] };
+    steps: { label: string; body: string; who: string; record: string; teamSees: string }[];
+    before: string;
+    after: string;
     record: { field: string; value: string }[];
     missing: string[];
   };

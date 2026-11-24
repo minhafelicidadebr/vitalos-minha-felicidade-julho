@@ -422,7 +422,7 @@ function RelatorioGlobalPage() {
         {/* Capa */}
         <GlobalReportContext institutionalEnabled={isRealMode} />
         <details className="min-w-0 space-y-4 rounded-xl border border-border p-4 print:hidden">
-          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">Explorar o protótipo editorial METE · dados sintéticos</summary>
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">Explorar o protótipo editorial da Matriz IFT · dados sintéticos</summary>
           <InstitutionalEditorialPreview />
         </details>
         <motion.section

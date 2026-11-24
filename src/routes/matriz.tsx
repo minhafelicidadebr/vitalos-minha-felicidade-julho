@@ -283,7 +283,7 @@ function MatrizPage() {
                 </Field>
               )}
               {selCell?.evidence && <Field label="Evidência">{selCell.evidence}</Field>}
-              <Field label="Fluxo M.E.T.E.">
+              <Field label="Fluxo da Matriz IFT">
                 Medir ({lens === "copsoq" ? "COPSOQ II" : "FIB-T"}) → Educar ({selDriver.label}) →
                 Transformar (intervenção) → Evoluir (reavaliação, k≥5).
               </Field>

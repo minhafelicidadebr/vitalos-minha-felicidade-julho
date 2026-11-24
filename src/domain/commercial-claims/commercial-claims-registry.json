@@ -1,7 +1,7 @@
 {
   "$schema": "./commercial-claims-registry.schema.json",
   "schema_version": "1.0.0",
-  "registry_version": "1.2.0",
+  "registry_version": "1.3.0",
   "frozen": true,
   "claims": [
     {
@@ -294,6 +294,30 @@
         "marketing.proposal.institute-track-record"
       ],
       "owner_role": "institutional-governance",
+      "reviewed_at": "2026-11-23",
+      "review_due_at": "2027-05-23"
+    },
+    {
+      "claim_id": "CLAIM-COM-PROPOSAL-COPSOQ-ORIGIN-001",
+      "category": "instrument_identity",
+      "status": "approved",
+      "variants": {
+        "default": "Referência internacional: o Copenhagen Psychosocial Questionnaire (COPSOQ), desenvolvido na Dinamarca para avaliar fatores psicossociais do trabalho (Kristensen e colegas, 2005).",
+        "citation": "Kristensen TS, Hannerz H, Høgh A, Borg V. Scand J Work Environ Health 2005;31(6):438-449."
+      },
+      "source_refs": [
+        "https://www.sjweh.fi/article/948",
+        "PROPOSTA-V3-FOUNDER-DECISIONS-2026-11-23"
+      ],
+      "limitations": [
+        "Referência de origem do instrumento; não é versão licenciada ou validada do COPSOQ II nesta plataforma.",
+        "Nesta proposta, a coleta depende da liberação da versão brasileira e da permissão de uso.",
+        "Apoio educativo à gestão de riscos psicossociais; não substitui o PGR nem o profissional habilitado."
+      ],
+      "allowed_surface_ids": [
+        "marketing.proposal.science-anchors"
+      ],
+      "owner_role": "scientific-governance",
       "reviewed_at": "2026-11-23",
       "review_due_at": "2027-05-23"
     }
