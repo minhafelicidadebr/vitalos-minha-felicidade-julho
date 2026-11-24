@@ -10,7 +10,7 @@
 | Item | Resultado |
 |---|---|
 | Função no código × migration | Os 7 parâmetros chamados por `member-invite.server.ts` batem com `reserve_member_invite` (conferido em 23/11) |
-| Testes do servidor de convites | 21 pass / 0 fail (`src/lib/api/member-invite.server.test.ts`) |
+| Testes do servidor de convites | 21 pass / 0 fail na `main` (`src/lib/api/member-invite.server.test.ts`); o PR #67, ainda não mesclado, acrescenta 2 testes de isolamento entre organizações (23 pass) |
 | Jornada completa em banco descartável | `scripts/integ-local/mo2-journey.ts`: 54 verificações, inclui convite e aceite por papel, 2º administrador recusado no Piloto, 2 pedidos simultâneos com 1 assento (1 aceito), convite de colaborador com assentos cheios, reaceite recusado |
 | Repetir | Ver "Como reproduzir o nível 1" abaixo |
 
@@ -53,7 +53,7 @@ Tudo roda em loopback (`127.0.0.1`) numa pilha Docker descartável; **nada toca 
 | 4 | Aceitar o mesmo convite outra vez | Colaborador de teste | Recusado ("já utilizado") |
 | 5 | Convidar administradores até o limite do Growth (5) | RH | O 6º é recusado com mensagem de upgrade; convite de colaborador continua permitido |
 | 6 | Conferir no banco (leitura): contagem de convites e perfis só da organização de teste | — | Coerente com os passos |
-| 7 | Limpeza: remover a organização de teste e suas contas, pelo procedimento autorizado | Proponente | Nenhum resíduo; confirmar por leitura |
+| 7 | Limpeza **decidida antes do passo 1**. O ensaio local (PR #69) mostrou que a organização não sai só "apagando a organização": `first_admin_invites` é imutável e os gatilhos de módulo barram o ledger e as ondas. Opções: M1 (gatilhos desabilitados, procedimento autorizado), M2 (rotina oficial, PR #72) ou manter a organização marcada como teste, com contas do proponente | Proponente | Conforme a opção: nenhum resíduo, confirmado por leitura; ou organização de teste registrada como tal |
 
 **Parar e registrar** se: aparecer "função não encontrada" (cache de esquema da API: pedir ao proponente a recarga, não repetir), qualquer dado de outra organização, ou qualquer erro de permissão inesperado.
 

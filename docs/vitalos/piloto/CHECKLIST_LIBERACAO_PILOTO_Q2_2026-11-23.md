@@ -1,6 +1,6 @@
 # Checklist de liberação · piloto operacional do Q2 no Instituto Felicidade para Todos
 
-**Estado:** rascunho de 23/11/2026, sobre a `main` `37a89ca` (merge do #64). **O piloto não está pronto para operação.** Este checklist consolida o que já existe em `MO4_OPERACAO_E_LIBERACAO_2026-11-21.md`, `Q2_PILOT_SCOPE_2026-11-16.md` e `CONTINUIDADE.md`; não cria decisão nova.
+**Estado:** rascunho de 23/11/2026, sobre a `main` `37a89ca` (merge do #64); atualizado no mesmo dia com os achados dos PRs #67, #68, #69 e #72 (abertos, **não mesclados**). **O piloto não está pronto para operação.** Este checklist consolida o que já existe em `MO4_OPERACAO_E_LIBERACAO_2026-11-21.md`, `Q2_PILOT_SCOPE_2026-11-16.md` e `CONTINUIDADE.md`; não cria decisão nova.
 
 **Legenda:** ✅ provado (com evidência) · ⏳ pendente (dependência técnica) · 🟡 **PROPOSTA PENDENTE** (exige aprovação do proponente ou do Instituto; nenhuma aprovação foi dada além das já registradas em `APROVACAO_FORMULARIOS_PILOTO_INSTITUTO_2026-11-21.md` e `PLANO_INSTITUTO_GROWTH_2026-11-21.md`) · ⛔ bloqueio metodológico mantido.
 
@@ -10,7 +10,7 @@
 
 | # | Pré-condição | Estado | Evidência ou o que falta |
 |---|---|---|---|
-| T1 | Código do Q2 na `main` e gate verde | ✅ | `main` `37a89ca`; gate 4698/0 no candidato `e70298b`. Código idêntico: nenhum arquivo fora de `docs/` difere entre `e70298b` e a `main` (conferido em 23/11) |
+| T1 | Código do Q2 na `main` e gate verde | ⏳ reconferir | Em `37a89ca`, o gate 4698/0 do candidato `e70298b` valia (nenhum arquivo fora de `docs/` diferia). **A `main` avançou para `4b2b7c9`** com código novo (#66 guia de perfis do Q2; #70 e #71 proposta à ISG), sem mudança em `supabase/` nem em `docs/vitalos/piloto/` (conferido em 23/11). O gate de `e70298b` **não cobre** mais a `main`: reconferir antes de liberar |
 | T2 | Jornada Q2 provada em banco descartável | ✅ | `scripts/integ-local/mo2-journey.ts`: 54 verificações, 0 falhas; `provas/JORNADA_Q2_INTEGRADA_2026-11-22.txt` |
 | T3 | Função de assentos presente no banco do projeto | ✅ | Catálogo de funções em 22/11: 1 assinatura, 7 argumentos |
 | T4 | Permissões da função conferidas | ✅ | `anon` e `authenticated` sem EXECUTE; `service_role` com |
@@ -43,7 +43,7 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 | Quórum da cerimônia | 5 presentes é regra separada; a cerimônia está **desligada** (capacidade `DEVOLUTIVA`) e não faz parte do piloto | ✅ regra no código; ⏳ ligar é decisão de produto |
 | Acesso | Colaborador vê só devolutiva coletiva e as próprias práticas; liderança só as próprias ações; SST sem acesso ao ledger Q2; outra organização sem acesso | ✅ provado em banco descartável e no navegador (MO2 X1, X2, X8; MO4) |
 | Retenção | Prazo adotado pelo Instituto: **a definir**. O catálogo de planos declara `capsuleRetentionMonths` = 12 para o Growth, mas **nenhum código ou migration lê esse valor** (busca em `src/` e `supabase/migrations/`, 23/11): é número declarado, **não é expurgo aplicado** e não deve ser apresentado como política | 🟡 pendente (PIL-04, controlador: o Instituto) |
-| Descarte | A RPC `erase_my_assessments` (verificada em `20260706110000_personal_assessments.sql`) apaga **só** as autoavaliações pessoais do próprio usuário (`personal_assessments`, Cofre Pessoal). **Não cobre** respostas FIB-T, ledger, planos ou evidências do piloto. Para esses dados, o procedimento de descarte **não existe** hoje no repositório | 🟡 pendente (PIL-04): exige decisão do Instituto e, depois, desenho próprio |
+| Descarte | A RPC `erase_my_assessments` (verificada em `20260706110000_personal_assessments.sql`) apaga **só** as autoavaliações pessoais do próprio usuário (`personal_assessments`, Cofre Pessoal). **Não cobre** respostas FIB-T, ledger, planos ou evidências do piloto. Para esses dados, o procedimento de descarte **não existe** hoje no repositório. **Ensaio local (PR #69):** apagar uma organização é bloqueado por gatilhos de integridade (`first_admin_invites` imutável; gatilho de módulo diferido no ledger e nas ondas); `ops_events` não tem chave estrangeira e ficaria órfã. Caminhos: M1 (desabilitar gatilhos, DDL controlado) ou M2 (rotina oficial, desenho no PR #72) | 🟡 pendente (PIL-04): decisão do Instituto (opção A, B ou C, PR #68) e do proponente (M1 ou M2) |
 | Comunicação | Participação voluntária, saída livre, canal de dúvidas; versão do comunicado e responsável a fixar | 🟡 pendente (PIL-03) |
 
 ## 4. Critérios operacionais
@@ -82,9 +82,9 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 
 1. Créditos do Lovable (renovação ou top-up) → T6.
 2. Instrução direta para publicar → T8.
-3. Autorização para a organização de teste e sua limpeza → T9.
+3. Autorização para a organização de teste e decisão sobre a limpeza: o ensaio local (PR #69) mostrou que ela **não** sai só "apagando a organização"; escolher M1, M2 (PR #72) ou manter a organização marcada como teste → T9.
 4. Aprovar o pacote (seções 2–4) e **nomear o responsável operacional**.
-5. Retenção e descarte pelo Instituto (PIL-04); comunicado (PIL-03).
+5. Retenção e descarte pelo Instituto (PIL-04, opções A/B/C no PR #68) e mecanismo de descarte pelo proponente (M1 ou M2); comunicado (PIL-03), que não deve prometer descarte antes dessa decisão.
 6. Estender a D10 (Q2) e a Vitalidade 001 (Q3) ao piloto (PIL-07).
 
 ## 8. Retomada do Lovable (quando os créditos voltarem)
@@ -94,7 +94,7 @@ T3 e T4 não provam T9: função presente e permissões certas não demonstram q
 Sequência mínima de diagnóstico. Parar no primeiro passo que exigir decisão; nada abaixo roda sem a decisão correspondente da seção 7; nunca "Fix build", publicação ou top-up por iniciativa própria.
 
 1. Ler (sem alterar) o saldo e o estado do projeto no Lovable. Se a ação seguinte exigir crédito e não houver, parar e pedir decisão.
-2. Confirmar qual commit o Lovable enxerga e compará-lo com a `main` atual (última leitura: `0cf588b` em 22/11; não reverificado depois do #63 e do #64).
+2. Confirmar qual commit o Lovable enxerga e compará-lo com a `main` atual (última leitura: `0cf588b` em 22/11; não reverificado depois do #63, do #64 e dos merges seguintes até `4b2b7c9`).
 3. Só com decisão do proponente de gastar créditos: **um** build do commit atual. Registrar o resultado e **obter o log completo**.
 4. Build com sucesso: a explicação do suporte (créditos) fica como a mais provável, sem afirmar mais que isso. Seguir ao passo 6.
 5. Build com falha: com o log em mãos, reproduzir localmente (`bun run build`, `tsc --noEmit`, preflight) **antes** de qualquer hipótese; corrigir o menor trecho em branch própria, com teste; "Fix build" só por decisão do proponente.
@@ -108,7 +108,7 @@ Sequência mínima de diagnóstico. Parar no primeiro passo que exigir decisão;
 |---|---|
 | Scripts `scripts/integ-local/` apontam só para loopback (`127.0.0.1`: API 57921, banco 57922, correio 57924, app 8094); nenhuma URL remota; `guard.sh` aborta se projeto, containers ou bindings divergirem; `reset.sh` recria a pilha sem volume nomeado | Confirmado por leitura; **não reexecutado** nesta etapa (sem mudança de código) |
 | `member-invite.server.test.ts` cobre: papel não convidável e inventado, Piloto com 1 admin (colaborador passa, RH recusa), falha de leitura fail-closed, 2 emissões simultâneas com 1 assento, plano alterado entre leitura e reserva, convite pendente conta e expirado não conta, organização inexistente, token válido/usado/expirado/inexistente, mapeamento da RPC de aceite | Confirmado por leitura; 21/21 já rodados em 23/11 em `0cf588b` |
-| Isolamento entre organizações no convite | Provado na jornada local (MO2); **não** há teste unitário próprio de duas organizações em `member-invite.server.test.ts` |
+| Isolamento entre organizações no convite | Provado na jornada local (MO2). Na `main`, **não** há teste unitário de duas organizações; o **PR #67** (não mesclado) acrescenta 2 testes em `member-invite.server.test.ts` (23 pass, gate verde) |
 | Nomes e papéis | `orgAdminRoles()` deriva do registry de packs (`orgAdminRole`, padrão `RH_ADMIN`) e é passado como `p_admin_roles`; a migration recusa lista vazia (`admin_roles_missing`) | Sem divergência |
 | Limite do Growth | `plan-engine.ts`: Growth `maxAdminSeats` 5; Piloto 1; o servidor passa `p_max_admin_seats` (nulo = sem teto) | Sem divergência com os documentos |
 | Mensagem de erro | `seat_quota_exceeded` → "Limite de administradores do plano atingido. Faça upgrade…" (`plan-engine.ts`), igual à usada pelo servidor; demais falhas → `SEAT_CHECK_UNAVAILABLE` | Sem divergência |
