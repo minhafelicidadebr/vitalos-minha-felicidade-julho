@@ -210,7 +210,7 @@ describe("proposta V3 · paridade página ↔ slides", () => {
     const ids = slideIds(ISG_PROPOSAL);
     for (const id of [
       "capa",
-      "pergunta",
+      "isg-mapa",
       "por-que",
       "numeros",
       "ciencia",
@@ -252,7 +252,34 @@ test("a lente selecionada muda a ação e a hipótese muda o custo estimado", ()
   expect(screen.getByText("A equipe vê o que foi feito, o que ficou pendente e a data do próximo retorno.", { selector: "p" })).toBeTruthy();
   const select = screen.getByLabelText("Dias de ausência no cenário") as HTMLSelectElement;
   fireEvent.change(select, { target: { value: "110" } });
-  expect(screen.getByText(/R\$\s*33[.]000/)).toBeTruthy();
+  expect(screen.getByText(/R\$\s*19[.]800/)).toBeTruthy();
+});
+
+describe("proposta V5", () => {
+  test("custo por dia padrão é R$ 180 e a variação do cenário de 90 dias é −R$ 1.800", () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    expect((screen.getByLabelText(/Custo por dia/) as HTMLInputElement).value).toBe("180");
+    expect(screen.getByText(/R\$\s*18[.]000/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s*16[.]200/)).toBeTruthy();
+  });
+
+  test("slide 2 'A pergunta' saiu; infográfico da ISG traz só o que o site declara", async () => {
+    const { slideIds } = await import("./ProposalSlides");
+    const ids = slideIds(ISG_PROPOSAL);
+    expect(ids).not.toContain("pergunta");
+    expect(ids.indexOf("isg-mapa")).toBe(1);
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const map = screen.getByRole("figure", { name: /O que a ISG comunica e faz/ });
+    for (const t of ["Tecnologia", "Gestão", "Educação", "Pessoas", "6 unidades de negócio", "Consultado em 24/11/2026"]) expect(map.textContent).toContain(t);
+    expect(map.textContent).not.toMatch(/bilh|colaboradores|fundada/i);
+  });
+
+  test("alerta NR-1 não traz valores de multa", () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const alert = screen.getByRole("figure", { name: /NR-1: riscos psicossociais e fiscalização/ });
+    expect(alert.textContent).toMatch(/NR-28/);
+    expect(alert.textContent).not.toMatch(/R\$|\d+\s?mil/);
+  });
 });
 
 describe("proposta V4 · lote de conteúdo e fontes", () => {
@@ -295,7 +322,7 @@ describe("proposta V4 · lote de conteúdo e fontes", () => {
   test("Q2: demonstração é o caminho principal; dashboard institucional é secundário, com pré-requisitos", async () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
     const demo = screen.getAllByRole("button", { name: "Ver demonstração" })[0]!;
-    const dash = screen.getAllByRole("button", { name: "Abrir dashboard institucional" })[0]!;
+    const dash = screen.getAllByRole("button", { name: "Entrar com conta autorizada" })[0]!;
     expect(demo.className).toMatch(/primary/);
     expect(dash.className).toMatch(/secondary/);
     fireEvent.click(demo);

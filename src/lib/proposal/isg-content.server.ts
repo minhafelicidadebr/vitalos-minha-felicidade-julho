@@ -666,22 +666,7 @@ export const ISG_PROPOSAL: ProposalContent = {
   ],
   opening: {
     question:
-      "Depois de ouvir as equipes, como sabemos o que virou ação e o que ainda precisa de decisão?",
-    note: "Não partimos de nenhum problema interno da ISG. São três dificuldades comuns depois de uma escuta.",
-    difficulties: [
-      {
-        title: "Quem faz o quê",
-        body: "A escuta termina com temas importantes, mas sem dono, prazo ou critério de revisão.",
-      },
-      {
-        title: "Devolver à equipe",
-        body: "As pessoas responderam e não sabem o que aconteceu depois. A próxima escuta encontra menos disposição.",
-      },
-      {
-        title: "Um registro que a direção interpreta",
-        body: "O que foi decidido e feito fica espalhado em atas e mensagens, difícil de acompanhar e de comparar.",
-      },
-    ],
+      "Como transformar uma cultura que já valoriza pessoas em prática medida, com ação e devolutiva?",
   },
   why: {
     parties: [
@@ -705,6 +690,24 @@ export const ISG_PROPOSAL: ProposalContent = {
       body: "A ISG comunica publicamente gestão de portfólios, projetos e processos, gerenciamento da realização de benefícios, integração, painéis de BI, gestão de pessoas e cultura organizacional. A proposta é aplicar essa mesma disciplina à gestão do bem-estar: decisão com responsável, acompanhamento e registro.",
       source: { label: "isgsa.com.br", href: "https://www.isgsa.com.br/" },
       checked: "Consultado em 23/11/2026",
+    },
+    isgMap: {
+      fronts: [
+        { name: "Tecnologia", detail: "TIC, nuvem, automação, IA e dados" },
+        { name: "Gestão", detail: "Portfólios, projetos, processos e metodologias como OKR" },
+        { name: "Educação", detail: "Ensino mediado por tecnologia e plataformas para escolas e secretarias", touches: true },
+        { name: "Pessoas", detail: "Automação de RH, desempenho e terceirização de mão de obra", touches: true },
+      ],
+      brands: ["Truly", "Brisk", "Serviset", "Oros", "Estudologia", "U4Hero"],
+      values: ["Valorização da pessoa humana", "Inovação", "Sustentabilidade"],
+      adds: [
+        { title: "Método Matriz IFT", body: "Mensurar, educar, transformar e evoluir, com um responsável por etapa." },
+        { title: "Leitura coletiva do bem-estar", body: "Resultados do grupo, nunca respostas individuais." },
+        { title: "Ação com devolutiva", body: "Prioridade, responsável, prazo e evidência registrados e devolvidos às equipes." },
+      ],
+      source: { label: "isgsa.com.br", href: "https://www.isgsa.com.br/" },
+      checked: "Consultado em 24/11/2026",
+      note: "Descrição conforme o site institucional da ISG; não são dados de porte da empresa.",
     },
     window:
       "Agora: escolher a unidade inicial e encaixar as cinco etapas no calendário da ISG, sem disputar espaço com períodos críticos da operação.",

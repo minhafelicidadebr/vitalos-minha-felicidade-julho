@@ -37,6 +37,7 @@ import {
   StageDetail,
   Understand,
 } from "./ProposalV3";
+import { IsgInfographic } from "./IsgInfographic";
 import { IFT_ORDER } from "./proposal-shared";
 import type { Availability, ClaimKind, JourneyStage, ProposalContent } from "./types";
 import "./proposal.css";
@@ -365,38 +366,6 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
           </div>
         </section>
 
-        {/* 2 · Pergunta de abertura */}
-        <section aria-labelledby="titulo-pergunta" className="proposal-section space-y-6">
-          <div className="max-w-4xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              A pergunta
-            </p>
-            <h2
-              id="titulo-pergunta"
-              className="font-serif text-2xl leading-snug text-foreground sm:text-4xl"
-            >
-              “{p.opening.question}”
-            </h2>
-            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <Tag kind="hipotese" /> {p.opening.note}
-            </p>
-          </div>
-          <ol className="grid gap-4 md:grid-cols-3">
-            {p.opening.difficulties.map((d, i) => (
-              <li
-                key={d.title}
-                className="proposal-card rounded-2xl border border-border bg-card p-5"
-              >
-                <span className="font-serif text-2xl text-accent-foreground/70 tabular-nums">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-1 text-lg font-semibold text-foreground">{d.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{d.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
         {/* 3 · Por que Instituto e ISG */}
         <section aria-labelledby="titulo-porque" className="proposal-section space-y-6">
           <SectionHead
@@ -421,6 +390,7 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
               </article>
             ))}
           </div>
+          <IsgInfographic map={p.why.isgMap} />
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
             <div className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-center gap-2">

@@ -128,7 +128,7 @@ export function LensToAction({ slide = false }: { slide?: boolean }) {
 export function EconomicScenario({ slide = false }: { slide?: boolean }) {
   const [days, setDays] = useState(90);
   const [staff, setStaff] = useState(100);
-  const [unitCost, setUnitCost] = useState(300);
+  const [unitCost, setUnitCost] = useState(180);
   const estimate = calculateOutcomeScenario({ reference: 100, alternative: days, unitValue: unitCost, actionCost: 0 });
   const uid = useId();
   const Heading = slide ? "h2" : "h3";
@@ -228,10 +228,24 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
               </li>
             ))}
           </ol>
-          <p>Exemplo sintético: os registros mostrados na demonstração são ilustrativos e não representam resultados da ISG.</p>
+          <div className="proposal-demo-mock" role="img" aria-label="Exemplo sintético de duas telas do dashboard: leitura coletiva e ações do ciclo">
+            <div>
+              <strong>Leitura coletiva · exemplo</strong>
+              {[["Apoio da liderança", 72], ["Clareza de papéis", 58], ["Recuperação", 46], ["Reconhecimento", 64]].map(([n, v]) => (
+                <span key={n as string} className="proposal-demo-bar"><em>{n}</em><i style={{ width: v + "%" }} /><b>{v}</b></span>
+              ))}
+            </div>
+            <div>
+              <strong>Ações do ciclo · exemplo</strong>
+              {[["Passagem de turno", "Em andamento"], ["Pausas entre reuniões", "Planejada"], ["Devolutiva às equipes", "Concluída"]].map(([n, s]) => (
+                <span key={n} className="proposal-demo-row"><em>{n}</em><b>{s}</b></span>
+              ))}
+            </div>
+          </div>
+          <p>Exemplo sintético: valores e ações fictícios, identificados como tal; não representam resultados da ISG.</p>
           <p className="text-sm">Fonte: telas "Leitura Q2 da organização" e "Ações do ciclo a partir da FIB-T" do dashboard VitalOS.</p>
         </Understand>
-        <Understand label="Abrir dashboard institucional" title="Abrir as telas do dashboard" variant="secondary"
+        <Understand label="Entrar com conta autorizada" title="Abrir as telas do dashboard" variant="secondary"
           description="Para quem tem conta autorizada na organização.">
           <p>A senha da proposta abre a apresentação. O dashboard tem acesso próprio: peça ao Instituto uma conta autorizada para a organização e entre com ela. Depois do acesso, o retorno leva à tela escolhida.</p>
           <p>Pré-requisitos: conta autorizada, organização vinculada e leitura publicada. Sem eles, a tela informa o motivo e não mostra dados.</p>
@@ -275,6 +289,22 @@ const evidenceGroups = [
 ];
 const evidenceSource = "https://www.gallup.com/workplace/321725/gallup-q12-meta-analysis.aspx";
 
+/** Barras proporcionais à diferença declarada (ex.: −78%). Ilustração de proporção, não de medição da ISG. */
+function RatioBars({ value }: { value: string }) {
+  const m = /^([−+])(\d+)%$/.exec(value);
+  if (!m) return null;
+  const n = Number(m[2]);
+  // Quartil inferior = referência (100); o superior difere em n%.
+  const lowLen = 100, topLen = m[1] === "+" ? 100 + n : 100 - n;
+  const scale = Math.max(lowLen, topLen);
+  return (
+    <span className="proposal-ratio" aria-hidden>
+      <span className="proposal-ratio-row"><i style={{ width: (lowLen / scale) * 100 + "%" }} />Quartil inferior</span>
+      <span className="proposal-ratio-row is-top"><i style={{ width: (topLen / scale) * 100 + "%" }} />Quartil superior</span>
+    </span>
+  );
+}
+
 export function EvidencePanels({ slide = false }: { slide?: boolean }) {
   const [active, setActive] = useState(0);
   const Heading = slide ? "h2" : "h3";
@@ -285,13 +315,17 @@ export function EvidencePanels({ slide = false }: { slide?: boolean }) {
       <div>
         <p className="proposal-ivo-kicker">Referências para decidir</p>
         <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Por que vale agir e o que acompanhar</Heading>
-        <p>Dois números globais ajudam a dimensionar o tema. Depois, três grupos de decisões de gestão para acompanhar.</p>
+        <p className="proposal-evidence-intro">Dois números globais ajudam a dimensionar o tema. Depois, três grupos de decisões de gestão para acompanhar.</p>
       </div>
       <div className="proposal-who-numbers" role="group" aria-label="Estimativa da OMS e da OIT">
         <div className="proposal-who-card">
           <Globe2 aria-hidden size={22} />
           <strong className="proposal-who-value">12 bilhões</strong>
           <span>de dias de trabalho perdidos por ano, associados à depressão e à ansiedade no mundo.</span>
+          <span className="proposal-picto" role="img" aria-label="Doze blocos; cada bloco representa 1 bilhão de dias">
+            {Array.from({ length: 12 }, (_, i) => <i key={i} />)}
+          </span>
+          <span className="proposal-picto-key">Cada bloco = 1 bilhão de dias</span>
         </div>
         <div className="proposal-who-card">
           <TrendingUp aria-hidden size={22} />
@@ -309,7 +343,7 @@ export function EvidencePanels({ slide = false }: { slide?: boolean }) {
       </div>
       <div id={uid} className={"proposal-ivo-grid proposal-no-print proposal-evidence-panel proposal-tone-" + group.tone} aria-live="polite">
         <p className="proposal-evidence-title"><group.icon aria-hidden size={18} /> {group.name}</p>
-        {group.cards.map(([value, label, detail]) => <div key={value} className="proposal-ivo-card proposal-tone-card"><strong>{value}</strong><span>{label}</span><span>{detail}</span></div>)}
+        {group.cards.map(([value, label, detail]) => <div key={value} className="proposal-ivo-card proposal-tone-card"><strong>{value}</strong><span>{label}</span><RatioBars value={value} /><span>{detail}</span></div>)}
       </div>
       <div className="proposal-ivo-print">
         {evidenceGroups.map(({ name, cards }) => <div key={name}><strong>{name}</strong>{cards.map(([value, label, detail]) => <p key={value}>{value} · {label}. {detail}</p>)}</div>)}
@@ -345,10 +379,34 @@ export function BrasiliaTransition({ slide = false }: { slide?: boolean }) {
   );
 }
 
+/** Silhueta vetorial estilizada do horizonte modernista de Brasília. Ilustração, não fotografia. */
+function BrasiliaSkyline() {
+  return (
+    <svg className="proposal-skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" aria-hidden focusable="false">
+      <g fill="currentColor">
+        <rect x="0" y="196" width="1200" height="24" />
+        {/* Congresso: torres gêmeas, cúpulas e base horizontal */}
+        <rect x="500" y="176" width="260" height="20" />
+        <rect x="574" y="70" width="26" height="106" /><rect x="640" y="70" width="26" height="106" />
+        <path d="M470 176 a62 40 0 0 1 124 0 Z" opacity="0.8" />
+        <path d="M640 136 a62 40 0 0 0 124 0 Z" opacity="0.8" />
+        {/* Catedral: hipérboles */}
+        <path d="M900 196 L915 120 L930 100 L945 120 L960 196 L950 196 L938 128 L930 116 L922 128 L910 196 Z" />
+        <path d="M884 196 L912 112 M976 196 L948 112" stroke="currentColor" strokeWidth="3" fill="none" />
+        {/* Quadras e eixo */}
+        <rect x="60" y="166" width="90" height="30" /><rect x="170" y="150" width="70" height="46" /><rect x="260" y="172" width="110" height="24" />
+        <rect x="1010" y="158" width="80" height="38" /><rect x="1110" y="170" width="70" height="26" />
+      </g>
+    </svg>
+  );
+}
+
 export function BrasiliaContinuation({ slide = false }: { slide?: boolean }) {
   const Heading = slide ? "h2" : "h3";
   return (
-    <div className="proposal-ivo-block proposal-calm">
+    <div className="proposal-ivo-block proposal-calm proposal-brasilia-scene">
+      <BrasiliaSkyline />
+      <span className="proposal-skyline-credit">Ilustração estilizada do horizonte de Brasília</span>
       <div>
         <p className="proposal-ivo-kicker">Cooperação institucional · escopo próprio</p>
         <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>O próximo passo para Brasília</Heading>
@@ -421,6 +479,29 @@ const permaPractice = [
   ["A", "Realizações", "Definir um marco alcançável e tornar o progresso visível."],
   ["V", "Vitalidade", "Discutir pausas, recuperação e condições para sustentá-las."],
 ] as const;
+
+/** Alerta visual NR-1: sem valores de multa; o enquadramento é conferido na NR-28 com SST e jurídico. */
+export function Nr1Alert() {
+  return (
+    <figure className="proposal-nr1alert" aria-label="NR-1: riscos psicossociais e fiscalização">
+      <svg viewBox="0 0 120 140" role="img" aria-label="Escudo com balança e sinal de atenção" className="proposal-nr1alert-art">
+        <path d="M60 8 L108 26 V68 C108 98 88 120 60 132 C32 120 12 98 12 68 V26 Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M60 22 L96 35 V68 C96 91 81 108 60 118 C39 108 24 91 24 68 V35 Z" fill="currentColor" opacity="0.1" />
+        <path d="M60 44 V92 M40 52 H80 M40 52 L30 74 H50 Z M80 52 L70 74 H90 Z M46 94 H74" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="94" cy="26" r="13" fill="var(--nr1-alert)" />
+        <path d="M94 19 V28 M94 32 V33" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
+      </svg>
+      <div className="proposal-nr1alert-body">
+        <p className="proposal-ivo-kicker">NR-1 · riscos psicossociais</p>
+        <div className="proposal-nr1alert-cols">
+          <p><strong>O que se espera.</strong> Identificar, avaliar e prevenir os riscos do trabalho, inclusive os psicossociais, com registro no PGR.</p>
+          <p className="is-alert"><strong>O que está em jogo.</strong> A inspeção pode aplicar penalidades. A graduação depende do item, da gravidade e do porte (NR-28).</p>
+        </div>
+        <p className="proposal-nr1alert-note">Sem valores aqui de propósito: o enquadramento é conferido com SST e jurídico. Apoio educativo; não substitui o PGR.</p>
+      </div>
+    </figure>
+  );
+}
 
 export function Nr1Enforcement() {
   return (
@@ -507,7 +588,7 @@ export function InstrumentSlide({ code, slide = false }: { code: typeof proposal
           <div><dt>Como usar no Agir</dt><dd>{lens.action}</dd></div>
           <div><dt>O que acompanhar</dt><dd>{lens.evidence}</dd></div>
         </dl>
-        {code === "Q1" ? <Nr1Enforcement /> : <FibBackground />}
+        {code === "Q1" ? <><Nr1Alert /><Nr1Enforcement /></> : <FibBackground />}
       </>}
     </div>
   );
@@ -519,12 +600,17 @@ export function InstituteTrajectory({ slide = false }: { slide?: boolean }) {
     <div className={slide ? "proposal-ivo-block proposal-institute-slide" : "proposal-ivo-block"}>
       <p className="proposal-ivo-kicker">Instituto Felicidade para Todos</p>
       <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Da pesquisa em Brasília a novas formas de aprender</Heading>
-      <ol className="proposal-perma-grid">
-        <li className="proposal-ivo-card proposal-ift-color"><strong>Pesquisa FIB de Brasília</strong><span>Escuta sobre bem-estar no território, com apoio da ISG.</span></li>
-        <li className="proposal-ivo-card proposal-ift-color"><strong>Transforma-DF</strong><span>Lançamento do primeiro Relatório FIB de Brasília, conforme registro do Instituto.</span></li>
-        <li className="proposal-ivo-card proposal-ift-color"><strong>Conferência de Felicidade de Brasília</strong><span>A trajetória institucional registra a conferência como espaço de diálogo público.</span></li>
+      <div className="proposal-bento">
+      <article className="proposal-bento-hero">
+        <span className="proposal-bento-tag">Destaque</span>
+        <strong>Pesquisa FIB de Brasília</strong>
+        <span>Escuta sobre bem-estar no território, com apoio da ISG.</span>
+      </article>
+      <ol className="proposal-bento-side" data-reveal-group>
+        <li><strong>Transforma-DF</strong><span>Lançamento do primeiro Relatório FIB de Brasília, conforme registro do Instituto.</span></li>
+        <li><strong>Conferência de Felicidade de Brasília</strong><span>A trajetória institucional registra a conferência como espaço de diálogo público.</span></li>
       </ol>
-      <ul className="proposal-ivo-grid proposal-projects">
+      <ul className="proposal-ivo-grid proposal-projects" data-reveal-group>
         {[
           [formationPhoto, "Formação em Ciência da Felicidade", "Formação aplicada em bem-estar."],
           [youthPhoto, "Bem-Estar Educacional para Jovens", "Atividades educativas para o cotidiano."],
@@ -535,7 +621,8 @@ export function InstituteTrajectory({ slide = false }: { slide?: boolean }) {
           <div><strong>{title}</strong><p>{body}</p></div>
         </li>)}
       </ul>
-      <p className="proposal-ivo-note">Imagens ilustrativas. Fontes institucionais: atuação do IFT em 2025–2026 e material da parceria IFT e ISG.</p>
+      </div>
+      <p className="proposal-ivo-note">Imagens ilustrativas. Fontes institucionais: atuação do IFT em 2025–2026 e material do Instituto e da ISG.</p>
     </div>
   );
 }

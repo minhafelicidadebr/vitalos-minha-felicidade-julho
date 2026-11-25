@@ -181,12 +181,20 @@ export interface ProposalContent {
   summary: { label: string; title: string; body: string }[];
   opening: {
     question: string;
-    note: string;
-    difficulties: { title: string; body: string }[];
   };
   why: {
     parties: { name: string; role: string; body: string }[];
     affinity: { body: string; source: ProposalLink; checked: string };
+    /** Mapa do que a ISG declara no site institucional × o que o Instituto soma. */
+    isgMap: {
+      fronts: { name: string; detail: string; touches?: boolean }[];
+      brands: string[];
+      values: string[];
+      adds: { title: string; body: string }[];
+      source: ProposalLink;
+      checked: string;
+      note: string;
+    };
     window: string;
   };
   scenario: {

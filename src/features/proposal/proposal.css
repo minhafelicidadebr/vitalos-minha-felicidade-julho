@@ -1148,3 +1148,132 @@ button.proposal-ivo-card[aria-pressed="true"] { border-color:var(--primary); box
 .proposal-slide .proposal-who-card > svg { display: none; }
 .proposal-slide .proposal-evidence-tab > svg { display: none; }
 .proposal-slide .proposal-evidence-panel > .proposal-evidence-title { margin-bottom: 0.2em; }
+
+/* ───────── V5 ───────── */
+.proposal { --nr1-alert: oklch(0.62 0.17 55); }
+.dark .proposal, .proposal.dark { --nr1-alert: oklch(0.74 0.15 65); }
+
+/* Fundo de pontos nos slides claros: some em direção ao conteúdo, só aparece nas bordas */
+.proposal-slides-stage .proposal-slide:not(.is-dark):not(.is-divider):not(.is-mesh) {
+  background-color: var(--card);
+  background-image:
+    radial-gradient(ellipse 62% 58% at 42% 52%, var(--card) 55%, transparent 100%),
+    radial-gradient(circle, color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1.3px);
+  background-size: 100% 100%, 26px 26px;
+}
+
+/* Entrada sequencial dos cartões (só no palco; desligada com movimento reduzido) */
+@keyframes proposal-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.proposal-slides-stage .proposal-slide:not(.is-divider) :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > * {
+  animation: proposal-rise 420ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(1) { animation-delay: 80ms; }
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(2) { animation-delay: 160ms; }
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(3) { animation-delay: 240ms; }
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(4) { animation-delay: 320ms; }
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(5) { animation-delay: 400ms; }
+.proposal-slides-stage .proposal-slide :is([data-reveal-group], .proposal-ivo-grid, .proposal-perma-grid, .proposal-demo-flow) > :nth-child(n+6) { animation-delay: 480ms; }
+@media (prefers-reduced-motion: reduce) {
+  .proposal-slides-stage .proposal-slide * { animation: none !important; }
+}
+.a11y-reduce-motion .proposal-slides-stage .proposal-slide * { animation: none !important; }
+
+/* Infográfico ISG × Instituto */
+.proposal-isgmap {
+  display: grid; gap: 0.9em 1.2em; grid-template-columns: 1fr auto 1fr; align-items: stretch; margin: 0;
+}
+.proposal-isgmap-side { display: grid; gap: 0.55em; align-content: start; }
+.proposal-isgmap-kicker { font-size: 0.78em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fpt-accent-text, var(--primary)); margin: 0; }
+.proposal-isgmap-title { font-family: var(--font-serif, Georgia, serif); font-size: 1.25em; line-height: 1.15; font-weight: 400; margin: 0; }
+.proposal-isgmap-fronts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45em; grid-template-columns: 1fr 1fr; }
+.proposal-isgmap-fronts li {
+  display: grid; gap: 0.15em; padding: 0.6em 0.75em; border: 1px solid var(--border); border-radius: 0.8em; background: var(--card);
+  border-left: 4px solid color-mix(in oklch, var(--fpt-teal) 55%, var(--border)); font-size: 0.88em;
+}
+.proposal-isgmap-fronts li.is-touch { border-left-color: var(--fpt-accent-text, var(--primary)); background: color-mix(in oklch, var(--fpt-yellow) 14%, var(--card)); }
+.proposal-isgmap-fronts li svg { color: var(--fpt-accent-text, var(--primary)); }
+.proposal-isgmap-fronts li span { color: var(--muted-foreground); font-size: 0.92em; }
+.proposal-isgmap-brands, .proposal-isgmap-values { margin: 0; font-size: 0.85em; display: grid; gap: 0.1em; }
+.proposal-isgmap-brands span, .proposal-isgmap-values span { font-size: 0.82em; font-weight: 700; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; }
+.proposal-isgmap-bridge { display: grid; place-items: center; gap: 0.3em; text-align: center; font-size: 0.78em; font-weight: 700; color: var(--fpt-accent-text, var(--primary)); max-width: 7em; }
+.proposal-isgmap-bridge i { width: 2px; height: 100%; min-height: 3em; background: linear-gradient(var(--fpt-teal), var(--fpt-yellow)); border-radius: 2px; }
+.proposal-isgmap-adds { padding: 0.9em 1em; border-radius: 1em; background: color-mix(in oklch, var(--fpt-teal) 9%, var(--card)); border: 1px solid color-mix(in oklch, var(--fpt-teal) 35%, var(--border)); }
+.proposal-isgmap-adds ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55em; }
+.proposal-isgmap-adds li { display: grid; gap: 0.1em; font-size: 0.9em; }
+.proposal-isgmap-adds li span { color: var(--muted-foreground); }
+.proposal-isgmap-source { grid-column: 1 / -1; font-size: 0.78em; color: var(--muted-foreground); }
+.proposal-isgmap-source a { text-decoration: underline; }
+@media (max-width: 760px) {
+  .proposal-isgmap { grid-template-columns: 1fr; }
+  .proposal-isgmap-bridge { max-width: none; grid-auto-flow: column; }
+  .proposal-isgmap-bridge i { width: 100%; height: 2px; min-height: 0; }
+  .proposal-isgmap-fronts { grid-template-columns: 1fr; }
+}
+
+/* Alerta NR-1 */
+.proposal-nr1alert {
+  display: grid; grid-template-columns: auto 1fr; gap: 1em; align-items: center; margin: 0;
+  padding: 0.9em 1.1em; border-radius: 1em; color: var(--foreground);
+  background: linear-gradient(100deg, color-mix(in oklch, var(--nr1-alert) 14%, var(--card)), var(--card) 70%);
+  border: 1px solid color-mix(in oklch, var(--nr1-alert) 45%, var(--border)); border-left: 6px solid var(--nr1-alert);
+}
+.proposal-nr1alert-art { width: 4.6em; height: auto; color: var(--fpt-teal); flex: none; }
+.proposal-nr1alert-body { display: grid; gap: 0.4em; }
+.proposal-nr1alert-cols { display: grid; gap: 0.6em 1.2em; grid-template-columns: 1fr 1fr; }
+.proposal-nr1alert-cols p { margin: 0; font-size: 0.92em; }
+.proposal-nr1alert-cols .is-alert strong { color: color-mix(in oklch, var(--nr1-alert) 70%, var(--foreground)); }
+.proposal-nr1alert-note { margin: 0; font-size: 0.78em; color: var(--muted-foreground); }
+@media (max-width: 640px) { .proposal-nr1alert { grid-template-columns: 1fr; } .proposal-nr1alert-cols { grid-template-columns: 1fr; } .proposal-nr1alert-art { width: 3.4em; } }
+
+/* Pictograma OMS e barras proporcionais Gallup */
+.proposal-picto { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.3em; }
+.proposal-picto i { width: 0.8em; height: 0.8em; border-radius: 2px; background: var(--fpt-teal); opacity: 0.85; }
+.proposal-picto-key { font-size: 0.75em; color: var(--muted-foreground); }
+.proposal-ratio { display: grid; gap: 3px; margin: 0.2em 0 0.1em; }
+.proposal-ratio-row { display: grid; grid-template-columns: 1fr; gap: 1px; font-size: 0.72em; color: var(--muted-foreground); }
+.proposal-ratio-row i { display: block; height: 0.55em; border-radius: 3px; background: color-mix(in oklch, var(--tone) 40%, var(--card)); border: 1px solid var(--tone); }
+.proposal-ratio-row.is-top i { background: var(--tone); }
+
+/* Slide 5 em bento */
+.proposal-bento { display: grid; gap: 0.7em; grid-template-columns: 1.15fr 1fr; grid-template-rows: auto auto; }
+.proposal-bento-hero {
+  display: grid; gap: 0.3em; align-content: center; padding: 1em 1.2em; border-radius: 1em; color: oklch(0.98 0.004 95);
+  background: radial-gradient(120% 140% at 0% 0%, color-mix(in oklch, var(--fpt-teal) 70%, var(--fpt-ink)), var(--fpt-ink));
+}
+.proposal-bento-hero strong { font-family: var(--font-serif, Georgia, serif); font-size: 1.5em; font-weight: 400; line-height: 1.1; }
+.proposal-bento-tag { font-size: 0.72em; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--fpt-yellow); }
+.proposal-bento-side { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5em; }
+.proposal-bento-side li { display: grid; gap: 0.1em; padding: 0.6em 0.8em; border: 1px solid var(--border); border-radius: 0.8em; background: var(--card); font-size: 0.9em; }
+.proposal-bento-side li span { color: var(--muted-foreground); }
+.proposal-bento .proposal-projects { grid-column: 1 / -1; }
+@media (max-width: 760px) { .proposal-bento { grid-template-columns: 1fr; } }
+
+/* Demonstração sintética */
+.proposal-demo-mock { display: grid; gap: 0.8em; grid-template-columns: 1fr 1fr; margin: 0.8em 0; padding: 0.8em; border-radius: 0.9em; border: 1px dashed var(--border); background: var(--muted); }
+.proposal-demo-mock > div { display: grid; gap: 0.4em; align-content: start; background: var(--card); border-radius: 0.7em; padding: 0.7em; }
+.proposal-demo-bar { display: grid; grid-template-columns: 8em 1fr 2em; align-items: center; gap: 0.4em; font-size: 0.82em; }
+.proposal-demo-bar em { font-style: normal; }
+.proposal-demo-bar i { display: block; height: 0.6em; border-radius: 3px; background: var(--fpt-teal); }
+.proposal-demo-row { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.82em; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
+.proposal-demo-row em { font-style: normal; }
+@media (max-width: 640px) { .proposal-demo-mock { grid-template-columns: 1fr; } }
+
+/* Brasília: silhueta vetorial atrás do conteúdo */
+.proposal-brasilia-scene { position: relative; isolation: isolate; }
+.proposal-skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 42%; color: var(--fpt-teal); opacity: 0.12; z-index: -1; pointer-events: none; }
+.dark .proposal-skyline { color: var(--fpt-yellow); opacity: 0.14; }
+.proposal-skyline-credit { position: absolute; right: 0.6em; bottom: 0.3em; font-size: 0.68em; color: var(--muted-foreground); }
+@media print { .proposal-skyline { opacity: 0.1; } }
+
+.proposal-slide .proposal-picto { margin-top: 0.1em; }
+.proposal-slide .proposal-picto i { width: 0.55em; height: 0.55em; }
+.proposal-slide .proposal-picto-key { display: none; }
+.proposal-slide .proposal-ratio { margin: 0; }
+.proposal-slide .proposal-ratio-row { font-size: 0.6em; }
+.proposal-slide .proposal-ratio-row i { height: 0.4em; }
+.proposal-slide .proposal-who-card { padding: 0.45em 0.9em; }
+
+.proposal-isgmap-adds { align-content: center; }
+.proposal-skyline { bottom: -6.5em; height: 7.5em; opacity: 0.16; }
+.proposal-brasilia-scene { margin-bottom: 4.5em; }
+.proposal-slide .proposal-evidence-intro { display: none; }

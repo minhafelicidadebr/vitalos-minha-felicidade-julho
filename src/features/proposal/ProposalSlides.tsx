@@ -30,6 +30,7 @@ import {
   Understand,
   ValueBridge,
 } from "./ProposalV3";
+import { IsgInfographic } from "./IsgInfographic";
 import { DialogContainer, IFT_ICON, IFT_ORDER, brl } from "./proposal-shared";
 import type { ProposalContent } from "./types";
 import "./proposal.css";
@@ -93,22 +94,13 @@ function buildSlides(p: ProposalContent): Slide[] {
     ),
   });
   add({
-    id: "pergunta",
+    id: "isg-mapa",
     chapter: "Abertura",
-    title: "A pergunta",
+    title: "O que a ISG comunica e faz",
     body: (
-      <div className="grid h-full content-center gap-[1.4em]">
+      <div className="grid h-full content-center gap-[0.9em]">
         <Title>“{p.opening.question}”</Title>
-        <ol className="grid gap-[0.8em] md:grid-cols-3">
-          {p.opening.difficulties.map((d, i) => (
-            <li key={d.title} className="slide-card slide-brand-top">
-              <span className="slide-num">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="slide-h3">{d.title}</h3>
-              <p className="slide-small">{d.body}</p>
-            </li>
-          ))}
-        </ol>
-        <p className="slide-small">Hipótese para a conversa. {p.opening.note}</p>
+        <IsgInfographic map={p.why.isgMap} slide />
       </div>
     ),
   });
