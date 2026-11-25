@@ -3,7 +3,8 @@ import youthPhoto from "@/assets/educational-innovations-hollywood-learning.jpg"
 import schoolPhoto from "@/assets/methodology-human-innovation-cycle.jpg";
 import preventionPhoto from "@/assets/nr1-hero-people.jpg";
 import { useId, useState } from "react";
-import { Building2, Compass, HeartHandshake, Layers3, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import reportCover from "@/assets/relatorio-global-esg-cover-3d.jpg";
+import { Activity, Building2, Check, Compass, Globe2, HeartHandshake, Layers3, Lightbulb, ShieldCheck, Sparkles, TrendingUp, UserRound, UsersRound } from "lucide-react";
 import { calculateOutcomeScenario } from "@/engine/pnl/outcome-scenario";
 import { Understand } from "./ProposalV3";
 
@@ -181,6 +182,15 @@ export function EconomicScenario({ slide = false }: { slide?: boolean }) {
   );
 }
 
+const demoFlow = [
+  { title: "Leitura coletiva", screen: "Leitura Q2 da organização", who: "RH e liderança", body: "Fatores da FIB-T e escore bruto, como publicados, sempre em grupos com pelo menos 5 respostas." },
+  { title: "Prioridade", screen: "Prioridades do ciclo", who: "RH, com a liderança", body: "A equipe escolhe um tema da leitura para trabalhar primeiro." },
+  { title: "Ação", screen: "Plano de Ação", who: "Liderança", body: "Uma ação concreta e pequena, descrita em linguagem simples." },
+  { title: "Responsável", screen: "Responsável, prazo e indicador", who: "RH define; liderança assume", body: "Quem conduz, até quando e como a equipe vai perceber o avanço." },
+  { title: "Evidência", screen: "Evidência de execução", who: "Liderança registra", body: "O que foi feito fica registrado. Evidência mostra que a ação aconteceu, não que o indicador melhorou." },
+  { title: "Reavaliação", screen: "Devolutiva da Onda", who: "RH, liderança e equipe", body: "A equipe vê o que foi feito e o que ficou pendente; a mudança só se avalia com nova leitura comparável." },
+];
+
 export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
   const [step, setStep] = useState(0);
   const Heading = slide ? "h2" : "h3";
@@ -202,16 +212,36 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
         <article className="proposal-ivo-card proposal-ift-color"><strong>Liderança · Plano e execução</strong><span>Conduz as ações atribuídas, registra o que foi feito e leva obstáculos para a revisão.</span></article>
         <article className="proposal-ivo-card proposal-ift-color"><strong>Equipe · Devolutiva da Onda</strong><span>Acompanha o retorno coletivo. Missões e Embaixadorias são opções de engajamento conforme o perfil e o ambiente.</span></article>
       </div>
-      <div className="proposal-ivo-links">
-        <a href="https://pesquisadefelicidade.com.br/isg/apresentacao" target="_blank" rel="noreferrer">Abrir devolutiva FIB-T da ISG</a>
-        <Understand label="Acesso ao dashboard institucional" title="Como abrir as telas reais" description="Use uma conta autorizada na organização." variant="button">
-          <p>A senha da proposta abre apenas a apresentação. O aplicativo exige uma sessão própria. Para mostrar os resultados da ISG no Q2, a leitura precisa estar publicada e vinculada à organização.</p>
+      <div className="proposal-ivo-links proposal-no-print">
+        <Understand label="Ver demonstração" title="Da leitura coletiva à reavaliação" variant="primary"
+          description="A sequência de uma ação, com o que RH, liderança e equipe fazem em cada ponto. Exemplo demonstrativo, com dados fictícios.">
+          <ol className="proposal-demo-flow">
+            {demoFlow.map(({ title, screen, who, body }, i) => (
+              <li key={title} className="proposal-demo-step">
+                <span aria-hidden className="proposal-demo-num">{i + 1}</span>
+                <div>
+                  <strong>{title}</strong>
+                  <span className="proposal-demo-screen">{screen}</span>
+                  <p>{body}</p>
+                  <p className="proposal-demo-who"><em>Quem:</em> {who}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p>Exemplo sintético: os registros mostrados na demonstração são ilustrativos e não representam resultados da ISG.</p>
+          <p className="text-sm">Fonte: telas "Leitura Q2 da organização" e "Ações do ciclo a partir da FIB-T" do dashboard VitalOS.</p>
+        </Understand>
+        <Understand label="Abrir dashboard institucional" title="Abrir as telas do dashboard" variant="secondary"
+          description="Para quem tem conta autorizada na organização.">
+          <p>A senha da proposta abre a apresentação. O dashboard tem acesso próprio: peça ao Instituto uma conta autorizada para a organização e entre com ela. Depois do acesso, o retorno leva à tela escolhida.</p>
+          <p>Pré-requisitos: conta autorizada, organização vinculada e leitura publicada. Sem eles, a tela informa o motivo e não mostra dados.</p>
           <div className="proposal-ivo-links">
-            <a href="/ivo-integral/q2" target="_blank" rel="noreferrer">Abrir Q2 com sessão institucional</a>
-            <a href="/ivo-integral/acoes" target="_blank" rel="noreferrer">Abrir Agir com sessão institucional</a>
+            <a href="/ivo-integral/q2" target="_blank" rel="noreferrer">Leitura Q2 da organização</a>
+            <a href="/ivo-integral/acoes" target="_blank" rel="noreferrer">Ações do ciclo a partir da FIB-T</a>
           </div>
         </Understand>
       </div>
+      <p className="proposal-ivo-note proposal-ivo-print">Devolutiva FIB-T da ISG: material de acesso restrito, apresentado pelo Instituto à organização.</p>
       <div className="proposal-ivo-grid proposal-no-print" role="group" aria-label="Etapas da ação">
         {steps.map(({ title }, index) => <button type="button" key={title} className="proposal-ivo-card"
           aria-pressed={step === index} onClick={() => setStep(index)}><strong>{title}</strong></button>)}
@@ -229,16 +259,16 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
 }
 
 const evidenceGroups = [
-  { name: "Saúde e presença", cards: [
+  { name: "Saúde e presença", tone: "saude", icon: Activity, cards: [
     ["−78%", "Absenteísmo", "Diferença mediana entre unidades nos quartis superior e inferior de engajamento."],
     ["−63%", "Incidentes de segurança", "Mesma comparação entre unidades de trabalho."],
     ["Burnout", "Tema para acompanhar", "Investigar condições de trabalho, demandas e recursos com medidas próprias."],
   ] },
-  { name: "Desempenho e retenção", cards: [
+  { name: "Desempenho e retenção", tone: "desempenho", icon: TrendingUp, cards: [
     ["+18%", "Produtividade medida por vendas", "Diferença mediana entre quartis de engajamento."],
     ["−51%", "Rotatividade", "Comparação em organizações de baixa rotatividade, conforme a classificação do estudo."],
   ] },
-  { name: "Adaptação e inovação", cards: [
+  { name: "Adaptação e inovação", tone: "inovacao", icon: Lightbulb, cards: [
     ["Adaptabilidade", "Pergunta para a gestão", "Como as equipes experimentam, aprendem e ajustam a forma de trabalhar?"],
     ["Inovação", "Pergunta para a gestão", "Como as equipes transformam sugestões e aprendizados em melhorias?"],
   ] },
@@ -255,15 +285,31 @@ export function EvidencePanels({ slide = false }: { slide?: boolean }) {
       <div>
         <p className="proposal-ivo-kicker">Referências para decidir</p>
         <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Por que vale agir e o que acompanhar</Heading>
-        <p>A OMS e a OIT estimam que a depressão e a ansiedade estejam associadas a 12 bilhões de dias de trabalho perdidos por ano e a cerca de US$ 1 trilhão em perdas de produtividade no mundo.</p>
-        <a className="underline" href="https://www.who.int/europe/news/item/28-09-2022-who-and-ilo-call-for-new-measures-to-tackle-mental-health-issues-at-work">Fonte: OMS e OIT</a>
+        <p>Dois números globais ajudam a dimensionar o tema. Depois, três grupos de decisões de gestão para acompanhar.</p>
       </div>
-      <div className="proposal-ivo-grid proposal-no-print" role="group" aria-label="Temas de evidência">
-        {evidenceGroups.map(({ name }, i) => <button key={name} type="button" className="proposal-ivo-card"
-          aria-pressed={active === i} aria-controls={uid} onClick={() => setActive(i)}><strong>{name}</strong></button>)}
+      <div className="proposal-who-numbers" role="group" aria-label="Estimativa da OMS e da OIT">
+        <div className="proposal-who-card">
+          <Globe2 aria-hidden size={22} />
+          <strong className="proposal-who-value">12 bilhões</strong>
+          <span>de dias de trabalho perdidos por ano, associados à depressão e à ansiedade no mundo.</span>
+        </div>
+        <div className="proposal-who-card">
+          <TrendingUp aria-hidden size={22} />
+          <strong className="proposal-who-value">US$ 1 trilhão</strong>
+          <span>em perdas de produtividade por ano, estimadas para o mesmo conjunto.</span>
+        </div>
       </div>
-      <div id={uid} className="proposal-ivo-grid proposal-no-print" aria-live="polite">
-        {group.cards.map(([value, label, detail]) => <div key={value} className="proposal-ivo-card"><strong>{value}</strong><span>{label}</span><span>{detail}</span></div>)}
+      <p className="proposal-ivo-note">Estimativa global da OMS e da OIT, de alcance mundial; não é um dado da ISG. <a className="underline" href="https://www.who.int/europe/news/item/28-09-2022-who-and-ilo-call-for-new-measures-to-tackle-mental-health-issues-at-work" target="_blank" rel="noreferrer">Fonte: OMS e OIT</a></p>
+      <div className="proposal-ivo-grid proposal-no-print" role="group" aria-label="Temas de decisão">
+        {evidenceGroups.map(({ name, tone, icon: Icon }, i) => <button key={name} type="button" className={"proposal-ivo-card proposal-evidence-tab proposal-tone-" + tone}
+          aria-pressed={active === i} aria-controls={uid} onClick={() => setActive(i)}>
+          <Icon aria-hidden size={20} /><strong>{name}</strong>
+          {active === i ? <span className="proposal-evidence-selected"><Check aria-hidden size={14} /> Selecionado</span> : null}
+        </button>)}
+      </div>
+      <div id={uid} className={"proposal-ivo-grid proposal-no-print proposal-evidence-panel proposal-tone-" + group.tone} aria-live="polite">
+        <p className="proposal-evidence-title"><group.icon aria-hidden size={18} /> {group.name}</p>
+        {group.cards.map(([value, label, detail]) => <div key={value} className="proposal-ivo-card proposal-tone-card"><strong>{value}</strong><span>{label}</span><span>{detail}</span></div>)}
       </div>
       <div className="proposal-ivo-print">
         {evidenceGroups.map(({ name, cards }) => <div key={name}><strong>{name}</strong>{cards.map(([value, label, detail]) => <p key={value}>{value} · {label}. {detail}</p>)}</div>)}
@@ -274,34 +320,98 @@ export function EvidencePanels({ slide = false }: { slide?: boolean }) {
   );
 }
 
-export function BrasiliaContinuation({ slide = false }: { slide?: boolean }) {
-  const Heading = slide ? "h2" : "h3";
+const brasiliaMoves = [
+  { id: "mensurar", name: "Mensurar novamente", icon: Activity,
+    lead: "Uma segunda aplicação da pesquisa FIB em Brasília é o próximo passo proposto.",
+    body: "Repetir a escuta permite comparar com a primeira leitura. O lançamento local acompanha o Dia Internacional da Felicidade, proclamado pela ONU em 20 de março. A data e o ano do lançamento em Brasília dependem de confirmação da agenda do Instituto." },
+  { id: "educar", name: "Educar", icon: Lightbulb,
+    lead: "Formação introdutória em Ciência da Felicidade para a população.",
+    body: "Um exemplo concreto: uma oficina curta em que cada pessoa escolhe uma prática simples de bem-estar e a experimenta durante a semana. O Game da Felicidade complementa a experiência e segue em desenvolvimento." },
+  { id: "transformar", name: "Transformar Brasília", icon: Compass,
+    lead: "Dados e letramento orientam prioridades e a articulação de parceiros.",
+    body: "Os resultados da pesquisa e o letramento em Ciência da Felicidade ajudam a escolher prioridades e a reunir parceiros para projetos no território. A ISG apoiou a pesquisa FIB de Brasília em 2025, e o Instituto reconhece esse patrocínio." },
+] as const;
+
+export function BrasiliaTransition({ slide = false }: { slide?: boolean }) {
   return (
-    <div className="proposal-ivo-block">
-      <div>
-        <p className="proposal-ivo-kicker">Cooperação institucional</p>
-        <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>O próximo passo para Brasília</Heading>
-        <p>Da pesquisa FIB apoiada pela ISG à possibilidade de levar educação para o bem-estar à população, com tecnologia acessível.</p>
-      </div>
-      <ol className="proposal-ivo-grid">
-        <li className="proposal-ivo-card"><strong>Pesquisa</strong><span>Apoio histórico da ISG à pesquisa FIB de Brasília em 2025.</span></li>
-        <li className="proposal-ivo-card"><strong>Devolutiva</strong><span>Conhecimento reunido e compartilhado pelo Instituto.</span></li>
-        <li className="proposal-ivo-card"><strong>Próxima fase</strong><span>Oportunidade para desenhar educação, acesso e cooperação técnica.</span></li>
-      </ol>
-      <div>
-        <Understand label="Onde podemos cooperar?" title="Possibilidades de cooperação"
-          description="Uma conversa própria sobre a fase educativa de Brasília." variant="button">
-          <ul className="list-disc space-y-2 pl-5">
-            <li>Formação em Ciência da Felicidade para preparar multiplicadores.</li>
-            <li>Bem-Estar Educacional para Jovens e Game da Felicidade para explorar experiências educativas. O Game segue em desenvolvimento.</li>
-            <li>Playbook de Bem-Estar no Trabalho para apoiar oficinas com organizações.</li>
-          </ul>
-          <p>A ISG pode avaliar apoio em acessibilidade, revisão técnica ou implantação. O acesso gratuito é uma intenção do Instituto. Solução, público, custeio, operação e reconhecimento da participação futura serão definidos com as partes.</p>
-        </Understand>
-      </div>
+    <div className={"proposal-brasilia-transition" + (slide ? " is-slide" : "")}>
+      <p className="proposal-ivo-kicker proposal-on-mesh">Um segundo assunto, com escopo próprio</p>
+      <p className={slide ? "slide-cover-title" : "proposal-transition-title"}>Mensurar, educar e transformar Brasília</p>
+      <p className={slide ? "slide-lead" : "proposal-transition-lead"}>Fora da implantação do VitalOS na ISG: uma oportunidade institucional futura.</p>
+      <ul className="proposal-transition-moves" aria-label="Três movimentos">
+        {brasiliaMoves.map(({ id, name }) => <li key={id} className={"proposal-transition-chip proposal-tone-" + id}>{name}</li>)}
+      </ul>
     </div>
   );
 }
+
+export function BrasiliaContinuation({ slide = false }: { slide?: boolean }) {
+  const Heading = slide ? "h2" : "h3";
+  return (
+    <div className="proposal-ivo-block proposal-calm">
+      <div>
+        <p className="proposal-ivo-kicker">Cooperação institucional · escopo próprio</p>
+        <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>O próximo passo para Brasília</Heading>
+        <p>Da pesquisa FIB apoiada pela ISG a uma nova fase: medir de novo, educar e orientar projetos no território.</p>
+      </div>
+      <ol className="proposal-ivo-grid proposal-brasilia-moves">
+        {brasiliaMoves.map(({ id, name, icon: Icon, lead, body }, i) => (
+          <li key={id} className={"proposal-ivo-card proposal-brasilia-card proposal-tone-" + id}>
+            <span className="proposal-brasilia-num" aria-hidden>{i + 1}</span>
+            <Icon aria-hidden size={22} />
+            <strong>{name}</strong>
+            <span className="proposal-brasilia-lead">{lead}</span>
+            <span>{body}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="proposal-no-print">
+        <Understand label="Como a ISG pode contribuir?" title="Como a ISG pode contribuir"
+          description="Possibilidades para uma conversa própria. Não fazem parte da implantação do VitalOS." variant="button">
+          <p className="proposal-short-answer"><strong>Em resumo:</strong> a ISG pode contribuir com tecnologia, e o Instituto traz o conteúdo e a articulação no território.</p>
+          <h4>Exemplos de apoio</h4>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Desempenho: revisão técnica do tempo de carregamento e da estabilidade das soluções educativas.</li>
+            <li>Acessibilidade: revisão da experiência para leitores de tela, teclado, contraste e celulares simples.</li>
+            <li>Experiência de uso: percursos testados com pessoas de perfis variados.</li>
+          </ul>
+          <h4>Entregas possíveis</h4>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Parecer técnico com melhorias priorizadas.</li>
+            <li>Plano de acessibilidade e desempenho para a formação e o Game da Felicidade.</li>
+          </ul>
+          <h4>O que dependeria de um novo acordo</h4>
+          <p>Escopo, público, custeio, operação, calendário e a forma de reconhecer a participação da ISG. Esse assunto é tratado separadamente da implantação do VitalOS.</p>
+          <p className="text-sm">Fonte do Dia Internacional da Felicidade: <a className="underline" href="https://mandates.un.org/mandate/A/RES/66/281" target="_blank" rel="noreferrer">ONU · A/RES/66/281</a>.</p>
+        </Understand>
+      </div>
+      <ul className="proposal-ivo-print"><li>Como a ISG pode contribuir: apoio em desempenho, acessibilidade e experiência de uso, por meio de um novo acordo com escopo próprio.</li></ul>
+    </div>
+  );
+}
+
+export function Q5NextYearPlan({ slide = false }: { slide?: boolean }) {
+  const Heading = slide ? "h2" : "h3";
+  return (
+    <div className="proposal-ivo-block proposal-q5-card">
+      <div className="proposal-q5-copy">
+        <p className="proposal-ivo-kicker">Q5 · Consolidar</p>
+        <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Do primeiro ciclo ao plano do próximo ano</Heading>
+        <p className="proposal-short-answer">No mês 13, os registros se reúnem. No 14, a execução e os aprendizados viram uma síntese. No 15, a reunião executiva pactua o plano seguinte.</p>
+        <dl className="proposal-q5-esg">
+          <div><dt>Social</dt><dd>Bem-estar, condições de trabalho e participação ganham registro e devolutiva às equipes.</dd></div>
+          <div><dt>Governança</dt><dd>Decisões, responsáveis, prazos e revisões ficam acompanhados pela liderança e pela direção.</dd></div>
+        </dl>
+        <p>O plano do próximo ano traz prioridades, responsáveis, prazos, indicadores e data de revisão. Dados ambientais entram só onde a metodologia prevê indicadores e registros.</p>
+      </div>
+      <figure className="proposal-q5-figure">
+        <img src={reportCover} alt="Capa ilustrativa do Relatório Global ESG" loading="lazy" decoding="async" />
+        <figcaption>Capa ilustrativa. O relatório mostrado é demonstrativo.</figcaption>
+      </figure>
+    </div>
+  );
+}
+
 
 const permaPractice = [
   ["P", "Emoções positivas", "Reconhecer o que ajudou a ter um bom dia de trabalho."],
@@ -312,14 +422,46 @@ const permaPractice = [
   ["V", "Vitalidade", "Discutir pausas, recuperação e condições para sustentá-las."],
 ] as const;
 
+export function Nr1Enforcement() {
+  return (
+    <div className="proposal-no-print">
+      <Understand label="Como funciona a fiscalização?" title="Como funciona a fiscalização"
+        description="Resposta curta, critérios e fontes oficiais." variant="button">
+        <p className="proposal-short-answer"><strong>Em resumo:</strong> a inspeção do trabalho verifica se a organização identifica, avalia e previne os riscos do trabalho, inclusive os psicossociais. A NR-1 não prescreve um questionário específico; o que importa é o processo de gestão e as evidências dele.</p>
+        <h4>Como a gestão se organiza</h4>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Os fatores psicossociais entram na identificação de perigos e na avaliação de riscos do GRO, com registro no PGR.</li>
+          <li>Instrumentos como o COPSOQ são uma forma de estruturar a escuta. Os resultados são analisados com RH e SST, junto de outras evidências das condições de trabalho.</li>
+          <li>Quando há atuação da inspeção, ela considera os itens verificados e as circunstâncias de cada caso.</li>
+        </ul>
+        <h4>Como a penalidade é graduada</h4>
+        <p>Pela NR-28, a penalidade depende do item infringido, da gravidade atribuída a ele e do número de empregados da organização. Um exemplo com item, código, graduação, faixa de empregados e vigência fica pendente de validação com a fonte oficial vigente, e não é apresentado aqui.</p>
+        <p>Esta proposta não projeta penalidade para a ISG e não trata a ausência de um questionário como infração.</p>
+        <p className="text-sm">Fontes oficiais: <a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadoras/normas-regulamentadoras-vigentes/nr-1" target="_blank" rel="noreferrer">NR-1</a> · <a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadoras/normas-regulamentadoras-vigentes/norma-regulamentadora-no-28-nr-28" target="_blank" rel="noreferrer">NR-28</a></p>
+        <p className="text-sm">Apoio educativo à gestão de riscos psicossociais. Não substitui o PGR nem o profissional habilitado.</p>
+      </Understand>
+    </div>
+  );
+}
+
+export function FibBackground() {
+  return (
+    <div className="proposal-fib-note">
+      <p><strong>De onde vem o FIB.</strong> A Felicidade Interna Bruta é uma abordagem de desenvolvimento associada ao Butão. A ONU reconhece a felicidade como objetivo humano: em 2012, a Assembleia Geral proclamou 20 de março como Dia Internacional da Felicidade. O PNUD e o Centro de FIB do Butão mantêm um acordo de cooperação.</p>
+      <p><strong>Na ISG.</strong> A FIB-T leva essa abordagem ao trabalho. Tem escopo e fonte próprios e não se confunde com as pesquisas de território do Instituto.</p>
+      <p className="proposal-fib-sources">Fontes: <a className="underline" href="https://mandates.un.org/mandate/A/RES/66/281" target="_blank" rel="noreferrer">ONU · A/RES/66/281</a> · <a className="underline" href="https://www.undp.org/bhutan/news/gross-national-happiness-centre-bhutan-and-undp-sign-partnership-agreement" target="_blank" rel="noreferrer">PNUD e Centro de FIB do Butão</a></p>
+    </div>
+  );
+}
+
 export const proposalLensCodes = ["Q1", "Q2", "Q3", "Q4"] as const;
 
 export function InstrumentSlide({ code, slide = false }: { code: typeof proposalLensCodes[number]; slide?: boolean }) {
   const lens = lenses.find((entry) => entry.id === code)!;
   const Heading = slide ? "h2" : "h3";
   const meanings: Record<typeof code, string> = {
-    Q1: "Copenhagen Psychosocial Questionnaire. Ajuda a investigar demandas, autonomia e apoio no trabalho, em diálogo com RH e SST.",
-    Q2: "Felicidade Interna Bruta no Trabalho. Organiza a escuta coletiva em fatores e domínios. A devolutiva da ISG é o ponto de partida desta proposta.",
+    Q1: "O Copenhagen Psychosocial Questionnaire (COPSOQ) ajuda a investigar fatores de risco psicossociais relacionados ao trabalho, como demandas, autonomia e apoio. Seus resultados subsidiam a gestão de riscos no contexto do GRO/PGR, com RH e SST. A NR-1 não prescreve o COPSOQ como instrumento obrigatório. A coleta é a etapa seguinte da implantação.",
+    Q2: "A FIB-T adapta ao trabalho a abordagem da Felicidade Interna Bruta. Organiza a escuta coletiva em fatores e domínios, com fonte e escopo próprios. A devolutiva da ISG é o ponto de partida desta proposta.",
     Q3: "O PERMA descreve cinco dimensões do florescimento. A vitalidade amplia a conversa sobre energia e recuperação.",
     Q4: "A lente explora forças de caráter percebidas no trabalho para apoiar a reflexão individual e a prática voluntária.",
   };
@@ -359,11 +501,14 @@ export function InstrumentSlide({ code, slide = false }: { code: typeof proposal
           </ul>
           <a className="underline" href="https://www.viacharacter.org/character-strengths" target="_blank" rel="noreferrer">Fonte: VIA Institute</a>
         </Understand></div>
-      </> : <dl className="proposal-ivo-panel proposal-method-cards">
-        <div><dt>O que investigar</dt><dd>{lens.reading}</dd></div>
-        <div><dt>Como usar no Agir</dt><dd>{lens.action}</dd></div>
-        <div><dt>O que acompanhar</dt><dd>{lens.evidence}</dd></div>
-      </dl>}
+      </> : <>
+        <dl className="proposal-ivo-panel proposal-method-cards">
+          <div><dt>O que investigar</dt><dd>{lens.reading}</dd></div>
+          <div><dt>Como usar no Agir</dt><dd>{lens.action}</dd></div>
+          <div><dt>O que acompanhar</dt><dd>{lens.evidence}</dd></div>
+        </dl>
+        {code === "Q1" ? <Nr1Enforcement /> : <FibBackground />}
+      </>}
     </div>
   );
 }

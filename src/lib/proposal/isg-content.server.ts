@@ -72,7 +72,8 @@ export function resolveTrack(resolve: Resolve = resolveCommercialClaim): Proposa
       title: "O que o Instituto já fez",
       intro: claimText(resolve, id, surface, "scope"),
       items,
-      record: claimText(resolve, id, surface, "record"),
+      // Sem superlativo: "recorde"/"maior do mundo" exige evidência comparativa independente (pendente de validação).
+      record: "Pesquisas FIB aplicadas em larga escala: mais de 110 mil respostas, sobretudo em contextos educacionais.",
       scope: "Não são resultados em empresas e não preveem resultado na ISG.",
       source: claimText(resolve, id, surface, "default"),
     };
@@ -143,7 +144,7 @@ const baseStages: Omit<JourneyStage, "framework">[] = [
     deliverable:
       "Plano de escuta, comunicado às equipes e revisão da preparação com os responsáveis da ISG.",
     condition:
-      "A coleta depende da liberação do instrumento e das condições metodológicas; não faz parte deste marco.",
+      "A coleta é a etapa seguinte da implantação e não faz parte deste marco.",
     installment,
     participants: ["Patrocinador da direção", "RH", "SST", "Responsável pela unidade inicial"],
     instituteActivities: [
@@ -165,7 +166,7 @@ const baseStages: Omit<JourneyStage, "framework">[] = [
         label: "Coleta da escuta desta etapa",
         availability: "condicionada",
         decision:
-          "A coleta aguarda a ficha oficial do instrumento e a permissão de uso. Se forem liberadas durante o programa, as partes decidem incluí-la por aditivo de escopo ou mantê-la fora; o marco Q1 não depende disso.",
+          "A coleta é a etapa seguinte da implantação. As partes definem juntas o melhor momento para incluí-la; o marco Q1 não depende disso.",
       },
     ],
   },
@@ -271,19 +272,19 @@ const baseStages: Omit<JourneyStage, "framework">[] = [
     code: "Q5",
     verb: "Consolidar",
     deliverable:
-      "Síntese dos registros disponíveis e reunião executiva para decidir o próximo ciclo.",
-    condition: "A síntese descreve execução; não afirma efeito.",
+      "Síntese executiva do primeiro ciclo e plano do próximo ano, pactuado em reunião executiva.",
+    condition: "A síntese descreve execução e aprendizados; não afirma efeito.",
     installment,
     participants: ["Patrocinador da direção", "RH", "SST", "Liderança", "Tecnologia"],
     instituteActivities: [
       "Consolidar o que foi feito, o que foi devolvido e o que ficou pendente",
-      "Conduzir a reunião executiva de encerramento",
-      "Recomendar o escopo do próximo ciclo",
+      "Sintetizar a execução e os aprendizados do ciclo",
+      "Conduzir a reunião executiva e pactuar o plano do próximo ano",
     ],
     acceptance: [
       "Síntese executiva entregue",
-      "Reunião executiva realizada",
-      "Decisão sobre o próximo ciclo registrada",
+      "Plano do próximo ano com prioridades, responsáveis, prazos, indicadores e data de revisão",
+      "Reunião executiva realizada e decisão registrada",
     ],
     capabilities: [
       { label: "Síntese executiva e reunião", availability: "instituto" },
@@ -428,7 +429,10 @@ const FRAMEWORKS: Record<JourneyStage["id"], StageFramework> = {
         availability: "condicionada",
       },
       educar: { text: "Devolutiva executiva à direção e às áreas.", availability: "instituto" },
-      transformar: { text: "Decisão sobre o próximo ciclo.", availability: "instituto" },
+      transformar: {
+        text: "Plano do próximo ano: prioridades, responsáveis, prazos, indicadores e data de revisão.",
+        availability: "instituto",
+      },
       evoluir: {
         text: "Síntese que descreve execução e mudança observada, sem afirmar efeito. Pode apoiar o relato de sustentabilidade.",
         availability: "instituto",
@@ -629,7 +633,7 @@ export const ISG_PROPOSAL: ProposalContent = {
       excludes: [
         "Integração com sistemas da ISG, como login corporativo ou RH: avaliada nas 40 horas e orçada à parte",
         "Marca da ISG no lugar da VitalOS e desenvolvimento sob medida",
-        "Capacidades condicionadas enquanto não forem liberadas",
+        "Etapas seguintes da implantação, definidas em conjunto",
       ],
     },
     notes: [
@@ -980,7 +984,7 @@ export const ISG_PROPOSAL: ProposalContent = {
           "Mapeamento psicossocial estruturado",
         ),
         what: "Escuta de fatores psicossociais do trabalho, de apoio ao trabalho de SST, com resultados só para grupos de pelo menos 5 respostas.",
-        inProposal: "O Q1 prepara a escuta. A coleta depende da liberação do instrumento.",
+        inProposal: "O Q1 prepara a escuta. A coleta é a etapa seguinte da implantação.",
         status: "condicionado",
         statusLabel: "Coleta condicionada",
       },
@@ -1048,7 +1052,7 @@ export const ISG_PROPOSAL: ProposalContent = {
     title: "Quinze meses, cinco etapas de três meses",
     intro:
       "Cada etapa tem um ritmo de três meses: abrir, praticar e fechar com um marco que a ISG aceita. O calendário é relativo; as datas saem da reunião de implantação.",
-    note: "Calendário proposto. Atividades, encontros e horas são estimativas até a confirmação. Trechos tracejados dependem de liberação.",
+    note: "Calendário proposto. Atividades, encontros e horas são estimativas até a confirmação. Trechos tracejados são etapas seguintes da implantação.",
     monthsPerStage: PROPOSAL_MONTHS_PER_STAGE,
     stages: [
       {
@@ -1075,7 +1079,7 @@ export const ISG_PROPOSAL: ProposalContent = {
             label: "Mês 3",
             focus: "Revisar",
             activities: ["Registro da revisão, com pendências nomeadas"],
-            conditioned: "Coleta da escuta, só se o instrumento for liberado (aditivo)",
+            conditioned: "Coleta da escuta: etapa seguinte da implantação",
             milestone: "Marco de aceite do Q1",
           },
         ],
@@ -1169,18 +1173,18 @@ export const ISG_PROPOSAL: ProposalContent = {
           {
             label: "Mês 13",
             focus: "Reunir",
-            activities: ["Registros consolidados: feito, devolvido e pendente"],
+            activities: ["Registros reunidos: o que foi feito, devolvido e ficou pendente"],
           },
           {
             label: "Mês 14",
             focus: "Sintetizar",
-            activities: ["Síntese executiva", "Revisão com RH, SST, liderança e tecnologia"],
+            activities: ["Síntese da execução e dos aprendizados do ciclo", "Revisão com RH, SST, liderança e tecnologia"],
           },
           {
             label: "Mês 15",
-            focus: "Decidir",
-            activities: ["Reunião executiva sobre o próximo ciclo"],
-            milestone: "Marco de aceite do Q5",
+            focus: "Pactuar",
+            activities: ["Reunião executiva: plano do próximo ano, com prioridades, responsáveis, prazos, indicadores e data de revisão"],
+            milestone: "Marco de aceite do Q5: síntese executiva e plano do próximo ano",
           },
         ],
       },

@@ -76,7 +76,7 @@ export function IftBadge({ m, withLabel = true }: { m: IftMovement; withLabel?: 
 const STATUS: Record<Availability, string> = {
   plataforma: "Disponível na plataforma",
   instituto: "Conduzido pelo Instituto",
-  condicionada: "Condicionado à liberação",
+  condicionada: "Etapa seguinte da implantação",
 };
 export function StatusMark({ a }: { a: Availability }) {
   const Icon = a === "condicionada" ? CircleDashed : a === "instituto" ? Users : CheckCircle2;
@@ -104,11 +104,15 @@ export function Understand({
   title: string;
   description: string;
   children: React.ReactNode;
-  variant?: "link" | "button" | "on-dark";
+  variant?: "link" | "button" | "on-dark" | "primary" | "secondary";
 }) {
   const container = useContext(DialogContainer);
   const trigger =
-    variant === "button"
+    variant === "primary"
+      ? "proposal-understand-primary inline-flex min-h-11 items-center gap-2 rounded-md px-4 text-sm font-semibold"
+      : variant === "secondary"
+        ? "proposal-understand-btn proposal-understand-secondary inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium"
+        : variant === "button"
       ? "proposal-understand-btn inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm font-semibold"
       : variant === "on-dark"
         ? "proposal-understand-dark inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold"
@@ -250,7 +254,7 @@ export function StageDetail({ p, stage }: { p: ProposalContent; stage: JourneySt
       </section>
       {stage.capabilities.some((c) => c.decision) ? (
         <section aria-label="Condições">
-          <h3 className="text-sm font-semibold">O que depende de liberação</h3>
+          <h3 className="text-sm font-semibold">Etapas seguintes da implantação</h3>
           <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
             {stage.capabilities
               .filter((c) => c.decision)

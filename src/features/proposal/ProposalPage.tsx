@@ -25,7 +25,7 @@ import {
   TeamSection,
   TrackSection,
 } from "./ProposalSections";
-import { ActionRehearsal, BrasiliaContinuation, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
+import { ActionRehearsal, BrasiliaContinuation, BrasiliaTransition, Q5NextYearPlan, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
 import { ProposalSlides } from "./ProposalSlides";
 import {
   CoverHero,
@@ -70,7 +70,7 @@ const AVAILABILITY: Record<Availability, { label: string; className: string }> =
     className: "border-accent bg-accent/15 text-foreground",
   },
   condicionada: {
-    label: "Condicionado à liberação",
+    label: "Etapa seguinte da implantação",
     className: "border-dashed border-muted-foreground/70 text-muted-foreground",
   },
 };
@@ -536,7 +536,7 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             id="titulo-entregas"
             kicker="Entregas"
             title="O que está incluído em cada etapa"
-            intro="Cada capacidade vem marcada: disponível na plataforma, conduzida pelo Instituto ou condicionada a uma liberação."
+            intro="Cada capacidade vem marcada: disponível na plataforma, conduzida pelo Instituto ou uma etapa seguinte da implantação."
           />
           <div className="flex flex-wrap gap-2" aria-label="Legenda">
             <AvailabilityChip value="plataforma" />
@@ -663,6 +663,12 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
         </section>
 
         {band("faixa-consolidar")}
+        <section id="q5-plano" aria-label="Do primeiro ciclo ao plano do próximo ano" className="proposal-section">
+          <Q5NextYearPlan />
+        </section>
+        <section aria-label="Transição para Brasília" className="proposal-section proposal-brasilia-band">
+          <BrasiliaTransition />
+        </section>
         <section id="brasilia" aria-label="Continuidade em Brasília" className="proposal-section">
           <BrasiliaContinuation />
         </section>

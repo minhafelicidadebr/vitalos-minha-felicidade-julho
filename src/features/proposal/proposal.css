@@ -1018,3 +1018,133 @@ button.proposal-ivo-card[aria-pressed="true"] { border-color:var(--primary); box
 .proposal-ivo-panel input:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 @media (prefers-reduced-motion:no-preference) { .proposal-lens-panel { transition:background-color .2s,border-color .2s; } }
 @media (max-width:680px) { .proposal-role-grid,.proposal-method-cards { grid-template-columns:1fr; } }
+
+/* ── V4 · lote 2: evidências por grupo, demonstração, Q5, Brasília e acabamento ─────────── */
+
+/* Tons por grupo (acento da paleta do IFT; título, seleção e foco não dependem só da cor). */
+.proposal-tone-saude, .proposal-tone-mensurar { --tone: var(--fpt-teal); --tone-soft: color-mix(in oklch, var(--fpt-cyan) 14%, var(--card)); }
+.proposal-tone-desempenho, .proposal-tone-educar { --tone: oklch(0.52 0.12 85); --tone-soft: color-mix(in oklch, var(--fpt-yellow) 20%, var(--card)); }
+.proposal-tone-inovacao, .proposal-tone-transformar { --tone: var(--fpt-magenta); --tone-soft: color-mix(in oklch, var(--fpt-magenta) 9%, var(--card)); }
+.dark .proposal-tone-saude, .dark .proposal-tone-mensurar { --tone: var(--fpt-cyan); }
+.dark .proposal-tone-desempenho, .dark .proposal-tone-educar { --tone: var(--fpt-yellow); }
+.dark .proposal-tone-inovacao, .dark .proposal-tone-transformar { --tone: oklch(0.78 0.13 6.1); }
+
+.proposal-who-numbers { display: grid; gap: 0.8em; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.proposal-who-card {
+  display: grid; gap: 0.25em; padding: 1em 1.2em; border-radius: 1em;
+  border: 1px solid color-mix(in oklch, var(--fpt-teal) 40%, var(--border));
+  background:
+    radial-gradient(120% 120% at 0% 0%, color-mix(in oklch, var(--fpt-cyan) 18%, transparent), transparent 60%),
+    var(--card);
+  color: var(--foreground);
+}
+.proposal-who-card svg { color: var(--fpt-accent-text); }
+.proposal-who-value { font-family: var(--font-serif, Georgia, serif); font-size: 2.2em; line-height: 1.05; font-weight: 400; }
+
+.proposal-evidence-tab {
+  border: 2px solid color-mix(in oklch, var(--tone) 45%, var(--border));
+  background: var(--tone-soft);
+  color: var(--foreground);
+  display: grid; justify-items: start; gap: 0.3em; cursor: pointer; text-align: left;
+}
+.proposal-evidence-tab svg { color: var(--tone); }
+.proposal-evidence-tab[aria-pressed="true"] { border-color: var(--tone); box-shadow: 0 0 0 2px var(--tone); }
+.proposal-evidence-tab[aria-pressed="true"] strong { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 2px; }
+.proposal-evidence-tab:focus-visible { outline: 3px solid var(--foreground); outline-offset: 3px; }
+.proposal-evidence-selected { display: inline-flex; align-items: center; gap: 0.25em; font-size: 0.8em; font-weight: 700; }
+.proposal-evidence-panel { border-left: 6px solid var(--tone); background: var(--tone-soft); border-radius: 0.9em; padding: 0.9em 1em; }
+.proposal-evidence-title { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4em; font-weight: 700; color: var(--foreground); }
+.proposal-tone-card { background: var(--card); }
+
+/* Janela: resposta curta primeiro */
+.proposal-short-answer {
+  border-left: 4px solid var(--fpt-teal); background: color-mix(in oklch, var(--fpt-cyan) 9%, var(--card));
+  padding: 0.7em 0.9em; border-radius: 0 0.6em 0.6em 0;
+}
+.proposal-dialog h4 { margin-top: 0.4rem; font-weight: 700; }
+.proposal-fib-note { border: 1px solid var(--border); border-radius: 0.9em; padding: 0.8em 1em; background: var(--card); display: grid; gap: 0.5em; }
+.proposal-fib-sources { font-size: 0.85em; }
+
+/* Demonstração (caminho principal) e dashboard (secundário) */
+.proposal-understand-primary { background: var(--primary); color: var(--primary-foreground); }
+.proposal-understand-primary:focus-visible, .proposal-understand-secondary:focus-visible { outline: 3px solid var(--foreground); outline-offset: 3px; }
+.proposal-understand-secondary { background: transparent; }
+.proposal-demo-flow { display: grid; gap: 0.7rem; counter-reset: demo; }
+.proposal-demo-step { display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.7rem; }
+.proposal-demo-num {
+  width: 2.2rem; height: 2.2rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--fpt-teal); background: color-mix(in oklch, var(--fpt-cyan) 14%, var(--card)); font-weight: 700;
+}
+.proposal-demo-step:nth-child(2) .proposal-demo-num { border-color: oklch(0.52 0.12 85); }
+.proposal-demo-step:nth-child(3) .proposal-demo-num { border-color: var(--fpt-magenta); }
+.proposal-demo-step:nth-child(4) .proposal-demo-num { border-color: var(--fpt-green); }
+.proposal-demo-screen {
+  display: inline-block; margin-left: 0.5rem; padding: 0.05rem 0.5rem; border-radius: 999px; font-size: 0.78rem;
+  border: 1px solid var(--border); background: var(--muted); color: var(--foreground);
+}
+.proposal-demo-who { font-size: 0.85rem; color: var(--muted-foreground); }
+
+/* Q5 */
+.proposal-q5-card { display: grid; gap: 1.2rem; background: color-mix(in oklch, var(--fpt-green) 6%, var(--card)); border-radius: 1.2rem; padding: 1.2rem; border: 1px solid color-mix(in oklch, var(--fpt-green) 30%, var(--border)); }
+@media (min-width: 900px) { .proposal-q5-card { grid-template-columns: 1.25fr 1fr; align-items: center; } }
+.proposal-q5-esg { display: grid; gap: 0.6rem; }
+.proposal-q5-esg dt { font-weight: 700; }
+.proposal-q5-esg > div { border-left: 4px solid var(--fpt-green); padding-left: 0.7rem; }
+.proposal-q5-esg > div:nth-child(2) { border-color: var(--fpt-teal); }
+.proposal-q5-figure { margin: 0; display: grid; gap: 0.4rem; justify-items: center; }
+.proposal-q5-figure img { width: 100%; max-width: 26rem; height: auto; border-radius: 0.8rem; box-shadow: 0 10px 30px oklch(0 0 0 / 0.18); }
+.proposal-q5-figure figcaption { font-size: 0.8rem; color: var(--muted-foreground); text-align: center; }
+
+/* Brasília: transição com malha geométrica sutil e degradê da marca */
+.proposal-brasilia-band { padding: 0; }
+.proposal-brasilia-transition, .proposal-slide.is-mesh .proposal-slide-body {
+  position: relative; overflow: hidden; color: oklch(0.98 0.004 95);
+}
+.proposal-brasilia-transition {
+  border-radius: 1.5rem; padding: clamp(1.5rem, 5vw, 3.5rem); display: grid; gap: 0.8rem;
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--fpt-teal) 55%, black) 0%, oklch(0.24 0.04 250) 55%, color-mix(in oklch, var(--fpt-magenta) 45%, black) 100%);
+}
+.proposal-brasilia-transition::before, .proposal-slide.is-mesh::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.2;
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.5) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(120% 120% at 100% 0%, black, transparent 70%);
+}
+.proposal-slide.is-mesh {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--fpt-teal) 55%, black) 0%, oklch(0.24 0.04 250) 55%, color-mix(in oklch, var(--fpt-magenta) 45%, black) 100%);
+}
+.proposal-slide.is-mesh .proposal-slide-body { position: relative; z-index: 1; }
+.proposal-on-mesh { color: var(--fpt-yellow) !important; }
+.proposal-transition-title { font-family: var(--font-serif, Georgia, serif); font-size: clamp(1.8rem, 5vw, 3.2rem); line-height: 1.08; max-width: 20ch; }
+.proposal-transition-lead { max-width: 52ch; font-size: 1.1rem; }
+.proposal-transition-moves { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.proposal-transition-chip { padding: 0.3rem 0.9rem; border-radius: 999px; border: 2px solid var(--tone); background: oklch(0 0 0 / 0.3); color: white; font-weight: 600; }
+.proposal-brasilia-card { border-top: 5px solid var(--tone); background: var(--tone-soft); color: var(--foreground); display: grid; gap: 0.35em; align-content: start; }
+.proposal-brasilia-card svg { color: var(--tone); }
+.proposal-brasilia-lead { font-weight: 600; color: var(--foreground); }
+.proposal-brasilia-num { font-family: var(--font-serif, Georgia, serif); font-size: 1.4em; color: var(--tone); }
+
+/* Slides densos: fundo tranquilo */
+.proposal-calm { background: linear-gradient(180deg, color-mix(in oklch, var(--fpt-cyan) 5%, var(--card)), var(--card)); border-radius: 1rem; }
+
+@media print {
+  .proposal-brasilia-transition { background: none !important; color: var(--foreground) !important; border: 1px solid var(--border); }
+  .proposal-brasilia-transition::before { display: none; }
+  .proposal-transition-chip { background: none; color: var(--foreground); }
+  .proposal-on-mesh { color: var(--foreground) !important; }
+  .proposal-q5-card, .proposal-q5-figure { break-inside: avoid; }
+}
+
+/* Slide: densidade compacta para caber no palco 16:9 */
+.proposal-slide .proposal-who-numbers { gap: 0.5em; }
+.proposal-slide .proposal-who-card { padding: 0.55em 0.9em; gap: 0.1em; font-size: 0.88em; }
+.proposal-slide .proposal-who-value { font-size: 1.6em; }
+.proposal-slide .proposal-evidence-tab { padding: 0.45em 0.8em; gap: 0.1em; font-size: 0.9em; }
+.proposal-slide .proposal-evidence-panel { padding: 0.5em 0.8em; font-size: 0.88em; }
+.proposal-slide .proposal-evidence-panel > * { gap: 0.4em; }
+.proposal-slide .proposal-who-card > svg { display: none; }
+.proposal-slide .proposal-evidence-tab > svg { display: none; }
+.proposal-slide .proposal-evidence-panel > .proposal-evidence-title { margin-bottom: 0.2em; }

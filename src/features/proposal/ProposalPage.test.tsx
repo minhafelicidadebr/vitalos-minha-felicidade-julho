@@ -43,7 +43,7 @@ describe("proposta · leitura executiva", () => {
     const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
     for (const code of ["Q1", "Q2", "Q3", "Q4", "Q5"])
       expect(screen.getByText(`Como funciona o ${code}`)).toBeTruthy();
-    expect(screen.getAllByText("Condicionado à liberação").length).toBeGreaterThanOrEqual(6);
+    expect(screen.getAllByText("Etapa seguinte da implantação").length).toBeGreaterThanOrEqual(6);
     expect(container.querySelectorAll("details.proposal-details").length).toBeGreaterThanOrEqual(9);
     expect(screen.getAllByText(/Exemplo fictício/).length).toBeGreaterThanOrEqual(2);
   });
@@ -121,11 +121,11 @@ describe("proposta V2 · seções novas e modo apresentação", () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
     fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
     const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
-    expect(within(region).getByText("Abertura · 1 / 35")).toBeTruthy();
+    expect(within(region).getByText("Abertura · 1 / 37")).toBeTruthy();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     await waitFor(() => expect(window.location.hash).toBe("#slide-2"));
     fireEvent.keyDown(window, { key: "End" });
-    await waitFor(() => expect(within(region).getByText("Próximos passos · 35 / 35")).toBeTruthy());
+    await waitFor(() => expect(within(region).getByText("Próximos passos · 37 / 37")).toBeTruthy());
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() =>
       expect(screen.queryByRole("region", { name: "Proposta em modo apresentação" })).toBeNull(),
@@ -181,17 +181,17 @@ describe("proposta V3 · Matriz IFT, janelas Entenda, preço e slides completos"
     );
   });
 
-  test("slides com paridade: 35 slides, um por Q, capítulos navegáveis e Esc fecha só a janela", async () => {
+  test("slides com paridade: 37 slides, um por Q, capítulos navegáveis e Esc fecha só a janela", async () => {
     landscape();
     render(<ProposalView p={ISG_PROPOSAL} />);
     fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
     const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
-    expect(within(region).getByText("Abertura · 1 / 35")).toBeTruthy();
+    expect(within(region).getByText("Abertura · 1 / 37")).toBeTruthy();
     // G abre os capítulos; escolher "Jornada" leva ao capítulo.
     fireEvent.keyDown(window, { key: "g" });
     const menu = await screen.findByRole("dialog", { name: "Capítulos" });
     fireEvent.click(within(menu).getByRole("button", { name: /Jornada/ }));
-    await waitFor(() => expect(within(region).getByText(/^Jornada · \d+ \/ 35$/)).toBeTruthy());
+    await waitFor(() => expect(within(region).getByText(/^Jornada · \d+ \/ 37$/)).toBeTruthy());
     // Avança até o slide do Q1 e abre a janela dele; Esc fecha a janela, não a apresentação.
     fireEvent.keyDown(window, { key: "ArrowRight" });
     fireEvent.keyDown(window, { key: "ArrowRight" });
@@ -253,4 +253,103 @@ test("a lente selecionada muda a ação e a hipótese muda o custo estimado", ()
   const select = screen.getByLabelText("Dias de ausência no cenário") as HTMLSelectElement;
   fireEvent.change(select, { target: { value: "110" } });
   expect(screen.getByText(/R\$\s*33[.]000/)).toBeTruthy();
+});
+
+describe("proposta V4 · lote de conteúdo e fontes", () => {
+  test("evidências: números da OMS/OIT em destaque, grupos com seleção reconhecível sem cor e Gallup como associação", async () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const who = screen.getByRole("group", { name: "Estimativa da OMS e da OIT" });
+    expect(who.textContent).toContain("12 bilhões");
+    expect(who.textContent).toContain("US$ 1 trilhão");
+    const tabs = screen.getByRole("group", { name: "Temas de decisão" });
+    const buttons = within(tabs).getAllByRole("button");
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]!.getAttribute("aria-pressed")).toBe("true");
+    expect(buttons[0]!.textContent).toContain("Selecionado"); // texto, não só cor
+    fireEvent.click(buttons[1]!);
+    expect(buttons[1]!.textContent).toContain("Selecionado");
+    expect(buttons[0]!.textContent).not.toContain("Selecionado");
+    // Onde há só pergunta de gestão, não há percentual inventado.
+    fireEvent.click(buttons[2]!);
+    const panel = document.getElementById(buttons[2]!.getAttribute("aria-controls")!)!;
+    expect(panel.textContent).not.toMatch(/%/);
+    expect(document.body.textContent).toMatch(/associações agregadas/);
+  });
+
+  test("Q1: NR-1 sem prescrever o COPSOQ; janela da fiscalização sem multa projetada nem exemplo não verificado", async () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    expect(document.body.textContent).toMatch(/A NR-1 não prescreve o COPSOQ como instrumento obrigatório/);
+    const open = screen.getAllByRole("button", { name: "Como funciona a fiscalização?" })[0]!;
+    fireEvent.click(open);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.textContent).toMatch(/Em resumo/);
+    expect(dialog.textContent).toMatch(/não projeta penalidade para a ISG/);
+    expect(dialog.textContent).toMatch(/pendente de validação/);
+    expect(dialog.textContent).not.toMatch(/R\$ ?\d|multa de/i);
+    expect(within(dialog).getByRole("link", { name: "NR-1" })).toBeTruthy();
+    expect(within(dialog).getByRole("link", { name: "NR-28" })).toBeTruthy();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  test("Q2: demonstração é o caminho principal; dashboard institucional é secundário, com pré-requisitos", async () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const demo = screen.getAllByRole("button", { name: "Ver demonstração" })[0]!;
+    const dash = screen.getAllByRole("button", { name: "Abrir dashboard institucional" })[0]!;
+    expect(demo.className).toMatch(/primary/);
+    expect(dash.className).toMatch(/secondary/);
+    fireEvent.click(demo);
+    const dialog = await screen.findByRole("dialog");
+    const order = ["Leitura coletiva", "Prioridade", "Ação", "Responsável", "Evidência", "Reavaliação"];
+    const text = dialog.textContent!;
+    let last = -1;
+    for (const w of order) {
+      const i = text.indexOf(w, last + 1);
+      expect(i).toBeGreaterThan(last);
+      last = i;
+    }
+    expect(text).toMatch(/Leitura Q2 da organização/);
+    expect(text).toMatch(/Exemplo sintético/);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  test("Q5: card do plano do próximo ano com capa ilustrativa, S e G; cronograma e aceite sincronizados", () => {
+    const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
+    const q5 = container.querySelector("#q5-plano")!;
+    expect(q5.textContent).toContain("Do primeiro ciclo ao plano do próximo ano");
+    expect(q5.textContent).toMatch(/Social/);
+    expect(q5.textContent).toMatch(/Governança/);
+    expect(q5.textContent).toMatch(/Dados ambientais entram só onde a metodologia prevê/);
+    expect(within(q5 as HTMLElement).getByRole("img", { name: /Capa ilustrativa/ })).toBeTruthy();
+    expect(q5.textContent).toMatch(/Capa ilustrativa\. O relatório mostrado é demonstrativo/);
+    const q5Stage = ISG_PROPOSAL.journey.stages.find((s) => s.id === "q5")!;
+    expect(q5Stage.acceptance.join(" ")).toMatch(/Plano do próximo ano com prioridades, responsáveis, prazos, indicadores e data de revisão/);
+    const last = ISG_PROPOSAL.schedule.stages.find((s) => s.id === "q5")!.months[2]!;
+    expect(last.milestone).toMatch(/síntese executiva e plano do próximo ano/);
+  });
+
+  test("Brasília: transição antes do próximo passo, três movimentos, ONU em 20 de março e sem data local inventada", async () => {
+    const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
+    const band = container.querySelector(".proposal-brasilia-band")!;
+    const section = container.querySelector("#brasilia")!;
+    expect(band.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const text = section.textContent!;
+    for (const m of ["Mensurar novamente", "Educar", "Transformar Brasília"]) expect(text).toContain(m);
+    expect(text).toMatch(/20 de março/);
+    expect(text).not.toMatch(/22 de março/);
+    expect(text).toMatch(/dependem de confirmação da agenda do Instituto/);
+    fireEvent.click(screen.getAllByRole("button", { name: "Como a ISG pode contribuir?" })[0]!);
+    const dialog = await screen.findByRole("dialog");
+    for (const k of ["Exemplos de apoio", "Entregas possíveis", "O que dependeria de um novo acordo", "separadamente da implantação do VitalOS"])
+      expect(dialog.textContent).toContain(k);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  test("tom executivo: sem vocabulário de licenciamento ou liberação de instrumentos nos textos novos", () => {
+    render(<ProposalView p={ISG_PROPOSAL} />);
+    const t = document.body.textContent!;
+    expect(t).not.toMatch(/licenciamento|liberação do instrumento|permissão de uso|ficha oficial|aditivo/i);
+  });
 });

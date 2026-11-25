@@ -19,7 +19,7 @@ import {
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
 import { CONTINUITY_IMAGE, BAND_IMAGES, HERO_IMAGE, ILLUSTRATION, TEAM_PHOTOS } from "./media";
 import { prefersReducedMotion } from "./motion";
-import { ActionRehearsal, BrasiliaContinuation, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
+import { ActionRehearsal, BrasiliaContinuation, BrasiliaTransition, Q5NextYearPlan, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
 import { MetricValue } from "./ProposalSections";
 import {
   IftBadge,
@@ -42,6 +42,8 @@ interface Slide {
   image?: string;
   /** Slide de capítulo: imagem em tela cheia, título e uma frase. */
   divider?: boolean;
+  /** Malha geométrica sutil com degradê da marca (poucas aberturas de capítulo). */
+  mesh?: boolean;
   body: React.ReactNode;
 }
 
@@ -362,6 +364,13 @@ function buildSlides(p: ProposalContent): Slide[] {
     ),
   });
   for (const s of stages) {
+    if (s.id === "q5")
+      add({
+        id: "q5-plano",
+        chapter: "Jornada",
+        title: "Do primeiro ciclo ao plano do próximo ano",
+        body: <Q5NextYearPlan slide />,
+      });
     const f = s.framework;
     add({
       id: `etapa-${s.id}`,
@@ -485,7 +494,12 @@ function buildSlides(p: ProposalContent): Slide[] {
 
   // ── Investimento ──
   add({
-    id: "brasilia", chapter: "Jornada", title: "O próximo passo para Brasília",
+    id: "cap-brasilia", chapter: "Brasília", title: "Mensurar, educar e transformar Brasília",
+    dark: true, divider: true, mesh: true,
+    body: <BrasiliaTransition slide />,
+  });
+  add({
+    id: "brasilia", chapter: "Brasília", title: "O próximo passo para Brasília",
     body: <BrasiliaContinuation slide />,
   });
   add({
@@ -780,7 +794,7 @@ export function ProposalSlides({ p, onExit }: { p: ProposalContent; onExit: () =
       key={s.id}
       aria-roledescription="slide"
       aria-label={`${i + 1} de ${total}: ${s.title}`}
-      className={`proposal-slide ${s.dark ? "is-dark" : ""} ${s.divider ? "is-divider" : ""} ${active && !reduced ? "is-entering" : ""}`}
+      className={`proposal-slide ${s.dark ? "is-dark" : ""} ${s.divider ? "is-divider" : ""} ${s.mesh ? "is-mesh" : ""} ${active && !reduced ? "is-entering" : ""}`}
     >
       {s.image ? (
         <>

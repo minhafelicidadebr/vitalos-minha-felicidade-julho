@@ -157,7 +157,9 @@ describe("proposta ISG · V2 (cronograma, preço por etapa, ciência, equipe)", 
   test("números e ciência vêm do Commercial Claims Registry, com escopo e atribuição", () => {
     expect(p.track?.items.map((m) => m.value)).toEqual([110_000, 219, 700, 1_300]);
     expect(p.track?.items.map((m) => m.label)).toContain("instituições de ensino");
-    expect(p.track?.record).toMatch(/declarado pelo Instituto/);
+    expect(p.track?.record).toMatch(/mais de 110 mil respostas/);
+    // Sem superlativo: "recorde" e "maior do mundo" exigem evidência comparativa independente (pendente).
+    expect(JSON.stringify(p.track)).not.toMatch(/recorde|maior pesquisa|maior do mundo/i);
     expect(p.track?.scope).toMatch(/Não são resultados em empresas/);
     expect(p.science.playbook?.studies).toBe(3_000);
     expect(p.science.playbook?.edition).toBe("Guia Prático de Bem-Estar no Trabalho");
