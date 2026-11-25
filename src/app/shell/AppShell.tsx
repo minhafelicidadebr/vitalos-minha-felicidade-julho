@@ -45,6 +45,7 @@ import { DemoModeNotice } from "./DemoModeNotice";
 const NAV_ROUTES: Record<string, string> = {
   overview: "/", // por papel, abaixo
   ivo: "/ivo",
+  pnl: "/pnl",
   pulses: "/pulse",
   espelho: "/espelho",
   // O item "ai" abre o copiloto setorial aterrado (chat pack-aware). A tela legada
@@ -181,7 +182,7 @@ const NAV_GROUPS: NavGroupDef[] = [
     id: "medir",
     label: "Medir",
     hint: "Onde a vitalidade está hoje",
-    items: ["wave", "waves", "ivo", "q3_demo", "pulses", "espelho", "signals", "trend", "season"],
+    items: ["wave", "waves", "ivo", "pnl", "q3_demo", "pulses", "espelho", "signals", "trend", "season"],
   },
   {
     id: "agir",

@@ -224,6 +224,15 @@ function IVOContent({ index, packId }: { index: ProprietaryIndex; packId: string
       <IvoMethodSheet view="demo">
         <Link to="/ivo-integral" className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4">Abrir Visão IVO</Link>
       </IvoMethodSheet>
+      <section aria-labelledby="ivo-pnl-title" className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+        <div className="max-w-prose">
+          <h2 id="ivo-pnl-title" className="font-serif text-xl">Explore possíveis impactos nos custos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Simule como mudanças em ausências, rotatividade ou presenteísmo afetam os custos. O cálculo usa as quantidades e os valores que você informa para cada cenário.</p>
+        </div>
+        <Link to="/pnl" className="inline-flex min-h-11 items-center rounded-lg border border-primary/60 px-3 text-sm font-semibold text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2">
+          Explorar o P&amp;L
+        </Link>
+      </section>
     </div>
   );
 }

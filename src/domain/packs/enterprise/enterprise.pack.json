@@ -103,6 +103,7 @@
       "group": "medir"
     },
     { "id": "ivo", "label": "IVO", "roles": "all", "group": "medir" },
+    { "id": "pnl", "label": "Simulação de custos (P&L)", "roles": "all", "group": "medir" },
     {
       "id": "pulses",
       "label": "Pulses",
