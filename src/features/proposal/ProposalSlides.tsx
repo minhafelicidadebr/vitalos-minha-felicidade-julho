@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -18,16 +17,14 @@ import {
   X,
 } from "lucide-react";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
-import { BAND_IMAGES, HERO_IMAGE, ILLUSTRATION, TEAM_PHOTOS } from "./media";
+import { CONTINUITY_IMAGE, BAND_IMAGES, HERO_IMAGE, ILLUSTRATION, TEAM_PHOTOS } from "./media";
 import { prefersReducedMotion } from "./motion";
+import { ActionRehearsal, BrasiliaContinuation, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
 import { MetricValue } from "./ProposalSections";
 import {
-  BeforeAfter,
-  HandoverDiagram,
   IftBadge,
   InstitutoMark,
   PriceDetail,
-  ScenarioDetail,
   StageDetail,
   StatusMark,
   Understand,
@@ -166,6 +163,10 @@ function buildSlides(p: ProposalContent): Slide[] {
     });
   }
   add({
+    id: "instituto", chapter: "Por que nós", title: "Da pesquisa em Brasília a novas formas de aprender",
+    body: <InstituteTrajectory slide />,
+  });
+  add({
     id: "ciencia",
     chapter: "Por que nós",
     title: p.science.title,
@@ -238,6 +239,12 @@ function buildSlides(p: ProposalContent): Slide[] {
     ),
   });
 
+
+  add({
+    id: "evidencias", chapter: "Por que nós", title: "Por que vale agir e o que acompanhar",
+    body: <EvidencePanels slide />,
+  });
+
   // ── Como funciona ──
   add({
     id: "cap-como",
@@ -245,13 +252,13 @@ function buildSlides(p: ProposalContent): Slide[] {
     title: "Como funciona",
     dark: true,
     divider: true,
-    image: BAND_IMAGES.compreender,
+    image: CONTINUITY_IMAGE,
     body: (
       <div className="flex h-full flex-col justify-end gap-[0.6em]">
         <p className="slide-kicker">Capítulo</p>
         <h2 className="slide-cover-title">Como funciona</h2>
         <p className="slide-lead max-w-[52ch]">
-          Um método em quatro movimentos, aplicado a um exemplo concreto.
+          Da escuta FIB-T às escolhas que a equipe consegue acompanhar.
         </p>
         <span className="slide-caption">{caption}</span>
       </div>
@@ -288,45 +295,26 @@ function buildSlides(p: ProposalContent): Slide[] {
     ),
   });
   add({
-    id: "exemplo",
-    chapter: "Como funciona",
-    title: p.scenario.title,
-    body: (
-      <div className="grid h-full content-center gap-[0.9em]">
-        <p className="slide-kicker">Exemplo fictício</p>
-        <Title>{p.scenario.title.replace("Exemplo fictício · ", "")}</Title>
-        <div className="grid gap-[0.9em] lg:grid-cols-[1fr_1.15fr]">
-          <div className="space-y-[0.6em]">
-            <p className="slide-lead flex gap-[0.4em]">
-              <AlertTriangle aria-hidden className="slide-inline-icon proposal-accent-icon" />
-              {p.scenario.problem}
-            </p>
-            <BeforeAfter p={p} />
-          </div>
-          <HandoverDiagram p={p} compact />
-        </div>
-        <ol className="grid gap-[0.5em] md:grid-cols-4">
-          {p.scenario.steps.map((s, i) => (
-            <li key={s.label} className="slide-card">
-              <span className="slide-num">{i + 1}</span>{" "}
-              <strong className="slide-h3">{s.label}</strong>
-              <p className="slide-small">{s.record}</p>
-            </li>
-          ))}
-        </ol>
-        <div>
-          <Understand
-            label="Entenda o exemplo passo a passo"
-            title="Exemplo trabalhado · troca de turno"
-            description="Quem faz o quê, o que fica registrado e o que a equipe vê em cada passo."
-            variant="button"
-          >
-            <ScenarioDetail p={p} />
-          </Understand>
-        </div>
-      </div>
-    ),
+    id: "ivo", chapter: "Como funciona", title: "Como o IVO lê a vitalidade",
+    body: <IvoOverview slide />,
   });
+  add({
+    id: "cenario-economico", chapter: "Como funciona", title: "Quanto uma mudança poderia representar?",
+    body: <EconomicScenario slide />,
+  });
+  add({
+    id: "lentes", chapter: "Como funciona", title: "Quatro lentes, quatro perguntas para agir",
+    body: <LensToAction slide />,
+  });
+  proposalLensCodes.forEach((code) => add({
+    id: "instrumento-" + code.toLowerCase(), chapter: "Como funciona", title: code + " · Ferramenta e prática",
+    body: <InstrumentSlide code={code} slide />,
+  }));
+  add({
+    id: "exemplo", chapter: "Como funciona", title: "Como acompanhar uma ação",
+    body: <ActionRehearsal slide />,
+  });
+
 
   // ── Jornada ──
   add({
@@ -404,7 +392,7 @@ function buildSlides(p: ProposalContent): Slide[] {
               <li key={m} className={`slide-card proposal-ift-cell proposal-ift-${m}`}>
                 <IftBadge m={m} />
                 <p className="slide-small slide-ink mt-[0.4em]">{f.ift[m].text}</p>
-                <StatusMark a={f.ift[m].availability} />
+                {m === "mensurar" && (s.id === "q1" || s.id === "q3") ? <span className="slide-small">Referência metodológica</span> : <StatusMark a={f.ift[m].availability} />}
               </li>
             ))}
           </ol>
@@ -497,6 +485,10 @@ function buildSlides(p: ProposalContent): Slide[] {
 
   // ── Investimento ──
   add({
+    id: "brasilia", chapter: "Jornada", title: "O próximo passo para Brasília",
+    body: <BrasiliaContinuation slide />,
+  });
+  add({
     id: "cap-investimento",
     chapter: "Investimento",
     title: "Investimento e condição de implantação",
@@ -576,7 +568,7 @@ function buildSlides(p: ProposalContent): Slide[] {
               </li>
             ))}
           </ul>
-          <p className="slide-small">{p.pricing.collaboration}</p>
+          <p className="slide-small"><strong>Brasília · Cooperação futura.</strong> Avaliar desempenho, acessibilidade e implantação do Game da Felicidade e da formação introdutória para a população. Escopo e horas próprios, a combinar.</p>
         </div>
       </div>
     ),
@@ -749,6 +741,7 @@ export function ProposalSlides({ p, onExit }: { p: ProposalContent; onExit: () =
       if (menu || dialogOpen()) return;
       const target = e.target instanceof Element ? e.target : null;
       if (target?.closest("a, input, textarea, select")) return;
+      if (e.key === " " && target?.closest("button")) return;
       if (e.key === "Escape") return exit();
       if (stacked) return;
       const key = e.key.toLowerCase();

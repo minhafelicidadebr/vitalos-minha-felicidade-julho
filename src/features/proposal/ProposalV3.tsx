@@ -181,7 +181,7 @@ export function StageDetail({ p, stage }: { p: ProposalContent; stage: JourneySt
               </p>
               <p className="mt-1.5 text-sm text-foreground">{f.ift[m].text}</p>
               <p className="mt-1">
-                <StatusMark a={f.ift[m].availability} />
+                {m === "mensurar" && (stage.id === "q1" || stage.id === "q3") ? <span className="text-xs">Referência metodológica</span> : <StatusMark a={f.ift[m].availability} />}
               </p>
             </li>
           ))}
@@ -438,7 +438,7 @@ export function IftSection({ p }: { p: ProposalContent }) {
                   </span>
                   <p className="mt-1 text-sm text-foreground lg:mt-0">{s.framework.ift[m].text}</p>
                   <p className="mt-1">
-                    <StatusMark a={s.framework.ift[m].availability} />
+                    {m === "mensurar" && (s.id === "q1" || s.id === "q3") ? <span className="text-xs">Referência metodológica</span> : <StatusMark a={s.framework.ift[m].availability} />}
                   </p>
                 </div>
               ))}
@@ -818,10 +818,6 @@ export function PrintAppendix({ p }: { p: ProposalContent }) {
       className="proposal-print-only proposal-appendix space-y-8"
     >
       <h2 className="font-serif text-2xl">Aprofundamentos</h2>
-      <article className="space-y-2">
-        <h3 className="font-serif text-xl">Exemplo trabalhado · troca de turno</h3>
-        <ScenarioDetail p={p} />
-      </article>
       {p.journey.stages.map((s) => (
         <article key={s.id} className="space-y-2">
           <h3 className="font-serif text-xl">

@@ -1,3 +1,4 @@
+import continuityEditorial from "@/assets/proposal/continuity-editorial.webp";
 // Mídia da proposta. Ilustrações: geradas, pessoas fictícias, procedência em
 // docs/vitalos/artifacts/PRESENTATION_V4_IMAGES_2026-11-17.json. Retratos: enviados e autorizados pelo
 // fundador em 23/11/2026 (src/assets/proposal/team/PROCEDENCIA.md), recortados em 360×360.
@@ -18,3 +19,5 @@ export const TEAM_PHOTOS: Record<TeamPhoto, string> = {
   "ana-paula": anaPaula,
   olga,
 };
+
+export const CONTINUITY_IMAGE = continuityEditorial;

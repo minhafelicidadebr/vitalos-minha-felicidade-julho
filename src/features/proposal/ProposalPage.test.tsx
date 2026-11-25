@@ -13,15 +13,13 @@ const fakeFetch = (status: number, body: unknown) => {
 };
 
 describe("proposta · leitura executiva", () => {
-  test("valor visível sem abrir painel, igual no resumo, no bloco de investimento e na tabela de marcos", () => {
+  test("valor visível no bloco de investimento e na tabela de marcos", () => {
     const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
-    expect(screen.getAllByText("R$ 60.000").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("R$ 60.000").length).toBeGreaterThanOrEqual(1);
     expect(container.textContent).toContain("5 parcelas de R$ 12.000");
     const table = screen.getByRole("table", { name: "Parcelas por marco" });
     expect(within(table).getAllByText("R$ 12.000")).toHaveLength(5);
-    // Nenhum valor só dentro de <details>.
-    const summaryCard = screen.getByText("Quanto investe").closest("article")!;
-    expect(summaryCard.closest("details")).toBeNull();
+    expect(screen.queryByText("Quanto investe")).toBeNull();
   });
 
   test("âncoras da navegação existem e o CTA leva à próxima conversa, com foco no título de destino", () => {
@@ -80,7 +78,7 @@ describe("proposta · estados de acesso", () => {
     render(<ProposalPage />);
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
-        "Sistema Operacional da Vitalidade Organizacional",
+        "Da felicidade da cidade à vitalidade das organizações",
       ),
     );
   });
@@ -109,7 +107,7 @@ describe("proposta V2 · seções novas e modo apresentação", () => {
     expect(screen.getAllByRole("img", { name: /^Retrato de / })).toHaveLength(3);
     // Ilustrações das faixas rotuladas como geradas.
     expect(
-      screen.getAllByText("Ilustração gerada · pessoas fictícias").length,
+      screen.getAllByText(/Ilustração gerada · pessoas fictícias/).length,
     ).toBeGreaterThanOrEqual(4);
   });
 
@@ -123,11 +121,11 @@ describe("proposta V2 · seções novas e modo apresentação", () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
     fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
     const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
-    expect(within(region).getByText("Abertura · 1 / 25")).toBeTruthy();
+    expect(within(region).getByText("Abertura · 1 / 35")).toBeTruthy();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     await waitFor(() => expect(window.location.hash).toBe("#slide-2"));
     fireEvent.keyDown(window, { key: "End" });
-    await waitFor(() => expect(within(region).getByText("Próximos passos · 25 / 25")).toBeTruthy());
+    await waitFor(() => expect(within(region).getByText("Próximos passos · 35 / 35")).toBeTruthy());
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() =>
       expect(screen.queryByRole("region", { name: "Proposta em modo apresentação" })).toBeNull(),
@@ -149,13 +147,13 @@ describe("proposta V3 · Matriz IFT, janelas Entenda, preço e slides completos"
   test("capa com a marca VitalOS e a categoria como h1; Matriz IFT com as 5 lentes", () => {
     const { container } = render(<ProposalView p={ISG_PROPOSAL} />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-      "Sistema Operacional da Vitalidade Organizacional",
+      "Da felicidade da cidade à vitalidade das organizações",
     );
     expect(screen.getAllByRole("img", { name: "VitalOS" }).length).toBeGreaterThanOrEqual(1);
     const ift = container.querySelector("#matriz-ift") as HTMLElement;
     for (const lens of ["Risco", "Bem-comum", "Florescimento", "Forças", "Síntese"])
       expect(within(ift).getByText(new RegExp(`· ${lens}$`))).toBeTruthy();
-    expect(within(ift).getAllByText("Condicionado à liberação").length).toBeGreaterThanOrEqual(3);
+    expect(within(ift).getAllByText("Referência metodológica")).toHaveLength(2);
   });
 
   test("janela Entenda: abre com título, Esc fecha e o foco volta ao botão", async () => {
@@ -183,17 +181,17 @@ describe("proposta V3 · Matriz IFT, janelas Entenda, preço e slides completos"
     );
   });
 
-  test("slides com paridade: 25 slides, um por Q, capítulos navegáveis e Esc fecha só a janela", async () => {
+  test("slides com paridade: 35 slides, um por Q, capítulos navegáveis e Esc fecha só a janela", async () => {
     landscape();
     render(<ProposalView p={ISG_PROPOSAL} />);
     fireEvent.click(screen.getByRole("button", { name: /Apresentar/ }));
     const region = await screen.findByRole("region", { name: "Proposta em modo apresentação" });
-    expect(within(region).getByText("Abertura · 1 / 25")).toBeTruthy();
+    expect(within(region).getByText("Abertura · 1 / 35")).toBeTruthy();
     // G abre os capítulos; escolher "Jornada" leva ao capítulo.
     fireEvent.keyDown(window, { key: "g" });
     const menu = await screen.findByRole("dialog", { name: "Capítulos" });
     fireEvent.click(within(menu).getByRole("button", { name: /Jornada/ }));
-    await waitFor(() => expect(within(region).getByText(/^Jornada · \d+ \/ 25$/)).toBeTruthy());
+    await waitFor(() => expect(within(region).getByText(/^Jornada · \d+ \/ 35$/)).toBeTruthy());
     // Avança até o slide do Q1 e abre a janela dele; Esc fecha a janela, não a apresentação.
     fireEvent.keyDown(window, { key: "ArrowRight" });
     fireEvent.keyDown(window, { key: "ArrowRight" });
@@ -218,7 +216,12 @@ describe("proposta V3 · paridade página ↔ slides", () => {
       "ciencia",
       "contexto",
       "matriz-ift",
+      "ivo",
+      "lentes",
       "exemplo",
+      "cenario-economico",
+      "evidencias",
+      "brasilia",
       "jornada",
       "etapa-q1",
       "etapa-q2",
@@ -236,4 +239,18 @@ describe("proposta V3 · paridade página ↔ slides", () => {
     ])
       expect(ids).toContain(id);
   });
+});
+
+test("a lente selecionada muda a ação e a hipótese muda o custo estimado", () => {
+  render(<ProposalView p={ISG_PROPOSAL} />);
+  const vias = screen.getByRole("button", { name: /Q4 · VIA-T/ });
+  fireEvent.click(vias);
+  expect(vias.getAttribute("aria-pressed")).toBe("true");
+  const activePanel = document.getElementById(vias.getAttribute("aria-controls")!)!;
+  expect(within(activePanel).getByText("Criar um roteiro individual para experimentar uma força em uma atividade.")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Devolver" }));
+  expect(screen.getByText("A equipe vê o que foi feito, o que ficou pendente e a data do próximo retorno.", { selector: "p" })).toBeTruthy();
+  const select = screen.getByLabelText("Dias de ausência no cenário") as HTMLSelectElement;
+  fireEvent.change(select, { target: { value: "110" } });
+  expect(screen.getByText(/R\$\s*33[.]000/)).toBeTruthy();
 });

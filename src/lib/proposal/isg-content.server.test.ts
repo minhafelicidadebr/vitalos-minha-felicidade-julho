@@ -25,6 +25,7 @@ const allowedMoney = new Set(
     p.pricing.referenceTotal,
     PRICE_MODEL.licenseMonthly,
     PRICE_MODEL.isgTechnicalRate,
+    PRICE_MODEL.isgTechnicalRate * PRICE_MODEL.isgTechnicalHours,
     ...Object.values(PRICE_MODEL.rates),
     ...p.pricing.components.flatMap((c) => [c.perStage, c.program]),
     ...p.pricing.bridge.map((b) => Math.abs(b.perStage)),
@@ -234,15 +235,15 @@ describe("proposta ISG · V3 (Matriz IFT, valoração, colaboração técnica)",
     expect(q1.domain).toBe("B");
     expect(q1.ift.mensurar.availability).toBe("condicionada");
     expect(q1.ift.mensurar.text).toMatch(/Copenhagen Psychosocial Questionnaire/);
-    expect(q1.ift.mensurar.text).toMatch(/condicionada/);
+    expect(q1.ift.mensurar.text).toMatch(/demandas, autonomia, apoio/);
     expect(q1.ift.evoluir.text).toMatch(/não substitui o PGR/);
     expect(p.journey.stages.slice(1).every((s) => s.framework.domain === "A")).toBe(true);
     // A pergunta do Q5 reescrita (sem "comprovamos").
     expect(text).not.toMatch(/comprovamos/i);
   });
 
-  test("capa: categoria em destaque e NR-1 sempre com a ressalva educativa", () => {
-    expect(p.cover.brandLine).toBe("Sistema Operacional da Vitalidade Organizacional");
+  test("capa: narrativa de continuidade e NR-1 com a ressalva educativa", () => {
+    expect(p.cover.brandLine).toBe("Da felicidade da cidade à vitalidade das organizações");
     const nr1 = p.cover.chips.find((c) => c.label === "NR-1")!;
     expect(nr1.detail).toMatch(/Apoio educativo/);
     expect(nr1.detail).toMatch(/não substitui o PGR/i);

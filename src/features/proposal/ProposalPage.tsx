@@ -2,7 +2,6 @@
 // O conteúdo (inclusive preço) só chega depois da senha validada no servidor (/api/proposta).
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AlertTriangle,
   ArrowDown,
   ArrowRight,
   CalendarCheck,
@@ -17,7 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { VitalOSBrand } from "@/components/brand/VitalOSBrand";
-import { HERO_IMAGE, ILLUSTRATION } from "./media";
+import { CONTINUITY_IMAGE, HERO_IMAGE, ILLUSTRATION } from "./media";
 import { useReveal } from "./motion";
 import {
   ImageBand,
@@ -26,17 +25,15 @@ import {
   TeamSection,
   TrackSection,
 } from "./ProposalSections";
+import { ActionRehearsal, BrasiliaContinuation, EconomicScenario, EvidencePanels, IvoOverview, LensToAction, InstituteTrajectory, InstrumentSlide, proposalLensCodes } from "./ProposalContinuity";
 import { ProposalSlides } from "./ProposalSlides";
 import {
-  BeforeAfter,
   CoverHero,
-  HandoverDiagram,
   IftBadge,
   IftSection,
   InstitutoMark,
   PricingSection,
   PrintAppendix,
-  ScenarioDetail,
   StageDetail,
   Understand,
 } from "./ProposalV3";
@@ -153,6 +150,7 @@ function Details({
 const NAV = [
   { href: "#ciencia", label: "Ciência" },
   { href: "#matriz-ift", label: "Matriz IFT" },
+  { href: "#ivo-lentes", label: "IVO e lentes" },
   { href: "#jornada", label: "Jornada" },
   { href: "#cronograma", label: "Cronograma" },
   { href: "#investimento", label: "Investimento" },
@@ -347,17 +345,17 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
             kicker="Em dois minutos"
             title="O essencial da proposta"
           />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {p.summary.map((s, i) => (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {p.summary.filter((item) => item.label !== "Quanto investe").map((s) => (
               <article
                 key={s.label}
-                className={`proposal-card rounded-2xl border bg-card p-5 ${i === 1 ? "border-primary/40 ring-1 ring-primary/20" : "border-border"}`}
+                className={`proposal-card rounded-2xl border bg-card p-5 border-border`}
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   {s.label}
                 </p>
                 <h3
-                  className={`mt-2 font-serif leading-snug text-foreground ${i === 1 ? "text-2xl tabular-nums" : "text-xl"}`}
+                  className={`mt-2 font-serif leading-snug text-foreground text-xl`}
                 >
                   {s.title}
                 </h3>
@@ -454,108 +452,38 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
         {/* Prova: o que o Instituto já fez e o que a literatura mostra */}
         <TrackSection p={p} />
 
+        <section aria-label="Trajetória do Instituto" className="proposal-section"><InstituteTrajectory /></section>
+
         {/* Base científica e caso externo */}
+        <section id="evidencias" aria-label="Evidências sobre bem-estar no trabalho" className="proposal-section">
+          <EvidencePanels />
+        </section>
         <ScienceSection p={p} />
 
-        {band("faixa-escutar")}
+        <figure className="proposal-section proposal-continuity-image">
+          <img src={CONTINUITY_IMAGE} width={1600} height={900} alt="Profissionais fictícios discutem uma decisão em uma mesa de reunião." loading="lazy" decoding="async" />
+          <figcaption>Da escuta à decisão · Ilustração gerada · pessoas fictícias</figcaption>
+        </figure>
 
-        {/* 4 · Como funciona · caso fictício */}
-        <section aria-labelledby="titulo-caso" className="proposal-section space-y-6">
-          <SectionHead
-            id="titulo-caso"
-            kicker="Como funciona"
-            title={p.scenario.title}
-            intro={p.scenario.context}
-          />
-          <Tag kind="exemplo" />
-          <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr] lg:items-start">
-            <div className="space-y-3">
-              <p className="flex gap-2 text-base text-foreground">
-                <AlertTriangle aria-hidden className="mt-1 h-4 w-4 shrink-0 proposal-accent-icon" />
-                {p.scenario.problem}
-              </p>
-              <BeforeAfter p={p} />
-            </div>
-            <HandoverDiagram p={p} />
-          </div>
-          <ol aria-label="Do ouvir ao devolver, no exemplo" className="grid gap-3 md:grid-cols-4">
-            {p.scenario.steps.map((s, i) => (
-              <li
-                key={s.label}
-                className="proposal-card relative rounded-2xl border border-border bg-card p-5"
-              >
-                <span className="flex items-center justify-between">
-                  <span className="proposal-step-num flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
-                    {i + 1}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {i + 1} de {p.scenario.steps.length}
-                  </span>
-                </span>
-                <h3 className="mt-3 font-semibold text-foreground">{s.label}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
-                <p className="mt-2 text-xs text-foreground">
-                  <span className="font-semibold">Fica registrado: </span>
-                  {s.record}
-                </p>
-                {i < p.scenario.steps.length - 1 ? (
-                  <ArrowRight
-                    aria-hidden
-                    className="proposal-step-arrow absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 rounded-full bg-background text-primary md:block"
-                  />
-                ) : null}
-              </li>
-            ))}
-          </ol>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <figure className="proposal-card rounded-2xl border border-dashed border-primary/40 bg-card p-5">
-              <figcaption className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-foreground">Registro de execução</span>
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                  Exemplo fictício · não é captura de cliente
-                </span>
-              </figcaption>
-              <dl className="mt-3 divide-y divide-border text-sm">
-                {p.scenario.record.map((r) => (
-                  <div key={r.field} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
-                    <dt className="text-muted-foreground">{r.field}</dt>
-                    <dd
-                      className={`font-medium ${r.field === "Efeito" ? "text-muted-foreground" : "text-foreground"}`}
-                    >
-                      {r.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </figure>
-            <div className="rounded-2xl border border-border bg-muted/50 p-5">
-              <h3 className="text-sm font-semibold text-foreground">
-                O que faltaria avaliar para falar em efeito
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                {p.scenario.missing.map((m) => (
-                  <li key={m} className="flex gap-2">
-                    <CircleDashed aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <Understand
-            label="Entenda o exemplo passo a passo"
-            title="Exemplo trabalhado · troca de turno"
-            description="Quem faz o quê, o que fica registrado e o que a equipe vê em cada passo."
-            variant="button"
-          >
-            <ScenarioDetail p={p} />
-          </Understand>
-        </section>
-
-        {/* Matriz IFT: os quatro movimentos em cada etapa (D1, D2) */}
         <IftSection p={p} />
 
+        <section id="ivo-lentes" aria-label="IVO e lentes" className="proposal-section space-y-10">
+          <IvoOverview />
+          <EconomicScenario />
+          <LensToAction />
+          <div className="proposal-instrument-grid">
+            {proposalLensCodes.map((code) => (
+              <article key={code} className="proposal-ivo-card"><InstrumentSlide code={code} /></article>
+            ))}
+          </div>
+        </section>
+
         {band("faixa-agir")}
+
+        <section id="da-leitura-a-acao" aria-label="Da leitura à ação" className="proposal-section space-y-10">
+          <p className="max-w-prose text-muted-foreground">A devolutiva FIB-T realizada oferece o ponto de partida para confirmar prioridades com a equipe. O exemplo abaixo ilustra o próximo passo na proposta de implantação.</p>
+          <ActionRehearsal />
+        </section>
 
         {/* 5 · Jornada */}
         <section
@@ -735,6 +663,9 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
         </section>
 
         {band("faixa-consolidar")}
+        <section id="brasilia" aria-label="Continuidade em Brasília" className="proposal-section">
+          <BrasiliaContinuation />
+        </section>
 
         {/* 7 · Investimento e contrapartida */}
         <section
@@ -849,6 +780,7 @@ export function ProposalView({ p, onLogout }: { p: ProposalContent; onLogout?: (
                 ))}
               </ol>
               <div className="mt-4 space-y-2 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">
+                <p><strong>Brasília · Cooperação futura.</strong> Avaliar desempenho, acessibilidade e implantação do Game da Felicidade e da Formação introdutória em Ciência da Felicidade para a população. Escopo e horas próprios, a combinar.</p>
                 <p>{p.counterpart.caseUse}</p>
                 <p>{p.counterpart.externalUse}</p>
               </div>

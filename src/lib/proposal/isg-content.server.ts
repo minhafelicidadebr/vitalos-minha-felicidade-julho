@@ -233,7 +233,7 @@ const baseStages: Omit<JourneyStage, "framework">[] = [
         label: "Mensuração da vitalidade",
         availability: "condicionada",
         decision:
-          "Fora desta proposta. Depende de fonte metodológica aprovada e de acordo próprio.",
+          "Eventual mensuração tem escopo e finalidade próprios.",
       },
     ],
   },
@@ -300,13 +300,6 @@ const baseStages: Omit<JourneyStage, "framework">[] = [
 // ── Matriz IFT por etapa · lentes de src/domain/journey.ts (fonte única da jornada canônica) ──
 // A copy de journey.ts NÃO é reaproveitada: só o nome da lente e a pergunta-guia (Q5 reescrita).
 // Cada célula traz o status real da maturidade (docs/vitalos/piloto/). Papéis: exemplo, definido na reunião.
-const copsoqOrigin = () =>
-  governed(
-    "CLAIM-COM-PROPOSAL-COPSOQ-ORIGIN-001",
-    "default",
-    "Mapeamento psicossocial estruturado, com referência internacional.",
-  );
-
 const FRAMEWORKS: Record<JourneyStage["id"], StageFramework> = {
   q1: {
     lens: "Risco",
@@ -314,7 +307,7 @@ const FRAMEWORKS: Record<JourneyStage["id"], StageFramework> = {
     domain: "B",
     ift: {
       mensurar: {
-        text: `${copsoqOrigin()} Coleta condicionada à liberação da versão brasileira e à permissão de uso.`,
+        text: "COPSOQ (Copenhagen Psychosocial Questionnaire): estrutura a escuta sobre demandas, autonomia, apoio e outras condições psicossociais do trabalho.",
         availability: "condicionada",
       },
       educar: {
@@ -374,11 +367,11 @@ const FRAMEWORKS: Record<JourneyStage["id"], StageFramework> = {
     domain: "A",
     ift: {
       mensurar: {
-        text: "PERMA+V: a mensuração fica fora desta proposta até haver fonte metodológica aprovada.",
+        text: "PERMA+V: organiza a leitura do florescimento em emoções positivas, engajamento, relações, sentido, realizações e vitalidade.",
         availability: "condicionada",
       },
       educar: {
-        text: "Oficina de abertura e prática de vitalidade.",
+        text: "Oficina de florescimento: reconhecer emoções positivas, experimentar condições para flow, fortalecer apoio, ligar tarefas ao propósito e tornar progressos visíveis. A vitalidade complementa a prática.",
         availability: "instituto",
       },
       transformar: {
@@ -499,7 +492,7 @@ export const ISG_PROPOSAL: ProposalContent = {
     imageCaption: "Ilustração gerada · pessoas fictícias",
   },
   cover: {
-    brandLine: "Sistema Operacional da Vitalidade Organizacional",
+    brandLine: "Da felicidade da cidade à vitalidade das organizações",
     valueLine:
       "Da gestão de riscos psicossociais ao florescimento das equipes: ciência da felicidade aplicada ao trabalho, com decisões que a empresa acompanha.",
     chips: [
@@ -584,10 +577,10 @@ export const ISG_PROPOSAL: ProposalContent = {
         detail: "Composição: consultoria, licença e custos indiretos.",
       },
       {
-        label: "Colaboração técnica da ISG",
+        label: "Colaboração técnica da ISG · por etapa",
         perStage: -perStage(isgContributionProgram),
         kind: "reduction",
-        detail: `${PRICE_MODEL.isgTechnicalHours} horas de revisão da experiência e das integrações, estimadas a ${formatBRL(PRICE_MODEL.isgTechnicalRate)} por hora.`,
+        detail: `${PRICE_MODEL.isgTechnicalHours} h × ${formatBRL(PRICE_MODEL.isgTechnicalRate)} = ${formatBRL(isgContributionProgram)} no programa. Dividindo por ${stageCount} etapas: ${formatBRL(perStage(isgContributionProgram))} por etapa na composição do preço.`,
       },
       {
         label: "Investimento do Instituto",
@@ -951,7 +944,7 @@ export const ISG_PROPOSAL: ProposalContent = {
         name: "PERMA · Martin Seligman",
         what: "Modelo de bem-estar com emoções positivas, engajamento, relações, sentido e realização.",
         inProposal:
-          "Orienta os conteúdos da prática de vitalidade (Q3). A mensuração fica fora desta proposta.",
+          "Orienta a oficina de florescimento do Q3, com exercícios sobre os cinco elementos e uma prática complementar de vitalidade.",
         status: "referencia",
         statusLabel: "Referência teórica",
       },
@@ -996,9 +989,9 @@ export const ISG_PROPOSAL: ProposalContent = {
       "Como recomenda o Guia Prático, não há fórmula mágica: combinar ações da organização, dos grupos e das pessoas funciona melhor que uma ação isolada. É assim que as cinco etapas se encadeiam.",
   },
   externalCase: {
-    title: "Um caso brasileiro: a felicidade entrou na conversa de gestão",
+    title: "Heineken Brasil: uma referência para o Q3",
     summary:
-      "A Heineken Brasil descreve uma Jornada da Felicidade que combina escuta recorrente, o modelo PERMA-V e ações sobre a experiência de trabalhar. É um exemplo externo para conhecer e aprender, não um resultado desta proposta.",
+      "A Heineken Brasil descreve uma Jornada da Felicidade que combina escuta recorrente, o modelo PERMA-V e ações sobre a experiência de trabalhar. É uma referência externa para a lente de florescimento e vitalidade. Na VitalOS, essa lente se soma à leitura de riscos psicossociais, bem-estar coletivo e forças no trabalho.",
     practices: [
       {
         label: "Escuta",
@@ -1262,7 +1255,7 @@ export const ISG_PROPOSAL: ProposalContent = {
     },
     { claim: "Contribuição técnica de 40 horas", kind: "condicao", source: "Ponto de negociação" },
     {
-      claim: "Equipe, turnos, registro de execução e cargos do exemplo",
+      claim: "Ações, responsáveis e valores ilustrativos dos exemplos",
       kind: "exemplo",
       source: "Exemplo fictício",
     },
