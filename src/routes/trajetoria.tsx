@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/app/shell/AppShell";
 import { IvoMethodHeader, IvoMethodSheet } from "@/components/ivo/IvoMethodHeader";
 import { usePack } from "@/engine/pack";
@@ -19,6 +19,7 @@ const SCENARIOS: { id: ForecastScenario; label: string }[] = [
   { id: "conservador", label: "Conservador" }, { id: "medio", label: "Médio" }, { id: "otimista", label: "Otimista" },
 ];
 const signed = (value: number) => value > 0 ? `+${value}` : String(value);
+const pointsFormat = new Intl.NumberFormat("pt-BR");
 const weightFormat = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 10 });
 const selectClass = "mt-1 block min-h-11 w-full rounded-lg border border-input bg-background px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -79,17 +80,40 @@ function TrajetoriaPage() {
           <section aria-labelledby="traj-results" className="min-w-0 space-y-3 rounded-2xl border border-border bg-card p-4 sm:p-6">
             <h2 id="traj-results" className="font-serif text-xl">Compare as duas trajetórias</h2>
             <p aria-live="polite" className="text-sm text-muted-foreground">Temporada {seasons}: {final.reference} pontos na referência, {final.alternative} na alternativa ({signed(final.alternative - final.reference)} pontos). Ambos são cenários de demonstração.</p>
-            <div aria-hidden="true" className="h-48 min-w-0 sm:h-64">
+            <div className="h-48 min-w-0 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={rows} margin={{ left: 0, right: 12, top: 8, bottom: 3 }}>
+                <LineChart accessibilityLayer aria-label="Trajetórias simuladas do IVO por temporada" data={rows} margin={{ left: 0, right: 12, top: 8, bottom: 3 }}>
                   <XAxis dataKey="season" tickLine={false} />
                   <YAxis domain={[0, 1000]} width={42} tickLine={false} />
+                  <Tooltip
+                    cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4", opacity: 0.6 }}
+                    isAnimationActive={false}
+                    content={({ active, label }) => {
+                      const selected = rows.find((row) => row.season === Number(label));
+                      const baseline = rows[0];
+                      if (!active || !selected || !baseline) return null;
+
+                      const difference = selected.alternative - baseline.alternative;
+                      return (
+                        <div className="pointer-events-none w-max max-w-52 rounded-xl border border-border bg-card p-3 text-xs text-card-foreground shadow-lg">
+                          <p className="font-semibold">{selected.season === 0 ? "Ponto de partida" : `Temporada ${selected.season}`}</p>
+                          <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 tabular-nums">
+                            <dt>IVO de hoje (simulado)</dt><dd className="text-right font-semibold">{pointsFormat.format(baseline.alternative)}</dd>
+                            <dt>Referência</dt><dd className="text-right">{pointsFormat.format(selected.reference)}</dd>
+                            <dt>Projeção alternativa</dt><dd className="text-right font-semibold">{pointsFormat.format(selected.alternative)}</dd>
+                            <dt>Variação desde a base</dt><dd className="text-right font-semibold">{signed(difference)} pts</dd>
+                          </dl>
+                        </div>
+                      );
+                    }}
+                  />
                   <Line dataKey="reference" stroke="var(--muted-foreground)" strokeDasharray="6 5" strokeWidth={2} dot={false} isAnimationActive={false} />
-                  <Line dataKey="alternative" stroke="var(--primary)" strokeWidth={3} dot={{ r: 3 }} isAnimationActive={false} />
+                  <Line dataKey="alternative" stroke="var(--primary)" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 6, stroke: "var(--card)", strokeWidth: 2 }} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <p className="text-sm text-muted-foreground">Linha tracejada: referência. Linha contínua com pontos: alternativa.</p>
+            <p className="text-xs text-muted-foreground">Passe o mouse ou deslize o dedo pelo gráfico. Com o gráfico em foco, use as setas para consultar as temporadas.</p>
             <details className="rounded-lg border border-border p-3">
               <summary className="flex min-h-11 cursor-pointer items-center font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Ver tabela de pontos por temporada</summary>
               <table className="w-full table-fixed text-left text-sm">
