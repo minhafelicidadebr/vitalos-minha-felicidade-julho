@@ -1258,12 +1258,30 @@ button.proposal-ivo-card[aria-pressed="true"] { border-color:var(--primary); box
 .proposal-demo-row em { font-style: normal; }
 @media (max-width: 640px) { .proposal-demo-mock { grid-template-columns: 1fr; } }
 
-/* Brasília: silhueta vetorial atrás do conteúdo */
-.proposal-brasilia-scene { position: relative; isolation: isolate; }
-.proposal-skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 42%; color: var(--fpt-teal); opacity: 0.12; z-index: -1; pointer-events: none; }
-.dark .proposal-skyline { color: var(--fpt-yellow); opacity: 0.14; }
-.proposal-skyline-credit { position: absolute; right: 0.6em; bottom: 0.3em; font-size: 0.68em; color: var(--muted-foreground); }
-@media print { .proposal-skyline { opacity: 0.1; } }
+.proposal-ivo-brand { display: flex; align-items: center; gap: clamp(.65rem, 2vw, 1.2rem); }
+.proposal-ivo-brand img { flex: none; width: clamp(2.4rem, 5vw, 4rem); height: auto; }
+.proposal-nr1-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.proposal-nr1-table caption { text-align: left; font-weight: 650; margin-bottom: .4rem; }
+.proposal-nr1-table :is(th, td) { text-align: start; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
+
+.proposal-brasilia-scene, .proposal-brasilia-photo-scene { position: relative; isolation: isolate; overflow: hidden; }
+.proposal-brasilia-photo {
+  position: absolute; z-index: -1; inset: 0 0 0 auto; width: 67%; height: 100%;
+  object-fit: cover; object-position: 80% center;
+  mask-image: linear-gradient(to right, transparent 4%, black 74%);
+}
+.proposal-brasilia-photo-scene .proposal-brasilia-photo { opacity: .8; }
+.proposal-brasilia-photo-scene > :is(p, ul) { position: relative; max-width: 62%; }
+.proposal-brasilia-scene .proposal-brasilia-photo { opacity: .48; }
+.proposal-brasilia-scene > div:first-of-type { max-width: 67%; }
+.proposal-brasilia-scene .proposal-brasilia-card { background: color-mix(in oklch, var(--tone-soft) 95%, var(--background)); }
+.proposal-brasilia-credit { font-size: .72em; }
+@media (max-width: 680px) {
+  .proposal-brasilia-photo-scene .proposal-brasilia-photo { opacity: .35; width: 100%; }
+  .proposal-brasilia-scene .proposal-brasilia-photo { opacity: .23; width: 100%; }
+  .proposal-brasilia-photo-scene > :is(p, ul), .proposal-brasilia-scene > div:first-of-type { max-width: 100%; }
+}
+@media print { .proposal-brasilia-photo { display: none; } }
 
 .proposal-slide .proposal-picto { margin-top: 0.1em; }
 .proposal-slide .proposal-picto i { width: 0.55em; height: 0.55em; }
@@ -1274,8 +1292,6 @@ button.proposal-ivo-card[aria-pressed="true"] { border-color:var(--primary); box
 .proposal-slide .proposal-who-card { padding: 0.45em 0.9em; }
 
 .proposal-isgmap-adds { align-content: center; }
-.proposal-skyline { bottom: -6.5em; height: 7.5em; opacity: 0.16; }
-.proposal-brasilia-scene { margin-bottom: 4.5em; }
 .proposal-slide .proposal-evidence-intro { display: none; }
 
 /* ───────── V5b: refinamentos ───────── */

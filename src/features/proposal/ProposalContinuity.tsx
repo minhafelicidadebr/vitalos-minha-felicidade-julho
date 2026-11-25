@@ -1,5 +1,7 @@
 import { useId, useState } from "react";
 import reportCover from "@/assets/relatorio-global-esg-cover-3d.jpg";
+import brasiliaCommunity from "@/assets/proposal/brasilia-community.webp";
+import brasiliaCity from "@/assets/proposal/brasilia-city.webp";
 import { Activity, Building2, Check, Compass, Globe2, HeartHandshake, Layers3, Lightbulb, ShieldCheck, Sparkles, TrendingUp, UserRound, UsersRound } from "lucide-react";
 import { calculateOutcomeScenario } from "@/engine/pnl/outcome-scenario";
 import { Understand } from "./ProposalV3";
@@ -46,8 +48,11 @@ export function IvoOverview({ slide = false }: { slide?: boolean }) {
     <div className="proposal-ivo-block">
       <div>
         <p className="proposal-ivo-kicker"><Layers3 aria-hidden size={16} /> Estrutura metodológica</p>
-        <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Como o IVO lê a vitalidade</Heading>
-        <p>O Índice de Vitalidade Organizacional organiza a leitura em quatro dimensões. Cada uma ajuda a formular uma pergunta sobre o trabalho.</p>
+        <div className="proposal-ivo-brand">
+          <img src="/brand/vitalos/vitalos-mark-512.png" width={64} height={64} alt="" />
+          <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Índice de Vitalidade Organizacional</Heading>
+        </div>
+        <p>O IVO organiza a leitura em quatro dimensões. Cada uma ajuda a formular uma pergunta sobre o trabalho.</p>
       </div>
       <ul className="proposal-ivo-grid">
         {dimensions.map(({ name, question, icon: Icon }) => (
@@ -191,8 +196,8 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
   const [step, setStep] = useState(0);
   const Heading = slide ? "h2" : "h3";
   const steps = [
-    { title: "Pactuar", body: "RH e equipe escolhem comunicação e voz. Como exemplo, a liderança testa uma cadência quinzenal de comunicação com canal de retorno. O prazo inicial serve para observar se a rotina é viável." },
-    { title: "Registrar", body: "A liderança registra a publicação do primeiro resumo e anota se o canal de retorno foi comunicado." },
+    { title: "Pactuar", body: "Se a escuta indicar que as pessoas hesitam em levantar dúvidas, RH, liderança e equipe podem pactuar um projeto de segurança psicológica. Uma primeira ação é reservar tempo para perguntas na reunião de equipe e combinar como a liderança dará retorno." },
+    { title: "Registrar", body: "A liderança registra quando a rotina começou e como foram tratados os temas levantados, preservando a identidade das pessoas." },
     { title: "Revisar", body: "No prazo pactuado, RH e equipe revisam execução, contribuições recebidas e ajustes necessários." },
     { title: "Devolver", body: "A equipe vê o que foi feito, o que ficou pendente e a data do próximo retorno." },
   ];
@@ -201,7 +206,7 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
       <div>
         <p className="proposal-ivo-kicker">Percurso ilustrativo do Q2</p>
         <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Como acompanhar uma ação</Heading>
-        <p>Exemplo a pactuar a partir da escuta FIB-T já realizada. O primeiro recorte proposto é de 90 dias, com revisões e devolutiva.</p>
+        <p>A equipe interpreta a escuta FIB-T, confirma uma prioridade e escolhe uma intervenção adequada à causa. O primeiro recorte proposto é de 90 dias, com revisões e devolutiva.</p>
       </div>
       <div className="proposal-ivo-grid proposal-role-grid">
         <article className="proposal-ivo-card proposal-ift-color"><strong>RH · Prioridades e Plano de Ação</strong><span>Facilita a escolha, define responsáveis e prazos, acompanha a execução e prepara a devolutiva.</span></article>
@@ -224,6 +229,13 @@ export function ActionRehearsal({ slide = false }: { slide?: boolean }) {
               </li>
             ))}
           </ol>
+          <h4>Do resultado à escolha da intervenção</h4>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Dificuldade para levantar dúvidas → combinar uma rotina de escuta e retorno.</li>
+            <li>Falta de clareza sobre responsabilidades → esclarecer papéis e decisões da equipe.</li>
+            <li>Dificuldade de recuperação → revisar a agenda e combinar pausas protegidas.</li>
+          </ul>
+          <p>Em cada caso, confirme a hipótese com a equipe, defina responsável, prazo e indicador, acompanhe a execução e reavalie com uma leitura comparável.</p>
           <div className="proposal-demo-mock" role="img" aria-label="Exemplo sintético de duas telas do dashboard: leitura coletiva e ações do ciclo">
             <div>
               <strong>Leitura coletiva · exemplo</strong>
@@ -364,36 +376,16 @@ const brasiliaMoves = [
 
 export function BrasiliaTransition({ slide = false }: { slide?: boolean }) {
   return (
-    <div className={"proposal-brasilia-transition" + (slide ? " is-slide" : "")}>
-      <p className="proposal-ivo-kicker proposal-on-mesh">Um segundo assunto, com escopo próprio</p>
+    <div className={"proposal-brasilia-transition proposal-brasilia-photo-scene" + (slide ? " is-slide" : "")}>
+      <img className="proposal-brasilia-photo" src={brasiliaCommunity} alt="" decoding="async" />
+      <p className="proposal-ivo-kicker proposal-on-mesh">Cooperação institucional</p>
       <p className={slide ? "slide-cover-title" : "proposal-transition-title"}>Mensurar, educar e transformar Brasília</p>
       <p className={slide ? "slide-lead" : "proposal-transition-lead"}>Fora da implantação do VitalOS na ISG: uma oportunidade institucional futura.</p>
       <ul className="proposal-transition-moves" aria-label="Três movimentos">
         {brasiliaMoves.map(({ id, name }) => <li key={id} className={"proposal-transition-chip proposal-tone-" + id}>{name}</li>)}
       </ul>
+      <p className="proposal-brasilia-credit">Ilustração gerada · pessoas fictícias</p>
     </div>
-  );
-}
-
-/** Silhueta vetorial estilizada do horizonte modernista de Brasília. Ilustração, não fotografia. */
-function BrasiliaSkyline() {
-  return (
-    <svg className="proposal-skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" aria-hidden focusable="false">
-      <g fill="currentColor">
-        <rect x="0" y="196" width="1200" height="24" />
-        {/* Congresso: torres gêmeas, cúpulas e base horizontal */}
-        <rect x="500" y="176" width="260" height="20" />
-        <rect x="574" y="70" width="26" height="106" /><rect x="640" y="70" width="26" height="106" />
-        <path d="M470 176 a62 40 0 0 1 124 0 Z" opacity="0.8" />
-        <path d="M640 136 a62 40 0 0 0 124 0 Z" opacity="0.8" />
-        {/* Catedral: hipérboles */}
-        <path d="M900 196 L915 120 L930 100 L945 120 L960 196 L950 196 L938 128 L930 116 L922 128 L910 196 Z" />
-        <path d="M884 196 L912 112 M976 196 L948 112" stroke="currentColor" strokeWidth="3" fill="none" />
-        {/* Quadras e eixo */}
-        <rect x="60" y="166" width="90" height="30" /><rect x="170" y="150" width="70" height="46" /><rect x="260" y="172" width="110" height="24" />
-        <rect x="1010" y="158" width="80" height="38" /><rect x="1110" y="170" width="70" height="26" />
-      </g>
-    </svg>
   );
 }
 
@@ -401,8 +393,7 @@ export function BrasiliaContinuation({ slide = false }: { slide?: boolean }) {
   const Heading = slide ? "h2" : "h3";
   return (
     <div className="proposal-ivo-block proposal-calm proposal-brasilia-scene">
-      <BrasiliaSkyline />
-      <span className="proposal-skyline-credit">Ilustração estilizada do horizonte de Brasília</span>
+      <img className="proposal-brasilia-photo" src={brasiliaCity} alt="" decoding="async" />
       <div>
         <p className="proposal-ivo-kicker">Cooperação institucional · escopo próprio</p>
         <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>O próximo passo para Brasília</Heading>
@@ -440,6 +431,7 @@ export function BrasiliaContinuation({ slide = false }: { slide?: boolean }) {
         </Understand>
       </div>
       <ul className="proposal-ivo-print"><li>Como a ISG pode contribuir: apoio em desempenho, acessibilidade e experiência de uso, por meio de um novo acordo com escopo próprio.</li></ul>
+      <p className="proposal-brasilia-credit">Ilustração gerada · Brasília</p>
     </div>
   );
 }
@@ -476,14 +468,13 @@ const permaPractice = [
   ["V", "Vitalidade", "Discutir pausas, recuperação e condições para sustentá-las."],
 ] as const;
 
-/** Alerta visual NR-1: sem valores de multa; o enquadramento é conferido na NR-28 com SST e jurídico. */
 export function Nr1Alert() {
   return (
     <figure className="proposal-nr1alert" aria-label="NR-1: riscos psicossociais e fiscalização">
-      <svg viewBox="0 0 120 140" role="img" aria-label="Escudo com balança e sinal de atenção" className="proposal-nr1alert-art">
+      <svg viewBox="0 0 120 140" aria-hidden="true" className="proposal-nr1alert-art">
         <path d="M60 8 L108 26 V68 C108 98 88 120 60 132 C32 120 12 98 12 68 V26 Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
         <path d="M60 22 L96 35 V68 C96 91 81 108 60 118 C39 108 24 91 24 68 V35 Z" fill="currentColor" opacity="0.1" />
-        <path d="M60 44 V92 M40 52 H80 M40 52 L30 74 H50 Z M80 52 L70 74 H90 Z M46 94 H74" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="60" y="75" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="750">NR-1</text>
         <circle cx="94" cy="26" r="13" fill="var(--nr1-alert)" />
         <path d="M94 19 V28 M94 32 V33" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
       </svg>
@@ -491,9 +482,9 @@ export function Nr1Alert() {
         <p className="proposal-ivo-kicker">NR-1 · riscos psicossociais</p>
         <div className="proposal-nr1alert-cols">
           <p><strong>O que se espera.</strong> Identificar, avaliar e prevenir os riscos do trabalho, inclusive os psicossociais, com registro no PGR.</p>
-          <p className="is-alert"><strong>O que está em jogo.</strong> A inspeção pode aplicar penalidades. A graduação depende do item, da gravidade e do porte (NR-28).</p>
+          <p className="is-alert"><strong>Fiscalização.</strong> O item 1.5.3.1.4 da NR-1 consta como infração de grau 3. A faixa varia conforme o total de empregados.</p>
         </div>
-        <p className="proposal-nr1alert-note">Sem valores aqui de propósito: o enquadramento é conferido com SST e jurídico. Apoio educativo; não substitui o PGR.</p>
+        <p className="proposal-nr1alert-note">Veja as faixas da NR-28 e as hipóteses agravadas na janela de fiscalização.</p>
       </div>
     </figure>
   );
@@ -512,7 +503,19 @@ export function Nr1Enforcement() {
           <li>Quando há atuação da inspeção, ela considera os itens verificados e as circunstâncias de cada caso.</li>
         </ul>
         <h4>Como a penalidade é graduada</h4>
-        <p>Pela NR-28, a penalidade depende do item infringido, da gravidade atribuída a ele e do número de empregados da organização. Um exemplo com item, código, graduação, faixa de empregados e vigência fica pendente de validação com a fonte oficial vigente, e não é apresentado aqui.</p>
+        <p>Para o item 1.5.3.1.4 da NR-1, a Portaria MTE nº 1.758/2026 indica o código 101137-5, grau 3, tipo Segurança do Trabalho. O Anexo I da NR-28 apresenta as seguintes faixas em UFIR.</p>
+        <table className="proposal-nr1-table">
+          <caption>Exemplos de faixas oficiais para o grau 3</caption>
+          <thead><tr><th scope="col">Total de empregados</th><th scope="col">Faixa em UFIR</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">1 a 10</th><td>1.691 a 2.091</td></tr>
+            <tr><th scope="row">51 a 100</th><td>2.899 a 3.302</td></tr>
+            <tr><th scope="row">101 a 250</th><td>3.303 a 3.718</td></tr>
+            <tr><th scope="row">Mais de 1.000</th><td>4.526 a 4.929</td></tr>
+          </tbody>
+        </table>
+        <p><strong>R$ 6.708,09</strong> é o valor máximo de segurança do trabalho listado no Anexo IV da Portaria MTP nº 667/2021, na compilação de março de 2024, para hipóteses como reincidência, resistência à fiscalização ou fraude. Consulte a atualização aplicável, pois a NR-28 prevê reajuste anual.</p>
+        <p className="text-sm"><a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/2026-1/portaria-mte-no-1-758-altera-a-nr-28.pdf" target="_blank" rel="noreferrer">Portaria MTE nº 1.758/2026</a> · <a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/legislacao/portarias-1/portarias-vigentes-3/PDFPortarian667de8novembrode2021compilada21.03.2024.pdf" target="_blank" rel="noreferrer">Portaria MTP nº 667/2021 · Anexo IV</a></p>
         <p>Esta proposta não projeta penalidade para a ISG e não trata a ausência de um questionário como infração.</p>
         <p className="text-sm">Fontes oficiais: <a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadoras/normas-regulamentadoras-vigentes/nr-1" target="_blank" rel="noreferrer">NR-1</a> · <a className="underline" href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadoras/normas-regulamentadoras-vigentes/norma-regulamentadora-no-28-nr-28" target="_blank" rel="noreferrer">NR-28</a></p>
         <p className="text-sm">Apoio educativo à gestão de riscos psicossociais. Não substitui o PGR nem o profissional habilitado.</p>

@@ -303,7 +303,7 @@ describe("proposta V4 · lote de conteúdo e fontes", () => {
     expect(document.body.textContent).toMatch(/associações agregadas/);
   });
 
-  test("Q1: NR-1 sem prescrever o COPSOQ; janela da fiscalização sem multa projetada nem exemplo não verificado", async () => {
+  test("Q1: apresenta as faixas verificadas e contextualiza o valor máximo em hipóteses agravadas", async () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
     expect(document.body.textContent).toMatch(/A NR-1 não prescreve o COPSOQ como instrumento obrigatório/);
     const open = screen.getAllByRole("button", { name: "Como funciona a fiscalização?" })[0]!;
@@ -311,8 +311,9 @@ describe("proposta V4 · lote de conteúdo e fontes", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog.textContent).toMatch(/Em resumo/);
     expect(dialog.textContent).toMatch(/não projeta penalidade para a ISG/);
-    expect(dialog.textContent).toMatch(/pendente de validação/);
-    expect(dialog.textContent).not.toMatch(/R\$ ?\d|multa de/i);
+    expect(dialog.textContent).toMatch(/101137-5, grau 3/);
+    expect(within(dialog).getByRole("table", { name: "Exemplos de faixas oficiais para o grau 3" })).toBeTruthy();
+    expect(dialog.textContent).toMatch(/R\$ 6\.708,09.*reincidência/);
     expect(within(dialog).getByRole("link", { name: "NR-1" })).toBeTruthy();
     expect(within(dialog).getByRole("link", { name: "NR-28" })).toBeTruthy();
     fireEvent.keyDown(dialog, { key: "Escape" });
