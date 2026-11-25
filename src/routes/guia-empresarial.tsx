@@ -65,7 +65,7 @@ function GuidePublicPage() {
   };
 
   const change = (next: { stage?: GuideLens; perspective?: GuidePerspective }) =>
-    navigate({ search: (prev) => ({ ...prev, ...(next.stage ? { etapa: next.stage } : {}), ...(next.perspective ? { perfil: next.perspective } : {}) }), replace: true });
+    navigate({ search: (prev) => ({ ...prev, ...(next.stage ? { etapa: next.stage } : {}), ...(next.perspective ? { perfil: next.perspective } : {}) }), replace: false });
 
   const start = () => {
     void navigate({ search: { etapa: "Q2", perfil: "rh" } }).then(() => journeyRef.current?.focus());

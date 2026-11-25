@@ -18,6 +18,24 @@ export interface GuideMatrixCell {
   condition: string;
   /** Capacidade do registro de disponibilidade que sustenta a célula, quando houver. */
   capability?: string;
+  /** Rótulos dos dois blocos do card do papel, quando o padrão da etapa não serve. */
+  labels?: { first: string; second: string };
+}
+
+/** Jornada por perfil: o mesmo formato do Q2 para todas as etapas. */
+export interface GuideLensJourney {
+  /** Passos curtos do fluxo (ex.: preparar → revisar). */
+  flow?: { steps: string[]; arrows: boolean; note?: string };
+  /** Resumo do exemplo, curto e sem dados. */
+  example: string;
+  /** "Que evidência fica?" */
+  evidence: string;
+  /** Checagem opcional (id em `checks`). */
+  checkId?: string;
+  /** Aviso fixo da etapa (ex.: Q1 só preparação). */
+  stageNotice?: string;
+  /** Selo editorial da etapa (ex.: "Exemplo educativo"). */
+  stageChip?: string;
 }
 
 export type CyclePhase = "Mensurar" | "Educar" | "Transformar" | "Evoluir";
@@ -48,6 +66,9 @@ export interface GuideLensContent {
   /** Validação de privacidade, agregação e publicação da lente. */
   guardrails: string[];
   matrix: Record<GuidePerspective, GuideMatrixCell>;
+  journey?: GuideLensJourney;
+  /** "Como a equipe colabora" desta etapa. Sem valor, vale o fluxo do Q2 (`GuideContent.handoffs`). */
+  handoffs?: GuideHandoff[];
   /** Voz por perspectiva (texto de tela). */
   voices: Partial<Record<GuidePerspective, string>>;
 }
@@ -64,6 +85,10 @@ export interface GuideHandoff {
   verb: string;
   owner: string;
   perspective: GuidePerspective;
+  /** Outras perspectivas que também se reconhecem neste passo. */
+  also?: GuidePerspective[];
+  /** Passo de quem acompanha o retorno ("Você acompanha"), não de quem atua. */
+  follow?: boolean;
   evidence: string;
 }
 
@@ -79,6 +104,8 @@ export interface GuideContent {
   opening: {
     title: string;
     text: string;
+    /** Caso contínuo, apresentado sob a abertura. */
+    example: { title: string; text: string };
     receives: { title: string; text: string };
     mobilizes: { title: string; text: string };
     consult: { title: string; items: { label: string; capability?: string; fixed?: "Em preparação" | "Exemplo da jornada"; note?: string }[] };

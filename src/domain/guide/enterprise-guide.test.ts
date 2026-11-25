@@ -49,7 +49,37 @@ describe("Guia · conteúdo (V2.1)", () => {
     expect(q2.matrix.sst.condition).toMatch(/sem autoridade/i);
     const q4 = G.lenses.find((l) => l.lens === "Q4")!;
     expect(q4.guardrails.join(" ")).toMatch(/contrato próprio/);
-    for (const p of ["rh", "lideranca", "direcao"] as const) expect(q4.matrix[p].receives).toMatch(/nenhum|nada/i);
+    for (const p of ["rh", "lideranca", "direcao"] as const) expect(q4.matrix[p].receives).toMatch(/nenhum|nada|não recebe|apenas a oferta|somente a oferta/i);
+    expect(q4.matrix.lideranca.receives).toMatch(/não recebe registros individuais/i);
+  });
+
+  test("Q1/Q3/Q4/Q5: jornada por perfil com exemplo, evidência e checagem existente; Q1 só preparação", () => {
+    for (const lens of G.lenses) {
+      expect(lens.journey, lens.lens).toBeDefined();
+      expect(lens.journey!.example.length).toBeGreaterThan(20);
+      expect(lens.journey!.evidence.length).toBeGreaterThan(10);
+      if (lens.journey!.checkId) expect(G.checks.some((c) => c.id === lens.journey!.checkId), lens.lens).toBe(true);
+    }
+    const lens = (id: string) => G.lenses.find((l) => l.lens === id)!;
+    expect(lens("Q1").journey!.stageNotice).toBe("A coleta oficial está em preparação. Consulte como organizar e revisar a escuta.");
+    expect(lens("Q5").journey!.stageNotice).toBe("Exemplo de síntese anual. Os registros abaixo são fictícios.");
+    for (const l of G.lenses) expect(l.handoffs ?? G.handoffs, l.lens).not.toHaveLength(0);
+    expect(lens("Q3").journey!.stageChip).toBe("Exemplo educativo");
+    // Q4: trilha individual, sem setas de envio.
+    expect(lens("Q4").journey!.flow!.arrows).toBe(false);
+    expect(JSON.stringify(lens("Q4").journey)).not.toContain("→");
+    // Perfis de Q3/Q4/Q5 sem capacidade operacional inventada: só registro existente.
+    for (const l of ["Q3", "Q4", "Q5"]) for (const p of PERSPECTIVES) {
+      const c = lens(l).matrix[p].capability;
+      if (c) expect(availabilityEntry(c)!.route, `${l}/${p}`).toBeNull();
+    }
+  });
+
+  test("abertura: título e texto do guia consolidado, caso contínuo com rótulo fictício", () => {
+    expect(G.opening.title).toBe("Guia da Jornada Empresarial");
+    expect(G.opening.text).toBe("Escolha uma etapa e um perfil para entender sua parte, quem recebe depois e quais ferramentas consultar.");
+    expect(G.opening.example.title).toBe("Acompanhe um exemplo, da preparação à síntese");
+    expect(G.caseLabel).toMatch(/fictício/);
   });
 
   test("Q5: extrato com os quatro tipos, rotulado como sintético; checagens com feedback para cada opção", () => {

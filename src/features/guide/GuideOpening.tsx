@@ -20,7 +20,6 @@ export function GuideOpening({ content, environment, onStart }: { content: Guide
     <section aria-labelledby="guide-opening" className="space-y-6">
       <div className="grid overflow-hidden rounded-3xl border border-primary/15 bg-primary/5 lg:grid-cols-2">
         <div className="min-w-0 space-y-4 self-center p-5 sm:p-8">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Guia da jornada empresarial</p>
           <h1 id="guide-opening" className="max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-4xl">{o.title}</h1>
           <p className="max-w-2xl text-base text-muted-foreground">{o.text}</p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -75,10 +74,14 @@ export function GuideOpening({ content, environment, onStart }: { content: Guide
           </ul>
         </article>
       </div>
+      <section aria-labelledby="guide-example" className="space-y-1 rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <h2 id="guide-example" className="font-medium text-foreground">{o.example.title}</h2>
+        <p className="text-sm text-muted-foreground">{o.example.text}</p>
+        <p className="pt-1 text-xs font-medium text-muted-foreground">{content.caseLabel}</p>
+      </section>
       <div className="space-y-1 text-sm">
         <p className="text-foreground">{o.billing}</p>
         <p className="text-xs text-muted-foreground">{o.disclaimer}</p>
-        <p className="text-xs text-muted-foreground">{content.caseLabel}</p>
       </div>
     </section>
   );
