@@ -104,7 +104,9 @@ import { Route as IvoIntegralGovernancaRouteImport } from './routes/ivo-integral
 import { Route as IvoIntegralGuiaRouteImport } from './routes/ivo-integral.guia'
 import { Route as IvoIntegralPrepararQ1RouteImport } from './routes/ivo-integral.preparar-q1'
 import { Route as IvoIntegralQ2RouteImport } from './routes/ivo-integral.q2'
+import { Route as PropostaEcossistemaRouteImport } from './routes/proposta_.ecossistema'
 import { Route as ApiFibtHmlAttestationRouteImport } from './routes/api.fibt-hml.attestation'
+import { Route as ApiPropostaEcossistemaRouteImport } from './routes/api.proposta_.ecossistema'
 import { Route as RespondSTokenRouteImport } from './routes/respond.s.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -582,9 +584,19 @@ const IvoIntegralQ2Route = IvoIntegralQ2RouteImport.update({
   path: '/ivo-integral/q2',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropostaEcossistemaRoute = PropostaEcossistemaRouteImport.update({
+  id: '/proposta_/ecossistema',
+  path: '/proposta/ecossistema',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFibtHmlAttestationRoute = ApiFibtHmlAttestationRouteImport.update({
   id: '/api/fibt-hml/attestation',
   path: '/api/fibt-hml/attestation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPropostaEcossistemaRoute = ApiPropostaEcossistemaRouteImport.update({
+  id: '/api/proposta_/ecossistema',
+  path: '/api/proposta/ecossistema',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RespondSTokenRoute = RespondSTokenRouteImport.update({
@@ -688,8 +700,10 @@ export interface FileRoutesByFullPath {
   '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
   '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/proposta/ecossistema': typeof PropostaEcossistemaRoute
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
+  '/api/proposta/ecossistema': typeof ApiPropostaEcossistemaRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesByTo {
@@ -787,8 +801,10 @@ export interface FileRoutesByTo {
   '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
   '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/proposta/ecossistema': typeof PropostaEcossistemaRoute
   '/ivo-integral': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
+  '/api/proposta/ecossistema': typeof ApiPropostaEcossistemaRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRoutesById {
@@ -887,8 +903,10 @@ export interface FileRoutesById {
   '/ivo-integral/guia': typeof IvoIntegralGuiaRoute
   '/ivo-integral/preparar-q1': typeof IvoIntegralPrepararQ1Route
   '/ivo-integral/q2': typeof IvoIntegralQ2Route
+  '/proposta_/ecossistema': typeof PropostaEcossistemaRoute
   '/ivo-integral/': typeof IvoIntegralIndexRoute
   '/api/fibt-hml/attestation': typeof ApiFibtHmlAttestationRoute
+  '/api/proposta_/ecossistema': typeof ApiPropostaEcossistemaRoute
   '/respond/s/$token': typeof RespondSTokenRoute
 }
 export interface FileRouteTypes {
@@ -988,8 +1006,10 @@ export interface FileRouteTypes {
     | '/ivo-integral/guia'
     | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
+    | '/proposta/ecossistema'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
+    | '/api/proposta/ecossistema'
     | '/respond/s/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1087,8 +1107,10 @@ export interface FileRouteTypes {
     | '/ivo-integral/guia'
     | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
+    | '/proposta/ecossistema'
     | '/ivo-integral'
     | '/api/fibt-hml/attestation'
+    | '/api/proposta/ecossistema'
     | '/respond/s/$token'
   id:
     | '__root__'
@@ -1186,8 +1208,10 @@ export interface FileRouteTypes {
     | '/ivo-integral/guia'
     | '/ivo-integral/preparar-q1'
     | '/ivo-integral/q2'
+    | '/proposta_/ecossistema'
     | '/ivo-integral/'
     | '/api/fibt-hml/attestation'
+    | '/api/proposta_/ecossistema'
     | '/respond/s/$token'
   fileRoutesById: FileRoutesById
 }
@@ -1286,8 +1310,10 @@ export interface RootRouteChildren {
   IvoIntegralGuiaRoute: typeof IvoIntegralGuiaRoute
   IvoIntegralPrepararQ1Route: typeof IvoIntegralPrepararQ1Route
   IvoIntegralQ2Route: typeof IvoIntegralQ2Route
+  PropostaEcossistemaRoute: typeof PropostaEcossistemaRoute
   IvoIntegralIndexRoute: typeof IvoIntegralIndexRoute
   ApiFibtHmlAttestationRoute: typeof ApiFibtHmlAttestationRoute
+  ApiPropostaEcossistemaRoute: typeof ApiPropostaEcossistemaRoute
   RespondSTokenRoute: typeof RespondSTokenRoute
 }
 
@@ -1958,11 +1984,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IvoIntegralQ2RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposta_/ecossistema': {
+      id: '/proposta_/ecossistema'
+      path: '/proposta/ecossistema'
+      fullPath: '/proposta/ecossistema'
+      preLoaderRoute: typeof PropostaEcossistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fibt-hml/attestation': {
       id: '/api/fibt-hml/attestation'
       path: '/api/fibt-hml/attestation'
       fullPath: '/api/fibt-hml/attestation'
       preLoaderRoute: typeof ApiFibtHmlAttestationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/proposta_/ecossistema': {
+      id: '/api/proposta_/ecossistema'
+      path: '/api/proposta/ecossistema'
+      fullPath: '/api/proposta/ecossistema'
+      preLoaderRoute: typeof ApiPropostaEcossistemaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/respond/s/$token': {
@@ -2070,8 +2110,10 @@ const rootRouteChildren: RootRouteChildren = {
   IvoIntegralGuiaRoute: IvoIntegralGuiaRoute,
   IvoIntegralPrepararQ1Route: IvoIntegralPrepararQ1Route,
   IvoIntegralQ2Route: IvoIntegralQ2Route,
+  PropostaEcossistemaRoute: PropostaEcossistemaRoute,
   IvoIntegralIndexRoute: IvoIntegralIndexRoute,
   ApiFibtHmlAttestationRoute: ApiFibtHmlAttestationRoute,
+  ApiPropostaEcossistemaRoute: ApiPropostaEcossistemaRoute,
   RespondSTokenRoute: RespondSTokenRoute,
 }
 export const routeTree = rootRouteImport

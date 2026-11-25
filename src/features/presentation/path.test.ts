@@ -6,6 +6,8 @@ test("only the presentation and proposal pages bypass company/demo providers; th
   expect(usesPresentationShell("/apresentacao/empresas/")).toBe(true);
   expect(usesPresentationShell("/proposta")).toBe(true);
   expect(usesPresentationShell("/proposta/")).toBe(true);
+  expect(usesPresentationShell("/proposta/ecossistema")).toBe(true);
+  expect(usesPresentationShell("/proposta/ecossistema/")).toBe(true);
   for (const path of [
     "/",
     "/entrar",
@@ -17,6 +19,8 @@ test("only the presentation and proposal pages bypass company/demo providers; th
     "/apresentacao/outra",
     "/api/proposta",
     "/proposta/outra",
+    "/api/proposta/ecossistema",
+    "/proposta/ecossistema/outra",
   ])
     expect(usesPresentationShell(path)).toBe(false);
 });

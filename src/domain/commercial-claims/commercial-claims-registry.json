@@ -208,7 +208,8 @@
         "Dias e custo expressam a mesma carga; não somar."
       ],
       "allowed_surface_ids": [
-        "marketing.presentation.enterprises.context"
+        "marketing.presentation.enterprises.context",
+        "marketing.proposal.ecosystem.context"
       ],
       "owner_role": "scientific-governance",
       "reviewed_at": "2026-11-16",

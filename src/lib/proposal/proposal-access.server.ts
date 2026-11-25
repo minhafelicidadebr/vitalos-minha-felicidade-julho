@@ -31,3 +31,21 @@ export function createProposalHandler(deps: Parameters<typeof createPresentation
 }
 
 export const handleProposalRequest = createProposalHandler();
+
+/**
+ * Proposta para o ecossistema ISG (/proposta/ecossistema): MESMA sessão (cookie, caminho e escopo),
+ * conteúdo próprio. Só lê (GET). Senha e saída continuam em /api/proposta, com o mesmo limite de
+ * tentativas; qualquer outro método aqui é delegado a esse handler.
+ */
+export function createProposalEcosystemHandler(
+  deps: Parameters<typeof createPresentationHandler>[0] = {},
+  session: (request: Request) => Promise<Response> = handleProposalRequest,
+) {
+  const read = createProposalHandler({
+    loadDeck: async () => (await import("./ecosystem-content.server")).getEcosystemProposal(),
+    ...deps,
+  });
+  return (request: Request) => (request.method === "GET" ? read(request) : session(request));
+}
+
+export const handleProposalEcosystemRequest = createProposalEcosystemHandler();

@@ -1,0 +1,1254 @@
+/* Proposta para o ecossistema ISG · composição das cenas (palco 16:9 e leitura vertical).
+   Paleta proposta (marfim, verde escuro, grafite, dourado) convertida para oklch e ajustada ao
+   contraste real. Prefixo eco- para não tocar a proposta original. */
+
+.proposal {
+  --eco-ivory: oklch(0.978 0.011 95);
+  --eco-green: oklch(0.335 0.055 170);
+  --eco-graphite: oklch(0.26 0.025 165);
+  --eco-gold: oklch(0.72 0.11 78);
+  --eco-gold-text: oklch(0.5 0.1 70);
+  --eco-on-dark: oklch(0.98 0.006 95);
+  --eco-on-dark-muted: oklch(0.98 0.006 95 / 0.86);
+  --eco-tone-1: oklch(0.46 0.085 160);
+  --eco-tone-2: oklch(0.46 0.075 215);
+  --eco-tone-3: oklch(0.45 0.1 345);
+  --eco-line: color-mix(in oklch, var(--eco-green) 18%, var(--border));
+  --eco-surface: var(--eco-ivory);
+}
+.dark .proposal,
+.proposal.dark {
+  --eco-surface: var(--card);
+  --eco-gold-text: oklch(0.8 0.11 80);
+  --eco-tone-1: oklch(0.78 0.1 160);
+  --eco-tone-2: oklch(0.78 0.08 215);
+  --eco-tone-3: oklch(0.8 0.09 345);
+  --eco-line: var(--border);
+}
+
+/* ── Página (leitura vertical) ─────────────────────────────────────────────────────────── */
+.eco-root {
+  background: var(--eco-surface);
+}
+.eco-topbar {
+  background: color-mix(in oklch, var(--eco-surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+.eco-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+.eco-version-label {
+  margin-right: 0.25rem;
+  color: var(--muted-foreground);
+}
+.eco-version-option {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.eco-version-option[aria-current="page"] {
+  border-color: var(--eco-green);
+  background: var(--eco-green);
+  color: var(--eco-on-dark);
+}
+.eco-version-option:focus-visible,
+.eco-mode-option:focus-visible,
+.eco-cta:focus-visible,
+.eco-present-from:focus-visible,
+.eco-demo-step:focus-visible,
+.eco-chapters a:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.eco-mode {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--card);
+}
+.eco-mode-option {
+  min-height: 2.5rem;
+  min-width: 2.75rem;
+  border-radius: 999px;
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.eco-mode-option[aria-checked="true"] {
+  background: var(--eco-green);
+  color: var(--eco-on-dark);
+}
+.eco-chapters ul {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+.eco-chapters a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  white-space: nowrap;
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.eco-chapters a:hover {
+  background: var(--muted);
+}
+.eco-main:focus {
+  outline: none;
+}
+.eco-mode-note {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.eco-scene-list {
+  display: grid;
+  gap: 1.25rem;
+}
+.eco-page-scene {
+  position: relative;
+  scroll-margin-top: 9rem;
+  overflow: hidden;
+  border: 1px solid var(--eco-line);
+  border-radius: 1.25rem;
+  background: var(--card);
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+.eco-page-scene.is-dark {
+  border-color: transparent;
+  background: var(--eco-green);
+  color: var(--eco-on-dark);
+}
+.eco-print-extra {
+  display: none;
+}
+.eco-exec-badge {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 2;
+  border-radius: 999px;
+  background: var(--eco-gold);
+  padding: 0.15rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--eco-graphite);
+}
+.eco-present-from {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.eco-page-scene.is-dark .eco-present-from {
+  color: var(--eco-on-dark-muted);
+}
+.eco-present-from:hover {
+  color: var(--foreground);
+}
+.eco-page-footer {
+  margin-top: 2rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* ── Cena: tipografia e partes comuns ─────────────────────────────────────────────────── */
+.eco-scene {
+  position: relative;
+  display: grid;
+  gap: 1.1em;
+}
+.eco-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1.1em;
+  align-content: start;
+  min-width: 0;
+}
+.eco-head {
+  display: grid;
+  gap: 0.45em;
+  max-width: 62ch;
+}
+.eco-kicker {
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--eco-gold-text);
+}
+.eco-dark .eco-kicker {
+  color: var(--eco-gold);
+}
+.eco-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.1em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.is-page .eco-title {
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+}
+.eco-lead {
+  font-size: 1.12em;
+  line-height: 1.5;
+  max-width: 58ch;
+}
+.eco-dark .eco-lead {
+  color: var(--eco-on-dark-muted);
+}
+.eco-caption,
+.eco-note {
+  font-size: 0.82em;
+  color: var(--muted-foreground);
+}
+.eco-dark .eco-caption {
+  color: var(--eco-on-dark-muted);
+}
+.eco-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 1em;
+}
+.eco-sources {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.eco-sources a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.eco-dark .eco-sources,
+.eco-dark .eco-sources a {
+  color: var(--eco-on-dark);
+}
+.eco-ext {
+  width: 0.85em;
+  height: 0.85em;
+}
+.eco-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  flex: none;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--eco-green) 10%, transparent);
+  color: var(--eco-green);
+}
+.dark .eco-icon {
+  background: color-mix(in oklch, var(--eco-tone-1) 18%, transparent);
+  color: var(--eco-tone-1);
+}
+.eco-icon svg {
+  width: 1.1em;
+  height: 1.1em;
+  stroke-width: 1.75;
+}
+.eco-dark .eco-icon {
+  background: oklch(1 0 0 / 0.12);
+  color: var(--eco-gold);
+}
+.eco-inline-icon {
+  width: 1em;
+  height: 1em;
+}
+
+/* Cartões */
+.eco-cards {
+  display: grid;
+  gap: 0.8em;
+}
+.eco-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.eco-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.eco-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.eco-card {
+  display: grid;
+  align-content: start;
+  gap: 0.45em;
+  border: 1px solid var(--eco-line);
+  border-radius: 0.9em;
+  background: var(--eco-surface);
+  padding: 1em 1.1em;
+}
+.eco-card-label {
+  font-size: 1.02em;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.eco-card-body {
+  font-size: 0.92em;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+.eco-dark .eco-card {
+  border-color: oklch(1 0 0 / 0.22);
+  background: oklch(0.2 0.03 170 / 0.78);
+  color: var(--eco-on-dark);
+}
+.eco-dark .eco-card-body {
+  color: var(--eco-on-dark-muted);
+}
+.eco-card.is-decision {
+  border-color: color-mix(in oklch, var(--eco-tone-1) 55%, transparent);
+  background: color-mix(in oklch, var(--eco-tone-1) 12%, var(--eco-surface));
+}
+.eco-chain {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  position: relative;
+}
+.eco-chain > li:not(:last-child)::after,
+.eco-cycle > li:not(:last-child)::after,
+.eco-sequence > li:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -0.85em;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 1;
+  color: var(--eco-gold-text);
+  font-weight: 700;
+}
+.eco-chain > li,
+.eco-cycle > li,
+.eco-sequence > li {
+  position: relative;
+}
+
+/* 02 · linha do tempo */
+.eco-timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1em;
+  padding-top: 0.4em;
+}
+.eco-timeline::before {
+  content: "";
+  position: absolute;
+  left: 1.05em;
+  right: 1.05em;
+  top: 1.45em;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--eco-gold),
+    color-mix(in oklch, var(--eco-gold) 40%, transparent)
+  );
+}
+.eco-timeline-node {
+  position: relative;
+  display: grid;
+  gap: 0.55em;
+  align-content: start;
+}
+.eco-timeline-dot .eco-icon {
+  background: var(--eco-surface);
+  box-shadow: 0 0 0 2px var(--eco-gold);
+}
+.eco-timeline-num {
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+  color: var(--eco-gold-text);
+  letter-spacing: 0.08em;
+}
+
+/* 03 · dados */
+.eco-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1em;
+}
+.eco-stat {
+  display: grid;
+  gap: 0.4em;
+  align-content: start;
+  border: 1px solid var(--eco-line);
+  border-top: 3px solid var(--eco-gold);
+  border-radius: 0.9em;
+  background: var(--eco-surface);
+  padding: 1.2em 1.3em;
+}
+.eco-stat-value {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.6em;
+  line-height: 1.05;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.eco-stat-label {
+  font-size: 1em;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+/* 04 · indicadores (verde, petróleo, ameixa) */
+.eco-indicators {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9em;
+}
+.eco-indicator {
+  --tone: var(--eco-tone-1);
+  display: grid;
+  gap: 0.45em;
+  align-content: start;
+  border: 1px solid color-mix(in oklch, var(--tone) 30%, var(--border));
+  border-top: 3px solid var(--tone);
+  border-radius: 0.9em;
+  background: color-mix(in oklch, var(--tone) 7%, var(--eco-surface));
+  padding: 1em 1.1em;
+}
+.eco-indicator .eco-icon {
+  color: var(--tone);
+  background: color-mix(in oklch, var(--tone) 12%, transparent);
+}
+.eco-tone-2 {
+  --tone: var(--eco-tone-2);
+}
+.eco-tone-3 {
+  --tone: var(--eco-tone-3);
+}
+
+/* 07 · convergência */
+.eco-converge {
+  display: grid;
+  gap: 0.6em;
+  justify-items: center;
+}
+.eco-converge > .eco-cards {
+  width: 100%;
+}
+.eco-converge-lines {
+  width: 50%;
+  height: 1.2em;
+  border: 2px solid color-mix(in oklch, var(--eco-gold) 70%, transparent);
+  border-top: 0;
+  border-radius: 0 0 1em 1em;
+}
+.eco-converge-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  border-radius: 999px;
+  background: var(--eco-green);
+  color: var(--eco-on-dark);
+  padding: 0.55em 1.2em;
+  font-weight: 650;
+}
+
+/* 08 · trilhas paralelas */
+.eco-tracks {
+  display: grid;
+  gap: 0.9em;
+}
+.eco-track {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  border: 1px solid var(--eco-line);
+  border-left: 4px solid var(--eco-tone-1);
+  border-radius: 0.9em;
+  background: var(--eco-surface);
+  padding: 1em 1.2em;
+}
+.eco-track > div {
+  display: grid;
+  gap: 0.25em;
+}
+.eco-track-2 {
+  border-left-color: var(--eco-tone-2);
+}
+
+/* 09 · ciclo */
+.eco-cycle {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1em;
+}
+.eco-cycle::after {
+  content: "↺ próximo ciclo";
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-size: 0.8em;
+  color: var(--eco-gold-text);
+  font-weight: 600;
+}
+
+/* 10 · IVO */
+.eco-ivo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.2em;
+  align-items: center;
+}
+.eco-ivo-brand {
+  display: grid;
+  justify-items: center;
+  gap: 0.3em;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.4em;
+  color: var(--eco-green);
+}
+.dark .eco-ivo-brand {
+  color: var(--eco-tone-1);
+}
+.eco-ivo-mark {
+  width: 3.6em;
+  height: 3.6em;
+}
+
+/* 11 · lentes */
+.eco-lenses {
+  display: grid;
+  gap: 0.8em;
+}
+.eco-lens-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8em;
+}
+.eco-lens {
+  display: grid;
+  gap: 0.4em;
+  align-content: start;
+  border: 1px solid color-mix(in oklch, var(--stage) 35%, var(--border));
+  border-top: 4px solid var(--stage);
+  border-radius: 0.9em;
+  background: color-mix(in oklch, var(--stage) 8%, var(--eco-surface));
+  padding: 0.9em 1em;
+}
+.eco-lens .eco-icon {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--stage) 22%, transparent);
+}
+.eco-lens-code {
+  font-size: 0.78em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+.eco-lens-synthesis {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4em 0.9em;
+  border-radius: 0.9em;
+  background: var(--eco-green);
+  color: var(--eco-on-dark);
+  padding: 0.8em 1.1em;
+}
+.eco-lens-synthesis .eco-card-body {
+  color: var(--eco-on-dark-muted);
+}
+.eco-lens-synthesis .eco-icon {
+  background: oklch(1 0 0 / 0.14);
+  color: var(--eco-gold);
+}
+
+/* 12 · sinal → hipótese → ação */
+.eco-sequence-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1.2em;
+  align-items: center;
+}
+.eco-sequence {
+  display: grid;
+  gap: 0.8em;
+}
+.eco-sequence > li:not(:last-child)::after {
+  content: "↓";
+  right: auto;
+  left: 1.6em;
+  top: auto;
+  bottom: -0.95em;
+  translate: 0;
+}
+.eco-figure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.9em;
+}
+.eco-figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.eco-figure figcaption,
+.eco-photo figcaption {
+  position: absolute;
+  left: 0.6em;
+  bottom: 0.6em;
+  border-radius: 999px;
+  background: oklch(0 0 0 / 0.72);
+  padding: 0.15em 0.7em;
+  font-size: 0.7em;
+  color: white;
+}
+
+/* 13 · demonstração */
+.eco-demo {
+  display: grid;
+  gap: 0.6em;
+}
+.eco-demo-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7em;
+}
+.eco-demo-step {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 2.75rem;
+  align-content: start;
+  gap: 0.4em;
+  border: 1px solid var(--eco-line);
+  border-radius: 0.9em;
+  background: var(--eco-surface);
+  padding: 0.9em 1em;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.eco-demo-step[aria-pressed="true"] {
+  border-color: var(--eco-green);
+  box-shadow: inset 0 0 0 1px var(--eco-green);
+  background: color-mix(in oklch, var(--eco-tone-1) 9%, var(--eco-surface));
+}
+.eco-demo-step[aria-pressed="true"] strong {
+  font-weight: 750;
+}
+.eco-demo-num {
+  position: absolute;
+  top: 0.7em;
+  right: 0.9em;
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+  color: var(--eco-gold-text);
+}
+.eco-demo-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--eco-line);
+}
+.eco-demo-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--eco-green);
+  transition: width 0.25s ease-out;
+}
+.eco-demo-rows {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.eco-demo-rows > div {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.eco-demo-rows dt {
+  font-weight: 650;
+}
+.eco-demo-rows dd {
+  margin: 0;
+}
+
+/* 15 · transição */
+.eco-gold-line {
+  display: block;
+  width: 7em;
+  height: 2px;
+  background: var(--eco-gold);
+}
+
+/* 16 · escopo em anel */
+.eco-ring {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 1.4em;
+  align-items: center;
+}
+.eco-ring-art {
+  width: 100%;
+  max-height: 15em;
+}
+.eco-ring-orbit {
+  fill: none;
+  stroke: color-mix(in oklch, var(--eco-gold) 70%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 6;
+}
+.eco-ring-spoke {
+  stroke: var(--eco-line);
+  stroke-width: 1.5;
+}
+.eco-ring-node {
+  fill: var(--eco-surface);
+  stroke: var(--eco-tone-2);
+  stroke-width: 2;
+}
+.eco-ring-core {
+  fill: var(--eco-green);
+}
+.eco-ring-list {
+  grid-template-columns: 1fr;
+}
+.eco-ring .eco-note {
+  grid-column: 1 / -1;
+}
+
+/* 17 · ondas (cronograma relativo, sem datas) */
+.eco-waves {
+  display: grid;
+  gap: 0.8em;
+}
+.eco-wave {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25em;
+}
+.eco-wave-bar {
+  display: block;
+  height: 0.7em;
+  width: 55%;
+  margin-left: calc(var(--wave) * 22.5%);
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--eco-green),
+    color-mix(in oklch, var(--eco-tone-2) 80%, transparent)
+  );
+}
+.eco-wave .eco-card-label,
+.eco-wave .eco-card-body {
+  margin-left: calc(var(--wave) * 22.5%);
+}
+
+/* 19 · relatório */
+.eco-report {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  gap: 1.4em;
+  align-items: center;
+}
+.eco-stack {
+  grid-template-columns: 1fr;
+}
+.eco-report-cover img {
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  background: color-mix(in oklch, var(--eco-green) 6%, var(--eco-surface));
+}
+
+/* 20 · investimento */
+.eco-investment {
+  display: grid;
+  gap: 1em;
+}
+.eco-closing {
+  border-left: 4px solid var(--eco-gold);
+  border-radius: 0.4em;
+  background: color-mix(in oklch, var(--eco-gold) 14%, var(--eco-surface));
+  padding: 0.85em 1.1em;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.35em;
+  line-height: 1.25;
+}
+
+/* 24 · decisão */
+.eco-decision-list {
+  display: grid;
+  gap: 0.6em;
+  max-width: 44ch;
+}
+.eco-decision-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  font-size: 1.15em;
+}
+.eco-decision-num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.8em;
+  height: 1.8em;
+  flex: none;
+  border-radius: 999px;
+  border: 1.5px solid var(--eco-gold);
+  color: var(--eco-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.eco-decision-cta,
+.eco-cover-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8em 1.2em;
+}
+.eco-cta {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5em;
+  border-radius: 0.5rem;
+  background: var(--eco-gold);
+  padding: 0.6em 1.2em;
+  font-weight: 700;
+  color: var(--eco-graphite);
+}
+.eco-support {
+  max-width: 48ch;
+  color: var(--eco-on-dark-muted);
+}
+.eco-support:focus {
+  outline: 2px solid var(--eco-gold);
+  outline-offset: 4px;
+  border-radius: 0.25rem;
+}
+.eco-recipient {
+  font-size: 0.85em;
+  color: var(--eco-on-dark-muted);
+}
+.eco-brands {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1em 1.6em;
+  margin-bottom: 0.6em;
+}
+.eco-brands-end {
+  flex-basis: 100%;
+  margin: 0.8em 0 0;
+}
+.eco-brand-ift {
+  height: 2.6em;
+  width: auto;
+}
+.eco-brand-vitalos {
+  height: 1.9em;
+  width: auto;
+}
+
+/* Cenas com fotografia (capa, transição, Brasília): texto à esquerda, foto à direita */
+.eco-photo {
+  margin: 0;
+}
+.eco-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 50%;
+}
+.is-page.eco-layout-cover,
+.is-page.eco-layout-transition,
+.is-page.eco-layout-photo {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+}
+.is-page.eco-layout-cover .eco-photo,
+.is-page.eco-layout-transition .eco-photo,
+.is-page.eco-layout-photo .eco-photo {
+  position: relative;
+  order: 2;
+  overflow: hidden;
+  border-radius: 1rem;
+  aspect-ratio: 4 / 3;
+}
+.is-page.eco-layout-transition .eco-title {
+  font-size: clamp(1.8rem, 4vw, 2.9rem);
+}
+
+@media (max-width: 760px) {
+  .eco-cols-3,
+  .eco-cols-4,
+  .eco-chain,
+  .eco-indicators,
+  .eco-lens-grid,
+  .eco-demo-steps,
+  .eco-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .eco-cols-2,
+  .eco-cycle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .eco-chain > li:not(:last-child)::after,
+  .eco-cycle > li:not(:last-child)::after {
+    content: "↓";
+    right: auto;
+    left: 1.6em;
+    top: auto;
+    bottom: -0.95em;
+    translate: 0;
+  }
+  .eco-timeline {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 0.2em;
+  }
+  .eco-timeline::before {
+    left: 1.05em;
+    right: auto;
+    top: 0.5em;
+    bottom: 0.5em;
+    width: 2px;
+    height: auto;
+  }
+  .eco-timeline-node {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.8em;
+  }
+  .eco-timeline-num {
+    display: none;
+  }
+  .eco-ivo,
+  .eco-ring,
+  .eco-report,
+  .eco-sequence-wrap,
+  .is-page.eco-layout-cover,
+  .is-page.eco-layout-transition,
+  .is-page.eco-layout-photo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .is-page.eco-layout-cover .eco-photo,
+  .is-page.eco-layout-transition .eco-photo,
+  .is-page.eco-layout-photo .eco-photo {
+    order: -1;
+    aspect-ratio: 16 / 9;
+  }
+  .eco-ivo-brand {
+    justify-items: start;
+    grid-auto-flow: column;
+    align-items: center;
+  }
+  .eco-ring-art {
+    max-height: 10rem;
+  }
+  .eco-wave-bar,
+  .eco-wave .eco-card-label,
+  .eco-wave .eco-card-body {
+    margin-left: calc(var(--wave) * 12%);
+  }
+  .eco-wave-bar {
+    width: 64%;
+  }
+  .eco-lens-synthesis {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+  .eco-lens-synthesis .eco-card-body {
+    grid-column: 1 / -1;
+  }
+  .eco-demo-rows > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+}
+
+/* ── Palco 16:9 (modo Apresentar) ──────────────────────────────────────────────────────── */
+.eco-slide.is-dark {
+  background: var(--eco-green);
+}
+.proposal-slides-stage .eco-slide:not(.is-dark) {
+  background-color: var(--eco-surface);
+}
+.eco-slide .proposal-slide-body {
+  padding: 3.2em 6% 0.4em;
+}
+.eco-slide .proposal-slide-footer {
+  padding: 0.5em 6% 1.1em;
+}
+.proposal-slide-footnote {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.proposal-slides-stage .eco-slide .eco-scene,
+.proposal-slides-stage .eco-slide .eco-content {
+  height: 100%;
+}
+.proposal-slides-stage .eco-slide .eco-content {
+  align-content: center;
+}
+.proposal-slides-stage .eco-slide .eco-head {
+  max-width: 70%;
+}
+.proposal-slides-stage .eco-slide-cover .eco-head,
+.proposal-slides-stage .eco-slide-photo .eco-head,
+.proposal-slides-stage .eco-slide-transition .eco-head {
+  max-width: 100%;
+}
+
+/* Foto à direita no palco: a figura ancora no slide, não no corpo */
+.proposal-slides-stage
+  :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition)
+  .proposal-slide-body {
+  position: static;
+}
+.proposal-slides-stage :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition) .eco-photo {
+  position: absolute;
+  inset: 0 0 0 44%;
+}
+.proposal-slides-stage
+  :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition)
+  .eco-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    var(--eco-green) 0%,
+    color-mix(in oklch, var(--eco-green) 35%, transparent) 30%,
+    transparent 60%
+  );
+}
+.proposal-slides-stage
+  :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition)
+  .eco-photo
+  figcaption {
+  z-index: 2;
+  left: auto;
+  right: 1.2em;
+  bottom: 4.2em;
+}
+.proposal-slides-stage :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition) .eco-content {
+  width: 50%;
+}
+.proposal-slides-stage
+  :is(.eco-slide-cover, .eco-slide-photo, .eco-slide-transition)
+  .proposal-slide-footer {
+  z-index: 2;
+}
+.proposal-slides-stage .eco-slide-cover .eco-title {
+  font-size: 2.6em;
+}
+.proposal-slides-stage .eco-slide-transition .eco-title {
+  font-size: 2.7em;
+}
+.proposal-slides-stage .eco-slide-decision .eco-title {
+  font-size: 2.6em;
+}
+.proposal-slides-stage .eco-slide .eco-ring-art {
+  max-height: 12em;
+}
+.proposal-slides-stage .eco-slide .eco-figure img {
+  aspect-ratio: 16 / 11;
+}
+.proposal-slides-stage .eco-slide .eco-report-cover img {
+  aspect-ratio: 3 / 4;
+  max-height: 15em;
+}
+.proposal-slides-stage .eco-slide .eco-foot:empty {
+  display: none;
+}
+
+/* Empilhado (celular / em pé): foto vira faixa no topo, sem miniatura do palco */
+.proposal-slides-stack .eco-slide.is-dark .proposal-slide-body {
+  padding-top: 1.4rem;
+}
+.proposal-slides-stack .eco-slide .eco-photo {
+  position: relative;
+  margin: -1.4rem -1.1rem 0.4rem;
+  height: 11rem;
+  overflow: hidden;
+}
+.proposal-slides-stack .eco-slide .eco-title {
+  font-size: 1.5rem;
+}
+.proposal-slides-stack .eco-slide .eco-stat-value {
+  font-size: 2rem;
+}
+
+/* ── Roteiro do apresentador ──────────────────────────────────────────────────────────── */
+.eco-script-item {
+  border: 1px solid var(--eco-line);
+  border-radius: 0.9rem;
+  background: var(--card);
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  scroll-margin: 8rem;
+}
+.eco-script-item.is-current {
+  border-color: var(--eco-green);
+  box-shadow: inset 4px 0 0 var(--eco-gold);
+}
+.eco-script-speech {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+/* ── Impressão: todas as cenas, "Entenda", legendas e fontes ───────────────────────────── */
+@media print {
+  .eco-root {
+    background: white;
+  }
+  .eco-topbar {
+    position: static;
+    backdrop-filter: none;
+  }
+  .eco-print-extra {
+    display: block;
+  }
+  .eco-page-scene,
+  .eco-page-scene.is-dark {
+    break-inside: avoid;
+    border-color: oklch(0.8 0 0);
+    background: white;
+    color: black;
+    padding: 1.2rem;
+  }
+  .eco-dark .eco-kicker,
+  .eco-dark .eco-lead,
+  .eco-dark .eco-caption,
+  .eco-dark .eco-card-body,
+  .eco-dark .eco-sources,
+  .eco-dark .eco-sources a,
+  .eco-support,
+  .eco-recipient {
+    color: black;
+  }
+  .eco-dark .eco-card {
+    background: white;
+    color: black;
+  }
+  .eco-photo,
+  .eco-figure img {
+    max-height: 7cm;
+  }
+  .eco-print-understand {
+    margin-top: 0.5rem;
+    border-left: 3px solid oklch(0.6 0 0);
+    padding-left: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .eco-sources a {
+    min-height: 0;
+  }
+  .eco-sources a::after {
+    content: " (" attr(href) ")";
+    font-weight: 400;
+    word-break: break-all;
+  }
+}
+
+/* Entrada curta que nunca esconde o conteúdo: o valor final é legível desde o primeiro quadro.
+   (A regra geral de movimento reduzido do palco continua zerando a animação.) */
+@keyframes eco-rise {
+  from {
+    opacity: 0.55;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.proposal-slides-stage .proposal-slide.eco-slide:not(.is-divider) [data-reveal-group] > * {
+  animation-name: eco-rise;
+  animation-duration: 360ms;
+}
+.eco-content > .proposal-understand-primary {
+  justify-self: start;
+}
+/* Leitura em projeção: um pouco mais de corpo que a proposta original (cenas mais enxutas). */
+.proposal-slides-stage .proposal-slide.eco-slide {
+  /* Proporcional ao palco: o slide ocupa a altura útil (100dvh menos a barra) ou a largura. */
+  font-size: clamp(11px, min(1.3vw, calc((100dvh - 7rem) * 0.0238)), 28px);
+}
+.proposal-slides:fullscreen .proposal-slides-stage .proposal-slide.eco-slide {
+  font-size: clamp(11px, min(1.34vw, calc((100dvh - 4.5rem) * 0.0238)), 30px);
+}
+.proposal-slides-stage .eco-slide .eco-ring-art {
+  max-height: 15em;
+}
+.proposal-slides-stage .eco-slide .eco-figure img {
+  max-height: 12em;
+}
+.proposal-slides-stage .eco-slide .eco-report-cover img {
+  max-height: 11.5em;
+}
+.proposal-slides-stage .eco-slide :is(.eco-slide-sequence, .eco-report) .eco-card,
+.proposal-slides-stage .eco-slide-sequence .eco-card,
+.proposal-slides-stage .eco-slide-report .eco-card {
+  gap: 0.25em;
+  padding: 0.65em 0.9em;
+}
+.proposal-slides-stage :is(.eco-slide-sequence, .eco-slide-report) .eco-icon {
+  width: 1.8em;
+  height: 1.8em;
+}
+/* Celular: o cabeçalho com seletores rola com a página (não cobre a leitura). */
+@media (max-width: 760px) {
+  .eco-topbar {
+    position: static;
+  }
+  .eco-page-scene {
+    scroll-margin-top: 1rem;
+  }
+}
+.is-page .eco-stat-value {
+  font-size: clamp(1.7rem, 7vw, 2.6rem);
+}
+.proposal-slides-toolbar:has(.eco-mode) {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
+@media (max-width: 640px) {
+  .proposal-slides-toolbar:has(.eco-mode) > p {
+    display: none;
+  }
+}

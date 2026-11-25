@@ -18,3 +18,6 @@ export const IFT_ORDER: IftMovement[] = ["mensurar", "educar", "transformar", "e
 
 /** Onde as janelas "Entenda" abrem: no modo apresentação, dentro do palco (tela cheia). */
 export const DialogContainer = createContext<HTMLElement | null>(null);
+
+/** Navegação do palco para controles dentro de um slide (ex.: chamada da capa). */
+export const DeckNav = createContext<{ next: () => void } | null>(null);

@@ -23,6 +23,8 @@ export const COMMERCIAL_SURFACE_IDS = {
   PROPOSAL_SCIENCE_ANCHORS: "marketing.proposal.science-anchors",
   PROPOSAL_INSTITUTE_TRACK_RECORD: "marketing.proposal.institute-track-record",
   PROPOSAL_LITERATURE_EVIDENCE: "marketing.proposal.literature-evidence",
+  // Proposta para o ecossistema ISG (/proposta/ecossistema): mesma sessão da proposta, conteúdo no servidor.
+  PROPOSAL_ECOSYSTEM_CONTEXT: "marketing.proposal.ecosystem.context",
 } as const;
 
 export type CommercialSurfaceId =
