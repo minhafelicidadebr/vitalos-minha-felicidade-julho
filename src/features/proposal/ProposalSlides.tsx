@@ -289,7 +289,7 @@ function buildSlides(p: ProposalContent): Slide[] {
     ),
   });
   add({
-    id: "ivo", chapter: "Como funciona", title: "Como o IVO lê a vitalidade",
+    id: "ivo", chapter: "Como funciona", title: "Índice de Vitalidade Organizacional",
     body: <IvoOverview slide />,
   });
   add({
