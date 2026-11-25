@@ -50,7 +50,7 @@ function MyJourneyPage() {
   );
 
   const change = (next: { stage?: GuideLens; perspective?: GuidePerspective }) =>
-    navigate({ search: (prev) => ({ ...prev, ...(next.stage ? { etapa: next.stage } : {}), ...(next.perspective ? { perfil: next.perspective } : {}) }), replace: true });
+    navigate({ search: (prev) => ({ ...prev, ...(next.stage ? { etapa: next.stage } : {}), ...(next.perspective ? { perfil: next.perspective } : {}) }), replace: false });
   const open = (lens: GuideLens) => {
     void navigate({ search: (prev) => ({ ...prev, etapa: lens }), replace: true }).then(() => journeyRef.current?.scrollIntoView({ block: "start" }));
   };
