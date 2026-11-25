@@ -113,7 +113,7 @@ function TrajetoriaPage() {
               </ResponsiveContainer>
             </div>
             <p className="text-sm text-muted-foreground">Linha tracejada: referência. Linha contínua com pontos: alternativa.</p>
-            <p className="text-xs text-muted-foreground">Passe o mouse ou toque no gráfico. Com o gráfico em foco, use as setas para consultar as temporadas.</p>
+            <p className="text-xs text-muted-foreground">Passe o mouse ou deslize o dedo pelo gráfico. Com o gráfico em foco, use as setas para consultar as temporadas.</p>
             <details className="rounded-lg border border-border p-3">
               <summary className="flex min-h-11 cursor-pointer items-center font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Ver tabela de pontos por temporada</summary>
               <table className="w-full table-fixed text-left text-sm">
