@@ -1277,3 +1277,52 @@ button.proposal-ivo-card[aria-pressed="true"] { border-color:var(--primary); box
 .proposal-skyline { bottom: -6.5em; height: 7.5em; opacity: 0.16; }
 .proposal-brasilia-scene { margin-bottom: 4.5em; }
 .proposal-slide .proposal-evidence-intro { display: none; }
+
+/* ───────── V5b: refinamentos ───────── */
+/* Slide 2: versão enxuta com logo da ISG */
+.proposal-isgmap-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em 1em; }
+.proposal-isgmap-logo { display: inline-flex; padding: 0.35em 0.7em; border-radius: 0.6em; background: #fff; border: 1px solid var(--border); }
+.proposal-isgmap-logo img { height: 1.15em; width: auto; display: block; }
+.proposal-isgmap-bridge { max-width: none; gap: 0.4em; font-size: 1.4em; font-weight: 300; }
+.proposal-isgmap-bridge i { min-height: 2em; }
+.proposal-isgmap.is-slide { align-items: center; gap: 0.7em 1.4em; }
+.proposal-isgmap.is-slide .proposal-isgmap-fronts li { padding: 0.55em 0.8em; border-left-width: 3px; }
+.proposal-isgmap.is-slide .proposal-isgmap-adds { padding: 0.8em 1em; }
+.proposal-isgmap.is-slide .proposal-isgmap-adds li strong { font-size: 1.05em; }
+.proposal-isgmap.is-slide .proposal-isgmap-adds ul { gap: 0.8em; }
+.proposal-isgmap.is-slide .proposal-isgmap-brands { font-size: 0.9em; }
+
+/* Slide 5: minimalista, sem fotos, com fundo abstrato */
+.proposal-institute-slide { position: relative; isolation: isolate; }
+.proposal-techbg { position: absolute; inset: -1em -1em -1em 30%; width: 70%; height: calc(100% + 2em); color: var(--fpt-teal); opacity: 0.09; z-index: -1; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
+.dark .proposal-techbg { color: var(--fpt-cyan); opacity: 0.14; }
+.proposal-institute-slide .proposal-projects { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9em; }
+.proposal-minimal-project { list-style: none; display: grid; gap: 0.15em; align-content: start; padding: 0.7em 0.1em 0; border-top: 1px solid color-mix(in oklch, var(--fpt-teal) 45%, var(--border)); }
+.proposal-minimal-project span { font-size: 0.8em; font-variant-numeric: tabular-nums; color: var(--fpt-accent-text, var(--primary)); letter-spacing: 0.08em; }
+.proposal-minimal-project strong { font-weight: 600; font-size: 1em; }
+.proposal-minimal-project p { margin: 0; font-size: 0.88em; color: var(--muted-foreground); }
+@media (max-width: 760px) { .proposal-institute-slide .proposal-projects { grid-template-columns: 1fr 1fr; } }
+.proposal-bento-hero { background: radial-gradient(120% 140% at 0% 0%, color-mix(in oklch, var(--fpt-teal) 55%, var(--fpt-ink)), var(--fpt-ink)); }
+.proposal-bento-side li { border-color: color-mix(in oklch, var(--border) 70%, transparent); background: color-mix(in oklch, var(--card) 80%, transparent); }
+
+/* Slide 8 / evidências: cartões leves, sem linhas grossas */
+.proposal-evidence-tab { border: 1px solid color-mix(in oklch, var(--tone) 35%, var(--border)); background: color-mix(in oklch, var(--tone-soft) 55%, var(--card)); border-radius: 0.8em; font-weight: 500; }
+.proposal-evidence-tab strong { font-weight: 500; }
+.proposal-evidence-tab[aria-pressed="true"] { border-color: var(--tone); box-shadow: none; background: var(--tone-soft); }
+.proposal-evidence-tab[aria-pressed="true"] strong { text-decoration: none; font-weight: 650; }
+.proposal-evidence-selected { font-weight: 500; color: var(--muted-foreground); }
+.proposal-evidence-panel { border-left: 2px solid var(--tone); background: color-mix(in oklch, var(--tone-soft) 45%, var(--card)); }
+.proposal-evidence-panel .proposal-tone-card { border-color: color-mix(in oklch, var(--border) 65%, transparent); box-shadow: none; }
+.proposal-evidence-panel .proposal-tone-card > strong { font-weight: 600; }
+.proposal-who-card { border-width: 1px; border-color: color-mix(in oklch, var(--fpt-teal) 25%, var(--border)); }
+.proposal-ratio-row i { border-width: 1px; }
+.proposal-institute-slide { font-size: 1.12em; gap: 1.1em; min-height: 100%; align-content: center; }
+.proposal-institute-slide .proposal-bento { gap: 1em; }
+.proposal-institute-slide .proposal-projects { margin-top: 0.8em; gap: 1.4em; }
+.proposal-institute-slide .proposal-minimal-project { padding-top: 1em; gap: 0.3em; }
+.proposal-institute-slide .proposal-bento-hero { padding: 1.5em 1.6em; }
+.proposal-techbg { inset: -2em -1em -2em 25%; width: 75%; height: calc(100% + 4em); }
+button.proposal-evidence-tab[aria-pressed="true"] { border-color: var(--tone); box-shadow: none; }
+.proposal-institute-slide { font-size: 1.04em; }
+.proposal-institute-slide { overflow: clip; }

@@ -37,3 +37,10 @@ Conteúdo vem da fonte única (`isg-content.server.ts`). Novos blocos têm vers�
 
 ## Sobre as skills de design citadas
 Nada foi instalado nem executado delas; não li os repositórios (a lista veio colada, contagens de estrelas não verificadas). Apliquei princípios compatíveis com as descrições: direção de arte própria em vez de template (grade sutil com máscara, um destaque por slide, silhueta vetorial própria), ciclo critique→refine com capturas, movimento contido e desligável, e revisão de acessibilidade/interação (contraste medido, foco, teclado, reduced-motion).
+
+## Ajustes V5b (25/11/2026)
+- Slide 2 enxuto (~50 % menos texto): frentes só pelo nome, "6 unidades de negócio" sem lista, três contribuições do Instituto só pelo título, valores e nota ficam na página. Logo oficial da ISG inserido (SVG baixado do site institucional a pedido do fundador, sem scripts; em chip branco para manter contraste). **Uso do logo ainda depende da confirmação de autorização pela ISG.**
+- Slide 5 minimalista: fotos removidas; projetos como lista numerada fina; fundo abstrato (grade + rede de pontos) a ~9 % de opacidade.
+- Slide 8/evidências: abas e cartões com linhas finas; seleção reconhecível sem cor (peso da fonte + "Selecionado").
+- Custo por dia padrão **R$ 270**: referência R$ 27.000; cenário de 90 dias R$ 24.300; variação −R$ 2.700; 110 dias R$ 29.700. Valor segue ilustrativo e ajustável.
+- Verificação: gate verde, 37 slides sem transbordo, contraste AA 906/906 textos sem falhas.

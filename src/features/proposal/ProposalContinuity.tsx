@@ -1,7 +1,3 @@
-import formationPhoto from "@/assets/presentation/v4-compreender.jpg";
-import youthPhoto from "@/assets/educational-innovations-hollywood-learning.jpg";
-import schoolPhoto from "@/assets/methodology-human-innovation-cycle.jpg";
-import preventionPhoto from "@/assets/nr1-hero-people.jpg";
 import { useId, useState } from "react";
 import reportCover from "@/assets/relatorio-global-esg-cover-3d.jpg";
 import { Activity, Building2, Check, Compass, Globe2, HeartHandshake, Layers3, Lightbulb, ShieldCheck, Sparkles, TrendingUp, UserRound, UsersRound } from "lucide-react";
@@ -128,7 +124,7 @@ export function LensToAction({ slide = false }: { slide?: boolean }) {
 export function EconomicScenario({ slide = false }: { slide?: boolean }) {
   const [days, setDays] = useState(90);
   const [staff, setStaff] = useState(100);
-  const [unitCost, setUnitCost] = useState(180);
+  const [unitCost, setUnitCost] = useState(270);
   const estimate = calculateOutcomeScenario({ reference: 100, alternative: days, unitValue: unitCost, actionCost: 0 });
   const uid = useId();
   const Heading = slide ? "h2" : "h3";
@@ -594,10 +590,33 @@ export function InstrumentSlide({ code, slide = false }: { code: typeof proposal
   );
 }
 
+/** Fundo abstrato (grade + rede de pontos) em baixa opacidade. Decorativo. */
+function TechBackdrop() {
+  return (
+    <svg className="proposal-techbg" viewBox="0 0 1200 600" preserveAspectRatio="xMaxYMid slice" aria-hidden focusable="false">
+      <defs>
+        <pattern id="tb-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M40 0H0V40" fill="none" stroke="currentColor" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="1200" height="600" fill="url(#tb-grid)" />
+      <g fill="none" stroke="currentColor" strokeWidth="1.6">
+        <polyline points="640,420 760,340 880,380 1000,260 1120,300" />
+        <polyline points="760,340 820,220 960,160 1000,260" />
+        <polyline points="880,380 940,500 1080,470" />
+      </g>
+      <g fill="currentColor">
+        {[[640,420],[760,340],[880,380],[1000,260],[1120,300],[820,220],[960,160],[940,500],[1080,470]].map(([x, y]) => <circle key={x + "-" + y} cx={x} cy={y} r="5" />)}
+      </g>
+    </svg>
+  );
+}
+
 export function InstituteTrajectory({ slide = false }: { slide?: boolean }) {
   const Heading = slide ? "h2" : "h3";
   return (
     <div className={slide ? "proposal-ivo-block proposal-institute-slide" : "proposal-ivo-block"}>
+      {slide ? <TechBackdrop /> : null}
       <p className="proposal-ivo-kicker">Instituto Felicidade para Todos</p>
       <Heading className={slide ? "slide-title" : "proposal-ivo-heading"}>Da pesquisa em Brasília a novas formas de aprender</Heading>
       <div className="proposal-bento">
@@ -612,17 +631,17 @@ export function InstituteTrajectory({ slide = false }: { slide?: boolean }) {
       </ol>
       <ul className="proposal-ivo-grid proposal-projects" data-reveal-group>
         {[
-          [formationPhoto, "Formação em Ciência da Felicidade", "Formação aplicada em bem-estar."],
-          [youthPhoto, "Bem-Estar Educacional para Jovens", "Atividades educativas para o cotidiano."],
-          [schoolPhoto, "Game da Felicidade", "Jornada escolar por perfil, em desenvolvimento."],
-          [preventionPhoto, "NR-1 e bem-estar no trabalho", "Playbook e educação para RH, liderança e SST."],
-        ].map(([image, title, body]) => <li key={title} className="proposal-ivo-card proposal-project-card">
-          <img src={image} alt="" loading="lazy" decoding="async" />
-          <div><strong>{title}</strong><p>{body}</p></div>
+          ["Formação em Ciência da Felicidade", "Formação aplicada em bem-estar."],
+          ["Bem-Estar Educacional para Jovens", "Atividades educativas para o cotidiano."],
+          ["Game da Felicidade", "Jornada escolar por perfil, em desenvolvimento."],
+          ["NR-1 e bem-estar no trabalho", "Playbook e educação para RH, liderança e SST."],
+        ].map(([title, body], i) => <li key={title} className="proposal-minimal-project">
+          <span aria-hidden>{String(i + 1).padStart(2, "0")}</span>
+          <strong>{title}</strong><p>{body}</p>
         </li>)}
       </ul>
       </div>
-      <p className="proposal-ivo-note">Imagens ilustrativas. Fontes institucionais: atuação do IFT em 2025–2026 e material do Instituto e da ISG.</p>
+      <p className="proposal-ivo-note">Fontes institucionais: atuação do IFT em 2025–2026 e material do Instituto e da ISG.</p>
     </div>
   );
 }

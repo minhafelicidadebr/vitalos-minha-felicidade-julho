@@ -252,15 +252,15 @@ test("a lente selecionada muda a ação e a hipótese muda o custo estimado", ()
   expect(screen.getByText("A equipe vê o que foi feito, o que ficou pendente e a data do próximo retorno.", { selector: "p" })).toBeTruthy();
   const select = screen.getByLabelText("Dias de ausência no cenário") as HTMLSelectElement;
   fireEvent.change(select, { target: { value: "110" } });
-  expect(screen.getByText(/R\$\s*19[.]800/)).toBeTruthy();
+  expect(screen.getByText(/R\$\s*29[.]700/)).toBeTruthy();
 });
 
 describe("proposta V5", () => {
-  test("custo por dia padrão é R$ 180 e a variação do cenário de 90 dias é −R$ 1.800", () => {
+  test("custo por dia padrão é R$ 270 e a variação do cenário de 90 dias é −R$ 2.700", () => {
     render(<ProposalView p={ISG_PROPOSAL} />);
-    expect((screen.getByLabelText(/Custo por dia/) as HTMLInputElement).value).toBe("180");
-    expect(screen.getByText(/R\$\s*18[.]000/)).toBeTruthy();
-    expect(screen.getByText(/R\$\s*16[.]200/)).toBeTruthy();
+    expect((screen.getByLabelText(/Custo por dia/) as HTMLInputElement).value).toBe("270");
+    expect(screen.getByText(/R\$\s*27[.]000/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s*24[.]300/)).toBeTruthy();
   });
 
   test("slide 2 'A pergunta' saiu; infográfico da ISG traz só o que o site declara", async () => {
