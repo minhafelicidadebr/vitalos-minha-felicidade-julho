@@ -44,6 +44,9 @@ for (const [practice, evidence] of [
       expect(ui.getByText(practice)).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? new RegExp(evidence) : /aguarda execução/)).toBeTruthy();
       expect(ui.getByText(/Ainda sem avaliação/)).toBeTruthy();
+      // Previsto, registrado, a observar e avaliado são estados distintos, nomeados no rótulo.
+      expect(ui.getByText(status === "realizada" ? "Execução registrada" : "Execução prevista")).toBeTruthy();
+      expect(ui.getByText("Aprendizagem a observar")).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? /manter ou ajustar/ : /remover a barreira/)).toBeTruthy();
       fireEvent.click(ui.getByRole("link", { name: "Abrir exemplo no relatório global" }));
       expect(await ui.findByRole("heading", { name: "Decisão para o próximo ciclo" })).toBeTruthy();

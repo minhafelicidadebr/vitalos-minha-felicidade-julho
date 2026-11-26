@@ -90,8 +90,8 @@ function Walkthrough({ step, search }: Props) {
           <p className="font-medium">{practice.name}</p>
           <dl className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Execução", recorded ? practice.record : "A prática está combinada e aguarda execução."],
-              ["Aprendizagem", recorded ? practice.review : "A revisão com a equipe poderá ocorrer depois da prática."],
+              [recorded ? "Execução registrada" : "Execução prevista", recorded ? practice.record : "A prática está combinada e aguarda execução."],
+              ["Aprendizagem a observar", recorded ? practice.review : "A revisão com a equipe poderá ocorrer depois da prática."],
               ["Efeito no indicador", "Ainda sem avaliação. Uma nova leitura será necessária para investigar mudanças."],
             ].map(([label, value]) => <div key={label} className="rounded-xl bg-muted/50 p-3"><dt className="font-semibold">{label}</dt><dd className="mt-1 text-sm">{value}</dd></div>)}
           </dl>
