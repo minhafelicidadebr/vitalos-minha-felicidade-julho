@@ -90,7 +90,15 @@ function Walkthrough({ step, search }: Props) {
               ["Aprendizagem", recorded ? practice.review : "A revisão com a equipe poderá ocorrer depois da prática."],
               ["Efeito no indicador", "Ainda sem avaliação. Uma nova leitura será necessária para investigar mudanças."],
             ].map(([label, value]) => <div key={label} className="rounded-xl bg-muted/50 p-3"><dt className="font-semibold">{label}</dt><dd className="mt-1 text-sm">{value}</dd></div>)}
-          </dl>{restart}
+          </dl>
+          <details className="rounded-xl border border-border p-4 text-sm">
+            <summary className="cursor-pointer font-semibold">Como isso entra no plano do próximo ciclo?</summary>
+            <p className="mt-3"><strong>Q5 · Consolidar.</strong> {recorded
+              ? "RH e liderança revisam o registro com a equipe e decidem se vale manter ou ajustar a prática."
+              : "RH e liderança identificam o que impediu a execução e decidem se vale remover a barreira, ajustar a prática ou substituí-la."}</p>
+            <p className="mt-2">No plano seguinte, registrem a decisão, quem assume a ação e quando será feita uma nova leitura do grupo.</p>
+          </details>
+          {restart}
         </>}
       </div>
     </section>
