@@ -41,12 +41,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const isPublic = matchesPrefix(pathname, PUBLIC_PREFIXES);
   const requiresRealAuth = matchesPrefix(pathname, REAL_AUTH_ONLY_PREFIXES);
 
-  // A senha de demonstração (demo-gate.ts) NÃO é autenticação — é só o
-  // "cordão de veludo" que mantém visitantes casuais fora da navegação.
-  // Ela basta para toda a vitrine de showcase, mas nunca para rotas que
-  // escrevem dados reais (essas sempre exigem sessão Supabase de verdade).
+  // A sessão compartilhada da demonstração só abre a vitrine de showcase.
+  // Ela não autentica a pessoa nem substitui Supabase Auth nas rotas que
+  // leem ou escrevem dados reais; essas sempre exigem sessão institucional.
   const demoUnlocked = useDemoGate((s) => s.unlocked);
   const demoHydrated = useDemoGate((s) => s.hasHydrated);
+  const restoreDemoSession = useDemoGate((s) => s.restore);
   const gate = authGateState({
     isPublic,
     ready,
@@ -86,6 +86,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    void restoreDemoSession();
+  }, [restoreDemoSession]);
 
   useEffect(() => {
     if (gate !== "login") return;
