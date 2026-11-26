@@ -3,16 +3,19 @@ import { Link } from "@tanstack/react-router";
 import { usePack } from "@/engine/pack";
 import { usePersona } from "@/app/identity/persona-store";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { Q5Synthesis } from "./Q5Synthesis";
 
 const practices = {
   decisao: {
     name: "Compartilhar decisões",
+    reason: "A equipe relatou dificuldade para acompanhar decisões.",
     action: "A liderança sintetiza as decisões da reunião e abre um canal para dúvidas.",
     record: "O resumo foi compartilhado e a equipe recebeu um canal para dúvidas.",
     review: "Perguntar à equipe se ficou mais fácil encontrar as decisões.",
   },
   escuta: {
     name: "Reservar tempo para escuta",
+    reason: "A equipe relatou dificuldade para dar sugestões.",
     action: "A liderança reserva dez minutos na reunião para ouvir sugestões e combinar um retorno.",
     record: "A rodada de escuta aconteceu e a liderança combinou quando dará retorno.",
     review: "Consultar a equipe sobre a utilidade do retorno às sugestões.",
@@ -87,6 +90,7 @@ function Walkthrough({ step, search }: Props) {
           <div className="flex flex-wrap gap-2">{(["feito", "pendente"] as const).map(registro =>
             <Link key={registro} className={linkStyle} to="/colaborador" search={{ percurso: "q2", pratica: key, registro }}>{registro === "feito" ? "Simular prática realizada" : "Simular prática pendente"}</Link>)}</div>
         </> : <>
+          {step === "q5" ? <Q5Synthesis practice={practice} recorded={recorded} /> : <>
           <p className="font-medium">{practice.name}</p>
           <dl className="grid gap-3 sm:grid-cols-3">
             {[
@@ -94,7 +98,7 @@ function Walkthrough({ step, search }: Props) {
               ["Aprendizagem a observar", recorded ? practice.review : "A revisão com a equipe poderá ocorrer depois da prática."],
               ["Efeito no indicador", "Ainda sem avaliação. Uma nova leitura será necessária para investigar mudanças."],
             ].map(([label, value]) => <div key={label} className="rounded-xl bg-muted/50 p-3"><dt className="font-semibold">{label}</dt><dd className="mt-1 text-sm">{value}</dd></div>)}
-          </dl>
+          </dl></>}
           <details open={step === "q5" || undefined} className="rounded-xl border border-border p-4 text-sm">
             <summary className="cursor-pointer font-semibold">Como isso entra no plano do próximo ciclo?</summary>
             <p className="mt-3"><strong>Q5 · Consolidar.</strong> {recorded
