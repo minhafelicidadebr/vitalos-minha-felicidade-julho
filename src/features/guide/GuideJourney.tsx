@@ -501,6 +501,24 @@ function ProfileJourney({ content, lens, perspective, perspectiveLabel, context,
         {showPrimary ? <a href={cta.href} className={PRIMARY_LINK}>{leaderWithoutTask ? "Consultar minhas ações" : cta.label}<ArrowRight aria-hidden className="h-4 w-4 shrink-0" /></a> : null}
       </section>
 
+      {lens.lens === "Q1" && (perspective === "rh" || perspective === "sst") && (
+        <aside aria-label="Preparação da avaliação Q1" className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
+          <p className="text-sm font-semibold">{perspective === "rh" ? "Organize a preparação do ciclo" : "Revise tecnicamente a preparação"}</p>
+          <p className="text-sm text-muted-foreground">{perspective === "rh"
+            ? "Defina o ciclo, prepare o comunicado à equipe e registre os controles existentes para encaminhar a revisão técnica."
+            : "Revise com o RH o comunicado e os controles registrados. Combine as pendências técnicas antes de avançar para a coleta."}</p>
+          <p className="text-sm text-muted-foreground">A aplicação do questionário é uma etapa posterior.</p>
+        </aside>
+      )}
+
+      {lens.lens === "Q4" && perspective === "colaborador" && (
+        <aside aria-label="Prática demonstrativa do VIA" className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
+          <p className="text-sm font-semibold">Explore suas forças de caráter</p>
+          <p className="text-sm text-muted-foreground">Veja uma devolutiva fictícia, experimente o questionário e escolha uma força para aplicar em uma situação do seu dia a dia.</p>
+          <a href="/viat" className={PRIMARY_LINK}>Abrir exemplo de forças de caráter <ArrowRight aria-hidden className="h-4 w-4 shrink-0" /></a>
+        </aside>
+      )}
+
       {lens.lens === "Q3" && Q3_DEMO_TASKS[perspective] && (
         <aside aria-label="Prática demonstrativa de PERMA+V" className="space-y-2 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
           <p className="text-sm font-semibold">Pratique com dados fictícios</p>

@@ -108,3 +108,19 @@ test("Q3 apresenta uma tarefa demonstrativa para RH, liderança e colaborador", 
   const { container } = view("Q3", "sst");
   expect(within(container).queryByRole("link", { name: "Abrir demonstração PERMA+V" })).toBeNull();
 });
+
+test("Q1 explica as responsabilidades de RH e SST antes da coleta", () => {
+  const rh = view("Q1", "rh");
+  expect(within(rh.container).getByText(/prepare o comunicado à equipe/i)).toBeTruthy();
+  rh.unmount();
+  const sst = view("Q1", "sst");
+  expect(within(sst.container).getByText(/revise com o RH/i)).toBeTruthy();
+});
+
+test("Q4 oferece o exemplo individual ao colaborador", () => {
+  const person = view("Q4", "colaborador");
+  expect(within(person.container).getByRole("link", { name: "Abrir exemplo de forças de caráter" }).getAttribute("href")).toBe("/viat");
+  person.unmount();
+  const leader = view("Q4", "lideranca");
+  expect(within(leader.container).queryByRole("link", { name: "Abrir exemplo de forças de caráter" })).toBeNull();
+});
