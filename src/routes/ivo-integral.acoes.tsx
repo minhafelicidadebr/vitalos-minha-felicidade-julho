@@ -51,6 +51,7 @@ import type {
 import { todayInSaoPaulo } from "@/lib/ivo/local-date";
 import { publishedActionSource } from "@/lib/ivo/published-action-source";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { Q2Orientation } from "@/features/guide/Q2Orientation";
 import { ContextualHelp } from "@/features/help/ContextualHelp";
 import { HELP_Q2_ACOES } from "@/domain/help/contextual-help";
 
@@ -277,6 +278,8 @@ function IvoAcoesPage() {
             Evidência de execução mostra que a ação aconteceu. Ela não comprova melhora do indicador nem causalidade.
           </p>
         </header>
+
+        <Q2Orientation roleId={session.org?.role ?? null} stage="acoes" />
 
         <div role="status" aria-live="polite" className="min-h-6 text-sm">
           {feedback ? (

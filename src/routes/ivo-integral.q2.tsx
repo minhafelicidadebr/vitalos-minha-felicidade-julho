@@ -8,6 +8,7 @@ import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
 import type { IvoQ2Outcome } from "@/lib/ivo/ivo-views";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
+import { Q2Orientation } from "@/features/guide/Q2Orientation";
 
 // Detalhe da lente Q2 (FIB-T) dentro da experiência IVO. Leitura autorizada
 // no servidor (R5); somente o estado já publicado.
@@ -56,6 +57,8 @@ function IvoQ2Page() {
             Resultado nativo da FIB-T: fatores e escore bruto, como publicados. Não é índice IVO.
           </p>
         </header>
+
+        <Q2Orientation roleId={session.org?.role ?? null} stage="leitura" />
 
         <div aria-live="polite">
           {page.state === "loading" ? <IvoLoading label="Carregando a leitura protegida da FIB-T…" /> : null}
