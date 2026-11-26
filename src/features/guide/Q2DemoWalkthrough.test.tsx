@@ -2,16 +2,16 @@ import { expect, test } from "bun:test";
 import { fireEvent, render, within } from "@testing-library/react";
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from "@tanstack/react-router";
 import { PackProvider } from "@/app/composition/PackProvider";
-import { parseQ2DemoSearch, Q2DemoWalkthrough } from "./Q2DemoWalkthrough";
+import { parseQ2DemoSearch, Q2DemoJourney } from "./Q2DemoWalkthrough";
 
-function open(url: string) {
+function open(url: string, anonymous = true) {
   const root = createRootRoute();
   const makeStage = (path: string, step: "entrada" | "rh" | "lider" | "equipe" | "q5") => {
     const route = createRoute({
       getParentRoute: () => root,
       path,
       validateSearch: parseQ2DemoSearch,
-      component: () => <Q2DemoWalkthrough step={step} search={route.useSearch()} />,
+      component: () => <><span>Rota carregada</span><Q2DemoJourney step={step} search={route.useSearch()} anonymous={anonymous} /></>,
     });
     return route;
   };
@@ -68,3 +68,8 @@ test("Q2 oferece retomada pelo RH ao receber um registro inválido", async () =>
   expect(ui.queryByText("Execução")).toBeNull();
 });
 
+test("Q2 não exibe a jornada fictícia em sessão institucional", async () => {
+  const ui = open("/rh?percurso=q2", false);
+  await ui.findByText("Rota carregada");
+  expect(ui.queryByRole("heading", { name: "Escolha uma prática para a equipe" })).toBeNull();
+});

@@ -32,8 +32,12 @@ const linkStyle = "inline-flex min-h-11 items-center rounded-lg border border-pr
 
 export function Q2DemoWalkthrough(props: Props) {
   const { status } = useRealOrgSession();
+  return <Q2DemoJourney {...props} anonymous={status === "anonymous"} />;
+}
+
+export function Q2DemoJourney({ anonymous, ...props }: Props & { anonymous: boolean }) {
   const { pack } = usePack();
-  if (status !== "anonymous" || pack?.packId !== "enterprise") return null;
+  if (!anonymous || pack?.packId !== "enterprise") return null;
   if (props.step !== "entrada" && props.search?.percurso !== "q2") return null;
   return <Walkthrough {...props} />;
 }
@@ -108,4 +112,3 @@ function Walkthrough({ step, search }: Props) {
     </section>
   );
 }
-
