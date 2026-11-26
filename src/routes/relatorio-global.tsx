@@ -39,8 +39,10 @@ import { isCapabilityEnabled } from "@/lib/capabilities/registry";
 import { loadLatestOrgCapsule } from "@/lib/api/capsule-report.functions";
 import { loadCycleHistory } from "@/lib/api/cycle-history.functions";
 import { createEsgSnapshot, loadEsgSnapshots } from "@/lib/api/esg-snapshot.functions";
+import { parseQ2DemoSearch, Q2DemoWalkthrough } from "@/features/guide/Q2DemoWalkthrough";
 
 export const Route = createFileRoute("/relatorio-global")({
+  validateSearch: parseQ2DemoSearch,
   head: () => ({ meta: [{ title: "Relatório Global ESG — 4 Lentes VitalOS™" }] }),
   component: RelatorioGlobalPage,
 });
@@ -75,6 +77,7 @@ const MATERIALITY_THEMES = [
 ] as const;
 
 function RelatorioGlobalPage() {
+  const demoSearch = Route.useSearch();
   const { current, previous, delta } = useIvo();
   const org = useOrg();
 
@@ -363,6 +366,7 @@ function RelatorioGlobalPage() {
   return (
     <AppShell>
       <div className="mx-auto min-w-0 space-y-7 break-words px-4 py-8 sm:px-6 max-w-4xl print:max-w-none print:px-0 print:py-0 print:space-y-5">
+        {demoSearch.percurso === "q2" && <div className="print:hidden"><Q2DemoWalkthrough step="q5" search={demoSearch} /></div>}
         {/* Capa do documento — só na impressão (1ª folha A4) */}
         <section
           className="print-only print-cover"
@@ -935,3 +939,4 @@ function DimensionCard({ dimension }: { dimension: EsgDimensionReport }) {
     </div>
   );
 }
+

@@ -27,7 +27,7 @@ export function parseQ2DemoSearch(input: Record<string, unknown>): DemoSearch {
   return { percurso: input.percurso === "q2" ? "q2" : undefined, pratica, registro };
 }
 
-type Props = { step: "entrada" | "rh" | "lider" | "equipe"; search?: ReturnType<typeof parseQ2DemoSearch> };
+type Props = { step: "entrada" | "rh" | "lider" | "equipe" | "q5"; search?: ReturnType<typeof parseQ2DemoSearch> };
 const linkStyle = "inline-flex min-h-11 items-center rounded-lg border border-primary/40 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
 
 export function Q2DemoWalkthrough(props: Props) {
@@ -44,7 +44,7 @@ function Walkthrough({ step, search }: Props) {
   const setRole = usePersona(s => s.setRole);
   useEffect(() => {
     if (step !== "entrada") {
-      setRole({ rh: "RH_ADMIN", lider: "LIDER_EQUIPE", equipe: "COLABORADOR" }[step]);
+      if (step !== "q5") setRole({ rh: "RH_ADMIN", lider: "LIDER_EQUIPE", equipe: "COLABORADOR" }[step]);
       title.current?.focus();
     }
   }, [step, setRole]);
@@ -52,11 +52,11 @@ function Walkthrough({ step, search }: Props) {
   const practice = key && practices[key];
   const recorded = search?.registro === "feito";
   const restart = <Link className={linkStyle} to="/rh" search={{ percurso: "q2" }}>Começar pelo RH</Link>;
-  const heading = { entrada: "Da pesquisa à devolutiva", rh: "Escolha uma prática para a equipe", lider: "Registre o andamento da prática", equipe: "Veja a devolutiva da equipe" }[step];
+  const heading = { entrada: "Da pesquisa à devolutiva", rh: "Escolha uma prática para a equipe", lider: "Registre o andamento da prática", equipe: "Veja a devolutiva da equipe", q5: "Decisão para o próximo ciclo" }[step];
   return (
     <section aria-labelledby="q2-demo-title" className="mx-auto my-6 max-w-6xl px-4 sm:px-6">
       <div className="space-y-4 rounded-2xl border border-primary/25 bg-card p-5 sm:p-7">
-        <p className="text-sm font-medium text-primary">Demonstração Q2 · Empresa fictícia</p>
+        <p className="text-sm font-medium text-primary">{step === "q5" ? "Q5 · Caso fictício do Q2" : "Demonstração Q2 · Empresa fictícia"}</p>
         <h2 ref={title} tabIndex={-1} id="q2-demo-title" className="font-serif text-2xl text-foreground">{heading}</h2>
         {step === "entrada" ? <>
           <p>Experimente o mesmo caso em três papéis. O RH escolhe uma prática, a liderança registra o andamento e a equipe recebe a devolutiva.</p>
@@ -75,7 +75,7 @@ function Walkthrough({ step, search }: Props) {
               <p className="text-sm">{practices[id].action}</p>
               <Link className={linkStyle} to="/lider" search={{ percurso: "q2", pratica: id }}>{practices[id].name}</Link>
             </div>)}</div></> : <p role="status">A equipe aguarda a leitura agregada. O RH poderá escolher uma prioridade quando o resultado for publicado.</p>}
-        </> : !practice || (step === "equipe" && !search?.registro) ? <>
+        </> : !practice || ((step === "equipe" || step === "q5") && !search?.registro) ? <>
           <p>Este percurso ainda precisa de uma escolha do RH e de um registro da liderança para compor a devolutiva.</p>{restart}
         </> : step === "lider" ? <>
           <p><strong>Prática combinada pelo RH.</strong> {practice.action}</p>
@@ -91,16 +91,21 @@ function Walkthrough({ step, search }: Props) {
               ["Efeito no indicador", "Ainda sem avaliação. Uma nova leitura será necessária para investigar mudanças."],
             ].map(([label, value]) => <div key={label} className="rounded-xl bg-muted/50 p-3"><dt className="font-semibold">{label}</dt><dd className="mt-1 text-sm">{value}</dd></div>)}
           </dl>
-          <details className="rounded-xl border border-border p-4 text-sm">
+          <details open={step === "q5" || undefined} className="rounded-xl border border-border p-4 text-sm">
             <summary className="cursor-pointer font-semibold">Como isso entra no plano do próximo ciclo?</summary>
             <p className="mt-3"><strong>Q5 · Consolidar.</strong> {recorded
               ? "RH e liderança revisam o registro com a equipe e decidem se vale manter ou ajustar a prática."
               : "RH e liderança identificam o que impediu a execução e decidem se vale remover a barreira, ajustar a prática ou substituí-la."}</p>
             <p className="mt-2">No plano seguinte, registrem a decisão, quem assume a ação e quando será feita uma nova leitura do grupo.</p>
           </details>
-          {restart}
+          <div className="flex flex-wrap gap-2">
+            {step === "equipe" && <Link className={linkStyle} to="/relatorio-global" search={search}>Abrir exemplo no relatório global</Link>}
+            {step === "q5" && <Link className={linkStyle} to="/colaborador" search={search}>Voltar à devolutiva</Link>}
+            {restart}
+          </div>
         </>}
       </div>
     </section>
   );
 }
+

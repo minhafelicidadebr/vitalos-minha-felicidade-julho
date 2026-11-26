@@ -6,7 +6,7 @@ import { parseQ2DemoSearch, Q2DemoWalkthrough } from "./Q2DemoWalkthrough";
 
 function open(url: string) {
   const root = createRootRoute();
-  const makeStage = (path: string, step: "entrada" | "rh" | "lider" | "equipe") => {
+  const makeStage = (path: string, step: "entrada" | "rh" | "lider" | "equipe" | "q5") => {
     const route = createRoute({
       getParentRoute: () => root,
       path,
@@ -21,6 +21,7 @@ function open(url: string) {
       makeStage("/rh", "rh"),
       makeStage("/lider", "lider"),
       makeStage("/colaborador", "equipe"),
+      makeStage("/relatorio-global", "q5"),
     ]),
     history: createMemoryHistory({ initialEntries: [url] }),
   });
@@ -44,6 +45,11 @@ for (const [practice, evidence] of [
       expect(ui.getByText(status === "realizada" ? new RegExp(evidence) : /aguarda execução/)).toBeTruthy();
       expect(ui.getByText(/Ainda sem avaliação/)).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? /manter ou ajustar/ : /remover a barreira/)).toBeTruthy();
+      fireEvent.click(ui.getByRole("link", { name: "Abrir exemplo no relatório global" }));
+      expect(await ui.findByRole("heading", { name: "Decisão para o próximo ciclo" })).toBeTruthy();
+      expect(ui.getByText(practice)).toBeTruthy();
+      expect(ui.getByText(status === "realizada" ? new RegExp(evidence) : /aguarda execução/)).toBeTruthy();
+      expect(ui.getByText(/quando será feita uma nova leitura/)).toBeTruthy();
     });
   }
 }
@@ -61,3 +67,4 @@ test("Q2 oferece retomada pelo RH ao receber um registro inválido", async () =>
   expect(await ui.findByRole("link", { name: "Começar pelo RH" })).toBeTruthy();
   expect(ui.queryByText("Execução")).toBeNull();
 });
+
