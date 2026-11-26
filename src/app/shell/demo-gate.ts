@@ -1,50 +1,96 @@
-// Portão de demonstração (mock-first).
-//
-// HONESTIDADE (doutrina Fable 5): isto NÃO é autenticação. A senha vive no cliente
-// apenas para manter visitantes casuais fora do demo navegável — é o "cordão de veludo"
-// do palco, não um cofre. Não há dado individual no cliente (k-anon ≥ 5, só agregados),
-// então não há o que proteger além do acesso à navegação. Autenticação real
-// (Lovable Cloud / RLS por tenant) é Fase 2 — ver HANDOVER_OPUS48.md §8, Sprint 8.
-
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
-/** Senha do demo. Trocar aqui é a fonte única. */
-export const DEMO_PASSWORD = "luzpazeamor";
-
-/** Verificação pura (testável sem store): tolerante a espaços e caixa. */
-export function checkDemoPassword(input: string): boolean {
-  return input.trim().toLowerCase() === DEMO_PASSWORD;
-}
+type DemoUnlockResult = "authenticated" | "invalid" | "limited" | "unavailable";
 
 interface DemoGateState {
   unlocked: boolean;
-  /** True após a rehidratação do localStorage — evita flash do portão p/ quem já entrou. */
+  /** True once the HttpOnly server session has been checked. */
   hasHydrated: boolean;
-  /** Tenta destravar; retorna se a senha estava correta. */
-  unlock: (password: string) => boolean;
-  lock: () => void;
-  setHasHydrated: (v: boolean) => void;
+  restore: () => Promise<void>;
+  unlock: (password: string) => Promise<DemoUnlockResult>;
+  lock: () => Promise<void>;
 }
 
-export const useDemoGate = create<DemoGateState>()(
-  persist(
-    (set) => ({
-      unlocked: false,
-      hasHydrated: false,
-      unlock: (password) => {
-        const ok = checkDemoPassword(password);
-        if (ok) set({ unlocked: true });
-        return ok;
-      },
-      lock: () => set({ unlocked: false }),
-      setHasHydrated: (v) => set({ hasHydrated: v }),
-    }),
-    {
-      name: "vita-demo-gate",
-      // Só o estado de acesso persiste — hasHydrated é sempre derivado em runtime.
-      partialize: (s) => ({ unlocked: s.unlocked }),
-      onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
+const DEMO_ACCESS_URL = "/api/apresentacao?scope=demo";
+
+async function readState(response: Response): Promise<string> {
+  try {
+    const body: unknown = await response.json();
+    return body && typeof body === "object" && "state" in body && typeof body.state === "string"
+      ? body.state
+      : "unavailable";
+  } catch {
+    return "unavailable";
+  }
+}
+
+export const useDemoGate = create<DemoGateState>((set) => {
+  let generation = 0;
+  return {
+    unlocked: false,
+    hasHydrated: false,
+    restore: async () => {
+      const requestGeneration = ++generation;
+      try {
+        if (typeof window !== "undefined") window.localStorage.removeItem("vita-demo-gate");
+      } catch {
+        // Storage may be unavailable in strict browser privacy modes.
+      }
+      try {
+        const response = await fetch(DEMO_ACCESS_URL, {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        const unlocked = response.ok && (await readState(response)) === "ready";
+        if (requestGeneration === generation) set({ unlocked });
+      } catch {
+        if (requestGeneration === generation) set({ unlocked: false });
+      } finally {
+        if (requestGeneration === generation) set({ hasHydrated: true });
+      }
     },
-  ),
-);
+    unlock: async (password) => {
+      const requestGeneration = ++generation;
+      try {
+        const response = await fetch(DEMO_ACCESS_URL, {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ password }),
+        });
+        const state = await readState(response);
+        if (response.ok && state === "authenticated") {
+          if (requestGeneration === generation) {
+            set({ unlocked: true, hasHydrated: true });
+            return "authenticated";
+          }
+          return "unavailable";
+        }
+        if (requestGeneration === generation) set({ unlocked: false, hasHydrated: true });
+        if (response.status === 429 || state === "limited") return "limited";
+        if (response.status === 401 && state === "locked") return "invalid";
+        return "unavailable";
+      } catch {
+        if (requestGeneration === generation) set({ unlocked: false, hasHydrated: true });
+        return "unavailable";
+      }
+    },
+    lock: async () => {
+      generation += 1;
+      set({ unlocked: false });
+      try {
+        await fetch(DEMO_ACCESS_URL, {
+          method: "DELETE",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+      } catch {
+        // The local view is locked immediately; the server cookie expires naturally if offline.
+      }
+    },
+  };
+});

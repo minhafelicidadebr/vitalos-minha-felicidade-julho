@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from "react";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,19 +13,30 @@ import { useDemoGate } from "./demo-gate";
 export function DemoGateForm({ onUnlocked }: { onUnlocked?: () => void }) {
   const unlock = useDemoGate((s) => s.unlock);
   const [value, setValue] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const inputId = useId();
   const errorId = `${inputId}-error`;
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const ok = unlock(value);
-    if (ok) {
-      setError(false);
-      onUnlocked?.();
-    } else {
-      setError(true);
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await unlock(value);
+      if (result === "authenticated") {
+        setValue("");
+        onUnlocked?.();
+      } else if (result === "invalid") {
+        setError("Senha incorreta. Tente novamente.");
+      } else if (result === "limited") {
+        setError("Muitas tentativas. Aguarde um minuto e tente novamente.");
+      } else {
+        setError("A demonstração está temporariamente indisponível. Tente novamente mais tarde.");
+      }
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -43,11 +54,11 @@ export function DemoGateForm({ onUnlocked }: { onUnlocked?: () => void }) {
             autoComplete="current-password"
             placeholder="Digite a senha do demo"
             value={value}
-            aria-invalid={error}
+            aria-invalid={!!error}
             aria-describedby={error ? errorId : undefined}
             onChange={(e) => {
               setValue(e.target.value);
-              if (error) setError(false);
+              if (error) setError(null);
             }}
             className="h-11 rounded-xl bg-background/70 pr-11 shadow-inner"
           />
@@ -67,16 +78,19 @@ export function DemoGateForm({ onUnlocked }: { onUnlocked?: () => void }) {
         </div>
         {error && (
           <p id={errorId} role="alert" className="mt-1.5 text-xs text-destructive">
-            Senha incorreta. Tente novamente.
+            {error}
           </p>
         )}
       </div>
       <Button
         type="submit"
         size="lg"
+        disabled={busy}
+        aria-busy={busy}
         className="h-11 w-full rounded-xl shadow-lg shadow-primary/15"
       >
-        Entrar na demonstração
+        {busy ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
+        {busy ? "Verificando acesso…" : "Entrar na demonstração"}
       </Button>
       <p className="flex items-start justify-center gap-2 text-center text-[11px] leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />

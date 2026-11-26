@@ -329,9 +329,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const guardedNavId = DEMO_ROUTE_POLICIES[pathname];
 
   // Portão de demonstração — fronteira única entre a landing pública e o app
-  // DE DEMONSTRAÇÃO. Enquanto o localStorage não rehidrata, mostramos o
-  // portão (estado seguro): servidor e 1ª renderização do cliente coincidem
-  // (sem mismatch de hidratação).
+  // de showcase. Até a sessão HttpOnly ser conferida no servidor, o acesso
+  // permanece fechado (estado seguro, sem divergência de hidratação).
   const gateUnlocked = useDemoGate((s) => s.unlocked);
   const gateHydrated = useDemoGate((s) => s.hasHydrated);
   const lockDemo = useDemoGate((s) => s.lock);
@@ -683,7 +682,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                           <button
                             onClick={() => {
                               setPersonaOpen(false);
-                              lockDemo();
+                              void lockDemo();
                             }}
                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                           >
