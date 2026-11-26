@@ -92,3 +92,19 @@ describe("Guia · jornada por perfil (Q1–Q5 × 6 perfis)", () => {
     expect(calls).toEqual([{ stage: "Q4" }, { perspective: "colaborador" }]);
   });
 });
+
+test("Q3 apresenta uma tarefa demonstrativa para RH, liderança e colaborador", () => {
+  for (const [profile, task] of [
+    ["rh", /resultados agregados/],
+    ["lideranca", /prática atribuída/],
+    ["colaborador", /responder ao questionário/],
+  ] as const) {
+    const { container, unmount } = view("Q3", profile);
+    const demo = within(within(container).getByRole("complementary", { name: "Prática demonstrativa de PERMA+V" }));
+    expect(demo.getByText(task)).toBeTruthy();
+    expect(demo.getByRole("link", { name: "Abrir demonstração PERMA+V" }).getAttribute("href")).toBe("/q3-demo");
+    unmount();
+  }
+  const { container } = view("Q3", "sst");
+  expect(within(container).queryByRole("link", { name: "Abrir demonstração PERMA+V" })).toBeNull();
+});
