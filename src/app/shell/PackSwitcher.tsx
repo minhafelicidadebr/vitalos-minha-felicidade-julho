@@ -56,7 +56,7 @@ export function PackSwitcher() {
         <Button
           variant="outline"
           size="sm"
-          className="h-10 gap-2 rounded-xl px-3"
+          className="h-10 gap-2 rounded-xl px-3 max-[359px]:gap-1 max-[359px]:px-2"
           aria-label={`Setor ativo: ${sectorLabel}. Trocar setor`}
         >
           <span
