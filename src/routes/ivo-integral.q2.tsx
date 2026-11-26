@@ -90,7 +90,7 @@ function IvoQ2Page() {
           ) : null}
         </div>
 
-        <Q2JourneyOrientation />
+        <Q2JourneyOrientation roleId={session.org?.role ?? null} />
 
         {outcome?.ok && outcome.state === "ready" ? (
           <>
