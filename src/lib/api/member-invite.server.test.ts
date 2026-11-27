@@ -6,6 +6,7 @@ import { describe, expect, test, mock, beforeEach } from "bun:test";
 const ORGS: Record<string, { pack_id: string; plan: string; name: string }> = {
   "org-a": { pack_id: "enterprise", plan: "growth", name: "TechCorp Ltda" },
   "org-pilot-cheia": { pack_id: "enterprise", plan: "pilot", name: "Piloto Lotado" },
+  "org-b": { pack_id: "enterprise", plan: "growth", name: "Outra Empresa Ltda" },
 };
 // Contagem de perfis ADMIN por org (o limite do plano só vale para administradores).
 let adminCountByOrg: Record<string, number> = { "org-a": 1, "org-pilot-cheia": 1 };
@@ -243,6 +244,38 @@ describe("createMemberInvite — valida papel e assento antes de escrever", () =
   test("organização inexistente: recusa sem lançar", async () => {
     const result = await createMemberInvite("org-fantasma", "admin-1", "x@techcorp.com", "COLABORADOR");
     expect(result).toEqual({ error: "Organização não encontrada." });
+  });
+
+  // Isolamento entre organizações (contrato do servidor). A prova de que o Postgres
+  // filtra por org está na jornada local (scripts/integ-local/mo2-journey.ts); aqui se
+  // prova que o servidor só reserva assento na org recebida e não mistura contagens.
+  test("duas orgs: assentos cheios na org-a não bloqueiam a org-b; cada convite carrega a própria org", async () => {
+    adminCountByOrg["org-a"] = 5; // growth = 5 → cheia
+    adminCountByOrg["org-b"] = 0;
+    const cheia = await createMemberInvite("org-a", "admin-a", "a@techcorp.com", "RH_ADMIN");
+    expect("error" in cheia && cheia.error.includes("upgrade")).toBe(true);
+    expect(insertedInvites).toHaveLength(0);
+
+    const livre = await createMemberInvite("org-b", "admin-b", "b@outra.com", "RH_ADMIN");
+    expect("error" in livre).toBe(false);
+    expect(lastRpcArgs).toMatchObject({ p_org_id: "org-b", p_expected_plan: "growth", p_max_admin_seats: 5 });
+    expect(insertedInvites).toEqual([{ org_id: "org-b", email: "b@outra.com", role: "RH_ADMIN" }]);
+  });
+
+  test("duas orgs, emissões simultâneas com 1 assento livre em cada: ambas passam e o convite pendente de uma não conta na outra", async () => {
+    adminCountByOrg["org-a"] = 4;
+    adminCountByOrg["org-b"] = 4;
+    const results = await Promise.all([
+      createMemberInvite("org-a", "admin-a", "a@techcorp.com", "RH_ADMIN"),
+      createMemberInvite("org-b", "admin-b", "b@outra.com", "RH_ADMIN"),
+    ]);
+    expect(results.every((r) => !("error" in r))).toBe(true);
+    expect(insertedInvites.map((i) => i.org_id).sort()).toEqual(["org-a", "org-b"]);
+    // Cada org tem exatamente 1 pendente (o seu); um 2º admin em org-a agora é recusado.
+    expect(pendingAdminInvites.filter((i) => i.org_id === "org-a")).toHaveLength(1);
+    expect(pendingAdminInvites.filter((i) => i.org_id === "org-b")).toHaveLength(1);
+    const segunda = await createMemberInvite("org-a", "admin-a", "c@techcorp.com", "RH_ADMIN");
+    expect("error" in segunda && segunda.error.includes("upgrade")).toBe(true);
   });
 });
 
