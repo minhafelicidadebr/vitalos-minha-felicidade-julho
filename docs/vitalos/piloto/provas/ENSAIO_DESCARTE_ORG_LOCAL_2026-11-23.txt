@@ -1,0 +1,50 @@
+ENSAIO DE REMOCAO DE ORGANIZACAO · BANCO DESCARTAVEL LOCAL · 23/11/2026
+Candidato: main 929d9eb + docs (branch docs/piloto-plano-descarte-e-limpeza); 72 migrations aplicadas pela cadeia do checkout.
+Pilha: vitalos-q1q2-integ (loopback 127.0.0.1), recriada por scripts/integ-local/reset.sh; desligada ao final (compose down, 0 containers).
+Dados: SOMENTE sinteticos da jornada MO2 ("Empresa Ficticia Alfa" e "Beta"); nenhum banco do projeto, nenhum dado de pessoa, nenhum segredo lido.
+Acesso: superusuario local (postgres). Contornaria RLS; por isso NAO prova o que um papel de servico do projeto consegue fazer.
+Este arquivo foi redigido a mao a partir da saida observada dos comandos; nao e saida bruta de um script versionado.
+
+0. Preparacao
+   - mo2-journey.ts: "MO2: todas as verificacoes passaram." (cria organizacoes Alfa e Beta com plano, evidencia, onda, convites).
+   - Contagem inicial Alfa: action_items 4, action_log 2, action_plans 1, evidence_records 1, first_admin_invites 1, member_invites 8,
+     ops_events 10, org_module_changes 2, org_module_entitlements 2, profiles 4, wave_cohorts 1, waves 1, cohort_capsules 1, sector_links 1,
+     wave_responses 5 (via waves).
+   - Contagem inicial Beta: first_admin_invites 1, member_invites 1, ops_events 3, org_module_changes 2, org_module_entitlements 2, profiles 2,
+     sector_links 1, wave_cohorts 1, waves 1, wave_responses 4 (via waves).
+   - ops_events tem tambem 9 linhas com org_id nulo.
+
+1. Resultados dos testes (cada um com o erro literal observado)
+   T1  delete organizations (so a Alfa)  -> FALHA: profiles_org_id_fkey ("still referenced from table profiles").
+   T2  delete profiles da Alfa (rollback) -> passa (superusuario).
+   T3  ordem original (wave_cohorts antes de sector_links) -> FALHA: sector_links_wave_cohort_key_fk (chave composta, que a leitura estatica nao viu).
+   T4  sector_links antes de wave_cohorts -> FALHA: action_items_source_cohort_wave_fk (action_items aponta para wave_cohorts).
+   T5  ledger primeiro, via cascata de action_plans -> FALHA: module_origin_required, no gatilho institutional.guard_module_operation.
+   T6  ledger de baixo para cima -> FALHA: first_admin_immutable (gatilho first_admin_integrity bloqueia DELETE em first_admin_invites,
+       por desenho: a funcao levanta a excecao em qualquer DELETE).
+   T7  idem com first_admin_integrity desabilitado -> FALHA no COMMIT: module_origin_required (gatilho DEFERRABLE INITIALLY DEFERRED:
+       avaliado com o estado final, em que a onda/item pai ja foi apagado).
+   T8  cada tabela do ledger em transacao propria, de baixo para cima -> action_log, evidence_records e action_items saem;
+       action_plans FALHA no COMMIT: module_origin_required (plano sem cápsula de origem so resolve o modulo por seus itens, ja removidos).
+   T9  gatilhos de protecao desabilitados POR TABELA dentro de UMA transacao, ordem abaixo, gatilhos reabilitados antes do COMMIT:
+       Beta (execucao limpa) -> passa; Alfa -> passa. Organizacoes restantes: 0. Gatilhos desabilitados ao final: 0.
+   T10 delete from auth.users (apos a remocao das organizacoes, em transacao desfeita) -> passa (8 contas, desfeito: 8 apos rollback).
+
+2. Ordem que funcionou (T9)
+   gatilhos desabilitados (first_admin_integrity; module_operation e module_plan_operation nas tabelas do ledger e das ondas)
+   1 efficacy_verdicts, efficacy_observations, efficacy_protocols, action_log, evidence_records, action_items, action_plans
+   2 wave_responses e wave_invites (via waves), cohort_capsules, sector_links, wave_capsules, wave_cohorts
+   3 waves
+   4 member_invites, first_admin_invites, org_invites (used_by_org_id = null), org_module_changes, org_module_entitlements, institutional.q1_*
+   5 profiles, organizations
+   gatilhos reabilitados; COMMIT
+   Contas de autenticacao: so depois (T10).
+
+3. Sobras apos T9
+   public.ops_events: Alfa 10, Beta 3 (+ 9 sem org). Sem chave estrangeira para organizations; nao entrou no mapa estatico; NAO e removida pela ordem acima.
+
+4. Limites
+   - Banco local e superusuario; o banco do projeto e o papel de servico nao foram exercitados.
+   - As tabelas institutional.q1_* estavam vazias neste ensaio (a jornada nao as popula); a ordem entre elas veio das chaves, nao de dados.
+   - Desabilitar gatilhos e DDL (ALTER TABLE); no banco do projeto isso exige autorizacao e procedimento proprios e pode colidir com o fluxo do Lovable.
+   - Nao testa descarte parcial por categoria (opcoes A e B da proposta).
