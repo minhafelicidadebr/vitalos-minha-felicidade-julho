@@ -24,7 +24,7 @@ Compatibilidade: a migration `20261121120000` cria uma função nova e não alte
 
 **Confirmado pelo proponente em 21/11/2026:** o Lovable aplica as migrations de `supabase/migrations/` ao sincronizar a `main`. Logo, **o merge de um PR com migration é uma migration remota** e precisa de autorização explícita para isso. Reverter o arquivo depois não remove a função: a remoção exige uma migration nova.
 
-**Atualização 22–23/11/2026:** depois da sincronização do #57 a função estava **ausente** no banco do projeto (os builds do Lovable estavam bloqueados por falta de créditos). Ela foi aplicada por consulta direta, com autorização do proponente: **presente** (1 assinatura, 7 argumentos), **permissões conferidas** (`anon`/`authenticated` sem EXECUTE, `service_role` com), **ausente do histórico** `supabase_migrations.schema_migrations`, e **convite de ponta a ponta no app publicado não testado**.
+**Atualização 22–23/11/2026:** depois da sincronização do #57 a função estava **ausente** no banco do projeto (o suporte do Lovable atribuiu o bloqueio dos builds à falta de créditos; a causa técnica específica não foi verificada). Ela foi aplicada por consulta direta, com autorização do proponente: **presente** (1 assinatura, 7 argumentos), **permissões conferidas** (`anon`/`authenticated` sem EXECUTE, `service_role` com), **ausente do histórico** `supabase_migrations.schema_migrations`, e **convite de ponta a ponta no app publicado não testado**.
 
 Atenção: o histórico remoto de migrations foi registrado como não canônico em 28/07/2026. Uma sincronização pode tentar outras migrations que o banco considere pendentes. Por isso a migration vai num PR próprio e pequeno.
 
