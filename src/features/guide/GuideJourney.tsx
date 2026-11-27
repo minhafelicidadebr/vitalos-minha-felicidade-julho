@@ -308,7 +308,9 @@ const LENS_ACCENT: Partial<Record<GuideLens, string>> = {
 const TAB_FILL: Partial<Record<GuideLens, string>> = { Q1: LENS_ACCENT.Q1, Q3: LENS_ACCENT.Q3, Q4: LENS_ACCENT.Q4 };
 const accentText = (accent: string): CSSProperties => ({ color: `color-mix(in oklab, ${accent} 70%, var(--color-foreground))` });
 
-export function GuideJourney({ content, context, environment, stage, perspective, hasTaskPanel = false, onChange }: GuideJourneyProps) {
+export function GuideJourney({ content, context, environment, stage, perspective: requestedPerspective, hasTaskPanel = false, onChange }: GuideJourneyProps) {
+  // Perfil vindo da URL pode estar adulterado: valor fora da lista cai no perfil da sessão (ou RH, sem sessão).
+  const perspective: GuidePerspective = content.perspectives.some((p) => p.id === requestedPerspective) ? requestedPerspective : (context?.perspective ?? "rh");
   const lens = content.lenses.find((l) => l.lens === stage) ?? content.lenses[1]!;
   const perspLabel = content.perspectives.find((p) => p.id === perspective)?.label ?? perspective;
   const voiceRef = useRef<HTMLHeadingElement>(null);

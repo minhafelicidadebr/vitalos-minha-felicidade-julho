@@ -124,3 +124,15 @@ test("Q4 oferece o exemplo individual ao colaborador", () => {
   const leader = view("Q4", "lideranca");
   expect(within(leader.container).queryByRole("link", { name: "Abrir exemplo de forças de caráter" })).toBeNull();
 });
+
+describe("Guia · perfil adulterado na URL", () => {
+  test("perfil fora da lista não quebra: cai no perfil da sessão, ou em RH sem sessão", () => {
+    const bad = "invalido" as unknown as GuidePerspective;
+    const withSession = view("Q2", bad, session("lideranca"));
+    expect(within(withSession.container).getByRole("heading", { level: 2 }).textContent).toBe(G.lenses.find((l) => l.lens === "Q2")!.title);
+    expect(withSession.container.textContent).toContain(G.lenses.find((l) => l.lens === "Q2")!.matrix.lideranca.receives);
+    withSession.unmount();
+    const noSession = view("Q2", bad);
+    expect(noSession.container.textContent).toContain(G.lenses.find((l) => l.lens === "Q2")!.matrix.rh.receives);
+  });
+});
