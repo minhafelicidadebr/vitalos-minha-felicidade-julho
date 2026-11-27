@@ -4,6 +4,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { Button } from "@/components/ui/button";
 import { usePack } from "@/engine/pack";
 import { Q1PreparationEntry } from "@/components/ivo/Q1PreparationEntry";
+import { Q2DemoWalkthrough } from "@/features/guide/Q2DemoWalkthrough";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -116,6 +117,7 @@ function Painel() {
       </section>
 
       {/* Arco do produto */}
+      <Q2DemoWalkthrough step="entrada" />
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

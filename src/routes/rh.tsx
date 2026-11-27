@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/app/shell/AppShell";
+import { Q2DemoWalkthrough, parseQ2DemoSearch } from "@/features/guide/Q2DemoWalkthrough";
 import { RHDashboard } from "@/app/dashboards/rh/RHDashboard";
 
 export const Route = createFileRoute("/rh")({
+  validateSearch: parseQ2DemoSearch,
   head: () => ({
     meta: [{ title: "Visão Executiva RH/CHRO — 4 Lentes VitalOS™" }],
   }),
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/rh")({
 function RHPage() {
   return (
     <AppShell>
+      <Q2DemoWalkthrough step="rh" search={Route.useSearch()} />
       <RHDashboard />
     </AppShell>
   );

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/app/shell/AppShell";
 import { IvoAccessNotice, IvoLoading } from "@/components/ivo/IvoAccessNotice";
 import { IvoQ2Detail } from "@/components/ivo/IvoQ2Detail";
+import { Q2JourneyOrientation } from "@/components/ivo/Q2JourneyOrientation";
 import { MemberPlanFeedback } from "@/components/ivo/MemberPlanFeedback";
 import { currentIvoAccessToken } from "@/components/ivo/ivo-session";
 import { loadIvoQ2Reading } from "@/lib/api/ivo-q2-reading.functions";
@@ -88,6 +89,8 @@ function IvoQ2Page() {
             </div>
           ) : null}
         </div>
+
+        <Q2JourneyOrientation />
 
         {outcome?.ok && outcome.state === "ready" ? (
           <>

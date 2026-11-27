@@ -92,3 +92,35 @@ describe("Guia · jornada por perfil (Q1–Q5 × 6 perfis)", () => {
     expect(calls).toEqual([{ stage: "Q4" }, { perspective: "colaborador" }]);
   });
 });
+
+test("Q3 apresenta uma tarefa demonstrativa para RH, liderança e colaborador", () => {
+  for (const [profile, task] of [
+    ["rh", /resultados agregados/],
+    ["lideranca", /prática atribuída/],
+    ["colaborador", /responder ao questionário/],
+  ] as const) {
+    const { container, unmount } = view("Q3", profile);
+    const demo = within(within(container).getByRole("complementary", { name: "Prática demonstrativa de PERMA+V" }));
+    expect(demo.getByText(task)).toBeTruthy();
+    expect(demo.getByRole("link", { name: "Abrir demonstração PERMA+V" }).getAttribute("href")).toBe("/q3-demo");
+    unmount();
+  }
+  const { container } = view("Q3", "sst");
+  expect(within(container).queryByRole("link", { name: "Abrir demonstração PERMA+V" })).toBeNull();
+});
+
+test("Q1 explica as responsabilidades de RH e SST antes da coleta", () => {
+  const rh = view("Q1", "rh");
+  expect(within(rh.container).getByText(/prepare o comunicado à equipe/i)).toBeTruthy();
+  rh.unmount();
+  const sst = view("Q1", "sst");
+  expect(within(sst.container).getByText(/revise com o RH/i)).toBeTruthy();
+});
+
+test("Q4 oferece o exemplo individual ao colaborador", () => {
+  const person = view("Q4", "colaborador");
+  expect(within(person.container).getByRole("link", { name: "Abrir exemplo de forças de caráter" }).getAttribute("href")).toBe("/viat");
+  person.unmount();
+  const leader = view("Q4", "lideranca");
+  expect(within(leader.container).queryByRole("link", { name: "Abrir exemplo de forças de caráter" })).toBeNull();
+});

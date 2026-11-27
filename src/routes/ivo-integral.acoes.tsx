@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Q2JourneyOrientation } from "@/components/ivo/Q2JourneyOrientation";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/app/shell/AppShell";
@@ -277,6 +278,8 @@ function IvoAcoesPage() {
             Evidência de execução mostra que a ação aconteceu. Ela não comprova melhora do indicador nem causalidade.
           </p>
         </header>
+
+        <Q2JourneyOrientation />
 
         <div role="status" aria-live="polite" className="min-h-6 text-sm">
           {feedback ? (
