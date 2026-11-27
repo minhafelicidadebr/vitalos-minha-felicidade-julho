@@ -279,7 +279,7 @@ function IvoAcoesPage() {
           </p>
         </header>
 
-        <Q2JourneyOrientation />
+        <Q2JourneyOrientation roleId={session.org?.role ?? null} />
 
         <div role="status" aria-live="polite" className="min-h-6 text-sm">
           {feedback ? (

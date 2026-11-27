@@ -44,12 +44,23 @@ for (const [practice, evidence] of [
       expect(ui.getByText(practice)).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? new RegExp(evidence) : /aguarda execução/)).toBeTruthy();
       expect(ui.getByText(/Ainda sem avaliação/)).toBeTruthy();
+      // Previsto, registrado, a observar e avaliado são estados distintos, nomeados no rótulo.
+      expect(ui.getByText(status === "realizada" ? "Execução registrada" : "Execução prevista")).toBeTruthy();
+      expect(ui.getByText("Aprendizagem a observar")).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? /manter ou ajustar/ : /remover a barreira/)).toBeTruthy();
       fireEvent.click(ui.getByRole("link", { name: "Abrir exemplo no relatório global" }));
       expect(await ui.findByRole("heading", { name: "Decisão para o próximo ciclo" })).toBeTruthy();
       expect(ui.getByText(practice)).toBeTruthy();
       expect(ui.getByText(status === "realizada" ? new RegExp(evidence) : /aguarda execução/)).toBeTruthy();
       expect(ui.getByText(/quando será feita uma nova leitura/)).toBeTruthy();
+      // Q5 termina em uma proposta: quatro perguntas respondidas, sugestão marcada em texto, efeito não avaliado.
+      for (const q of [/Qual prioridade foi escolhida e por quê/, /O que foi planejado e o que tem execução registrada/, /O que aprendemos e o que ainda precisa ser observado/, /Qual é a proposta para o próximo ciclo, quem a revisa e quando/]) expect(ui.getByText(q)).toBeTruthy();
+      expect(ui.getByText(/Efeito ainda não avaliado/)).toBeTruthy();
+      const suggested = ui.getByText(/Sugestão para este caso/).closest("li")!;
+      expect(suggested.textContent).toContain(status === "realizada" ? "Manter" : "Ajustar");
+      expect(ui.getByText(/nenhuma decisão foi registrada/)).toBeTruthy();
+      const q1 = ui.getByRole("link", { name: "Ver como o Q1 prepara a próxima escuta" });
+      expect(q1.getAttribute("href")).toContain("etapa=Q1");
     });
   }
 }
@@ -72,4 +83,10 @@ test("Q2 não exibe a jornada fictícia em sessão institucional", async () => {
   const ui = open("/rh?percurso=q2", false);
   await ui.findByText("Rota carregada");
   expect(ui.queryByRole("heading", { name: "Escolha uma prática para a equipe" })).toBeNull();
+});
+
+test("Q5: a sugestão é manter com execução registrada e ajustar sem registro; encerrar nunca é sugerido", async () => {
+  const { suggestedDecision } = await import("./Q5Synthesis");
+  expect(suggestedDecision(true)).toBe("manter");
+  expect(suggestedDecision(false)).toBe("ajustar");
 });

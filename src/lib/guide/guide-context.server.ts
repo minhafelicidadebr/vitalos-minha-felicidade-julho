@@ -5,7 +5,10 @@
 // ação) e devolutiva coletiva (loadMemberPlanFeedback, qualquer membro). Nenhuma regra de
 // autorização nova: uma capacidade só é concedida quando o fluxo existente a autorizou.
 import type { GuideContent, GuideLens, GuidePerspective } from "@/domain/guide/guide-types";
+import { perspectiveForRole } from "@/domain/guide/guide-role";
 import type { GuideServerContext, GuideTask } from "./guide-entry";
+
+export { perspectiveForRole };
 
 export interface GuideContextDeps {
   authorize?: (token: string | undefined) => Promise<{ ok: true; userId: string; orgId: string; role: string } | { ok: false; category: string; error: string }>;
@@ -23,15 +26,6 @@ export type GuideJourneyOutcome =
   | { ok: true; context: GuideServerContext; content: GuideContent }
   | { ok: false; category: string; error: string };
 
-const ROLE_PERSPECTIVE: Record<string, GuidePerspective> = {
-  LIDER_EQUIPE: "lideranca",
-  RH_ADMIN: "rh",
-  DGP_RH: "rh",
-  SST_PROFISSIONAL: "sst",
-  SESMT_SAUDE: "sst",
-  DIRETOR: "direcao",
-  PLATFORM_ADMIN: "plataforma",
-};
 const ROLE_LABEL: Record<GuidePerspective, string> = {
   lideranca: "Liderança",
   rh: "RH",
@@ -41,9 +35,6 @@ const ROLE_LABEL: Record<GuidePerspective, string> = {
   colaborador: "Colaborador",
 };
 
-export function perspectiveForRole(role: string): GuidePerspective {
-  return ROLE_PERSPECTIVE[role] ?? "colaborador";
-}
 
 export async function loadGuideJourney(input: { accessToken?: string }, deps: GuideContextDeps = {}): Promise<GuideJourneyOutcome> {
   const authorize =
