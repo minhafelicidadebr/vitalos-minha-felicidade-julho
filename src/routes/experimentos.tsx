@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { canSeeNavItem } from "@/engine/rbac/rbac";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getLearningDynamicsRegistry } from "@/domain/learning/learning-dynamics-registry";
@@ -193,7 +193,7 @@ function ExperimentosPage() {
 
 function CodesignStudioSection() {
   const { pack } = usePack();
-  const roleId = usePersona((s) => s.roleId);
+  const { roleId } = useEffectiveRole();
   const learningCatalog = useMemo(() => getLearningDynamicsRegistry(), []);
   const ld009 = learningCatalog.find((d) => d.id === "LD-009");
   const status = ld009 ? deriveProductStatus(ld009) : "DEMO";
@@ -219,9 +219,10 @@ function CodesignStudioSection() {
     () => (pack?.navigation ?? []).find((n) => n.id === "experiments"),
     [pack],
   );
-  const canReview = navItem
-    ? canSeeNavItem(navItem as Parameters<typeof canSeeNavItem>[0], roleId)
-    : false;
+  const canReview =
+    navItem && roleId !== null
+      ? canSeeNavItem(navItem as Parameters<typeof canSeeNavItem>[0], roleId)
+      : false;
 
   if (!canReview) {
     return (
@@ -269,7 +270,7 @@ function CodesignStudioSection() {
         adverseEffectsWatchlist={getAdverseEffectsWatchlist()}
         plan90dPhases={getPlan90dPhases()}
         ownerRoleOptions={ownerRoleOptions}
-        reviewerRole={roleId}
+        reviewerRole={roleId ?? ""}
       />
     </motion.section>
   );
