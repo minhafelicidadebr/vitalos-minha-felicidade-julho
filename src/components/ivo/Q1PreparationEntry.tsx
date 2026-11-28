@@ -6,10 +6,11 @@ import { currentIvoAccessToken } from "./ivo-session";
 import { cycleOfInstant, formatCycleKey } from "@/domain/ivo/cycle-key";
 import { checkQ1PreparationAccess } from "@/lib/api/q1-preparation.functions";
 
-export function Q1PreparationEntry() {
+export function Q1PreparationEntry({ audience = "representative" }: { audience?: "representative" | "rh" }) {
   const session = useRealOrgSession();
   const org = session.org;
-  if (session.loading || org?.orgPackId !== "enterprise" || org.role === "RH_ADMIN") return null;
+  if (session.status !== "ready" || org?.orgPackId !== "enterprise") return null;
+  if ((org.role === "RH_ADMIN") !== (audience === "rh")) return null;
   return <RepresentativeEntry key={org.userId + "/" + org.orgId} orgId={org.orgId} />;
 }
 
