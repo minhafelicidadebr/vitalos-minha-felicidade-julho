@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import {
   listPackWaveLifecycles,
   transitionWave,
@@ -127,7 +127,7 @@ type LoadState =
 
 function OndasPage() {
   const { packId, t } = usePack();
-  const { roleId } = usePersona();
+  const { roleId } = useEffectiveRole();
   const [load, setLoad] = useState<LoadState>({ state: "loading" });
   const [pendingWave, setPendingWave] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ waveId: string; msg: string; ok: boolean } | null>(
@@ -147,6 +147,8 @@ function OndasPage() {
 
   const handleAction = useCallback(
     (waveId: string, action: WaveLifecycleAction) => {
+      // Sem papel resolvido não há autoria para registrar na transição.
+      if (!roleId) return;
       setPendingWave(waveId);
       setFeedback(null);
       void transitionWave({ data: { waveId, action, actorRole: roleId } })

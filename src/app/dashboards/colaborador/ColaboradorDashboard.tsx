@@ -86,7 +86,7 @@ function RealColaboradorDashboard({ org }: { org: RealOrgSession }) {
             <GraduationCap className="h-4 w-4 text-primary" aria-hidden />
             <p className="min-w-0 flex-1 font-medium text-card-foreground">Sua Academia</p>
             <div className="-my-2 -mr-2">
-              <ContextualHelp entry={HELP_COLABORADOR_ACADEMIA} size="sm" />
+              <ContextualHelp entry={HELP_COLABORADOR_ACADEMIA} roleId={org.role} size="sm" />
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
