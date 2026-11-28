@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { canSeeNavItem, navForRole, resolveEffectiveRoleId, type NavItemDef } from "./rbac";
+import {
+  canSeeNavItem,
+  navForRole,
+  resolveEffectiveRoleId,
+  resolveRoleContext,
+  type NavItemDef,
+} from "./rbac";
 import type { DomainPack } from "../pack/pack-types";
 
 // ─── canSeeNavItem (invariante de visibilidade) ───────────────────────────────
@@ -69,5 +75,39 @@ describe("resolveEffectiveRoleId", () => {
 
   test("sem sessão real (undefined) → cai na persona de demo", () => {
     expect(resolveEffectiveRoleId(undefined, "RH_ADMIN")).toBe("RH_ADMIN");
+  });
+});
+
+// ─── resolveRoleContext (curadoria segue o papel institucional) ─────────────
+
+describe("resolveRoleContext", () => {
+  test("quem explorou a demo como liderança e entra como colaborador recebe o papel real", () => {
+    expect(resolveRoleContext("ready", "COLABORADOR", "LIDER_EQUIPE")).toEqual({
+      roleId: "COLABORADOR",
+      source: "session",
+    });
+  });
+
+  test("sessão carregando → pendente; a persona salva não é usada nem por um instante", () => {
+    expect(resolveRoleContext("loading", null, "LIDER_EQUIPE")).toEqual({
+      roleId: null,
+      source: "pending",
+    });
+  });
+
+  test("visitante anônimo → persona de demonstração", () => {
+    expect(resolveRoleContext("anonymous", null, "CHRO")).toEqual({
+      roleId: "CHRO",
+      source: "demo",
+    });
+  });
+
+  test("sessão sem vínculo ou indisponível nunca é tratada como institucional", () => {
+    expect(resolveRoleContext("unlinked", null, "RH_ADMIN").source).toBe("demo");
+    expect(resolveRoleContext("unavailable", "RH_ADMIN", "COLABORADOR").source).toBe("demo");
+  });
+
+  test("ready sem papel não promove a persona a papel institucional", () => {
+    expect(resolveRoleContext("ready", "", "RH_ADMIN").source).toBe("demo");
   });
 });

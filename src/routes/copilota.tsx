@@ -21,7 +21,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { CopilotAvatar } from "@/components/copilot/CopilotAvatar";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { canSeeCollective } from "@/mocks/sector-audience";
 import { buildTrend, type TrendPoint } from "@/engine/trend/trend-engine";
 import { answerCopilot, type CopilotPov, type CopilotTurn } from "@/engine/ai/copilot-engine";
@@ -133,8 +133,9 @@ function CopilotaError({ onRetry }: { onRetry: () => void }) {
 
 function CopilotaChat() {
   const { pack, index, packId } = usePack();
-  const { roleId } = usePersona();
-  const canSee = canSeeCollective(packId, roleId);
+  const { roleId } = useEffectiveRole();
+  // Sessão pendente não vê o coletivo: canSeeCollective é lista de bloqueio.
+  const canSee = roleId !== null && canSeeCollective(packId, roleId);
 
   const persona = useMemo(() => buildCopilotPersona(pack as never), [pack]);
   const avatar = useMemo(

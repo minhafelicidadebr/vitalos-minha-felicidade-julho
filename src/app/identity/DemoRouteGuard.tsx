@@ -1,15 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { LockKeyhole, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
-import { usePersona } from "./persona-store";
+import { useEffectiveRole } from "./useEffectiveRole";
 import { usePack } from "@/engine/pack";
 import { canSeeNavItem, type NavItemDef } from "@/engine/rbac/rbac";
 
 export function DemoRouteGuard({ navId, children }: { navId: string; children: ReactNode }) {
   const { pack, status } = usePack();
-  const roleId = usePersona((state) => state.roleId);
+  // Papel institucional vence a persona salva; enquanto a sessão responde, aguarda.
+  const { roleId } = useEffectiveRole();
 
-  if (status.state === "idle" || status.state === "loading") {
+  if (status.state === "idle" || status.state === "loading" || roleId === null) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6" aria-busy="true">
         <div className="h-48 animate-pulse rounded-3xl bg-muted/60" />

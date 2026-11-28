@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { usePack } from "@/engine/pack";
 import {
   getAntiGamingRules,
@@ -55,13 +55,16 @@ const PERSONAL_STRENGTH_ROLES = new Set(["COLABORADOR", "EMBAIXADOR", "LIDER_EQU
 
 function AcademiaPage() {
   useParticipationSync();
-  const { roleId } = usePersona();
+  const roleContext = useEffectiveRole();
+  // Enquanto a sessão responde, nenhuma curadoria é calculada para um papel presumido.
+  const roleId = roleContext.roleId ?? "";
+  const institutional = roleContext.source === "session";
   const { index, packId, status, t, reload } = usePack();
   const academyName = t("academy", "Academia do Florescimento");
   const indexLabel = t("index", packId === "school" ? "IEV" : "IVO");
 
   const recommendation = useMemo(() => {
-    if (!index) {
+    if (!index || !roleId) {
       return {
         priorityPillars: [] as LearningSignal[],
         affinityStrengths: [] as LearningSignal[],
@@ -72,15 +75,18 @@ function AcademiaPage() {
     const catalog = getLearningPaths(packId);
     const roleTargets = getRoleLearningTargets(catalog, roleId);
     const eligiblePillarIds = new Set(roleTargets.pillarIds);
-    const current = calculateIVO(getSectorData(packId).currentCycle, index);
-    const priorityPillars = current.lenses
-      .flatMap((lens) => lens.pillars)
-      .filter((pillar) => pillar.visible && eligiblePillarIds.has(pillar.pillarId))
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 4)
-      .map((pillar) => ({ id: pillar.pillarId, label: pillar.pillarName }));
+    // Conta institucional: sinais fictícios (ciclo do setor e mapa VIA-T da
+    // persona demo) não orientam a curadoria. Fica só o recorte por papel.
+    const priorityPillars: LearningSignal[] = institutional
+      ? []
+      : calculateIVO(getSectorData(packId).currentCycle, index)
+          .lenses.flatMap((lens) => lens.pillars)
+          .filter((pillar) => pillar.visible && eligiblePillarIds.has(pillar.pillarId))
+          .sort((a, b) => a.score - b.score)
+          .slice(0, 4)
+          .map((pillar) => ({ id: pillar.pillarId, label: pillar.pillarName }));
     const affinityStrengths =
-      packId === "enterprise" && PERSONAL_STRENGTH_ROLES.has(roleId)
+      !institutional && packId === "enterprise" && PERSONAL_STRENGTH_ROLES.has(roleId)
         ? MARINA_VIAT_RESULT.top5.map((strength) => ({
             id: strength.id,
             label: strength.name,
@@ -96,9 +102,9 @@ function AcademiaPage() {
         roleId,
       }),
     };
-  }, [index, packId, roleId]);
+  }, [index, packId, roleId, institutional]);
 
-  if (status.state === "idle" || status.state === "loading") {
+  if (status.state === "idle" || status.state === "loading" || roleContext.source === "pending") {
     return (
       <AppShell>
         <div className="mx-auto max-w-4xl space-y-4 px-4 py-8 sm:px-6" aria-busy="true">
@@ -170,7 +176,7 @@ function AcademiaPage() {
         <section aria-label="Origem e limites da curadoria demonstrativa" className="min-w-0 space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
           <h2 className="flex items-center gap-2 text-base font-semibold"><HelpCircle aria-hidden="true" className="size-5 shrink-0 text-primary" />Como interpretar esta curadoria</h2>
           <dl className="grid gap-3 text-sm leading-relaxed sm:grid-cols-2 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:p-3">
-            <div><dt className="font-semibold">Origem das sugestões</dt><dd className="mt-1 text-muted-foreground">Esta página usa catálogo e sinais demonstrativos do setor e do papel selecionados. As sugestões não são uma análise dos dados reais da sua empresa.</dd></div>
+            <div><dt className="font-semibold">Origem das sugestões</dt><dd className="mt-1 text-muted-foreground">{institutional ? "As trilhas seguem o papel da sua conta na organização. Nenhum sinal demonstrativo é usado; prioridades coletivas só aparecem quando houver leitura agregada autorizada." : "Esta página usa catálogo e sinais demonstrativos do setor e do papel selecionados. As sugestões não são uma análise dos dados reais da sua empresa."}</dd></div>
             <div><dt className="font-semibold">Participação e aprendizagem</dt><dd className="mt-1 text-muted-foreground">Marcar uma atividade registra participação; não certifica domínio, retenção ou aplicação no trabalho. A sincronização de participação depende da sessão e do serviço disponível.</dd></div>
           </dl>
         </section>

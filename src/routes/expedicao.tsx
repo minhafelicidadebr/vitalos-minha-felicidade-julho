@@ -283,7 +283,7 @@ function ExpedicaoPage() {
         >
           <div className="flex items-center gap-1">
             <h2 className="font-serif text-xl text-foreground">Prioridade deste ciclo</h2>
-            <ContextualHelp entry={HELP_EXPEDICAO_PRIORIDADE} stateKey={readState} />
+            <ContextualHelp entry={HELP_EXPEDICAO_PRIORIDADE} stateKey={readState} roleId={realOrg?.role ?? null} />
           </div>
           {readingBlocked ? (
             <p className="mt-3 text-sm text-muted-foreground">{readStateCopy?.meaning}</p>

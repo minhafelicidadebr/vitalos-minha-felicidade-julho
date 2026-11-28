@@ -14,7 +14,7 @@ import { deriveLiveMissions } from "@/engine/gamification/live-economy";
 import { calculateIVO } from "@/engine/index/ivo-engine";
 import { usePack } from "@/engine/pack";
 import { rankPriorities } from "@/engine/priority/priority-engine";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { useWaveResponses } from "@/engine/survey/survey-store";
 import { getLearningPaths } from "@/mocks/academia-mock";
 import { getActiveWave } from "@/mocks/campaign-mock";
@@ -24,7 +24,9 @@ import { getSectorData } from "@/mocks/sector-data";
 
 export function useLiveEconomy() {
   const { packId, index, gamification } = usePack();
-  const { roleId } = usePersona();
+  const roleContext = useEffectiveRole();
+  const roleId = roleContext.roleId ?? "";
+  const institutional = roleContext.source === "session";
   const events = useParticipationLedger((state) => state.events);
   const record = useParticipationLedger((state) => state.record);
   const waveInput = getActiveWave(packId);
@@ -53,12 +55,16 @@ export function useLiveEconomy() {
     const catalog = getLearningPaths(packId);
     const targets = getRoleLearningTargets(catalog, roleId);
     const eligible = new Set(targets.pillarIds);
-    const priorityPillars = current.lenses
-      .flatMap((lens) => lens.pillars)
-      .filter((pillar) => pillar.visible && eligible.has(pillar.pillarId))
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 4)
-      .map((pillar) => ({ id: pillar.pillarId, label: pillar.pillarName }));
+    // Mesma regra da /academia: conta institucional não recebe prioridade de
+    // ciclo fictício, para a trilha recomendada coincidir nas duas telas.
+    const priorityPillars = institutional
+      ? []
+      : current.lenses
+          .flatMap((lens) => lens.pillars)
+          .filter((pillar) => pillar.visible && eligible.has(pillar.pillarId))
+          .sort((a, b) => a.score - b.score)
+          .slice(0, 4)
+          .map((pillar) => ({ id: pillar.pillarId, label: pillar.pillarName }));
     const rankedPaths = recommendPaths(catalog, { roleId, priorityPillars });
     const recommended =
       rankedPaths.find((path) => path.relevance === "prioritaria") ?? rankedPaths[0] ?? null;
@@ -101,5 +107,5 @@ export function useLiveEconomy() {
         summary.xpToday,
       ),
     };
-  }, [events, gamification, index, packId, record, responded, roleId, waveInput]);
+  }, [events, gamification, index, institutional, packId, record, responded, roleId, waveInput]);
 }
