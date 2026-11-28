@@ -16,7 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { useRecognition } from "@/app/gamification/use-recognition";
 import { useSeedEconomy } from "@/app/gamification/use-seed-economy";
 import { usePack } from "@/engine/pack";
@@ -734,7 +734,7 @@ const CELEBRATION_RESULT_COPY: Record<CelebrationRejectReason, string> = {
 };
 
 function CelebrationPanel({ pools }: { pools: SeedPoolAggregate[] }) {
-  const { roleId } = usePersona();
+  const { roleId } = useEffectiveRole();
   const records = useCelebrations((state) => state.records);
   const append = useCelebrations((state) => state.append);
   const [description, setDescription] = useState("");

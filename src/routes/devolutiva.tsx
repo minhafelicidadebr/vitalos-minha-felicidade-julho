@@ -6,7 +6,7 @@ import { AppShell } from "@/app/shell/AppShell";
 import { ContextualHelp } from "@/features/help/ContextualHelp";
 import { HELP_DEVOLUTIVA_COLETIVA } from "@/domain/help/pilot-help";
 import { usePack } from "@/engine/pack";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { useRealOrgSession } from "@/app/identity/useRealOrgSession";
 import { supabase } from "@/integrations/supabase/client";
 import { isCloudReady } from "@/lib/cloud/supabase-client";
@@ -77,8 +77,9 @@ interface LensFx {
 
 function DevolutivaPage() {
   const { index, packId, t } = usePack();
-  const { roleId } = usePersona();
-  const audience = INDIVIDUAL_ROLES.has(roleId) ? "individual" : "coletivo";
+  const { roleId } = useEffectiveRole();
+  // Sessão pendente (roleId null) recebe a visão mais restrita: a individual.
+  const audience = roleId === null || INDIVIDUAL_ROLES.has(roleId) ? "individual" : "coletivo";
 
   const devolutiva = useMemo(() => {
     if (!index) return null;
@@ -349,7 +350,7 @@ function DevolutivaPage() {
             <h1 className="min-w-0 font-serif text-3xl text-foreground sm:text-4xl">
               {devolutiva.headline}
             </h1>
-            <ContextualHelp entry={HELP_DEVOLUTIVA_COLETIVA} />
+            <ContextualHelp entry={HELP_DEVOLUTIVA_COLETIVA} roleId={roleId} />
           </div>
         </motion.header>
 

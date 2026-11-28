@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import {
   computeWave,
   buildIndividualView,
@@ -24,10 +24,12 @@ export const Route = createFileRoute("/onda")({
 const INDIVIDUAL_ROLES = new Set(["COLABORADOR", "EMBAIXADOR", "ESTUDANTE", "FAMILIA"]);
 
 function OndaPage() {
-  const { roleId } = usePersona();
+  const { roleId } = useEffectiveRole();
   const { packId, t } = usePack();
+  // Sessão pendente (roleId null) recebe a visão mais restrita: a individual.
   const isIndividual =
-    packId === "school" ? !canViewSchoolAggregate(roleId) : INDIVIDUAL_ROLES.has(roleId);
+    roleId === null ||
+    (packId === "school" ? !canViewSchoolAggregate(roleId) : INDIVIDUAL_ROLES.has(roleId));
   const indexLabel = t("index", "IVO");
   const waveInput = getActiveWave(packId);
 

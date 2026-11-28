@@ -11,7 +11,7 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 import { AppShell } from "@/app/shell/AppShell";
-import { usePersona } from "@/app/identity/persona-store";
+import { useEffectiveRole } from "@/app/identity/useEffectiveRole";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -54,11 +54,13 @@ const LEADER_ROLES = new Set([
 ]);
 
 function ViatPage() {
-  const { roleId } = usePersona();
-  const canSeeTeam = LEADER_ROLES.has(roleId);
+  const { roleId } = useEffectiveRole();
+  const canSeeTeam = roleId !== null && LEADER_ROLES.has(roleId);
   const defaultView: ViatView =
     roleId === "RH_ADMIN" || roleId === "CHRO" ? "equipe" : "devolutiva";
-  const [view, setView] = useState<ViatView>(defaultView);
+  // A vista padrão acompanha o papel quando a sessão responde depois do 1º render.
+  const [chosenView, setView] = useState<ViatView | null>(null);
+  const view = chosenView ?? defaultView;
 
   const result = useMemo(() => MARINA_VIAT_RESULT, []);
 
